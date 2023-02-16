@@ -98,6 +98,7 @@ const loadRepositoriesFulfilled = (state, { payload }) => {
 
 const loadRepositoriesFailed = (state, { payload }) => {
   state.loading = false;
+  state.repositories = null;
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
@@ -120,8 +121,9 @@ const deleteRepositoryFailed = (state, { payload }) => {
 };
 
 const loadRepositories = createAsyncThunk(`${REDUCER_NAME}/loadRepositories`, (_, { rejectWithValue }) => {
-  return axios(getRepositoriesUrl())
-    .then(({ data }) => data.repositories)
+  return axios
+    .get(getRepositoriesUrl())
+    .then(path(['data', 'repositories']))
     .catch(rejectWithValue);
 });
 

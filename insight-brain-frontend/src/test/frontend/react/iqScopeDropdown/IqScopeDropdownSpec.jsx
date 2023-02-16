@@ -57,6 +57,15 @@ describe('IqScopeDropdown', () => {
     expect(options[2]).toHaveTextContent('Organization - target3');
   });
 
+  it('renders selected value if option was changed', () => {
+    renderComponent();
+
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'id2' } });
+
+    expect(screen.getByRole('combobox')).toHaveValue('id2');
+  });
+
   it('calls onChange handler if option is changed', () => {
     renderComponent();
 

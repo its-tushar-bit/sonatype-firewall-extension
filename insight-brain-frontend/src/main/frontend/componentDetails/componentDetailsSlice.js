@@ -22,6 +22,7 @@ import {
 import { selectComponentDetailsRequestData } from './overview/overviewSelectors';
 import { Messages } from '../utilAngular/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
+import { processOwnerHierarchy } from 'MainRoot/util/hierarchyUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { selectRouterCurrentParams, selectIsFirewallOrRepository } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
@@ -88,21 +89,6 @@ const flattenLabelsToSingleArray = (labelsByOwner) => {
     });
   });
   return flattenedLabelsArray;
-};
-
-const flattenScopesToSingleArray = (topLevelScope) => {
-  let flattenedScopesArray = [topLevelScope];
-  if (topLevelScope.children) {
-    topLevelScope.children.forEach(function (childScope) {
-      flattenedScopesArray.push(childScope);
-      if (childScope.children) {
-        childScope.children.forEach(function (nextChild) {
-          flattenedScopesArray.push(nextChild);
-        });
-      }
-    });
-  }
-  return flattenedScopesArray;
 };
 
 const onTabChange = (tabId) => {
@@ -353,7 +339,7 @@ const loadApplicableLabelScopesRequested = (state) => {
 const loadApplicableLabelScopesFulfilled = (state, { payload }) => {
   return unsetPendingLoads(['applicableLabelScopes'], {
     ...state,
-    applicableLabelScopes: flattenScopesToSingleArray(payload.data),
+    applicableLabelScopes: processOwnerHierarchy(payload.data).reverse(),
     applicableLabelScopesLoadError: null,
   });
 };

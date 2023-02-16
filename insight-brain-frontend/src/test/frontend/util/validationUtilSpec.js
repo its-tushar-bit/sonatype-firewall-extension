@@ -8,13 +8,14 @@ import {
   validateHostname,
   validateEmailPatternMatch,
   validateMaxLength,
+  validateMinLength,
   validateNonEmpty,
   validateForm,
   validateNameCharacters,
   validateMinMax,
   validateDuplicatedValue,
   verifyFiltersAreValid,
-} from '../../../main/frontend/util/validationUtil';
+} from 'MainRoot/util/validationUtil';
 
 describe('validationUtil', function () {
   describe('validationNonEmpty', () => {
@@ -39,6 +40,21 @@ describe('validationUtil', function () {
 
     it('returns an error message for values with a length greater than maxLength', function () {
       expect(validateMaxLength(4, 'testy')).toEqual('Please enter less than 4 characters');
+    });
+  });
+
+  describe('validateMinLength', () => {
+    it('returns null for values longer than or equal to minLength', function () {
+      expect(validateMinLength(3, '', 'abc')).toBe(null);
+      expect(validateMinLength(7, '', 'ababahalamaha')).toBe(null);
+    });
+
+    it('returns default error message for values with a length lesser than minLength', function () {
+      expect(validateMinLength(4, '', 'tes')).toEqual('Enter at least 4 characters to begin filtering');
+    });
+
+    it('returns predefined error message for values with a length lesser than minLength', function () {
+      expect(validateMinLength(5, 'this is predefined message', 'test')).toEqual('this is predefined message');
     });
   });
 

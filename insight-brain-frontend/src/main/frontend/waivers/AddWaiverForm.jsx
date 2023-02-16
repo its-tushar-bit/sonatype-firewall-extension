@@ -22,7 +22,7 @@ import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
 import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 import { waiverExpirations, waiverMatcherStrategy } from '../util/waiverUtils';
-import ownerConstant from 'MainRoot/utility/services/owner.constant';
+import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
 
 export const isCustomExpiryTimeValid = (value) => {
   if (!value) {
@@ -108,19 +108,11 @@ export default function AddWaiverForm(props) {
     setWaiverScope(target);
   };
 
+  const extractScopeOptionText = ({ label, name }) => (label === 'Repository_container' ? name : `${label} - ${name}`);
+
   const onExpiryTimeChange = (event) => {
     const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;
     setExpiryTime(value);
-  };
-
-  const getAvailableScopeId = (id, type) => {
-    if (id === ownerConstant.ROOT_ORGANIZATION_ID) {
-      return 'root-scope';
-    } else if (type === ownerConstant.ORGANIZATION_TYPE) {
-      return 'organization-scope';
-    } else {
-      return 'application-scope';
-    }
   };
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
@@ -228,19 +220,13 @@ export default function AddWaiverForm(props) {
 
         {/* Scope */}
         <NxFieldset className="iq-add-waiver-form__scope" label="Scope" isRequired>
-          {availableWaiverScopes &&
-            availableWaiverScopes.map(({ id, name, label, type }) => (
-              <NxRadio
-                id={getAvailableScopeId(id, type)}
-                name="add-waiver-target"
-                value={id}
-                isChecked={selectedWaiverScope.id === id}
-                key={id}
-                onChange={handleScopeChange}
-              >
-                {label === 'Repository_container' ? name : `${label} - ${name}`}
-              </NxRadio>
-            ))}
+          <IqScopeDropdown
+            id="iq-add-waiver-scope"
+            onChangeHandler={handleScopeChange}
+            availableScopes={availableWaiverScopes}
+            getOptionText={extractScopeOptionText}
+            currentValue={selectedWaiverScope.id}
+          />
         </NxFieldset>
 
         {/* Components */}

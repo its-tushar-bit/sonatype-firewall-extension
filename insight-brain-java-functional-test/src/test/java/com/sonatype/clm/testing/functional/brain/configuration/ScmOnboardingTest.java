@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
@@ -69,6 +70,8 @@ import static org.openqa.selenium.Keys.BACK_SPACE;
 public class ScmOnboardingTest
     extends AbstractFunctionalTest
 {
+  public static final String EMPTY_JSON_ARRAY = "[]";
+
   private static final String ID_SELECTOR_FORMAT = "http\\:\\/\\/localhost\\:%s\\/%s";
 
   private static final String CI_PROJECT_1_GIT = "depshield-ci\\/ci-project-1";
@@ -81,17 +84,17 @@ public class ScmOnboardingTest
 
   private static final String REPOSITORY_VGO_GIT = "sonatype-nexus-community\\/nexus-repository-vgo";
 
-  public static final String EMPTY_JSON_ARRAY = "[]";
-
-  private PasswordHandler pwHandler;
-
-  private Organization org;
-
   @Rule
   public final WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
   @Rule
   public final WireMockRule secondaryGitService = new WireMockRule(wireMockConfig().dynamicPort());
+
+  private PasswordHandler pwHandler;
+
+  private Organization org;
+
+  private Organization level1ChildOrg;
 
   @After
   public void clearCookies() {
@@ -114,6 +117,7 @@ public class ScmOnboardingTest
             .withBody("{\"username\":\"foo\"}")));
 
     org = tempEntity.newOrganization("Test Org");
+    level1ChildOrg = tempEntity.newOrganization("Child Organization N-Level", org);
 
     setFeatures(LicensedFeature.AUTOMATION);
   }
@@ -299,9 +303,10 @@ public class ScmOnboardingTest
 
     // when we create a new org
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.newOrgName().setValue("Foo Organization");
-    scmOnboardingPage.createOrgButton().click();
-    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+    OwnerEditorDialog.addindTo().shouldHave(text("Adding to: Invalid Auth"));
+    OwnerEditorDialog.name().setValue("Foo Organization");
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().shouldBe(hidden);
 
     // then it should automatically query and fully populate
     verifyAllReposLoaded(scmOnboardingPage);
@@ -487,9 +492,69 @@ public class ScmOnboardingTest
 
     // when the application already exists in IQ
     Application application = tempEntity.newApplication(org.getId());
-    String repositoryUrl = String.format("%s/depshield-ci/ci-project-1.git",gitService.baseUrl());
+    String repositoryUrl = String.format("%s/depshield-ci/ci-project-1.git", gitService.baseUrl());
     tempEntity.newSourceControl(application.getId(), repositoryUrl, new Date());
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
+
+    // it is no longer displayed in the table and the UI is updated
+    scmOnboardingPage.resultsTableProject().shouldHave(sizeGreaterThan(0));
+    assertThat(scmOnboardingPage.resultsTableProject().texts()).doesNotContain("ci-project-1");
+    scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "7% imported"));
+    scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
+  }
+
+  @Test
+  public void testPopulatesRepositories_NLevelOrganization() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+    setupSourceControl();
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(level1ChildOrg.getId()));
+    loginAsAdmin();
+
+    waitUntilUrl(ScmOnboardingPage.url(level1ChildOrg.getId()));
+    // then all repositories were loaded
+    verifyAllReposLoaded(scmOnboardingPage);
+
+    scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "0% imported"));
+    scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("0"));
+
+    // the long descriptions are trimmed
+    scmOnboardingPage.resultsTableDescription().get(13).shouldHave(cssValue("text-overflow", "ellipsis"));
+
+    // the long namespaces are trimmed
+    scmOnboardingPage.resultsTableNamespace().get(13).shouldHave(cssValue("text-overflow", "ellipsis"));
+
+    // the long projects are trimmed
+    scmOnboardingPage.resultsTableProject().get(13).shouldHave(cssValue("text-overflow", "ellipsis"));
+
+    // and the default branches are populated
+    Actions actions = new Actions(WebDriverRunner.getWebDriver());
+    actions.moveToElement(scmOnboardingPage.resultsTableDefaultBranch().first());
+    actions.perform();
+    assertThat(scmOnboardingPage.resultsTableDefaultBranch().texts()).containsExactlyInAnyOrder("master", "main",
+        "prod", "golden", "boss", "shipit", "junk", "release", "ignition", "product", "liftoff", "top", "green",
+        "master");
+
+    // and there is a hover tooltip over the trimmed description
+    scmOnboardingPage.resultsTableDescription().get(13).hover();
+    scmOnboardingPage.descriptionTooltip().should(matchText(".{101,}")).shouldNotHave(text("..."));
+
+    // and there is a hover tooltip over the trimmed namespace
+    scmOnboardingPage.resultsTableNamespace().get(13).hover();
+    scmOnboardingPage.namespaceTooltip().should(matchText(".{50,}")).shouldNotHave(text("..."));
+
+    // and there is a hover tooltip over the trimmed project
+    scmOnboardingPage.resultsTableProject().get(13).hover();
+    scmOnboardingPage.projectTooltip().should(matchText(".{50,}")).shouldNotHave(text("..."));
+
+    // when the application already exists in IQ
+    Application application = tempEntity.newApplication(level1ChildOrg.getId());
+    String repositoryUrl = String.format("%s/depshield-ci/ci-project-1.git", gitService.baseUrl());
+    tempEntity.newSourceControl(application.getId(), repositoryUrl, new Date());
+    refreshOrOpen(ScmOnboardingPage.url(level1ChildOrg.getId()));
 
     // it is no longer displayed in the table and the UI is updated
     scmOnboardingPage.resultsTableProject().shouldHave(sizeGreaterThan(0));
@@ -548,6 +613,48 @@ public class ScmOnboardingTest
     // the statistics are shown and indicate no available repositories (and one already imported)
     scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "100% imported"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
+  }
+
+  @Test
+  public void testValidatePArentOrgInNewOrganizationModal() throws Exception {
+    // given an SCM with git repos
+    setupMockRepos();
+    setupSourceControl();
+
+    Organization level2ChildOrg = tempEntity.newOrganization("Child 2 Organization N-Level", level1ChildOrg);
+    Organization level3ChildOrg = tempEntity.newOrganization("Child 3 Organization N-Level", level2ChildOrg);
+
+    // given SCM onboarding page with a selected organization
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url(level1ChildOrg.getId()));
+    loginAsAdmin();
+
+    waitUntilUrl(ScmOnboardingPage.url(level1ChildOrg.getId()));
+
+    scmOnboardingPage.newOrgButton().click();
+
+    OwnerEditorDialog.addindTo().shouldHave(text("Adding to: Child Organization N-Level"));
+    OwnerEditorDialog.cancelButton().click();
+
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownItems().find(exactText("Child 2 Organization N-Level")).click();
+
+    waitUntilUrl(ScmOnboardingPage.url(level2ChildOrg.getId()));
+
+    scmOnboardingPage.newOrgButton().click();
+
+    OwnerEditorDialog.addindTo().shouldHave(text("Adding to: Child 2 Organization N-Level"));
+    OwnerEditorDialog.cancelButton().click();
+
+    scmOnboardingPage.organizationsDropdown().click();
+    scmOnboardingPage.orgDropdownItems().find(exactText("Child 3 Organization N-Level")).click();
+
+    waitUntilUrl(ScmOnboardingPage.url(level3ChildOrg.getId()));
+
+    scmOnboardingPage.newOrgButton().click();
+
+    OwnerEditorDialog.addindTo().shouldHave(text("Adding to: Child 3 Organization N-Level"));
+    OwnerEditorDialog.cancelButton().click();
   }
 
   private void verifyAllReposLoaded(final ScmOnboardingPage scmOnboardingPage) {
@@ -657,7 +764,6 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectedToImportCount().shouldBe(text("3 of 14 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
         "ci-project-16", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
-
   }
 
   @Test
@@ -1207,7 +1313,12 @@ public class ScmOnboardingTest
     ElementsCollection menuButtons = scmOnboardingPage.orgDropdownItems();
 
     // then the org list is complete. Should be sorted alphabetically
-    menuButtons.shouldHave(exactTexts("Custom Host", "Custom Token", "Test Org", "Test Org 2"));
+    menuButtons.shouldHave(exactTexts(
+        "Child Organization N-Level",
+        "Custom Host",
+        "Custom Token",
+        "Test Org",
+        "Test Org 2"));
 
     // when we select an org
     menuButtons.find(exactText("Test Org")).click();
@@ -1478,14 +1589,13 @@ public class ScmOnboardingTest
 
     // when creating a new organization
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.createOrgButton().shouldBe(visible);
-    scmOnboardingPage.newOrgName().setValue("Foo Organization");
+    OwnerEditorDialog.name().setValue("Foo Organization");
 
     eyesWatcher.eyesCheck("ScmOnboarding new organization modal");
 
     // and pressing the create button
-    scmOnboardingPage.createOrgButton().click();
-    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().shouldBe(hidden);
 
     // Then the new organization is created and selected
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));
@@ -1504,16 +1614,17 @@ public class ScmOnboardingTest
 
     // when creating a new organization that already exists
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.newOrgName().setValue("Foo Organization");
-    scmOnboardingPage.createOrgButton().click();
-    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+    OwnerEditorDialog.name().setValue("Foo Organization");
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().shouldBe(hidden);
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.newOrgName().setValue("Foo Organization");
-    scmOnboardingPage.createOrgButton().click();
+    OwnerEditorDialog.name().setValue("Foo Organization");
+    OwnerEditorDialog.saveButton().click();
 
     // Then the new organization is created and selected
-    scmOnboardingPage.newOrgModalError().shouldHave(text("Failed to create organization. Foo Organization is already" +
-        " used as a name."));
+    OwnerEditorDialog.nameInvalidMessage().shouldHave(text("Name is already in use"));
+    OwnerEditorDialog.formValidationError()
+        .shouldHave(text("There were validation errors. Unable to save: fields with invalid or missing data"));
   }
 
   @Test
@@ -1529,10 +1640,9 @@ public class ScmOnboardingTest
 
     // when creating a new organization with whitespace in its name
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.createOrgButton().shouldBe(visible);
-    scmOnboardingPage.newOrgName().setValue("  Foo Organization  ");
-    scmOnboardingPage.createOrgButton().click();
-    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+    OwnerEditorDialog.name().setValue("  Foo Organization  ");
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().shouldBe(hidden);
 
     // Then the new organization is created and selected
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));
@@ -1551,20 +1661,22 @@ public class ScmOnboardingTest
 
     // and an organization that already exists
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.newOrgName().setValue("Foo Organization");
-    scmOnboardingPage.createOrgButton().click();
-    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+    OwnerEditorDialog.name().setValue("Foo Organization");
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().shouldBe(hidden);
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.newOrgName().setValue("Foo Organization");
-    scmOnboardingPage.createOrgButton().click();
-    scmOnboardingPage.newOrgModalError().shouldHave(text("Failed to create organization. Foo Organization is already" +
-        " used as a name."));
+    OwnerEditorDialog.name().setValue("Foo Organization");
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.nameInvalidMessage().shouldHave(text("Name is already in use"));
+    OwnerEditorDialog.formValidationError()
+        .shouldHave(text("There were validation errors. Unable to save: fields with invalid or missing data"));
 
     // when the organzation name is modified
-    scmOnboardingPage.newOrgName().setValue("Bar Organization");
+    OwnerEditorDialog.name().setValue("Bar Organization");
 
     // then the error is cleared
-    scmOnboardingPage.newOrgModalError().shouldBe(hidden);
+    OwnerEditorDialog.nameInvalidMessage().shouldBe(hidden);
+    OwnerEditorDialog.formValidationError().shouldBe(hidden);
   }
 
   @Test
@@ -1580,11 +1692,11 @@ public class ScmOnboardingTest
 
     // when creating a new organization that already exists
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.newOrgName().setValue("!#$@");
+    OwnerEditorDialog.name().setValue("!#$@");
 
     // then an form validation error is displayed
-    scmOnboardingPage.newOrganizationInvalidMessage().shouldHave(
-        text("Organization name contains an invalid character"));
+    OwnerEditorDialog.nameInvalidMessage().shouldHave(
+        text("Use valid characters: alphanumeric, \"_\", \".\", \"-\", or spaces"));
   }
 
   @Test
@@ -1623,10 +1735,9 @@ public class ScmOnboardingTest
 
     // when creating a new organization
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.createOrgButton().shouldBe(visible);
-    scmOnboardingPage.newOrgName().setValue("Foo Organization");
-    scmOnboardingPage.createOrgButton().click();
-    scmOnboardingPage.newOrgModal().shouldBe(hidden);
+    OwnerEditorDialog.name().setValue("Foo Organization");
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().shouldBe(hidden);
 
     // Then the new organization is created and selected
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));

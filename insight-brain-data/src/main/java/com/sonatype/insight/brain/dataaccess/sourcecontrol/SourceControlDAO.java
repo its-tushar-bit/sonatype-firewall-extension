@@ -5,23 +5,26 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.persistence.NoResultException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -29,8 +32,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.util.CollectionUtils;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -45,59 +48,28 @@ public class SourceControlDAO
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
+  private final OwnerDAO ownerDAO = new OwnerDAO();
+
   private final GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
-
-  // Retrieves source control for application with information of repository even if it is not directly available
-  // in source control row of application (it searches in parent organization or root organization)
-  // The '_SCHEMA_' string will be replaced by the proper schema at runtime.
-  private static final String SELECT_COMPOSITE_SOURCE_CONTROL =
-      "SELECT " +
-          "  sc_app.source_control_id, " +
-          "  sc_app.owner_id," +
-          "  sc_app.repository_url, " +
-          "  COALESCE(sc_app.username, sc_p.username, sc_gp.username) AS username, " +
-          "  COALESCE(sc_app.token, sc_p.token, sc_gp.token) AS token, " +
-          "  COALESCE(sc_app.provider, sc_p.provider, sc_gp.provider) AS provider, " +
-          "  COALESCE(sc_app.base_branch, sc_p.base_branch, sc_gp.base_branch) AS base_branch, " +
-          "  COALESCE(sc_app.remediation_pull_requests_enabled, sc_p.remediation_pull_requests_enabled, " +
-          "   sc_gp.remediation_pull_requests_enabled) AS remediation_pull_requests_enabled, " +
-          "  COALESCE(sc_app.status_checks_enabled, sc_p.status_checks_enabled, sc_gp.status_checks_enabled) " +
-          "   AS status_checks_enabled, " +
-          "  sc_app.pull_request_poll_time, " +
-          "  sc_app.pull_request_error_count, " +
-          "  COALESCE(sc_app.pull_request_commenting_enabled, sc_p.pull_request_commenting_enabled, " +
-          "     sc_gp.pull_request_commenting_enabled) AS pull_request_commenting_enabled, " +
-          "  COALESCE(sc_app.source_control_evaluations_enabled, sc_p.source_control_evaluations_enabled, " +
-          "     sc_gp.source_control_evaluations_enabled) AS source_control_evaluations_enabled, " +
-          "  COALESCE(sc_app.source_control_scan_target, sc_p.source_control_scan_target, " +
-          "     sc_gp.source_control_scan_target) AS source_control_scan_target " +
-          "FROM _SCHEMA_.application app " +
-          "JOIN _SCHEMA_.organization po ON po.organization_id = app.organization_id " +
-          "LEFT JOIN _SCHEMA_.organization gpo ON gpo.organization_id = po.parent_organization_id " +
-          "JOIN _SCHEMA_.source_control sc_app ON sc_app.owner_id = app.application_id " +
-          "LEFT JOIN _SCHEMA_.source_control sc_p ON sc_p.owner_id = po.organization_id " +
-          "LEFT JOIN _SCHEMA_.source_control sc_gp ON sc_gp.owner_id = gpo.organization_id ";
-
-  private static final String SELECT_COMPOSITE_SOURCE_CONTROL_FOR_APPLICATION = SELECT_COMPOSITE_SOURCE_CONTROL +
-      " WHERE app.application_id = ?1";
 
   // The '_SCHEMA_' string will be replaced by the proper schema at runtime.
   private static final String SELECT_APPLICATIONS_FOR_SOURCE_SCAN =
-      "SELECT sc.* " +
-          "FROM ( " + SELECT_COMPOSITE_SOURCE_CONTROL + " ) sc " +
-          "LEFT JOIN ( " +
-          "   SELECT pe.application_id, pe.time, pe.scan_trigger_type " +
-          "     FROM _SCHEMA_.last_policy_evaluation lpe " +
-          "     JOIN _SCHEMA_.policy_evaluation pe ON pe.policy_evaluation_id = lpe.policy_evaluation_id" +
-          "     WHERE lpe.stage_type_id='source' " +
-          ") lpe ON lpe.application_id =  sc.owner_id " +
-          "WHERE ( lpe.time < ?1 " +
-          "        AND lpe.scan_trigger_type " +
-          "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING', " +
-          "                'SOURCE_CONTROL_INTERNAL_PULL_REQUEST'))" +
-          // Here we retrieve applications that don't have a first source policy evaluation
-          // This case happens if the user manually creates the application with source control information
-          "      OR lpe.application_id IS NULL ";
+      "SELECT sc.owner_id " +
+      "FROM _SCHEMA_.source_control sc " +
+      "JOIN application a ON sc.owner_id = a.application_id " +
+      "LEFT JOIN ( " +
+      "   SELECT pe.application_id, pe.time, pe.scan_trigger_type " +
+      "     FROM _SCHEMA_.last_policy_evaluation lpe " +
+      "     JOIN _SCHEMA_.policy_evaluation pe ON pe.policy_evaluation_id = lpe.policy_evaluation_id" +
+      "     WHERE lpe.stage_type_id='source' " +
+      ") lpe ON lpe.application_id = sc.owner_id " +
+      "WHERE ( lpe.time < ?1 " +
+      "        AND lpe.scan_trigger_type " +
+      "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING', " +
+      "                'SOURCE_CONTROL_INTERNAL_PULL_REQUEST'))" +
+      // Here we retrieve applications that don't have a first source policy evaluation
+      // This case happens if the user manually creates the application with source control information
+      "      OR lpe.application_id IS NULL ";
 
   /**
    * The purpose of this method is to update the pull request poll time so it is consistent at this particular instant.
@@ -204,6 +176,38 @@ public class SourceControlDAO
     return get(tx, "SELECT entity FROM SourceControl entity WHERE entity.id=?1", id);
   }
 
+  private SourceControl getCompositeSourceControlByOwnerIds(List<String> ownerIds) {
+    SourceControl sourceControl = new SourceControl();
+
+    // we can't guarantee that the list of source control entries will be in the proper order so we'll order them here
+    orderByHierarchy(ownerIds, getByOwnerIds(ownerIds)).forEach(sc -> SourceControl.coalesce(sourceControl, sc));
+
+    return sourceControl;
+  }
+
+  private List<SourceControl> getByOwnerIds(final List<String> ownerIds) {
+    return getList("SELECT entity FROM SourceControl entity WHERE entity.ownerId IN ?1", ownerIds);
+  }
+
+  private List<SourceControl> orderByHierarchy(List<String> ownerIds, List<SourceControl> unordered) {
+    List<SourceControl> sorted = new ArrayList<>();
+
+    // create a lookup map for the unordered source control entries
+    Map<String, SourceControl> sourceControlMap = new HashMap<>();
+    unordered.forEach(sc -> sourceControlMap.put(sc.getOwnerId(), sc));
+
+    // assemble the unordered source control entries in the order provided
+    ownerIds.forEach(ownerId -> {
+      // we may not have SourceControl records for all ownerIds, so the sorted list above may contain nulls,
+      // which we have to filter out
+      if (sourceControlMap.containsKey(ownerId)) {
+        sorted.add(sourceControlMap.get(ownerId));
+      }
+    });
+
+    return sorted;
+  }
+
   public SourceControl getByIdNotNull(final String id) {
     SourceControl sourceControl = getById(id);
     if (sourceControl == null) {
@@ -220,15 +224,21 @@ public class SourceControlDAO
 
   /**
    * Get all the application-level source control entries which are under a given organization
+   * <br/>
+   * It filters out apps with app-level tokens. We're interested in apps that can be loaded using the
+   * existing org tokens, otherwise they may be on custom hosts
    */
   public List<SourceControl> getApplicationSourceControlsByOrganizationWithRepositories(String orgId) {
-    String query = "SELECT entity " +
-        "FROM SourceControl entity, Application app " +
-        "WHERE entity.ownerId=app.id AND app.organizationId=?1 AND entity.repositoryUrl IS NOT NULL " +
-        // filter out apps with a custom token. We're interested in apps that can be loaded using the
-        // existing org tokens, otherwise they may be on custom hosts
-        "AND entity.token IS NULL";
-    return getList(query, orgId);
+    final Organization organization = organizationDAO.getByIdNotNull(orgId);
+    final Set<String> descendantApplicationIds = ownerDAO.getDescendantOrSelfApplicationIds(organization);
+    if (CollectionUtils.isEmpty(descendantApplicationIds)) {
+      return Collections.emptyList();
+    }
+
+    return getByOwnerIds(new ArrayList<>(descendantApplicationIds))
+        .stream()
+        .filter(sc -> sc.getRepositoryUrl() != null && sc.getToken() == null)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -238,17 +248,49 @@ public class SourceControlDAO
    * @return list of source controls for apps
    */
   public List<SourceControl> getApplicationSourceControlsWithInheritedCredentials() {
-    String query = "SELECT entity " +
-        "FROM SourceControl entity, Application app " +
-        "WHERE entity.repositoryUrl IS NOT NULL and entity.token IS NULL and entity.provider IS NULL " +
-        "AND app.id=entity.ownerId " +
-        "AND NOT EXISTS (" +
-        "SELECT orgEntity FROM SourceControl orgEntity " +
-        "WHERE orgEntity.ownerId = app.organizationId AND " +
-        " (orgEntity.token IS NOT NULL OR orgEntity.provider IS NOT NULL) " +
-        ")";
+    List<SourceControl> result = new ArrayList<>();
 
-    return getList(query);
+    // first get a list of app source controls that haven't overridden credentials
+    String query = "SELECT entity " +
+        "FROM SourceControl entity " +
+        "WHERE entity.repositoryUrl IS NOT NULL AND entity.token IS NULL AND entity.provider IS NULL";
+
+    List<SourceControl> candidateAppSourceControlList = getList(query);
+
+    // next get a set of org source control IDs that have overridden credentials
+    Set<String> ownerIdsThatOverrideCredentials = getOwnerIdsForSourceControlsWithOverriddenCredentials();
+
+    // filter out the candidates that have overridden credentials somewhere in their hierarchy
+    OwnerHierarchyHelper hierarchyHelper = new OwnerHierarchyHelper(ownerDAO);
+    for (SourceControl sourceControl : candidateAppSourceControlList) {
+      List<String> ownerIds = hierarchyHelper.getHierarchyIds(sourceControl.getOwnerId());
+      if (Collections.disjoint(ownerIds, ownerIdsThatOverrideCredentials)) {
+        result.add(sourceControl);
+      }
+    }
+
+    return result;
+  }
+
+  private Set<String> getOwnerIdsForSourceControlsWithOverriddenCredentials() {
+    Set<String> result = new HashSet<>();
+
+    try (TransactionContext txn = createTransactionContext()) {
+      txn.begin();
+
+      javax.persistence.Query query = txn.createNativeQuery(injectSchemaName(
+          "SELECT owner_id FROM _SCHEMA_.source_control " +
+              "WHERE owner_id != ?1 AND (token IS NOT NULL OR provider IS NOT NULL);"));
+      query.setParameter(1, ROOT_ORGANIZATION_ID);
+
+      List<String> ownerIdsForSourceControlsWithOverriddenCredentials = query.getResultList();
+
+      if (!CollectionUtils.isEmpty(ownerIdsForSourceControlsWithOverriddenCredentials)) {
+        result.addAll(ownerIdsForSourceControlsWithOverriddenCredentials);
+      }
+    }
+
+    return result;
   }
 
   private List<SourceControl> getByOrganization() {
@@ -261,11 +303,13 @@ public class SourceControlDAO
     // an application is enabled if it has a valid repository_url and remediation_pull_requests_enabled is set at the
     // application, parent organization, or root organization level
 
-    SourceControl scRootOrg = getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-
-    Map<String, Application> applicationsById = applicationDAO.getAll()
+    Map<String, Application> appsById = applicationDAO.getAll()
         .stream()
         .collect(Collectors.toMap(Application::getId, Function.identity()));
+
+    Map<String, Organization> orgsById = organizationDAO.getAll()
+        .stream()
+        .collect(Collectors.toMap(Organization::getId, Function.identity()));
 
     Map<String, SourceControl> orgSourceControlsByOrgId = getByOrganization()
         .stream()
@@ -273,17 +317,16 @@ public class SourceControlDAO
 
     return getByApplication()
         .stream()
-        .filter(
-            application -> areRemediationPullRequestsEnabled(application, applicationsById, orgSourceControlsByOrgId,
-                scRootOrg))
-        .collect(ImmutableList.toImmutableList());
+        .filter( application ->
+            areRemediationPullRequestsEnabled(application, appsById, orgsById, orgSourceControlsByOrgId))
+        .collect(Collectors.toList());
   }
 
   private boolean areRemediationPullRequestsEnabled(
       final SourceControl sourceControl,
       final Map<String, Application> applicationsById,
-      final Map<String, SourceControl> orgSourceControlsByOrgId,
-      final SourceControl scRootOrg)
+      final Map<String, Organization> organizationsById,
+      final Map<String, SourceControl> orgSourceControlsByOrgId)
   {
     if (sourceControl.getRemediationPullRequestsEnabled() != null) {
       return sourceControl.getRemediationPullRequestsEnabled();
@@ -291,18 +334,26 @@ public class SourceControlDAO
 
     // application did not define a value, so check organization
     String orgId = applicationsById.get(sourceControl.getOwnerId()).getOrganizationId();
+
+    return getRemediationPullRequestsEnabled(orgId, organizationsById, orgSourceControlsByOrgId);
+  }
+
+  private boolean getRemediationPullRequestsEnabled(
+      final String orgId,
+      final Map<String, Organization> organizationsById,
+      final Map<String, SourceControl> orgSourceControlsByOrgId)
+  {
     if (orgSourceControlsByOrgId.containsKey(orgId)) {
-      SourceControl orgSourcControl = orgSourceControlsByOrgId.get(orgId);
-      if (orgSourcControl.getRemediationPullRequestsEnabled() != null) {
-        return orgSourcControl.getRemediationPullRequestsEnabled();
+      SourceControl orgSourceControl = orgSourceControlsByOrgId.get(orgId);
+      if (orgSourceControl.getRemediationPullRequestsEnabled() != null) {
+        return orgSourceControl.getRemediationPullRequestsEnabled();
       }
     }
-
-    // organization did not define a value, check root org
-    if (scRootOrg != null && scRootOrg.getRemediationPullRequestsEnabled() != null) {
-      return scRootOrg.getRemediationPullRequestsEnabled();
+    final Organization organization = organizationsById.get(orgId);
+    if (organization != null) {
+      return getRemediationPullRequestsEnabled(organization.getParentOwnerId(), organizationsById,
+          orgSourceControlsByOrgId);
     }
-
     // could not find a defined value
     return false;
   }
@@ -534,51 +585,78 @@ public class SourceControlDAO
   }
 
   public SourceControl getCompositeSourceControlByApplicationId(final String applicationId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query =
-          tx.createNativeQuery(updateSchema(SELECT_COMPOSITE_SOURCE_CONTROL_FOR_APPLICATION), SourceControl.class);
-      query.setParameter(1, applicationId);
-
-      return (SourceControl) query.getSingleResult();
-    }
-    catch (NoResultException e) {
+    List<String> ownerIds = ownerDAO.getOwnerIds(applicationId);
+    if (CollectionUtils.isEmpty(ownerIds)) {
       return null;
     }
+    return getCompositeSourceControlByOwnerIds(ownerIds);
   }
 
   public List<SourceControl> getCompositeSourceControlForOutdatedSourceScans(
       final Date scanLimitDate)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(updateSchema(SELECT_APPLICATIONS_FOR_SOURCE_SCAN));
-
+      javax.persistence.Query query = tx.createNativeQuery(injectSchemaName(SELECT_APPLICATIONS_FOR_SOURCE_SCAN));
       query.setParameter(1, scanLimitDate);
-
-      return ((Stream<Object[]>) query.getResultStream()).parallel()
-          .map(array -> {
-            SourceControl sc = new SourceControl();
-            sc.setId((String) array[0]);
-            sc.setOwnerId((String) array[1]);
-            sc.setRepositoryUrl((String) array[2]);
-            sc.setUsername((String) array[3]);
-            sc.setToken((String) array[4]);
-            sc.setProvider(SourceControlProvider.fromString((String) array[5]));
-            sc.setBaseBranch((String) array[6]);
-            sc.setRemediationPullRequestsEnabled((Boolean) array[7]);
-            sc.setStatusChecksEnabled((Boolean) array[8]);
-            sc.setPullRequestPollTime(array[9] == null ? null : new Date(((Timestamp) array[9]).getTime()));
-            sc.setPullRequestErrorCount((int) array[10]);
-            sc.setPullRequestCommentingEnabled((Boolean) array[11]);
-            sc.setSourceControlEvaluationsEnabled((Boolean) array[12]);
-            sc.setSourceControlScanTarget((String) array[13]);
-
-            return sc;
-          })
-          .collect(Collectors.toList());
+      List<String> initialOwnerIdList = query.getResultList();
+      return expandToCompositeSourceControlEntries(initialOwnerIdList);
     }
   }
 
-  private String updateSchema(final String sql) {
+  // @todo - need to leverage the OwnerHierarychHelper to help minimize the DB calls to the OwnerDAO that are
+  // done transitively in the forEach call below
+  private List<SourceControl> expandToCompositeSourceControlEntries(List<String> initialOwnerIdList) {
+    List<SourceControl> result = new ArrayList<>();
+    initialOwnerIdList.forEach(ownerId -> result.add(getCompositeSourceControlByApplicationId(ownerId)));
+    return result;
+  }
+
+  private String injectSchemaName(final String sql) {
     return sql.replace("_SCHEMA_", OperationalDataStoreProvider.getDatabaseSchema());
+  }
+
+  /**
+   * this is a helper class to TEMPORARILY cache the org hierarchy for applications as we iterate over them
+   * so that we only build those parent-child relationships once during an operation in order to eliminate
+   * redundant DB calls
+   */
+  static class OwnerHierarchyHelper
+  {
+    private final OwnerDAO ownerDAO;
+
+    private Map<String, String> childParentMap = new HashMap<>();
+
+    OwnerHierarchyHelper(OwnerDAO ownerDAO) {
+      this.ownerDAO = ownerDAO;
+    }
+
+    List<String> getHierarchyIds(final String childId) {
+      populateHierarchyIds(childId);
+
+      List<String> orderedHierarchy = new ArrayList<>();
+      String ownerId = childId;
+      while (null != ownerId) {
+        orderedHierarchy.add(ownerId);
+        ownerId = childParentMap.get(ownerId);
+      }
+      return orderedHierarchy;
+    }
+
+    void populateHierarchyIds(final String childId) {
+      if (null == childId) {
+        return;
+      }
+      if (!childParentMap.containsKey(childId)) {
+        // we haven't traversed this child's ancestry yet
+        String ownerId = getOwnerFromDb(childId);
+        childParentMap.put(childId, ownerId);
+        populateHierarchyIds(ownerId);
+      }
+    }
+
+    private String getOwnerFromDb(final String childId) {
+      Owner owner = ownerDAO.getById(childId);
+      return null != owner ? owner.getParentOwnerId() : null;
+    }
   }
 }

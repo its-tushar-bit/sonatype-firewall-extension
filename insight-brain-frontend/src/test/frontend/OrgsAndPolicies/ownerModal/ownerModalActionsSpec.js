@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { getApplicationsUrl, getOrganizationsUrl, getAddIconUrl } from 'MainRoot/util/CLMLocation';
+import { getApplicationsUrl, getNLevelOrgUrl, getAddIconUrl } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { nxTextInputStateHelpers, nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
@@ -73,6 +73,7 @@ const createOrgState = {
         isModalOpen: true,
         isEditMode: false,
         ownerIconType: '',
+        isApplication: false,
         ownerIcon: rscInitialFileUploadState(null),
         robotHash: '',
         validationErrors: [null],
@@ -110,6 +111,7 @@ const createAppState = {
         submitError: null,
         submitMaskState: null,
         isModalOpen: true,
+        isApplication: true,
         isEditMode: false,
         ownerIconType: '',
         ownerIcon: rscInitialFileUploadState(null),
@@ -216,7 +218,7 @@ describe('ownerModal actions', () => {
 
   it('handles create new organization', (done) => {
     const store = SpecUtil.mockReduxStore(createOrgState);
-    mock.onPost(getOrganizationsUrl()).reply(200, {
+    mock.onPost(getNLevelOrgUrl()).reply(200, {
       data: {
         id: 'organizationThreeID',
         name: 'OrganizationThreeName',
@@ -225,19 +227,9 @@ describe('ownerModal actions', () => {
 
     store.dispatch(actions.createNewOwner()).then(() => {
       expect(mock.history.post.length).toBe(1);
-      expect(mock.history.post[0].url).toBe(getOrganizationsUrl());
+      expect(mock.history.post[0].url).toBe(getNLevelOrgUrl());
 
       const actions = store.getActions();
-      expect(actions.length).toBe(5);
-      expect(actions).toHaveActionTypesInOrder([
-        'ownerActions/ownerModal/createOwner/pending',
-        'ownerActions/updateApplication/pending',
-        'organizations/updateOrganization',
-        'ownerActions/updateApplication/fulfilled',
-        'ownerActions/ownerModal/createOwner/fulfilled',
-      ]);
-
-      jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
       expect(actions.length).toBe(6);
       expect(actions).toHaveActionTypesInOrder([
@@ -245,9 +237,14 @@ describe('ownerModal actions', () => {
         'ownerActions/updateApplication/pending',
         'organizations/updateOrganization',
         'ownerActions/updateApplication/fulfilled',
+        'ownerSideNav/updateOwnersMapWithNewEntry',
         'ownerActions/ownerModal/createOwner/fulfilled',
-        'ownerActions/ownerModal/closeModal',
       ]);
+
+      jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+      expect(actions.length).toBe(7);
+      expect(actions).toHaveActionType('ownerActions/ownerModal/closeModal');
 
       done();
     });
@@ -269,16 +266,6 @@ describe('ownerModal actions', () => {
       expect(mock.history.post[0].url).toBe(getApplicationsUrl());
 
       const actions = store.getActions();
-      expect(actions.length).toBe(5);
-      expect(actions).toHaveActionTypesInOrder([
-        'ownerActions/ownerModal/createOwner/pending',
-        'ownerActions/updateApplication/pending',
-        'applications/updateApplication',
-        'ownerActions/updateApplication/fulfilled',
-        'ownerActions/ownerModal/createOwner/fulfilled',
-      ]);
-
-      jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
       expect(actions.length).toBe(6);
       expect(actions).toHaveActionTypesInOrder([
@@ -286,9 +273,14 @@ describe('ownerModal actions', () => {
         'ownerActions/updateApplication/pending',
         'applications/updateApplication',
         'ownerActions/updateApplication/fulfilled',
+        'ownerSideNav/updateOwnersMapWithNewEntry',
         'ownerActions/ownerModal/createOwner/fulfilled',
-        'ownerActions/ownerModal/closeModal',
       ]);
+
+      jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+      expect(actions.length).toBe(7);
+      expect(actions).toHaveActionType('ownerActions/ownerModal/closeModal');
 
       done();
     });
@@ -296,7 +288,7 @@ describe('ownerModal actions', () => {
 
   it('handles edit current organization', (done) => {
     const store = SpecUtil.mockReduxStore(editOrgState);
-    mock.onPut(getOrganizationsUrl()).reply(200, {
+    mock.onPut(getNLevelOrgUrl()).reply(200, {
       data: {
         id: 'organizationOneID',
         name: 'newOwnerName',
@@ -306,7 +298,7 @@ describe('ownerModal actions', () => {
 
     store.dispatch(actions.editCurrentOwner()).then(() => {
       expect(mock.history.put.length).toBe(1);
-      expect(mock.history.put[0].url).toBe(getOrganizationsUrl());
+      expect(mock.history.put[0].url).toBe(getNLevelOrgUrl());
 
       const actions = store.getActions();
       expect(actions.length).toBe(5);

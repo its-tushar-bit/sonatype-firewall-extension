@@ -3,13 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { pick } from 'ramda';
 import { connect } from 'react-redux';
 import AddSuccessMetricsReport from './AddSuccessMetricsReport';
 import * as addSuccessMetricsReportActions from './addSuccessMetricsReportActions';
 
-function mapStateProp({ successMetrics: { addSuccessMetricsReport } }, { close, dismiss, reports }) {
+function mapStateProp(
+  { successMetrics: { addSuccessMetricsReport }, orgsAndPolicies: { ownerSideNav } },
+  { close, dismiss, reports }
+) {
   return {
     ...addSuccessMetricsReport,
+    ...pick(['ownersMap', 'topParentOrganizationId'], ownerSideNav),
     close,
     dismiss,
     reports,

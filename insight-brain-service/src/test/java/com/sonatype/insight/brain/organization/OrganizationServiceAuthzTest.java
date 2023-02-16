@@ -107,4 +107,25 @@ public class OrganizationServiceAuthzTest
     login();
     organizationService.deleteOrganization(org.getId());
   }
+
+  @Test
+  public void testGetOrganization_Authorized() {
+    grantReadPermission(org.getId());
+
+    Organization organization = organizationService.getOrganization(org.getId());
+    assertThat(organization).isNotNull();
+    assertThat(organization.getId()).isEqualTo(org.getId());
+    assertThat(organization.getName()).isEqualTo(org.getName());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetOrganization_Unauthorized() {
+    login();
+    organizationService.getOrganization(org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetOrganization_Unauthenticated() {
+    organizationService.getOrganization(org.getId());
+  }
 }

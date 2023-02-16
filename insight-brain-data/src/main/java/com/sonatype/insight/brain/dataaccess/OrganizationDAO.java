@@ -100,17 +100,16 @@ public class OrganizationDAO
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
     }
 
-    /*
-     * Authorization checks follow the hierarchy indicated by the parent IDs. For these checks to be effective, the
-     * protected code needs to follow the same path and not silently change the path by using another parent.
-     */
-    if (organization.getParentOrganizationId() != null
-        && !organization.getParentOrganizationId().equals(Organization.ROOT_ORGANIZATION_ID)) {
-      throw new BadRequestException("Invalid parent organization");
+    if (organization.getParentOrganizationId() != null) {
+      Organization parentOrg = getById(tx, organization.getParentOrganizationId());
+      if (parentOrg == null) {
+        throw new BadRequestException("Invalid parent organization");
+      }
     }
-
-    // Make sure the parent org is set to the root on creation
-    organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
+    else {
+      // Make sure the parent org is set to the root on creation
+      organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
+    }
 
     super.insert(tx, organization);
   }
@@ -124,8 +123,11 @@ public class OrganizationDAO
       organization.setParentOrganizationId(null);
     }
     else {
-      // Make sure the parent org is set to the root on creation
-      organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
+      // Make sure the parent org has not changed
+      Organization persistedOrg = getById(tx, organization.getId());
+      if (!persistedOrg.getParentOrganizationId().equals(organization.getParentOrganizationId())) {
+        throw new BadRequestException("Cannot change the parent organization id");
+      }
     }
 
     Organization existingOrganization = getByName(tx, organization.getName());
@@ -224,6 +226,12 @@ public class OrganizationDAO
     String sQuery = "SELECT entity FROM Organization entity" + //
         " WHERE entity.parentOrganizationId=?1";
     return getList(tx, sQuery, parentOrganizationId);
+  }
+
+  public List<Organization> getByParentOrganizationId(String parentOrganizationId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByParentOrganizationId(tx, parentOrganizationId);
+    }
   }
 
   @Override

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getPermissionsTestUrl } from 'MainRoot/util/CLMLocation';
+import { getPermissionContextTestUrl } from 'MainRoot/util/CLMLocation';
 
 import { getPermissions, checkPermissions, authErrorMessage } from '../../../main/frontend/util/authorizationUtil';
 
@@ -14,7 +14,9 @@ describe('authorizationUtil', () => {
   beforeEach(() => {
     mockAxiosCalls({
       put: {
-        [getPermissionsTestUrl('ownerType', 'ownerId')]: Promise.resolve({ data: ['permission1', 'permission2'] }),
+        [getPermissionContextTestUrl('ownerType', 'ownerId')]: Promise.resolve({
+          data: ['permission1', 'permission2'],
+        }),
       },
     });
   });

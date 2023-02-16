@@ -38,7 +38,7 @@ import { selectIsApplication, selectIsOrganization, selectRouterSlice } from 'Ma
 
 import { actions as assignApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import { actions as createEditApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
-import { curryN } from 'ramda';
+import { curryN, isEmpty } from 'ramda';
 import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
@@ -115,6 +115,7 @@ export default function ApplicationCategoriesTile() {
 
   const renderList = (categories, title, emptyMessage, isLink) => {
     const items = categories.map(renderListItem(isLink));
+    if (isEmpty(categories) && !isLink && !isApp) return;
     return (
       <NxTile.Subsection>
         <NxTile.SubsectionHeader>

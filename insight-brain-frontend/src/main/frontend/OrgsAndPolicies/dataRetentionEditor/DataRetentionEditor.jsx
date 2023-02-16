@@ -12,6 +12,8 @@ import {
   selectValidationErrors,
   selectRetentionSlice,
 } from 'MainRoot/OrgsAndPolicies/retentionSelectors';
+import { selectSelectedOwnerParentId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+
 import { actions } from 'MainRoot/OrgsAndPolicies/retentionSlice';
 import DataRetentionEditorItem from './DataRetentionEditorItem';
 
@@ -32,6 +34,7 @@ export default function PolicyViolationsGrandfatheringEditor() {
   const stagesServerData = useSelector(selectApplicationReportsStagesServerData);
   const parentData = useSelector(selectApplicationReportsParentStages);
   const validationErrors = useSelector(selectValidationErrors);
+  const parentId = useSelector(selectSelectedOwnerParentId);
 
   const {
     loading,
@@ -45,13 +48,20 @@ export default function PolicyViolationsGrandfatheringEditor() {
   } = useSelector(selectRetentionSlice);
 
   const doLoad = () => dispatch(actions.loadRetention());
+  const setLoading = () => dispatch(actions.setLoading());
 
   const handleSubmit = () => {
     dispatch(actions.updateRetention());
   };
 
   useEffect(() => {
-    doLoad();
+    if (parentId !== undefined) {
+      doLoad();
+    }
+  }, [parentId]);
+
+  useEffect(() => {
+    setLoading();
   }, []);
 
   return (

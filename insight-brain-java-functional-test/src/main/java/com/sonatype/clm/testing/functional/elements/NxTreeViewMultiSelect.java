@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.exactText;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class NxTreeViewMultiSelect
@@ -34,6 +35,12 @@ public class NxTreeViewMultiSelect
   public NxCheckbox checkboxItem(int index) {
     return new NxCheckbox(child(".nx-collapsible-items__children .nx-collapsible-items__child.nx-checkbox",
             nthChild(index)));
+  }
+
+  public NxCheckbox checkboxItem(String elementText) {
+    ElementsCollection elements = getElement()
+        .$$(".nx-collapsible-items__children .nx-collapsible-items__child.nx-checkbox");
+    return new NxCheckbox(elements.findBy(exactText(elementText)));
   }
 
   public NxRadio radioItem(int index) {

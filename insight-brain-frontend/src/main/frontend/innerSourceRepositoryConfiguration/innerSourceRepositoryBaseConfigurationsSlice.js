@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { selectOwnerTypeAndOwnerId } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSelectors';
+import { prop } from 'ramda';
 import axios from 'axios';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { getRepositoryConnectionUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectFormState } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSelectors';
-import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import {
   getOriginalValues,
   toFormState,
@@ -18,7 +18,12 @@ import {
 import { pathSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectSelectedOwnerId, selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import {
+  selectSelectedOwnerTypeAndId,
+  selectSelectedOwnerId,
+  selectOwnerProperties,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectOwnerTypeAndOwnerId } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSelectors';
 
 export const SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE = 'Saving Configuration';
 export const SUBMIT_MASK_TESTING_CONFIGURATION_MESSAGE = 'Testing Configuration';
@@ -51,12 +56,12 @@ function resetFormState(state) {
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, (data, { getState, rejectWithValue }) => {
   const state = getState();
-  const { ownerType, ownerId } = selectOwnerProperties(state);
-  const selectedOwnerId = selectSelectedOwnerId(state);
+  const { ownerId } = selectSelectedOwnerTypeAndId(state);
+  const { ownerId: routerOwnerId, ownerType } = selectOwnerProperties(state);
 
   return axios
-    .get(getRepositoryConnectionUrl(ownerType, selectedOwnerId || ownerId, null, data?.inherit))
-    .then(({ data }) => data)
+    .get(getRepositoryConnectionUrl(ownerType, ownerId || routerOwnerId, null, data?.inherit))
+    .then(prop('data'))
     .catch(rejectWithValue);
 });
 

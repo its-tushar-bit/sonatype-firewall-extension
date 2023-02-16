@@ -56,7 +56,7 @@ describe('addSuccessMetricsReportActions', () => {
         },
       });
       store.dispatch(loadOrgsAndApps()).then(() => {
-        const [, { type, payload }] = actions;
+        const { type, payload } = actions[3];
         expect(type).toBe(ADD_SUCCESS_METRICS_REPORT_LOAD_ORGS_APPS_FULFILLED);
         expect(payload).toEqual({
           organizations: [{}],
@@ -77,7 +77,7 @@ describe('addSuccessMetricsReportActions', () => {
         },
       });
       store.dispatch(loadOrgsAndApps()).then(() => {
-        const [, { type, payload }] = actions;
+        const { type, payload } = actions[3];
         expect(type).toBe(ADD_SUCCESS_METRICS_REPORT_LOAD_ORGS_APPS_FAILED);
         expect(payload).toEqual(error);
         done();

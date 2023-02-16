@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -90,8 +91,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class ApplicationDAOTest
     extends AbstractDbDAOTest
 {
-  /** Prohibited application public ID whitespace characters. */
-  public static final char[] PUBLIC_ID_WHITESPACE_CHARS = { '\t', '\n', '\u000B', '\f', '\r' };
+  /**
+   * Prohibited application public ID whitespace characters.
+   */
+  public static final char[] PUBLIC_ID_WHITESPACE_CHARS = {'\t', '\n', '\u000B', '\f', '\r'};
 
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -129,6 +132,26 @@ public class ApplicationDAOTest
 
     // getAll should return appCount + 1, to account for app created by AbstractDbDAOTest
     assertThat(applicationDAO.getAll()).hasSize(appCount + 1);
+  }
+
+  @Test
+  public void testGetAllOrderedByName() {
+    tempEntity.newApplicationWithParent("application-1", "Application Z1");
+    tempEntity.newApplicationWithParent("application-2", "Application A3");
+    tempEntity.newApplicationWithParent("application-3", "Application A2");
+    tempEntity.newApplicationWithParent("application-4", "Application A1");
+    tempEntity.newApplicationWithParent("application-5", "Application M1");
+
+    assertThat(applicationDAO.getAllOrderedByName().stream().map(a -> a.getName())).isEqualTo(
+        Arrays.asList(
+            "AbstractDbDAOTest-AppName",
+            "Application A1",
+            "Application A2",
+            "Application A3",
+            "Application M1",
+            "Application Z1"
+        )
+    );
   }
 
   @Test
@@ -919,7 +942,7 @@ public class ApplicationDAOTest
     assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(application, scanId2))).isNotNull();
     assertThat(ClusterLock.LOCKS_BY_ID.get(ClusterLock.getLockIdForPolicyEvaluation(otherApplication, scanId3)))
         .isNotNull();
-    
+
     // Lock for audit json file store
     try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(application.getId())) {
       clusterLock.lock();

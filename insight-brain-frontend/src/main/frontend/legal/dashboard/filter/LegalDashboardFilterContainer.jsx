@@ -9,10 +9,11 @@ import { pick } from 'ramda';
 import * as manageLegalFiltersActions from './manageLegalFiltersActions';
 import * as legalDashboardFilterActions from './legalDashboardFilterActions';
 
-function mapStateToProps({ manageLegalFilters, legalDashboardFilter }) {
+function mapStateToProps({ manageLegalFilters, legalDashboardFilter, orgsAndPolicies: { ownerSideNav } }) {
   return {
     ...legalDashboardFilter,
     ...pick(['appliedFilterName', 'showDirtyAsterisk', 'savedFilters'], manageLegalFilters),
+    ...pick(['ownersMap', 'topParentOrganizationId'], ownerSideNav),
   };
 }
 

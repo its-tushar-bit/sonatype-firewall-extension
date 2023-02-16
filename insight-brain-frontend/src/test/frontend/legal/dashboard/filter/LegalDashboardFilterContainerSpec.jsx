@@ -21,6 +21,24 @@ describe('LegalDashboardFilterContainerSpec', function () {
       legalDashboardFilter: {
         foo: 'bar',
       },
+      orgsAndPolicies: {
+        ownerSideNav: {
+          ownersMap: {
+            ROOT_ORGANIZATION_ID: {
+              type: 'organization',
+              id: 'ROOT_ORGANIZATION_ID',
+              name: 'Root Organization',
+              synthetic: true,
+              parentOrganizationId: null,
+              applicationIds: null,
+              subOrgs: 0,
+              totalApps: 0,
+              organizationIds: [],
+            },
+          },
+          topParentOrganizationId: 'ROOT_ORGANIZATION_ID',
+        },
+      },
     };
 
     loadFilterMock = jasmine.createSpy('loadFilter').and.returnValue({ type: 'FOO' });

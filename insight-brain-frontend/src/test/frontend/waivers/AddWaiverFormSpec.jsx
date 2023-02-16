@@ -21,6 +21,7 @@ import AddWaiverForm from 'MainRoot/waivers/AddWaiverForm';
 import ArtifactNameDisplay from 'MainRoot/react/ArtifactNameDisplay';
 import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
 import * as VulnerabilityDetailsModalContainer from 'MainRoot/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
+import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
 
 describe('AddWaiverForm', function () {
   let minimalProps,
@@ -209,51 +210,15 @@ describe('AddWaiverForm', function () {
     expect(component.find('.iq-add-waiver-form__vulnerability_details_link')).not.toExist();
   });
 
-  it('renders a fieldset with NxRadios for the WaiverTargets', function () {
-    const component = getShallowComponent(),
-      waiverTargetsSection = component.find('.iq-add-waiver-form__scope'),
-      targetRadios = waiverTargetsSection.find(NxRadio);
+  it('renders a fieldset with NxFormSelect for the WaiverTargets', function () {
+    const component = getShallowComponent();
+    const waiverTargetsSection = component.find('.iq-add-waiver-form__scope');
+    const targetSelect = waiverTargetsSection.find(IqScopeDropdown);
 
     expect(waiverTargetsSection).toExist();
     expect(waiverTargetsSection).toHaveProp('label', 'Scope');
 
-    expect(targetRadios.length).toBe(3);
-    expect(targetRadios.at(0)).toHaveProp('id', 'application-scope');
-    expect(targetRadios.at(0)).toHaveProp('name', 'add-waiver-target');
-    expect(targetRadios.at(0)).toHaveProp('value', 'id1');
-    expect(targetRadios.at(0)).toHaveProp('isChecked', true);
-    expect(targetRadios.at(0)).toHaveText('Application - target1');
-
-    expect(targetRadios.at(1)).toHaveProp('id', 'organization-scope');
-    expect(targetRadios.at(1)).toHaveProp('name', 'add-waiver-target');
-    expect(targetRadios.at(1)).toHaveProp('value', 'id2');
-    expect(targetRadios.at(1)).toHaveProp('isChecked', false);
-    expect(targetRadios.at(1)).toHaveText('Organization - target2');
-
-    expect(targetRadios.at(2)).toHaveProp('id', 'root-scope');
-    expect(targetRadios.at(2)).toHaveProp('name', 'add-waiver-target');
-    expect(targetRadios.at(2)).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
-    expect(targetRadios.at(2)).toHaveProp('isChecked', false);
-    expect(targetRadios.at(2)).toHaveText('Organization - target3');
-  });
-
-  it('calls `setWaiverScope` when the waiver target is changed', function () {
-    let component = getShallowComponent(),
-      waiverTargetsSection = component.find('.iq-add-waiver-form__scope'),
-      targetRadios = waiverTargetsSection.find(NxRadio),
-      radio1 = targetRadios.at(0),
-      radio2 = targetRadios.at(1);
-
-    expect(radio1).toHaveProp('isChecked', true);
-    expect(radio2).toHaveProp('isChecked', false);
-
-    radio2.simulate('change', 'id2');
-    expect(setWaiverScopeSpy).toHaveBeenCalledWith({
-      id: 'id2',
-      name: 'target2',
-      label: 'Organization',
-      type: 'organization',
-    });
+    expect(targetSelect).toExist();
   });
 
   it('renders a fieldset with NxRadios for the waiver components', function () {

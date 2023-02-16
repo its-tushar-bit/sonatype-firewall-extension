@@ -6,9 +6,91 @@
 window.SidebarResourceMockData = {
   getOwnerListUrl: function () {
     return {
+      topParentOrganizationId: 'ROOT_ORGANIZATION_ID',
+      ownersMap: {
+        organizationOneID: {
+          id: 'organizationOneID',
+          name: 'Organization One Name',
+          parentOrganizationId: 'ROOT_ORGANIZATION_ID',
+          synthetic: false,
+          applicationIds: [
+            'applicationOnePublicID',
+            'applicationTwoPublicID',
+            'applicationAnalyticsGateway151ID',
+            'applicationAnalyticsGateway150PublicID',
+            'applicationAnalyticsGateway161PublicID',
+            'applicationAnalyticsGateway220PublicID',
+            'applicationZamarchiveWebappPublicID',
+          ],
+          organizationsIds: [],
+        },
+        applicationOnePublicID: {
+          id: 'applicationOneID',
+          publicId: 'applicationOnePublicID',
+          organizationId: 'organizationOneID',
+          name: 'Application One Name',
+        },
+        applicationTwoPublicID: {
+          id: 'applicationTwoID',
+          publicId: 'applicationTwoPublicID',
+          organizationId: 'organizationOneID',
+          name: 'Application Two Name',
+        },
+        applicationAnalyticsGateway151ID: {
+          id: 'applicationAnalyticsGateway151ID',
+          publicId: 'applicationAnalyticsGateway151PublicID',
+          organizationId: 'organizationOneID',
+          name: 'analytics-gateway-1.5.1',
+        },
+        applicationAnalyticsGateway150ID: {
+          id: 'applicationAnalyticsGateway150ID',
+          publicId: 'applicationAnalyticsGateway150PublicID',
+          organizationId: 'organizationOneID',
+          name: 'analytics-gateway-1.5.0',
+        },
+        applicationAnalyticsGateway161ID: {
+          id: 'applicationAnalyticsGateway161ID',
+          publicId: 'applicationAnalyticsGateway161PublicID',
+          organizationId: 'organizationOneID',
+          name: 'analytics-gateway-1.6.1',
+        },
+        applicationAnalyticsGateway220ID: {
+          id: 'applicationAnalyticsGateway220ID',
+          publicId: 'applicationAnalyticsGateway220PublicID',
+          organizationId: 'organizationOneID',
+          name: 'analytics-gateway-2.2.0',
+        },
+        applicationZamarchiveWebappPublicID: {
+          id: 'zamarchive-webapp',
+          publicId: 'applicationZamarchiveWebappPublicID',
+          organizationId: 'organizationOneID',
+          name: 'zamarchive-webapp',
+        },
+        applicationThreeID: {
+          id: 'applicationThreeID',
+          publicId: 'applicationThreePublicID',
+          organizationId: 'organizationTwoID',
+          name: 'Application Three Name',
+        },
+        organizationTwoID: {
+          id: 'organizationTwoID',
+          name: 'Organization Two Name',
+          parentOrganizationId: 'ROOT_ORGANIZATION_ID',
+          synthetic: true,
+          applicationIds: ['applicationThreeID'],
+          organizationIds: [],
+        },
+        ROOT_ORGANIZATION_ID: {
+          id: 'ROOT_ORGANIZATION_ID',
+          name: 'Root Organization',
+          synthetic: false,
+          applicationIds: [],
+          organizationIds: ['', ''],
+        },
+      },
       organizations: [
         {
-          id: 'organizationOneID',
+          id: 'applicationThreePublicID',
           name: 'Organization One Name',
           synthetic: false,
           applications: [
@@ -50,7 +132,7 @@ window.SidebarResourceMockData = {
             },
             {
               id: 'zamarchive-webapp',
-              publicId: 'applicationAnalyticsGateway220PublicID',
+              publicId: 'applicationZamarchiveWebappPublicID',
               organizationId: 'organizationOneID',
               name: 'zamarchive-webapp',
             },

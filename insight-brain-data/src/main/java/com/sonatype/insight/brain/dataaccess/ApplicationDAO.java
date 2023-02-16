@@ -147,6 +147,18 @@ public class ApplicationDAO
     }
   }
 
+  public List<Application> getAllOrderedByName(TransactionContext tx) {
+    String sQuery = "SELECT entity FROM Application entity" + //
+        " ORDER BY entity.name";
+    return getList(tx, sQuery);
+  }
+
+  public List<Application> getAllOrderedByName() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAllOrderedByName(tx);
+    }
+  }
+
   public List<Application> getByOrganizationId(TransactionContext tx, String organizationId) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.organizationId=?1" + //

@@ -17,7 +17,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
-import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.NxTransferList;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
@@ -66,9 +65,18 @@ public class ComponentDetailsEditLicensesTest
 
   private TestReportEvaluator evaluator;
 
+  private Organization parentOrg;
+
+  @BeforeClass
+  public static void startup() {
+    refreshOrOpen(DashboardPage.url());
+    loginAsAdmin();
+  }
+
   @Before
   public void start() throws IOException {
-    Organization org = tempEntity.newOrganization("ApplicationReportTest");
+    parentOrg = tempEntity.newOrganization("ParentApplicationReportTest");
+    Organization org = tempEntity.newOrganization("ApplicationReportTest", parentOrg);
     app = tempEntity.newApplication("ApplicationReportTest",
         "ApplicationReportTest", org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
@@ -76,12 +84,6 @@ public class ComponentDetailsEditLicensesTest
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
     evaluator.evaluatePolicy();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
-  }
-
-  @BeforeClass
-  public static void startup() {
-    refreshOrOpen(DashboardPage.url());
-    loginAsAdmin();
   }
 
   @Test
@@ -113,41 +115,43 @@ public class ComponentDetailsEditLicensesTest
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
     effectiveLicenses.last().shouldHave(text("GPL-2.0"));
 
-    NxRadio firstScope = editLicensesPopover.scope(0);
-    NxRadio secondScope = editLicensesPopover.scope(1);
+    SelenideElement firstScope = editLicensesPopover.scope(0);
+    SelenideElement secondScope = editLicensesPopover.scope(1);
+    SelenideElement thirdScope = editLicensesPopover.scope(2);
     SelenideElement statusSelect = editLicensesPopover.status();
     Button saveButton = editLicensesPopover.saveButton();
 
     // Default states
     editLicensesPopover.availableScopes()
         .shouldHave(texts("Application - ApplicationReportTest", "Organization - ApplicationReportTest",
-            "Organization - Root Organization"));
-    secondScope.label().shouldHave(text("Organization - ApplicationReportTest"));
+            "Organization - ParentApplicationReportTest", "Organization - Root Organization"));
+    secondScope.shouldHave(text("Organization - ApplicationReportTest"));
+    thirdScope.shouldHave(text("Organization - ParentApplicationReportTest"));
     editLicensesPopover.statuses().shouldHave(
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
     editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
 
-    // Update to 'Acknowledged' status for ApplicationReportTest Organization
-    secondScope.click();
+    // Update to 'Acknowledged' status for ParentApplicationReportTest Organization
+    thirdScope.click();
     statusSelect.selectOptionContainingText("Acknowledged");
     editLicensesPopover.comment().setValue("Some comments");
     saveButton.shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
 
     // Check UI for 'Acknowledged' override
-    secondScope.shouldBe(selected);
-    secondScope.label().shouldHave(text("Organization - ApplicationReportTest (Acknowledged)"));
+    thirdScope.shouldBe(selected);
+    thirdScope.shouldHave(text("Organization - ParentApplicationReportTest (Acknowledged)"));
     statusSelect.getSelectedOption().shouldHave(value("Acknowledged"));
 
     // Check backend for 'Acknowledged' override
     final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride override =
-        licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getOrganizationId(),
+        licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(parentOrg.getId(),
             JAVANCSS_IDENTIFIER);
     assertThat(override.getStatus()).isEqualTo(LicenseOverrideStatus.ACKNOWLEDGED);
 
-    // Update to 'Overridden' status for ApplicationReportTest Organization
+    // Update to 'Overridden' status for ParentApplicationReportTest Organization
     statusSelect.selectOptionContainingText("Overridden");
     NxTransferList overriddenField = editLicensesPopover.overriddenField();
     overriddenField.shouldBe(visible);
@@ -158,8 +162,51 @@ public class ComponentDetailsEditLicensesTest
     NxSubmitMask.seeAndWaitForDismissal();
 
     // Check UI for 'Overridden' override
+    thirdScope.shouldBe(selected);
+    thirdScope.shouldHave(text("Organization - ParentApplicationReportTest (Overridden)"));
+    statusSelect.getSelectedOption().shouldHave(value("Overridden"));
+    editLicensesPopover.declaredLicenses().scrollTo();
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("0BSD"));
+
+    // Check backend for 'Overridden' override
+    override =
+        licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(parentOrg.getId(), JAVANCSS_IDENTIFIER);
+    assertThat(override.getStatus()).isEqualTo(LicenseOverrideStatus.OVERRIDDEN);
+    assertThat(override.getLicenseIds().size()).isEqualTo(1);
+    assertThat(override.getLicenseIds()).contains("0BSD");
+
+    // Update to 'Acknowledged' status for ApplicationReportTest Organization
+    secondScope.click();
+    statusSelect.selectOptionContainingText("Acknowledged");
+    editLicensesPopover.comment().setValue("Some comments");
+    saveButton.shouldBe(enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    // Check UI for 'Acknowledged' override
     secondScope.shouldBe(selected);
-    secondScope.label().shouldHave(text("Organization - ApplicationReportTest (Overridden)"));
+    secondScope.shouldHave(text("Organization - ApplicationReportTest (Acknowledged)"));
+    statusSelect.getSelectedOption().shouldHave(value("Acknowledged"));
+
+    // Check backend for 'Acknowledged' override
+    override =
+        licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getOrganizationId(),
+            JAVANCSS_IDENTIFIER);
+    assertThat(override.getStatus()).isEqualTo(LicenseOverrideStatus.ACKNOWLEDGED);
+
+    // Update to 'Overridden' status for ApplicationReportTest Organization
+    statusSelect.selectOptionContainingText("Overridden");
+    overriddenField = editLicensesPopover.overriddenField();
+    overriddenField.shouldBe(visible);
+    overriddenField.transferredItems().shouldHaveSize(0);
+    overriddenField.availableItems().first().click();
+    overriddenField.transferredItems().shouldHaveSize(1);
+    saveButton.shouldBe(enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    // Check UI for 'Overridden' override
+    secondScope.shouldBe(selected);
+    secondScope.shouldHave(text("Organization - ApplicationReportTest (Overridden)"));
     statusSelect.getSelectedOption().shouldHave(value("Overridden"));
     editLicensesPopover.declaredLicenses().scrollTo();
     effectiveLicenses.shouldHaveSize(1);
@@ -194,7 +241,7 @@ public class ComponentDetailsEditLicensesTest
 
     // Check UI for Application 'Selected' Override
     firstScope.shouldBe(selected);
-    firstScope.label().shouldHave(text("Application - ApplicationReportTest (Selected)"));
+    firstScope.shouldHave(text("Application - ApplicationReportTest (Selected)"));
     statusSelect.getSelectedOption().shouldHave(value("Selected"));
     editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(2);
     firstCheckbox.shouldBe(selected);
@@ -252,7 +299,7 @@ public class ComponentDetailsEditLicensesTest
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
     effectiveLicenses.last().shouldHave(text("GPL-2.0"));
 
-    NxRadio secondScope = editLicensesPopover.scope(1);
+    SelenideElement secondScope = editLicensesPopover.scope(1);
     SelenideElement statusSelect = editLicensesPopover.status();
 
     editLicensesPopover.comment().shouldBe(Condition.empty);
@@ -260,8 +307,8 @@ public class ComponentDetailsEditLicensesTest
     // Default states
     editLicensesPopover.availableScopes()
         .shouldHave(texts("Application - ApplicationReportTest", "Organization - ApplicationReportTest",
-            "Organization - Root Organization"));
-    secondScope.label().shouldHave(text("Organization - ApplicationReportTest"));
+            "Organization - ParentApplicationReportTest", "Organization - Root Organization"));
+    secondScope.shouldHave(text("Organization - ApplicationReportTest"));
     editLicensesPopover.statuses().shouldHave(
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
@@ -297,15 +344,15 @@ public class ComponentDetailsEditLicensesTest
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
     effectiveLicenses.last().shouldHave(text("GPL-2.0"));
 
-    NxRadio firstScope = editLicensesPopover.scope(0);
-    NxRadio secondScope = editLicensesPopover.scope(1);
+    SelenideElement firstScope = editLicensesPopover.scope(0);
+    SelenideElement secondScope = editLicensesPopover.scope(1);
     SelenideElement statusSelect = editLicensesPopover.status();
 
     // Default states
     editLicensesPopover.availableScopes()
         .shouldHave(texts("Application - ApplicationReportTest", "Organization - ApplicationReportTest",
-            "Organization - Root Organization"));
-    secondScope.label().shouldHave(text("Organization - ApplicationReportTest"));
+            "Organization - ParentApplicationReportTest", "Organization - Root Organization"));
+    secondScope.shouldHave(text("Organization - ApplicationReportTest"));
     editLicensesPopover.statuses().shouldHave(
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));

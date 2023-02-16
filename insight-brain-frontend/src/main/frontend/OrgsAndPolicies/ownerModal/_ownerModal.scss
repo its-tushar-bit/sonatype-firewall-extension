@@ -17,4 +17,33 @@
       white-space: nowrap;
     }
   }
+
+  .nx-modal-header {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: baseline;
+
+    .nx-h2 {
+      margin-bottom: 0;
+      overflow: initial;
+    }
+
+    .nx-h3 {
+      font-weight: normal;
+      margin-left: var(--nx-spacing-4x);
+      padding-left: var(--nx-spacing-4x);
+      border-left: 1px solid var(--nx-swatch-indigo-90);
+      color: var(--nx-swatch-grey-30);
+
+      b {
+        color: var(--nx-color-text-dark);
+      }
+    }
+  }
+
+  .nx-footer {
+    a.nx-btn {
+      color: var(--nx-swatch-blue-40);
+    }
+  }
 }

@@ -8,11 +8,9 @@ package com.sonatype.insight.brain.organization;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -21,8 +19,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.organization.OwnerListDTO.SidebarApplicationDTO;
-import com.sonatype.insight.brain.organization.OwnerListDTO.SidebarOrganizationDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -46,19 +43,17 @@ class SidebarService
 
   private final OrganizationService organizationService;
 
-  private final OrganizationDAO organizationDAO;
-
   private final ApplicationService applicationService;
 
   @Inject
-  public SidebarService(final TagDAO tagDAO,
-                        final PolicyDAO policyDAO,
-                        final LabelDAO labelDAO,
-                        final LicenseThreatGroupDAO licenseThreatGroupDAO,
-                        final MembershipMappingService membershipMappingService,
-                        final OrganizationService organizationService,
-                        final OrganizationDAO organizationDAO,
-                        final ApplicationService applicationService)
+  public SidebarService(
+      final TagDAO tagDAO,
+      final PolicyDAO policyDAO,
+      final LabelDAO labelDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final MembershipMappingService membershipMappingService,
+      final OrganizationService organizationService,
+      final ApplicationService applicationService)
   {
     this.tagDAO = tagDAO;
     this.policyDAO = policyDAO;
@@ -66,13 +61,13 @@ class SidebarService
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.membershipMappingService = membershipMappingService;
     this.organizationService = organizationService;
-    this.organizationDAO = organizationDAO;
     this.applicationService = applicationService;
   }
 
   @Authorize(permission = Permission.READ)
-  OwnerDetailsDTO getOwnerDetails(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-                                  @AuthzContext(Key.INTERNAL_ID) String internalOwnerId)
+  OwnerDetailsDTO getOwnerDetails(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId)
   {
     OwnerDetailsDTO ownerDetailsDTO = new OwnerDetailsDTO();
 
@@ -90,46 +85,18 @@ class SidebarService
     return ownerDetailsDTO;
   }
 
-  public OwnerListDTO getOwnerList() {
-    OwnerListDTO ownerListDTO = new OwnerListDTO();
-    ownerListDTO.organizations = new ArrayList<>();
+  public OwnerHierarchyDTO getOwnerList() {
+    OwnerHierarchyDTO ownerHierarchyDTO = new OwnerHierarchyDTO();
+    ownerHierarchyDTO.ownersMap = new HashMap<>();
+    List<Organization> orgs = organizationService.getAll();
+    List<Application> apps = applicationService.getApplicationsOrderedByName();
 
-    List<Organization> organizations = organizationService.getAll();
-    List<Application> applications = applicationService.getApplications();
+    OwnerHierarchy hierarchy = createOrganizationHierarchy(orgs, apps);
 
-    Map<String, SidebarOrganizationDTO> organizationMap = new HashMap<>();
-    for (Organization organization : organizations) {
-      SidebarOrganizationDTO sidebarOrganizationDTO = new SidebarOrganizationDTO();
-      sidebarOrganizationDTO.id = organization.getId();
-      sidebarOrganizationDTO.name = organization.getName();
-      sidebarOrganizationDTO.applications = new ArrayList<>();
-
-      organizationMap.put(sidebarOrganizationDTO.id, sidebarOrganizationDTO);
-      ownerListDTO.organizations.add(sidebarOrganizationDTO);
-    }
-
-    for (Application application : applications) {
-      SidebarOrganizationDTO sidebarOrganizationDTO = organizationMap.get(application.getOrganizationId());
-      if (sidebarOrganizationDTO == null) {
-        Organization organization = organizationDAO.getByIdNotNull(application.getOrganizationId());
-
-        sidebarOrganizationDTO = new SidebarOrganizationDTO();
-        sidebarOrganizationDTO.id = organization.getId();
-        sidebarOrganizationDTO.name = organization.getName();
-        sidebarOrganizationDTO.synthetic = true;
-        sidebarOrganizationDTO.applications = new ArrayList<>();
-
-        organizationMap.put(sidebarOrganizationDTO.id, sidebarOrganizationDTO);
-        ownerListDTO.organizations.add(sidebarOrganizationDTO);
-      }
-
-      SidebarApplicationDTO sidebarApplicationDTO = new SidebarApplicationDTO();
-      sidebarApplicationDTO.id = application.getId();
-      sidebarApplicationDTO.publicId = application.getPublicId();
-      sidebarApplicationDTO.name = application.getName();
-      sidebarApplicationDTO.organizationId = application.getOrganizationId();
-
-      sidebarOrganizationDTO.applications.add(sidebarApplicationDTO);
+    if (hierarchy.root() != null) {
+      calculateChildrenSize(hierarchy, hierarchy.root());
+      ownerHierarchyDTO.ownersMap = hierarchy.asHashMap();
+      ownerHierarchyDTO.topParentOrganizationId = hierarchy.root().id;
     }
 
     // TODO INT-6135 add this code back after emergency release is done
@@ -154,6 +121,35 @@ class SidebarService
           e.getMessage());
     }
     */
-    return ownerListDTO;
+
+    return ownerHierarchyDTO;
+  }
+
+  private OwnerHierarchy createOrganizationHierarchy(List<Organization> orgs, List<Application> apps) {
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps);
+    return hierarchy;
+  }
+
+  private void calculateChildrenSize(OwnerHierarchy hierarchy, OwnerHierarchyOrganizationDTO organization) {
+    List<String> childOrgIds = organization.organizationIds;
+
+    int subOrgsSize = childOrgIds.size();
+    int totalApps;
+    if (organization.applicationIds == null) {
+      totalApps = 0;
+    }
+    else {
+      totalApps = organization.applicationIds.size();
+    }
+
+    if (!childOrgIds.isEmpty()) {
+      for (String id : childOrgIds) {
+        calculateChildrenSize(hierarchy, hierarchy.getOrganizationById(id));
+      }
+      subOrgsSize += childOrgIds.stream().mapToInt(id -> hierarchy.getOrganizationById(id).subOrgs).sum();
+      totalApps += childOrgIds.stream().mapToInt(id -> hierarchy.getOrganizationById(id).totalApps).sum();
+    }
+    organization.subOrgs = subOrgsSize;
+    organization.totalApps = totalApps;
   }
 }

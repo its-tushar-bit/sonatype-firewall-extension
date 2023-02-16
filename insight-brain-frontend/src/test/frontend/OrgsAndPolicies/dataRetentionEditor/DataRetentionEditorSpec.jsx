@@ -11,22 +11,33 @@ import { getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
 describe('Data Retention Editor component', () => {
   let axiosMock, renderComponent;
 
-  beforeAll(() => {
-    const defaultPreloadedState = {
-      router: {
-        currentState: {
-          name: 'management.view.organization',
-          url: '/retention/org-id',
-          data: {
-            title: 'Organization Management',
-            viewportSized: true,
-          },
-        },
-        currentParams: {
-          organizationId: 'org-id',
+  const defaultPreloadedState = {
+    router: {
+      currentState: {
+        name: 'management.view.organization',
+        url: '/retention/org-id',
+        data: {
+          title: 'Organization Management',
+          viewportSized: true,
         },
       },
-    };
+      currentParams: {
+        organizationId: 'org-id',
+      },
+    },
+    currentParams: {
+      organizationId: 'org-id',
+    },
+    orgsAndPolicies: {
+      root: {
+        selectedOwner: {
+          parentOrganizationId: 'ROOT_ORGANIZATION_ID',
+        },
+      },
+    },
+  };
+
+  beforeAll(() => {
     axiosMock = axiosMockAdapter();
     renderComponent = (preloadedState) =>
       render(<DataRetentionEditor />, { preloadedState: preloadedState || defaultPreloadedState });
@@ -116,11 +127,42 @@ describe('Data Retention Editor component', () => {
   });
 
   describe('Network request: ', () => {
-    it('makes the correct GET request', () => {
+    it('makes the correct GET request with rootOrg as parent', () => {
       renderComponent();
 
       expect(axiosMock.history.get.length).toBe(2);
       expect(axiosMock.history.get[0].url).toBe(getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID'));
+      expect(axiosMock.history.get[1].url).toBe(getRetentionPoliciesUrl('org-id'));
+    });
+
+    it('makes the correct GET request with rootOrg as owner', () => {
+      renderComponent({
+        ...defaultPreloadedState,
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              parentOrganizationId: null,
+            },
+          },
+        },
+      });
+      expect(axiosMock.history.get.length).toBe(1);
+      expect(axiosMock.history.get[0].url).toBe(getRetentionPoliciesUrl('org-id'));
+    });
+
+    it('makes the correct GET request with n-level org as parent', () => {
+      renderComponent({
+        ...defaultPreloadedState,
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              parentOrganizationId: 'someOtherId',
+            },
+          },
+        },
+      });
+      expect(axiosMock.history.get.length).toBe(2);
+      expect(axiosMock.history.get[0].url).toBe(getRetentionPoliciesUrl('someOtherId'));
       expect(axiosMock.history.get[1].url).toBe(getRetentionPoliciesUrl('org-id'));
     });
   });

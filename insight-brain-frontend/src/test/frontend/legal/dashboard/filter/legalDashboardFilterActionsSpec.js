@@ -103,14 +103,14 @@ describe('legalDashboardFilterActions', function () {
           expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
           expect(axios.get).toHaveBeenCalledWith(getLegalDashboardFilters());
 
-          expect(store.getActions().length).toBe(3);
+          expect(store.getActions().length).toBe(5);
 
-          expect(store.getActions()[1]).toEqual({
+          expect(store.getActions()[3]).toEqual({
             type: 'LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED',
             payload: 'saved filters data',
           });
 
-          expect(store.getActions()[2]).toEqual({
+          expect(store.getActions()[4]).toEqual({
             type: 'LEGAL_DASHBOARD_LOAD_FILTER_FAILED',
             payload: 'failed to get applications data',
           });

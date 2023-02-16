@@ -13,22 +13,19 @@ sidebar-view {
 }
 
 .nx-page-sidebar.nx-page-sidebar--nav-sidebar {
-  //allow scrolling list to go all the way to the bottom
-  padding-bottom: 0;
-
   > aside {
     @include nx-container-helpers.container-vertical;
   }
+}
+
+.nx-page .nx-page-sidebar {
+  padding-right: 0;
 }
 
 .nx-scrollable.nx-scrollable--nav-list {
   .nx-list__subtext {
     margin-top: var(--nx-spacing-2x);
   }
-}
-
-.nx-page .nx-page-sidebar {
-  padding-right: 0;
 }
 
 .iq-waivers-list-item-info.nx-list__subtext {

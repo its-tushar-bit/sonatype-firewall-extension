@@ -29,72 +29,45 @@ describe('owner.summary.controller', function () {
       getVm,
       scope,
       $timeout,
-      $httpBackend,
-      CLMLocations,
       CLMContextLocations,
       stageTypeStoreDefer,
       mockState,
       mockWindow,
       isApp = type === 'application',
-      deleteOwnerDefer,
-      mockDeleteService,
       isContextAuthorizedDefer,
       mockPermissionService,
-      mockChangeApplicationIdService,
-      mockRevokeGrandfatheringModalService,
       loadOrganizationActionSpy,
-      loadApplicationsActionSpy;
+      loadApplicationSummarySpy,
+      loadApplicationActionSpy;
     let setLoadingActionSpy;
     let setLoadErrorActionSpy;
 
-    const loadApplicationsActionResponse = {
-      payload: [
-        {
-          publicId: owner.publicId,
-          id: owner.id,
-          name: owner.name,
-        },
-      ],
+    const loadApplicationActionResponse = {
+      payload: {
+        publicId: owner.publicId,
+        id: owner.id,
+        name: owner.name,
+      },
     };
-    const loadOrganizationsActionResponse = {
-      payload: [
-        {
-          id: owner.id,
-          name: owner.name,
-        },
-      ],
+    const loadOrganizationActionResponse = {
+      payload: {
+        id: owner.id,
+        name: owner.name,
+      },
     };
     let setSelectedOwnerSpy;
     let mockApplicationSummary;
     let loadApplicablePoliciesByOwnerSpy;
 
-    beforeEach(inject(function (
-      $rootScope,
-      $q,
-      $controller,
-      _$timeout_,
-      _$httpBackend_,
-      _CLMLocations_,
-      _CLMContextLocations_
-    ) {
+    beforeEach(inject(function ($rootScope, $q, $controller, _$timeout_, _CLMContextLocations_) {
       scope = $rootScope.$new();
       $timeout = _$timeout_;
-      $httpBackend = _$httpBackend_;
-      CLMLocations = _CLMLocations_;
       CLMContextLocations = _CLMContextLocations_;
       stageTypeStoreDefer = $q.defer();
-      deleteOwnerDefer = $q.defer();
       isContextAuthorizedDefer = $q.defer();
-      mockDeleteService = {
-        deleteRedux: function () {
-          return deleteOwnerDefer.promise;
-        },
-      };
-      mockRevokeGrandfatheringModalService = jasmine.createSpyObj('mockRevokeGrandfatheringModalService', ['open']);
       mockPermissionService = {
         isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise),
       };
-      mockChangeApplicationIdService = jasmine.createSpyObj('mockChangeApplicationIdService', ['open']);
       mockApplicationSummary = applicationResourceMockData.getApplicationSummaryUrl();
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
@@ -102,11 +75,14 @@ describe('owner.summary.controller', function () {
       spyOn(CLMContextLocations, 'getEntityId').and.returnValue(isApp ? owner.publicId : owner.id);
       spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
       spyOn(stagesActions, 'loadDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
-      loadApplicationsActionSpy = spyOn(applicationActions, 'loadApplications').and.returnValue(
-        loadApplicationsActionResponse
+      loadApplicationSummarySpy = spyOn(applicationActions, 'loadApplicationSummary').and.returnValue({
+        payload: mockApplicationSummary,
+      });
+      loadApplicationActionSpy = spyOn(applicationActions, 'loadApplicationById').and.returnValue(
+        loadApplicationActionResponse
       );
-      loadOrganizationActionSpy = spyOn(organizationsActions, 'loadOrganizations').and.returnValue(
-        loadOrganizationsActionResponse
+      loadOrganizationActionSpy = spyOn(organizationsActions, 'loadOrganizationById').and.returnValue(
+        loadOrganizationActionResponse
       );
       setSelectedOwnerSpy = spyOn(rootActions, 'setSelectedOwner');
       loadApplicablePoliciesByOwnerSpy = spyOn(rootActions, 'loadApplicablePoliciesByOwner').and.returnValue({
@@ -133,10 +109,7 @@ describe('owner.summary.controller', function () {
           $scope: { $on: angular.noop, $watch: angular.noop },
           $state: mockState,
           $window: mockWindow,
-          DeleteModalService: mockDeleteService,
           PermissionService: mockPermissionService,
-          'change.application.id.service': mockChangeApplicationIdService,
-          RevokeGrandfatheringModalService: mockRevokeGrandfatheringModalService,
         });
         localVm.isGrandfatheringSupported = true;
         localVm.isEvaluateApplicationAvailable = true;
@@ -148,22 +121,14 @@ describe('owner.summary.controller', function () {
       };
     }));
 
-    afterEach(function () {
-      $httpBackend.verifyNoOutstandingExpectation();
-      $httpBackend.verifyNoOutstandingRequest();
-    });
-
     it('Properly Loading Data', function () {
       vm = getVm();
 
       expect(setLoadingActionSpy).toHaveBeenCalledOnceWith(true);
-      resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
+      resolveStageTypeStore(MockData.getDashboardStageData());
       scope.$digest();
-      if (isApp) {
-        $httpBackend.flush();
-      }
+
       expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(owner);
       expect(setLoadingActionSpy.calls.argsFor(1)[0]).toBe(false);
 
@@ -182,13 +147,8 @@ describe('owner.summary.controller', function () {
       vm.isArtifactoryRepositorySupported = false;
 
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       scope.$digest();
-      if (isApp) {
-        $httpBackend.flush();
-        $timeout.flush();
-      }
 
       expect(vm.isInnerSourceRepositorySupported).toBeFalsy();
       expect(vm.isArtifactoryRepositorySupported).toBeFalsy();
@@ -196,7 +156,7 @@ describe('owner.summary.controller', function () {
 
     it('Dispatches action to set loadError', function () {
       if (isApp) {
-        loadApplicationsActionSpy.and.returnValue({ error: 'Could not find an ' + type });
+        loadApplicationActionSpy.and.returnValue({ error: 'Could not find an ' + type });
       } else {
         loadOrganizationActionSpy.and.returnValue({ error: 'Could not find an ' + type });
       }
@@ -204,20 +164,14 @@ describe('owner.summary.controller', function () {
       vm = getVm();
 
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(mockApplicationSummary);
       scope.$digest();
-
-      if (isApp) {
-        $httpBackend.flush();
-        $timeout.flush();
-      }
 
       expect(setLoadErrorActionSpy).toHaveBeenCalledWith('Could not find an ' + type);
     });
 
     it('Refreshing Owner After Error', function () {
       if (isApp) {
-        loadApplicationsActionSpy.and.returnValue({ error: 'Could not find an ' + type });
+        loadApplicationActionSpy.and.returnValue({ error: 'Could not find an ' + type });
       } else {
         loadOrganizationActionSpy.and.returnValue({ error: 'Could not find an ' + type });
       }
@@ -225,11 +179,7 @@ describe('owner.summary.controller', function () {
       vm.owner = undefined;
 
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(mockApplicationSummary);
 
-      if (isApp) {
-        $httpBackend.flush();
-      }
       $timeout.flush();
 
       expect(setSelectedOwnerSpy).not.toHaveBeenCalled();
@@ -238,22 +188,16 @@ describe('owner.summary.controller', function () {
 
       // reload successfully
       if (isApp) {
-        loadApplicationsActionSpy.and.returnValue(loadApplicationsActionResponse);
+        loadApplicationActionSpy.and.returnValue(loadApplicationActionResponse);
       } else {
-        loadOrganizationActionSpy.and.returnValue(loadOrganizationsActionResponse);
+        loadOrganizationActionSpy.and.returnValue(loadOrganizationActionResponse);
       }
       vm.owner = owner;
       vm.doLoad();
 
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       scope.$digest();
-
-      if (isApp) {
-        $httpBackend.flush();
-        $timeout.flush();
-      }
 
       expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(owner);
       expect(loadApplicablePoliciesByOwnerSpy).toHaveBeenCalledTimes(2);
@@ -261,24 +205,15 @@ describe('owner.summary.controller', function () {
     });
 
     it('ApplicationSummary Loading Error', function () {
+      loadApplicationSummarySpy.and.returnValue({ error: 'Bad request' });
       vm = getVm();
 
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(400, 'Bad Request');
+
       scope.$digest();
 
       if (isApp) {
-        $httpBackend.flush();
-        $timeout.flush();
-        expect(setLoadErrorActionSpy.calls.allArgs()).toEqual([
-          [null],
-          [
-            jasmine.objectContaining({
-              status: 400,
-              data: 'Bad Request',
-            }),
-          ],
-        ]);
+        expect(setLoadErrorActionSpy.calls.allArgs()).toEqual([[null], ['Bad request']]);
       } else {
         expect(setLoadErrorActionSpy).toHaveBeenCalledOnceWith(null);
       }
@@ -288,12 +223,9 @@ describe('owner.summary.controller', function () {
       vm = getVm();
 
       stageTypeStoreDefer.reject('Error');
-      resolveApplicationSummary(mockApplicationSummary);
       scope.$digest();
 
       if (isApp) {
-        $httpBackend.flush();
-        $timeout.flush();
         expect(setLoadErrorActionSpy.calls.allArgs()).toEqual([[null], ['Error']]);
       } else {
         expect(setLoadErrorActionSpy).toHaveBeenCalledOnceWith(null);
@@ -313,11 +245,9 @@ describe('owner.summary.controller', function () {
 
         it('for ' + scmProvider + ' uses icon ' + expectedIcon, () => {
           resolveStageTypeStore(MockData.getDashboardStageData());
-          resolveApplicationSummary(mockApplicationSummary);
           if (isApp) {
             vm.repositoryUrl = repoUrl;
             vm.scmProviderIcon = (scmProvider === 'azure' ? 'git' : scmProvider) || undefined;
-            $httpBackend.flush();
           }
 
           scope.$digest();
@@ -337,12 +267,6 @@ describe('owner.summary.controller', function () {
       if (isApp) {
         vm.repositoryUrl = undefined;
         vm.scmProviderIcon = 'github';
-      }
-    }
-
-    function resolveApplicationSummary() {
-      if (isApp) {
-        $httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(owner.publicId)).respond.apply(null, arguments);
       }
     }
 

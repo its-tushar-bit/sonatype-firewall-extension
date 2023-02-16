@@ -104,6 +104,8 @@ public class DashboardFilterTest
 
   private static Organization rootOrg;
 
+  private static Organization parentOrg;
+
   private static Organization org;
 
   private static Application firstApp;
@@ -127,26 +129,12 @@ public class DashboardFilterTest
     loginAsAdmin();
   }
 
-  @Before
-  public void before() {
-    refreshOrOpen(DashboardPage.urlToViolations());
-  }
-
-  @After
-  public void after() {
-    setNeedsAcknowledgementOfInitialDashboardFilter(null);
-    clearFilters();
-  }
-
-  public void clearFilters() {
-    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
-  }
-
   private static void setupData() {
     rootOrg = orgDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     repository1 = staticTempEntity.newRepository("Repository 1");
     repository2 = staticTempEntity.newRepository("Repository 2");
-    org = staticTempEntity.newOrganization("DashboardTest");
+    parentOrg = staticTempEntity.newOrganization("ParentOrgTest");
+    org = staticTempEntity.newOrganization("DashboardTest", parentOrg);
     staticTempEntity.newOrganization("DashboardTestEmptyOrg");
     firstApp = staticTempEntity.newApplication("DashboardTestAppOne", "DashboardTestAppOne", org.getId());
     firstAppCategory1 = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory1", Color.dark_blue);
@@ -157,6 +145,17 @@ public class DashboardFilterTest
     secondApp = staticTempEntity.newApplication("DashboardTestAppTwo", "DashboardTestAppTwo", org.getId());
 
     policy = staticTempEntity.newPolicy(org.getId(), "DashboardTestPolicy");
+    Organization levelOneOrg = staticTempEntity.newOrganization("Level 1 Org");
+    Organization levelTwoOrg = staticTempEntity.newOrganization("Level 2 Org", levelOneOrg);
+    Organization levelThreeOrg = staticTempEntity.newOrganization("Level 3 Org", levelTwoOrg);
+    Organization levelFourOrg = staticTempEntity.newOrganization("Level 4 Org", levelThreeOrg);
+    Organization levelFiveOrg = staticTempEntity.newOrganization("Level 5 Org", levelFourOrg);
+
+    staticTempEntity.newApplication("Level 1 App", "Level1App", levelOneOrg.getId());
+    staticTempEntity.newApplication("Level 2 App", "Level2App", levelTwoOrg.getId());
+    staticTempEntity.newApplication("Level 3 App", "Level3App", levelThreeOrg.getId());
+    staticTempEntity.newApplication("Level 4 App", "Level4App", levelFourOrg.getId());
+    staticTempEntity.newApplication("Level 5 App", "Level5App", levelFiveOrg.getId());
 
     DateTime now = DateTime.now();
     Instant seeDate = Instant.now();
@@ -228,6 +227,21 @@ public class DashboardFilterTest
         ComponentIdentifier.createMavenCoordinates("Group3", "ArtifactGrandfather", "Version3"), "hash-grandfathered");
   }
 
+  @Before
+  public void before() {
+    refreshOrOpen(DashboardPage.urlToViolations());
+  }
+
+  @After
+  public void after() {
+    setNeedsAcknowledgementOfInitialDashboardFilter(null);
+    clearFilters();
+  }
+
+  public void clearFilters() {
+    new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
+  }
+
   /**
    * Age only applies to violations tab and defaults to 'past 30 days'.
    */
@@ -273,6 +287,98 @@ public class DashboardFilterTest
     ageFilter.singleSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
   }
 
+  @Test
+  public void testNLevelHierarchy() {
+    refreshOrOpen(DashboardPage.urlToApplications());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+    NxTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
+    NxTreeViewMultiSelect orgFilter = DashboardFilters.organizationFilter();
+    appFilter.twisty().click();
+    orgFilter.twisty().click();
+
+    orgFilter.checkboxItem("Level 1 Org").shouldNotBe(selected);
+    orgFilter.checkboxItem("Level 2 Org").shouldNotBe(selected);
+    orgFilter.checkboxItem("Level 3 Org").shouldNotBe(selected);
+    orgFilter.checkboxItem("Level 4 Org").shouldNotBe(selected);
+    orgFilter.checkboxItem("Level 5 Org").shouldNotBe(selected);
+
+    appFilter.checkboxItem("Level 1 App").shouldNotBe(selected);
+    appFilter.checkboxItem("Level 2 App").shouldNotBe(selected);
+    appFilter.checkboxItem("Level 3 App").shouldNotBe(selected);
+    appFilter.checkboxItem("Level 4 App").shouldNotBe(selected);
+    appFilter.checkboxItem("Level 5 App").shouldNotBe(selected);
+
+    orgFilter.checkboxItem("Level 1 Org").click();
+
+    orgFilter.checkboxItem("Level 1 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 2 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 3 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 4 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 5 Org").shouldBe(selected);
+
+    appFilter.checkboxItem("Level 1 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 2 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 3 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 4 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 5 App").shouldBe(selected);
+
+    orgFilter.checkboxItem("Level 3 Org").click();
+
+    orgFilter.checkboxItem("Level 1 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 2 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 3 Org").shouldNotBe(selected);
+    orgFilter.checkboxItem("Level 4 Org").shouldNotBe(selected);
+    orgFilter.checkboxItem("Level 5 Org").shouldNotBe(selected);
+
+    appFilter.checkboxItem("Level 1 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 2 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 3 App").shouldNotBe(selected);
+    appFilter.checkboxItem("Level 4 App").shouldNotBe(selected);
+    appFilter.checkboxItem("Level 5 App").shouldNotBe(selected);
+
+    orgFilter.checkboxItem("Level 3 Org").click();
+
+    orgFilter.checkboxItem("Level 1 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 2 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 3 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 4 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 5 Org").shouldBe(selected);
+
+    appFilter.checkboxItem("Level 1 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 2 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 3 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 4 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 5 App").shouldBe(selected);
+
+    appFilter.checkboxItem("Level 4 App").click();
+
+    orgFilter.checkboxItem("Level 1 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 2 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 3 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 4 Org").shouldNotBe(selected);
+    orgFilter.checkboxItem("Level 5 Org").shouldBe(selected);
+
+    appFilter.checkboxItem("Level 1 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 2 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 3 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 4 App").shouldNotBe(selected);
+    appFilter.checkboxItem("Level 5 App").shouldBe(selected);
+
+    appFilter.checkboxItem("Level 4 App").click();
+
+    orgFilter.checkboxItem("Level 1 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 2 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 3 Org").shouldBe(selected);
+    orgFilter.checkboxItem("Level 4 Org").shouldNotBe(selected);
+    orgFilter.checkboxItem("Level 5 Org").shouldBe(selected);
+
+    appFilter.checkboxItem("Level 1 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 2 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 3 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 4 App").shouldBe(selected);
+    appFilter.checkboxItem("Level 5 App").shouldBe(selected);
+  }
+  
   /**
    * Expiration date filter only appears in waivers tab and defaults to 'all'.
    */
@@ -993,7 +1099,7 @@ public class DashboardFilterTest
 
     // filter by Org
     DashboardFilters.organizationFilter().twisty().click();
-    DashboardFilters.organizationFilter().checkboxItem(2).click();
+    DashboardFilters.organizationFilter().checkboxItem("DashboardTest").click();
     DashboardFilters.apply();
 
     ApplicationsResults results = DashboardPage.applicationsView().results();
@@ -1024,14 +1130,12 @@ public class DashboardFilterTest
 
     // select a specific application to filter
     DashboardFilters.applicationFilter().twisty().click();
+    DashboardFilters.applicationFilter().multiSelectList().shouldHaveSize(8);
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.apply();
 
+    DashboardPage.waiversView().results().waivers().shouldHaveSize(3);
     List<WaiverTile> allWaivers = DashboardPage.waiversView().results().allWaivers();
-
-    assertThat(allWaivers)
-        .as("It should include only first applications and parent org waivers")
-        .hasSize(3);
 
     assertThat(
         containsWaiverWithScope(allWaivers, firstApp))
@@ -1204,6 +1308,44 @@ public class DashboardFilterTest
     firstWaiver.scope().shouldHave(text(rootOrg.getName()));
     lastWaiver = DashboardPage.waiversView().results().lastWaiver();
     lastWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(firstApp)));
+  }
+
+  @Test
+  public void testWaiverOrgFilter_allOptionSelected() {
+    testWaiverOrgFilter(null, "6");
+  }
+
+  @Test
+  public void testWaiverOrgFilter_childOrgSelected() {
+    testWaiverOrgFilter("DashboardTest", "6");
+  }
+
+  @Test
+  public void testWaiverOrgFilter_parentOrgSelected() {
+    testWaiverOrgFilter("ParentOrgTest", "6");
+  }
+
+  private void testWaiverOrgFilter(String orgName, String waiverAmountExpectation) {
+    tempEntity.newWaiver(policy.getId(), parentOrg.getId());
+
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    // all waivers should be listed without filter
+    waiversTab().counter().shouldBe(visible).shouldHave(text("9"));
+
+    // select parent organizations filter option
+    DashboardFilters.organizationFilter().twisty().click();
+    if (orgName == null) {
+      DashboardFilters.organizationFilter().allItems().click();
+    }
+    else {
+      DashboardFilters.organizationFilter().checkboxItem(orgName).click();
+    }
+    DashboardFilters.apply();
+
+    // all the waivers should be present after filtering.
+    waiversTab().counter().shouldBe(visible).shouldHave(text(waiverAmountExpectation));
   }
 
   private boolean containsWaiverWithScope(List<WaiverTile> waivers, Owner owner) {
@@ -1504,16 +1646,17 @@ public class DashboardFilterTest
   }
 
   /**
-   * Save the filter under the given name. Executes and asserts the "Save As" workflow of the Save Filter modal.
-   * Does not test the "Overwrite" workflow
+   * Save the filter under the given name. Executes and asserts the "Save As" workflow of the Save Filter modal. Does
+   * not test the "Overwrite" workflow
    *
    * @param existingExpected Is there expected to be an existing filter with a matching name
    * @param useVisualTesting determines whether or not to visually validate when saving filters
    */
-  private void saveFilter(String filterName,
-                          String existingFilterName,
-                          boolean existingExpected,
-                          boolean useVisualTesting)
+  private void saveFilter(
+      String filterName,
+      String existingFilterName,
+      boolean existingExpected,
+      boolean useVisualTesting)
   {
     DashboardFilters.saveButton().shouldNotBe(disabled).click();
     SaveFilterDialog saveDialog = DashboardFilters.saveFilterDialog();
@@ -1638,10 +1781,10 @@ public class DashboardFilterTest
   private void assertDefaultFilterState() {
     NxTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
 
-    appFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("2"));
+    appFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("7"));
     appFilter.multiSelectList().filter(visible).shouldBe(empty);
     appFilter.twisty().shouldBe(visible).click();
-    appFilter.multiSelectList().filter(visible).shouldHave(size(3));
+    appFilter.multiSelectList().filter(visible).shouldHave(size(8));
     appFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all/none"));
     appFilter.checkboxItem(2).shouldNotBe(selected).label().shouldHave(text(firstApp.getName()));
     appFilter.checkboxItem(3).shouldNotBe(selected).label().shouldHave(text(secondApp.getName()));
@@ -1739,7 +1882,7 @@ public class DashboardFilterTest
 
   private void assertNewCounterState() {
     DashboardFilters.applicationFilter().counter().shouldHave(cssClass("nx-counter--active"))
-        .shouldHave(text("1 of 2"));
+        .shouldHave(text("1 of 7"));
     DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 3"));
     DashboardFilters.stageFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 5"));
     DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));

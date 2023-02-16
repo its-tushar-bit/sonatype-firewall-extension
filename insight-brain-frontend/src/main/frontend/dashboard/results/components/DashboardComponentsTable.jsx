@@ -95,7 +95,7 @@ export default function DashboardComponentsTable(props) {
               sortDir={sortDir('scoreCritical')}
               isSortable
             >
-              <NxThreatIndicator threatLevelCategory="critical" presentational />
+              <NxThreatIndicator threatLevelCategory="critical" presentational/>
               <span>Critical</span>
             </NxTableCell>
             <NxTableCell
@@ -104,7 +104,7 @@ export default function DashboardComponentsTable(props) {
               sortDir={sortDir('scoreSevere')}
               isSortable
             >
-              <NxThreatIndicator threatLevelCategory="severe" presentational />
+              <NxThreatIndicator threatLevelCategory="severe" presentational/>
               <span>Severe</span>
             </NxTableCell>
             <NxTableCell
@@ -113,7 +113,7 @@ export default function DashboardComponentsTable(props) {
               sortDir={sortDir('scoreModerate')}
               isSortable
             >
-              <NxThreatIndicator threatLevelCategory="moderate" presentational />
+              <NxThreatIndicator threatLevelCategory="moderate" presentational/>
               <span>Moderate</span>
             </NxTableCell>
             <NxTableCell
@@ -122,7 +122,7 @@ export default function DashboardComponentsTable(props) {
               sortDir={sortDir('scoreLow')}
               isSortable
             >
-              <NxThreatIndicator threatLevelCategory="low" presentational />
+              <NxThreatIndicator threatLevelCategory="low" presentational/>
               <span>Low</span>
             </NxTableCell>
             <NxTableCell chevron />

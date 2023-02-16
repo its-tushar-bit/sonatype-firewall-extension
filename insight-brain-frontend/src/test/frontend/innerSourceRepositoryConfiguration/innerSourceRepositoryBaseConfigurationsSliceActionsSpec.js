@@ -21,6 +21,13 @@ describe('innerSourceRepositoryBaseConfigurationsSliceActions', () => {
           organizationId: 'someOwnerId',
         },
       },
+      orgsAndPolicies: {
+        root: {
+          selectedOwner: {
+            id: 'someOwnerId',
+          },
+        },
+      },
       innerSourceRepositoryBaseConfigurations: getInitialState(),
     };
   });

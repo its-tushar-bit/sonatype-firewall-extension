@@ -95,3 +95,17 @@ export const selectOwnerInfo = createSelector(
     }
   }
 );
+
+export const selectIsManagementViewRouterState = createSelector(
+  selectRouterState,
+  (currentState) => currentState.name === 'management.view'
+);
+
+export const selectIncludesManagementView = createSelector(
+  selectRouterState,
+  (currentState) => currentState.name !== 'management.view' && currentState.name.includes('management.view')
+);
+
+export const selectPrevStateIsAppOwnerManagementView = createSelector(selectRouterPrevState, (prevState) =>
+  prevState.name?.includes('management.view.application')
+);

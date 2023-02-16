@@ -42,6 +42,13 @@ export const validateMaxLength = curryN(2, function validateMaxLength(maxLength,
   return val.length <= maxLength ? null : `Please enter less than ${maxLength} characters`;
 });
 
+export const validateMinLength = curryN(3, function validateMinLength(minLength, message, val) {
+  if (!val || !minLength) {
+    return null;
+  }
+  return val.length >= minLength ? null : message || `Enter at least ${minLength} characters to begin filtering`;
+});
+
 export const validateDuplicatedValue = curryN(2, function validateDuplicatedValue(dupsArr, val, currentVal) {
   return find((targetVal) => propEq('name', val, targetVal) && not(equals(currentVal, prop('name', targetVal))))(
     dupsArr

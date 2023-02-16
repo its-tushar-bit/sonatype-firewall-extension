@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { cleanup } from '@testing-library/react';
-import { render, screen, axiosMockAdapter, waitFor, fireEvent, queryByTextWithin } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter, waitFor, fireEvent, queryByTextWithin, within } from 'TestRoot/SpecUtil';
 import FirewallLabelsTab from 'MainRoot/firewall/firewallComponentDetailsPage/labels/FirewallLabelsTab';
 import {
   getComponentMultiLicensesUrl,
@@ -583,11 +583,16 @@ describe('FirewallLabelsTab', () => {
       });
 
       expect(queryByTextWithin(/Architecture-Blacklisted/, applyLabelsModal).first).toBeVisible();
-      expect(queryByTextWithin(/Root Organization/, applyLabelsModal).first).toBeVisible;
-      expect(queryByTextWithin(/All Repositories/, applyLabelsModal).first).toBeVisible;
-      expect(queryByTextWithin(/maven-central/, applyLabelsModal).first).toBeVisible;
 
-      fireEvent.click(queryByTextWithin(/maven-central/, applyLabelsModal).first);
+      const select = screen.getByRole('combobox');
+      const options = within(select).getAllByRole('option');
+      expect(options.length).toBe(3);
+
+      expect(options[0]).toHaveTextContent(/Root Organization/i);
+      expect(options[1]).toHaveTextContent(/All Repositories/i);
+      expect(options[2]).toHaveTextContent(/maven-central/i);
+
+      fireEvent.change(select, { target: { value: '603ac500381f48cba8433df1bc916991' } });
       fireEvent.click(queryByTextWithin(/Submit/, applyLabelsModal).first);
 
       return applyLabelsModal;

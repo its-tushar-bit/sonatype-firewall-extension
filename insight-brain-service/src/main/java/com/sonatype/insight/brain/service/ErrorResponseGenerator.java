@@ -10,6 +10,7 @@ import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.organization.PartialDeletionException;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -70,6 +71,9 @@ public class ErrorResponseGenerator
         && !(e instanceof JsonGenerationException || e instanceof InvalidDefinitionException)) {
       String msg = e instanceof JsonMappingException ? MSG_JSON_UNMAPPABLE : MSG_JSON_UNPARSABLE;
       return new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), msg);
+    }
+    else if (e instanceof PartialDeletionException) {
+      return new ErrorResponse(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage());
     }
     return super.buildErrorResponse(e);
   }

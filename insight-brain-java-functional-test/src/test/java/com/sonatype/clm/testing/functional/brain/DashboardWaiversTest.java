@@ -59,6 +59,8 @@ public class DashboardWaiversTest
 
   private Organization organization;
 
+  private Organization parentOrganization;
+
   private Application application;
 
   private Application application2;
@@ -91,6 +93,8 @@ public class DashboardWaiversTest
 
   private final Instant fourteenDaysAgo = now.minus(14, ChronoUnit.DAYS);
 
+  private final Instant thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS);
+
   private final Instant fiveDaysFromNow = now.plus(5, ChronoUnit.DAYS);
 
   private final Instant sixDaysFromNow = now.plus(6, ChronoUnit.DAYS);
@@ -104,6 +108,8 @@ public class DashboardWaiversTest
   private final Instant nineDaysFromNow = now.plus(9, ChronoUnit.DAYS);
 
   private final Instant fourteenDaysFromNow = now.plus(14,ChronoUnit.DAYS);
+
+  private final Instant thirtyDaysFromNow = now.plus(30, ChronoUnit.DAYS);
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
@@ -148,7 +154,7 @@ public class DashboardWaiversTest
 
     DashboardPage.dashboardContainer().shouldBe(visible);
     table.maxResultsMessage().shouldBe(hidden);
-    table.waivers().shouldHaveSize(8);
+    table.waivers().shouldHaveSize(9);
 
     // check the tile details
     WaiverTile waiver1 = table.firstWaiver();
@@ -214,7 +220,16 @@ public class DashboardWaiversTest
     repositoryContainerWaiver.scope().shouldHave(text("All Repositories"));
     repositoryContainerWaiver.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
 
-    WaiverTile waiver5 = table.waiver(7);
+    WaiverTile waiverParentOrg = table.waiver(7);
+    waiverParentOrg.threatIndicator().shouldHave(CRITICAL);
+    waiverParentOrg.threatNumber().shouldHave(text("9"));
+    waiverParentOrg.createTime().shouldHave(text(dateFormat.format(Date.from(thirtyDaysAgo))));
+    waiverParentOrg.expiryTime().shouldHave(text(dateFormat.format(Date.from(thirtyDaysFromNow))));
+    waiverParentOrg.policy().shouldHave(text("Policy 2"));
+    waiverParentOrg.scope().shouldHave(text("Organization - Parent Org 1"));
+    waiverParentOrg.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+
+    WaiverTile waiver5 = table.waiver(8);
     waiver5.threatIndicator().shouldHave(MODERATE);
     waiver5.threatNumber().shouldHave(text("3"));
     waiver5.createTime().shouldHave(text(dateFormat.format(Date.from(fiveDaysAgo))));
@@ -276,7 +291,7 @@ public class DashboardWaiversTest
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
 
     // assert table
-    table.firstWaiver().createTime().shouldHave(text(dateFormat.format(Date.from(fourteenDaysAgo))));
+    table.firstWaiver().createTime().shouldHave(text(dateFormat.format(Date.from(thirtyDaysAgo))));
     table.lastWaiver().createTime().shouldHave(text(dateFormat.format(Date.from(twoDaysAgo))));
 
     // assert csv export
@@ -722,7 +737,7 @@ public class DashboardWaiversTest
     policyWaivers = createWaivers();
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.waivers().shouldHaveSize(6);
+    table.waivers().shouldHaveSize(7);
 
     // get first waiver row in table
     table.firstWaiver().click();
@@ -747,7 +762,8 @@ public class DashboardWaiversTest
   }
 
   private ArrayList<PolicyWaiver> createWaivers() {
-    organization = tempEntity.newOrganization("Org 1");
+    parentOrganization = tempEntity.newOrganization("Parent Org 1");
+    organization = tempEntity.newOrganization("Org 1", parentOrganization);
     application = tempEntity.newApplication("App 1", "app1", organization.getId());
     application2 = tempEntity.newApplication("App 2", "app2", organization.getId());
     repository1 = tempEntity.newRepository("Repository 1");
@@ -785,13 +801,13 @@ public class DashboardWaiversTest
     // Default sorting: closer to expire at the top
     return new ArrayList<PolicyWaiver>() {{
         this.add(tempEntity.newWaiver("hash1", securityPolicies.get(0).getId(), organization.getId(),
-            null, purl, EXACT_COMPONENT, "comment",
+            null, purl, EXACT_COMPONENT, "comment org",
             Date.from(twoDaysAgo), Date.from(threeDaysFromNow)));
         this.add(tempEntity.newWaiver("hash2", securityPolicies.get(2).getId(), application2.getId(),
-            null, purl, EXACT_COMPONENT, "comment",
+            null, purl, EXACT_COMPONENT, "comment app 2",
             Date.from(threeDaysAgo), Date.from(fiveDaysFromNow)));
         this.add(tempEntity.newWaiver("hash3", securityPolicies.get(2).getId(), application.getId(),
-            null, purl, EXACT_COMPONENT, "comment",
+            null, purl, EXACT_COMPONENT, "comment app 1",
             Date.from(fiveDaysAgo), null));
         this.add(tempEntity.newWaiver("hash4", securityPolicies.get(1).getId(), organization.getId(),
             null, purl, ALL_COMPONENTS, "org all components",
@@ -800,22 +816,26 @@ public class DashboardWaiversTest
             null, purl, ALL_VERSIONS, "app all versions",
             Date.from(sevenDaysAgo), Date.from(sevenDaysFromNow)));
         this.add(tempEntity.newWaiver("hash6", securityPolicies.get(3).getId(), rootOrg.getId(),
-            null, purl, EXACT_COMPONENT, "comment",
+            null, purl, EXACT_COMPONENT, "comment root org",
             Date.from(eightDaysAgo), Date.from(eightDaysFromNow)));
         this.add(tempEntity.newWaiver("hash7", securityPolicies.get(0).getId(), repository1.getId(),
-            null, purl, EXACT_COMPONENT, "comment",
+            null, purl, EXACT_COMPONENT, "comment repo",
             Date.from(nineDaysAgo), Date.from(nineDaysFromNow)));
         this.add(tempEntity.newWaiver("hash8", securityPolicies.get(1).getId(),
               RepositoryContainer.REPOSITORY_CONTAINER_ID,
-            null, purl, EXACT_COMPONENT, "comment",
+            null, purl, EXACT_COMPONENT, "comment repo container",
             Date.from(fourteenDaysAgo), Date.from(fourteenDaysFromNow)));
+        this.add(tempEntity.newWaiver("hash9", securityPolicies.get(1).getId(),
+              parentOrganization.getId(),
+            null, purl, EXACT_COMPONENT, "comment parent org",
+            Date.from(thirtyDaysAgo), Date.from(thirtyDaysFromNow)));
       }};
   }
 
   private void showAllWaivers() {
     DashboardPage.filterToggle().click();
     DashboardFilters.organizationFilter().twisty().click();
-    DashboardFilters.organizationFilter().checkboxItem(2).click();
+    DashboardFilters.organizationFilter().allItems().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(1, 10);
     DashboardFilters.policyThreatLevelFilter().twisty().click();
@@ -840,16 +860,17 @@ public class DashboardWaiversTest
     PolicyWaiver policyWaiver5 = policyWaivers.get(5);
     PolicyWaiver policyWaiver6 = policyWaivers.get(6);
     PolicyWaiver policyWaiver7 = policyWaivers.get(7);
+    PolicyWaiver policyWaiver8 = policyWaivers.get(8);
 
     String waiver1String = policyWaiver.getId() + ",7," + dateFormatCsv.format(Date.from(twoDaysAgo)) +
         "," + dateFormatCsv.format(Date.from(threeDaysFromNow)) + "," + policyWaiver.getPolicyId() +
         ",Policy 1,,organization," + policyWaiver.getOwnerId() + "," + "Org 1,EXACT_COMPONENT,hash1," +
-        "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+        "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment org";
 
     String waiver2String = policyWaiver1.getId() + ",3," + dateFormatCsv.format(Date.from(threeDaysAgo)) + "," +
         dateFormatCsv.format(Date.from(fiveDaysFromNow)) + "," + policyWaiver1.getPolicyId() +
         ",Policy 3,,application," + policyWaiver1.getOwnerId() + ",App 2,EXACT_COMPONENT,hash2," +
-        "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+        "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment app 2";
 
     String waiver3String = policyWaiver3.getId() + ",9," + dateFormatCsv.format(Date.from(sixDaysAgo)) +
         "," + dateFormatCsv.format(Date.from(sixDaysFromNow)) + "," + policyWaiver3.getPolicyId() +
@@ -865,55 +886,57 @@ public class DashboardWaiversTest
         policyWaiver6.getId() + ",7," + dateFormatCsv.format(Date.from(nineDaysAgo)) + "," +
             dateFormatCsv.format(Date.from(nineDaysFromNow)) + "," + policyWaiver6.getPolicyId() +
             ",Policy 1,,repository," + policyWaiver6.getOwnerId() + ",Repository 1,EXACT_COMPONENT,hash7," +
-            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment repo";
 
     String waiverRepoContainerString =
         policyWaiver7.getId() + ",9," + dateFormatCsv.format(Date.from(fourteenDaysAgo)) + "," +
             dateFormatCsv.format(Date.from(fourteenDaysFromNow)) + "," + policyWaiver7.getPolicyId() +
             ",Policy 2,,all_repositories," + policyWaiver7.getOwnerId() +
             ",All Repositories,EXACT_COMPONENT,hash8," +
-            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment repo container";
 
     String waiver5String = policyWaiver5.getId() + ",4," + dateFormatCsv.format(Date.from(eightDaysAgo)) + "," +
         dateFormatCsv.format(Date.from(eightDaysFromNow)) + "," + policyWaiver5.getPolicyId() +
         ",Policy 4,,root_organization," + policyWaiver5.getOwnerId() +
-        "," + rootOrg.getName() + ",EXACT_COMPONENT,hash6,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+        "," + rootOrg.getName() +
+        ",EXACT_COMPONENT,hash6,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment root org";
 
     String waiver6String = policyWaiver2.getId() + ",3," + dateFormatCsv.format(Date.from(fiveDaysAgo)) + ",," +
         policyWaiver2.getPolicyId() + ",Policy 3,,application," + policyWaiver2.getOwnerId() +
-        ",App 1,EXACT_COMPONENT,hash3,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+        ",App 1,EXACT_COMPONENT,hash3,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment app 1";
+
+    String waiverParentOrgString = policyWaiver8.getId() + ",9," + dateFormatCsv.format(Date.from(thirtyDaysAgo)) +
+        "," + dateFormatCsv.format(Date.from(thirtyDaysFromNow)) + "," + policyWaiver8.getPolicyId() +
+        ",Policy 2,,organization," + policyWaiver8.getOwnerId() +
+        ",Parent Org 1,EXACT_COMPONENT,hash9,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment parent org";
 
     switch (sortByColumn) {
       case "threat":
         return new String[]{
-            waiver3String, waiver4String, waiverRepoContainerString, waiver1String, waiverRepoString, waiver5String,
-            waiver2String, waiver6String
+            waiver3String, waiver4String, waiverRepoContainerString, waiverParentOrgString, waiver1String,
+            waiverRepoString, waiver5String, waiver2String, waiver6String
         };
       case "createddate":
         return new String[]{
-            waiverRepoContainerString, waiverRepoString, waiver5String, waiver4String, waiver3String, waiver6String,
-            waiver2String, waiver1String
+            waiverParentOrgString, waiverRepoContainerString, waiverRepoString, waiver5String, waiver4String,
+            waiver3String, waiver6String, waiver2String, waiver1String
         };
       case "policy":
         return new String[]{
             waiver5String, waiver2String, waiver6String, waiver3String, waiver4String, waiverRepoContainerString,
-            waiver1String, waiverRepoString
+            waiverParentOrgString, waiver1String, waiverRepoString
         };
       case "scope":
         return new String[]{
             waiverRepoContainerString, waiver4String, waiver6String, waiver2String, waiver1String, waiver3String,
-            waiverRepoString, waiver5String
+            waiverParentOrgString, waiverRepoString, waiver5String
         };
       case "component":
-        return new String[]{
-            waiver1String, waiver2String, waiver3String, waiver4String, waiver5String, waiverRepoString,
-            waiverRepoContainerString, waiver6String
-        };
       default:
         // sort by expiry
         return new String[]{
             waiver1String, waiver2String, waiver3String, waiver4String, waiver5String, waiverRepoString,
-            waiverRepoContainerString, waiver6String
+            waiverRepoContainerString, waiverParentOrgString, waiver6String
         };
     }
   }

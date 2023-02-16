@@ -8,6 +8,7 @@ import axios from 'axios';
 import { compose } from 'ramda';
 import { getApplicationsUrl, getOrganizationsUrl, getSuccessMetricsReportsUrl } from '../../../util/CLMLocation';
 import { Messages } from '../../../utilAngular/CommonServices';
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../../util/reduxUtil';
 
 export const ADD_SUCCESS_METRICS_REPORT_LOAD_ORGS_APPS_REQUESTED =
@@ -30,7 +31,11 @@ export function toggleOrgsApps(selectedOrganizations, selectedApplications) {
 export function loadOrgsAndApps() {
   return (dispatch) => {
     dispatch(loadOrgsAndAppsRequested());
-    const requests = [axios.get(getApplicationsUrl()), axios.get(getOrganizationsUrl())];
+    const requests = [
+      axios.get(getApplicationsUrl()),
+      axios.get(getOrganizationsUrl()),
+      dispatch(ownerSideNavActions.loadOwnerList()),
+    ];
     return axios
       .all(requests)
       .then(([{ data: applications }, { data: organizations }]) => {

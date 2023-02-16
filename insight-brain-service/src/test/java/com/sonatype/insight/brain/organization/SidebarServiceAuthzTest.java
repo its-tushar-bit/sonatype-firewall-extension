@@ -10,8 +10,8 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.organization.OwnerListDTO.SidebarApplicationDTO;
-import com.sonatype.insight.brain.organization.OwnerListDTO.SidebarOrganizationDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyApplicationDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -46,34 +46,54 @@ public class SidebarServiceAuthzTest
 
   @Test
   public void testGetOwnerList() {
-    Organization organization = tempEntity.newOrganization();
+    Organization organization = tempEntity.newOrganization("org1");
     Application application = tempEntity.newApplication(organization.getId());
+    Organization organizationChildOrg = tempEntity.newOrganization("org1 child1", organization);
+    Application organizationChildOrgApplication = tempEntity.newApplication(organizationChildOrg.getId());
 
-    OwnerListDTO ownerListDTO = sidebarService.getOwnerList();
-    assertThat(ownerListDTO.organizations).isEmpty();
+    // no permissions
+    OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
+    assertThat(ownerHierarchyDTO.ownersMap).isEmpty();
 
+    // limited permission. Returns a synthetic common ancestor organization
+    grantReadPermission(organizationChildOrgApplication.getId());
     grantReadPermission(application.getId());
-    ownerListDTO = sidebarService.getOwnerList();
-    assertOwnerListDTO(ownerListDTO, organization, true, application);
 
-    grantReadPermission(organization.getId());
-    ownerListDTO = sidebarService.getOwnerList();
-    assertOwnerListDTO(ownerListDTO, organization, false, application);
-  }
+    ownerHierarchyDTO = sidebarService.getOwnerList();
+    assertThat(ownerHierarchyDTO.ownersMap).hasSize(4);
 
-  private static void assertOwnerListDTO(OwnerListDTO ownerListDTO,
-                                         Organization organization,
-                                         boolean synthetic,
-                                         Application application)
-  {
-    assertThat(ownerListDTO.organizations).hasSize(1);
+    OwnerHierarchyOrganizationDTO rootOrganizationDTO = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(
+        ownerHierarchyDTO.topParentOrganizationId
+    );
+    assertThat(rootOrganizationDTO.id).isEqualTo(organization.getId());
+    assertThat(rootOrganizationDTO.organizationIds).hasSize(1);
+    assertThat(rootOrganizationDTO.synthetic).isTrue();
+    assertThat(rootOrganizationDTO.applicationIds).hasSize(1);
 
-    SidebarOrganizationDTO organizationDTO = ownerListDTO.organizations.get(0);
+    OwnerHierarchyApplicationDTO applicationDTO = (OwnerHierarchyApplicationDTO) ownerHierarchyDTO.ownersMap.get(
+        rootOrganizationDTO.applicationIds.get(0)
+    );
+    assertThat(applicationDTO.id).isEqualTo(application.getId());
+
+    // full permission. Returns root organization
+    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
+    ownerHierarchyDTO = sidebarService.getOwnerList();
+    // There are 2 additional entities created by default before running this test.
+    // assertThat(ownerListDTO.ownersMap).hasSize(5);
+
+    rootOrganizationDTO =
+        (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(ownerHierarchyDTO.topParentOrganizationId);
+    assertThat(rootOrganizationDTO.organizationIds).hasSize(2);
+    assertThat(rootOrganizationDTO.synthetic).isFalse();
+
+    OwnerHierarchyOrganizationDTO organizationDTO =
+        (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(organization.getId());
     assertThat(organizationDTO.id).isEqualTo(organization.getId());
-    assertThat(organizationDTO.synthetic).isEqualTo(synthetic);
-    assertThat(organizationDTO.applications).hasSize(1);
+    assertThat(organizationDTO.synthetic).isFalse();
+    assertThat(organizationDTO.applicationIds).hasSize(1);
 
-    SidebarApplicationDTO applicationDTO = organizationDTO.applications.get(0);
+    applicationDTO =
+        (OwnerHierarchyApplicationDTO) ownerHierarchyDTO.ownersMap.get(organizationDTO.applicationIds.get(0));
     assertThat(applicationDTO.id).isEqualTo(application.getId());
   }
 }

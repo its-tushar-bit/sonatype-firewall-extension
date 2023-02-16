@@ -5,7 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -293,5 +299,117 @@ public class ApiDataRetentionPolicyServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto))
         .withMessageContaining("does not specify any retention policies");
+  }
+
+  @Test
+  public void testGetDataRetentionPolicies_nLevel() {
+    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+
+    Organization parentOrg = organizations.get(1);
+    List<DataRetentionPolicy> policies = Arrays.asList(
+        new DataRetentionPolicy(parentOrg.getId(), Stage.ID_BUILD),
+        new DataRetentionPolicy(parentOrg.getId(), Stage.ID_DEVELOP, true, 7, 5));
+    policies.forEach( policy -> dataRetentionPolicyDAO.insert(policy));
+
+    ApiDataRetentionPoliciesDTO parentOrgDTO = dataRetentionPolicyService.getDataRetentionPolicies(parentOrg.getId());
+    verifyRetentionPolicies(parentOrgDTO, Optional.of(policies), Optional.empty());
+    Organization childOrg = organizations.get(0);
+    ApiDataRetentionPoliciesDTO childOrgDTO = dataRetentionPolicyService.getDataRetentionPolicies(childOrg.getId());
+    verifyRetentionPolicies(childOrgDTO, Optional.empty(), Optional.of(policies));
+  }
+
+  @Test
+  public void testGetDataRetentionPolicies_nLevel_multipleInheritance() {
+    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 3, 0);
+
+    Organization parentOrg1 = organizations.get(2);
+    List<DataRetentionPolicy> parent1Policies = Arrays.asList(
+        new DataRetentionPolicy(parentOrg1.getId(), Stage.ID_BUILD),
+        new DataRetentionPolicy(parentOrg1.getId(), Stage.ID_DEVELOP, true, 7, 5));
+    parent1Policies.forEach( policy -> dataRetentionPolicyDAO.insert(policy));
+
+    Organization parentOrg2 = organizations.get(1);
+    List<DataRetentionPolicy> parent2Policies = Arrays.asList(
+        new DataRetentionPolicy(parentOrg2.getId(), Stage.ID_STAGE_RELEASE, false, 100, 365),
+        new DataRetentionPolicy(parentOrg2.getId(), Stage.ID_SOURCE, true, null, 1024));
+    parent2Policies.forEach( policy -> dataRetentionPolicyDAO.insert(policy));
+
+    List<DataRetentionPolicy> inheritedPolicies = new LinkedList<>();
+    ApiDataRetentionPoliciesDTO parentOrg1DTO = dataRetentionPolicyService.getDataRetentionPolicies(parentOrg1.getId());
+    verifyRetentionPolicies(parentOrg1DTO, Optional.of(parent1Policies), Optional.of(inheritedPolicies));
+
+    inheritedPolicies.addAll(parent1Policies);
+    ApiDataRetentionPoliciesDTO parentOrg2DTO = dataRetentionPolicyService.getDataRetentionPolicies(parentOrg2.getId());
+    verifyRetentionPolicies(parentOrg2DTO, Optional.of(parent2Policies), Optional.of(inheritedPolicies));
+
+    Organization childOrg = organizations.get(0);
+    inheritedPolicies.addAll(parent2Policies);
+    ApiDataRetentionPoliciesDTO childOrgDTO = dataRetentionPolicyService.getDataRetentionPolicies(childOrg.getId());
+    verifyRetentionPolicies(childOrgDTO, Optional.empty(), Optional.of(inheritedPolicies));
+  }
+
+  private void verifyRetentionPolicies(
+      ApiDataRetentionPoliciesDTO dto,
+      Optional<List<DataRetentionPolicy>> optionalPolicies,
+      Optional<List<DataRetentionPolicy>> optionalInheritedPolicies)
+  {
+    List<DataRetentionPolicy> policies = optionalPolicies.isPresent()
+        ? optionalPolicies.get()
+        : Collections.EMPTY_LIST;
+    List<String> definedStages = policies.stream().map(policy -> policy.getContextId()).collect(Collectors.toList());
+
+    List<DataRetentionPolicy> inheritedPolicies = optionalInheritedPolicies.isPresent()
+        ? optionalInheritedPolicies.get()
+        : Collections.EMPTY_LIST;
+    List<String> inheritedStages = inheritedPolicies.stream()
+        .map(policy -> policy.getContextId()).collect(Collectors.toList());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.applicationReports).isNotNull();
+    assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_DEVELOP, Stage.ID_SOURCE, Stage.ID_BUILD,
+        Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE, Stage.ID_OPERATE,
+        DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
+    assertThat(dto.applicationReports.stages.values()).allSatisfy(policyDTO -> assertThat(policyDTO).isNotNull());
+    assertThat(dto.applicationReports.stages).allSatisfy((contextId, policyDTO) -> {
+      //Check first if stage is defined for org
+      if (definedStages.contains(contextId)) {
+        DataRetentionPolicy originalPolicy =
+            policies.stream()
+                .filter(dataRetentionPolicy -> dataRetentionPolicy.getContextId().equals(contextId))
+                .findFirst()
+                .get();
+        assertThat(policyDTO.inheritPolicy).isFalse();
+        verifyPolicy(originalPolicy, policyDTO);
+      } //then check if stage is defined by any of parent org
+      else if (inheritedStages.contains(contextId)) {
+        DataRetentionPolicy inheritedPolicy =
+            inheritedPolicies.stream()
+                .filter(dataRetentionPolicy -> dataRetentionPolicy.getContextId().equals(contextId))
+                .findFirst()
+                .get();
+        assertThat(policyDTO.inheritPolicy).isTrue();
+        verifyPolicy(inheritedPolicy, policyDTO);
+      } // finally check if stage is defined by root org - which is default
+      else {
+        assertThat(policyDTO.inheritPolicy).isTrue();
+      }
+    });
+  }
+
+  private void verifyPolicy(DataRetentionPolicy originalPolicy, ApiReportRetentionPolicyDTO policyDTO ) {
+    assertThat(policyDTO.enablePurging).isEqualTo(originalPolicy.isPurgingEnabled());
+    if (originalPolicy.getMaxCount() != null) {
+      assertThat(originalPolicy.getMaxCount()).isEqualTo(policyDTO.maxCount);
+    }
+    else {
+      assertThat(policyDTO.maxCount).isNull();
+    }
+
+    if (originalPolicy.getMaxAgeInDays() != null) {
+      assertThat(policyDTO.maxAge.toDays()).isEqualTo(originalPolicy.getMaxAgeInDays());
+    }
+    else {
+      assertThat(policyDTO.maxAge).isNull();
+    }
   }
 }

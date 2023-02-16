@@ -275,4 +275,9 @@ public class OwnerDAO
     walkHierarchy(owner).forEach(anOwner -> ownerIds.add(anOwner.getId()));
     return ownerIds;
   }
+
+  public List<String> getOwnerIds(String ownerId) {
+    Owner owner = getById(ownerId);
+    return getOwnerIds(owner);
+  }
 }

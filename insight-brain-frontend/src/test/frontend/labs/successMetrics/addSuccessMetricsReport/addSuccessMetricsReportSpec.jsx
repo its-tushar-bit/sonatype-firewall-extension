@@ -33,6 +33,20 @@ describe('AddSuccessMetricsReport', () => {
       reportName: {
         trimmedValue: '',
       },
+      ownersMap: {
+        ROOT_ORGANIZATION_ID: {
+          type: 'organization',
+          id: 'ROOT_ORGANIZATION_ID',
+          name: 'Root Organization',
+          synthetic: true,
+          parentOrganizationId: null,
+          applicationIds: null,
+          subOrgs: 0,
+          totalApps: 0,
+          organizationIds: [],
+        },
+      },
+      topParentOrganizationId: 'ROOT_ORGANIZATION_ID',
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddSuccessMetricsReport, minimalProps);

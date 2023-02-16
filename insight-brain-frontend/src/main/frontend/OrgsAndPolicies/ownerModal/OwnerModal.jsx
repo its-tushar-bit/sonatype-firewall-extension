@@ -4,24 +4,30 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useRef, useMemo } from 'react';
+import * as PropTypes from 'prop-types';
+
 import { useSelector, useDispatch } from 'react-redux';
 import { isEmpty } from 'ramda';
 import { getRobotUrl } from 'MainRoot/util/CLMLocation';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import {
   selectOwnerModalSlice,
   selectNewOwnerName,
   selectNewOwnerAppId,
   selectValidationError,
+  selectIsApplication,
 } from './ownerModalSelectors';
-import { selectIsRootOrganization, selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectApplications } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { selectOrganizations } from 'MainRoot/OrgsAndPolicies/organizationsSelectors';
+import { selectDisplayedOrganization } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import {
   NxModal,
   NxH2,
+  NxH3,
   NxStatefulForm,
   NxFormGroup,
   NxTextInput,
@@ -30,11 +36,12 @@ import {
   NxButton,
   NxFontAwesomeIcon,
   NxFileUpload,
+  NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import { actions, iconTypes } from './ownerModalSlice';
 import { faSync } from '@fortawesome/free-solid-svg-icons';
 
-export default function OwnerModal() {
+export default function OwnerModal({ shouldRedirectToNewOrg }) {
   const dispatch = useDispatch();
 
   const {
@@ -57,14 +64,20 @@ export default function OwnerModal() {
   const orgsList = useSelector(selectOrganizations);
   const selectedOwner = useSelector(selectSelectedOwner);
   const validationErrors = useSelector(selectValidationError);
+  const displayedOrganization = useSelector(selectDisplayedOrganization);
+  const uiRouterState = useRouterState();
+  const scmOnboardingHref = uiRouterState.href('scmOnboardingOrg', {
+    organizationId: displayedOrganization?.id,
+  });
+
   const contentRef = useRef(null);
   const closeModalWithCheck = () => dispatch(actions.closeModal({ isDirty }));
   const closeUnsavedChangesModal = () => dispatch(actions.closeUnsavedChangesModal());
   const closeModal = () => dispatch(actions.closeModal());
-  const createNewOwner = () => dispatch(actions.createNewOwner());
+  const createNewOwner = () => dispatch(actions.createNewOwner(shouldRedirectToNewOrg));
   const editCurrentOwner = () => dispatch(actions.editCurrentOwner());
   const onChangeOwnerName = (value) =>
-    dispatch(actions.setNewOwnerName({ value, appsList, orgsList, isRootOrg, isApp, selectedOwner }));
+    dispatch(actions.setNewOwnerName({ value, appsList, orgsList, isApp, selectedOwner }));
   const onChangeAppId = (value) => dispatch(actions.setNewOwnerAppId({ value, appsList, selectedOwner }));
   const updateRobotIcon = () => dispatch(actions.updateRobotIcon());
   const setCustomIcon = (file) => dispatch(actions.setCustomIcon(file));
@@ -72,6 +85,7 @@ export default function OwnerModal() {
     await dispatch(actions.setOwnerIconType({ value, selectedOwner }));
     scrollToBottom();
   };
+
   const scrollToBottom = () => {
     contentRef.current.scrollTop = contentRef.current.scrollHeight;
   };
@@ -95,36 +109,51 @@ export default function OwnerModal() {
     isRootOrg,
   ]);
 
+  const additionalFooterButtons = (
+    <>
+      <NxButton variant="tertiary" type="button" className="nx-form__cancel-btn" onClick={closeModalWithCheck}>
+        Cancel
+      </NxButton>
+      {!isEditMode && isApp && (
+        <a href={scmOnboardingHref} className="nx-btn nx-btn--secondary">
+          Import Apps
+        </a>
+      )}
+    </>
+  );
+
   return (
     <>
       {isModalOpen ? (
         <NxModal id="owner-editor" onCancel={closeModalWithCheck}>
           <NxStatefulForm
             onSubmit={isEditMode ? editCurrentOwner : createNewOwner}
-            onCancel={closeModalWithCheck}
             submitMaskState={submitMaskState}
             submitBtnText={isEditMode ? 'Update' : 'Create'}
             submitError={submitError}
             validationErrors={validationErrors}
+            additionalFooterBtns={additionalFooterButtons}
           >
             <NxModal.Header>
               <NxH2>
                 {isEditMode ? 'Edit ' : 'New '}
-                {isEditMode ? (isApp ? 'Application' : 'Organization') : isRootOrg ? 'Organization' : 'Application'}
+                {isApp ? 'Application' : 'Organization'}
               </NxH2>
+              {!isEditMode && (
+                <NxOverflowTooltip>
+                  <NxH3 className="nx-truncate-ellipsis">
+                    <b>Adding to: </b>
+                    {displayedOrganization?.name}
+                  </NxH3>
+                </NxOverflowTooltip>
+              )}
             </NxModal.Header>
             <NxModal.Content ref={contentRef}>
-              <NxFormGroup
-                id="editor-owner-name"
-                label={`${
-                  isEditMode ? (isApp ? 'Application' : 'Organization') : isRootOrg ? 'Organization' : 'Application'
-                } Name`}
-                isRequired
-              >
+              <NxFormGroup id="editor-owner-name" label={`${isApp ? 'Application' : 'Organization'} Name`} isRequired>
                 <NxTextInput onChange={onChangeOwnerName} {...newOwnerName} validatable={true} />
               </NxFormGroup>
 
-              {!isEditMode && !isRootOrg && (
+              {!isEditMode && isApp && (
                 <NxFormGroup id="editor-new-id" label="Application ID" isRequired>
                   <NxTextInput onChange={onChangeAppId} {...ownerAppId} validatable={true} />
                 </NxFormGroup>
@@ -186,3 +215,7 @@ export default function OwnerModal() {
     </>
   );
 }
+
+OwnerModal.propTypes = {
+  shouldRedirectToNewOrg: PropTypes.bool,
+};

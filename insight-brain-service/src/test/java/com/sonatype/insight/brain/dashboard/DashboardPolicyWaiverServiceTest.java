@@ -85,6 +85,8 @@ public class DashboardPolicyWaiverServiceTest
   @Inject
   private PolicyDAO policyDAO;
 
+  private Organization parentOrg;
+
   private Organization org;
 
   private Application app1;
@@ -97,9 +99,10 @@ public class DashboardPolicyWaiverServiceTest
 
   @Before
   public void beforeEach() {
-    org = tempEntity.newOrganization();
+    parentOrg = tempEntity.newOrganization();
+    org = tempEntity.newOrganization(parentOrg);
     app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
-    app2 = tempEntity.newApplication("Application 2", "Application-2", org.getId());
+    app2 = tempEntity.newApplication("Application 2", "Application-2", parentOrg.getId());
     policy = tempEntity.newPolicy(org);
 
     risksFilterDTOBuilder = new RisksFilterDTOBuilder().withApplicationIds(Collections.emptySet())
@@ -162,27 +165,31 @@ public class DashboardPolicyWaiverServiceTest
   public void getDashboardPolicyWaivers_filtersByOrganization() {
     Organization excludedOrganization = tempEntity.newOrganization();
     Policy excludedPolicy = tempEntity.newPolicy(excludedOrganization);
-    tempEntity.newWaiver(policy.getId(), excludedPolicy.getId());
+    tempEntity.newWaiver(excludedPolicy.getId(), excludedOrganization.getId());
     PolicyWaiver policyWaiverApp1 = tempEntity.newWaiver(policy.getId(), org.getId());
+    PolicyWaiver policyWaiverParentOrg1 = tempEntity.newWaiver(policy.getId(), parentOrg.getId());
     createPolicyWaiverWithFullDetails(app2);
 
     risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId())).withMaxResults(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
+    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(2);
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiverApp1, org);
+    assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(1), policyWaiverParentOrg1, parentOrg);
   }
 
   @Test
   public void getDashboardPolicyWaivers_filtersByApplication() {
     PolicyWaiver policyWaiverApp2 = createPolicyWaiverWithFullDetails(app2);
+    PolicyWaiver policyWaiverParentOrg1 = tempEntity.newWaiver(policy.getId(), parentOrg.getId());
     tempEntity.newWaiver(policy.getId(), app1.getId());
 
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app2.getId())).withMaxResults(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
+    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(2);
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiverApp2, app2);
+    assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(1), policyWaiverParentOrg1, parentOrg);
   }
 
   @Test
@@ -962,6 +969,42 @@ public class DashboardPolicyWaiverServiceTest
     assertThat(dashboardPolicyWaivers.numResults)
         .as("It should add expired waiver(s) to the result if ALL expiration date filter is selected.")
         .isEqualTo(3);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_shouldGetAllParentWaiversFromParentOrgs() {
+    Organization parentOrg1 = tempEntity.newOrganization();
+    Organization parentOrg2 = tempEntity.newOrganization(parentOrg1);
+    Organization parentOrg3 = tempEntity.newOrganization(parentOrg2);
+    Organization parentOrg4 = tempEntity.newOrganization(parentOrg3);
+    Organization org1 = tempEntity.newOrganization(parentOrg4);
+    app1 = tempEntity.newApplication(org1.getId());
+
+    Policy policy1 = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withName("Z-Policy-Name")
+            .withOwnerId(app1.getId())
+            .build());
+
+    tempEntity.newWaiver(policy1.getId(), Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newWaiver(policy1.getId(), parentOrg1.getId());
+    tempEntity.newWaiver(policy1.getId(), parentOrg2.getId());
+    tempEntity.newWaiver(policy1.getId(), parentOrg3.getId());
+    tempEntity.newWaiver(policy1.getId(), parentOrg4.getId());
+    tempEntity.newWaiver(policy1.getId(), org1.getId());
+    tempEntity.newWaiver(policy1.getId(), app1.getId());
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(
+            risksFilterDTOBuilder
+                .withApplicationIds(Collections.singleton(app1.getId()))
+                .withMaxResults(10)
+                .build());
+
+    assertThat(dashboardPolicyWaivers.numResults)
+        .as("It should get the app and all the parent orgs including the root org")
+        .isEqualTo(7);
   }
 
   private PolicyWaiver createPolicyWaiverWithFullDetails(Application application) {

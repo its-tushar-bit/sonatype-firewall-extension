@@ -247,7 +247,7 @@ public class OrganizationSummaryViewTest
     categoryTile.nxSubHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(organization));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(organization));
 
-    categoryTile.categoryLists().shouldHaveSize(2);
+    categoryTile.categoryLists().shouldHaveSize(1);
 
     NxList list = categoryTile.categoryList(0);
     SelenideElement subsectionHeader = categoryTile.categoryListSubheader(0);

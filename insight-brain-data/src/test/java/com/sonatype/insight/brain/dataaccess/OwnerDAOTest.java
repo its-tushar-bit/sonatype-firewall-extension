@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.model.HasStringId;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -37,20 +39,26 @@ public class OwnerDAOTest
   @Test
   public void testWalkHierarchy_Application() {
     List<String> ownersIds = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(application)) {
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 3, 0);
+    Application app = tempEntity.newApplicationWithParent(testList.get(0));
+    for (Owner owner : ownerDAO.walkHierarchy(app)) {
       ownersIds.add(owner.getId());
     }
-    assertThat(ownersIds).containsExactly(application.getId(), organization.getId(),
+    assertThat(ownersIds).containsExactly(app.getId(), testList.get(0).getId(), testList.get(1).getId(),
+        testList.get(2).getId(),
         organization.getParentOrganizationId());
   }
 
   @Test
   public void testWalkHierarchy_ApplicationId() {
     List<String> ownersIds = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(application.getId())) {
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 3, 0);
+    Application app = tempEntity.newApplicationWithParent(testList.get(0));
+    for (Owner owner : ownerDAO.walkHierarchy(app.getId())) {
       ownersIds.add(owner.getId());
     }
-    assertThat(ownersIds).containsExactly(application.getId(), organization.getId(),
+    assertThat(ownersIds).containsExactly(app.getId(), testList.get(0).getId(), testList.get(1).getId(),
+        testList.get(2).getId(),
         organization.getParentOrganizationId());
   }
 
@@ -119,8 +127,11 @@ public class OwnerDAOTest
 
   @Test
   public void testGetChildOwners_Organization() {
-    List<Owner> childOwners = ownerDAO.getChildOwners(organization);
-    assertThat(childOwners).extracting(Owner::getId).containsExactly(application.getId());
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 3, 0);
+
+    List<Owner> childOwners = ownerDAO.getChildOwners(testList.get(2));
+    List<String> ids = childOwners.stream().map(HasStringId::getId).collect(Collectors.toList());
+    assertThat(ids).containsExactly(testList.get(1).getId());
   }
 
   @Test
@@ -222,8 +233,14 @@ public class OwnerDAOTest
 
   @Test
   public void testGetDescendantOrSelfApplicationIds_RootOrganization_NoDescendants() {
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+    Application app = tempEntity.newApplicationWithParent(testList.get(0));
+
+    new ApplicationDAO().delete(app);
     new ApplicationDAO().delete(application);
     new OrganizationDAO().delete(organization);
+    new OrganizationDAO().delete(testList.get(0));
+    new OrganizationDAO().delete(testList.get(1));
     Organization rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
 
     assertThat(ownerDAO.getDescendantOrSelfApplicationIds(rootOrganization)).isEmpty();

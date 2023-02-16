@@ -133,6 +133,14 @@ export function getOrganizationsUrl() {
   return uriTemplate`/rest/organization`;
 }
 
+export function getNLevelOrgUrl() {
+  return uriTemplate`/api/v2/organizations`;
+}
+
+export function getOrganizationUrl(id) {
+  return uriTemplate`/rest/organization/${id}`;
+}
+
 export function getAllLicensesUrl() {
   return uriTemplate`/rest/license`;
 }
@@ -229,8 +237,6 @@ export function getValidateScmConfigUrl(scmProvider, scmHostUrl) {
 export function getCompositeSourceControlUrl(ownerType, ownerId) {
   return uriTemplate`/api/v2/compositeSourceControl/${ownerType}/${ownerId}`;
 }
-
-export const getRepositoriesUrl = () => uriTemplate`/rest/repositories/`;
 
 export const getRepositoryInfoUrl = (repositoryId) => uriTemplate`/rest/repositories/${repositoryId}`;
 
@@ -370,6 +376,17 @@ export function getLdapPriority() {
   return uriTemplate`/rest/config/ldap/priority`;
 }
 
+/**
+ * @since 1.20.0
+ */
+export function getOwnerListUrl() {
+  return uriTemplate`/rest/sidebar`;
+}
+
+export function getRepositoriesUrl() {
+  return uriTemplate`/rest/repositories`;
+}
+
 export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc) {
   let params = toURIParams({
     page: page,
@@ -411,6 +428,13 @@ export function getEnableUnauthenticatedPages() {
 
 export function getQuarantinedComponentViewAnonymousAccessEnabledState() {
   return uriTemplate`/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess/`;
+}
+
+/*
+ * @since 1.18.0
+ */
+export function getPermissionContextTestUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/user/permissions/${ownerType}` + (ownerId ? `/${ownerId}` : '');
 }
 
 export const getReportBomUrl = getBrowseReportUrl('bom.json');
@@ -1100,10 +1124,6 @@ export const getComponentNameUrl = (hash) => {
 export const getAuditReportSummary = function (repositoryId) {
   return uriTemplate`/rest/repositories/${encodeURIComponent(repositoryId)}/report/summary`;
 };
-
-export function getPermissionsTestUrl(ownerType, ownerId) {
-  return uriTemplate`/rest/user/permissions/${ownerType}/${ownerId}`;
-}
 
 export const getGrandfatheringUrl = (ownerType, ownerId) =>
   uriTemplate`/rest/policyViolationGrandfathering/${ownerType}/${ownerId}`;

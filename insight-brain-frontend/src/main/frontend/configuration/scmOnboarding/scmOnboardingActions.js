@@ -14,9 +14,11 @@ import {
   getScmRepositoriesUrl,
   getScmDefaultHostUrl,
   getImportRepositoriesUrl,
-  getOrganizationsUrl,
 } from '../../util/CLMLocation';
 import { valueFromHierarchy, tokenForOrg } from './utils/providers';
+
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 export const SCM_ONBOARDING_LOAD_PAGE_REQUESTED = 'SCM_ONBOARDING_LOAD_PAGE_REQUESTED';
 export const SCM_ONBOARDING_LOAD_PAGE_FULFILLED = 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED';
@@ -40,8 +42,6 @@ export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED = 'SCM_ONBOARDING_
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED';
 export const SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED = 'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED';
 
-export const SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED = 'SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED';
-export const SCM_ONBOARDING_ADD_ORGANIZATION_FAILED = 'SCM_ONBOARDING_ADD_ORGANIZATION_FAILED';
 export const SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE =
   'SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE';
 
@@ -70,8 +70,11 @@ export function loadPage(orgId) {
       const selectedOrganization = getState().scmOnboarding.formState.organizations.find(
         (org) => org.organization.id === orgId
       );
-      dispatch(setSelectedOrganization(selectedOrganization));
-      return;
+      // When an org is added through the form it does not exists in the current list so the list has to be requested again
+      if (selectedOrganization) {
+        dispatch(setSelectedOrganization(selectedOrganization));
+        return;
+      }
     }
     dispatch(loadPageRequested(orgId));
 
@@ -85,7 +88,7 @@ export function loadPage(orgId) {
       return provider !== null ? axios.get(getScmDefaultHostUrl(orgId, provider)) : Promise.resolve(null);
     });
 
-    return Promise.all([organizations, scm, hostUrl])
+    return Promise.all([organizations, scm, hostUrl, dispatch(ownerSideNavActions.load())])
       .then(([organizationsResults, compositeSourceControlResults, hostUrlResult]) => {
         dispatch(
           loadPageFulfilled({
@@ -95,6 +98,7 @@ export function loadPage(orgId) {
           })
         );
         const selectedOrganization = organizationsResults.data.find((org) => org.organization.id === orgId);
+        if (selectedOrganization) dispatch(setSelectedOrganization(selectedOrganization));
         const hasToken =
           selectedOrganization &&
           (selectedOrganization.sourceControl.token.value !== null ||
@@ -157,6 +161,8 @@ export function setSelectedOrganization(selectedOrg) {
           if (data.defaultHostUrl) {
             dispatch(loadRepositories(orgId, data.defaultHostUrl));
           }
+          dispatch(ownerSideNavActions.setDisplayedOrganization(selectedOrg.organization));
+          dispatch(rootActions.setSelectedOwner(selectedOrg.organization));
         })
         .catch((error) => {
           dispatch(setTargetOrganizationFailed(error));
@@ -170,27 +176,8 @@ export function setSelectedOrganization(selectedOrg) {
         })
       );
     }
-  };
-}
-
-export function addOrganization(organizationName) {
-  return function (dispatch, getState) {
-    const rootToken = getState().scmOnboarding.configState.rootOrgHasToken ? 'redacted' : null;
-    return axios
-      .post(getOrganizationsUrl(), { name: organizationName })
-      .then(({ data }) => {
-        // Note INT-4477: provider is set here in preparation for work to be done in the epic to support multiple SCMs
-        const newOrganization = {
-          sourceControl: {
-            token: { value: null, parentValue: rootToken },
-            provider: { value: null, parentValue: getState().scmOnboarding.configState.rootProvider },
-          },
-          organization: data,
-        };
-        dispatch(addOrganizationFulfilled(newOrganization));
-        dispatch(setSelectedOrganization(newOrganization));
-      })
-      .catch((error) => dispatch(addOrganizationFailed(error)));
+    dispatch(ownerSideNavActions.setDisplayedOrganization(selectedOrg.organization));
+    dispatch(rootActions.setSelectedOwner(selectedOrg.organization));
   };
 }
 
@@ -285,9 +272,6 @@ export const setIsNewOrganizationModalVisible = payloadParamActionCreator(
 
 export const setCurrentHostUrl = payloadParamActionCreator(SCM_ONBOARDING_SET_CURRENT_HOST_URL);
 
-const addOrganizationFulfilled = payloadParamActionCreator(SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED);
-const addOrganizationFailed = payloadParamActionCreator(SCM_ONBOARDING_ADD_ORGANIZATION_FAILED);
-
 const importSelectedRepositoriesRequested = noPayloadActionCreator(SCM_ONBOARDING_IMPORT_REPOS_REQUESTED);
 const importSelectedRepositoriesFulfilled = payloadParamActionCreator(SCM_ONBOARDING_IMPORT_REPOS_FULFILLED);
 const importSelectedRepositoriesFailed = payloadParamActionCreator(SCM_ONBOARDING_IMPORT_REPOS_FAILED);
@@ -301,7 +285,6 @@ export const setIsImportStatusDialogVisible = payloadParamActionCreator(SCM_ONBO
 export default function scmOnboarding() {
   return {
     setSelectedOrganization,
-    addOrganization,
     setCurrentHostUrl,
     validateScmHostUrl,
     loadPage,

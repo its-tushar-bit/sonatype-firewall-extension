@@ -5,9 +5,10 @@
  */
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { NxModal, NxStatefulForm, NxFieldset, NxRadio } from '@sonatype/react-shared-components';
-
-import ComponentLabelTag from '../../../react/tag/ComponentLabelTag';
+import { find, propEq } from 'ramda';
+import ComponentLabelTag from 'MainRoot/react/tag/ComponentLabelTag';
+import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
+import { NxModal, NxStatefulForm, NxFieldset } from '@sonatype/react-shared-components';
 
 export default function ApplyLabelModal({
   applicableLabelScopes = [],
@@ -38,6 +39,14 @@ export default function ApplyLabelModal({
   if (!showApplyLabelModal) {
     return null;
   }
+
+  const handleScopeChange = (id) => {
+    const target = find(propEq('id', id), applicableLabelScopes);
+    setLabelScopeToSave({ labelScopeType: target.type, labelScopeId: target.id });
+  };
+
+  const extractScopeOptionText = ({ label, name }) => (label === 'Repository_container' ? name : `${label} - ${name}`);
+
   return (
     <NxModal id="iq-apply-label-modal" onClose={cancelApplyLabelModal} aria-labelledby="iq-apply-label-modal__heading">
       <NxStatefulForm
@@ -67,21 +76,14 @@ export default function ApplyLabelModal({
             </dd>
           </dl>
           <NxFieldset label="Scope" className="nx-read-only" isRequired>
-            {applicableLabelScopes.map(({ id, type, name }) => (
-              <NxRadio
-                key={`selected-scope-key-${id}`}
-                name="selected-scope"
-                value={name}
-                onChange={() => setLabelScopeToSave({ labelScopeType: type, labelScopeId: id })}
-                isChecked={labelScopeToSave.labelScopeId === id && labelScopeToSave.labelScopeType === type}
-                radioId={`scope-id-${id}`}
-              >
-                <span className="apply-label-modal__scope-level">
-                  {type === 'repository_container' ? ' ' : `${type} - `}
-                </span>
-                {name}
-              </NxRadio>
-            ))}
+            <IqScopeDropdown
+              id="iq-apply-label-scope"
+              onChangeHandler={handleScopeChange}
+              availableScopes={applicableLabelScopes}
+              getOptionText={extractScopeOptionText}
+              currentValue={labelScopeToSave.labelScopeId}
+              withHiddenOption
+            />
           </NxFieldset>
         </div>
       </NxStatefulForm>

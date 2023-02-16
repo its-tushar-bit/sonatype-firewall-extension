@@ -16,6 +16,8 @@ public class ApiOrganizationDTO
 
   public String name;
 
+  public String parentOrganizationId;
+
   public List<ApiTagDTO> tags;
 
   public ApiOrganizationDTO() {

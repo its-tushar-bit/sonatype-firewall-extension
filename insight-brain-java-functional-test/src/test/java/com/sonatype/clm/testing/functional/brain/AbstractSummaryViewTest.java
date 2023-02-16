@@ -25,6 +25,8 @@ import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.LicenseThreatGroupElement;
+import com.sonatype.clm.testing.functional.elements.NavPills;
+import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxList;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
@@ -122,7 +124,14 @@ public abstract class AbstractSummaryViewTest
 
     ErrorBox error = OwnerSummaryPage.summaryTile().error();
     error.shouldBe(visible);
-    error.shouldHave(text("Could not find an " + currentOwner.getType().toString()));
+    if (currentOwner.getType().equals(OwnerType.APPLICATION)) {
+      error.shouldHave(text("An error occurred loading data. Could not find an "
+          + currentOwner.getType().toString() + " with public ID fakeid."));
+    }
+    else {
+      error.shouldHave(text("An error occurred loading data. Cannot find "
+          + currentOwner.getType().toString() + " with ID fakeid."));
+    }
     error.retryButton().shouldBe(visible, enabled);
   }
 
@@ -133,6 +142,53 @@ public abstract class AbstractSummaryViewTest
     ActionDropDown.menu().shouldBe(visible);
     ActionDropDown.actionButton().click();
     ActionDropDown.menu().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigationPills() {
+    NavPills navPills = OwnerSummaryPage.navigationPills();
+
+    if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
+      navPills.pills().shouldHaveSize(10);
+    }
+    else if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
+      navPills.pills().shouldHaveSize(11);
+    }
+
+    navPills.appCategory().click();
+    OwnerSummaryPage.categoryTile().shouldBe(visible);
+
+    navPills.policy().click();
+    OwnerSummaryPage.policyTile().shouldBe(visible);
+
+    navPills.grandfathering().click();
+    OwnerSummaryPage.violationGrandfathering().shouldBe(visible);
+
+    navPills.continuousMonitoring().click();
+    OwnerSummaryPage.monitoredStage().shouldBe(visible);
+
+    navPills.proprietaryComponents().click();
+    OwnerSummaryPage.proprietaryComponentMatchers().shouldBe(visible);
+
+    navPills.labels().click();
+    OwnerSummaryPage.labelTile().shouldBe(visible);
+
+    navPills.ltg().click();
+    OwnerSummaryPage.licenseThreatGroupSummaryTile().shouldBe(visible);
+
+    if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
+      navPills.retention().shouldNot(exist);
+    }
+    else if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
+      navPills.retention().click();
+      OwnerSummaryPage.dataRetentionTile().shouldBe(visible);
+    }
+
+    navPills.sourceControl().click();
+    OwnerSummaryPage.sourceControlTile().shouldBe(visible);
+
+    navPills.innerSource().click();
+    OwnerSummaryPage.innerSourceRepositoryTile().shouldBe(visible);
   }
 
   @Test
@@ -782,6 +838,18 @@ public abstract class AbstractSummaryViewTest
     }
   }
 
+  @Test
+  public void testBreadcrumb() {
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    breadcrumb.current().text().equals(currentOwner.getName());
+
+    // test navigation
+    breadcrumb.links().first().click();
+    waitUntilUrl(OwnerSummaryPage.urlToRootOrg());
+
+    OwnerSummaryPage.summaryTile().name().shouldHave(text("Root Organization"));
+  }
+
   private void testLTGTile_Inherited(List<List<LicenseThreatGroup>> inheritedLTGs, List<Owner> parentOwners) {
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
 
@@ -794,10 +862,8 @@ public abstract class AbstractSummaryViewTest
       ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(i);
       ScrollUtil.scrollIntoViewInstantly(section.getTitle());
 
-      boolean notAnApp = !OwnerType.APPLICATION.equals(currentOwner.getType());
-
       if (i == 0) {
-        if (notAnApp) {
+        if (!OwnerType.APPLICATION.equals(currentOwner.getType())) {
           section.getTitle().shouldBe(visible).shouldHave(text("Local"));
           SelenideElement emptyDescriptor = section.getEmptyDescriptor();
           if (section.getEmptyDescriptor() != null ) {
@@ -807,7 +873,7 @@ public abstract class AbstractSummaryViewTest
         }
       }
       else {
-        int element = notAnApp ? i - 1 : i;
+        int element = i - 1;
         int expectedTestLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(element).getId())
             ? LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT : 0;
         int expectedLTGCount = inheritedLTGs.get(element).size() + expectedTestLTGSize;
@@ -819,7 +885,7 @@ public abstract class AbstractSummaryViewTest
           LicenseThreatGroupElement actualLTG = section.getLicenseThreatGroupElement(section.getLTG(j));
 
           if (inheritedLTGs.size() < i) {
-            LicenseThreatGroup expectedLTG = inheritedLTGs.get(element).get(j);
+            LicenseThreatGroup expectedLTG = inheritedLTGs.get(i - 1).get(j);
             actualLTG.getName().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
             actualLTG.getThreatLevelValue().shouldBe(visible)
                 .shouldHave(LicenseThreatGroupElement.threatLevel(expectedLTG.getThreatLevel()));

@@ -9,6 +9,7 @@ import { getOrganizationsUrl, getApplicationsUrl } from 'MainRoot/util/CLMLocati
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { actions as organizationActions } from '../organizationsSlice';
 import { actions as applicationsActions } from '../applicationsSlice';
+import { actions as ownerSideNavActions } from '../ownerSideNav/ownerSideNavSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
@@ -51,9 +52,13 @@ const removeOwner = createAsyncThunk(`${REDUCER_NAME}/removeOwner`, (_, { getSta
   return axios
     .delete(url)
     .then(() => {
-      isApp
-        ? dispatch(applicationsActions.removeApplicationFromList(ownerToDelete.id))
-        : dispatch(organizationActions.removeOrganizationFromList(ownerToDelete.id));
+      if (isApp) {
+        dispatch(applicationsActions.removeApplicationFromList(ownerToDelete.id));
+        dispatch(ownerSideNavActions.removeApplicationFromOwnerHierarchy(ownerToDelete.publicId));
+      } else {
+        dispatch(organizationActions.removeOrganizationFromList(ownerToDelete.id));
+        dispatch(ownerSideNavActions.removeOrganizationFromOwnerHierarchy(ownerToDelete.id));
+      }
 
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
         dispatch(

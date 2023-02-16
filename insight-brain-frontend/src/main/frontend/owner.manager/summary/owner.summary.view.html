@@ -1,5 +1,8 @@
 <div id="owner-summary" ng-controller="OwnerSummaryController as vm">
-  <div load-wrapper="vm.loadError" loading="vm.loading" reload="vm.doLoad()">
+  <insufficient-permission-owner-hierarchy-tree
+    ng-if="vm.isSyntheticOrg()"
+  ></insufficient-permission-owner-hierarchy-tree>
+  <div ng-if="!vm.isSyntheticOrg()" load-wrapper="vm.loadError" loading="vm.loading" reload="vm.doLoad()">
     <div class="nx-page-title iq-page-title">
       <div class="nx-btn-bar">
         <action-dropdown></action-dropdown>
@@ -13,16 +16,19 @@
       </div>
     </div>
     <div class="page-repository-url nx-truncate-ellipsis" ng-if="vm.isApp && vm.repositoryUrl">
-      <i class="fa fa-{{vm.scmProviderIcon}} size-24px"></i><a href="{{vm.repositoryUrl}}" target="_blank">{{vm.repositoryUrl}}</a>
+      <i class="fa fa-{{vm.scmProviderIcon}} size-24px"></i
+      ><a href="{{vm.repositoryUrl}}" target="_blank">{{vm.repositoryUrl}}</a>
     </div>
     <owner-summary-pills></owner-summary-pills>
   </div>
 </div>
 <div
   class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
-    id="owner-summary-sections">
-  <div ng-controller="OwnerSummaryTilesContainerController as vm">
-    <div ng-if="!vm.loading">
+  id="owner-summary-sections"
+  ng-controller="OwnerSummaryTilesContainerController as tilesVm"
+>
+  <div ng-if="!tilesVm.loadError" scrollspy="#owner-summary">
+    <div ng-if="!tilesVm.loading">
       <application-categories-tile></application-categories-tile>
       <policies-tile></policies-tile>
       <policy-grandfathering-tile></policy-grandfathering-tile>
@@ -42,7 +48,6 @@
       <import-policies-modal></import-policies-modal>
       <move-application-modal></move-application-modal>
       <select-contact-modal></select-contact-modal>
-      <owner-modal></owner-modal>
       <evaluate-application-modal></evaluate-application-modal>
     </div>
   </div>

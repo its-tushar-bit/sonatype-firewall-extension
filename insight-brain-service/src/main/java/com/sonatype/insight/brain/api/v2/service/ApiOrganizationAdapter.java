@@ -34,6 +34,7 @@ class ApiOrganizationAdapter
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO();
     apiOrganizationDTO.id = organization.getId();
     apiOrganizationDTO.name = organization.getName();
+    apiOrganizationDTO.parentOrganizationId = organization.getParentOrganizationId();
     List<ApiTagDTO> apiTagDTOList = new ArrayList<>(tags.size());
     for (Tag tag : tags) {
       ApiTagDTO apiTagDTO = new ApiTagDTO();

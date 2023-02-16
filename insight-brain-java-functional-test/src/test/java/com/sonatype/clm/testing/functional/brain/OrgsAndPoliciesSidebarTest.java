@@ -1,0 +1,310 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.brain;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
+import com.sonatype.clm.testing.functional.elements.MoveApplicationSuccessModal;
+import com.sonatype.clm.testing.functional.elements.NxCollapsible;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
+import com.sonatype.clm.testing.functional.elements.NxTooltip;
+import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
+import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPageWithLimitedVisibility;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+
+import com.codeborne.selenide.SelenideElement;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class OrgsAndPoliciesSidebarTest
+    extends AbstractFunctionalTest
+{
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  private Map<Integer, List<Organization>> organizations;
+
+  private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private OrganizationDAO organizationDAO = new OrganizationDAO();
+
+  @BeforeClass
+  public static void beforeClass() {
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
+    loginAsAdmin();
+  }
+
+  @Before
+  public void init() {
+    organizations = tempEntity.newRelatedOrganizationsAsMap(null, 2, 3, 3);
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
+  }
+
+  @Test
+  public void testOrgsAndPoliciesSideNavbar() {
+    eyesWatcher.eyesCheck("Orgs and policies sidebar at Root level");
+
+    organizations.forEach( (key, value) -> {
+      Collections.sort(organizations.get(key), Comparator.comparing(o -> o.getName().toUpperCase()));
+    });
+
+    Owner currentOwner = organizations.get(2).get(0);
+    testSideNavbarContent("Root Organization", currentOwner.getName(), 21, 6);
+
+    Owner parentOwner = currentOwner;
+    currentOwner = organizations.get(1).get(0);
+    testSideNavbarContent(parentOwner.getName(), currentOwner.getName(), 9, 2);
+
+    parentOwner = currentOwner;
+    currentOwner = organizations.get(0).get(0);
+    testSideNavbarContent(parentOwner.getName(), currentOwner.getName(), 3, 0);
+
+    parentOwner = currentOwner;
+    testSideNavbarContent(parentOwner.getName(), "", 0, 0);
+  }
+
+  @Test
+  public void testOrgsAndPoliciesSideNavbar_importApplications() {
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+
+    List<Organization> childOrganizations = organizations.get(2);
+    childOrganizations.sort(Comparator.comparing(organization -> organization.getName().toUpperCase()));
+    Organization parentOrg = childOrganizations.get(0);
+
+    OrgsAndPoliciesSidebar.OwnerItem firstChildOrg = orgsAndPoliciesSidebar.getOrganizationLink(0);
+    firstChildOrg.click();
+
+    SelenideElement organizationsButton = orgsAndPoliciesSidebar.getApplicationPlusIcon();
+    assertThat(organizationsButton).isNotNull();
+    assertThat(organizationsButton.is(visible)).isTrue();
+    assertThat(organizationsButton.isEnabled()).isTrue();
+    organizationsButton.click();
+    SelenideElement applicationsButton = orgsAndPoliciesSidebar.getImportApplicationsButton();
+    assertThat(applicationsButton.is(visible)).isTrue();
+    assertThat(applicationsButton.isEnabled()).isTrue();
+    applicationsButton.click();
+
+    waitUntilUrl(ScmOnboardingPage.url(parentOrg.getId()));
+  }
+
+  @Test
+  public void testOrgsAndPoliciesSideNavbar_updateNavbarAfterAddingNewApplication() {
+    organizations.forEach((key, value) -> {
+      Collections.sort(organizations.get(key), Comparator.comparing(o -> o.getName().toUpperCase()));
+    });
+    Application applicationToCreate = new Application();
+    applicationToCreate.setName("Just Created App");
+    applicationToCreate.setPublicId("JustCreateAppPublicId");
+
+    Organization parentOrganization = organizations.get(2).get(0);
+    refreshOrOpen(OwnerSummaryPage.url(parentOrganization));
+    waitUntilUrl(OwnerSummaryPage.url(parentOrganization));
+
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(parentOrganization.getName()));
+    testSideNavbarContent(
+        parentOrganization,
+        new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOrganization.getId())),
+        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId()))
+    );
+
+    selectAddApplicationOption();
+
+    // Create Application
+    OwnerEditorDialog.nameDiv().shouldBe(visible).shouldHave(cssClass("pristine"));
+    OwnerEditorDialog.name().shouldBe(visible, empty);
+    OwnerEditorDialog.publicIdDiv().shouldBe(visible).shouldHave(cssClass("pristine"));
+    OwnerEditorDialog.publicId().shouldBe(visible, empty);
+
+    OwnerEditorDialog.name().val(applicationToCreate.getName());
+    OwnerEditorDialog.nameInvalidMessage().shouldNotBe(visible);
+    OwnerEditorDialog.publicId().val(applicationToCreate.getPublicId());
+    OwnerEditorDialog.publicIdInvalidMessage().shouldNotBe(visible);
+    OwnerEditorDialog.saveButton().shouldBe(enabled);
+
+    OwnerEditorDialog.nameDiv().shouldNotHave(cssClass("pristine"));
+    OwnerEditorDialog.publicIdDiv().shouldNotHave(cssClass("pristine"));
+
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    Application app = applicationDAO.getByPublicId(applicationToCreate.getPublicId());
+    assertThat(app).isNotNull();
+    assertThat(app.getPublicId()).isEqualTo(applicationToCreate.getPublicId());
+    assertThat(app.getOrganizationId()).isEqualTo(parentOrganization.getId());
+    assertThat(app.getName()).isEqualTo(applicationToCreate.getName());
+
+    // redirect to newly created application
+    waitUntilUrl(OwnerSummaryPage.url(app));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(app.getName()));
+
+    testSideNavbarContent(
+        parentOrganization,
+        new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOrganization.getId())),
+        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId()))
+    );
+  }
+
+  @Test
+  public void testOrgsAndPoliciesSideNavbar_updateNavbarAfterMovingApplication() {
+    organizations.forEach((key, value) -> {
+      Collections.sort(organizations.get(key), Comparator.comparing(o -> o.getName().toUpperCase()));
+    });
+
+    Organization parentOrganization = organizations.get(2).get(0);
+    Application movingApplication = applicationDAO.getByOrganizationId(parentOrganization.getId()).get(0);
+    Organization newParentOrganization = organizations.get(0).get(0);
+    refreshOrOpen(OwnerSummaryPageWithLimitedVisibility.url(movingApplication));
+    waitUntilUrl(OwnerSummaryPageWithLimitedVisibility.url(movingApplication));
+
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(movingApplication.getName()));
+    testSideNavbarContent(
+        parentOrganization,
+        new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOrganization.getId())),
+        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId()))
+    );
+
+    MoveApplicationDialog modal = new MoveApplicationDialog();
+    selectOptionAndSubmit(modal, newParentOrganization);
+    modal.shouldBe(hidden);
+
+    MoveApplicationSuccessModal successDialog = new MoveApplicationSuccessModal();
+    successDialog.shouldBe(visible);
+    successDialog.okButton().click();
+    successDialog.shouldBe(hidden);
+    modal.shouldBe(hidden);
+
+    Application updatedApp = applicationDAO.getById(movingApplication.getId());
+    assertThat(updatedApp.getParentOwnerId()).isEqualTo(newParentOrganization.getId());
+
+    waitUntilUrl(OwnerSummaryPageWithLimitedVisibility.url(movingApplication));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(movingApplication.getName()));
+    testSideNavbarContent(
+        newParentOrganization,
+        new ArrayList<>(organizationDAO.getByParentOrganizationId(newParentOrganization.getId())),
+        new ArrayList<>(applicationDAO.getByOrganizationId(newParentOrganization.getId()))
+    );
+  }
+
+  private void testSideNavbarContent(String parentName, String childName, int apps, int orgs) {
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+
+    NxCollapsible childOrganizations = orgsAndPoliciesSidebar.getOrganizationList();
+    orgsAndPoliciesSidebar.selectedOrg().shouldHave(text(parentName));
+
+    if (parentName != "Root Organization") {
+      NxCollapsible childApplications = orgsAndPoliciesSidebar.getApplicationList();
+      childApplications.children().shouldHaveSize(3);
+      SelenideElement firstChildApp = childApplications.children().get(0);
+      firstChildApp.shouldHave(text("Test App "));
+    }
+
+    if (childOrganizations.children().size() > 0) {
+      childOrganizations.children().shouldHaveSize(2);
+      OrgsAndPoliciesSidebar.OwnerItem firstChildOrg = orgsAndPoliciesSidebar.getOrganizationLink(0);
+      firstChildOrg.ownerName().shouldHave(text(childName));
+      firstChildOrg.orgCounter().shouldHave(text(String.format("(%d)", apps + orgs)));
+      firstChildOrg.orgCounter().hover();
+
+      NxTooltip tooltip = new NxTooltip();
+      tooltip.shouldHave(text("Sub-Orgs: " + orgs));
+      tooltip.shouldHave(text("Total Apps: " + apps));
+
+      firstChildOrg.click();
+    }
+  }
+
+  private void selectAddApplicationOption() {
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+    SelenideElement applicationsActionButton = orgsAndPoliciesSidebar.getApplicationPlusIcon();
+    assertThat(applicationsActionButton).isNotNull();
+    assertThat(applicationsActionButton.is(visible)).isTrue();
+    assertThat(applicationsActionButton.isEnabled()).isTrue();
+    applicationsActionButton.click();
+    SelenideElement newApplicationButton = orgsAndPoliciesSidebar.getNewApplicationButton();
+    assertThat(newApplicationButton.is(visible)).isTrue();
+    assertThat(newApplicationButton.isEnabled()).isTrue();
+    newApplicationButton.click();
+  }
+
+  private void selectOptionAndSubmit(MoveApplicationDialog modal, Organization destination) {
+    ActionDropDown.actionButton().shouldBe(visible).click();
+    ActionDropDown.moveApplication().shouldBe(visible).click();
+    modal.shouldBe(visible);
+    modal.body().shouldBe(visible);
+
+    NxFormSelect destinationDropdown = modal.destinationDropdown();
+    destinationDropdown.shouldBe(visible).click();
+    destinationDropdown.chooseOption(destination.getName());
+
+    modal.errorMessage().shouldBe(hidden);
+    modal.dismissButton().shouldHave(text("Cancel"));
+    modal.moveButton().click();
+  }
+
+  private void testSideNavbarContent(
+      Organization parentOrg,
+      List<Organization> childOrgs,
+      List<Application> childApps)
+  {
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
+
+    orgsAndPoliciesSidebar.selectedOrg().shouldHave(text(parentOrg.getName()));
+    if (childOrgs != null && !childOrgs.isEmpty()) {
+      NxCollapsible childOrganizationsCollapsible = orgsAndPoliciesSidebar.getOrganizationList();
+      assertThat(childOrganizationsCollapsible).isNotNull();
+      assertThat(childOrganizationsCollapsible.children()).hasSameSizeAs(childOrgs);
+
+      childOrgs.sort(Comparator.comparing(organization -> organization.getName().toUpperCase()));
+      AtomicInteger index = new AtomicInteger();
+      childOrgs.forEach(organization -> {
+        OrgsAndPoliciesSidebar.OwnerItem childOrgItem =
+            orgsAndPoliciesSidebar.getOrganizationLink(index.getAndIncrement());
+        childOrgItem.ownerName().shouldHave(text(organization.getName()));
+      });
+    }
+
+    if (childApps != null && !childApps.isEmpty()) {
+      NxCollapsible childApplicationsCollapsible = orgsAndPoliciesSidebar.getApplicationList();
+      assertThat(childApplicationsCollapsible).isNotNull();
+      assertThat(childApplicationsCollapsible.children()).hasSameSizeAs(childApps);
+
+      childApps.sort(Comparator.comparing(application -> application.getName().toUpperCase()));
+      AtomicInteger index = new AtomicInteger();
+      childApps.forEach(application -> {
+        OrgsAndPoliciesSidebar.OwnerItem childOrgItem =
+            orgsAndPoliciesSidebar.getApplicationLink(index.getAndIncrement());
+        childOrgItem.ownerName().shouldHave(text(application.getName()));
+      });
+    }
+  }
+}

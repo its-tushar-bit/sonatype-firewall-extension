@@ -9,10 +9,11 @@ import DashboardFilter from './DashboardFilter';
 import * as manageFiltersActions from '../manageFiltersActions';
 import * as dashboardFilterActions from '../dashboardFilterActions';
 
-function mapStateToProps({ manageFilters, dashboardFilter }) {
+function mapStateToProps({ manageFilters, dashboardFilter, orgsAndPolicies: { ownerSideNav } }) {
   return {
     ...dashboardFilter,
     ...pick(['appliedFilterName', 'showDirtyAsterisk', 'savedFilters'], manageFilters),
+    ...pick(['ownersMap', 'topParentOrganizationId'], ownerSideNav),
   };
 }
 

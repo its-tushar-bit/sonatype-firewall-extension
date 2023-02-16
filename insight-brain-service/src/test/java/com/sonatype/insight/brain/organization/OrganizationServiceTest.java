@@ -6,14 +6,18 @@
 package com.sonatype.insight.brain.organization;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
@@ -32,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
@@ -84,12 +89,82 @@ public class OrganizationServiceTest
   }
 
   @Test
+  public void testDeleteOrganization_AutomaticApplicationsParentOrgCannotBeDeleted_OrgWithNoChildrenToDelete() {
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+
+    Organization organization = tempEntity.newOrganization("organization");
+    String organizationId = organization.getId();
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    automaticApplicationsConfigurationDAO.setOrganizationId(organizationId);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> organizationService.deleteOrganization(organizationId))
+        .withMessageContaining(
+        "Cannot delete the parent organization for automatic application creation: " + organization.getName() + "."
+      );
+    assertThat(new OrganizationDAO().getById(organizationId)).isNotNull();
+  }
+
+  @Test
+  public void testDeleteOrganization_AutomaticApplicationsParentOrgCannotBeDeleted_OrgWithChildrenToDelete() {
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
+    Organization organization = testList.get(4);
+    String organizationId = organization.getId();
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    automaticApplicationsConfigurationDAO.setOrganizationId(organizationId);
+
+    assertThatExceptionOfType(PartialDeletionException.class)
+        .isThrownBy(() -> organizationService.deleteOrganization(organizationId))
+        .withMessageContaining("The delete operation was partially successful." +
+            " Some sub-Orgs and applications of this Org were deleted," +
+            " while some failed with error(s) below." +
+            "\n" + "Cannot delete the parent organization for automatic application creation: " +
+            organization.getName() + "."
+      );
+
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    for (Organization currentOrg : testList.subList(0, 4)) {
+      assertThat(organizationDAO.getById(currentOrg.getId())).isNull();
+    }
+
+    for (Organization currentOrg : testList.subList(4, 7)) {
+      assertThat(organizationDAO.getById(currentOrg.getId())).isNotNull();
+    }
+  }
+
+  @Test
   public void testGetAll() {
     OrganizationService organizationService =
         new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory);
 
     List<Organization> orgs = organizationService.getAll();
     assertThat(orgs).hasSize(1);
+  }
+
+  @Test
+  public void testGetOrganization() {
+    OrganizationService organizationService =
+        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory);
+
+    Organization testOrg = tempEntity.newOrganization();
+
+    Organization resultOrg = organizationService.getOrganization(testOrg.getId());
+    assertThat(resultOrg).isNotNull();
+    assertThat(resultOrg.getName()).isEqualTo(testOrg.getName());
+    assertThat(resultOrg.getId()).isEqualTo(testOrg.getId());
+  }
+
+  @Test
+  public void testGetOrganization_idDoesNotExist() {
+    OrganizationService organizationService =
+        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory);
+
+    Organization resultOrg = organizationService.getOrganization("NOT_REAL_ID");
+    assertThat(resultOrg).isNull();
   }
 
   @Test
@@ -129,6 +204,36 @@ public class OrganizationServiceTest
   }
 
   @Test
+  public void testDeleteOrganization_NLevel_CascadeToChildOrganizations() throws Exception {
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
+    List<Organization> deletedOrgs = testList.subList(0, 6);
+    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(deletedOrgs.size()));
+    List<OwnerEvent> deleteOrgEvents;
+    eventBus.register(handler);
+    organizationService.deleteOrganization(testList.get(5).getId());
+
+    assertThat(handler.getLatch().await(10, SECONDS)).isTrue();
+    deleteOrgEvents = (List<OwnerEvent>) handler.getAllEvents();
+    assertThat(deleteOrgEvents).hasSameSizeAs(deletedOrgs);
+
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    for (Organization currentOrg : deletedOrgs) {
+      Optional<OwnerEvent> currentEventOptional = deleteOrgEvents.stream()
+          .filter(event -> event.ownerId.equals(currentOrg.getId()))
+          .findFirst();
+
+      assertThat(currentEventOptional).isPresent();
+      OwnerEvent currentEvent = currentEventOptional.get();
+      assertThat(organizationDAO.getById(currentOrg.getId())).isNull();
+      assertThat(currentEvent.action).isEqualTo(DELETED);
+      assertThat(currentEvent.ownerId).isEqualTo(currentOrg.getId());
+      assertThat(currentEvent.owner.getId()).isEqualTo(currentOrg.getId());
+    }
+
+    eventBus.unregister(handler);
+  }
+
+  @Test
   public void testDeleteOrganization_PolicyViolationLogger_LogsClearEvent() throws Exception {
     when(currentUser.getUsername()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
@@ -142,5 +247,52 @@ public class OrganizationServiceTest
     PolicyViolationLogDTOAssert
         .assertOrganizationPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR,
             organization, before, after, currentUser.getUsername());
+  }
+
+  @Test
+  public void testGetAllParentOrgsNoAuthz_GetSameParentOrgsOfApps() {
+    Organization parentOrganization1 = tempEntity.newOrganization("Parent Org 1");
+    Organization parentOrganization2 = tempEntity.newOrganization("Parent Org 2", parentOrganization1);
+    Organization parentOrganization3 = tempEntity.newOrganization("Parent Org 3", parentOrganization2);
+    Organization organization = tempEntity.newOrganization("Org", parentOrganization3);
+    Application application1 = tempEntity.newApplication("MyApp1", organization.getId());
+    Application application2 = tempEntity.newApplication("MyApp2", organization.getId());
+
+    Map<String, Organization> parentOrgs = organizationService
+        .getAllParentOrgsNoAuthz(Arrays.asList(application1, application2));
+
+    assertThat(parentOrgs).hasSize(5)
+      .containsKey(organization.getId())
+      .containsKey(parentOrganization1.getId())
+      .containsKey(parentOrganization2.getId())
+      .containsKey(parentOrganization3.getId())
+      .containsKey(ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testGetAllParentOrgsNoAuthz_GetDifferentParentOrgsOfApps() {
+    Organization parentOrganization1 = tempEntity.newOrganization("Parent Org 1");
+    Organization parentOrganization2 = tempEntity.newOrganization("Parent Org 2", parentOrganization1);
+    Organization parentOrganization3 = tempEntity.newOrganization("Parent Org 3", parentOrganization2);
+    Organization organization1 = tempEntity.newOrganization("Org1", parentOrganization3);
+    Application application1 = tempEntity.newApplication("MyApp1", organization1.getId());
+
+    Organization parentOrganization4 = tempEntity.newOrganization("Parent Org 4", parentOrganization3);
+    Organization parentOrganization5 = tempEntity.newOrganization("Parent Org 5", parentOrganization4);
+    Organization organization2 = tempEntity.newOrganization("Org2", parentOrganization5);
+    Application application2 = tempEntity.newApplication("MyApp2", organization2.getId());
+
+    Map<String, Organization> parentOrgs = organizationService
+        .getAllParentOrgsNoAuthz(Arrays.asList(application1, application2));
+
+    assertThat(parentOrgs).hasSize(8)
+      .containsKey(organization1.getId())
+      .containsKey(organization2.getId())
+      .containsKey(parentOrganization1.getId())
+      .containsKey(parentOrganization2.getId())
+      .containsKey(parentOrganization3.getId())
+      .containsKey(parentOrganization4.getId())
+      .containsKey(parentOrganization5.getId())
+      .containsKey(ROOT_ORGANIZATION_ID);
   }
 }

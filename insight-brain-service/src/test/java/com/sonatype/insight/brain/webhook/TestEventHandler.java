@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.webhook;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
@@ -15,10 +20,11 @@ public class TestEventHandler<T extends WebhookEvent>
 {
   private CountDownLatch latch;
 
-  private T event;
+  private final List<T> events;
 
   public TestEventHandler(final CountDownLatch latch) {
     this.latch = latch;
+    events = Collections.synchronizedList(new LinkedList<>());
   }
 
   public CountDownLatch getLatch() {
@@ -31,11 +37,19 @@ public class TestEventHandler<T extends WebhookEvent>
 
   @Subscribe
   public void handleEvent(final T event) {
-    this.event = event;
+    events.add(0, event);
     latch.countDown();
   }
 
   public T getEvent() {
-    return event;
+    return events.get(0);
+  }
+
+  public Collection<T> getAllEvents() {
+    return new ArrayList<>(events);
+  }
+
+  public boolean isEmpty() {
+    return events.isEmpty();
   }
 }

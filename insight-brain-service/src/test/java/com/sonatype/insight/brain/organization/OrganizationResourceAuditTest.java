@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -95,6 +96,63 @@ public class OrganizationResourceAuditTest
       assertApplicationData(appAuditDTO, app);
       assertCustomData(appAuditDTO, "contactUsername", contact.getUsername());
       assertParentOrganizationData(appAuditDTO, organization);
+    }
+  }
+
+  @Test
+  public void testDeleteOrganization_NLevel_WithoutChildApplications() throws Exception {
+    List<Organization> testOrgs = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
+    organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH)
+        .parameter(testOrgs.get(testOrgs.size() - 1).getId()).delete();
+
+    List<AuditDTO> deletedOrgsAuditEvents = assertAuditLogs(AuditEvent.DELETE_ORGANIZATION, testOrgs.size(), null);
+    for (Organization currentOrg : testOrgs) {
+      AuditDTO orgAuditDTO = findFirstByDataKeyValue(deletedOrgsAuditEvents, "organizationId", currentOrg.getId());
+      assertOrganizationData(orgAuditDTO, currentOrg);
+      if (!Organization.ROOT_ORGANIZATION_ID.equals(currentOrg.getParentOrganizationId())) {
+        Organization parentOrg =
+            testOrgs.stream()
+                .filter(org -> org.getId().equals(currentOrg.getParentOrganizationId()))
+                .findFirst()
+                .orElse(null);
+        assertParentOrganizationData(orgAuditDTO, parentOrg);
+      }
+    }
+
+    assertThat(assertAuditLogs(AuditEvent.DELETE_APPLICATION, 0, null)).isEmpty();
+  }
+
+  @Test
+  public void testDeleteOrganization_NLevel_WithChildApplications() throws Exception {
+    List<Organization> testOrgs = tempEntity.newRelatedOrganizationsAsList(organization,1, 6, 0);
+    List<Application> testApps = new LinkedList<>();
+    testOrgs.add(organization);
+
+    testOrgs.forEach(currentOrg -> testApps.add(tempEntity.newApplicationWithParent(currentOrg)));
+
+    organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH)
+        .parameter(organization.getId()).delete();
+
+    List<AuditDTO> deletedOrgsAuditEvents = assertAuditLogs(AuditEvent.DELETE_ORGANIZATION, testOrgs.size(), null);
+    List<AuditDTO> deletedAppsAuditEvents = assertAuditLogs(AuditEvent.DELETE_APPLICATION, testApps.size(), null);
+    for (int i = 0; i < testOrgs.size(); i++) {
+      Organization currentOrg = testOrgs.get(i);
+      Application currentApp = testApps.get(i);
+
+      AuditDTO orgAuditDTO = findFirstByDataKeyValue(deletedOrgsAuditEvents, "organizationId", currentOrg.getId());
+      assertOrganizationData(orgAuditDTO, currentOrg);
+      if (!Organization.ROOT_ORGANIZATION_ID.equals(currentOrg.getParentOrganizationId())) {
+        Organization parentOrg =
+            testOrgs.stream()
+                .filter(org -> org.getId().equals(currentOrg.getParentOrganizationId()))
+                .findFirst()
+                .orElse(null);
+        assertParentOrganizationData(orgAuditDTO, parentOrg);
+      }
+
+      AuditDTO appAuditDTO = findFirstByDataKeyValue(deletedAppsAuditEvents, "applicationId", currentApp.getId());
+      assertApplicationData(appAuditDTO, currentApp);
+      assertParentOrganizationData(appAuditDTO, currentOrg);
     }
   }
 

@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApiOrganizationServiceTest
     extends AbstractComponentTest
@@ -38,18 +39,37 @@ public class ApiOrganizationServiceTest
   public void testAddOrganization() {
     final String ORGANIZATION_NAME = "testName";
 
+    Organization parentOrg = tempEntity.newOrganization();
+
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, ORGANIZATION_NAME);
+    apiOrganizationDTO.parentOrganizationId = parentOrg.getId();
     ApiOrganizationDTO newOrganizationDTO = apiOrganizationService.addOrganization(apiOrganizationDTO);
 
     Organization organization = organizationDAO.getByIdNotNull(newOrganizationDTO.id);
-    tempEntity.register(organization);
 
-    assertThat(organization.getName()).isEqualTo(ORGANIZATION_NAME);
-    assertThat(organization.getParentOrganizationId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+    try {
+      assertThat(organization.getName()).isEqualTo(ORGANIZATION_NAME);
+      assertThat(organization.getParentOrganizationId()).isEqualTo(parentOrg.getId());
 
-    assertThat(newOrganizationDTO.id).isNotEmpty();
-    assertThat(newOrganizationDTO.name).isEqualTo(ORGANIZATION_NAME);
-    assertThat(newOrganizationDTO.tags).isEmpty();
+      assertThat(newOrganizationDTO.id).isNotEmpty();
+      assertThat(newOrganizationDTO.name).isEqualTo(ORGANIZATION_NAME);
+      assertThat(newOrganizationDTO.tags).isEmpty();
+    }
+    finally {
+      organizationDAO.delete(organization);
+    }
+  }
+
+  @Test
+  public void testAddOrganization_InvalidParentOrganizationId() {
+    final String ORGANIZATION_NAME = "testName";
+
+    ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, ORGANIZATION_NAME);
+    apiOrganizationDTO.parentOrganizationId = "invalid-org-id";
+
+    assertThatThrownBy(() -> {
+      apiOrganizationService.addOrganization(apiOrganizationDTO);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Invalid parent organization");
   }
 
   @Test

@@ -12,7 +12,6 @@ import {
   useToggle,
 } from '@sonatype/react-shared-components';
 import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
-import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import {
   faChartArea,
   faFileChartLine,
@@ -22,6 +21,7 @@ import {
   faSearch,
   faShieldCheck,
   faSitemap,
+  faDatabase,
 } from '@fortawesome/pro-solid-svg-icons';
 
 import { useRouterState } from '../RouterStateContext';

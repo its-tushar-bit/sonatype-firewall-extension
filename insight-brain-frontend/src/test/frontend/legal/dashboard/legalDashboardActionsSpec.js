@@ -396,18 +396,18 @@ describe('legalDashboardActions', function () {
 
           store.dispatch(loadDashboardUI(tab.resultsType)).then(() => {
             expect(axios.post).toHaveBeenCalledWith(endpointUrl, getRequestPayload(tab.resultsType));
-            expect(store.getActions().length).toBe(6);
+            expect(store.getActions().length).toBe(8);
 
             expect(store.getActions()[0]).toEqual({
               type: 'LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED',
             });
 
-            expect(store.getActions()[4]).toEqual({
+            expect(store.getActions()[6]).toEqual({
               type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
               payload: tab.resultsType,
             });
 
-            expect(store.getActions()[5]).toEqual({
+            expect(store.getActions()[7]).toEqual({
               type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
               payload: {
                 resultsType: tab.resultsType,

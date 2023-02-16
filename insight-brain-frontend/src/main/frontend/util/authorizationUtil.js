@@ -4,7 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getPermissionsTestUrl } from './CLMLocation';
+import { getPermissionContextTestUrl } from './CLMLocation';
+
+export const PERMISSION = {
+  READ: 'READ',
+  WRITE: 'WRITE',
+};
 
 export const authErrorMessage = `It appears you do not have permission to access this page.
   If you believe this to be incorrect please contact your administrator.`;
@@ -47,7 +52,7 @@ export function checkPermissions(permissions, ownerType = 'global', ownerId = 'g
  * @returns {Promise}
  */
 export function getPermissions(permissions, ownerType = 'global', ownerId = 'global') {
-  return axios.put(getPermissionsTestUrl(ownerType, ownerId), permissions).then(({ data }) => {
+  return axios.put(getPermissionContextTestUrl(ownerType, ownerId), permissions).then(({ data }) => {
     return data;
   });
 }

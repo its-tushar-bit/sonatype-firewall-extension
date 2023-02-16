@@ -245,6 +245,11 @@ public class ApplicationService
     return applicationDAO.getAll();
   }
 
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  public List<Application> getApplicationsOrderedByName() {
+    return applicationDAO.getAllOrderedByName();
+  }
+
   @Authorize(permission = Permission.ADD_APPLICATION)
   public Application addApplication(@AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application) {
     applicationHelper.addApplication(application);

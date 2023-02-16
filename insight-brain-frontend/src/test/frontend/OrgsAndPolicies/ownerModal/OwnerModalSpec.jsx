@@ -9,6 +9,7 @@ import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import { fireEvent, render, screen, axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
 import { nxTextInputStateHelpers, nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 import { validateNonEmpty } from 'MainRoot/util/validationUtil';
+import RouterStateContext from 'MainRoot/react/RouterStateContext';
 
 const { initialState: rscInitialState } = nxTextInputStateHelpers;
 const { initialState: rscInitialFileUploadState } = nxFileUploadStateHelpers;
@@ -67,12 +68,20 @@ const defaultPreloadedState = {
         name: 'Root Organization',
       },
     },
+    ownerSideNav: {
+      displayedOrganization: {
+        type: 'organization',
+        id: 'ROOT_ORGANIZATION_ID',
+        name: 'Root Organization',
+      },
+    },
     ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
         isModalOpen: true,
         isEditMode: false,
+        isApplication: null,
         ownerIconType: '',
         ownerIcon: rscInitialFileUploadState(null),
         robotHash: '',
@@ -105,12 +114,20 @@ const createAppState = {
     root: {
       selectedOwner: ORGS[0],
     },
+    ownerSideNav: {
+      displayedOrganization: {
+        type: 'organization',
+        id: ORGS[0].id,
+        name: ORGS[0].name,
+      },
+    },
     ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
         isModalOpen: true,
         isEditMode: false,
+        isApplication: true,
         ownerIconType: '',
         ownerIcon: rscInitialFileUploadState(null),
         robotHash: '',
@@ -143,12 +160,20 @@ const editOrgState = {
     root: {
       selectedOwner: ORGS[0],
     },
+    ownerSideNav: {
+      displayedOrganization: {
+        type: 'organization',
+        id: ORGS[0].id,
+        name: ORGS[0].name,
+      },
+    },
     ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
         isModalOpen: true,
         isEditMode: true,
+        isApplication: false,
         ownerIconType: '',
         ownerIcon: rscInitialFileUploadState(null),
         robotHash: '',
@@ -181,11 +206,19 @@ const editAppState = {
     root: {
       selectedOwner: APPS[0],
     },
+    ownerSideNav: {
+      displayedOrganization: {
+        type: 'organization',
+        id: ORGS[0].id,
+        name: ORGS[0].name,
+      },
+    },
     ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
         isModalOpen: true,
+        isApplication: true,
         isEditMode: true,
         ownerIconType: '',
         ownerIcon: rscInitialFileUploadState(null),
@@ -201,12 +234,25 @@ const editAppState = {
 };
 
 describe('OwnerModal', () => {
-  let mock, renderComponent;
+  let mock, renderComponent, routerContext;
 
   beforeEach(() => {
     mock = axiosMockAdapter();
-    renderComponent = (preloadedState) =>
-      render(<OwnerModal />, { preloadedState: preloadedState || defaultPreloadedState });
+    routerContext = { href: null };
+    spyOn(routerContext, 'href').and.callFake((url, params) => {
+      if (url.includes('scmOnboardingOrg')) {
+        const organizationId = params.organizationId;
+        return `#/onboarding/${organizationId}`;
+      }
+      return '#';
+    });
+    renderComponent = (preloadedState, router = routerContext) =>
+      render(
+        <RouterStateContext.Provider value={router}>
+          <OwnerModal />
+        </RouterStateContext.Provider>,
+        { preloadedState: preloadedState || defaultPreloadedState }
+      );
   });
 
   it('does not render modal without being open', () => {
@@ -363,6 +409,9 @@ describe('OwnerModal', () => {
       expect(screen.getByText(`Use a default icon`)).toBeVisible();
       expect(screen.getByText(`Upload a custom icon`)).toBeVisible();
       expect(screen.getByText(`Get a robot`)).toBeVisible();
+      const importAppsButton = screen.getByRole('link', { name: 'Import Apps' });
+      expect(importAppsButton).toBeVisible();
+      expect(importAppsButton).toHaveAttribute('href', '#/onboarding/organizationOneID');
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Create' })).toBeVisible();
@@ -477,6 +526,10 @@ describe('OwnerModal', () => {
       expect(screen.getByText(`Use a default icon`)).toBeVisible();
       expect(screen.getByText(`Upload a custom icon`)).toBeVisible();
       expect(screen.getByText(`Get a robot`)).toBeVisible();
+      expect(screen.queryByRole('link', { name: 'Import Apps' })).not.toBeInTheDocument();
+
+      const addingTo = screen.queryByRole('heading', { name: /Adding to:/i });
+      expect(addingTo).not.toBeInTheDocument();
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
       expect(screen.getByText(`Update`)).toBeVisible();
@@ -590,6 +643,10 @@ describe('OwnerModal', () => {
       expect(screen.getByText(`Use a default icon`)).toBeVisible();
       expect(screen.getByText(`Upload a custom icon`)).toBeVisible();
       expect(screen.getByText(`Get a robot`)).toBeVisible();
+      expect(screen.queryByRole('link', { name: 'Import Apps' })).not.toBeInTheDocument();
+
+      const addingTo = screen.queryByRole('heading', { name: /Adding to:/i });
+      expect(addingTo).not.toBeInTheDocument();
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
       expect(screen.getByText(`Update`)).toBeVisible();

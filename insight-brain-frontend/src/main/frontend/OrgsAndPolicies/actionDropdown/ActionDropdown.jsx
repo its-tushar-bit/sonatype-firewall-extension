@@ -110,7 +110,7 @@ const ActionDropdown = () => {
       dispatch(actionDropdownActions.loadApplicationSummary());
       dispatch(actionDropdownActions.loadPermissions());
     }
-  }, [isApp]);
+  }, [owner]);
 
   const handleChangeAppID = () => {
     if (hasPermissionToChangeAppId) {

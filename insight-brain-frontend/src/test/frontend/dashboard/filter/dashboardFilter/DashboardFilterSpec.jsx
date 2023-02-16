@@ -12,21 +12,13 @@ import {
   policyViolationStates,
   uncategorizedCategory,
   expirationDates,
-} from '../../../../../main/frontend/dashboard/filter/staticFilterEntries';
+} from 'MainRoot/dashboard/filter/staticFilterEntries';
 import { render, screen, within, fireEvent } from 'TestRoot/SpecUtil';
 
 describe('DashboardFilter', function () {
   let renderComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DashboardFilter;
 
   const filterData = {
-    organizations: [
-      {
-        id: '666hell666',
-        parentOrganizationId: 'ROOT_ORGANIZATION_ID',
-        name: 'Org1',
-        nameLowercaseNoWhitespace: 'org1',
-      },
-    ],
     applications: [
       {
         id: '777heaven777',
@@ -84,6 +76,31 @@ describe('DashboardFilter', function () {
       loadFilter: loadFilterSpy,
       loading: false,
       savedFilters,
+      ownersMap: {
+        ROOT_ORGANIZATION_ID: {
+          type: 'organization',
+          id: 'ROOT_ORGANIZATION_ID',
+          name: 'Root Organization',
+          synthetic: true,
+          parentOrganizationId: null,
+          applicationIds: null,
+          subOrgs: 1,
+          totalApps: 1,
+          organizationIds: ['666hell666'],
+        },
+        '666hell666': {
+          type: 'organization',
+          id: '666hell666',
+          name: 'Org1',
+          synthetic: false,
+          parentOrganizationId: 'ROOT_ORGANIZATION_ID',
+          applicationIds: ['App1'],
+          subOrgs: 0,
+          totalApps: 1,
+          organizationIds: [],
+        },
+      },
+      topParentOrganizationId: 'ROOT_ORGANIZATION_ID',
       applyDefaultFilter: jasmine.createSpy('applyDefaultFilter'),
       applySavedFilter: jasmine.createSpy('applySavedFilter'),
     };

@@ -21,8 +21,9 @@ import {
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getAddIconUrl } from 'MainRoot/util/CLMLocation';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsRootOrganization, selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectOwnerModalSlice } from './ownerModalSelectors';
 import { stateGo, stateReload } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
@@ -41,6 +42,7 @@ export const initialState = {
   submitMaskState: null,
   isModalOpen: false,
   isEditMode: false,
+  isApplication: null,
   isDirty: false,
   ownerIconType: '',
   ownerIcon: rscInitialFileUploadState(null),
@@ -61,10 +63,11 @@ const appData = (name, id, currentOwner) => ({
   isNew: true,
 });
 
-const orgData = (name) => ({
+const orgData = (name, currentOwner) => ({
   id: null,
   name: name,
   isNew: true,
+  parentOrganizationId: currentOwner.id,
 });
 
 const getRandomRobotIconHash = () => Math.floor(Math.random() * 10000);
@@ -80,11 +83,17 @@ const closeModal = (state, { payload }) => {
   state.ownerIconType = '';
   state.isEditMode = false;
   state.isDirty = false;
+  state.isApplication = null;
   state.ownerIcon = rscInitialFileUploadState(null);
   state.ownerName = rscInitialState('', validateNonEmpty);
   state.appId = rscInitialState('', validateNonEmpty);
   state.isUnsavedChangesModalOpen = false;
   state.validationErrors = [];
+};
+
+const openModal = (state, { payload }) => {
+  state.isModalOpen = true;
+  state.isApplication = payload.isApp;
 };
 
 const closeUnsavedChangesModal = (state) => {
@@ -94,6 +103,7 @@ const closeUnsavedChangesModal = (state) => {
 const openEditModal = (state, { payload }) => {
   state.isModalOpen = true;
   state.isEditMode = true;
+  state.isApplication = payload.publicId ? true : false;
   state.ownerName = rscInitialState(payload.name, validateNonEmpty);
 };
 
@@ -154,22 +164,29 @@ const setCustomIcon = (state, { payload }) => {
 
 const createNewOwner = createAsyncThunk(
   `${REDUCER_NAME}/createOwner`,
-  async (_, { getState, dispatch, rejectWithValue }) => {
+  async (shouldRedirectToNewOrg, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const currentOwner = selectSelectedOwner(state);
-    const isRootOrg = selectIsRootOrganization(state);
-    const { ownerName, appId, ownerIconType, robotHash, ownerIcon } = selectOwnerModalSlice(state);
-    const isApp = !isRootOrg;
+    const { ownerName, appId, isApplication, ownerIconType, robotHash, ownerIcon } = selectOwnerModalSlice(state);
 
-    const ownerToSave = isRootOrg
-      ? orgData(ownerName.trimmedValue)
-      : appData(ownerName.trimmedValue, appId.trimmedValue, currentOwner);
+    const ownerToSave = isApplication
+      ? appData(ownerName.trimmedValue, appId.trimmedValue, currentOwner)
+      : orgData(ownerName.trimmedValue, currentOwner);
 
     try {
-      const { payload } = await dispatch(ownerEditorActions.updateOwner({ ownerToSave, isApp }));
+      const { payload } = await dispatch(ownerEditorActions.updateOwner({ ownerToSave, isApp: isApplication }));
+
+      if (payload) {
+        dispatch(
+          ownerSideNavActions.updateOwnersMapWithNewEntry({
+            isApp: isApplication,
+            entry: isApplication ? payload.application : payload.organization,
+          })
+        );
+      }
 
       if (ownerIconType !== '') {
-        const iconUrl = getAddIconUrl(isApp, isApp ? payload.application.id : payload.organization.id);
+        const iconUrl = getAddIconUrl(isApplication, isApplication ? payload.application.id : payload.organization.id);
         const formData = new FormData();
 
         if (ownerIconType === iconTypes.robot) {
@@ -186,18 +203,16 @@ const createNewOwner = createAsyncThunk(
       }
 
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
-        dispatch(
-          stateGo(
-            `management.view.${isApp ? 'application' : 'organization'}`,
-            isApp
-              ? {
-                  applicationPublicId: payload.application.publicId,
-                }
-              : {
-                  organizationId: payload.organization.id,
-                }
-          )
-        );
+        if (isApplication) {
+          dispatch(stateGo('management.view.application', { applicationPublicId: payload.application.publicId }));
+        }
+        if (shouldRedirectToNewOrg) {
+          dispatch(
+            stateGo('scmOnboardingOrg', {
+              organizationId: payload.organization.id,
+            })
+          );
+        }
       });
     } catch (err) {
       return rejectWithValue(err);
@@ -271,18 +286,13 @@ const duplicationNameValidator = (ownersList, isEditMode, ownerName, value) => {
   return exists ? 'Name is already in use' : null;
 };
 
-const inputOwnerNameValidation = (appsList, orgsList, isRootOrg, isEditMode, isApp, selectedOwner, inputValue) =>
+const inputOwnerNameValidation = (appsList, orgsList, isEditMode, isApp, selectedOwner, inputValue) =>
   combineValidationErrors(
     validateNameCharacters(inputValue),
     validateNonEmpty(inputValue),
     validateDoubleWhitespace(inputValue),
     validateMaxLength(200, inputValue),
-    duplicationNameValidator(
-      isEditMode ? (isApp ? appsList : orgsList) : isRootOrg ? orgsList : appsList,
-      isEditMode,
-      selectedOwner.name,
-      inputValue
-    )
+    duplicationNameValidator(isApp ? appsList : orgsList, isEditMode, selectedOwner.name, inputValue)
   );
 
 const inputOwnerAppIdValidation = (appsList, inputValue) =>
@@ -294,9 +304,9 @@ const inputOwnerAppIdValidation = (appsList, inputValue) =>
     duplicationAppIdValidator(appsList, inputValue)
   );
 
-const setNewOwnerName = (state, { payload: { value, appsList, orgsList, isRootOrg, isApp, selectedOwner } }) => {
+const setNewOwnerName = (state, { payload: { value, appsList, orgsList, isApp, selectedOwner } }) => {
   const validation = userInput(
-    () => inputOwnerNameValidation(appsList, orgsList, isRootOrg, state.isEditMode, isApp, selectedOwner, value.trim()),
+    () => inputOwnerNameValidation(appsList, orgsList, state.isEditMode, isApp, selectedOwner, value.trim()),
     value
   );
   state.ownerName = validation;
@@ -305,17 +315,17 @@ const setNewOwnerName = (state, { payload: { value, appsList, orgsList, isRootOr
   if (state.ownerIconType === iconTypes.custom && !state.ownerIcon.files) {
     state.validationErrors = state.isEditMode
       ? [...validation.validationErrors, NO_ICON_VALIDATION]
-      : isRootOrg
-      ? [...validation.validationErrors, NO_ICON_VALIDATION]
-      : [...validation.validationErrors, ...state.appId.validationErrors, NO_ICON_VALIDATION];
+      : state.isApplication
+      ? [...validation.validationErrors, ...state.appId.validationErrors, NO_ICON_VALIDATION]
+      : [...validation.validationErrors, NO_ICON_VALIDATION];
     return;
   }
 
   state.validationErrors = state.isEditMode
     ? validation.validationErrors
-    : isRootOrg
-    ? validation.validationErrors
-    : [...validation.validationErrors, ...state.appId.validationErrors];
+    : state.isApplication
+    ? [...validation.validationErrors, ...state.appId.validationErrors]
+    : validation.validationErrors;
 };
 
 const setNewOwnerAppId = (state, { payload: { value, appsList, selectedOwner } }) => {
@@ -335,7 +345,7 @@ const owner = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    openModal: propSet('isModalOpen', true),
+    openModal,
     openEditModal,
     closeModal,
     setNewOwnerName,

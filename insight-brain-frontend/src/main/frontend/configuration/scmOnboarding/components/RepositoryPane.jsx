@@ -15,12 +15,14 @@ import ResultsTable from './ResultsTable';
 import TargetOrganizationDropdown from './TargetOrganizationDropdown';
 import { textInputPropType } from '../scmPropTypes';
 import RepoStatus from './RepoStatus';
-import NewOrganizationModal from './NewOrganizationModal';
 import LoadError from '../../../react/LoadError';
 import GitHostModal from './GitHostModal';
 import { displayName } from '../utils/providers';
 import CredentialsError from './CredentialsError';
 import ownerConstant from '../../../utility/services/owner.constant';
+import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
+import { useDispatch } from 'react-redux';
+import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 
 /*
  The tile which contains the repository list and all other associated UI elements
@@ -28,6 +30,7 @@ import ownerConstant from '../../../utility/services/owner.constant';
 export default function RepositoryPane(props) {
   const {
     loadingRepositories,
+    loadingPage,
     repositories,
     totalRepositories,
     organizations,
@@ -35,8 +38,6 @@ export default function RepositoryPane(props) {
     onRepositorySelectionChanged,
     loadRepositoriesErrorCode,
     generalError,
-    addOrganizationError,
-    isNewOrganizationModalVisible,
     scmProvider,
     currentHostUrlState,
     defaultHostUrl,
@@ -45,7 +46,6 @@ export default function RepositoryPane(props) {
     isScmTokenConfigured,
     isImporting,
     $state,
-    isRootScmConfigured,
 
     // sorting
     sortConfiguration,
@@ -55,11 +55,11 @@ export default function RepositoryPane(props) {
     setSortingParameters,
     importSelectedRepositories,
     loadRepositories,
-    setSelectedOrganization,
-    addOrganization,
-    setIsNewOrganizationModalVisible,
     setShowHostDialog,
   } = props;
+
+  const dispatch = useDispatch();
+  const openOwnerEditorModal = () => dispatch(ownerModalActions.openModal({ isApp: false }));
 
   const orgsAndPoliciesHref = !selectedOrganization
     ? ''
@@ -209,22 +209,14 @@ export default function RepositoryPane(props) {
             {...{
               organizations,
               selectedOrganization,
-              setSelectedOrganization,
+              loadingOrganizations: loadingPage,
               $state,
             }}
           />
-          <NxButton onClick={() => setIsNewOrganizationModalVisible(true)} id="repository-pane-add-org">
+          <NxButton onClick={() => openOwnerEditorModal()} id="repository-pane-add-org">
             <NxFontAwesomeIcon icon={faPlus} /> New Organization
           </NxButton>
-          {isNewOrganizationModalVisible && (
-            <NewOrganizationModal
-              addOrganization={addOrganization}
-              setIsNewOrganizationModalVisible={setIsNewOrganizationModalVisible}
-              addOrganizationError={addOrganizationError}
-              orgsAndPoliciesRootOrgHref={orgsAndPoliciesRootOrgHref}
-              isRootScmConfigured={isRootScmConfigured}
-            />
-          )}
+          <OwnerModal shouldRedirectToNewOrg />
           <RepoStatus {...{ repositories, totalRepositories }} />
         </div>
         <div id="scm-repo-table">
@@ -278,6 +270,7 @@ export default function RepositoryPane(props) {
 
 RepositoryPane.propTypes = {
   loadingRepositories: PropTypes.bool.isRequired,
+  loadingPage: PropTypes.bool.isRequired,
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
   organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
   totalRepositories: PropTypes.number,

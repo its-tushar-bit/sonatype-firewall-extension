@@ -1,0 +1,86 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import {
+  selectOwnersTreeSlice,
+  selectOwnersTreeNodesStatus,
+  selectOwnersTreeNodesInitialStatus,
+  selectIsOwnerNodeExpanded,
+} from 'MainRoot/OrgsAndPolicies/ownersTreeSelectors';
+import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { TREE_NODE_STATUS as STATUS } from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
+
+describe('ownersTreeSelectors', () => {
+  describe('selectOwnersTreeSlice', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOwnersTreeSlice.dependencies).toEqual([selectOrgsAndPoliciesSlice]);
+    });
+
+    it('selects ownerSummary', () => {
+      const orgsAndPoliciesSlice = { ownersTree: null };
+
+      const actualSelection = selectOwnersTreeSlice.resultFunc(orgsAndPoliciesSlice);
+
+      expect(actualSelection).toBe(null);
+    });
+  });
+
+  describe('selectOwnersTreeNodesStatus', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOwnersTreeNodesStatus.dependencies).toEqual([selectOwnersTreeSlice]);
+    });
+
+    it('selects ownersTreeNodesStatus', () => {
+      const slice = { nodesStatus: { sonatype: false } };
+
+      const actualSelection = selectOwnersTreeNodesStatus.resultFunc(slice);
+
+      expect(actualSelection).toEqual({ sonatype: false });
+    });
+  });
+
+  describe('selectOwnersTreeNodesInitialStatus', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOwnersTreeNodesInitialStatus.dependencies).toEqual([selectOwnersTreeSlice]);
+    });
+
+    it('selects initialStatus', () => {
+      const slice = { initialStatus: STATUS.collapsed };
+
+      const actualSelection = selectOwnersTreeNodesInitialStatus.resultFunc(slice);
+
+      expect(actualSelection).toEqual(STATUS.collapsed);
+    });
+  });
+
+  describe('selectIsOwnerNodeExpanded', () => {
+    it('is composed from the following selector', () => {
+      expect(selectIsOwnerNodeExpanded.dependencies).toEqual([
+        selectOwnersTreeNodesStatus,
+        selectOwnersTreeNodesInitialStatus,
+        jasmine.any(Function),
+      ]);
+    });
+
+    it('selects node expanded/collapsed status', () => {
+      const status = { sonatype: false, lifecycle: true, nexus: undefined };
+
+      const isSonatypeExpanded = selectIsOwnerNodeExpanded.resultFunc(status, STATUS.expanded, 'sonatype');
+      const isLifecycleExpanded = selectIsOwnerNodeExpanded.resultFunc(status, STATUS.expanded, 'lifecycle');
+      const isNexusExpanded = selectIsOwnerNodeExpanded.resultFunc(status, STATUS.expanded, 'nexus');
+
+      expect(isSonatypeExpanded).toBe(false);
+      expect(isLifecycleExpanded).toBe(true);
+      expect(isNexusExpanded).toBe(true);
+    });
+
+    it('returns initial status when expanded/collapsed status is not defined', () => {
+      const status = { nexus: undefined, sonatype: null };
+
+      expect(selectIsOwnerNodeExpanded.resultFunc(status, STATUS.expanded, 'nexus')).toBe(STATUS.expanded);
+      expect(selectIsOwnerNodeExpanded.resultFunc(status, STATUS.collapsed, 'sonatype')).toBe(STATUS.collapsed);
+    });
+  });
+});

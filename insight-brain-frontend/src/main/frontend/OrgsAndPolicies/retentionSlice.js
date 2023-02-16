@@ -8,7 +8,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectEntityId, selectSelectedOwnerParentId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRetentionSlice } from 'MainRoot/OrgsAndPolicies/retentionSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
@@ -58,11 +58,11 @@ const goToEditRetention = createAsyncThunk(`${REDUCER_NAME}/goToEditRetention`, 
 
 const loadRetention = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { getState, rejectWithValue }) => {
   const state = getState();
-  const rootOrgId = 'ROOT_ORGANIZATION_ID';
+  const parentId = selectSelectedOwnerParentId(state);
   const entityId = selectEntityId(state);
 
-  if (entityId !== rootOrgId) {
-    const rootOrgRetentionRequest = axios.get(getRetentionPoliciesUrl(rootOrgId));
+  if (parentId) {
+    const rootOrgRetentionRequest = axios.get(getRetentionPoliciesUrl(parentId));
     const entityRetentionRequest = axios.get(getRetentionPoliciesUrl(entityId));
     return axios
       .all([rootOrgRetentionRequest, entityRetentionRequest])
@@ -442,6 +442,7 @@ const retentionSlice = createSlice({
     setRadio,
     handleInputChange,
     saveMaskTimerDone: propSet('submitMaskState', null),
+    setLoading: propSet('loading', true),
   },
   extraReducers: {
     [loadRetention.pending]: loadRetentionRequested,

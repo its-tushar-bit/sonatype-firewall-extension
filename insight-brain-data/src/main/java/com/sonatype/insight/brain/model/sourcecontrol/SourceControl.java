@@ -370,6 +370,41 @@ public class SourceControl
     }
   }
 
+  public static void coalesce(SourceControl accumulator, SourceControl other) {
+    if (null == other) {
+      return;
+    }
+    accumulator.setId(coalesce(accumulator.getId(), other.getId()));
+    accumulator.setOwnerId(coalesce(accumulator.getOwnerId(), other.getOwnerId()));
+    accumulator.setToken(coalesce(accumulator.getToken(), other.getToken()));
+    accumulator.setProvider(coalesce(accumulator.getProvider(), other.getProvider()));
+    accumulator.setRepositoryUrl(coalesce(accumulator.getRepositoryUrl(), other.getRepositoryUrl()));
+    accumulator.setUsername(coalesce(accumulator.getUsername(), other.getUsername()));
+    accumulator.setBaseBranch(coalesce(accumulator.getBaseBranch(), other.getBaseBranch()));
+    accumulator.setRemediationPullRequestsEnabled(
+        coalesce(accumulator.getRemediationPullRequestsEnabled(), other.getRemediationPullRequestsEnabled()));
+    accumulator.setStatusChecksEnabled(coalesce(accumulator.getStatusChecksEnabled(), other.getStatusChecksEnabled()));
+    accumulator.setPullRequestCommentingEnabled(
+        coalesce(accumulator.getPullRequestCommentingEnabled(), other.getPullRequestCommentingEnabled()));
+    accumulator.setSourceControlEvaluationsEnabled(
+        coalesce(accumulator.getSourceControlEvaluationsEnabled(), other.getSourceControlEvaluationsEnabled()));
+    accumulator.setSourceControlScanTarget(
+        coalesce(accumulator.getSourceControlScanTarget(), other.getSourceControlScanTarget()));
+    accumulator.setPullRequestPollTime(coalesce(accumulator.getPullRequestPollTime(), other.getPullRequestPollTime()));
+    accumulator.setPullRequestErrorCount(
+        coalesce(accumulator.getPullRequestErrorCount(), other.getPullRequestErrorCount()));
+    accumulator.setSshEnabled(coalesce(accumulator.getSshEnabled(), other.getSshEnabled()));
+    accumulator.setRepositorySshUrl(coalesce(accumulator.getRepositorySshUrl(), other.getRepositorySshUrl()));
+  }
+
+  private static int coalesce(int value1, int value2) {
+    return 0 != value1 ? value1 : value2;
+  }
+
+  private static <T> T coalesce(T value1, T value2) {
+    return null != value1 ? value1 : value2;
+  }
+
   @VisibleForTesting
   static String convertUrlIfNeeded(String repositoryUrl) {
     if (!repositoryUrl.startsWith("http")) {

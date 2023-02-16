@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.ALL;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
 @Named
 public class DashboardPolicyWaiverService
@@ -56,13 +57,16 @@ public class DashboardPolicyWaiverService
 
   private final OrganizationService organizationService;
 
+  private final OrganizationDAO organizationDAO;
+
   private final PolicyDAO policyDAO;
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
-  private final OrganizationDAO organizationDAO;
-
   private final RepositoryService repositoryService;
+
+  private final Collector<Owner, ?, Map<String, Owner>> ownerCollector =
+      Collectors.toMap(Owner::getId, Function.identity(), (existing, replacement) -> existing);
 
   @Inject
   public DashboardPolicyWaiverService(
@@ -157,77 +161,86 @@ public class DashboardPolicyWaiverService
       final Set<String> repositoryIds)
   {
     Map<String, Owner> owners = new HashMap<>();
-    BooleanSupplier isOwnerFilterSpecified = () ->
+    BooleanSupplier isOwnerFilterEmpty = () ->
         CollectionUtils.isEmpty(organizationIds)
           && CollectionUtils.isEmpty(applicationIds)
           && CollectionUtils.isEmpty(tagIds)
           && CollectionUtils.isEmpty(repositoryIds);
     Predicate<Set<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
-        !repos.isEmpty()
-          || (CollectionUtils.isNotEmpty(repositoryIds)
-          && repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+        !repos.isEmpty() || (CollectionUtils.isNotEmpty(repositoryIds)
+            && repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
     BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission = () ->
-        isOwnerFilterSpecified.getAsBoolean()
+        isOwnerFilterEmpty.getAsBoolean()
             && repositoryService.checkReadPermissionRepositoryContainer();
     Predicate<Set<Repository>> shouldAddRepoContainer = repos ->
         reposAreNotEmptyOrIsOnlyRepoContainer.test(repos)
-          || filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
-    Collector<Owner, ?, Map<String, Owner>> ownerCollector =
-        Collectors.toMap(Owner::getId, Function.identity(), (existing, replacement) -> existing);
+            || filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
 
-    List<Application> applications = Collections.emptyList();
-    List<Organization> allOrgs = Collections.emptyList();
-    Set<Organization> parentOrganizationsOfApplications = Collections.emptySet();
-    List<Organization> selectedOrganizations = Collections.emptyList();
-    Set<Repository> repositories = Collections.emptySet();
-
-    if (isOwnerFilterSpecified.getAsBoolean()) {
-      // no filters specified, add everything by default
-      applications = applicationService.getOwnerApplicationsByIdsOrTagIds(applicationIds, tagIds);
-      allOrgs = organizationService.getAll();
-      repositories = repositoryService.getRepositoriesByIds(repositoryIds);
-    }
-    else {
-      // certain filters specified in the request.
-      if (CollectionUtils.isNotEmpty(applicationIds) || CollectionUtils.isNotEmpty(tagIds)) {
-        applications = applicationService.getOwnerApplicationsByIdsOrTagIds(applicationIds, tagIds);
-        parentOrganizationsOfApplications =
-            applicationService.getParentOrganizationsForApplicationsNoAuthz(applications);
-      }
-
-      if (CollectionUtils.isNotEmpty(organizationIds)) {
-        // check with authz when specific org ids are provided.
-        selectedOrganizations = organizationService.getAll()
-            .stream()
-            .filter(organization -> organizationIds.contains(organization.getId()))
-            .collect(Collectors.toList());
-      }
-
-      if (CollectionUtils.isNotEmpty(repositoryIds)) {
-        repositories = repositoryService.getRepositoriesByIds(repositoryIds);
-      }
-    }
+    List<Application> applications = getApplications(applicationIds, tagIds, isOwnerFilterEmpty);
+    Map<String, Organization> appsParentOrgs = organizationService.getAllParentOrgsNoAuthz(applications);
+    List<Organization> organizations = getOrganizations(organizationIds, isOwnerFilterEmpty);
+    Map<String, Organization> orgsParentOrgs = organizationService
+        .getAllParentOrgsNoAuthz(organizations, appsParentOrgs);
+    Set<Repository> repositories = getRepositories(repositoryIds, isOwnerFilterEmpty);
 
     owners.putAll(applications.stream().collect(ownerCollector));
-    owners.putAll(parentOrganizationsOfApplications.stream().collect(ownerCollector));
-    owners.putAll(allOrgs.stream().collect(ownerCollector));
-    owners.putAll(selectedOrganizations.stream().collect(ownerCollector));
+    owners.putAll(appsParentOrgs);
+    owners.putAll(organizations.stream().collect(ownerCollector));
+    owners.putAll(orgsParentOrgs);
     owners.putAll(repositories.stream().collect(ownerCollector));
 
-    // add repo container if there is at least one repo or there is no filter specified
     if (shouldAddRepoContainer.test(repositories)) {
       owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON);
-    }
-
-    // include root org if there is at least one entry in the owners
-    if (!owners.isEmpty()) {
-      owners.put(Organization.ROOT_ORGANIZATION_ID, organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID));
+      owners.computeIfAbsent(ROOT_ORGANIZATION_ID, organizationDAO::getById);
     }
 
     AuditData.get().setData("filteredOwnersCount", owners.size());
     log.debug("getDashboardPolicyWaivers: Found {} owners to filter policy waivers", owners.size());
 
     return owners;
+  }
+
+  private List<Application> getApplications(
+      Set<String> applicationIds,
+      Set<String> tagIds,
+      BooleanSupplier isOwnerFilterEmpty)
+  {
+    List<Application> applications = Collections.emptyList();
+    if (isOwnerFilterEmpty.getAsBoolean()
+        || (CollectionUtils.isNotEmpty(applicationIds)
+        || CollectionUtils.isNotEmpty(tagIds))) {
+      applications = applicationService.getOwnerApplicationsByIdsOrTagIds(applicationIds, tagIds);
+    }
+    return applications;
+  }
+
+  private List<Organization> getOrganizations(
+      Set<String> organizationIds,
+      BooleanSupplier isOwnerFilterEmpty)
+  {
+    List<Organization> allOrgs;
+    List<Organization> organizations = Collections.emptyList();
+    if (isOwnerFilterEmpty.getAsBoolean()) {
+      organizations = organizationService.getAll();
+    }
+    else if (CollectionUtils.isNotEmpty(organizationIds)) {
+      allOrgs = organizationService.getAll();
+      organizations = allOrgs.stream()
+          .filter(organization -> organizationIds.contains(organization.getId()))
+          .collect(Collectors.toList());
+    }
+    return organizations;
+  }
+
+  private Set<Repository> getRepositories(
+      Set<String> repositoryIds,
+      BooleanSupplier isOwnerFilterEmpty)
+  {
+    Set<Repository> repositories = Collections.emptySet();
+    if (isOwnerFilterEmpty.getAsBoolean() || CollectionUtils.isNotEmpty(repositoryIds)) {
+      repositories = repositoryService.getRepositoriesByIds(repositoryIds);
+    }
+    return repositories;
   }
 
   private Map<String, Policy> getFilteredPoliciesById(

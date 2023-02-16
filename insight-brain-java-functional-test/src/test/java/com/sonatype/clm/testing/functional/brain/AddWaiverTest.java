@@ -12,9 +12,10 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
-import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -45,6 +46,8 @@ public class AddWaiverTest
 {
   private static Organization organization;
 
+  private static Organization parentOrganization;
+
   private static Application application;
 
   private static PolicyViolation policyViolation;
@@ -59,7 +62,8 @@ public class AddWaiverTest
     Instant now = Instant.now();
     Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
 
-    organization = staticTempEntity.newOrganization("Org 1");
+    parentOrganization = staticTempEntity.newOrganization("Parent Org");
+    organization = staticTempEntity.newOrganization("Org 1", parentOrganization);
     application = staticTempEntity.newApplication("App 1", "app1", organization.getId());
     Policy securityPolicy1 = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
     Policy securityPolicy2 = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 8);
@@ -89,10 +93,11 @@ public class AddWaiverTest
     addWaiverPage.conditions().shouldHaveSize(1);
     addWaiverPage.condition(1).shouldHave(text("sonatype-2017-0507"));
     addWaiverPage.vulnerabilityDetailsLink().shouldHave(text("See Security Vulnerability Details"));
-    addWaiverPage.availableScopes().shouldHaveSize(3);
-    addWaiverPage.scope(0).label().shouldHave(text("Application - App 1"));
-    addWaiverPage.scope(1).label().shouldHave(text("Organization - Org 1"));
-    addWaiverPage.scope(2).label().shouldHave(text("Organization - Root Organization"));
+    addWaiverPage.availableScopes().shouldHaveSize(4);
+    addWaiverPage.scope(0).shouldHave(text("Application - App 1"));
+    addWaiverPage.scope(1).shouldHave(text("Organization - Org 1"));
+    addWaiverPage.scope(2).shouldHave(text("Organization - Parent Org"));
+    addWaiverPage.scope(3).shouldHave(text("Organization - Root Organization"));
     addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("Group1 : Artifact1 : Version1"));
     addWaiverPage.component(1).label().shouldHave(text("Group1 : Artifact1 (all versions)"));
@@ -147,10 +152,8 @@ public class AddWaiverTest
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(0);
-      chosenScope.label().shouldHave(text("Application - App 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
@@ -177,10 +180,8 @@ public class AddWaiverTest
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(0);
-      chosenScope.label().shouldHave(text("Application - App 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
@@ -208,10 +209,8 @@ public class AddWaiverTest
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(0);
-      chosenScope.label().shouldHave(text("Application - App 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
@@ -240,10 +239,8 @@ public class AddWaiverTest
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(0);
-      chosenScope.label().shouldHave(text("Application - App 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
@@ -280,10 +277,9 @@ public class AddWaiverTest
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(1);
-      chosenScope.label().shouldHave(text("Organization - Org 1"));
-      chosenScope.click();
+
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(1, "Organization - Org 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
@@ -310,10 +306,8 @@ public class AddWaiverTest
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(1);
-      chosenScope.label().shouldHave(text("Organization - Org 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(1, "Organization - Org 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
@@ -341,10 +335,8 @@ public class AddWaiverTest
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(1);
-      chosenScope.label().shouldHave(text("Organization - Org 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(1, "Organization - Org 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
@@ -374,10 +366,8 @@ public class AddWaiverTest
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(1);
-      chosenScope.label().shouldHave(text("Organization - Org 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(1, "Organization - Org 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
@@ -405,16 +395,138 @@ public class AddWaiverTest
   }
 
   @Test
+  public void testSubmit_ParentOrgWaiver_AllComponents() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(2, "Organization - Parent Org"));
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(2);
+      chosenComponent.label().shouldHave(text("All Components"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getActiveByOwnerId(parentOrganization.getId());
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getHash()).isNull();
+      assertThat(waivers.get(0).getExpiryTime()).isNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
+  public void testSubmit_ParentOrgWaiver_SingleComponent() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(2, "Organization - Parent Org"));
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(0);
+      chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getApplicableToComponent(parentOrganization.getId(), "hash1");
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getExpiryTime()).isNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
+  public void testSubmit_ParentOrgWaiver_ExpiringWaiver() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(2, "Organization - Parent Org"));
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(0);
+      chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+      chosenComponent.click();
+
+      addWaiverPage.expiryTimesSelect().selectOptionContainingText("14 Days");
+
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getApplicableToComponent(parentOrganization.getId(), "hash1");
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
+  public void testSubmit_ParentOrgWaiver_CustomExpiringWaiver() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(2, "Organization - Parent Org"));
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(0);
+      chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+      chosenComponent.click();
+      addWaiverPage.expiryTimesSelect().selectOptionContainingText("Custom");
+
+      addWaiverPage.customExpiryTime().val("01-01-0001");
+      addWaiverPage.customExpiryTimeErrorMessage().shouldHave(text("Date must be in the future"));
+
+      addWaiverPage.customExpiryTime().val("01-01-9999");
+      addWaiverPage.expiryTimeMessage().shouldBe(visible);
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getApplicableToComponent(parentOrganization.getId(), "hash1");
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
   public void testSubmit_RootOrgWaiver_SingleComponent() {
     List<PolicyWaiver> waivers = Collections.emptyList();
     try {
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(2);
-      chosenScope.label().shouldHave(text("Organization - Root Organization"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(3, "Organization - Root Organization"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
@@ -441,10 +553,8 @@ public class AddWaiverTest
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(2);
-      chosenScope.label().shouldHave(text("Organization - Root Organization"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(3, "Organization - Root Organization"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
@@ -557,8 +667,7 @@ public class AddWaiverTest
       AddWaiverPage addWaiverPage = new AddWaiverPage();
       // there's only one possible scope for an application-policy: application
       addWaiverPage.availableScopes().shouldHaveSize(1);
-      NxRadio chosenScope = addWaiverPage.scope(0);
-      chosenScope.label().shouldHave(text("Application - App 1"));
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
       addWaiverPage.saveButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
       addWaiverPage.submitError().shouldNotBe(visible);
@@ -590,11 +699,7 @@ public class AddWaiverTest
       AddWaiverPage addWaiverPage = new AddWaiverPage();
       // root-org shouldn't be available for org-level policies
       addWaiverPage.availableScopes().shouldHaveSize(2);
-      NxRadio appScope = addWaiverPage.scope(0);
-      appScope.label().shouldHave(text("Application - App 1"));
-      NxRadio orgScope = addWaiverPage.scope(1);
-      orgScope.label().shouldHave(text("Organization - Org 1"));
-      orgScope.click();
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(1, "Organization - Org 1"));
       addWaiverPage.saveButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
       addWaiverPage.submitError().shouldNotBe(visible);
@@ -615,7 +720,7 @@ public class AddWaiverTest
       refresh(); // refresh to ensure there is no previous page/routing information
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
+      addWaiverPage.availableScopes().shouldHaveSize(4);
 
       addWaiverPage.cancelButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
@@ -644,10 +749,8 @@ public class AddWaiverTest
       refresh(); // refresh to ensure there is no previous page/routing information
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(0);
-      chosenScope.label().shouldHave(text("Application - App 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
@@ -692,7 +795,7 @@ public class AddWaiverTest
 
       waitUntilUrl(AddWaiverPage.url(policyViolation.getId()));
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
+      addWaiverPage.availableScopes().shouldHaveSize(4);
       addWaiverPage.cancelButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
 
@@ -727,10 +830,8 @@ public class AddWaiverTest
 
       waitUntilUrl(AddWaiverPage.url(policyViolation.getId()));
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(0);
-      chosenScope.label().shouldHave(text("Application - App 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
@@ -790,10 +891,8 @@ public class AddWaiverTest
 
       waitUntilUrl(AddWaiverPage.url(policyViolation.getId()));
       AddWaiverPage addWaiverPage = new AddWaiverPage();
-      addWaiverPage.availableScopes().shouldHaveSize(3);
-      NxRadio chosenScope = addWaiverPage.scope(0);
-      chosenScope.label().shouldHave(text("Application - App 1"));
-      chosenScope.click();
+      addWaiverPage.availableScopes().shouldHaveSize(4);
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
       addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));

@@ -25,7 +25,6 @@ import DashboardFilterFooter from './DashboardFilterFooter';
 import SaveFilterModalContainer from '../saveFilterModal/SaveFilterModalContainer';
 import ManageFiltersDropdown from '../manageFiltersDropdown/ManageFiltersDropdown';
 import DeleteFilterModalContainer from '../deleteFilterModal/DeleteFilterModalContainer';
-
 export default function DashboardFilter(props) {
   const {
     loading,
@@ -44,7 +43,6 @@ export default function DashboardFilter(props) {
     savedFilters,
 
     // filter items
-    organizations,
     applications,
     categories,
     stages,
@@ -53,6 +51,8 @@ export default function DashboardFilter(props) {
     expirationDates,
     policyViolationStates,
     repositories,
+    ownersMap,
+    topParentOrganizationId,
 
     // selected items
     appliedFilterName,
@@ -158,12 +158,13 @@ export default function DashboardFilter(props) {
           {() => (
             <Fragment>
               <IqOrgAppPicker
-                organizations={organizations}
                 applications={applications}
                 selectedApplications={selected.applications}
                 selectedOrganizations={selected.organizations}
                 onChange={toggleAppsAndOrgs}
                 id="org-app-filters"
+                ownersMap={ownersMap}
+                topParentOrganizationId={topParentOrganizationId}
               />
               {showRepositoriesFilter && (
                 <NxStatefulCollapsibleMultiSelect
@@ -319,6 +320,8 @@ export const dashboardFilterPropTypes = {
   toggleFilter: PropTypes.func,
   toggleFilterSidebar: PropTypes.func,
   ...ManageFiltersDropdown.propTypes,
+  ownersMap: PropTypes.object,
+  topParentOrganizationId: PropTypes.string,
 };
 
 DashboardFilter.propTypes = {

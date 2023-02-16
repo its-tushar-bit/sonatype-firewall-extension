@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.organization;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -15,10 +16,12 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -129,6 +132,68 @@ public class OrganizationResourceTest
   }
 
   @Test
+  public void testDeleteOrganization_NLevel() throws Exception {
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 8, 2);
+    final OrganizationDAO orgsDAO = new OrganizationDAO();
+    HttpResponse response;
+
+    // Delete
+    response = restRequest().path(testList.get(testList.size() - 2).getId()).delete();
+    assertResponseStatus(204, response);
+
+    List<Organization> removedOrgs = testList.subList(0,testList.size() - 2);
+    for (Organization org : removedOrgs) {
+      String orgId = org.getId();
+      assertThat(orgsDAO.getById(orgId)).isNull();
+    }
+  }
+
+  @Test
+  public void testDeleteOrganization_NLevel_partialDeletionExceptionMessage() throws Exception {
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
+    HttpResponse response;
+
+    Organization organization = testList.get(4);
+    String organizationId = organization.getId();
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    automaticApplicationsConfigurationDAO.setOrganizationId(organizationId);
+
+    // Delete
+    response = restRequest().path(organizationId).delete();
+    assertResponseStatus(500, response);
+
+    String expectedErrorResponse = "The delete operation was partially successful." +
+        " Some sub-Orgs and applications of this Org were deleted," +
+        " while some failed with error(s) below." +
+        "\n" + "Cannot delete the parent organization for automatic application creation: " +
+        organization.getName() + ".";
+    assertThat(StringUtils.contains(response.getBodyText(), expectedErrorResponse)).isTrue();
+  }
+
+  @Test
+  public void testDeleteOrganization_NLevel_originalExceptionMessage() throws Exception {
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+    List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
+    HttpResponse response;
+
+    Organization organization = testList.get(0);
+    String organizationId = organization.getId();
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    automaticApplicationsConfigurationDAO.setOrganizationId(organizationId);
+
+    // Delete
+    response = restRequest().path(organizationId).delete();
+    assertResponseStatus(400, response);
+
+    String expectedErrorResponse = "Cannot delete the parent organization for automatic application creation: " +
+        organization.getName() + ".";
+    assertThat(StringUtils.contains(response.getBodyText(), expectedErrorResponse)).isTrue();
+  }
+
+  @Test
   public void testAddOrganization_Unlicensed() throws Exception {
     uninstallLicense();
     Organization organization = new Organization("OrganizationResourceTest");
@@ -151,6 +216,26 @@ public class OrganizationResourceTest
     uninstallLicense();
     HttpResponse response = restRequest().get();
     assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testGetOrganization() throws Exception {
+    Organization testOrg = tempEntity.newOrganization();
+    HttpResponse response = restRequest().path(OrganizationResource.GET_ORGANIZATION_PATH)
+        .parameter(testOrg.getId()).get();
+    assertResponseStatus(200, response);
+
+    Organization responseOrg = response.getBody(Organization.class);
+    assertThat(responseOrg).isNotNull();
+    assertThat(responseOrg.getName()).isEqualTo(testOrg.getName());
+    assertThat(responseOrg.getId()).isEqualTo(testOrg.getId());
+  }
+
+  @Test
+  public void testGetOrganization_idDoesNotExist() throws Exception {
+    HttpResponse response = restRequest().path(OrganizationResource.GET_ORGANIZATION_PATH)
+        .parameter("ID_IS_NOT_REAL").get();
+    assertResponseStatus(404, response);
   }
 
   @Test

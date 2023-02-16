@@ -8,6 +8,7 @@ import axios from 'axios';
 import { fetchStageTypes } from '../../stages/stagesActions';
 import { fetchSavedFilters } from './manageFiltersActions';
 import { loadResults, RESET_ALL_TABS } from '../results/dashboardResultsActions';
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import {
   getApplicationsUrl,
@@ -52,12 +53,12 @@ export function loadFilter(resultsType = null, isLoadResults = false) {
       axios.get(getRepositoriesUrl()),
       dispatch(fetchStageTypes('dashboard')),
       dispatch(fetchSavedFilters()),
+      dispatch(ownerSideNavActions.loadOwnerList()),
     ])
       .then((data) => {
         const [applications, organizations, categoriesData, filterData, repositories] = data;
         // Get dashboard-stages from general state
         const { dashboard } = getState().stages;
-
         dispatch(
           fetchAvailableFilterOptionsFulfilled(
             applications.data,

@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SourceControlTile;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -26,6 +27,7 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
 {
@@ -139,5 +141,11 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     ActionDropDown.actions().shouldHaveSize(3);
 
     eyesWatcher.eyesCheck("root organization actions dropdown");
+  }
+
+  @Test
+  public void testBreadcrumb() {
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    assertThat(breadcrumb.links()).isEmpty();
   }
 }

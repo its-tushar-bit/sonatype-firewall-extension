@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
+import { prop } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { selectOwnerProperties, selectSelectedOwnerId } from './orgsAndPoliciesSelectors';
+import { selectSelectedOwnerTypeAndId } from './orgsAndPoliciesSelectors';
 import { getCompositeSourceControlUrl } from 'MainRoot/util/CLMLocation';
-import { prop } from 'ramda';
 
 const REDUCER_NAME = 'sourceControl';
 
@@ -36,8 +36,7 @@ const loadSourceControlFailed = (state, { payload }) => {
 
 const loadSourceControl = createAsyncThunk(`${REDUCER_NAME}/loadSourceControl`, (_, { getState, rejectWithValue }) => {
   const state = getState();
-  const { ownerType } = selectOwnerProperties(state);
-  const ownerId = selectSelectedOwnerId(state);
+  const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
 
   return axios.get(getCompositeSourceControlUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
 });

@@ -24,9 +24,8 @@ import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.NxList;
 import com.sonatype.clm.testing.functional.elements.NxToast;
+import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
-import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
-import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.elements.SelectContactModal;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SourceControlTile;
@@ -81,13 +80,13 @@ public class ApplicationSummaryViewTest
 {
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
-  private Application application;
-
-  private Organization rootOrganization;
-
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
+
+  private Application application;
+
+  private Organization rootOrganization;
 
   @Before
   public void init() {
@@ -265,12 +264,15 @@ public class ApplicationSummaryViewTest
     ltgTile.nxSubHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));
     ltgTile.newButton().shouldBe(hidden);
 
-    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(1);
-    ScrollUtil.scrollIntoViewInstantly(ltgTile.nxHeader());
+    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(2);
 
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
     ScrollUtil.scrollIntoViewInstantly(section.getTitle());
+    section.getTitle().shouldBe(visible).shouldHave(text("LOCAL"));
+    section.getEmptyDescriptor().shouldBe(visible);
 
+    section = ltgTile.getApplicableLicenseThreatGroupSection(1);
+    ScrollUtil.scrollIntoViewInstantly(section.getTitle());
     section.getTitle().shouldBe(visible).shouldHave(text("INHERITED FROM ROOT ORGANIZATION"));
     section.getEmptyDescriptor().shouldBe(hidden);
     section.getTableContent().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
@@ -398,10 +400,8 @@ public class ApplicationSummaryViewTest
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
     OwnerSummaryPage.summaryTile().publicId().shouldHave(text("newAppId"));
     // check that sidebar app link is updated
-    OrganizationNode organizationNode = OwnerTreeView.organization(0);
-    organizationNode.treeViewElement().click();
-    waitUntilNotUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
-    organizationNode.application(0).click();
+    OrgsAndPoliciesSidebar sideBar = new OrgsAndPoliciesSidebar();
+    sideBar.getApplicationLink(0).click();
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
 
     // log in as a user that doesn't have permission to change the id of this app
@@ -460,8 +460,8 @@ public class ApplicationSummaryViewTest
         assertThat(stageSelect.selectedItem().getText()).isEqualTo(EvaluateApplicationModal.SELECT_STAGE_TEXT);
         stageSelect.click();
         stageSelect.listItems().shouldHaveSize(5).shouldHave(texts(EvaluateApplicationModal.SELECT_STAGE_TEXT,
-                StageTypes.BUILD.getName(), StageTypes.STAGE_RELEASE.getName(), StageTypes.RELEASE.getName(),
-                StageTypes.OPERATE.getName()));
+            StageTypes.BUILD.getName(), StageTypes.STAGE_RELEASE.getName(), StageTypes.RELEASE.getName(),
+            StageTypes.OPERATE.getName()));
 
         stageSelect.listItem(3).shouldHave(textCaseSensitive(StageTypes.RELEASE.getName())).click();
         assertThat(stageSelect.selectedItem().getText()).isEqualTo(StageTypes.RELEASE.getName());

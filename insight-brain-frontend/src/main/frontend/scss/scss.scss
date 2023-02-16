@@ -120,6 +120,7 @@
 @use '../OrgsAndPolicies/componentLabels/createComponentLabel';
 @use '../OrgsAndPolicies/policyEditor/editPolicyInheritance/EditPolicyInheritance';
 @use '../OrgsAndPolicies/policyEditor/policyNotificationsEditor/PolicyNotificationsEditor';
+@use '../OrgsAndPolicies/ownerSideNav/OwnerSideNav';
 @use '../OrgsAndPolicies/access/accessPage';
 @use '../OrgsAndPolicies/proprietaryComponentConfig/proprietaryComponentConfiguration';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
@@ -138,6 +139,7 @@
 @use '../OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/applicableLicenseThreatGroupTable';
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
 @use '../OrgsAndPolicies/ownerModal/ownerModal';
+@use '../OrgsAndPolicies/ownersTreePage/ownersTreePage';
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 @use '../OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPage';
 @use '../api/apiPage';

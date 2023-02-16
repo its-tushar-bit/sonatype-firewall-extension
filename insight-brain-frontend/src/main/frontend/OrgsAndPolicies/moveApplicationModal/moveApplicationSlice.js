@@ -9,6 +9,7 @@ import axios from 'axios';
 import { getDestinationOrganizationsUrl, getMoveApplicationUrl } from 'MainRoot/util/CLMLocation';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
@@ -98,7 +99,10 @@ const setOrganization = (state, { payload: { selectedOrganizationId, application
 
 const moveApplication = createAsyncThunk(
   `${REDUCER_NAME}/moveApplication`,
-  ({ applicationId, organizationId, organizationName }, { dispatch, rejectWithValue }) => {
+  ({ applicationId, organizationId, organizationName }, { getState, dispatch, rejectWithValue }) => {
+    const state = getState();
+    const currentOwner = selectSelectedOwner(state);
+
     return axios
       .post(getMoveApplicationUrl(applicationId, organizationId))
       .then((response) => {
@@ -106,6 +110,12 @@ const moveApplication = createAsyncThunk(
           dispatch(rootActions.selectedOwnerParentOrganizationUpdated({ organizationName, organizationId }));
           startSaveMaskSuccessTimer(dispatch, actions.closeMoveAppModal).then(() => {
             dispatch(actions.showSuccessModal());
+            dispatch(
+              ownerSideNavActions.moveApplication({
+                currentOwner,
+                newParentId: organizationId,
+              })
+            );
           });
           return response?.data?.warnings;
         });

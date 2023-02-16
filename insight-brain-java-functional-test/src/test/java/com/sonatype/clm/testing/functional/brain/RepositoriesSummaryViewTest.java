@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
+import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
@@ -110,6 +111,9 @@ public class RepositoriesSummaryViewTest
     refresh();
 
     eyesWatcher.eyesCheck("Repositories visible");
+
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+    orgsAndPoliciesSidebar.repositories().shouldHave(text("(2)"));
 
     configurationTile = RepositoriesSummaryPage.configTile();
     configurationTable = configurationTile.configurationTable();

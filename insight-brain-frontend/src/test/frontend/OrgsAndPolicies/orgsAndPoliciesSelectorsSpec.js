@@ -11,6 +11,7 @@ import {
   selectSelectedOwnerId,
   selectPoliciesByOwner,
   selectRootSlice,
+  selectSelectedOwnerParentId,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 describe('orgsAndPoliciesSelectors', () => {
@@ -23,6 +24,7 @@ describe('orgsAndPoliciesSelectors', () => {
           selectedOwner: {
             name: 'ownerName',
             id: 'ownerId',
+            parentOrganizationId: 'parentId',
           },
         },
       },
@@ -51,7 +53,7 @@ describe('orgsAndPoliciesSelectors', () => {
     it('selects selected owner object', () => {
       const selected = selectSelectedOwner(mockState);
 
-      expect(selected).toEqual({ name: 'ownerName', id: 'ownerId' });
+      expect(selected).toEqual({ name: 'ownerName', id: 'ownerId', parentOrganizationId: 'parentId' });
     });
   });
 
@@ -67,6 +69,14 @@ describe('orgsAndPoliciesSelectors', () => {
       const selected = selectSelectedOwnerName(mockState);
 
       expect(selected).toBe('All Repositories');
+    });
+  });
+
+  describe('selectSelectedOwnerParentId', () => {
+    it('selects selected owner id property', () => {
+      const selected = selectSelectedOwnerParentId(mockState);
+
+      expect(selected).toBe('parentId');
     });
   });
 

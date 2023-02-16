@@ -5,7 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -15,6 +20,7 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceCon
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeValueDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.model.Application;
@@ -51,6 +57,8 @@ public class ApiCompositeSourceControlService
 
   private final OrganizationDAO organizationDAO;
 
+  private final OwnerDAO ownerDAO;
+
   private final PlexusCipher plexusCipher;
 
   @Inject
@@ -59,12 +67,14 @@ public class ApiCompositeSourceControlService
       final ApplicationDAO applicationDAO,
       final IqForScmLicenseChecker licenseChecker,
       final OrganizationDAO organizationDAO,
+      final OwnerDAO ownerDAO,
       final PlexusCipher plexusCipher)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.applicationDAO = applicationDAO;
     this.licenseChecker = licenseChecker;
     this.organizationDAO = organizationDAO;
+    this.ownerDAO = ownerDAO;
     this.plexusCipher = plexusCipher;
   }
 
@@ -84,8 +94,7 @@ public class ApiCompositeSourceControlService
       final OwnerType ownerType,
       final String ownerId)
   {
-    ApiCompositeSourceControlDTO dto = getCompositeSourceControlByOwner(ownerType, ownerId, false);
-    return dto;
+    return getCompositeSourceControlByOwner(ownerType, ownerId, false);
   }
 
   /**
@@ -104,26 +113,27 @@ public class ApiCompositeSourceControlService
   {
     checkLicense();
 
-    String parentId;
-    String grandParentId;
+    List<String> hierarchy;
     if (ownerType.equals(OwnerType.APPLICATION)) {
       Application application = applicationDAO.getByIdNotNull(ownerId);
-      Organization organization = organizationDAO.getByIdNotNull(application.getOrganizationId());
-      parentId = organization.getId();
-      grandParentId = organization.getParentOrganizationId();
+      hierarchy = ownerDAO.getOwnerIds(application.getId());
     }
     else {
       Organization organization = organizationDAO.getByIdNotNull(ownerId);
-      parentId = organization.getParentOrganizationId();
-      grandParentId = null;
+      hierarchy = ownerDAO.getOwnerIds(organization.getId());
     }
-    return getCompositeSourceControlFromHierarchyIds(ownerId, parentId, grandParentId, obscureToken);
+    return getCompositeSourceControlFromHierarchyIds(
+        ownerType,
+        ownerId,
+        hierarchy.subList(1, hierarchy.size()),
+        obscureToken
+    );
   }
 
   private ApiCompositeSourceControlDTO getCompositeSourceControlFromHierarchyIds(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
-      final String parentId,
-      final String grandParentId,
+      final List<String> ancestorsId,
       final boolean obscureToken)
   {
     ApiCompositeSourceControlDTO dto = new ApiCompositeSourceControlDTO();
@@ -135,140 +145,129 @@ public class ApiCompositeSourceControlService
       setTokenValueForReturn(sc, obscureToken);
     });
 
-    Optional<SourceControl> parentSourceControl = Optional.empty();
-    String parentName = null;
-    if (parentId != null) {
-      parentSourceControl = Optional.ofNullable(sourceControlDAO.getByOwnerId(parentId));
-      parentSourceControl.ifPresent(sc -> setTokenValueForReturn(sc, obscureToken));
-      parentName = organizationDAO.getByIdNotNull(parentId).getName();
-    }
-
-    Optional<SourceControl> grandParentSourceControl = Optional.empty();
-    String grandParentName = null;
-    if (grandParentId != null) {
-      grandParentSourceControl = Optional.ofNullable(sourceControlDAO.getByOwnerId(grandParentId));
-      grandParentSourceControl.ifPresent(sc -> setTokenValueForReturn(sc, obscureToken));
-      grandParentName = organizationDAO.getByIdNotNull(grandParentId).getName();
-    }
-
+    List<String> ancestorsNameHierarchy = new ArrayList<>(ancestorsId.size());
+    Map<String, SourceControl> ancestorsSourceControlMap = new HashMap<>();
     SourceControl defaultSourceControl = new SourceControl.Builder().build();
-    collateCompositeSourceControl(dto, sourceControl.orElse(defaultSourceControl), parentName,
-        parentSourceControl.orElse(defaultSourceControl), grandParentName,
-        grandParentSourceControl.orElse(defaultSourceControl));
+
+    if (!ancestorsId.isEmpty()) {
+      for (int i = 0; i < ancestorsId.size(); i++) {
+        Optional<SourceControl> ancestorSourceControl;
+        String ancestorName;
+        String ancestorId = ancestorsId.get(i);
+        ancestorSourceControl = Optional.ofNullable(sourceControlDAO.getByOwnerId(ancestorId));
+        ancestorSourceControl.ifPresent(sc -> setTokenValueForReturn(sc, obscureToken));
+        ancestorName = organizationDAO.getByIdNotNull(ancestorId).getName();
+
+        ancestorsNameHierarchy.add(i, ancestorName);
+        ancestorsSourceControlMap.put(ancestorName, ancestorSourceControl.orElse(defaultSourceControl));
+      }
+    }
+
+    collateCompositeSourceControl(dto, sourceControl.orElse(defaultSourceControl), ancestorsNameHierarchy,
+        ancestorsSourceControlMap, ownerType);
     return dto;
   }
 
   private void collateCompositeSourceControl(
       final ApiCompositeSourceControlDTO dto,
       final SourceControl sourceControl,
-      final String parentName,
-      final SourceControl parentSourceControl,
-      final String grandParentName,
-      final SourceControl grandParentSourceControl)
+      final List<String> ancestorsNameHiarchy,
+      final Map<String, SourceControl> ancestorsSourceControl,
+      final OwnerType ownerType)
   {
 
     //If parent and grandParent are set, this means it is an application.
-    if (parentName != null && grandParentName != null) {
+    if (ownerType.equals(OwnerType.APPLICATION)) {
       dto.repositoryUrl = sourceControl.getRepositoryUrl();
     }
 
     dto.provider = collateCompositeDTO(
-        sourceControl.getProvider() == null ? null : sourceControl.getProvider().toString(),
-        parentName,
-        parentSourceControl.getProvider() == null ? null : parentSourceControl.getProvider().toString(),
-        grandParentName,
-        grandParentSourceControl.getProvider() == null ? null : grandParentSourceControl.getProvider().toString()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        sc -> sc.getProvider() == null ? null : sc.getProvider().toString()
     );
 
     dto.username = collateCompositeDTO(
-        sourceControl.getUsername(),
-        parentName,
-        parentSourceControl.getUsername(),
-        grandParentName,
-        grandParentSourceControl.getUsername()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getUsername
     );
 
     dto.token = collateCompositeDTO(
-        sourceControl.getToken(),
-        parentName,
-        parentSourceControl.getToken(),
-        grandParentName,
-        grandParentSourceControl.getToken()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getToken
     );
 
     dto.baseBranch = collateCompositeDTO(
-        sourceControl.getBaseBranch(),
-        parentName,
-        parentSourceControl.getBaseBranch(),
-        grandParentName,
-        grandParentSourceControl.getBaseBranch()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getBaseBranch
     );
 
     dto.remediationPullRequestsEnabled = collateCompositeDTO(
-        sourceControl.getRemediationPullRequestsEnabled(),
-        parentName,
-        parentSourceControl.getRemediationPullRequestsEnabled(),
-        grandParentName,
-        grandParentSourceControl.getRemediationPullRequestsEnabled()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getRemediationPullRequestsEnabled
     );
 
     dto.statusChecksEnabled = collateCompositeDTO(
-        sourceControl.getStatusChecksEnabled(),
-        parentName,
-        parentSourceControl.getStatusChecksEnabled(),
-        grandParentName,
-        grandParentSourceControl.getStatusChecksEnabled()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getStatusChecksEnabled
     );
 
     dto.pullRequestCommentingEnabled = collateCompositeDTO(
-        sourceControl.getPullRequestCommentingEnabled(),
-        parentName,
-        parentSourceControl.getPullRequestCommentingEnabled(),
-        grandParentName,
-        grandParentSourceControl.getPullRequestCommentingEnabled()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getPullRequestCommentingEnabled
     );
 
     dto.sourceControlEvaluationsEnabled = collateCompositeDTO(
-        sourceControl.getSourceControlEvaluationsEnabled(),
-        parentName,
-        parentSourceControl.getSourceControlEvaluationsEnabled(),
-        grandParentName,
-        grandParentSourceControl.getSourceControlEvaluationsEnabled()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getSourceControlEvaluationsEnabled
     );
 
     dto.sourceControlScanTarget = collateCompositeDTO(
-        sourceControl.getSourceControlScanTarget(),
-        parentName,
-        parentSourceControl.getSourceControlScanTarget(),
-        grandParentName,
-        grandParentSourceControl.getSourceControlScanTarget()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getSourceControlScanTarget
     );
 
     dto.sshEnabled = collateCompositeDTO(
-            sourceControl.getSshEnabled(),
-            parentName,
-            parentSourceControl.getSshEnabled(),
-            grandParentName,
-            grandParentSourceControl.getSshEnabled()
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getSshEnabled
     );
   }
 
   private <T> ApiCompositeValueDTO<T> collateCompositeDTO(
-      T value,
-      String parentName,
-      T parentValue,
-      String grandparentName,
-      T grandparentValue)
+      SourceControl ownerSourceControl,
+      List<String> ancestorsNameHiarchy,
+      Map<String, SourceControl> ancestorsSourceControl,
+      Function<SourceControl, T> getValueFunction)
   {
     ApiCompositeValueDTO<T> dto = new ApiCompositeValueDTO<>();
-    dto.value = value;
-    if (null != parentValue) {
-      dto.parentName = parentName;
-      dto.parentValue = parentValue;
-    }
-    else if (null != grandparentValue) {
-      dto.parentName = grandparentName;
-      dto.parentValue = grandparentValue;
+    dto.value = getValueFunction.apply(ownerSourceControl);
+    for (String ancestorName : ancestorsNameHiarchy) {
+      SourceControl ancestorSourceControl = ancestorsSourceControl.get(ancestorName);
+      T ancestorValue = getValueFunction.apply(ancestorSourceControl);
+      if (null != ancestorValue) {
+        dto.parentName = ancestorName;
+        dto.parentValue = ancestorValue;
+        break;
+      }
     }
     return dto;
   }

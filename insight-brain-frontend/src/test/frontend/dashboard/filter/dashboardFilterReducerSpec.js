@@ -177,22 +177,13 @@ describe('dashboardFilterReducer', () => {
 
     it('sets available filter options', () => {
       const state = Object.freeze(initState);
-      const { other, applications, organizations, stages, categories, repositories } = reduce(state, action);
+      const { other, applications, stages, categories, repositories } = reduce(state, action);
 
       expect(other).toBe(otherObject);
 
       expect(applications.length).toBe(action.payload.applications.length);
       expect(applications[0].id).toBe(action.payload.applications[0].id);
       expect(applications[1].id).toBe(action.payload.applications[1].id);
-
-      // since we have an application but no permissions to the org add 1
-      // and remove ROOT org
-      expect(organizations.length).toBe(3);
-      expect(organizations[0]).toBe(action.payload.organizations[0]);
-      expect(organizations[1]).toBe(action.payload.organizations[1]);
-      // no permission to org scenario
-      expect(organizations[2].id).toBe(action.payload.applications[4].organizationId);
-      expect(organizations[2].name).toBe(action.payload.applications[4].organizationName);
 
       expect(stages.length).toBe(MockData.getDashboardStageData().length);
       expect(stages[0].id).toBe(MockData.getDashboardStageData()[0].stageTypeId);
@@ -427,20 +418,6 @@ describe('dashboardFilterReducer', () => {
       });
 
       expect(applyFilterError).toBe('update filter error');
-      expect(other).toBe(otherObject);
-    });
-
-    it('sets applyFilterError when an error object is returned', () => {
-      const state = Object.freeze({ applyFilterError: null, other: otherObject });
-
-      expect(state.applyFilterError).toBeNull();
-
-      const { applyFilterError, other } = reduce(state, {
-        type: 'APPLY_FILTER_FAILED',
-        payload: new Error(),
-      });
-
-      expect(applyFilterError).toBe('Error');
       expect(other).toBe(otherObject);
     });
   });

@@ -27,6 +27,7 @@ import {
   licenseOverridePropTypes,
 } from '../LicenseDetectionsTile/LicenseDetections';
 import OverriddenField from './OverriddenField';
+import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
 
 const NOT_DIRTY_ERROR_MESSAGE = 'There are no changes to update';
 const NO_SELECTED_LICENSES_ERROR_MESSAGE = 'There must be at least one selected license';
@@ -85,6 +86,13 @@ export default function EditLicensesForm({
     setLicenseStatus(targetScope.licenseOverride?.status ?? 'OPEN');
     setLicenseScope(targetScope);
     setLicenseComment(targetScope.licenseOverride?.comment ?? '');
+  };
+
+  const formatOwnerType = (ownerType) => (ownerType === 'repository_container' ? '' : capitalize(ownerType) + ' - ');
+
+  const extractScopeOptionText = ({ ownerType, ownerName, licenseOverride }) => {
+    const licenseOverrideStatus = !isNilOrEmpty(licenseOverride) ? ` (${getStatusName(licenseOverride.status)})` : '';
+    return `${formatOwnerType(ownerType)}${ownerName}${licenseOverrideStatus}`;
   };
 
   const onStatusChange = (event) => {
@@ -219,25 +227,15 @@ export default function EditLicensesForm({
     </NxFormGroup>
   );
 
-  const formatOwnerType = (ownerType) => (ownerType === 'repository_container' ? '' : capitalize(ownerType) + ' - ');
-
   const scopeField = (
     <NxFieldset className="iq-edit-licenses-form__scope" label="Scope" isRequired>
-      {availableLicenseScopes?.map(({ ownerId, ownerName, ownerType, licenseOverride }) => (
-        <NxRadio
-          name="license-scope-target"
-          value={ownerId}
-          isChecked={scope.ownerId === ownerId}
-          key={ownerId}
-          onChange={handleScopeChange}
-        >
-          {formatOwnerType(ownerType)}
-          {ownerName}
-          {!isNilOrEmpty(licenseOverride) && (
-            <span className="iq-edit-licenses-form__scope-status"> ({getStatusName(licenseOverride.status)})</span>
-          )}
-        </NxRadio>
-      ))}
+      <IqScopeDropdown
+        id="iq-edit-license-scope"
+        onChangeHandler={handleScopeChange}
+        availableScopes={availableLicenseScopes}
+        getOptionText={extractScopeOptionText}
+        currentValue={scope.ownerId}
+      />
     </NxFieldset>
   );
 

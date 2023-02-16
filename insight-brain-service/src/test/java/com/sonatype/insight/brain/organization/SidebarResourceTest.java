@@ -28,8 +28,8 @@ public class SidebarResourceTest
     HttpResponse response = restRequest().get();
 
     assertResponseStatus(200, response);
-    OwnerListDTO ownerListDTO = response.getBody(OwnerListDTO.class);
-    assertThat(ownerListDTO).isNotNull();
+    OwnerHierarchyDTO ownerHierarchyDTO = response.getBody(OwnerHierarchyDTO.class);
+    assertThat(ownerHierarchyDTO).isNotNull();
   }
 
   @Test

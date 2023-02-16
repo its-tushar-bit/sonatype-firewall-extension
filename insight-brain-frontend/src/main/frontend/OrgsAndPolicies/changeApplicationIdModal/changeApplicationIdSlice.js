@@ -9,6 +9,7 @@ import { nxTextInputStateHelpers, combineValidationErrors } from '@sonatype/reac
 import { validateNonEmpty, validateUsernameCharacters, validateMaxLength } from 'MainRoot/util/validationUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectChangeApplicationIdSlice } from './changeApplicationIdSelectors';
@@ -54,15 +55,23 @@ const changeApplicationId = createAsyncThunk(
 
     const ownerToSave = {
       ...currentOwner,
-      publicId: newPublicId.value,
+      publicId: newPublicId.trimmedValue,
     };
 
     try {
       await dispatch(ownerEditorActions.updateOwner({ ownerToSave, isApp }));
+
+      dispatch(
+        ownerSideNavActions.updateOwnersMapWithNewAppId({
+          currentOwner,
+          newPublicId: newPublicId.trimmedValue,
+        })
+      );
+
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() =>
         dispatch(
           stateGo('management.view.application', {
-            applicationPublicId: newPublicId.value,
+            applicationPublicId: newPublicId.trimmedValue,
           })
         )
       );

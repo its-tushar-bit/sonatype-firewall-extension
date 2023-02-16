@@ -5,7 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage;
 import com.sonatype.insight.brain.model.Organization;
@@ -29,7 +29,7 @@ public class OrganizationProprietaryConfigEditorTest
 
   @Test
   public void testEditProprietaryComponentMatchersRootOrg() {
-    OwnerTreeView.RootOrganizationNode.treeViewElement().click();
+    SidebarNavigation.policiesNavigationButton().click();
     OwnerSummaryPage.proprietaryComponentMatchers().shouldHave(text("2 local"));
   }
 

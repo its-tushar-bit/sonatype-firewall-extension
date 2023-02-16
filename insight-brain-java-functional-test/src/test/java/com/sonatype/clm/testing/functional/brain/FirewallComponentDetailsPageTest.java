@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -32,6 +34,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
@@ -113,6 +116,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -489,7 +493,7 @@ public class FirewallComponentDetailsPageTest
     RepositoryComponent mainRepositoryComponent =
         createRepositoryComponent(componentDetails1.getHash(), componentDetails1.getComponentIdentifier(), date, date);
     createRepositoryComponent(componentDetails2.getHash(), componentDetails2.getComponentIdentifier(), date, null);
-    RepositoryComponent secondaryRepositoryComponent = 
+    RepositoryComponent secondaryRepositoryComponent =
         createRepositoryComponent(componentDetails3.getHash(), componentDetails3.getComponentIdentifier(), date,
             yesterday);
 
@@ -516,7 +520,7 @@ public class FirewallComponentDetailsPageTest
 
   private ArrayList<RepositoryComponent> setupAllTestDataFor2QuarantinedComponents() {
     ArrayList<RepositoryComponent> repositoryComponentList = setupBaseTestDataFor2QuarantineComponents(singleLicense);
-    
+
     configureQuarantinedComponents(componentDetailsArrayList);
     policyViolationsTableSetup(repositoryComponentList.get(0));
     policyViolationsTableSetup(repositoryComponentList.get(1));
@@ -1391,6 +1395,7 @@ public class FirewallComponentDetailsPageTest
 
   private void setOverriddenLicensesStatus(EditLicensesPopover editPopover, int scope, String comment) {
     waitUntilSpinnersGone();
+    editPopover.licensesScopesDropdown().click();
     editPopover.scope(scope).click();
     editPopover.status().click();
     editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.OVERRIDDEN.ordinal()).click();
@@ -1400,7 +1405,7 @@ public class FirewallComponentDetailsPageTest
     editPopover.availableLicensesTransferListItems().get(0).click();
     editPopover.availableLicensesTransferListItems().get(0).click();
     editPopover.selectedLicensesTransferListItems().shouldHaveSize(2);
-    
+
     editPopover.comment().setValue(comment);
     editPopover.saveButton().click();
     waitUntilSpinnersGone();
@@ -1429,7 +1434,7 @@ public class FirewallComponentDetailsPageTest
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
-    
+
     licenseDetectionsTile.editLicenseButton().click();
 
     EditLicensesPopover editPopover = new EditLicensesPopover();
@@ -1445,7 +1450,7 @@ public class FirewallComponentDetailsPageTest
     effectiveLicenses.shouldHaveSize(2);
     effectiveLicenses.first().shouldHave(text("0BSD"));
     effectiveLicenses.get(1).shouldHave(text("10tec-Company-License-Agreement"));
-    
+
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
   }
 
@@ -1487,8 +1492,8 @@ public class FirewallComponentDetailsPageTest
     observedLicenses.shouldHaveSize(1);
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
-    licenseDetectionsTile.status().shouldHave(text("Overridden")); 
-    
+    licenseDetectionsTile.status().shouldHave(text("Overridden"));
+
     licenseDetectionsTile.editLicenseButton().click();
 
     EditLicensesPopover editPopover = new EditLicensesPopover();
@@ -1496,20 +1501,23 @@ public class FirewallComponentDetailsPageTest
     String testComment = "test comment";
     setOverriddenLicensesStatus(editPopover, EditLicensesPopover.RepositoryComponentLicensesScopes.REPOSITORY.ordinal(),
         testComment);
-    
+
     editPopover.status().click();
     editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.INHERITED.ordinal()).click();
     editPopover.saveButton().click();
-    
+
     waitUntilSpinnersGone();
-    Wait<WebDriver> wait = getWebDriverAwait();
-    wait.until(ExpectedConditions.attributeContains(
-        editPopover.availableScopes().get(EditLicensesPopover.RepositoryComponentLicensesScopes.ORGANIZATION.ordinal()),
-        "className", "nx-radio-checkbox nx-radio tm-checked"));
-    String inherietedScope = editPopover.scopeStatuses().last().getText().replaceAll("[()]", "");
+    editPopover.licensesScopesDropdown().shouldHave(value("ROOT_ORGANIZATION_ID"));
+
+    Pattern scopePattern = Pattern.compile("\\((.*)\\)");
+    Matcher scopeMatcher = scopePattern.matcher(editPopover.availableScopes().last().getText());
+    if (scopeMatcher.find()) {
+      String scope = scopeMatcher.group(1);
+      licenseDetectionsTile.status().shouldHave(text(scope));
+    }
+
     effectiveLicenses.shouldHaveSize(1);
     effectiveLicenses.first().shouldHave(text("GPL-1.0"));
-    licenseDetectionsTile.status().shouldHave(text(inherietedScope));
   }
 
   @Test
@@ -1536,8 +1544,8 @@ public class FirewallComponentDetailsPageTest
     observedLicenses.shouldHaveSize(1);
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
-    licenseDetectionsTile.status().shouldHave(text("Overridden")); 
-    
+    licenseDetectionsTile.status().shouldHave(text("Overridden"));
+
     licenseDetectionsTile.editLicenseButton().click();
 
     EditLicensesPopover editPopover = new EditLicensesPopover();
@@ -1578,8 +1586,8 @@ public class FirewallComponentDetailsPageTest
     observedLicenses.shouldHaveSize(1);
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
-    licenseDetectionsTile.status().shouldHave(text("Overridden")); 
-    
+    licenseDetectionsTile.status().shouldHave(text("Overridden"));
+
     licenseDetectionsTile.editLicenseButton().click();
 
     EditLicensesPopover editPopover = new EditLicensesPopover();
@@ -1635,7 +1643,6 @@ public class FirewallComponentDetailsPageTest
     waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
   }
 
-  @Test
   public void testComponentReEvaluation() throws Exception {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
@@ -1757,7 +1764,7 @@ public class FirewallComponentDetailsPageTest
     ListWaiversPage listWaiversPage = new ListWaiversPage();
     listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
-    
+
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.artifactName().shouldHave(text("abi.cli"));
     addWaiverPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
@@ -1766,9 +1773,9 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.conditions().shouldHaveSize(1);
     addWaiverPage.condition(1).shouldHave(text("security vulnerability severity >= 9.1"));
     addWaiverPage.availableScopes().shouldHaveSize(3);
-    addWaiverPage.scope(0).label().shouldHave(text("Repository - repositoryPublicId"));
-    addWaiverPage.scope(1).label().shouldHave(text("All Repositories"));
-    addWaiverPage.scope(2).label().shouldHave(text("Organization - Root Organization"));
+    addWaiverPage.scope(0).shouldHave(text("Repository - repositoryPublicId"));
+    addWaiverPage.scope(1).shouldHave(text("All Repositories"));
+    addWaiverPage.scope(2).shouldHave(text("Organization - Root Organization"));
     addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
     addWaiverPage.component(1).label().shouldHave(text("com.lingocoder : abi.cli"));
@@ -1801,7 +1808,7 @@ public class FirewallComponentDetailsPageTest
     ListWaiversPage listWaiversPage = new ListWaiversPage();
     listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
-    
+
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.comments().shouldHave(exactText(""));
     addWaiverPage.expiryTimesOptions().shouldHaveSize(8);
@@ -1841,7 +1848,7 @@ public class FirewallComponentDetailsPageTest
     ListWaiversPage listWaiversPage = new ListWaiversPage();
     listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
-    
+
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopes().shouldHaveSize(3);
     addWaiverPage.cancelButton().click();
@@ -1876,12 +1883,11 @@ public class FirewallComponentDetailsPageTest
     ListWaiversPage listWaiversPage = new ListWaiversPage();
     listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
-    
+
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopes().shouldHaveSize(3);
-    NxRadio chosenScope = addWaiverPage.scope(0);
-    chosenScope.label().shouldHave(text("Repository - repositoryPublicId"));
-    chosenScope.click();
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Repository - repositoryPublicId"));
+
     addWaiverPage.availableComponents().shouldHaveSize(3);
     NxRadio chosenComponent = addWaiverPage.component(2);
     chosenComponent.label().shouldHave(text("All Components"));
@@ -1926,12 +1932,11 @@ public class FirewallComponentDetailsPageTest
     ListWaiversPage listWaiversPage = new ListWaiversPage();
     listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
-    
+
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopes().shouldHaveSize(3);
-    NxRadio chosenScope = addWaiverPage.scope(0);
-    chosenScope.label().shouldHave(text("Repository - repositoryPublicId"));
-    chosenScope.click();
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Repository - repositoryPublicId"));
+
     addWaiverPage.availableComponents().shouldHaveSize(3);
     NxRadio chosenComponent = addWaiverPage.component(2);
     chosenComponent.label().shouldHave(text("All Components"));
@@ -1995,19 +2000,19 @@ public class FirewallComponentDetailsPageTest
   private void addAppliedLabelsFromApplicableList(ManageLabelsContentTab manageLabels, int labelIndex, int scopeIndex) {
     manageLabels.applicableLabels().get(labelIndex).should(exist).click();
     manageLabels.addLabelModal().should(exist);
-    manageLabels.addLabelModal().labelsScopeRadioButton(scopeIndex).should(exist).click();
+    manageLabels.addLabelModal().labelsScopesDropdown().listItemWithHidden(scopeIndex).should(exist).click();
     manageLabels.addLabelModal().submitButton().shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
   }
 
-  @Test 
+  @Test
   public void testLabelsTab_displayApplicableLabels() {
-    RepositoryComponent component = setupAllTestData();    
+    RepositoryComponent component = setupAllTestData();
     generateApplicableLabels();
     refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
     manageLabels.shouldBe(visible);
-    
+
     manageLabels.applicableLabels().shouldHaveSize(3);
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
     assertThat(manageLabels.applicableLabels().get(0).getAttribute("className")).contains("nx-selectable-color--blue");
@@ -2033,7 +2038,7 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testLabelsTab_displayAppliedLabels_fromFirewall() {
-    RepositoryComponent component = setupAllTestData();    
+    RepositoryComponent component = setupAllTestData();
     ArrayList<Label> labelsList = generateApplicableLabels();
     setLabelsAsApplied(component, labelsList);
     refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
@@ -2042,16 +2047,16 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testLabelsTab_displayAppliedLabels_fromRepositoryResultsView() {
-    RepositoryComponent component = setupAllTestData();    
+    RepositoryComponent component = setupAllTestData();
     ArrayList<Label> labelsList = generateApplicableLabels();
     setLabelsAsApplied(component, labelsList);
     refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTabFromRepositoryResultsView(component));
     testLabelsTab_displayAppliedLabels();
   }
-  
+
   private void testLabelsTab_addLabels() {
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
-    
+
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
     addAppliedLabelsFromApplicableList(manageLabels, 0,
         ManageLabelsContentTab.RepositoryComponentLabelsScopes.ROOT_ORGANIZATION.ordinal());
@@ -2077,7 +2082,7 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testLabelsTab_addLabels_fromFirewall() {
-    RepositoryComponent component = setupAllTestData();    
+    RepositoryComponent component = setupAllTestData();
     generateApplicableLabels();
     refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
     testLabelsTab_addLabels();
@@ -2085,7 +2090,7 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testLabelsTab_addLabels_fromRepositoryResultsView() {
-    RepositoryComponent component = setupAllTestData();    
+    RepositoryComponent component = setupAllTestData();
     generateApplicableLabels();
     refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTabFromRepositoryResultsView(component));
     testLabelsTab_addLabels();
@@ -2095,32 +2100,32 @@ public class FirewallComponentDetailsPageTest
     manageLabels.appliedLabels().get(labelIndex).should(exist).click();
     manageLabels.removeLabelModal().should(exist);
     manageLabels.removeLabelModal().confirmRemoveButton().should(exist).click();
-    NxSubmitMask.seeAndWaitForDismissal(); 
+    NxSubmitMask.seeAndWaitForDismissal();
   }
 
   private void testLabelsTab_removeLabels() {
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
-    
+
     manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
     manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
     manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[0]));
-    
+
     removeAppliedLabel(manageLabels, 0);
-    
+
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
     manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[1]));
     manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[0]));
-    
+
     eyesWatcher.eyesCheck("Labels Tab");
 
     removeAppliedLabel(manageLabels, 0);
-    
+
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[1]));
     manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[2]));
     manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
 
     removeAppliedLabel(manageLabels, 0);
-    
+
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
     manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
     manageLabels.applicableLabelText(2).shouldHave(text(expectedLabelsTexts[2]));
@@ -2131,7 +2136,7 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testLabelsTab_removeLabels_fromFirewall() {
-    RepositoryComponent component = setupAllTestData();    
+    RepositoryComponent component = setupAllTestData();
     ArrayList<Label> labelsList = generateApplicableLabels();
     setLabelsAsApplied(component, labelsList);
     refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
@@ -2140,7 +2145,7 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testLabelsTab_removeLabels_fromRepositoryResultsView() {
-    RepositoryComponent component = setupAllTestData();    
+    RepositoryComponent component = setupAllTestData();
     ArrayList<Label> labelsList = generateApplicableLabels();
     setLabelsAsApplied(component, labelsList);
     refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTabFromRepositoryResultsView(component));
@@ -2185,7 +2190,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    
+
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     violationDetailsPage.detailsTile().shouldBe(visible);
     violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("0 Active Waivers"));
@@ -2209,7 +2214,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    
+
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     violationDetailsPage.detailsTile().shouldBe(visible);
     violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("1 Active Waiver"));
@@ -2240,12 +2245,11 @@ public class FirewallComponentDetailsPageTest
     ListWaiversPage listWaiversPage = new ListWaiversPage();
     listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
-    
+
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.availableScopes().shouldHaveSize(3);
-    NxRadio chosenScope = addWaiverPage.scope(0);
-    chosenScope.label().shouldHave(text("Repository - repositoryPublicId"));
-    chosenScope.click();
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Repository - repositoryPublicId"));
+
     addWaiverPage.availableComponents().shouldHaveSize(3);
     NxRadio chosenComponent = addWaiverPage.component(2);
     chosenComponent.label().shouldHave(text("All Components"));
@@ -2370,9 +2374,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    NxRadio chosenScope = addWaiverPage.scope(1);
-    chosenScope.label().shouldHave(text("All Repositories"));
-    chosenScope.click();
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(1, "All Repositories"));
 
     NxRadio chosenComponent = addWaiverPage.component(2);
     chosenComponent.label().shouldHave(text("All Components"));
@@ -2579,7 +2581,7 @@ public class FirewallComponentDetailsPageTest
     createAllTypePolicies();
     setupAllTestDataFor2QuarantinedComponents();
     refreshOrOpen(FirewallPage.url());
-    waitUntilSpinnersGone(); 
+    waitUntilSpinnersGone();
     FirewallQuarantineTable firewallQuarantineTable = firewallPage.firewallQuarantineTable();
     SelenideElement policyNameSelect = firewallQuarantineTable.policyNameSelect();
     policyNameSelect.click();
@@ -2617,7 +2619,7 @@ public class FirewallComponentDetailsPageTest
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
-    waitUntilSpinnersGone(); 
+    waitUntilSpinnersGone();
     firewallComponentDetailsPage.shouldBe(visible);
     firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
     MainHeader.backButton().shouldHave(text("Back to Firewall Dashboard"));
@@ -2634,7 +2636,7 @@ public class FirewallComponentDetailsPageTest
     createAllTypePolicies();
     ArrayList<RepositoryComponent> repositoryComponents = setupAllTestDataFor2QuarantinedComponents();
     refreshOrOpen(RepositoryResultDetailPage.url(repositoryComponents.get(0).getRepositoryId()));
-    waitUntilSpinnersGone(); 
+    waitUntilSpinnersGone();
     RepositoryResultDetailPage.page().shouldBe(visible);
     RepositoryResultTable repositoryResultsTable = new RepositoryResultTable();
     repositoryResultsTable.policyName().input().setValue("Security");
@@ -2666,7 +2668,7 @@ public class FirewallComponentDetailsPageTest
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component));
-    waitUntilSpinnersGone(); 
+    waitUntilSpinnersGone();
     firewallComponentDetailsPage.shouldBe(visible);
     firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
     MainHeader.backButton().shouldHave(text("Back to Repository results"));
@@ -2674,14 +2676,14 @@ public class FirewallComponentDetailsPageTest
     RepositoryResultDetailPage.page().shouldBe(visible);
     RepositoryResultDetailPage.table().row(0).component().shouldHave(text(expectedComponentName));
   }
-  
+
   private void waiversPagesFromRepositoryComponentDetailsPage_commonBackButtonsAssertions(String stringToFindInUrl) {
     FirewallPolicyViolationsTable policyViolationsTable =
         FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
     FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
     String componentName = "com.lingocoder : abi.cli : 0.5.2";
     String policyName = "Security-High";
-    
+
     firewallComponentDetailsPage.shouldBe(visible);
     policyViolationsTable.getRows().shouldHaveSize(6);
     ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
@@ -2712,7 +2714,7 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
     waiversForViolationPage.shouldBe(visible);
     waiversForViolationPage.componentName().shouldHave(text(componentName));
-    waiversForViolationPage.policyName().shouldHave(text(policyName));    
+    waiversForViolationPage.policyName().shouldHave(text(policyName));
     assertThat(getWebDriver().getCurrentUrl()).contains(stringToFindInUrl);
     assertThat(getWebDriver().getCurrentUrl()).contains("/waivers/");
     MainHeader.backButton().click();

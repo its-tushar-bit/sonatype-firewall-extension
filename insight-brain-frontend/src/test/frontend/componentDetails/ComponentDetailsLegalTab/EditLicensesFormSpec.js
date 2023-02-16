@@ -8,7 +8,6 @@ import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import {
   NxStatefulForm,
   NxLoadingSpinner,
-  NxRadio,
   NxTextInput,
   NxThreatIndicator,
   NxFormSelect,
@@ -16,6 +15,7 @@ import {
 } from '@sonatype/react-shared-components';
 import EditLicensesForm from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesForm';
 import * as OverriddenField from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/OverriddenField';
+import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
 
 describe('EditLicensesForm', () => {
   let minimalProps,
@@ -298,7 +298,7 @@ describe('EditLicensesForm', () => {
     expect(setLicenseCommentSpy).toHaveBeenCalledWith('Foo');
   });
 
-  it('renders license scopes', () => {
+  it('renders license scopes dropdown', () => {
     const component = getShallowComponent({
         availableLicenseScopes: [
           ...minimalProps.availableLicenseScopes,
@@ -325,88 +325,10 @@ describe('EditLicensesForm', () => {
         ],
       }),
       licenseScopeSection = component.find('.iq-edit-licenses-form__scope'),
-      targetRadios = licenseScopeSection.find(NxRadio);
+      scopeSelect = licenseScopeSection.find(IqScopeDropdown);
 
     expect(licenseScopeSection).toHaveProp('label', 'Scope');
-    expect(targetRadios.length).toBe(4);
-
-    expect(targetRadios.at(0)).toHaveProp('name', 'license-scope-target');
-    expect(targetRadios.at(0)).toHaveProp('value', 'owf');
-    expect(targetRadios.at(0)).toHaveProp('isChecked', true);
-    expect(targetRadios.at(0)).toHaveText('Application - OWF (Acknowledged)');
-
-    expect(targetRadios.at(1)).toHaveProp('name', 'license-scope-target');
-    expect(targetRadios.at(1)).toHaveProp('value', 'asdf');
-    expect(targetRadios.at(1)).toHaveProp('isChecked', false);
-    expect(targetRadios.at(1)).toHaveText('Organization - asdf');
-
-    expect(targetRadios.at(2)).toHaveProp('name', 'license-scope-target');
-    expect(targetRadios.at(2)).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
-    expect(targetRadios.at(2)).toHaveProp('isChecked', false);
-    expect(targetRadios.at(2)).toHaveText('Organization - Root Organization (Acknowledged)');
-
-    expect(targetRadios.at(3)).toHaveProp('name', 'license-scope-target');
-    expect(targetRadios.at(3)).toHaveProp('value', 'sdc');
-    expect(targetRadios.at(3)).toHaveProp('isChecked', false);
-    expect(targetRadios.at(3)).toHaveText('Application - SDC (Selected)');
-  });
-
-  it('calls setLicenseScope and setLicenseStatus when changing to scope without a licenseOverride', () => {
-    const component = getShallowComponent(),
-      waiverTargetsSection = component.find('.iq-edit-licenses-form__scope'),
-      targetRadios = waiverTargetsSection.find(NxRadio),
-      radio1 = targetRadios.at(0),
-      radio2 = targetRadios.at(1);
-
-    expect(radio1).toHaveProp('isChecked', true);
-    expect(radio2).toHaveProp('isChecked', false);
-
-    radio2.simulate('change', 'asdf');
-
-    expect(setLicenseScopeSpy).toHaveBeenCalledWith({
-      ownerId: 'asdf',
-      ownerName: 'asdf',
-      ownerType: 'organization',
-      licenseOverride: null,
-    });
-    expect(setLicenseStatusSpy).toHaveBeenCalledWith('OPEN');
-  });
-
-  it('calls setLicenseScope, setLicenseStatus, setSelectedLicenses when changing to scope with a licenseOverride', () => {
-    const component = getShallowComponent(),
-      waiverTargetsSection = component.find('.iq-edit-licenses-form__scope'),
-      targetRadios = waiverTargetsSection.find(NxRadio),
-      radio1 = targetRadios.at(0),
-      radio3 = targetRadios.at(2);
-
-    expect(radio1).toHaveProp('isChecked', true);
-    expect(radio3).toHaveProp('isChecked', false);
-
-    radio3.simulate('change', 'ROOT_ORGANIZATION_ID');
-
-    expect(setLicenseScopeSpy).toHaveBeenCalledWith({
-      ownerId: 'ROOT_ORGANIZATION_ID',
-      ownerName: 'Root Organization',
-      ownerType: 'organization',
-      licenseOverride: {
-        id: '82823b22b17d4925a358763058b82184',
-        ownerId: 'ROOT_ORGANIZATION_ID',
-        status: 'ACKNOWLEDGED',
-        comment: 'some comment',
-        licenseIds: [],
-        componentIdentifier: {
-          format: 'a-name',
-          coordinates: {
-            name: 'bson',
-            qualifier: '',
-            version: '0.0.4',
-          },
-        },
-      },
-    });
-    expect(setLicenseStatusSpy).toHaveBeenCalledWith('ACKNOWLEDGED');
-    expect(setSelectedLicensesSpy).toHaveBeenCalledWith([]);
-    expect(setLicenseCommentSpy).toHaveBeenCalledWith('some comment');
+    expect(scopeSelect).toExist();
   });
 
   it('renders default status options with inherited option', () => {

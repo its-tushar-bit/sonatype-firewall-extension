@@ -23,3 +23,5 @@ export const selectValidationError = createSelector(selectOwnerModalSlice, ({ va
   }
   return isNilOrEmpty(validationErrors) ? null : GLOBAL_FORM_VALIDATION_ERROR;
 });
+
+export const selectIsApplication = createSelector(selectOwnerModalSlice, prop('isApplication'));

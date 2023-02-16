@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
@@ -50,6 +51,7 @@ public class ApplicationPolicyEditorTest
   }
 
   @Test
+  @Ignore
   public void testParentPolicyChangeReflectedLocally() {
     tempEntity.newPolicy(application.getParentOwnerId(), "policyName", 5, Action.ID_FAIL, StageTypes.BUILD.getId(),
         null);

@@ -16,7 +16,9 @@ import validatorsModule from '../utilAngular/Validators';
 import storesModule from '../utilAngular/Stores';
 import roleMembershipModule from '../role.membership/role.membership.module';
 import SameOwnerStateNavigationService from './utility/same.owner.state.navigation.service';
-import ownerTreeView from './navigation/owner.tree.view.directive';
+import OwnerSideNav from 'MainRoot/OrgsAndPolicies/ownerSideNav/OwnerSideNav';
+import OwnersTreePage from 'MainRoot/OrgsAndPolicies/ownersTreePage/OwnersTreePage';
+import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 import MonitoredStageService from './utility/monitored.stage.service';
 import OwnerImageDirective from './summary/owner.image.directive';
 import OwnerSummaryController from './summary/owner.summary.controller';
@@ -57,7 +59,6 @@ import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/R
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
 import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/MoveApplicationModal';
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
-import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
 import SelectContactModal from 'MainRoot/OrgsAndPolicies/selectContactModal/SelectContactModal';
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
@@ -84,7 +85,12 @@ export default angular
     artifactoryRepositoryModule.name,
   ])
   .directive('accessTile', AccessTile)
-  .directive('ownerTreeView', ownerTreeView)
+  .component('ownerSideNav', iqReact2Angular(OwnerSideNav, [], ['$ngRedux', '$state']))
+  .component('ownersTreePage', iqReact2Angular(OwnersTreePage, [], ['$ngRedux', '$state']))
+  .component(
+    'insufficientPermissionOwnerHierarchyTree',
+    iqReact2Angular(InsufficientPermissionOwnerHierarchyTree, [], ['$ngRedux', '$state'])
+  )
   .service('SameOwnerStateNavigationService', SameOwnerStateNavigationService)
   .service('monitored.stage.service', MonitoredStageService)
   .directive('ownerImage', OwnerImageDirective)
@@ -120,7 +126,6 @@ export default angular
   .component('deleteOwnerModal', iqReact2Angular(DeleteOwnerModal, [], ['$ngRedux']))
   .component('changeApplicationIdModal', iqReact2Angular(ChangeApplicationIdModal, [], ['$ngRedux']))
   .component('revokeGrandfatheringModal', iqReact2Angular(RevokeGrandfatheringModal, [], ['$ngRedux']))
-  .component('ownerModal', iqReact2Angular(OwnerModal, [], ['$ngRedux']))
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
   .component('grandfatheringModal', iqReact2Angular(GrandfatheringModal, [], ['$ngRedux']))
   .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))
@@ -168,6 +173,13 @@ export default angular
           data: {
             title: 'Management',
           },
+        })
+        .state('management.tree', {
+          url: '/tree',
+          data: {
+            title: 'Inheritance Hierarchy',
+          },
+          component: 'ownersTreePage',
         })
         .state('management.edit', {
           abstract: true,

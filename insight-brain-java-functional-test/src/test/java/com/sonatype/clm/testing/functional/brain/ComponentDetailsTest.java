@@ -103,9 +103,19 @@ public class ComponentDetailsTest
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
+  private Organization parentOrg;
+
+  private Organization org;
+
   private Application app;
 
   private TestReportEvaluator evaluator;
+
+  @BeforeClass
+  public static void startup() {
+    refreshOrOpen(DashboardPage.url());
+    loginAsAdmin();
+  }
 
   @Before
   public void start() throws IOException {
@@ -134,7 +144,8 @@ public class ComponentDetailsTest
         .respondWith("[]")
         .atUri("/rest/legal/source-link");
 
-    Organization org = tempEntity.newOrganization("Test Organization");
+    parentOrg = tempEntity.newOrganization("Parent Organization");
+    org = tempEntity.newOrganization("Test Organization", parentOrg);
     policyImportExport.importOrganization(org, referencePolicies);
     app = tempEntity.newApplication("ApplicationReportTest", "ApplicationReportTest", org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
@@ -142,12 +153,6 @@ public class ComponentDetailsTest
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
     evaluator.evaluatePolicy();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
-  }
-
-  @BeforeClass
-  public static void startup() {
-    refreshOrOpen(DashboardPage.url());
-    loginAsAdmin();
   }
 
   @Test
@@ -288,7 +293,7 @@ public class ComponentDetailsTest
 
     addProprietaryComponentMatchersPopover.alerts().first()
         .shouldHave(text("The following matchers will be added to the ApplicationReportTest Configuration (duplicates"
-        + " will be ignored). The new matchers will be in effect for the next application analysis."));
+            + " will be ignored). The new matchers will be in effect for the next application analysis."));
     addProprietaryComponentMatchersPopover.matchers().shouldHaveSize(1);
     FormUtils.getAlertElement(addProprietaryComponentMatchersPopover).shouldNotBe(visible);
     addProprietaryComponentMatchersPopover.matchers().get(0)
@@ -1072,7 +1077,10 @@ public class ComponentDetailsTest
   public void testLabelsTab_manageLabels() {
     // Create app level label, apply to component
     Label appLevelLabel = tempEntity.newLabel(app.getId(), "app level label", Color.dark_red);
-    tempEntity.newComponentLabel(app.getId(), appLevelLabel.getId(),"fa78f54738ccf77379d1");
+    tempEntity.newLabel("ROOT_ORGANIZATION_ID", "root org level label", Color.light_red);
+    tempEntity.newLabel(org.getId(), "org level label", Color.dark_blue);
+    tempEntity.newLabel(parentOrg.getId(), "parent org level label", Color.light_green);
+    tempEntity.newComponentLabel(app.getId(), appLevelLabel.getId(), "fa78f54738ccf77379d1");
 
     // Go to details page, verify manage labels content appears
     refreshOrOpen(ComponentDetailsPage.urlToLabels(app, SCAN_ID, "fa78f54738ccf77379d1"));
@@ -1080,7 +1088,7 @@ public class ComponentDetailsTest
     ManageLabelsContentTab manageLabels = componentDetailsPage.labelsContent();
     manageLabels.shouldBe(visible);
     manageLabels.appliedLabels().shouldHaveSize(1);
-    manageLabels.applicableLabels().shouldHaveSize(3);
+    manageLabels.applicableLabels().shouldHaveSize(6);
 
     // Remove applied app level label
     manageLabels.appliedLabels().get(0).should(exist).click();
@@ -1088,7 +1096,7 @@ public class ComponentDetailsTest
     // Confirm removal and verify labels count
     manageLabels.removeLabelModal().confirmRemoveButton().should(exist).click();
     manageLabels.appliedLabels().shouldHaveSize(0);
-    manageLabels.applicableLabels().shouldHaveSize(4);
+    manageLabels.applicableLabels().shouldHaveSize(7);
 
     // Adding first label
     manageLabels.applicableLabelText(0).shouldHave(text("Architecture-Blacklisted"));
@@ -1097,7 +1105,9 @@ public class ComponentDetailsTest
     // Screenshot the add label modal
     eyesWatcher.eyesCheck("Add Label Modal");
     // Add and confirm
-    manageLabels.addLabelModal().labelsScopeRadioButton(0).should(exist).click();
+    manageLabels.addLabelModal().labelsScope(0).should(exist);
+    manageLabels.addLabelModal().labelsScopesDropdown()
+        .chooseOptionWithHidden(new Option(0, "Organization - Test Organization"));
     manageLabels.addLabelModal().submitButton().shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
     manageLabels.appliedLabelText(0).shouldHave(text("Architecture-Blacklisted"));
@@ -1112,6 +1122,23 @@ public class ComponentDetailsTest
     // Confirm additions
     manageLabels.appliedLabels().shouldHaveSize(2);
     eyesWatcher.eyesCheck("Labels Tab");
+
+    // Checking n-level inheritance
+    manageLabels.applicableLabelText(4).shouldHave(text("root org level label"));
+    manageLabels.applicableLabels().get(4).should(exist).click();
+    manageLabels.addLabelModal().should(exist);
+    // Add and confirm
+    manageLabels.addLabelModal().labelsScope(0).should(exist);
+    manageLabels.addLabelModal().labelsScopesDropdown().listItems().shouldHaveSize(5);
+    manageLabels.addLabelModal().labelsScope(1).shouldHave(text("Organization - Root Organization"));
+    manageLabels.addLabelModal().labelsScope(2).shouldHave(text("Organization - Parent Organization"));
+    manageLabels.addLabelModal().labelsScope(3).shouldHave(text("Organization - Test Organization"));
+    manageLabels.addLabelModal().labelsScope(4).shouldHave(text("Application - ApplicationReportTest"));
+    manageLabels.addLabelModal().labelsScopesDropdown()
+        .chooseOptionWithHidden(new Option(1, "Organization - Parent Organization"));
+    manageLabels.addLabelModal().submitButton().shouldBe(enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    manageLabels.appliedLabelText(2).shouldHave(text("root org level label"));
   }
 
   private void createAuditLogEntries() {
@@ -1280,9 +1307,9 @@ public class ComponentDetailsTest
   }
 
   /**
-   * This method is a convenience method to click on a policy violation row,
-   * click on manage waivers, go to the list waivers page, click on add waiver,
-   * submit and return to the policy violation table page.
+   * This method is a convenience method to click on a policy violation row, click on manage waivers, go to the list
+   * waivers page, click on add waiver, submit and return to the policy violation table page.
+   *
    * @param policyViolationsTable instance of the PolicyViolationsTable whose row needs to be clicked
    */
   private void addWaiver(PolicyViolationsTable policyViolationsTable) {

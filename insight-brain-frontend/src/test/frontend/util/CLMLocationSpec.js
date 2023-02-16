@@ -957,7 +957,7 @@ describe('CLMLocation.js', function () {
 
   describe('getRepositoriesUrl', () => {
     it('returns repositories url', () => {
-      const expectedUrl = '/rest/repositories/';
+      const expectedUrl = '/rest/repositories';
 
       expect(clmLocation.getRepositoriesUrl()).toEqual(expectedUrl);
     });
@@ -968,14 +968,6 @@ describe('CLMLocation.js', function () {
       const expectedUrl = '/rest/repositories/someRepositoryId';
 
       expect(clmLocation.getRepositoryInfoUrl('someRepositoryId')).toEqual(expectedUrl);
-    });
-  });
-
-  describe('getPermissionsTestUrl', () => {
-    it('returns url for checking user permissions', () => {
-      const expectedUrl = '/rest/user/permissions/ownerType/ownerId';
-
-      expect(clmLocation.getPermissionsTestUrl('ownerType', 'ownerId')).toEqual(expectedUrl);
     });
   });
 
@@ -1026,6 +1018,29 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getOwnerListUrl', () => {
+    it('returns url to get ownerList', () => {
+      const expectedUrl = '/rest/sidebar';
+      expect(clmLocation.getOwnerListUrl()).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getPermissionContextTestUrl', () => {
+    const ownerType = 'ownerType';
+
+    it('returns url to get permissions for ownerType', () => {
+      const expectedUrl = `/rest/user/permissions/${ownerType}`;
+
+      expect(clmLocation.getPermissionContextTestUrl(ownerType)).toEqual(expectedUrl);
+    });
+
+    it('returns url to get permissions for ownerType and ownerId', () => {
+      const ownerId = 'ownerId';
+      const expectedUrl = `/rest/user/permissions/${ownerType}/${ownerId}`;
+
+      expect(clmLocation.getPermissionContextTestUrl(ownerType, ownerId)).toEqual(expectedUrl);
+    });
+  });
   describe('getRepositoryPolicyViolationUrl', () => {
     it('should return a URL with proper repositoryId and repositoryPolicyId', () => {
       expect(CLMLocation.getRepositoryPolicyViolationUrl('repositoryId', 'repositoryPolicyId')).toBe(

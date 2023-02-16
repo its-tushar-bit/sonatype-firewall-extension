@@ -191,17 +191,16 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testInsert_ParentOrganizationIdIsRejectedWhenNotRoot() {
+  public void testInsert_ParentOrganizationIdIsNotRoot() {
+    Organization parentOrg = tempEntity.newOrganization("Test Parent Org");
     organization = new Organization();
     organization.setName("testName");
-    organization.setParentOrganizationId(tempEntity.newOrganization().getId());
-    assertThatThrownBy(() -> dao.insert(organization)).isInstanceOf(BadRequestException.class)
-        .hasMessage("Invalid parent organization");
+    organization.setParentOrganizationId(parentOrg.getId());
 
-    organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
     try {
       dao.insert(organization);
-      assertThat(dao.getById(organization.getId())).isNotNull();
+      organization = dao.getById(organization.getId());
+      assertThat(organization.getParentOrganizationId()).isEqualTo(parentOrg.getId());
     }
     finally {
       dao.delete(organization);
@@ -209,23 +208,34 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testUpdate_ParentOrganizationIdIsForcedToRootSetWhenNull() {
-    organization = tempEntity.newOrganization("OrganizationDAOTest");
-    organization.setParentOrganizationId(null);
-    dao.update(organization);
-
-    organization = dao.getById(organization.getId());
-    assertThat(organization.getParentOrganizationId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+  public void testInsert_ParentOrganizationIdIsRejectedWhenInvalid() {
+    organization = new Organization();
+    organization.setName("testName");
+    organization.setParentOrganizationId("invalid-org-id");
+    assertThatThrownBy(() -> {
+      dao.insert(organization);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Invalid parent organization");
   }
 
   @Test
-  public void testUpdate_ParentOrganizationIdIsForcedToRootSetWhenNotNull() {
+  public void testUpdate_ParentOrganizationIdIsNull() {
     organization = tempEntity.newOrganization("OrganizationDAOTest");
-    organization.setParentOrganizationId("dummy org");
-    dao.update(organization);
+    organization.setParentOrganizationId(null);
 
-    organization = dao.getById(organization.getId());
-    assertThat(organization.getParentOrganizationId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+    assertThatThrownBy(() -> {
+      dao.update(organization);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change the parent organization id");
+  }
+
+  @Test
+  public void testUpdate_ParentOrganizationIdHasChanged() {
+    organization = tempEntity.newOrganization("OrganizationDAOTest");
+    Organization parentOrg = tempEntity.newOrganization("Test Parent Org");
+    organization.setParentOrganizationId(parentOrg.getId());
+
+    assertThatThrownBy(() -> {
+      dao.update(organization);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change the parent organization id");
   }
 
   @Test
@@ -706,5 +716,15 @@ public class OrganizationDAOTest
 
     RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
     assertThat(repositoryConnectionDAO.getById(repositoryConnection.getId())).isNull();
+  }
+
+  @Test
+  public void testGetByParentOrganizationId() {
+    // Create a few orgs
+    int orgCount = 3;
+    tempEntity.newOrganizations(orgCount);
+
+    // getAll should return orgCount + 1, to account for org created by AbstractDbDAOTest
+    assertThat(dao.getByParentOrganizationId(ROOT_ORGANIZATION_ID)).hasSize(orgCount + 1);
   }
 }

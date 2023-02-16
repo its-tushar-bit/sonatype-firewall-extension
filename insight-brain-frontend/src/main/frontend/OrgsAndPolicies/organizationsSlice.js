@@ -7,7 +7,7 @@ import axios from 'axios';
 import { isEmpty, findIndex, prop, propEq, reject } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { getOrganizationsUrl } from '../util/CLMLocation';
+import { getOrganizationsUrl, getOrganizationUrl } from '../util/CLMLocation';
 import { selectOrganizations } from './organizationsSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
@@ -63,6 +63,10 @@ const loadOrganizations = createAsyncThunk(
   }
 );
 
+const loadOrganizationById = createAsyncThunk(`${REDUCER_NAME}/loadOrganizationById`, async (id, { rejectWithValue }) =>
+  axios.get(getOrganizationUrl(id)).then(prop('data')).catch(rejectWithValue)
+);
+
 const organizationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -80,6 +84,7 @@ const organizationsSlice = createSlice({
 export const actions = {
   ...organizationsSlice.actions,
   loadOrganizations,
+  loadOrganizationById,
 };
 
 export default organizationsSlice.reducer;

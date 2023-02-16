@@ -211,6 +211,7 @@ describe('InnerSourceRepositoryBaseConfigurations', () => {
               selectedOwner: {
                 id: ownerId,
                 name: 'broadcast',
+                publicId: 'appPublicId',
               },
             },
           },

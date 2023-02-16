@@ -46,7 +46,7 @@ public class SidebarResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public OwnerListDTO getOwnerList() {
+  public OwnerHierarchyDTO getOwnerList() {
     return sidebarService.getOwnerList();
   }
 

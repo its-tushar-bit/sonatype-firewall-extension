@@ -27,6 +27,10 @@ public class OwnerEditorDialog
     return root().find("h2");
   }
 
+  public static SelenideElement addindTo() {
+    return root().find("h3");
+  }
+
   public static SelenideElement nameDiv() {
     return root().find("#editor-owner-name .nx-text-input");
   }
@@ -57,6 +61,10 @@ public class OwnerEditorDialog
 
   public static SelenideElement cancelButton() {
     return root().find(".nx-form__cancel-btn");
+  }
+
+  public static SelenideElement formValidationError() {
+    return root().find(".nx-form__validation-errors");
   }
 
   public static SelenideElement defaultIcon() {

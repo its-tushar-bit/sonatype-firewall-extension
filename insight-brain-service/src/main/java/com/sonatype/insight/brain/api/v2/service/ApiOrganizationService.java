@@ -86,6 +86,7 @@ public class ApiOrganizationService
     }
 
     Organization apiOrganization = new Organization(apiOrganizationDTO.name);
+    apiOrganization.setParentOrganizationId(apiOrganizationDTO.parentOrganizationId);
     Organization newOrganization = organizationService.addOrganization(apiOrganization);
 
     return ApiOrganizationAdapter.convert(newOrganization, Collections.emptyList());

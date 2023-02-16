@@ -8,7 +8,7 @@ import { findIndex, isEmpty, prop, propEq, reject } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getApplicationsUrl } from '../util/CLMLocation';
+import { getApplicationsUrl, getApplicationSummaryUrl, getApplicationUrl } from '../util/CLMLocation';
 import { selectApplications } from './applicationsSelectors';
 
 const REDUCER_NAME = 'applications';
@@ -48,6 +48,17 @@ const loadApplications = createAsyncThunk(
   }
 );
 
+const loadApplicationById = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicationById`,
+  async (publicId, { rejectWithValue }) =>
+    axios.get(getApplicationUrl(publicId)).then(prop('data')).catch(rejectWithValue)
+);
+
+const loadApplicationSummary = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicationSummary`,
+  async (id, { rejectWithValue }) => axios.get(getApplicationSummaryUrl(id)).then(prop('data')).catch(rejectWithValue)
+);
+
 const updateApplication = (state, { payload }) => {
   const { isNew, application } = payload;
   if (isNew) {
@@ -79,6 +90,8 @@ const applicationsSlice = createSlice({
 export const actions = {
   ...applicationsSlice.actions,
   loadApplications,
+  loadApplicationById,
+  loadApplicationSummary,
 };
 
 export default applicationsSlice.reducer;

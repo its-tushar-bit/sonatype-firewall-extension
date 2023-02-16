@@ -26,7 +26,7 @@ export default function RepoStatus(props) {
   const alreadyImportedCount = totalRepositories - repositoryCount;
 
   return (
-    <div className="iq-scmonboarding-stats">
+    <div className="iq-scmonboarding-stats" data-testid="repo-status">
       <div id="iq-scmonbording-stats-repocount">
         <span id="repository-count" className="iq-caption_text iq-scmonboarding-stats-highlight">
           {repositoryCount}

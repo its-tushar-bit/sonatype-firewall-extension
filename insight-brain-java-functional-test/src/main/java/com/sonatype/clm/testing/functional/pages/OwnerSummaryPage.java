@@ -12,6 +12,8 @@ import com.sonatype.clm.testing.functional.elements.DataRetentionTile;
 import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
+import com.sonatype.clm.testing.functional.elements.NavPills;
+import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.SourceControlTile;
@@ -27,7 +29,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class OwnerSummaryPage
 {
   public static String url() {
-    return BaseUrl.resolvePageUrl("/management/view");
+    return BaseUrl.resolvePageUrl("/management/view/organization/ROOT_ORGANIZATION_ID");
   }
 
   public static String urlToRootOrg() {
@@ -43,6 +45,10 @@ public class OwnerSummaryPage
       return BaseUrl.resolvePageUrl("/management/view/repositories");
     }
     return BaseUrl.resolvePageUrl("/management/view/{ownerType}/{ownerId}", ownerType, id);
+  }
+
+  public static OrgsAndPoliciesSidebar sidebar() {
+    return new OrgsAndPoliciesSidebar();
   }
 
   public static OwnerSummaryTile summaryTile() {
@@ -95,6 +101,10 @@ public class OwnerSummaryPage
 
   public static AccessTile accessTile() {
     return new AccessTile("#owner-pill-access");
+  }
+
+  public static NavPills navigationPills() {
+    return new NavPills();
   }
 
   public static SelenideElement repositoryUrlAnchor() {

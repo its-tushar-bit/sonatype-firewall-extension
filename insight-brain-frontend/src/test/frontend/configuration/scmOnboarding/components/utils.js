@@ -24,4 +24,20 @@ const createOrg = (postfix) => {
   };
 };
 
-export { createRepo, createOrg };
+const createOrgWithToken = (postfix, value = null, parentValue = null, parentName = null) => {
+  return {
+    organization: {
+      name: `org-${postfix}`,
+      id: `id-${postfix}`,
+    },
+    sourceControl: {
+      token: {
+        value,
+        parentValue,
+        parentName,
+      },
+    },
+  };
+};
+
+export { createRepo, createOrg, createOrgWithToken };

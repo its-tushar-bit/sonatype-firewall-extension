@@ -34,6 +34,14 @@ describe('InnerSourceRepositoryTile', () => {
         currentParams: { organizationId: ownerId },
         currentState: { name: ownerType },
       },
+      orgsAndPolicies: {
+        root: {
+          selectedOwner: {
+            id: ownerId,
+            name: ownerType,
+          },
+        },
+      },
     };
     repositoryConnectionRequestPayload = {
       repositoryConnections: [

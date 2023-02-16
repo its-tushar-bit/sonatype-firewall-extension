@@ -28,6 +28,8 @@ export default function LegalDashboardFilter(props) {
     filtersAreDirty,
     showSaveFilterModal,
     savedFilters,
+    ownersMap,
+    topParentOrganizationId,
 
     // filter items
     organizations,
@@ -116,6 +118,8 @@ export default function LegalDashboardFilter(props) {
                 selectedOrganizations={selected.organizations}
                 onChange={toggleAppsAndOrgs}
                 id="legal-org-app-filters"
+                ownersMap={ownersMap}
+                topParentOrganizationId={topParentOrganizationId}
               />
               <NxStatefulTreeViewMultiSelect
                 options={categories}
@@ -198,4 +202,6 @@ LegalDashboardFilter.propTypes = {
   toggleAppsAndOrgs: PropTypes.func,
   toggleFilter: PropTypes.func,
   ...ManageFiltersDropdown.propTypes,
+  ownersMap: PropTypes.object,
+  topParentOrganizationId: PropTypes.string,
 };

@@ -15,15 +15,14 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.organization.OwnerListDTO.SidebarApplicationDTO;
-import com.sonatype.insight.brain.organization.OwnerListDTO.SidebarOrganizationDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyApplicationDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class SidebarServiceTest
     extends AbstractComponentTest
@@ -88,63 +87,50 @@ public class SidebarServiceTest
     Organization orgOne = tempEntity.newOrganization();
     Application appOne = tempEntity.newApplication(orgOne.getId());
     Application appTwo = tempEntity.newApplication(orgOne.getId());
-    Organization orgTwo = tempEntity.newOrganization();
+    Organization orgTwo = tempEntity.newOrganization(orgOne);
     Application appThree = tempEntity.newApplication(orgTwo.getId());
 
-    OwnerListDTO ownerListDTO = sidebarService.getOwnerList();
-    assertOwnerListDTO(ownerListDTO, orgOne, appOne, appTwo, orgTwo, appThree, true);
-  }
+    OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
+    assertThat(ownerHierarchyDTO.ownersMap).hasSize(6);
+    OwnerHierarchyOrganizationDTO rootOrg = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(
+        ownerHierarchyDTO.topParentOrganizationId
+    );
 
-  private void assertOwnerListDTO(OwnerListDTO ownerListDTO,
-                                  Organization orgOne,
-                                  Application appOne,
-                                  Application appTwo,
-                                  Organization orgTwo,
-                                  Application appThree,
-                                  boolean withRootOrganization)
-  {
-    assertThat(ownerListDTO.organizations).hasSize(withRootOrganization ? 3 : 2);
-    for (SidebarOrganizationDTO organization : ownerListDTO.organizations) {
-      if (organization.id.equals(orgOne.getId())) {
-        assertThat(organization.name).isEqualTo(orgOne.getName());
-        assertThat(organization.applications).hasSize(2);
+    // Root org
+    assertThat(rootOrg.id).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(rootOrg.applicationIds).isNull();
+    assertThat(rootOrg.parentOrganizationId).isNull();
+    assertThat(rootOrg.organizationIds).hasSize(1);
+    assertThat(rootOrg.subOrgs).isEqualTo(2);
+    assertThat(rootOrg.totalApps).isEqualTo(3);
 
-        for (SidebarApplicationDTO application : organization.applications) {
-          if (application.id.equals(appOne.getId())) {
-            assertThat(application.publicId).isEqualTo(appOne.getPublicId());
-            assertThat(application.organizationId).isEqualTo(appOne.getOrganizationId());
-            assertThat(application.name).isEqualTo(appOne.getName());
-            assertThat(application.provider).isNull();
-            assertThat(application.repositoryUrl).isNull();
-          }
-          else if (application.id.equals(appTwo.getId())) {
-            if (application.id.equals(appTwo.getId())) {
-              assertThat(application.publicId).isEqualTo(appTwo.getPublicId());
-              assertThat(application.organizationId).isEqualTo(appTwo.getOrganizationId());
-              assertThat(application.name).isEqualTo(appTwo.getName());
-            }
-            else {
-              fail("Unexpected application ID " + application.id);
-            }
-          }
-        }
-      }
-      else if (organization.id.equals(orgTwo.getId())) {
-        assertThat(organization.name).isEqualTo(orgTwo.getName());
-        assertThat(organization.applications).hasSize(1);
+    // first level organization
+    OwnerHierarchyOrganizationDTO firstLevelOrg = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(
+        rootOrg.organizationIds.get(0)
+    );
+    assertThat(firstLevelOrg.parentOrganizationId).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(firstLevelOrg.name).isEqualTo(orgOne.getName());
+    assertThat(firstLevelOrg.applicationIds).hasSize(2);
+    assertThat(firstLevelOrg.organizationIds).hasSize(1);
+    assertThat(firstLevelOrg.applicationIds.stream().anyMatch(id -> id.equals(appOne.getPublicId()))).isTrue();
+    assertThat(firstLevelOrg.applicationIds.stream().anyMatch(id -> id.equals(appTwo.getPublicId()))).isTrue();
+    assertThat(firstLevelOrg.subOrgs).isEqualTo(1);
+    assertThat(firstLevelOrg.totalApps).isEqualTo(3);
 
-        SidebarApplicationDTO application = organization.applications.get(0);
-        assertThat(application.id).isEqualTo(appThree.getId());
-        assertThat(application.publicId).isEqualTo(appThree.getPublicId());
-        assertThat(application.organizationId).isEqualTo(appThree.getOrganizationId());
-        assertThat(application.name).isEqualTo(appThree.getName());
-      }
-      else if (withRootOrganization && organization.id.equals(Organization.ROOT_ORGANIZATION_ID)) {
-        assertThat(organization.applications).isEmpty();
-      }
-      else {
-        fail("Unexpected organization ID " + organization.id);
-      }
-    }
+    // second level organization
+    OwnerHierarchyOrganizationDTO secondLevelOrg = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(
+        firstLevelOrg.organizationIds.get(0)
+    );
+    assertThat(secondLevelOrg.parentOrganizationId).isEqualTo(firstLevelOrg.id);
+    assertThat(secondLevelOrg.name).isEqualTo(orgTwo.getName());
+    assertThat(secondLevelOrg.applicationIds).hasSize(1);
+    assertThat(secondLevelOrg.organizationIds).isEmpty();
+    OwnerHierarchyApplicationDTO secondLevelOrgApplication =
+        (OwnerHierarchyApplicationDTO) ownerHierarchyDTO.ownersMap.get(
+            secondLevelOrg.applicationIds.get(0)
+        );
+    assertThat(secondLevelOrgApplication.id).isEqualTo(appThree.getId());
+    assertThat(secondLevelOrg.subOrgs).isEqualTo(0);
+    assertThat(secondLevelOrg.totalApps).isEqualTo(1);
   }
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeValueDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -48,7 +49,11 @@ public class ApiCompositeSourceControlServiceTest
 
   private Application app;
 
-  private Organization org;
+  private Application childApp;
+
+  private Organization level1ChildOrg;
+
+  private Organization level2ChildOrg;
 
   private Organization rootOrganization;
 
@@ -69,12 +74,14 @@ public class ApiCompositeSourceControlServiceTest
 
   @Before
   public void setup() throws Exception {
-    app = tempEntity.newApplicationWithParent();
-    org = tempEntity.newOrganization();
     rootOrgSourcecontrol = tempEntity
         .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt(ROOT_TOKEN, ENC),
             SourceControlProvider.GITHUB);
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
+    level1ChildOrg = tempEntity.newOrganization(rootOrganization);
+    app = tempEntity.newApplicationWithParent(level1ChildOrg);
+    level2ChildOrg = tempEntity.newOrganization(level1ChildOrg);
+    childApp = tempEntity.newApplicationWithParent(level2ChildOrg);
   }
 
   @Test
@@ -86,77 +93,35 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID);
 
-    assertThat(dto.id).isEqualTo(rootOrgSourcecontrol.getId());
-    assertThat(dto.ownerId).isEqualTo(rootOrgSourcecontrol.getOwnerId());
-    assertThat(dto.provider.value).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.token.parentName).isNull();
-    assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
-    assertThat(dto.baseBranch.value).isEqualTo("master");
-    assertThat(dto.baseBranch.parentName).isNull();
-    assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isFalse();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isTrue();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isEqualTo("target/*");
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isTrue();
-    assertThat(dto.sshEnabled.parentName).isNull();
-    assertThat(dto.sshEnabled.parentValue).isNull();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = rootOrgSourcecontrol.getId();
+    actualDTO.ownerId = rootOrgSourcecontrol.getOwnerId();
+    actualDTO.provider.value = SourceControlProvider.GITHUB.toString();
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    actualDTO.remediationPullRequestsEnabled.value = true;
+    actualDTO.baseBranch.value = "master";
+    actualDTO.pullRequestCommentingEnabled.value = false;
+    actualDTO.sourceControlEvaluationsEnabled.value = true;
+    actualDTO.sourceControlScanTarget.value = "target/*";
+    actualDTO.sshEnabled.value = true;
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_RootOrgNotConfigured() {
     sourceControlDAO.delete(rootOrgSourcecontrol);
-
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID);
 
-    assertThat(dto.id).isNull();
-    assertThat(dto.ownerId).isEqualTo(rootOrgSourcecontrol.getOwnerId());
-    assertThat(dto.provider.parentValue).isNull();
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isNull();
-    assertThat(dto.token.parentName).isNull();
-    assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isNull();
-    assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = rootOrgSourcecontrol.getOwnerId();
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
   @Test
@@ -168,129 +133,79 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
     final SourceControl orgSourceControl =
-        tempEntity.newSourceControl(org.getId(), null, null, null, TOKEN, null, false,
+        tempEntity.newSourceControl(level1ChildOrg.getId(), null, null, null, TOKEN, null, false,
             null, null, null, true, true, "/target/*", true);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
-        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level1ChildOrg.getId());
 
-    assertThat(dto.id).isEqualTo(orgSourceControl.getId());
-    assertThat(dto.ownerId).isEqualTo(orgSourceControl.getOwnerId());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isFalse();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isTrue();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isTrue();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlScanTarget.value).isEqualTo("/target/*");
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isTrue();
-    assertThat(dto.sshEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sshEnabled.parentValue).isFalse();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = orgSourceControl.getId();
+    actualDTO.ownerId = orgSourceControl.getOwnerId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = rootOrganization.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.value = false;
+    actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.value = true;
+    actualDTO.pullRequestCommentingEnabled.parentName = rootOrganization.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = false;
+    actualDTO.sourceControlEvaluationsEnabled.value = true;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = rootOrganization.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = false;
+    actualDTO.sourceControlScanTarget.value = "/target/*";
+    actualDTO.sshEnabled.value = true;
+    actualDTO.sshEnabled.parentName = rootOrganization.getName();
+    actualDTO.sshEnabled.parentValue = false;
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_OrganizationNoRootOrg() {
     final SourceControl orgSourceControl =
-        tempEntity.newSourceControl(org.getId(), null, TOKEN, SourceControlProvider.GITHUB, false, null, null);
+        tempEntity.newSourceControl(
+            level1ChildOrg.getId(),
+            null,
+            TOKEN,
+            SourceControlProvider.GITHUB,
+            false,
+            null,
+            null
+        );
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
-        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level1ChildOrg.getId());
 
-    assertThat(dto.id).isEqualTo(orgSourceControl.getId());
-    assertThat(dto.ownerId).isEqualTo(orgSourceControl.getOwnerId());
-    assertThat(dto.provider.parentValue).isNull();
-    assertThat(dto.provider.parentName).isNull();
-    assertThat(dto.provider.value).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.token.parentName).isNull();
-    assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isFalse();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isNull();
-    assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isNull();
-    assertThat(dto.sshEnabled.parentValue).isNull();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = orgSourceControl.getId();
+    actualDTO.ownerId = orgSourceControl.getOwnerId();
+    actualDTO.provider.value = SourceControlProvider.GITHUB.toString();
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.remediationPullRequestsEnabled.value = false;
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_OrganizationNoRootOrgOrOrganization() {
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
-        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level1ChildOrg.getId());
 
-    assertThat(dto.id).isEqualTo(null);
-    assertThat(dto.ownerId).isEqualTo(org.getId());
-    assertThat(dto.provider.parentValue).isNull();
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isNull();
-    assertThat(dto.token.parentName).isNull();
-    assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isNull();
-    assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isNull();
-    assertThat(dto.sshEnabled.parentValue).isNull();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = level1ChildOrg.getId();
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
   @Test
@@ -303,85 +218,66 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
-        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level1ChildOrg.getId());
 
-    assertThat(dto.id).isNull();
-    assertThat(dto.ownerId).isEqualTo(org.getId());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isNull();
-    assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("target/*");
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sshEnabled.parentValue).isTrue();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = level1ChildOrg.getId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.token.parentName = rootOrganization.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.parentName = rootOrganization.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = false;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = rootOrganization.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = rootOrganization.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "target/*";
+    actualDTO.sshEnabled.parentName = rootOrganization.getName();
+    actualDTO.sshEnabled.parentValue = true;
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_OrganizationOverridesProviderNoToken() {
     final SourceControl orgSourceControl =
-        tempEntity.newSourceControl(org.getId(), null, null, SourceControlProvider.GITLAB, false, null, null);
+        tempEntity.newSourceControl(
+            level1ChildOrg.getId(),
+            null,
+            null,
+            SourceControlProvider.GITLAB,
+            false,
+            null,
+            null
+        );
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
-        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level1ChildOrg.getId());
 
-    assertThat(dto.id).isEqualTo(orgSourceControl.getId());
-    assertThat(dto.ownerId).isEqualTo(orgSourceControl.getOwnerId());
-    assertThat(dto.provider.value).isEqualTo(SourceControlProvider.GITLAB.toString());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isNull();
-    assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isFalse();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.baseBranch.parentValue).isEqualTo("master");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isNull();
-    assertThat(dto.sshEnabled.parentValue).isNull();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = orgSourceControl.getId();
+    actualDTO.ownerId = orgSourceControl.getOwnerId();
+    actualDTO.provider.value = SourceControlProvider.GITLAB.toString();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.token.parentName = rootOrganization.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.value = false;
+    actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "master";
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
   @Test
@@ -390,47 +286,30 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
     sourceControlDAO.update(rootOrgSourcecontrol);
 
-    final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, TOKEN, null, false, null, null);
+    tempEntity.newSourceControl(level1ChildOrg.getId(), null, TOKEN, null, false, null, null);
     final SourceControl appSourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null, null, true, null);
 
-    ApiCompositeSourceControlDTO dto =
+    ApiCompositeSourceControlDTO resultDTO =
         apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(dto.id).isEqualTo(appSourceControl.getId());
-    assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isNull();
-    assertThat(dto.sshEnabled.parentValue).isNull();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
 
     appSourceControl.setBaseBranch("BASE_BRANCH_APP");
     appSourceControl.setRemediationPullRequestsEnabled(true);
@@ -440,41 +319,31 @@ public class ApiCompositeSourceControlServiceTest
     appSourceControl.setSshEnabled(true);
     sourceControlDAO.update(appSourceControl);
 
-    dto = apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+    resultDTO = apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(dto.id).isEqualTo(appSourceControl.getId());
-    assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
-    assertThat(dto.baseBranch.value).isEqualTo("BASE_BRANCH_APP");
-    assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isFalse();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isTrue();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isEqualTo("target/*");
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isTrue();
-    assertThat(dto.sshEnabled.parentName).isNull();
-    assertThat(dto.sshEnabled.parentValue).isNull();
+    actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.value = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.baseBranch.value = "BASE_BRANCH_APP";
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.value = false;
+    actualDTO.sourceControlEvaluationsEnabled.value = true;
+    actualDTO.sourceControlScanTarget.value = "target/*";
+    actualDTO.sshEnabled.value = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
   @Test
@@ -490,89 +359,68 @@ public class ApiCompositeSourceControlServiceTest
     final SourceControl appSourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null, null, true, null);
 
-    final ApiCompositeSourceControlDTO dto =
+    final ApiCompositeSourceControlDTO resultDTO =
         apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(dto.id).isEqualTo(appSourceControl.getId());
-    assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("target/*");
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sshEnabled.parentValue).isTrue();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = rootOrganization.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.parentName = rootOrganization.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = false;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = rootOrganization.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = rootOrganization.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "target/*";
+    actualDTO.sshEnabled.parentName = rootOrganization.getName();
+    actualDTO.sshEnabled.parentValue = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationNoRootOrgSourceControl() {
-    final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
-            null, null, null, true, true, "/target/*", true);
+    tempEntity.newSourceControl(level1ChildOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
+        null, null, null, true, true, "/target/*", true);
     final SourceControl appSourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null, null, true, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
-    final ApiCompositeSourceControlDTO dto =
+    final ApiCompositeSourceControlDTO resultDTO =
         apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(dto.id).isEqualTo(appSourceControl.getId());
-    assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITLAB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isNull();
-    assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("/target/*");
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sshEnabled.parentValue).isTrue();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITLAB.toString();
+    actualDTO.provider.parentName = level1ChildOrg.getName();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.pullRequestCommentingEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = true;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = level1ChildOrg.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "/target/*";
+    actualDTO.sshEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.sshEnabled.parentValue = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
   @Test
@@ -585,45 +433,32 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
-    final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, TOKEN, null, false, null, null);
+    tempEntity.newSourceControl(level1ChildOrg.getId(), null, TOKEN, null, false, null, null);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(dto.id).isNull();
-    assertThat(dto.ownerId).isEqualTo(app.getId());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isNull();
-    assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("target/*");
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sshEnabled.parentValue).isTrue();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = app.getId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.token.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.parentName = rootOrganization.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = false;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = rootOrganization.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = rootOrganization.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "target/*";
+    actualDTO.sshEnabled.parentName = rootOrganization.getName();
+    actualDTO.sshEnabled.parentValue = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
   @Test
@@ -632,42 +467,17 @@ public class ApiCompositeSourceControlServiceTest
         tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITLAB, null, true, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(dto.id).isEqualTo(appSourceControl.getId());
-    assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider.parentValue).isNull();
-    assertThat(dto.provider.parentName).isNull();
-    assertThat(dto.provider.value).isEqualTo(SourceControlProvider.GITLAB.toString());
-    assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.token.parentName).isNull();
-    assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isNull();
-    assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isNull();
-    assertThat(dto.sshEnabled.parentValue).isNull();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.value = SourceControlProvider.GITLAB.toString();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
   @Test
@@ -676,139 +486,532 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
     sourceControlDAO.update(rootOrgSourcecontrol);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(dto.id).isNull();
-    assertThat(dto.ownerId).isEqualTo(app.getId());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isNull();
-    assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isNull();
-    assertThat(dto.sshEnabled.parentValue).isNull();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = app.getId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.token.parentName = rootOrganization.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationOrgSourceControlOnly() {
-    final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
+    tempEntity.newSourceControl(level1ChildOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
         null, null, null, true, true, "/target/*", true);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(dto.id).isNull();
-    assertThat(dto.ownerId).isEqualTo(app.getId());
-    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITLAB.toString());
-    assertThat(dto.provider.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isNull();
-    assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isNull();
-    assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("/target/*");
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sshEnabled.parentValue).isTrue();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = app.getId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITLAB.toString();
+    actualDTO.provider.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.remediationPullRequestsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.pullRequestCommentingEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = true;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = level1ChildOrg.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "/target/*";
+    actualDTO.sshEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.sshEnabled.parentValue = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelOrganization() {
+    rootOrgSourcecontrol.setToken(TOKEN);
+    rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
+    rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
+    rootOrgSourcecontrol.setSourceControlEvaluationsEnabled(false);
+    rootOrgSourcecontrol.setSshEnabled(false);
+    sourceControlDAO.update(rootOrgSourcecontrol);
+
+    tempEntity.newSourceControl(level1ChildOrg.getId(), null, null, null, TOKEN, null, false,
+        null, null, null, true, true, "/target/*", true);
+
+    final SourceControl orgSourceControl =
+        tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
+            SourceControlProvider.GITLAB, false,
+            null, "New Branch", null, true, true, "/target/childOrg/*", true);
+
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = orgSourceControl.getId();
+    actualDTO.ownerId = orgSourceControl.getOwnerId();
+    actualDTO.provider.value = SourceControlProvider.GITLAB.toString();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.value = false;
+    actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.value = "New Branch";
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.value = true;
+    actualDTO.pullRequestCommentingEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = true;
+    actualDTO.sourceControlEvaluationsEnabled.value = true;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.value = "/target/childOrg/*";
+    actualDTO.sourceControlScanTarget.parentName = level1ChildOrg.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "/target/*";
+    actualDTO.sshEnabled.value = true;
+    actualDTO.sshEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.sshEnabled.parentValue = true;
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelOrganization_NoRootOrg() {
+    sourceControlDAO.delete(rootOrgSourcecontrol);
+    tempEntity.newSourceControl(
+        level1ChildOrg.getId(),
+        null,
+        TOKEN,
+        SourceControlProvider.GITHUB,
+        false,
+        null,
+        null
+    );
+
+    final SourceControl orgSourceControl =
+        tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
+            SourceControlProvider.GITLAB, true,
+            null, "New Branch", null, true, true, "/target/childOrg/*", true);
+
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = orgSourceControl.getId();
+    actualDTO.ownerId = orgSourceControl.getOwnerId();
+    actualDTO.provider.value = SourceControlProvider.GITLAB.toString();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = level1ChildOrg.getName();
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.remediationPullRequestsEnabled.value = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.value = "New Branch";
+    actualDTO.pullRequestCommentingEnabled.value = true;
+    actualDTO.sourceControlEvaluationsEnabled.value = true;
+    actualDTO.sourceControlScanTarget.value = "/target/childOrg/*";
+    actualDTO.sshEnabled.value = true;
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelOrganization_NoParentOrOrganizations() {
+    sourceControlDAO.delete(rootOrgSourcecontrol);
+
+    final SourceControl orgSourceControl =
+        tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
+            SourceControlProvider.GITLAB, true,
+            null, "New Branch", null, true, true, "/target/childOrg/*", true);
+
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = orgSourceControl.getId();
+    actualDTO.ownerId = orgSourceControl.getOwnerId();
+    actualDTO.provider.value = SourceControlProvider.GITLAB.toString();
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.remediationPullRequestsEnabled.value = true;
+    actualDTO.baseBranch.value = "New Branch";
+    actualDTO.pullRequestCommentingEnabled.value = true;
+    actualDTO.sourceControlEvaluationsEnabled.value = true;
+    actualDTO.sourceControlScanTarget.value = "/target/childOrg/*";
+    actualDTO.sshEnabled.value = true;
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevel_OrganizationNotConfigured() {
+    rootOrgSourcecontrol.setToken(TOKEN);
+    rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
+    rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
+    rootOrgSourcecontrol.setSourceControlEvaluationsEnabled(true);
+    rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
+    rootOrgSourcecontrol.setSshEnabled(true);
+    sourceControlDAO.update(rootOrgSourcecontrol);
+
+    tempEntity.newSourceControl(
+        level1ChildOrg.getId(),
+        null,
+        TOKEN,
+        SourceControlProvider.GITHUB,
+        false,
+        null,
+        null
+    );
+
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = level2ChildOrg.getId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentName = level1ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.parentName = rootOrganization.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = false;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = rootOrganization.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = rootOrganization.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "target/*";
+    actualDTO.sshEnabled.parentName = rootOrganization.getName();
+    actualDTO.sshEnabled.parentValue = true;
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelOrganization_OverridesProviderNoToken() {
+    final SourceControl orgSourceControl =
+        tempEntity.newSourceControl(
+            level2ChildOrg.getId(),
+            null,
+            null,
+            SourceControlProvider.GITLAB,
+            false,
+            null,
+            null
+        );
+
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = orgSourceControl.getId();
+    actualDTO.ownerId = orgSourceControl.getOwnerId();
+    actualDTO.provider.value = SourceControlProvider.GITLAB.toString();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.token.parentName = rootOrganization.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.value = false;
+    actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "master";
+
+    validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationNoLevelConfigured() {
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
-    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(dto.id).isNull();
-    assertThat(dto.ownerId).isEqualTo(app.getId());
-    assertThat(dto.provider.parentValue).isNull();
-    assertThat(dto.provider.parentName).isNull();
-    assertThat(dto.provider.value).isNull();
-    assertThat(dto.repositoryUrl).isNull();
-    assertThat(dto.username.value).isNull();
-    assertThat(dto.username.parentName).isNull();
-    assertThat(dto.username.parentValue).isNull();
-    assertThat(dto.token.value).isNull();
-    assertThat(dto.token.parentName).isNull();
-    assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
-    assertThat(dto.baseBranch.value).isNull();
-    assertThat(dto.baseBranch.parentName).isNull();
-    assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.value).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentName).isNull();
-    assertThat(dto.sourceControlEvaluationsEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
-    assertThat(dto.sshEnabled.value).isNull();
-    assertThat(dto.sshEnabled.parentName).isNull();
-    assertThat(dto.sshEnabled.parentValue).isNull();
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = app.getId();
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelApplication() {
+    rootOrgSourcecontrol.setToken(TOKEN);
+    rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
+    sourceControlDAO.update(rootOrgSourcecontrol);
+
+    tempEntity.newSourceControl(level2ChildOrg.getId(), null, TOKEN, null, false, null, null);
+    final SourceControl appSourceControl =
+        tempEntity.newSourceControl(childApp.getId(), VALID_URL, TOKEN, null, null, true, null);
+
+    ApiCompositeSourceControlDTO resultDTO =
+        apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, childApp.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = level2ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
+
+    appSourceControl.setBaseBranch("BASE_BRANCH_APP");
+    appSourceControl.setRemediationPullRequestsEnabled(true);
+    appSourceControl.setPullRequestCommentingEnabled(false);
+    appSourceControl.setSourceControlEvaluationsEnabled(true);
+    appSourceControl.setSourceControlScanTarget("target/*");
+    appSourceControl.setSshEnabled(true);
+    sourceControlDAO.update(appSourceControl);
+
+    resultDTO =
+        apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, childApp.getId());
+
+    actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = level2ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.value = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.baseBranch.value = "BASE_BRANCH_APP";
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.value = false;
+    actualDTO.sourceControlEvaluationsEnabled.value = true;
+    actualDTO.sourceControlScanTarget.value = "target/*";
+    actualDTO.sshEnabled.value = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelApplication_NoOrgSourceControl() {
+    rootOrgSourcecontrol.setToken(TOKEN);
+    rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
+    rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
+    rootOrgSourcecontrol.setSourceControlEvaluationsEnabled(true);
+    rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
+    rootOrgSourcecontrol.setSshEnabled(true);
+    sourceControlDAO.update(rootOrgSourcecontrol);
+
+    final SourceControl appSourceControl =
+        tempEntity.newSourceControl(childApp.getId(), VALID_URL, TOKEN, null, null, true, null);
+
+    final ApiCompositeSourceControlDTO resultDTO =
+        apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, childApp.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = rootOrganization.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.parentName = rootOrganization.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = false;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = rootOrganization.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = rootOrganization.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "target/*";
+    actualDTO.sshEnabled.parentName = rootOrganization.getName();
+    actualDTO.sshEnabled.parentValue = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelApplication_NoRootOrgSourceControl() {
+    tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
+        null, null, null, true, true, "/target/*", true);
+    final SourceControl appSourceControl =
+        tempEntity.newSourceControl(childApp.getId(), VALID_URL, TOKEN, null, null, true, null);
+    sourceControlDAO.delete(rootOrgSourcecontrol);
+
+    final ApiCompositeSourceControlDTO resultDTO =
+        apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, childApp.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITLAB.toString();
+    actualDTO.provider.parentName = level2ChildOrg.getName();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.token.parentName = level2ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.pullRequestCommentingEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = true;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = level2ChildOrg.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "/target/*";
+    actualDTO.sshEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.sshEnabled.parentValue = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelApplicationNotConfigured() {
+    rootOrgSourcecontrol.setToken(TOKEN);
+    rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
+    rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
+    rootOrgSourcecontrol.setSourceControlEvaluationsEnabled(true);
+    rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
+    rootOrgSourcecontrol.setSshEnabled(true);
+    sourceControlDAO.update(rootOrgSourcecontrol);
+
+    tempEntity.newSourceControl(level2ChildOrg.getId(), null, TOKEN, null, false, null, null);
+
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.APPLICATION, childApp.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = childApp.getId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.token.parentName = level2ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    actualDTO.pullRequestCommentingEnabled.parentName = rootOrganization.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = false;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = rootOrganization.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = rootOrganization.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "target/*";
+    actualDTO.sshEnabled.parentName = rootOrganization.getName();
+    actualDTO.sshEnabled.parentValue = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelApplicationA_ppSourceControlOnly() {
+    final SourceControl appSourceControl =
+        tempEntity.newSourceControl(childApp.getId(), VALID_URL, TOKEN, SourceControlProvider.GITLAB, null, true, null);
+    sourceControlDAO.delete(rootOrgSourcecontrol);
+
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.APPLICATION, childApp.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.id = appSourceControl.getId();
+    actualDTO.ownerId = appSourceControl.getOwnerId();
+    actualDTO.provider.value = SourceControlProvider.GITLAB.toString();
+    actualDTO.repositoryUrl = VALID_URL;
+    actualDTO.token.value = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.value = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelApplication_RootOrgSourceControlOnly() {
+    rootOrgSourcecontrol.setToken(TOKEN);
+    rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
+    sourceControlDAO.update(rootOrgSourcecontrol);
+
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.APPLICATION, childApp.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = childApp.getId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITHUB.toString();
+    actualDTO.provider.parentName = rootOrganization.getName();
+    actualDTO.token.parentName = rootOrganization.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.statusChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.statusChecksEnabled.parentValue = true;
+    actualDTO.remediationPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = true;
+    actualDTO.baseBranch.parentName = rootOrganization.getName();
+    actualDTO.baseBranch.parentValue = "BASE_BRANCH";
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwner_NLevelApplication_OrgSourceControlOnly() {
+    tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
+        null, null, null, true, true, "/target/*", true);
+    sourceControlDAO.delete(rootOrgSourcecontrol);
+
+    final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.APPLICATION, childApp.getId());
+
+    ApiCompositeSourceControlDTO actualDTO = new ApiCompositeSourceControlDTO();
+    actualDTO.ownerId = childApp.getId();
+    actualDTO.provider.parentValue = SourceControlProvider.GITLAB.toString();
+    actualDTO.provider.parentName = level2ChildOrg.getName();
+    actualDTO.token.parentName = level2ChildOrg.getName();
+    actualDTO.token.parentValue = FAKE_SECRET_KEY;
+    actualDTO.remediationPullRequestsEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.remediationPullRequestsEnabled.parentValue = false;
+    actualDTO.pullRequestCommentingEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.pullRequestCommentingEnabled.parentValue = true;
+    actualDTO.sourceControlEvaluationsEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.sourceControlEvaluationsEnabled.parentValue = true;
+    actualDTO.sourceControlScanTarget.parentName = level2ChildOrg.getName();
+    actualDTO.sourceControlScanTarget.parentValue = "/target/*";
+    actualDTO.sshEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.sshEnabled.parentValue = true;
+    validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
   @Test
   public void getCompositeSourceControlByOwnerDecrypted() throws Exception {
     // given a token at the root org and overridden at the org level
-    tempEntity.newSourceControl(org.getId(), null, plexusCipher.encrypt(TOKEN, ENC), null);
+    tempEntity.newSourceControl(level1ChildOrg.getId(), null, plexusCipher.encrypt(TOKEN, ENC), null);
 
     // when we get source control decrypted
     ApiCompositeSourceControlDTO dto =
-        apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, org.getId());
+        apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(
+            OwnerType.ORGANIZATION,
+            level1ChildOrg.getId()
+        );
 
     // then the passwords at both levels match
     assertThat(dto.token.value).isEqualTo(TOKEN);
@@ -818,14 +1021,79 @@ public class ApiCompositeSourceControlServiceTest
   @Test
   public void getCompositeSourceControlByOwner_tokens() throws Exception {
     // given a token at the root org and overridden at the org level
-    tempEntity.newSourceControl(org.getId(), null, plexusCipher.encrypt(TOKEN, ENC), null);
+    tempEntity.newSourceControl(level1ChildOrg.getId(), null, plexusCipher.encrypt(TOKEN, ENC), null);
 
     // when we get source control not decrypted
     ApiCompositeSourceControlDTO dto =
-        apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
+        apiCompositeSourceControlService.getCompositeSourceControlByOwner(
+            OwnerType.ORGANIZATION,
+            level1ChildOrg.getId()
+        );
 
     // then the passwords are redacted
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
+  }
+
+  private void validateCompositeSourceControlDTO(
+      OwnerType currentOwnerType,
+      ApiCompositeSourceControlDTO result,
+      ApiCompositeSourceControlDTO expected)
+  {
+    System.out.println("Result >> " + result.toString());
+    System.out.println("Expected >> " + expected.toString());
+
+    assertThat(result.ownerId).isEqualTo(expected.ownerId);
+    if (expected.id != null) {
+      assertThat(result.id).isEqualTo(expected.id);
+    }
+    else {
+      assertThat(result.id).isNull();
+    }
+    if (currentOwnerType.equals(OwnerType.APPLICATION)) {
+      if (expected.repositoryUrl != null) {
+        assertThat(result.repositoryUrl).isEqualTo(expected.repositoryUrl);
+      }
+      else {
+        assertThat(result.repositoryUrl).isNull();
+      }
+    }
+    else {
+      assertThat(result.repositoryUrl).isNull();
+    }
+
+    assertField(result.provider, expected.provider);
+    assertField(result.username, expected.username);
+    assertField(result.token, expected.token);
+    assertField(result.baseBranch, expected.baseBranch);
+    assertField(result.remediationPullRequestsEnabled, result.remediationPullRequestsEnabled);
+    assertField(result.statusChecksEnabled, expected.statusChecksEnabled);
+    assertField(result.pullRequestCommentingEnabled, expected.pullRequestCommentingEnabled);
+    assertField(result.sourceControlEvaluationsEnabled, expected.sourceControlEvaluationsEnabled);
+    assertField(result.sourceControlScanTarget, expected.sourceControlScanTarget);
+    assertField(result.sshEnabled, expected.sshEnabled);
+  }
+
+  private <T> void assertField(ApiCompositeValueDTO<T> actualField, ApiCompositeValueDTO<T> expectedField) {
+    if (expectedField.value == null) {
+      assertThat(actualField.value).isNull();
+    }
+    else {
+      assertThat(actualField.value).isEqualTo(expectedField.value);
+    }
+
+    if (expectedField.parentValue == null) {
+      assertThat(actualField.parentValue).isNull();
+    }
+    else {
+      assertThat(actualField.parentValue).isEqualTo(expectedField.parentValue);
+    }
+
+    if (expectedField.parentName == null) {
+      assertThat(actualField.parentName).isNull();
+    }
+    else {
+      assertThat(actualField.parentName).isEqualTo(expectedField.parentName);
+    }
   }
 }

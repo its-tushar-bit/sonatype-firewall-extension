@@ -106,22 +106,23 @@ describe('dashboardFilterActions: non-angular', function () {
           expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
           expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
 
-          expect(store.getActions().length).toBe(3);
+          const actions = store.getActions();
+          expect(actions.length).toBe(5);
 
-          expect(store.getActions()[1]).toEqual({
+          expect(actions[0]).toEqual({
+            type: 'LOAD_FILTER_REQUESTED',
+          });
+
+          expect(actions[3]).toEqual({
             type: 'FETCH_SAVED_FILTERS_FULFILLED',
             payload: 'saved filters data',
           });
 
-          expect(store.getActions()[2]).toEqual({
+          expect(actions[4]).toEqual({
             type: 'LOAD_FILTER_FAILED',
             payload: 'failed to get applications data',
           });
           done();
-        });
-
-        expect(store.getActions()[0]).toEqual({
-          type: 'LOAD_FILTER_REQUESTED',
         });
       });
     });
@@ -145,14 +146,14 @@ describe('dashboardFilterActions: non-angular', function () {
           expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
           expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
 
-          expect(store.getActions().length).toBe(4);
+          expect(store.getActions().length).toBe(6);
 
-          expect(store.getActions()[1]).toEqual({
+          expect(store.getActions()[3]).toEqual({
             type: 'FETCH_SAVED_FILTERS_FULFILLED',
             payload: 'saved filters data',
           });
 
-          expect(store.getActions()[2]).toEqual({
+          expect(store.getActions()[4]).toEqual({
             type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
             payload: {
               organizations: 'organizations data',
@@ -163,7 +164,7 @@ describe('dashboardFilterActions: non-angular', function () {
             },
           });
 
-          expect(store.getActions()[3]).toEqual({
+          expect(store.getActions()[5]).toEqual({
             type: 'FETCH_CURRENT_FILTER_FULFILLED',
             payload: {
               name: '',
@@ -175,7 +176,7 @@ describe('dashboardFilterActions: non-angular', function () {
           done();
         });
 
-        expect(store.getActions().length).toBe(1);
+        expect(store.getActions().length).toBe(3);
         expect(store.getActions()[0]).toEqual({
           type: 'LOAD_FILTER_REQUESTED',
         });

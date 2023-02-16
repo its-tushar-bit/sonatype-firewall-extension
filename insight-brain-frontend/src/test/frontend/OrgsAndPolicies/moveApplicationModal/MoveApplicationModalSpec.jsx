@@ -12,6 +12,51 @@ import { fireEvent } from '@testing-library/react';
 describe('MoveApplicationModal', () => {
   let renderComponent, axiosMock;
 
+  const rootOrgId = 'ROOT_ORGANIZATION_ID';
+  const adminOrgId = 'd2612d914cfc41b7b0ee9be7539e4889';
+  const awesomeOrgId = '457800f1bd624699a224150aead48cf3';
+  const testApplicationPublicId = 'testApplicationPublicID';
+  const rootOrg = {
+    type: 'organization',
+    id: rootOrgId,
+    name: 'Root Organization',
+    synthetic: false,
+    parentOrganizationId: null,
+    applicationIds: [],
+    organizationIds: [adminOrgId, awesomeOrgId],
+    subOrgs: 2,
+    totalApps: 1,
+  };
+  const adminOrg = {
+    type: 'organization',
+    id: adminOrgId,
+    name: 'admin',
+    synthetic: false,
+    parentOrganization: rootOrgId,
+    applicationIds: [testApplicationPublicId],
+    organizationIds: [],
+    subOrgs: 0,
+    totalApps: 1,
+  };
+  const awesomeOrg = {
+    type: 'organization',
+    id: awesomeOrgId,
+    name: 'Awesome Org',
+    synthetic: false,
+    parentOrganization: rootOrgId,
+    applicationIds: [],
+    organizationIds: [],
+    subOrgs: 0,
+    totalApps: 0,
+  };
+  const testApplication = {
+    type: 'application',
+    id: 'b96799515b294417859c5d6e400dd0b8',
+    name: 'Test Application',
+    publicId: testApplicationPublicId,
+    organizationId: adminOrgId,
+  };
+
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
   });
@@ -44,6 +89,24 @@ describe('MoveApplicationModal', () => {
             submitError: null,
             submitMaskState: null,
             warnings: null,
+          },
+        },
+        ownerSideNav: {
+          ownersMap: {
+            ROOT_ORGANIZATION_ID: rootOrg,
+            d2612d914cfc41b7b0ee9be7539e4889: adminOrg,
+            '457800f1bd624699a224150aead48cf3': awesomeOrg,
+            testApplicationPublicID: testApplication,
+          },
+          topParentOrganizationId: rootOrgId,
+          displayedOrganization: adminOrg,
+          flattenEntries: {
+            organizations: [rootOrg, adminOrg, awesomeOrg],
+            applications: [testApplication],
+          },
+          filteredEntries: {
+            organizations: [],
+            applications: [],
           },
         },
       },

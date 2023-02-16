@@ -243,10 +243,10 @@ describe('componentDetailsReducer', () => {
         type: LOAD_APPLICABLE_LABEL_SCOPES_FULFILLED,
         payload: {
           data: {
-            children: [{ children: null, id: 'testScopeId', name: 'testScopeName', type: 'testAppLevel' }],
+            children: [{ children: null, id: 'testScopeId2', name: 'testScopeName - Org 2', type: 'organization' }],
             id: 'testScopeId',
-            name: 'testScopeName',
-            type: 'testOrgLevel',
+            name: 'testScopeName - Org 1',
+            type: 'organization',
           },
         },
       });
@@ -254,12 +254,19 @@ describe('componentDetailsReducer', () => {
       expect(newState.pendingLoads.size).toEqual(0);
       expect(newState.applicableLabelScopes).toEqual([
         {
-          children: [{ children: null, id: 'testScopeId', name: 'testScopeName', type: 'testAppLevel' }],
           id: 'testScopeId',
-          name: 'testScopeName',
-          type: 'testOrgLevel',
+          name: 'testScopeName - Org 1',
+          type: 'organization',
+          label: 'Organization',
+          publicId: undefined,
         },
-        { children: null, id: 'testScopeId', name: 'testScopeName', type: 'testAppLevel' },
+        {
+          id: 'testScopeId2',
+          name: 'testScopeName - Org 2',
+          type: 'organization',
+          label: 'Organization',
+          publicId: undefined,
+        },
       ]);
       expect(newState.applicableLabelScopesLoadError).toBeNull();
     });

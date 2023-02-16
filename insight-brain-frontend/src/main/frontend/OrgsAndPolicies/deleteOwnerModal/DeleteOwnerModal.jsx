@@ -5,12 +5,14 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+
 import { selectDeleteOwnerSlice } from './deleteOwnerSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectTotalDescendantsCount } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { NxModal, NxWarningAlert, NxH2, NxFontAwesomeIcon, NxStatefulForm } from '@sonatype/react-shared-components';
 import { actions } from './deleteOwnerSlice';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 export default function DeleteOwnerModal() {
   const dispatch = useDispatch();
@@ -18,6 +20,7 @@ export default function DeleteOwnerModal() {
   const { isModalOpen, submitMaskState, submitError } = useSelector(selectDeleteOwnerSlice);
   const isApp = useSelector(selectIsApplication);
   const ownerName = useSelector(selectSelectedOwnerName);
+  const descendantsCount = useSelector(selectTotalDescendantsCount);
 
   const closeModal = () => dispatch(actions.closeModal());
   const deleteOwner = () => dispatch(actions.removeOwner());
@@ -25,6 +28,10 @@ export default function DeleteOwnerModal() {
   useEffect(() => {
     return () => closeModal();
   }, []);
+
+  const descendantsMessage = ` and ${descendantsCount} descendant${
+    descendantsCount > 1 || descendantsCount === 0 ? 's' : ''
+  }`;
 
   return isModalOpen ? (
     <NxModal id="owner-delete-modal" onCancel={closeModal}>
@@ -43,7 +50,8 @@ export default function DeleteOwnerModal() {
         </NxModal.Header>
         <NxModal.Content>
           <NxWarningAlert>
-            You are about to permanently remove {ownerName}. This action cannot be undone.
+            You are about to permanently remove {ownerName}
+            {isApp ? '' : descendantsMessage}. This action cannot be undone.
           </NxWarningAlert>
         </NxModal.Content>
       </NxStatefulForm>

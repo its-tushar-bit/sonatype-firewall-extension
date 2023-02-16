@@ -311,7 +311,7 @@ public class PolicyCentricReportWaiverTest
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.should(appear);
     addWaiverPage.comments().shouldBe(visible);
-    addWaiverPage.scope(0).label().shouldHave(text("Application - " + app.getName()));
+    addWaiverPage.scope(0).shouldHave(text("Application - " + app.getName()));
     addWaiverPage.scope(0).shouldBe(visible, selected);
   }
 

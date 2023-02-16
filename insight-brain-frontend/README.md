@@ -98,6 +98,8 @@ test report can be seen in the your terminal.
 If you want to limit which tests run, you can change any `it` test function to `fit` to run only that test, or any
 `describe` to `fdescribe` to only run the contained tests.
 
+A special note for testing `NxToolip`: There is a delay when rendering a tooltip from `NxToolip`. In order to test it properly call `requestIdleCallbackInvokeImmediate` found in `SpecUtil.js` before you call the `render` function from RLT. See `react-shared-components/components/NxTooltip/updateBatcher.js` for details on requestIdleCallback usage.
+
 #### Linting and Formatting
 
 We use **[ESLint](https://eslint.org/)** and **[Prettier](https://prettier.io/)** for linting and formatting.

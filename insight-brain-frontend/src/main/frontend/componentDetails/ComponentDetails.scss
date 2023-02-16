@@ -15,7 +15,6 @@
 @use './overview/VersionGraphExplorer/VersionGraphExplorer';
 @use './VulnerabilitiesTableTile/vulnerabilities';
 @use './ComponentDetailsLegalTab/ComponentDetailsLegalTab.scss';
-@use './ManageComponentLabels/ApplyLabelModal/ApplyLabelModal';
 
 .nx-page-main.iq-component-details-page {
   padding: 0;

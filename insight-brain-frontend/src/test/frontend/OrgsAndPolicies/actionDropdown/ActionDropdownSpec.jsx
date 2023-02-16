@@ -7,7 +7,7 @@ import React from 'react';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import { render, screen, axiosMockAdapter, fireEvent, within } from 'TestRoot/SpecUtil';
 
-import { getApplicationSummaryUrl, getPermissionsTestUrl } from 'MainRoot/util/CLMLocation';
+import { getApplicationSummaryUrl, getPermissionContextTestUrl } from 'MainRoot/util/CLMLocation';
 
 describe('ActionDropdown', () => {
   let axiosMock, defaultPreloadedState;
@@ -109,7 +109,7 @@ describe('ActionDropdown', () => {
     });
 
     axiosMock
-      .onPut(getPermissionsTestUrl('application', 'a28'), permissions)
+      .onPut(getPermissionContextTestUrl('application', 'a28'), permissions)
       .reply(200, ['WRITE', 'EVALUATE_APPLICATION']);
 
     SpecUtil.requestIdleCallbackInvokeImmediate();
@@ -271,7 +271,9 @@ describe('ActionDropdown', () => {
 
     describe('when there are no correct permissions', () => {
       it('renders a disabled button with tooltip "insufficient permissions"', async () => {
-        axiosMock.onPut(getPermissionsTestUrl('application', 'a28'), permissions).reply(200, ['EVALUATE_APPLICATION']);
+        axiosMock
+          .onPut(getPermissionContextTestUrl('application', 'a28'), permissions)
+          .reply(200, ['EVALUATE_APPLICATION']);
         renderComponent();
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
@@ -285,7 +287,7 @@ describe('ActionDropdown', () => {
 
     describe('when there is error in retrieving permissions', () => {
       it('renders a disabled button with tooltip "insufficient permissions"', async () => {
-        axiosMock.onPut(getPermissionsTestUrl('application', 'a28'), permissions).reply(500, 'Error');
+        axiosMock.onPut(getPermissionContextTestUrl('application', 'a28'), permissions).reply(500, 'Error');
         renderComponent();
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
@@ -510,7 +512,7 @@ describe('ActionDropdown', () => {
     describe('when evaluation is supported', () => {
       describe('when there are no correct permissions', () => {
         it('renders a disabled button with tooltip "insufficient permissions"', async () => {
-          axiosMock.onPut(getPermissionsTestUrl('application', 'a28'), permissions).reply(200, ['WRITE']);
+          axiosMock.onPut(getPermissionContextTestUrl('application', 'a28'), permissions).reply(200, ['WRITE']);
           renderComponent();
           const actionButton = screen.getByRole('button', { name: 'Actions' });
           fireEvent.click(actionButton);
@@ -524,7 +526,7 @@ describe('ActionDropdown', () => {
 
       describe('when there is error in retrieving permissions', () => {
         it('renders a disabled button with tooltip "insufficient permissions"', async () => {
-          axiosMock.onPut(getPermissionsTestUrl('application', 'a28'), permissions).reply(500, 'Error');
+          axiosMock.onPut(getPermissionContextTestUrl('application', 'a28'), permissions).reply(500, 'Error');
           renderComponent();
           const actionButton = screen.getByRole('button', { name: 'Actions' });
           fireEvent.click(actionButton);

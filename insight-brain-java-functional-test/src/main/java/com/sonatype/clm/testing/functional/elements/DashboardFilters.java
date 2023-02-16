@@ -109,8 +109,6 @@ public class DashboardFilters
 
   public static void apply() {
     applyButton().shouldNotBe(DISABLED).click();
-    // wait for changes to be processed
-    applyButton().shouldBe(DISABLED);
   }
 
   public static SaveFilterDialog saveFilterDialog() {

@@ -10,8 +10,10 @@ import {
   getScmRepositoriesUrl,
   getCompositeSourceControlUrl,
   getValidateScmConfigUrl,
-  getOrganizationsUrl,
-} from '../../../../main/frontend/util/CLMLocation';
+  getOwnerListUrl,
+  getPermissionContextTestUrl,
+  getRepositoriesUrl,
+} from 'MainRoot/util/CLMLocation';
 import {
   SCM_ONBOARDING_LOAD_PAGE_FAILED,
   SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
@@ -20,7 +22,8 @@ import {
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
-} from '../../../../main/frontend/configuration/scmOnboarding/scmOnboardingActions';
+} from 'MainRoot/configuration/scmOnboarding/scmOnboardingActions';
+import { getOwnersMap } from 'TestRoot/OrgsAndPolicies/ownerSideNav/nLevelMockData';
 
 describe('scmOnboardingActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
@@ -59,11 +62,61 @@ describe('scmOnboardingActions', function () {
         { organization: { id: 'id3', name: 'org 3' }, sourceControl: {} },
         { organization: { id: 'id4', name: 'org 4' }, sourceControl: {} },
       ];
+    const repositoriesList = {
+      repositories: [
+        {
+          oldestEvalTimestamp: null,
+          managerInstanceId: '54342D8A-8FBE62A7-98C2B285-C37C2DC0-5FDBFC12',
+          repository: {
+            id: 'c192fc00375948dfbe1e8702ef6a3e44',
+            repositoryManagerId: '17ee89ffd86649c49ce32f7d0328072a',
+            publicId: 'maven-central',
+            enabled: true,
+            quarantineEnabled: false,
+            format: 'maven2',
+          },
+        },
+        {
+          oldestEvalTimestamp: null,
+          managerInstanceId: '54342D8A-8FBE62A7-98C2B285-C37C2DC0-5FDBFC12',
+          repository: {
+            id: 'c192fc00375948dfbe1e8702ef6a3e45',
+            repositoryManagerId: '17ee89ffd86649c49ce32f7d0328072a',
+            publicId: 'maven-central',
+            enabled: true,
+            quarantineEnabled: false,
+            format: 'maven2',
+          },
+        },
+        {
+          oldestEvalTimestamp: null,
+          managerInstanceId: '54342D8A-8FBE62A7-98C2B285-C37C2DC0-5FDBFC12',
+          repository: {
+            id: 'c192fc00375948dfbe1e8702ef6a3e46',
+            repositoryManagerId: '17ee89ffd86649c49ce32f7d0328072a',
+            publicId: 'maven-central',
+            enabled: true,
+            quarantineEnabled: false,
+            format: 'maven2',
+          },
+        },
+      ],
+    };
+    const organizationsDepth = 4;
+    const ownersMap = getOwnersMap(organizationsDepth);
+    const topParentOrganizationId = 'ROOT_ORGANIZATION_ID';
+    const ownerListPayload = { topParentOrganizationId, ownersMap };
 
     describe('loads data from IQ', () => {
       beforeEach(() => {
         mockAxiosCalls({
           get: {
+            [getRepositoriesUrl()]: Promise.resolve({
+              data: repositoriesList,
+            }),
+            [getOwnerListUrl()]: Promise.resolve({
+              data: ownerListPayload,
+            }),
             [getCompositeSourceControlUrl('organization', 'id1')]: Promise.resolve({
               data: compositeSourceControlPayload,
             }),
@@ -81,6 +134,11 @@ describe('scmOnboardingActions', function () {
               data: providerOverriddenCompositeSourceControlPayload,
             }),
           },
+          put: {
+            [getPermissionContextTestUrl('repository_container')]: Promise.resolve({
+              data: [],
+            }),
+          },
         });
       });
 
@@ -95,6 +153,9 @@ describe('scmOnboardingActions', function () {
             currentState: {
               name: 'scmOnboardingOrg',
             },
+            currentParams: {
+              organizationId: 'ROOT_ORGANIZATION',
+            },
             prevState: {
               name: null,
             },
@@ -107,15 +168,15 @@ describe('scmOnboardingActions', function () {
         return store.dispatch(scmOnboardingActions.loadPage()).then(() => {
           // then the SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created with the expected payload
           let actions = store.getActions();
-          expect(actions.length).toBe(2);
+          expect(actions.length).toBe(8);
           expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
           expect(actions[0].payload).toBeUndefined();
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
-          expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
-          expect(actions[1].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[1].payload.compositeSourceControlResults).toBeNull();
-          expect(actions[1].payload.hostUrlResult).toBeNull();
+          expect(actions[7].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
+          expect(actions[7].payload.organizationsResults).toEqual(orgResults);
+          expect(actions[7].payload.compositeSourceControlResults).toBeNull();
+          expect(actions[7].payload.hostUrlResult).toBeNull();
         });
       });
 
@@ -125,28 +186,41 @@ describe('scmOnboardingActions', function () {
           let actions = store.getActions();
           expect(actions.map((a) => a.type)).toEqual([
             SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
-            SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
+            'ownerSideNav/load/pending',
+            'ownerSideNav/loadOwnerList/pending',
+            'repositories/loadRepositories/pending',
+            'ownerSideNav/loadOwnerList/fulfilled',
+            'repositories/loadRepositories/fulfilled',
+            'ownerSideNav/load/fulfilled',
             // the call to load repos fails in our loadPage promise, falling into the loadPage
             // catch block - we didn't stub out the calls to load repos
+            SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
             SCM_ONBOARDING_LOAD_PAGE_FAILED,
           ]);
+
           expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
           expect(actions[0].payload).toEqual('id1');
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
-          expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
-          expect(actions[1].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[1].payload.compositeSourceControlResults).toEqual(compositeSourceControlPayload);
-          expect(actions[1].payload.hostUrlResult).toEqual(scmDefaultHostPayload);
+          expect(actions[7].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
+          expect(actions[7].payload.organizationsResults).toEqual(orgResults);
+          expect(actions[7].payload.compositeSourceControlResults).toEqual(compositeSourceControlPayload);
+          expect(actions[7].payload.hostUrlResult).toEqual(scmDefaultHostPayload);
         });
       });
 
-      it('when organisation has no SCM configuration', () => {
+      it('when organization has no SCM configuration', () => {
         return store.dispatch(scmOnboardingActions.loadPage('id2')).then(() => {
           // then the SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created with the expected payload
           let actions = store.getActions();
           expect(actions.map((a) => a.type)).toEqual([
             SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
+            'ownerSideNav/load/pending',
+            'ownerSideNav/loadOwnerList/pending',
+            'repositories/loadRepositories/pending',
+            'ownerSideNav/loadOwnerList/fulfilled',
+            'repositories/loadRepositories/fulfilled',
+            'ownerSideNav/load/fulfilled',
             SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
             // the call to load repos fails in our loadPage promise, falling into the loadPage
             // catch block - we didn't stub out the calls to load repos
@@ -155,9 +229,9 @@ describe('scmOnboardingActions', function () {
           expect(actions[0].payload).toEqual('id2');
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
-          expect(actions[1].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[1].payload.compositeSourceControlResults).toEqual(unconfiguredCompositeSourceControlPayload);
-          expect(actions[1].payload.hostUrlResult).toEqual(null);
+          expect(actions[7].payload.organizationsResults).toEqual(orgResults);
+          expect(actions[7].payload.compositeSourceControlResults).toEqual(unconfiguredCompositeSourceControlPayload);
+          expect(actions[7].payload.hostUrlResult).toEqual(null);
         });
       });
 
@@ -167,6 +241,12 @@ describe('scmOnboardingActions', function () {
           let actions = store.getActions();
           expect(actions.map((a) => a.type)).toEqual([
             SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
+            'ownerSideNav/load/pending',
+            'ownerSideNav/loadOwnerList/pending',
+            'repositories/loadRepositories/pending',
+            'ownerSideNav/loadOwnerList/fulfilled',
+            'repositories/loadRepositories/fulfilled',
+            'ownerSideNav/load/fulfilled',
             SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
           ]);
           expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
@@ -174,12 +254,12 @@ describe('scmOnboardingActions', function () {
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created using the gitlab provider
           // rather than the parent provider
-          expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
-          expect(actions[1].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[1].payload.compositeSourceControlResults).toEqual(
+          expect(actions[7].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
+          expect(actions[7].payload.organizationsResults).toEqual(orgResults);
+          expect(actions[7].payload.compositeSourceControlResults).toEqual(
             providerOverriddenCompositeSourceControlPayload
           );
-          expect(actions[1].payload.hostUrlResult).toEqual(gitlabDefaultHostPayload);
+          expect(actions[7].payload.hostUrlResult).toEqual(gitlabDefaultHostPayload);
         });
       });
     });
@@ -212,13 +292,13 @@ describe('scmOnboardingActions', function () {
           return store.dispatch(scmOnboardingActions.loadPage('ownerId')).then(() => {
             // then SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created
             let actions = store.getActions();
-            expect(actions.length).toBe(2);
+            expect(actions.length).toBe(7);
             expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
             expect(actions[0].payload).toEqual('ownerId');
 
             // and SCM_ONBOARDING_LOAD_PAGE_FAILED action is created
-            expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FAILED');
-            expect(actions[1].payload).toEqual('failed call');
+            expect(actions[6].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FAILED');
+            expect(actions[6].payload).toEqual('failed call');
           });
         });
       }
@@ -373,16 +453,13 @@ describe('scmOnboardingActions', function () {
       expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeUndefined();
 
       const actions = store.getActions();
-      expect(actions).toEqual([
-        { type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED },
-        {
-          type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
-          payload: {
-            selectedOrganization: selectedOrg,
-            defaultHostUrl: null,
-          },
-        },
-      ]);
+      expect(actions.length).toBe(4);
+      expect(actions[0].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED);
+      expect(actions[1].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED);
+      expect(actions[1].payload).toEqual({
+        selectedOrganization: selectedOrg,
+        defaultHostUrl: null,
+      });
     });
 
     it('dispatches loadRepositoriesRequested when the new token is overridden', function () {
@@ -495,16 +572,13 @@ describe('scmOnboardingActions', function () {
       expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeUndefined();
 
       const actions = store.getActions();
-      expect(actions).toEqual([
-        { type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED },
-        {
-          type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
-          payload: {
-            selectedOrganization: selectedOrg,
-            defaultHostUrl: null,
-          },
-        },
-      ]);
+      expect(actions.length).toBe(4);
+      expect(actions[0].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED);
+      expect(actions[1].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED);
+      expect(actions[1].payload).toEqual({
+        selectedOrganization: selectedOrg,
+        defaultHostUrl: null,
+      });
     });
   });
 
@@ -578,111 +652,6 @@ describe('scmOnboardingActions', function () {
         // turn time forwards to allow request to continue
         jasmine.clock().mockDate(new Date.now() + 3000);
         jasmine.clock().tick(3000);
-      });
-    });
-  });
-
-  describe('organization creation', () => {
-    describe('success', () => {
-      const createOrgPayload = {
-        organization: {
-          id: 'id',
-          name: 'My Organization',
-          tags: [],
-        },
-        sourceControl: {
-          token: { value: null, parentValue: 'redacted' },
-          provider: { value: null, parentValue: 'github' },
-        },
-      };
-
-      const rootOrgPayload = {
-        organization: { name: 'Root Organization', id: 'ROOT_ORGANIZATION_ID' },
-        sourceControl: { provider: { value: 'github' }, token: { value: 'redacted token' } },
-      };
-
-      const initialState = {
-        scmOnboarding: {
-          formState: {
-            rootOrganization: rootOrgPayload,
-            selectedOrganization: {
-              id: 'idPrevious',
-              name: 'Previous Organization',
-              tags: [],
-            },
-          },
-          configState: {
-            isScmTokenOverridden: false,
-            scmProvider: 'configuredProvider',
-            rootOrgHasToken: true,
-            rootProvider: 'github',
-          },
-        },
-      };
-      const state = SpecUtil.mockReduxStore(initialState);
-
-      beforeEach(function () {
-        mockAxiosCalls({
-          post: {
-            [getOrganizationsUrl()]: Promise.resolve({
-              data: { ...createOrgPayload },
-            }),
-          },
-        });
-      });
-
-      it('dispatches SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED', function (done) {
-        state.dispatch(scmOnboardingActions.addOrganization('My Organization')).then(() => {
-          actions = state.getActions();
-          expect(actions.length).toBe(3);
-          expect(actions[0].type).toBe('SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED');
-          expect(actions[0].payload).toEqual({
-            organization: createOrgPayload,
-            sourceControl: {
-              provider: { value: null, parentValue: 'github' },
-              token: { value: null, parentValue: 'redacted' },
-            },
-          });
-          // also triggers actions to set target organization
-          expect(actions[1].type).toBe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED');
-          expect(actions[2].type).toBe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED');
-          done();
-        });
-
-        let actions = state.getActions();
-        expect(actions.length).toBe(0);
-      });
-    });
-
-    describe('failure', () => {
-      const failureMessage = { error: 'error' };
-
-      beforeEach(function () {
-        mockAxiosCalls({
-          post: {
-            [getOrganizationsUrl()]: () => Promise.reject(failureMessage),
-          },
-        });
-      });
-
-      it('dispatches SCM_ONBOARDING_ADD_ORGANIZATION_FAILED', function (done) {
-        store = SpecUtil.mockReduxStore({
-          scmOnboarding: {
-            configState: {
-              rootOrgHasToken: null,
-            },
-          },
-        });
-        store.dispatch(scmOnboardingActions.addOrganization('My Organization')).then(() => {
-          actions = store.getActions();
-          expect(actions.length).toBe(1);
-          expect(actions[0].type).toBe('SCM_ONBOARDING_ADD_ORGANIZATION_FAILED');
-          expect(actions[0].payload).toEqual(failureMessage);
-          done();
-        });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(0);
       });
     });
   });

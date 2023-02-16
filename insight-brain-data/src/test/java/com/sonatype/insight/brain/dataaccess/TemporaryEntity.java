@@ -20,7 +20,9 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -482,7 +484,7 @@ public class TemporaryEntity
 
   private Collection<Application> apps;
 
-  private Collection<Organization> orgs;
+  private List<Organization> orgs;
 
   private Collection<LicenseOverride> licenseOverrides;
 
@@ -902,7 +904,7 @@ public class TemporaryEntity
       org.setParentOrganizationId(parentOrg.getId());
     }
     orgDAO.insert(org);
-    orgs.add(org);
+    orgs.add(0, org);
     return org;
   }
 
@@ -919,7 +921,21 @@ public class TemporaryEntity
     }
 
     orgDAO.insert(org);
-    orgs.add(org);
+    orgs.add(0, org);
+    return org;
+  }
+
+  public Organization newOrganizationWithSpecificIdAndParent(String id, String name, String parentOrganizationId) {
+    Organization org = new Organization(uuid());
+    org.setId(id);
+    org.setParentOrganizationId(parentOrganizationId);
+
+    if (name != null) {
+      org.setName(name);
+    }
+
+    orgDAO.insert(org);
+    orgs.add(0, org);
     return org;
   }
 
@@ -929,6 +945,67 @@ public class TemporaryEntity
       organizations.add(newOrganization());
     }
     return organizations;
+  }
+
+  public List<Organization> newRelatedOrganizationsAsList(int orgsPerLevel, int depth, int appsPerOrg) {
+    Map<Integer, List<Organization>> orgs =
+        newRelatedOrganizationsAsMap(null, orgsPerLevel, depth, appsPerOrg);
+    return  orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
+  }
+
+  public List<Organization> newRelatedOrganizationsAsList(
+      Organization parentOrg,
+      int orgsPerLevel,
+      int depth,
+      int appsPerOrg
+  )
+  {
+    Map<Integer, List<Organization>> orgs =
+        newRelatedOrganizationsAsMap(parentOrg, orgsPerLevel, depth, appsPerOrg);
+    return  orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
+  }
+
+  public Map<Integer, List<Organization>> newRelatedOrganizationsAsMap(
+      Organization parentOrg,
+      int orgsPerLevel,
+      int depth,
+      int appsPerOrg
+  )
+  {
+    Map<Integer, List<Organization>> organizations = new HashMap<>();
+    newRelatedOrganizations(parentOrg, orgsPerLevel, depth - 1, appsPerOrg, organizations);
+    return organizations;
+  }
+
+  private void newRelatedOrganizations(
+      Organization parentOrg,
+      int orgsPerLevel,
+      int depth,
+      int appsPerOrg,
+      Map<Integer, List<Organization>> organizations
+  )
+  {
+    if (depth >= 0) {
+      List<Organization> levelOrganizations = organizations.getOrDefault(depth, new LinkedList<>());
+      for (int childOrgIndex = 0; childOrgIndex < orgsPerLevel; childOrgIndex++) {
+        String orgName;
+        if (parentOrg != null) {
+          orgName = parentOrg.getName() + "_" + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+        }
+        else {
+          orgName = "Test Org " + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+        }
+        Organization currentOrg = newOrganization(orgName, parentOrg);
+        levelOrganizations.add(currentOrg);
+        if (appsPerOrg >= 1) {
+          for (int childAppIndex = 0; childAppIndex < appsPerOrg; childAppIndex++) {
+            newApplication(currentOrg.getId());
+          }
+        }
+        newRelatedOrganizations(currentOrg, orgsPerLevel, depth - 1, appsPerOrg, organizations);
+      }
+      organizations.put(depth, levelOrganizations);
+    }
   }
 
   public void register(DashboardFilter... dashboardFilters) {
@@ -944,7 +1021,9 @@ public class TemporaryEntity
   }
 
   public void register(Organization... organizations) {
-    Collections.addAll(orgs, organizations);
+    for (Organization organization: organizations) {
+      orgs.add(0, organization);
+    }
   }
 
   public void register(Policy... policiesToDelete) {
@@ -1009,6 +1088,10 @@ public class TemporaryEntity
 
   public Application newApplicationWithParent() {
     return newApplicationWithParent("DUMMY-PUBLIC-ID-" + uuid(), "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
+  }
+
+  public Application newApplicationWithParent(Organization parentOrganization) {
+    return newApplication("DUMMY-PUBLIC-ID-" + uuid(), "DUMMY-NAME-" + uuid(), parentOrganization.getId());
   }
 
   public Application newApplicationWithParent(String appPublicId) {

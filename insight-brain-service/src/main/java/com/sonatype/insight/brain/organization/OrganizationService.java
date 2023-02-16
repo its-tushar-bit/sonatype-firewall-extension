@@ -7,9 +7,12 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.PathParam;
@@ -22,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
@@ -32,6 +36,8 @@ import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +87,11 @@ public class OrganizationService
     return organizationDAO.getAll();
   }
 
+  @Authorize(permission = Permission.READ)
+  public Organization getOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId) {
+    return organizationDAO.getById(orgId);
+  }
+
   @Authorize(permission = Permission.WRITE)
   public Organization addOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_OWNER) Organization organization) {
     organizationDAO.insert(organization);
@@ -103,8 +114,10 @@ public class OrganizationService
   }
 
   /**
-   * Deletes an organization and associated policies, license threat groups, labels and waivers. Also deletes all
-   * applications under the organization.
+   * Deletes an organization and associated policies, license threat groups, labels and waivers. The deletion is also
+   * cascaded to all child organizations and applications under the organization.
+   *
+   * @param orgId ID of the organization that will be deleted
    *
    * @since 1.11.0
    */
@@ -112,50 +125,107 @@ public class OrganizationService
   public void deleteOrganization(
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String orgId) throws IOException
   {
-    Organization organization;
-    try (TransactionContext tx = organizationDAO.createTransactionContext()) {
-      tx.begin();
-      organization = organizationDAO.getByIdNotNull(tx, orgId);
-      AuditData.get().setOrganization(organization);
-      deleteOrganization(tx, organization);
-      tx.commit();
-      AuditData.get().commitSubEvents();
-
-      policyViolationLoggerFactory.newLogger(new Date(), organization).logClearEvent();
-    }
-    managementEventService.postEvent(DELETED, organization);
+    Organization organization = organizationDAO.getByIdNotNull(orgId);
+    AuditData.get().setOrganization(organization);
+    deleteOrganization(organization);
+    AuditData.get().commitSubEvents();
   }
 
-  private void deleteOrganization(final TransactionContext tx, final Organization organization) throws IOException {
+  private void deleteOrganization(final Organization organization) throws IOException {
     if (organization.getParentOrganizationId() == null) {
       throw new BadRequestException("The root organization cannot be deleted.");
     }
 
-    log.info("Deleting organization '{}' with id {}.", organization.getName(), organization.getId());
+    List<Organization> childOrganizations = organizationDAO.getByParentOrganizationId(organization.getId());
+    List<Application> childApplications = new ApplicationDAO().getByOrganizationId(organization.getId());
 
-    // cascade to applications first
-    for (Application application : new ApplicationDAO().getByOrganizationId(tx, organization.getId())) {
-      log.info("Deleting application '{}' with id {}.", application.getName(), application.getId());
-
-      applicationCleaner.delete(tx, application);
-      try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_APPLICATION, false)) {
-        AuditData.get().setApplicationWithDetails(application).setParentOrganization(organization);
+    try {
+      // cascade to children orgs
+      log.info("Deleting organization '{}' with id {}.", organization.getName(), organization.getId());
+      for (Organization childOrg : childOrganizations) {
+        log.info("Deleting child organization '{}' with id {}.", childOrg.getName(), childOrg.getId());
+        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_ORGANIZATION, false)) {
+          deleteOrganization(childOrg);
+          AuditData.get().setOrganization(childOrg).setParentOrganization(organization);
+        }
       }
 
-      log.info("Deleted application '{}' with id {}.", application.getName(), application.getId());
+      try (final TransactionContext tx = organizationDAO.createTransactionContext()) {
+        tx.begin();
+
+        // cascade to applications
+        for (Application application : childApplications) {
+          log.info("Deleting application '{}' with id {}.", application.getName(), application.getId());
+
+          applicationCleaner.delete(tx, application);
+          try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_APPLICATION, false)) {
+            AuditData.get().setApplicationWithDetails(application).setParentOrganization(organization);
+          }
+
+          log.info("Deleted application '{}' with id {}.", application.getName(), application.getId());
+        }
+        deleteOrganizationIconFolder(organization);
+        // delete organization last, this way the operation can be retried later if anything goes wrong
+        organizationDAO.delete(tx, organization);
+        tx.commit();
+        managementEventService.postEvent(DELETED, organization);
+        policyViolationLoggerFactory.newLogger(new Date(), organization).logClearEvent();
+
+        log.info("Deleted organization '{}' with id {}.", organization.getName(), organization.getId());
+      }
+    }
+    catch (PartialDeletionException e) {
+      throw e;
+    }
+    catch (Exception e) {
+      if (!childOrganizations.isEmpty() || !childApplications.isEmpty()) {
+        throw new PartialDeletionException(e);
+      }
+      else {
+        throw e;
+      }
+    }
+  }
+
+  private void fillAllParentOrgs(final Owner owner, Map<String, Organization> parentOrgs) {
+    if (owner == null || owner.getParentOwnerId() == null) {
+      return;
     }
 
+    String parentOrgId = owner.getParentOwnerId();
+
+    while (parentOrgId != null) {
+      if (parentOrgs.containsKey(parentOrgId)) {
+        break;
+      }
+      parentOrgId = parentOrgs.computeIfAbsent(parentOrgId, organizationDAO::getById).getParentOwnerId();
+    }
+  }
+
+  public Map<String, Organization> getAllParentOrgsNoAuthz(Collection<? extends Owner> owners) {
+    return getAllParentOrgsNoAuthz(owners, null);
+  }
+
+  public Map<String, Organization> getAllParentOrgsNoAuthz(
+      Collection<? extends Owner> owners,
+      Map<String, Organization> knownParentOrgs)
+  {
+    if (CollectionUtils.isEmpty(owners)) {
+      return Collections.emptyMap();
+    }
+
+    Map<String, Organization> parentOrgs = MapUtils.isNotEmpty(knownParentOrgs) ? knownParentOrgs : new HashMap<>();
+    owners.forEach(owner -> fillAllParentOrgs(owner, parentOrgs));
+    return parentOrgs;
+  }
+
+  private void deleteOrganizationIconFolder(Organization organization) {
     File organizationIconDirectory = new File(work.getOrganizationIconDir(), organization.getId());
     try {
       fileCleaner.delete(organizationIconDirectory);
     }
     catch (IOException e) {
-      log.error("Could not delete organization icons: {}" + organizationIconDirectory, e);
+      log.error("Could not delete organization icon: {}" + organizationIconDirectory, e);
     }
-
-    // delete organization last, this way the operation can be retried later if anything goes wrong
-    organizationDAO.delete(tx, organization);
-
-    log.info("Deleted organization '{}' with id {}.", organization.getName(), organization.getId());
   }
 }

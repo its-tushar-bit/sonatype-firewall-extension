@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.elements.componentdetails;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ElementsCollection;
@@ -13,7 +14,7 @@ import com.codeborne.selenide.ElementsCollection;
 public class ManageLabelsContentTab
     extends BasicElement<ManageLabelsContentTab>
 {
-  public enum RepositoryComponentLabelsScopes 
+  public enum RepositoryComponentLabelsScopes
   {
     ROOT_ORGANIZATION,
     ALL_REPOSITORIES,
@@ -59,8 +60,13 @@ public class ManageLabelsContentTab
       return children(".nx-radio-checkbox");
     }
 
-    public SelenideElement labelsScopeRadioButton(int index) {
-      return this.labelsScopesList().get(index);
+    public NxFormSelect labelsScopesDropdown() {
+      return new NxFormSelect("#iq-apply-label-scope");
+    }
+
+    public SelenideElement labelsScope(int index) {
+      NxFormSelect dropdown = labelsScopesDropdown();
+      return dropdown.listItem(index);
     }
 
     public SelenideElement submitButton() {

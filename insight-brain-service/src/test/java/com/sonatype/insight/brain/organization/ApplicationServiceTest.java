@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.organization;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -80,8 +81,8 @@ public class ApplicationServiceTest
   @Before
   public void before() {
     org = tempEntity.newOrganization();
-    app1 = tempEntity.newApplication(org.getId());
-    app2 = tempEntity.newApplicationWithParent("app2");
+    app1 = tempEntity.newApplication("Application 1", "app1", org.getId());
+    app2 = tempEntity.newApplicationWithParent("app2", "Application 2");
   }
 
   @Test
@@ -516,6 +517,27 @@ public class ApplicationServiceTest
   public void testGetParentOrganizationsForApplicationsNoAuthz_Empty() {
     Set<Organization> orgs = applicationService.getParentOrganizationsForApplicationsNoAuthz(Collections.emptyList());
     assertThat(orgs).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsOrderedByName() {
+    tempEntity.newApplicationWithParent("application-1", "Application Z1");
+    tempEntity.newApplicationWithParent("application-2", "Application A3");
+    tempEntity.newApplicationWithParent("application-3", "Application A2");
+    tempEntity.newApplicationWithParent("application-4", "Application A1");
+    tempEntity.newApplicationWithParent("application-5", "Application M1");
+
+    assertThat(applicationService.getApplicationsOrderedByName().stream().map(a -> a.getName())).isEqualTo(
+        Arrays.asList(
+            "Application 1",
+            "Application 2",
+            "Application A1",
+            "Application A2",
+            "Application A3",
+            "Application M1",
+            "Application Z1"
+        )
+    );
   }
 
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {

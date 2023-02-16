@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { prop } from 'ramda';
+import { prop, has } from 'ramda';
 import {
   selectRouterCurrentParams,
   selectApplicationId,
@@ -27,6 +27,7 @@ export const selectSelectedOwnerName = createSelector(
   }
 );
 export const selectSelectedOwnerId = createSelector(selectSelectedOwner, prop('id'));
+export const selectSelectedOwnerParentId = createSelector(selectSelectedOwner, prop('parentOrganizationId'));
 
 export const selectPoliciesByOwner = createSelector(selectRootSlice, prop('policiesByOwner'));
 
@@ -45,3 +46,8 @@ export const selectEntityId = createSelector(
   selectApplicationId,
   (isOrganization, isApplication, orgId, appId) => (isApplication ? appId : isOrganization ? orgId : 'global')
 );
+
+export const selectSelectedOwnerTypeAndId = createSelector(selectSelectedOwner, (owner) => ({
+  ownerType: has('publicId', owner) ? 'application' : 'organization',
+  ownerId: owner?.id,
+}));

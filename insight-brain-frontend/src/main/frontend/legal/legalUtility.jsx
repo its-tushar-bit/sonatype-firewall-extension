@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { findIndex, propEq } from 'ramda';
+import { findIndex, propEq, slice } from 'ramda';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faGlobe, faSitemap, faTerminal, faCube, faCaretSquareRight } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
@@ -18,7 +18,8 @@ export function isScopeOverride(originalOwnerId, ownerId, availableScopeValues) 
 }
 
 export function createSubtitle(availableScopes, component) {
-  let availableScopeValuesReversed = (availableScopes && availableScopes.values && [...availableScopes.values]) || [];
+  let availableScopeValuesReversed =
+    (availableScopes && availableScopes.values && slice(0, 2, availableScopes.values)) || [];
   availableScopeValuesReversed.reverse();
   if (availableScopeValuesReversed.length > 1) {
     availableScopeValuesReversed = availableScopeValuesReversed.filter((obj) => obj.id !== 'ROOT_ORGANIZATION_ID');

@@ -7,11 +7,14 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -312,7 +315,7 @@ public class SourceControlDAOTest
         .setStatusChecksEnabled(null)
         .build();
 
-    sourceControlDAO.insert(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
 
     SourceControl persistedSourceControl = sourceControlDAO.getById(sourceControl.getId());
     assertThat(persistedSourceControl.getRemediationPullRequestsEnabled()).isTrue();
@@ -444,7 +447,7 @@ public class SourceControlDAOTest
             .setStatusChecksEnabled(true).build();
 
     assertThat(sourceControl.getId()).isNull();
-    sourceControlDAO.insert(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
     assertThat(sourceControl.getId()).isNotNull();
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
@@ -484,7 +487,7 @@ public class SourceControlDAOTest
             .setBaseBranch("base/branch").build();
 
     assertThat(sourceControl.getId()).isNull();
-    sourceControlDAO.insert(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
     assertThat(sourceControl.getId()).isNotNull();
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
@@ -524,7 +527,7 @@ public class SourceControlDAOTest
     assertThat(sourceControl.getRemediationPullRequestsEnabled()).isNull();
     assertThat(sourceControl.getStatusChecksEnabled()).isNull();
 
-    sourceControlDAO.insert(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
 
     assertThat(sourceControl.getId()).isNotNull();
     assertThat(sourceControl.getBaseBranch()).isNull();
@@ -555,14 +558,14 @@ public class SourceControlDAOTest
   public void testInsert_ProviderFromOrganization() {
     createRootOrgWithGitHubProvider();
     tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
-    sourceControlDAO.insert(
+    tempEntity.newSourceControl(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).build());
   }
 
   @Test
   public void testInsert_ProviderFromRootOrganization() {
     tempEntity.newSourceControl(org.getParentOrganizationId(), null, "token", SourceControlProvider.GITHUB);
-    sourceControlDAO.insert(
+    tempEntity.newSourceControl(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).build());
   }
 
@@ -580,7 +583,7 @@ public class SourceControlDAOTest
     createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("TOKEN").build();
-    sourceControlDAO.insert(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
     sourceControl.setProvider(null);
     sourceControl.setToken(null);
     sourceControlDAO.update(sourceControl);
@@ -592,7 +595,7 @@ public class SourceControlDAOTest
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("TOKEN")
             .build();
-    sourceControlDAO.insert(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
     sourceControl.setProvider(null);
     sourceControl.setToken(null);
     sourceControlDAO.delete(root);
@@ -607,7 +610,7 @@ public class SourceControlDAOTest
         .setOwnerId(app.getId())
         .setRepositoryUrl(VALID_URL)
         .build();
-    sourceControlDAO.insert(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
     sourceControl.setProvider(GITLAB);
     sourceControlDAO.update(sourceControl);
     sourceControl.setToken("token");
@@ -627,16 +630,11 @@ public class SourceControlDAOTest
     createRootOrgWithGitHubProvider();
     // create a few sample entries
     SourceControl scApp1 = buildAppSourceControl(app.getId(), 1, null);
-    sourceControlDAO.insert(scApp1);
-
     SourceControl scApp2 = buildAppSourceControlAndApp(org, 2, null);
-    sourceControlDAO.insert(scApp2);
-
     SourceControl scApp3 = buildAppSourceControlAndApp(org, 3, null);
-    sourceControlDAO.insert(scApp3);
 
     // create source control entries for organizations which will not have repository URLs set
-    sourceControlDAO.insert(buildOrgSourceControl(org.getId(), null));
+    buildOrgSourceControl(org.getId(), null);
 
     assertThat(sourceControlDAO.getByApplication())
         .hasSize(3).extracting(SourceControl::getId)
@@ -646,40 +644,32 @@ public class SourceControlDAOTest
   @Test
   public void testGetApplicationsWithPullReqsEnabled_enabledAtRoot() {
     // create SCM entry at root, with PR enabled flag set
-    SourceControl rootSourceControl = buildOrgSourceControl(Organization.ROOT_ORGANIZATION_ID, true);
-    rootSourceControl.setProvider(SourceControlProvider.GITHUB);
-    rootSourceControl.setBaseBranch("master");
-    sourceControlDAO.insert(rootSourceControl);
+    buildOrgSourceControl(Organization.ROOT_ORGANIZATION_ID, true);
 
-    // create a few child orgs of root
+    // create a NULL PR org under root org
     Organization orgNullPrs = tempEntity.newOrganization();
-    Organization orgNoPrs = tempEntity.newOrganization();
+    buildOrgSourceControl(orgNullPrs.getId(), null);
 
-    sourceControlDAO.insert(buildOrgSourceControl(orgNullPrs.getId(), null));
-
-    sourceControlDAO.insert(buildOrgSourceControl(orgNoPrs.getId(), false));
+    // create a NO(false) PR org under the NULL PR org
+    Organization orgNoPrs = tempEntity.newOrganization(orgNullPrs);
+    buildOrgSourceControl(orgNoPrs.getId(), false);
 
     // enabled at app level, disabled at org level => enabled
-    SourceControl scEnabledAtAppDisabledAtOrg = buildAppSourceControlAndApp(orgNoPrs, 2, true);
-    sourceControlDAO.insert(scEnabledAtAppDisabledAtOrg);
+    SourceControl scEnabledAtAppDisabledAtOrg = buildAppSourceControlAndApp(orgNoPrs, 5, true);
 
     // default at app level, default org level, enabled root => enabled
-    SourceControl scDefaultAppDefaultOrg = buildAppSourceControlAndApp(orgNullPrs, 3, null);
-    sourceControlDAO.insert(scDefaultAppDefaultOrg);
+    SourceControl scDefaultAppDefaultOrg = buildAppSourceControlAndApp(orgNullPrs, 6, null);
 
     // default at app level, disabled org level => not enabled
-    SourceControl scDefaultAppDisabledOrg = buildAppSourceControlAndApp(orgNoPrs, 4, false);
-    sourceControlDAO.insert(scDefaultAppDisabledOrg);
+    buildAppSourceControlAndApp(orgNoPrs, 7, false);
 
     // create entries at the application level without the enable PR flag set. Use null & explicitly enable
     SourceControl scDefault = buildAppSourceControl(app.getId(), 1, null);
-    sourceControlDAO.insert(scDefault);
     SourceControl scExplicitlyEnabled = buildAppSourceControlAndApp(org, 2, true);
-    sourceControlDAO.insert(scExplicitlyEnabled);
 
     // create application entries that are explicitly disabled
-    sourceControlDAO.insert(buildAppSourceControlAndApp(org, 3, false));
-    sourceControlDAO.insert(buildAppSourceControlAndApp(org, 4, false));
+    buildAppSourceControlAndApp(org, 3, false);
+    buildAppSourceControlAndApp(org, 4, false);
 
     Collection<SourceControl> enabledApplications =
         sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled();
@@ -691,33 +681,30 @@ public class SourceControlDAOTest
   @Test
   public void testGetApplicationsWithRemediationPullRequestsEnabled_enabledAtOrgAndApp() {
     createRootOrgWithGitHubProvider();
-    // create SCM entries for organizations, with PR enabled flag set
+
+    // create a NULL PR org under root org
     Organization orgNullPrs = tempEntity.newOrganization();
-    Organization orgNoPrs = tempEntity.newOrganization();
+    buildOrgSourceControl(orgNullPrs.getId(), null);
+
+    // create a NO(false) PR org under the NULL PR org
+    Organization orgNoPrs = tempEntity.newOrganization(orgNullPrs);
+    buildOrgSourceControl(orgNoPrs.getId(), false);
+
+    // create an org under root, with PR enabled flag set
     Organization orgEnabledPrs = tempEntity.newOrganization();
-
-    sourceControlDAO.insert(buildOrgSourceControl(orgEnabledPrs.getId(), true));
-
-    // null for enabled defaults to true
-    sourceControlDAO.insert(buildOrgSourceControl(orgNullPrs.getId(), null));
-
-    sourceControlDAO.insert(buildOrgSourceControl(orgNoPrs.getId(), false));
+    buildOrgSourceControl(orgEnabledPrs.getId(), true);
 
     // null at app level, enabled at org level => enabled
     SourceControl scEnabledAtOrg = buildAppSourceControlAndApp(orgEnabledPrs, 1, null);
-    sourceControlDAO.insert(scEnabledAtOrg);
 
     // enabled at app level, disabled at org level => enabled
     SourceControl scEnabledAtAppDisabledAtOrg = buildAppSourceControlAndApp(orgNoPrs, 2, true);
-    sourceControlDAO.insert(scEnabledAtAppDisabledAtOrg);
 
     // default at app level, default org level => not enabled
     SourceControl scDefaultAppDefaultOrg = buildAppSourceControlAndApp(orgNullPrs, 3, null);
-    sourceControlDAO.insert(scDefaultAppDefaultOrg);
 
     // default at app level, disabled org level => not enabled
-    SourceControl scDefaultAppDisabledOrg = buildAppSourceControlAndApp(orgNoPrs, 4, false);
-    sourceControlDAO.insert(scDefaultAppDisabledOrg);
+    buildAppSourceControlAndApp(orgNoPrs, 4, false);
 
     Collection<SourceControl> enabledApplications =
         sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled();
@@ -737,19 +724,35 @@ public class SourceControlDAOTest
   }
 
   private SourceControl buildAppSourceControl(String ownerId, int appNumber, Boolean remediationPullRequestsEnabled) {
-    return new SourceControl.Builder()
+    return buildAppSourceControl(ownerId, appNumber, remediationPullRequestsEnabled, null);
+  }
+
+  private SourceControl buildAppSourceControl(
+      String ownerId,
+      int appNumber,
+      Boolean remediationPullRequestsEnabled,
+      String token)
+  {
+    SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(ownerId)
         .setRepositoryUrl("http://localhost/owner/app" + appNumber)
         .setRemediationPullRequestsEnabled(remediationPullRequestsEnabled)
+        .setToken(token)
         .build();
+    return tempEntity.newSourceControl(sourceControl);
   }
 
   private SourceControl buildOrgSourceControl(String ownerId, Boolean remediationPullRequestsEnabled) {
-    return new SourceControl.Builder()
+    SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(ownerId)
         .setToken("token")
         .setRemediationPullRequestsEnabled(remediationPullRequestsEnabled)
         .build();
+    if (Organization.ROOT_ORGANIZATION_ID.equals(ownerId)) {
+      sourceControl.setProvider(GITHUB);
+      sourceControl.setBaseBranch("main");
+    }
+    return tempEntity.newSourceControl(sourceControl);
   }
 
   @Test
@@ -772,7 +775,7 @@ public class SourceControlDAOTest
         .setStatusChecksEnabled(false)
         .build();
 
-    sourceControlDAO.insert(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
 
     SourceControl persistedSourceControl = sourceControlDAO.getById(sourceControl.getId());
     assertThat(persistedSourceControl.getRemediationPullRequestsEnabled()).isFalse();
@@ -796,7 +799,7 @@ public class SourceControlDAOTest
         .setBaseBranch("master")
         .build();
 
-    sourceControlDAO.insert(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
 
     SourceControl persistedSourceControl = sourceControlDAO.getById(sourceControl.getId());
     persistedSourceControl.setBaseBranch(null);
@@ -817,14 +820,14 @@ public class SourceControlDAOTest
 
   @Test
   public void testCreate_OrganizationWithProvider() {
-    sourceControlDAO.insert(
+    tempEntity.newSourceControl(
         new SourceControl.Builder().setOwnerId(org.getId()).setProvider(SourceControlProvider.GITHUB).build());
     assertThat(sourceControlDAO.getByOwnerId(org.getId()).getProvider()).isEqualTo(SourceControlProvider.GITHUB);
   }
 
   @Test
   public void testCreate_ApplicationWithProvider() {
-    sourceControlDAO.insert(
+    tempEntity.newSourceControl(
         new SourceControl.Builder()
             .setOwnerId(app.getId())
             .setProvider(SourceControlProvider.GITHUB)
@@ -836,7 +839,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_OrganizationWithProvider() {
-    sourceControlDAO.insert(
+    tempEntity.newSourceControl(
         new SourceControl.Builder().setOwnerId(org.getId()).setProvider(SourceControlProvider.GITHUB).build());
     assertThat(sourceControlDAO.getByOwnerId(org.getId()).getProvider()).isEqualTo(GITHUB);
   }
@@ -852,7 +855,7 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_ApplicationWithProvider() {
-    sourceControlDAO.insert(
+    tempEntity.newSourceControl(
         new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
             .setRepositoryUrl("http://localhost:1234/org/repo").build());
     assertThat(sourceControlDAO.getByOwnerId(app.getId()).getProvider()).isEqualTo(GITHUB);
@@ -862,7 +865,6 @@ public class SourceControlDAOTest
   public void testUpdatePollTimeAndErrorCounts() {
     createRootOrgWithGitHubProvider();
     SourceControl scApp1 = buildAppSourceControl(app.getId(), 1, true);
-    sourceControlDAO.insert(scApp1);
 
     Date now = new Date();
     sourceControlDAO.updatePollTimeAndErrorCounts(scApp1.getId(), now, 5);
@@ -887,30 +889,22 @@ public class SourceControlDAOTest
     // and several apps with SC entries in the initial org
     Application app1a = tempEntity.newApplication("my-app-1", org.getId());
     SourceControl scApp1a = buildAppSourceControl(app1a.getId(), 1, null);
-    scApp1a.setRepositoryUrl("https://myhost.com/org/app-1");
-    sourceControlDAO.insert(scApp1a);
 
     Application app1b = tempEntity.newApplication("my-app-2", org.getId());
     SourceControl scApp1b = buildAppSourceControl(app1b.getId(), 2, null);
-    scApp1b.setRepositoryUrl("https://myhost.com/org/app-2");
-    sourceControlDAO.insert(scApp1b);
 
     // define a token, so should be excluded from search results
     Application app1c = tempEntity.newApplication("my-app-3", org.getId());
-    SourceControl scApp1c = buildAppSourceControl(app1c.getId(), 3, null);
-    scApp1c.setRepositoryUrl("https://myhost.com/org/app-3");
-    scApp1c.setToken("sample-token");
-    sourceControlDAO.insert(scApp1c);
+    buildAppSourceControl(app1c.getId(), 3, null, "sample-token");
 
-    // and several SC entries for another org
+    // and several SC entries for another org / sub-org hierarchy
     Organization org2 = tempEntity.newOrganization();
     Application app2a = tempEntity.newApplication("my-app-2-1", org2.getId());
     SourceControl scApp2a = buildAppSourceControl(app2a.getId(), 1, null);
-    sourceControlDAO.insert(scApp2a);
 
-    Application app2b = tempEntity.newApplication("my-app-2-2", org2.getId());
+    Organization org21 = tempEntity.newOrganization(org2);
+    Application app2b = tempEntity.newApplication("my-app-2-2", org21.getId());
     SourceControl scApp2b = buildAppSourceControl(app2b.getId(), 2, null);
-    sourceControlDAO.insert(scApp2b);
 
     // then we get the SC entries for the first org
     assertThat(sourceControlDAO.getApplicationSourceControlsByOrganizationWithRepositories(org.getId()))
@@ -924,52 +918,38 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetApplicationSourceControlsWithRepositoriesAndDefaultToken() {
-    // given a root org with github as a provider
-    createRootOrgWithGitHubProvider();
-    // and an app with a SC entry in the initial org
-    Application app1a = tempEntity.newApplication("my-app-1", org.getId());
-    SourceControl scApp1a = buildAppSourceControl(app1a.getId(), 1, null);
-    scApp1a.setRepositoryUrl("https://myhost.com/org/app-1");
-    sourceControlDAO.insert(scApp1a);
-
-    // given an org with a custom token
-    Organization orgCustom = tempEntity.newOrganization("custom");
-    sourceControlDAO.insert(new SourceControl.Builder()
-        .setOwnerId(orgCustom.getId())
-        .setToken("token")
-        .build()
-    );
-
-    // and given an app with a custom token
-    sourceControlDAO.insert(new SourceControl.Builder()
-        .setOwnerId(app.getId())
-        .setRepositoryUrl("https://mhost.com/org/custom-token-app")
-        .setToken("app-token")
-        .build()
-    );
-
-    // given an app with a custom repo URL
-    Application appCustom = tempEntity.newApplication(orgCustom.getId());
-    SourceControl scAppCustom = new SourceControl.Builder()
-        .setOwnerId(appCustom.getId())
-        .setRepositoryUrl("http://example.com/owner/app")
+  public void testGetApplicationSourceControlsWithInheritedCredentials() {
+    new TestableHierarchy()
+        // app1 with a custom token in its hierarchy
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "org1", "org2", "app1")
+        .withProvider(GITLAB, null, null, null)
+        .withToken("rootToken", null, "org2.token", null)
+        .withDefaultBranch("rootBranch", null, null, null)
+        .withRepositoryUrl("https://localhost:123/repo/app1", "https://localhost:123/repo/app1")
+        // app 2 with custom provider
+        .branchFrom("org1", "org3", "app2")
+        .withRepositoryUrl("https://localhost:123/repo/app2", "https://localhost:123/repo/app2")
+        .withProvider(null, GITHUB)
+        // app 3 with custom token
+        .branchFrom("org3", "org4", "app3")
+        .withRepositoryUrl("https://localhost:123/repo/app3", "https://localhost:123/repo/app3")
+        .withToken(null, "app3.token")
+        // app 4 with with no credential customizations in its hierarchy
+        .branchFrom("org4", "app4")
+        .withRepositoryUrl("https://localhost:123/repo/app4", "https://localhost:123/repo/app4")
+        // app 5 with no custom providers or tokens in the hierarchy
+        .branchFrom("org4", "app5")
+        .withRepositoryUrl("https://localhost:123/repo/app5", "https://localhost:123/repo/app5")
         .build();
-    sourceControlDAO.insert(scAppCustom);
 
-    // and given an app with a custom provider and token
-    Application appCustomProvider = tempEntity.newApplication(orgCustom.getId());
-    tempEntity
-        .newSourceControl(appCustomProvider.getId(), "http://localhost:1234/org/appCustomProvider", "token", GITLAB);
-
-    // when we get applications with only the default token
-    List<SourceControl> appsWithDefaultTokens =
+    // when we try to get applications with only the default token
+    List<SourceControl> appsWithDefaultInheritedCredentials =
         sourceControlDAO.getApplicationSourceControlsWithInheritedCredentials();
 
     // then it doesn't contain the apps with custom tokens or with orgs that have custom tokens
-    assertThat(appsWithDefaultTokens)
-        .extracting(SourceControl::getId)
-        .containsOnly(scApp1a.getId());
+    assertThat(appsWithDefaultInheritedCredentials)
+        .extracting(SourceControl::getOwnerId)
+        .containsOnly("app4", "app5");
   }
 
   @Test
@@ -999,8 +979,8 @@ public class SourceControlDAOTest
     Application appGitlabCustom = tempEntity.newApplication(orgGitlab.getId());
     tempEntity.newSourceControl(appGitlabCustom.getId(), "http://localhost:2233/gl/app-custom", "token", null);
 
-    // given org with gitlab as a provider and no credentials
-    Organization orgGitlabDefaults = tempEntity.newOrganization();
+    // given org with gitlab as a provider and no credentials UNDER orgGitlab
+    Organization orgGitlabDefaults = tempEntity.newOrganization(orgGitlab);
     tempEntity.newSourceControl(orgGitlabDefaults.getId(), null, null, GITLAB);
 
     // given an app which provides credentials
@@ -1184,7 +1164,7 @@ public class SourceControlDAOTest
   public void testGetCompositeSourceControlByApplicationId_inheritFromRoot() {
     // given: a hierarch with everything inheriting from root
     TestableHierarchy testableHierarchy = new TestableHierarchy()
-        .withOrgAndApp("orgId", "appComposite")
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
         .withProvider(GITLAB, null, null)
         .withToken("rootToken", null, null)
         .withDefaultBranch("trunk", null, null)
@@ -1196,16 +1176,50 @@ public class SourceControlDAOTest
         .withStatusChecks(false, null, null)
         .build();
 
-    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(testableHierarchy.appId);
+    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(
+        testableHierarchy.getApplication("appComposite").getId()
+    );
 
-    assertSourceControl(appSourceControl, testableHierarchy.collatedSourceControl);
+    assertSourceControl(
+        appSourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId())
+    );
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByApplicationId_inheritFromIntermediaryOrg() {
+    // given: a hierarch with everything inheriting from an intermediary org
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "org1", "org2", "org3", "appComposite")
+        .withProvider(GITLAB, null, GITHUB, null, null)
+        .withToken("rootToken", null, "org2.token", null, null)
+        .withDefaultBranch("trunk", null, "main", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, null, true, null, null)
+        .withRemediationPullRequests(true, null, false, null, null)
+        .withSourceControlEvaluations(false, null, true, null, null)
+        .withSsh(false, null, true, null, null)
+        .withStatusChecks(false, null, true, null, null)
+        .branchFrom("org2", "org4", "app2")
+        .withRepositoryUrl("https://test.sonatype.com/app/2", "ssh://test.sonatype.com/app/2.git")
+        .withToken("org4.token", null)
+        .build();
+
+    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(
+        testableHierarchy.getApplication("appComposite").getId()
+    );
+
+    assertSourceControl(
+        appSourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId())
+    );
   }
 
   @Test
   public void testGetCompositeSourceControlByApplicationId_inheritFromOrg() {
     // given: a hierarch with everything inheriting from parent org
     TestableHierarchy testableHierarchy = new TestableHierarchy()
-        .withOrgAndApp("orgId", "appComposite")
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
         .withProvider(GITLAB, GITHUB, null)
         .withToken("rootToken", "gh-token", null)
         .withDefaultBranch("trunk", "main", null)
@@ -1217,16 +1231,21 @@ public class SourceControlDAOTest
         .withStatusChecks(false, true, null)
         .build();
 
-    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(testableHierarchy.appId);
+    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(
+        testableHierarchy.getApplication("appComposite").getId()
+    );
 
-    assertSourceControl(appSourceControl, testableHierarchy.collatedSourceControl);
+    assertSourceControl(
+        appSourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId())
+    );
   }
 
   @Test
   public void testGetCompositeSourceControlByApplicationId_overrideAll() {
     // given: a hierarch with everything overridden in the app source control
     TestableHierarchy testableHierarchy = new TestableHierarchy()
-        .withOrgAndApp("orgId", "appComposite")
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
         .withProvider(GITLAB, GITHUB, GITLAB)
         .withToken("rootToken", "gh-token", "gl-token")
         .withDefaultBranch("trunk", "main", "develop")
@@ -1238,9 +1257,14 @@ public class SourceControlDAOTest
         .withStatusChecks(false, null, true)
         .build();
 
-    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(testableHierarchy.appId);
+    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(
+        testableHierarchy.getApplication("appComposite").getId()
+    );
 
-    assertSourceControl(appSourceControl, testableHierarchy.collatedSourceControl);
+    assertSourceControl(
+        appSourceControl,
+        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId())
+    );
   }
 
   @Test
@@ -1399,6 +1423,29 @@ public class SourceControlDAOTest
   }
 
   @Test
+  public void testGetCompositeSourceControlForOutdatedSourceScans_upToDateSourcePolicyEvaluations_nLevelOrgs() {
+    // given: application with up to date policy evaluation
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS - 1));
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization(org1);
+    Application app1 = tempEntity.newApplication(org2.getId());
+
+    tempEntity.newSourceControl(app1.getId(), "http://a.com/org/repo", null);
+    tempEntity.newPolicyEvaluation(app1.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    // when: fetching applications with outdated source control policy evaluation
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is ignored
+    assertThat(sourceControlList).isNotNull();
+    assertThat(sourceControlList.size()).isZero();
+  }
+
+  @Test
   public void testGetCompositeSourceControlForOutdatedSourceScans_ignoreSourceControlScannedByCI() {
     // given: application with outdated policy evaluation
     LocalDateTime now = LocalDateTime.now();
@@ -1406,6 +1453,28 @@ public class SourceControlDAOTest
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123", ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // when: fetching applications with outdated source control policy evaluation
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is ignored
+    assertThat(sourceControlList.size()).isZero();
+  }
+
+  @Test
+  public void testGetCompositeSourceControlForOutdatedSourceScans_ignoreSourceControlScannedByCI_nLevelOrgs() {
+    // given: application with outdated policy evaluation
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization(org1);
+    Application app1 = tempEntity.newApplication(org2.getId());
+
+    tempEntity.newSourceControl(app1.getId(), "http://a.com/org/repo", null);
+    tempEntity.newPolicyEvaluation(app1.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
         "commitHash123", ScanTriggerType.CONTINUOUS_INTEGRATION);
 
     // when: fetching applications with outdated source control policy evaluation
@@ -1486,134 +1555,174 @@ public class SourceControlDAOTest
 
   private class TestableHierarchy
   {
-    private final SourceControl collatedSourceControl = new SourceControl();
+    private final List<SourceControl> sourceControlList = new ArrayList<>();
 
-    private SourceControl rootOrgSourceControl = new SourceControl();
+    private final Map<String, SourceControl> sourceControlMap = new HashMap<>();
 
-    private SourceControl orgSourceControl = new SourceControl();
+    private final Map<String, String> childParentMap = new HashMap<>();
 
-    private SourceControl appSourceControl = new SourceControl();
+    private final Map<String, Application> applicationMap = new HashMap<>();
 
-    private String appId;
+    private SourceControl currentAppSourceControl;
 
-    private TestableHierarchy withOrgAndApp(String orgId, String appName) {
-      Organization org = tempEntity.newOrganizationWithSpecificId(orgId, orgId);
-      Application app = tempEntity.newApplication(appName, appName, orgId);
-      appId = app.getId();
-      rootOrgSourceControl.setOwnerId(ROOT_ORGANIZATION_ID);
-      orgSourceControl.setOwnerId(org.getId());
-      appSourceControl.setOwnerId(appId);
-      collatedSourceControl.setOwnerId(appId);
+    private int hierarchyDepth;
 
+    private int offset = 0;
+
+    private Application getApplication(String applicationId) {
+      return applicationMap.get(applicationId);
+    }
+
+    private SourceControl getSourceControl(int relativeIndex) {
+      return sourceControlList.get(offset + relativeIndex);
+    }
+
+    private void setupHierarchy(String parent, String... ownerIds) {
+      String currentParent = parent;
+      for (String ownerId : ownerIds) {
+        childParentMap.put(ownerId, currentParent);
+        currentParent = ownerId;
+      }
+    }
+
+    private TestableHierarchy branchFrom(String orgId, String... ownerIds) {
+      setupHierarchy(orgId, ownerIds);
+      offset = sourceControlList.size();
+      hierarchyDepth = ownerIds.length;
+      addOrgsAndApp(orgId, ownerIds);
+      return this;
+    }
+
+    private TestableHierarchy with_N_OrgsAndAnApp(String... ownerIds) {
+      assertThat(ROOT_ORGANIZATION_ID).isEqualTo(ownerIds[0]);
+      hierarchyDepth = ownerIds.length;
+      setupHierarchy(null, ownerIds);
+
+      SourceControl sc = new SourceControl();
+      sc.setOwnerId(ROOT_ORGANIZATION_ID);
+      sourceControlList.add(sc);
+      sourceControlMap.put(ROOT_ORGANIZATION_ID, sc);
+
+      return addOrgsAndApp(ROOT_ORGANIZATION_ID, Arrays.copyOfRange(ownerIds, 1, ownerIds.length));
+    }
+
+    private TestableHierarchy addOrgsAndApp(String parentOwnerId, String... ownerIds) {
+      for (int i = 0; i < ownerIds.length - 1; i++) {
+        Organization org = tempEntity.newOrganizationWithSpecificIdAndParent(ownerIds[i], ownerIds[i], parentOwnerId);
+
+        SourceControl sc = new SourceControl();
+        sc.setOwnerId(org.getId());
+        sourceControlList.add(sc);
+        sourceControlMap.put(org.getId(), sc);
+
+        parentOwnerId = ownerIds[i];
+      }
+      String applicationId = ownerIds[ownerIds.length - 1];
+      Application app =
+          tempEntity.newApplicationWithSpecificId(applicationId, applicationId, applicationId, parentOwnerId);
+      applicationMap.put(applicationId, app);
+      currentAppSourceControl = new SourceControl();
+      currentAppSourceControl.setOwnerId(app.getId());
+      sourceControlList.add(currentAppSourceControl);
+      sourceControlMap.put(app.getId(), currentAppSourceControl);
       return this;
     }
 
     private TestableHierarchy withRepositoryUrl(String repositoryUrl, String sshUrl) {
-      appSourceControl.setRepositoryUrl(repositoryUrl);
-      appSourceControl.setRepositorySshUrl(sshUrl);
-      collatedSourceControl.setRepositoryUrl(repositoryUrl);
-      collatedSourceControl.setRepositorySshUrl(sshUrl);
-
+      currentAppSourceControl.setRepositoryUrl(repositoryUrl);
+      currentAppSourceControl.setRepositorySshUrl(sshUrl);
       return this;
     }
 
-    private TestableHierarchy withProvider(
-        SourceControlProvider rootProvider,
-        SourceControlProvider orgProvider,
-        SourceControlProvider appProvider)
-    {
-      rootOrgSourceControl.setProvider(rootProvider);
-      orgSourceControl.setProvider(orgProvider);
-      appSourceControl.setProvider(appProvider);
-      collatedSourceControl.setProvider(resolve(rootProvider, orgProvider, appProvider));
-
+    private TestableHierarchy withProvider(SourceControlProvider... providers) {
+      assertHierarchyDepth(providers.length);
+      for (int i = 0; i < providers.length; i++) {
+        getSourceControl(i).setProvider(providers[i]);
+      }
       return this;
     }
 
-    private TestableHierarchy withToken(String rootToken, String orgToken, String appToken) {
-      rootOrgSourceControl.setToken(rootToken);
-      orgSourceControl.setToken(orgToken);
-      appSourceControl.setToken(appToken);
-      collatedSourceControl.setToken(resolve(rootToken, orgToken, appToken));
-
+    private TestableHierarchy withToken(String... tokens) {
+      assertHierarchyDepth(tokens.length);
+      for (int i = 0; i < tokens.length; i++) {
+        getSourceControl(i).setToken(tokens[i]);
+      }
       return this;
     }
 
-    private TestableHierarchy withDefaultBranch(
-        String rootDefaultBranch,
-        String orgDefaultBranch,
-        String appDefaultBranch)
-    {
-      rootOrgSourceControl.setBaseBranch(rootDefaultBranch);
-      orgSourceControl.setBaseBranch(orgDefaultBranch);
-      appSourceControl.setBaseBranch(appDefaultBranch);
-      collatedSourceControl.setBaseBranch(resolve(rootDefaultBranch, orgDefaultBranch, appDefaultBranch));
-
+    private TestableHierarchy withDefaultBranch(String... branches) {
+      assertHierarchyDepth(branches.length);
+      for (int i = 0; i < branches.length; i++) {
+        getSourceControl(i).setBaseBranch(branches[i]);
+      }
       return this;
     }
 
-    private TestableHierarchy withRemediationPullRequests(
-        Boolean rootRemediation,
-        Boolean orgRemediation,
-        Boolean appRemediation)
-    {
-      rootOrgSourceControl.setRemediationPullRequestsEnabled(rootRemediation);
-      orgSourceControl.setRemediationPullRequestsEnabled(orgRemediation);
-      appSourceControl.setRemediationPullRequestsEnabled(appRemediation);
-      collatedSourceControl.setRemediationPullRequestsEnabled(resolve(rootRemediation, orgRemediation, appRemediation));
-
+    private TestableHierarchy withRemediationPullRequests(Boolean... remediationFlags) {
+      assertHierarchyDepth(remediationFlags.length);
+      for (int i = 0; i < remediationFlags.length; i++) {
+        getSourceControl(i).setRemediationPullRequestsEnabled(remediationFlags[i]);
+      }
       return this;
     }
 
-    private TestableHierarchy withPullRequestCommenting(
-        Boolean rootCommenting,
-        Boolean orgCommenting,
-        Boolean appCommenting)
-    {
-      rootOrgSourceControl.setPullRequestCommentingEnabled(rootCommenting);
-      orgSourceControl.setPullRequestCommentingEnabled(orgCommenting);
-      appSourceControl.setPullRequestCommentingEnabled(appCommenting);
-      collatedSourceControl.setPullRequestCommentingEnabled(resolve(rootCommenting, orgCommenting, appCommenting));
-
+    private TestableHierarchy withPullRequestCommenting(Boolean... commentingFlags) {
+      assertHierarchyDepth(commentingFlags.length);
+      for (int i = 0; i < commentingFlags.length; i++) {
+        getSourceControl(i).setPullRequestCommentingEnabled(commentingFlags[i]);
+      }
       return this;
     }
 
-    private TestableHierarchy withSourceControlEvaluations(Boolean rootEvals, Boolean orgEvals, Boolean appEvals) {
-      rootOrgSourceControl.setSourceControlEvaluationsEnabled(rootEvals);
-      orgSourceControl.setSourceControlEvaluationsEnabled(orgEvals);
-      appSourceControl.setSourceControlEvaluationsEnabled(appEvals);
-      collatedSourceControl.setSourceControlEvaluationsEnabled(resolve(rootEvals, orgEvals, appEvals));
-
+    private TestableHierarchy withSourceControlEvaluations(Boolean... sourceControlEvaluationFlags) {
+      assertHierarchyDepth(sourceControlEvaluationFlags.length);
+      for (int i = 0; i < sourceControlEvaluationFlags.length; i++) {
+        getSourceControl(i).setSourceControlEvaluationsEnabled(sourceControlEvaluationFlags[i]);
+      }
       return this;
     }
 
-    private TestableHierarchy withSsh(Boolean rootSsh, Boolean orgSsh, Boolean appSsh) {
-      rootOrgSourceControl.setSshEnabled(rootSsh);
-      orgSourceControl.setSshEnabled(orgSsh);
-      appSourceControl.setSshEnabled(appSsh);
-      collatedSourceControl.setSshEnabled(resolve(rootSsh, orgSsh, appSsh));
-
+    private TestableHierarchy withSsh(Boolean... sshFlags) {
+      assertHierarchyDepth(sshFlags.length);
+      for (int i = 0; i < sshFlags.length; i++) {
+        getSourceControl(i).setSshEnabled(sshFlags[i]);
+      }
       return this;
     }
 
-    private TestableHierarchy withStatusChecks(Boolean rootStatus, Boolean orgStatus, Boolean appStatus) {
-      rootOrgSourceControl.setStatusChecksEnabled(rootStatus);
-      orgSourceControl.setStatusChecksEnabled(orgStatus);
-      appSourceControl.setStatusChecksEnabled(appStatus);
-      collatedSourceControl.setStatusChecksEnabled(resolve(rootStatus, orgStatus, appStatus));
-
+    private TestableHierarchy withStatusChecks(Boolean... statusCheckFlags) {
+      assertHierarchyDepth(statusCheckFlags.length);
+      for (int i = 0; i < statusCheckFlags.length; i++) {
+        getSourceControl(i).setStatusChecksEnabled(statusCheckFlags[i]);
+      }
       return this;
     }
 
-    private <T> T resolve(T rootValue, T orgValue, T appValue) {
-      return appValue != null ? appValue : (orgValue != null ? orgValue : rootValue);
+    private void assertHierarchyDepth(int depth) {
+      assertThat(depth).isEqualTo(hierarchyDepth);
+    }
+
+    private SourceControl getAppSourceControl(String appId) {
+      return sourceControlMap.get(appId);
+    }
+
+    private SourceControl getExpectedCompositeSourceControl(String appId) {
+      SourceControl composite = new SourceControl();
+      SourceControl sc = sourceControlMap.get(appId);
+      SourceControl.coalesce(composite, sc);
+      while (null != (sc = sourceControlMap.get(childParentMap.get(sc.getOwnerId())))) {
+        SourceControl.coalesce(composite, sc);
+      }
+      return composite;
     }
 
     TestableHierarchy build() {
-      rootOrgSourceControl = tempEntity.newSourceControl(rootOrgSourceControl);
-      orgSourceControl = tempEntity.newSourceControl(orgSourceControl);
-      appSourceControl = tempEntity.newSourceControl(appSourceControl);
-      collatedSourceControl.setId(appSourceControl.getId());
+      List<SourceControl> list = new ArrayList<>();
+      for (SourceControl sourceControl : sourceControlList) {
+        list.add(tempEntity.newSourceControl(sourceControl));
+      }
+      sourceControlList.clear();
+      sourceControlList.addAll(list);
 
       return this;
     }

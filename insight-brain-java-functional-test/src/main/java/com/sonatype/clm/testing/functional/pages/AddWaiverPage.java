@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
@@ -66,12 +67,18 @@ public class AddWaiverPage
     return new IqVulnerabilityModal("#vulnerability-details-modal");
   }
 
-  public ElementsCollection availableScopes() {
-    return children(".iq-add-waiver-form__scope .nx-radio");
+  public NxFormSelect availableScopesDropdown() {
+    return new NxFormSelect("#iq-add-waiver-scope");
   }
 
-  public NxRadio scope(int index) {
-    return new NxRadio(this.availableScopes().get(index));
+  public ElementsCollection availableScopes() {
+    NxFormSelect dropdown = availableScopesDropdown();
+    return dropdown.listItems();
+  }
+
+  public SelenideElement scope(int index) {
+    NxFormSelect dropdown = availableScopesDropdown();
+    return dropdown.listItem(index);
   }
 
   public ElementsCollection availableComponents() {

@@ -49,6 +49,8 @@ public class OrganizationResource
 {
   public static final String RESOURCE_PATH = "rest/organization";
 
+  public static final String GET_ORGANIZATION_PATH = "{organizationId}";
+
   public static final String ORGANIZATION_ICON_PATH = ICON_PATH + "/{organizationId}";
 
   public static final String DELETE_ORGANIZATION_PATH = "{organizationId}";
@@ -78,6 +80,13 @@ public class OrganizationResource
     return organizationService.getAll();
   }
 
+  @GET
+  @Path(GET_ORGANIZATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Organization getOrganization(@PathParam("organizationId") final String organizationId) {
+    return organizationService.getOrganization(organizationId);
+  }
+
   /**
    * @since 1.6
    */
@@ -102,7 +111,7 @@ public class OrganizationResource
 
   @Override
   protected String getDefaultIconFilename(String ownerId) {
-    return Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ? 
+    return Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ?
         "defaulticon_root_org.png" : "defaulticon_organization.png";
   }
 

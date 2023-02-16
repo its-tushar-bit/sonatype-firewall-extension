@@ -66,19 +66,21 @@ describe('deleteOwnerActions', () => {
         expect(axios.delete).toHaveBeenCalledTimes(1);
 
         const actions = store.getActions();
-        expect(actions.length).toBe(3);
+        expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'ownerActions/delete/removeOwner/pending',
           'organizations/removeOrganizationFromList',
+          'ownerSideNav/removeOrganizationFromOwnerHierarchy',
           'ownerActions/delete/removeOwner/fulfilled',
         ]);
 
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-        expect(actions.length).toBe(4);
+        expect(actions.length).toBe(5);
         expect(actions).toHaveActionTypesInOrder([
           'ownerActions/delete/removeOwner/pending',
           'organizations/removeOrganizationFromList',
+          'ownerSideNav/removeOrganizationFromOwnerHierarchy',
           'ownerActions/delete/removeOwner/fulfilled',
           'ownerActions/delete/closeModal',
         ]);
@@ -131,19 +133,21 @@ describe('deleteOwnerActions', () => {
         expect(axios.delete).toHaveBeenCalledTimes(1);
 
         const actions = store.getActions();
-        expect(actions.length).toBe(3);
+        expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'ownerActions/delete/removeOwner/pending',
           'applications/removeApplicationFromList',
+          'ownerSideNav/removeApplicationFromOwnerHierarchy',
           'ownerActions/delete/removeOwner/fulfilled',
         ]);
 
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-        expect(actions.length).toBe(4);
+        expect(actions.length).toBe(5);
         expect(actions).toHaveActionTypesInOrder([
           'ownerActions/delete/removeOwner/pending',
           'applications/removeApplicationFromList',
+          'ownerSideNav/removeApplicationFromOwnerHierarchy',
           'ownerActions/delete/removeOwner/fulfilled',
           'ownerActions/delete/closeModal',
         ]);

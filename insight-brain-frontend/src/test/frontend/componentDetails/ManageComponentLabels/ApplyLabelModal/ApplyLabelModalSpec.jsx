@@ -3,9 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxModal, NxStatefulForm, NxRadio, NxSubmitMask } from '@sonatype/react-shared-components';
+
+import { NxModal, NxStatefulForm, NxSubmitMask } from '@sonatype/react-shared-components';
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import ApplyLabelModal from 'MainRoot/componentDetails/ManageComponentLabels/ApplyLabelModal/ApplyLabelModal';
+import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
 
 describe('ApplyLabelModal', () => {
   let getShallow;
@@ -83,8 +85,8 @@ describe('ApplyLabelModal', () => {
     expect(cancelApplyLabelModalMock).toHaveBeenCalled();
   });
 
-  it('renders NxRadio buttons with the correct scope props', () => {
-    const radio = getShallow({
+  it('renders NxFormSelect with the correct scope props', () => {
+    const select = getShallow({
       applicableLabelScopes: [
         {
           children: null,
@@ -94,26 +96,8 @@ describe('ApplyLabelModal', () => {
         },
       ],
       labelScopeToSave: { labelScopeType: 'application', labelScopeId: 'testScopeId' },
-    }).find(NxRadio);
-
-    expect(radio).toHaveProp('value', 'testScopeName');
-    expect(radio).toHaveProp('isChecked', true);
-    expect(radio.text()).toBe('application - testScopeName');
-  });
-
-  it('sets labelScopeToSave upon clicking NxRadio button', () => {
-    const radio = getShallow({
-      applicableLabelScopes: [
-        {
-          children: null,
-          id: 'testScopeId',
-          name: 'testScopeName',
-          type: 'application',
-        },
-      ],
-    }).find(NxRadio);
-    radio.simulate('change');
-    expect(setLabelScopeToSaveMock).toHaveBeenCalledTimes(1);
+    }).find(IqScopeDropdown);
+    expect(select).toExist();
   });
 
   it('sets a validation error if labelScopeToSave has not been set', () => {

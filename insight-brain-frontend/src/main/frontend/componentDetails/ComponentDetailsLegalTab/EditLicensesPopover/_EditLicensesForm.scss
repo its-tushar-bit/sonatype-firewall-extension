@@ -11,10 +11,6 @@
   &__comment .nx-text-input {
     min-height: 200px;
   }
-
-  &__scope-status {
-    @include nx-text-helpers.semi-bold;
-  }
 }
 
 #iq-edit-licenses-form {

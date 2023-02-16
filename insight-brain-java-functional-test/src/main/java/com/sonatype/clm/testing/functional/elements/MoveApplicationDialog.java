@@ -41,7 +41,7 @@ public class MoveApplicationDialog
   }
 
   public SelenideElement okButton() {
-    return $(".nx-btn--secondary");
+    return child(".nx-btn--secondary");
   }
 
   public SelenideElement alertMessage() {

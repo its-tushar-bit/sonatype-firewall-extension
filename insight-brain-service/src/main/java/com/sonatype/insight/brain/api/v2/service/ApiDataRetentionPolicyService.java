@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSuccessMetricsRetentionPolicyDTO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -55,14 +56,18 @@ public class ApiDataRetentionPolicyService
 
   private final DataRetentionPolicyDAO dataRetentionPolicyDAO;
 
+  private final OwnerDAO ownerDAO;
+
   private final ProductLicense productLicense;
 
   @Inject
   public ApiDataRetentionPolicyService(
       DataRetentionPolicyDAO dataRetentionPolicyDAO,
+      OwnerDAO ownerDAO,
       ProductLicense productLicense)
   {
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
+    this.ownerDAO = ownerDAO;
     this.productLicense = productLicense;
   }
 
@@ -89,7 +94,7 @@ public class ApiDataRetentionPolicyService
       DataRetentionPolicy policy = policiesByContext.get(contextId);
       policyDTO.inheritPolicy = policy == null;
       if (policy == null) {
-        policy = dataRetentionPolicyDAO.getByOwnerIdAndContextId(Organization.ROOT_ORGANIZATION_ID, contextId);
+        policy = findPolicyWithParents(organizationId, contextId);
       }
       policyDTO.enablePurging = policy.isPurgingEnabled();
       policyDTO.maxCount = policy.getMaxCount();
@@ -100,8 +105,7 @@ public class ApiDataRetentionPolicyService
     ApiSuccessMetricsRetentionPolicyDTO policyDTO = dto.successMetrics;
     policyDTO.inheritPolicy = policy == null;
     if (policy == null) {
-      policy = dataRetentionPolicyDAO.getByOwnerIdAndContextId(Organization.ROOT_ORGANIZATION_ID,
-          DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
+      policy = findPolicyWithParents(organizationId, DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
     }
     policyDTO.enablePurging = policy.isPurgingEnabled();
     policyDTO.maxAge = ApiAgeDTO.fromDays(policy.getMaxAgeInDays());
@@ -147,6 +151,20 @@ public class ApiDataRetentionPolicyService
       }
       tx.commit();
     }
+  }
+
+  private DataRetentionPolicy findPolicyWithParents(String organizationId, String contextId) {
+    List<String> ownerParentIds = ownerDAO.getOwnerIds(organizationId);
+
+    if (!ownerParentIds.isEmpty() && ownerParentIds.size() > 2) {
+      for (String parentId : ownerParentIds.subList(1, ownerParentIds.size())) {
+        DataRetentionPolicy policy = dataRetentionPolicyDAO.getByOwnerIdAndContextId(parentId, contextId);
+        if (policy != null) {
+          return policy;
+        }
+      }
+    }
+    return dataRetentionPolicyDAO.getByOwnerIdAndContextId(Organization.ROOT_ORGANIZATION_ID, contextId);
   }
 
   private void updateRetentionPolicy(

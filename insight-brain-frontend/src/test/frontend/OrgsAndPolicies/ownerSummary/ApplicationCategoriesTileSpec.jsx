@@ -319,15 +319,11 @@ describe('ApplicationCategoriesTile', () => {
     it('renders empty message when there are no categories assigned', () => {
       selectAppCategoryOwnersSpy.and.returnValue(emptyAppCategoryOwners);
       renderComponent();
-      const categoryLists = screen.getAllByRole('list');
+      const categoryList = screen.getByRole('list');
 
-      expect(categoryLists.length).toBe(2);
-
-      const localEmptyListItem = within(categoryLists[0]).getByRole('listitem');
-      const inheritEmptyListItem = within(categoryLists[1]).getByRole('listitem');
+      const localEmptyListItem = within(categoryList).getByRole('listitem');
 
       expect(localEmptyListItem).toHaveTextContent('No application categories defined');
-      expect(inheritEmptyListItem).toHaveTextContent('No application categories defined');
     });
 
     it('renders correct subtile, content and enabled add category button for root org', () => {

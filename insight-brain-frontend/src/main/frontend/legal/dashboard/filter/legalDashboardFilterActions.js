@@ -15,6 +15,7 @@ import {
 import { Messages } from '../../../utilAngular/CommonServices';
 import { loadResults } from '../legalDashboardActions';
 import { fetchStageTypes } from '../../../stages/stagesActions';
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { filterToJson } from './legalDashboardFilterService';
 import { fetchSavedFilters } from './manageLegalFiltersActions';
 import defaultFilter from './defaultFilter';
@@ -46,6 +47,7 @@ export function loadFilter() {
       axios.get(getLegalDashboardFilters()),
       dispatch(fetchStageTypes('dashboard')),
       dispatch(fetchSavedFilters()),
+      dispatch(ownerSideNavActions.loadOwnerList()),
     ];
 
     return axios

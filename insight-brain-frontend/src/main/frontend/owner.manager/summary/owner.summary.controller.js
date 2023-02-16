@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { propEq, find } from 'ramda';
+import { forEach } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
@@ -23,6 +23,10 @@ import { selectImportPoliciesSlice } from 'MainRoot/OrgsAndPolicies/importPolici
 import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
 import { selectContactSlice } from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSelectors';
 import { selectEvaluateApplicationSlice } from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSelectors';
+import { selectIsDisplayedOrganizationSynthetic } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+
+let promises = [];
 
 export default function OwnerSummaryController(
   $state,
@@ -43,9 +47,9 @@ export default function OwnerSummaryController(
   vm.isRepositoryContainer = CLMContextLocations.isRepositoryContainer();
   vm.stages = undefined;
   vm.doLoad = doLoad;
+  vm.isSyntheticOrg = isSyntheticOrg;
 
-  var siblings,
-    stateIdField = vm.isRepositoryContainer
+  var stateIdField = vm.isRepositoryContainer
       ? 'repositoryContainerId'
       : vm.isApp
       ? 'applicationPublicId'
@@ -61,8 +65,9 @@ export default function OwnerSummaryController(
     loadDashboardStageTypes: stagesActions.loadDashboardStages,
     setSelectedOwner: rootActions.setSelectedOwner,
     setSelectedOwnerContact: rootActions.setSelectedOwnerContact,
-    loadApplications: applicationsActions.loadApplications,
-    loadOrganizations: organizationsActions.loadOrganizations,
+    loadApplication: applicationsActions.loadApplicationById,
+    loadOrganization: organizationsActions.loadOrganizationById,
+    loadApplicationSummary: applicationsActions.loadApplicationSummary,
     loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
     setLoading: ownerSummaryActions.setLoading,
     setLoadError: ownerSummaryActions.setLoadError,
@@ -113,41 +118,52 @@ export default function OwnerSummaryController(
   });
 
   function doLoad() {
+    if (vm.loading) {
+      forEach((promise) => promise.abort(), promises);
+    }
+
+    promises = [];
+
     vm.setLoading(true);
     vm.setLoadError(null);
 
-    const promises = [
-      vm.isApp ? vm.loadApplications(true) : vm.loadOrganizations(true),
+    const entityId = CLMContextLocations.getEntityId();
+
+    promises = [
+      vm.isApp ? vm.loadApplication(entityId) : vm.loadOrganization(entityId),
       vm.loadApplicablePoliciesByOwner(),
     ];
 
     if (vm.isApp) {
       promises.push(vm.loadDashboardStageTypes());
-      promises.push($http.get(CLMLocations.getApplicationSummaryUrl(id)));
+      promises.push(vm.loadApplicationSummary(id));
     }
 
     $q.all(promises)
       .then((results) => {
-        siblings = unwrapResult(results[0]);
-
-        const entityId = CLMContextLocations.getEntityId();
-        const owner = find(propEq(vm.isApp ? 'publicId' : 'id', entityId))(siblings);
+        const owner = unwrapResult(results[0]);
         if (!owner) {
           throw `Could not find an ${type} with ID ${entityId}.`;
         }
         vm.setSelectedOwner(owner);
 
         if (vm.isApp) {
-          vm.applicationSummary = results[3].data;
+          vm.applicationSummary = unwrapResult(results[3]);
           vm.setSelectedOwnerContact(vm.applicationSummary.contact);
         }
+
+        vm.setLoading(false);
       })
       .catch((error) => {
-        vm.setLoadError(error);
-      })
-      .finally(() => {
-        vm.setLoading(false);
+        if (error.name !== 'AbortError') {
+          vm.setLoadError(error);
+          vm.setLoading(false);
+        }
       });
+  }
+
+  function isSyntheticOrg() {
+    return vm.isDisplayedOrganizationSynthetic && !vm.isApplication;
   }
 }
 
@@ -165,6 +181,8 @@ const mapStateToThis = (state) => ({
   isShowSuccessMoveAppModal: selectMoveApplicationSlice(state).isShowSuccessModal,
   isShowSuccessSelectContactModal: selectContactSlice(state).submitMaskState,
   scanId: selectEvaluateApplicationSlice(state).evaluationStatus.scanId,
+  isDisplayedOrganizationSynthetic: selectIsDisplayedOrganizationSynthetic(state),
+  isApplication: selectIsApplication(state),
 });
 
 OwnerSummaryController.$inject = [

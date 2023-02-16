@@ -30,6 +30,7 @@ public class ApiOrganizationAdapterTest
   @Test
   public void testConvert_EntityListToDTO() {
     Organization org = tempEntity.newOrganization();
+    org.setParentOrganizationId("prent-test-id");
     Tag tag = tempEntity.newTag(org.getId());
     List<Tag> tagList = new ArrayList<>();
     tagList.add(tag);
@@ -48,6 +49,7 @@ public class ApiOrganizationAdapterTest
     ApiOrganizationDTO organizationDTO = apiOrganizationListDTO.organizations.get(0);
     assertThat(organizationDTO.id).isEqualTo(org.getId());
     assertThat(organizationDTO.name).isEqualTo(org.getName());
+    assertThat(organizationDTO.parentOrganizationId).isEqualTo("prent-test-id");
     assertThat(organizationDTO.tags).hasSize(1);
 
     ApiTagDTO apiTagDTO = organizationDTO.tags.get(0);
@@ -60,6 +62,7 @@ public class ApiOrganizationAdapterTest
   @Test
   public void testConvert_EntityToDTO() {
     Organization org = tempEntity.newOrganization();
+    org.setParentOrganizationId("prent-test-id");
     Tag tag = tempEntity.newTag(org.getId());
     List<Tag> tagList = new ArrayList<>();
     tagList.add(tag);
@@ -67,6 +70,7 @@ public class ApiOrganizationAdapterTest
     ApiOrganizationDTO organizationDTO = ApiOrganizationAdapter.convert(org, tagList);
     assertThat(organizationDTO.id).isEqualTo(org.getId());
     assertThat(organizationDTO.name).isEqualTo(org.getName());
+    assertThat(organizationDTO.parentOrganizationId).isEqualTo("prent-test-id");
     assertThat(organizationDTO.tags).hasSize(1);
 
     ApiTagDTO apiTagDTO = organizationDTO.tags.get(0);

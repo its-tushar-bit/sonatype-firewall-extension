@@ -36,6 +36,8 @@ function AddSuccessMetricsReport({
   submitError,
   submitMaskState,
   reports,
+  ownersMap,
+  topParentOrganizationId,
 }) {
   useEffect(() => {
     loadOrgsAndApps();
@@ -131,6 +133,8 @@ function AddSuccessMetricsReport({
                 selectedApplications={selectedOrgsAndApps.applications}
                 selectedOrganizations={selectedOrgsAndApps.organizations}
                 id="add-success-metrics-report-orgs-apps-filter"
+                ownersMap={ownersMap}
+                topParentOrganizationId={topParentOrganizationId}
               />
             )}
           </NxFieldset>
@@ -160,6 +164,8 @@ AddSuccessMetricsReport.propTypes = {
   submitError: PropTypes.string,
   submitMaskState: PropTypes.bool,
   reports: PropTypes.array.isRequired,
+  ownersMap: PropTypes.object,
+  topParentOrganizationId: PropTypes.string,
 };
 
 export default AddSuccessMetricsReport;

@@ -47,15 +47,9 @@ public class RepositoryComponentDAO
   }
 
   public List<RepositoryComponent> getByRepositoryId(String repositoryId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByRepositoryId(tx, repositoryId);
-    }
-  }
-
-  public List<RepositoryComponent> getByRepositoryId(TransactionContext tx, String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1";
-    return getList(tx, sQuery, repositoryId);
+    return getList(sQuery, repositoryId);
   }
 
   public RepositoryComponent getByRepositoryIdAndPathname(String repositoryId, String pathname) {
@@ -363,7 +357,6 @@ public class RepositoryComponentDAO
       String pathnamePrefix,
       String pathname)
   {
-
     String sQuery = "SELECT component FROM RepositoryComponent component" + //
         " WHERE component.repositoryId=?1" + //
         " AND component.pathname like ?2" + //

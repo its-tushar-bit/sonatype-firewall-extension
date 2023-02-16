@@ -13,8 +13,6 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 
 /**
  * Resource for API Application
@@ -41,29 +39,6 @@ public interface ApiApplicationResourceV2
 
   ApiApplicationDTO updateApplication(ApiApplicationDTO applicationDTO,
                                       String applicationId);
-
-  /**
-   * @deprecated Replaced in 1.70 with {@link ApiRoleResource#getRoles()}
-   */
-  @Deprecated
-  ApiRoleListDTO getApplicationRoles();
-
-  /**
-   * @deprecated Replaced in 1.70 with
-   * {@link ApiRoleMembershipResource#getRoleMembershipsApplicationOrOrganization}
-   */
-  @Deprecated
-  ApiRoleMemberMappingListDTO getApplicableMembershipMappings(String applicationId);
-
-  /**
-   * @deprecated Replaced in 1.70 with
-   * {@link ApiRoleMembershipResource#grantRoleMembershipApplicationOrOrganization}
-   * and
-   * {@link ApiRoleMembershipResource#revokeRoleMembershipApplicationOrOrganization}
-   */
-  @Deprecated
-  void setMembershipMappingForRole(String applicationId,
-                                   ApiRoleMemberMappingListDTO roleMemberMappingDTOs);
 
   void deleteApplication(String applicationId) throws IOException;
 

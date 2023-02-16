@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -19,21 +18,13 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationTagDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiApplicationTagAdapter;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.model.security.MemberType;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -56,8 +47,6 @@ public class ApiApplicationResourceV2Test
 
   private ApiApplicationAdapter apiApplicationAdapter;
 
-  private final RoleDAO roleDAO = new RoleDAO();
-
   private Organization organization;
 
   private Application app;
@@ -72,10 +61,6 @@ public class ApiApplicationResourceV2Test
 
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
-
-  private HttpRequest roleMembersRequest(String applicationId) {
-    return restRequest().subpath(DefaultApiApplicationResourceV2.ROLE_MEMBERS_PATH).parameter(applicationId);
-  }
 
   @Before
   public void setUp() {
@@ -344,145 +329,6 @@ public class ApiApplicationResourceV2Test
   }
 
   @Test
-  public void testLdapAppRoles() throws Exception {
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/ApiApplicationResourceV2Test/ldap_users.ldif");
-
-    final LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
-
-    // Initial state
-    HttpRequest request = roleMembersRequest(app.getId());
-    HttpResponse response = request.get();
-    assertResponseStatus(200, response);
-
-    final List<Role> appRoles = roleDAO.getApplicationRoles();
-
-    ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-    assertThat(roleMemberMappings).isNotNull();
-    assertThat(roleMemberMappings.memberMappings).hasSameSizeAs(appRoles);
-
-    // Create
-    final ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
-        newMemberList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
-            newMember(MemberType.GROUP, "Alpha")), appRoles.get(0).getId());
-
-    response = request.body(roleMemberMappingListDTO).put();
-    assertResponseStatus(204, response);
-
-    // Read for created data
-    response = request.get();
-    assertResponseStatus(200, response);
-    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-
-    assertThat(returnedRoleMemberMappings).isNotNull();
-    final List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
-    assertThat(returnedRoleMemberMappingList).isNotNull();
-    assertThat(returnedRoleMemberMappingList).hasSameSizeAs(appRoles);
-
-    for (final ApiRoleMemberMappingDTO roleMember : returnedRoleMemberMappingList) {
-      if (roleMember.roleId.equals(appRoles.get(0).getId())) {
-        assertThat(roleMember.members).hasSize(3);
-        final Map<String, MemberType> memberMap = new HashMap<>();
-        for (final ApiMemberDTO member : roleMember.members) {
-          memberMap.put(member.userOrGroupName, member.type);
-        }
-        MemberType type = memberMap.get("Alpha");
-        assertThat(type).isEqualTo(MemberType.GROUP);
-        type = memberMap.get("testuser");
-        assertThat(type).isEqualTo(MemberType.USER);
-        type = memberMap.get(User.ADMIN_USERNAME);
-        assertThat(type).isEqualTo(MemberType.USER);
-      }
-      else {
-        assertThat(roleMember.members).isEmpty();
-      }
-    }
-  }
-
-  @Test
-  public void testCRUDAppRoles() throws Exception {
-    // Initial state
-    HttpRequest request = roleMembersRequest(app.getId());
-    HttpResponse response = request.get();
-    assertResponseStatus(200, response);
-
-    final List<Role> appRoles = roleDAO.getApplicationRoles();
-
-    ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-    assertThat(roleMemberMappings).isNotNull();
-    assertThat(roleMemberMappings.memberMappings).hasSameSizeAs(appRoles);
-
-    // Create
-    ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
-        newMemberList(newMember(MemberType.USER, userB.getUsername())), appRoles.get(0).getId());
-    response = request.body(roleMemberMappingListDTO).put();
-    assertResponseStatus(204, response);
-
-    // Read for created data
-    response = request.get();
-    assertResponseStatus(200, response);
-    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-
-    assertThat(returnedRoleMemberMappings).isNotNull();
-    List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
-    assertThat(returnedRoleMemberMappingList).hasSameSizeAs(appRoles);
-
-    ApiRoleMemberMappingDTO returnedRoleMemberMapping = null;
-    for (final ApiRoleMemberMappingDTO roleMemberMapping : returnedRoleMemberMappingList) {
-      if (appRoles.get(0).getId().equals(roleMemberMapping.roleId)) {
-        returnedRoleMemberMapping = roleMemberMapping;
-        break;
-      }
-    }
-    assertApiRoleMemberMappingDTO(returnedRoleMemberMapping, appRoles.get(0).getId(), userB, MemberType.USER);
-
-    // Update
-    roleMemberMappingListDTO = newMemberMapping(newMemberList(newMember(MemberType.USER, userA.getUsername())),
-        appRoles.get(0).getId());
-    response = request.body(roleMemberMappingListDTO).put();
-    assertResponseStatus(204, response);
-
-    roleMemberMappingListDTO = newMemberMapping(newMemberList(newMember(MemberType.USER, userB.getUsername())),
-        appRoles.get(1).getId());
-    response = request.body(roleMemberMappingListDTO).put();
-    assertResponseStatus(204, response);
-
-    // Read for updated data
-    response = request.get();
-    assertResponseStatus(200, response);
-    returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
-    assertThat(returnedRoleMemberMappings).isNotNull();
-    returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
-    assertThat(returnedRoleMemberMappingList).hasSameSizeAs(appRoles);
-
-    ApiRoleMemberMappingDTO[] returnedRoleMemberMappingArray = new ApiRoleMemberMappingDTO[2];
-    for (final ApiRoleMemberMappingDTO roleMemberMapping : returnedRoleMemberMappingList) {
-      if (appRoles.get(0).getId().equals(roleMemberMapping.roleId)) {
-        returnedRoleMemberMappingArray[0] = roleMemberMapping;
-      }
-      else if (appRoles.get(1).getId().equals(roleMemberMapping.roleId)) {
-        returnedRoleMemberMappingArray[1] = roleMemberMapping;
-      }
-    }
-    assertThat(returnedRoleMemberMappingArray).hasSize(2);
-    assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[0], appRoles.get(0).getId(), userA, MemberType.USER);
-    assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[1], appRoles.get(1).getId(), userB, MemberType.USER);
-  }
-
-  @Test
-  public void testGetApplicationRoles() throws Exception {
-    HttpResponse response = restRequest().path(DefaultApiApplicationResourceV2.ROLE_PATH).get();
-    assertResponseStatus(200, response);
-
-    ApiRoleListDTO appRoles = response.getBody(ApiRoleListDTO.class);
-    assertThat(appRoles).isNotNull();
-    assertThat(appRoles.roles).hasSize(5).extracting(dto -> dto.name).containsExactlyInAnyOrder("Owner", "Developer",
-        "Application Evaluator", "Component Evaluator", "Legal Reviewer");
-  }
-
-  @Test
   public void testCloneApplication() throws Exception {
     TelemetryContainerRequestFilter.REST_ENDPOINT_INVOCATIONS.get().clear();
 
@@ -590,25 +436,6 @@ public class ApiApplicationResourceV2Test
         .containsExactly(app2.getId());
   }
 
-  private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {
-    final ApiRoleMemberMappingDTO memberMappingDTO = new ApiRoleMemberMappingDTO();
-    memberMappingDTO.members = memberList;
-    memberMappingDTO.roleId = roleId;
-
-    ApiRoleMemberMappingListDTO memberMappingListDTO = new ApiRoleMemberMappingListDTO();
-    memberMappingListDTO.memberMappings = new ArrayList<>();
-    memberMappingListDTO.memberMappings.add(memberMappingDTO);
-    return memberMappingListDTO;
-  }
-
-  private ApiMemberDTO newMember(final MemberType type, final String name) {
-    return new ApiMemberDTO(null /* ownerId */, null /* ownerType */, name, type);
-  }
-
-  private List<ApiMemberDTO> newMemberList(final ApiMemberDTO... members) {
-    return Arrays.asList(members);
-  }
-
   private void assertApplication(final ApiApplicationDTO returnedDTO, final ApiApplicationDTO sendDTO) {
     assertThat(returnedDTO.publicId).isEqualTo(sendDTO.publicId);
     assertThat(returnedDTO.name).isEqualTo(sendDTO.name);
@@ -624,18 +451,6 @@ public class ApiApplicationResourceV2Test
       assertThat(returnedDTO.applicationTags.get(0).tagId).isEqualTo(sendDTO.applicationTags.get(0).tagId);
       assertThat(returnedDTO.applicationTags.get(0).applicationId).isEqualTo(returnedDTO.id);
     }
-  }
-
-  private void assertApiRoleMemberMappingDTO(final ApiRoleMemberMappingDTO apiRoleMemberMappingDTO,
-                                             final String roleId,
-                                             final User user,
-                                             final MemberType type)
-  {
-    assertThat(apiRoleMemberMappingDTO).isNotNull();
-    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(roleId);
-    assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
-    assertThat(apiRoleMemberMappingDTO.members.get(0).type).isEqualTo(type);
-    assertThat(apiRoleMemberMappingDTO.members.get(0).userOrGroupName).isEqualTo(user.getUsername());
   }
 
   private ApiApplicationDTO createApplicationDTO(String applicationId) {

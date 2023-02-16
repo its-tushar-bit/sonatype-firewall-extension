@@ -5,19 +5,12 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.sonatype.insight.brain.api.v2.ApiMemberMappingAdapter;
-import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -58,32 +51,5 @@ public class AbstractMembershipMappingAuditTest
     Role role = new RoleDAO().getByIdNotNull(roleId);
     assertCustomData(auditDTO, "roleId", role.getId());
     assertCustomData(auditDTO, "roleName", role.getName());
-  }
-
-  protected ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO() {
-    ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = new ApiRoleMemberMappingListDTO();
-    apiRoleMemberMappingListDTO.memberMappings = new ArrayList<>();
-    for (Role role : new RoleDAO().getApplicationRoles()) {
-      ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = new ApiRoleMemberMappingDTO();
-      apiRoleMemberMappingDTO.roleId = role.getId();
-      apiRoleMemberMappingDTO.members = new ArrayList<>();
-      for (MemberType memberType : MemberType.values()) {
-        ApiMemberDTO apiMemberDTO = new ApiMemberDTO();
-        apiMemberDTO.type = memberType;
-        apiMemberDTO.userOrGroupName = tempEntity.uuid();
-        apiRoleMemberMappingDTO.members.add(apiMemberDTO);
-      }
-      apiRoleMemberMappingListDTO.memberMappings.add(apiRoleMemberMappingDTO);
-    }
-    return apiRoleMemberMappingListDTO;
-  }
-
-  protected void assertRoleMembershipData(List<AuditDTO> auditDTOs,
-                                          ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO)
-  {
-    Map<String, List<Member>> roleToMembers = ApiMemberMappingAdapter.convert(apiRoleMemberMappingListDTO);
-    for (String roleId : roleToMembers.keySet()) {
-      assertRoleMembershipData(findFirstByDataKeyValue(auditDTOs, "roleId", roleId), roleId, roleToMembers.get(roleId));
-    }
   }
 }

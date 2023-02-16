@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -27,12 +26,10 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
@@ -52,8 +49,6 @@ public class ApiApplicationService
 
   private final ApplicationTagDAO applicationTagDAO;
 
-  private final RoleDAO roleDAO;
-
   private final ApplicationHelper applicationHelper;
 
   private final ApplicationDAO applicationDAO;
@@ -65,7 +60,6 @@ public class ApiApplicationService
   @Inject
   public ApiApplicationService(final ApiApplicationAdapter apiApplicationAdapter,
                                final ApplicationTagDAO applicationTagDAO,
-                               final RoleDAO roleDAO,
                                final ApplicationDAO applicationDAO,
                                final ApplicationHelper applicationHelper,
                                final TagDAO tagDAO,
@@ -74,7 +68,6 @@ public class ApiApplicationService
     this.apiApplicationAdapter = apiApplicationAdapter;
     this.applicationTagDAO = applicationTagDAO;
     this.applicationDAO = applicationDAO;
-    this.roleDAO = roleDAO;
     this.applicationHelper = applicationHelper;
     this.tagDAO = tagDAO;
     this.organizationDAO = organizationDAO;
@@ -180,11 +173,6 @@ public class ApiApplicationService
   {
     applicationDAO.update(tx, application);
     return application;
-  }
-
-  public ApiRoleListDTO getApplicationRoles() {
-    List<Role> roles = roleDAO.getApplicationRoles();
-    return ApiRoleAdapter.convertToDTO(roles);
   }
 
   /**

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,7 +13,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationTagDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -47,29 +45,6 @@ public class ApiApplicationResourceV2AuditTest
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication("appName", "appPubId", organization.getId(), "appContactName");
     targetOrganization = tempEntity.newOrganization();
-  }
-
-  @Test
-  public void testSetMembershipMappingForRole() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-    ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiRoleMemberMappingListDTO();
-
-    setMembershipMappingRequest(application.getId(), apiRoleMemberMappingListDTO).put();
-
-    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP,
-        apiRoleMemberMappingListDTO.memberMappings.size(), null);
-    auditDTOs.forEach(auditDTO -> assertApplicationData(auditDTO, application));
-    assertRoleMembershipData(auditDTOs, apiRoleMemberMappingListDTO);
-  }
-
-  @Test
-  public void testSetMembershipMappingForRole_Unauthorized() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-
-    setMembershipMappingRequest(application.getId(), apiRoleMemberMappingListDTO()).with(unauthorizedUser()).put();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, "unauthorized");
-    assertApplicationData(auditDTO, application);
   }
 
   @Test
@@ -215,13 +190,6 @@ public class ApiApplicationResourceV2AuditTest
 
   private HttpRequest applicationRequest() {
     return restRequest().path(PublicApiPaths.APP_RESOURCE_PATH);
-  }
-
-  private HttpRequest setMembershipMappingRequest(String applicationId,
-                                                  ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO)
-  {
-    return applicationRequest().path(DefaultApiApplicationResourceV2.ROLE_MEMBERS_PATH)
-        .parameter(applicationId).body(apiRoleMemberMappingListDTO);
   }
 
   @Test

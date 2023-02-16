@@ -134,7 +134,8 @@
     "lodash": "^4.17.21",
     "immer": "^9.0.6",
     "moment": "^2.29.4",
-    "autolinker": "3.16.1"
+    "autolinker": "3.16.1",
+    "core-js-pure": "3.28.0"
   },
   "repository": {
     "type": "git",

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { getApplicationsUrl, getNLevelOrgUrl, getAddIconUrl } from 'MainRoot/util/CLMLocation';
+import { getApplicationsUrl, getNLevelOrgUrl, getAddIconUrl, getOrganizationsUrl } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { nxTextInputStateHelpers, nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
@@ -288,7 +288,7 @@ describe('ownerModal actions', () => {
 
   it('handles edit current organization', (done) => {
     const store = SpecUtil.mockReduxStore(editOrgState);
-    mock.onPut(getNLevelOrgUrl()).reply(200, {
+    mock.onPut(getOrganizationsUrl()).reply(200, {
       data: {
         id: 'organizationOneID',
         name: 'newOwnerName',
@@ -298,7 +298,7 @@ describe('ownerModal actions', () => {
 
     store.dispatch(actions.editCurrentOwner()).then(() => {
       expect(mock.history.put.length).toBe(1);
-      expect(mock.history.put[0].url).toBe(getNLevelOrgUrl());
+      expect(mock.history.put[0].url).toBe(getOrganizationsUrl());
 
       const actions = store.getActions();
       expect(actions.length).toBe(5);

@@ -149,6 +149,17 @@ public class OrganizationSummaryViewTest
   }
 
   @Test
+  public void testRenameOrg() {
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().shouldBe(visible).click();
+    OwnerEditorDialog.root().shouldBe(visible);
+    OwnerEditorDialog.name().val("New Org name");
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().shouldBe(hidden);
+    OwnerSummaryPage.summaryTile().name().shouldHave(text("New Org name"));
+  }
+
+  @Test
   public void testImportPolicy() {
     String filePath = new File(getClass().getResource("/policyExport/sampleNonJsonFile.file")
             .getFile()).getAbsolutePath();

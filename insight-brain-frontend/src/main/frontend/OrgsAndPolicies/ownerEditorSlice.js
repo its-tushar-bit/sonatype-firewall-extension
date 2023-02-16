@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { omit, pick } from 'ramda';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { getApplicationsUrl, getNLevelOrgUrl } from '../util/CLMLocation';
+import { getApplicationsUrl, getNLevelOrgUrl, getOrganizationsUrl } from '../util/CLMLocation';
 import { actions as organizationActions } from './organizationsSlice';
 import { actions as applicationsActions } from './applicationsSlice';
 
@@ -15,12 +15,12 @@ const REDUCER_NAME = 'ownerActions';
 const updateOwner = createAsyncThunk(
   `${REDUCER_NAME}/updateApplication`,
   ({ ownerToSave, isApp }, { dispatch, rejectWithValue }) => {
-    const url = isApp ? getApplicationsUrl() : getNLevelOrgUrl();
+    const isNew = !!ownerToSave.isNew;
+
+    const url = isApp ? getApplicationsUrl() : isNew ? getNLevelOrgUrl() : getOrganizationsUrl();
     const payload = isApp
       ? pick(['id', 'name', 'publicId', 'organizationId', 'contactInternalName'], ownerToSave)
       : omit(['isNew'], ownerToSave);
-
-    const isNew = !!ownerToSave.isNew;
 
     return axios[isNew ? 'post' : 'put'](url, payload)
       .then(({ data }) => {

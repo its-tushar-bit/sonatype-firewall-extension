@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -48,6 +49,7 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
+
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -393,10 +395,9 @@ public class CLMLicenseManager
             break;
           case PRODUCT_LIFECYCLE:
           case PRODUCT_LIFECYCLE_CLOUD:
-            // fallthrough
           case PRODUCT_LIFECYCLE_FOUNDATION:
             licensedUsersToDisplay = productLicense.getMaxUsers();
-            // fallthrough
+            //$FALL-THROUGH$
           case PRODUCT_FIREWALL:
           case PRODUCT_LIFECYCLE_FIREWALL_CLOUD:
             firewallUsersToDisplay = productLicense.getMaxFirewallUsers();

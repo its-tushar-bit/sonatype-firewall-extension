@@ -107,7 +107,6 @@ public class ConditionTypes
     addDisabledConditionType(HygieneRatingConditionType);
     addDisabledConditionType(IntegrityRatingConditionType);
     add(IdentificationSourceConditionType);
-    add(SecurityVulnerabilityCustomCVSSVectorStringConditionType);
     add(LabelConditionType);
     add(LicenseConditionType);
     add(LicenseStatusConditionType);
@@ -123,6 +122,7 @@ public class ConditionTypes
     add(SecurityVulnerabilityCweConditionType);
     add(SecurityVulnerabilityCustomRemediationConditionType);
     add(SecurityVulnerabilitySourceConditionType);
+    add(SecurityVulnerabilityCustomCVSSVectorStringConditionType);
     add(VulnerabilityGroupConditionType);
     add(SecurityVulnerabilityResearchConditionType);
     add(DataSourceConditionType);

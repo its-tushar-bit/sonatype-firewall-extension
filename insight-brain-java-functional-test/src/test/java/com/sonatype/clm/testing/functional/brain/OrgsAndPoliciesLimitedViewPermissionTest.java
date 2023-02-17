@@ -20,7 +20,6 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPageWithLimitedVisibility;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -31,7 +30,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.hidden;
@@ -51,9 +49,6 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private OrganizationDAO organizationDAO = new OrganizationDAO();
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Before
   public void init() {

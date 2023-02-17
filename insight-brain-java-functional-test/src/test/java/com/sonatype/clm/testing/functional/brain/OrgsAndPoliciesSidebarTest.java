@@ -23,10 +23,9 @@ import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPageWithLimitedVisibility;
+import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -34,7 +33,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -49,9 +47,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrgsAndPoliciesSidebarTest
     extends AbstractFunctionalTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   private Map<Integer, List<Organization>> organizations;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();

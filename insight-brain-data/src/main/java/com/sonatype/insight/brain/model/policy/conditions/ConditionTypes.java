@@ -75,16 +75,18 @@ public class ConditionTypes
 
   public static final IntegrityRatingConditionType IntegrityRatingConditionType = new IntegrityRatingConditionType();
 
-  public static final DataSourceConditionType
-      DataSourceConditionType = new DataSourceConditionType();
+  public static final DataSourceConditionType DataSourceConditionType = new DataSourceConditionType();
 
   public static final DependencyTypeConditionType DependencyTypeConditionType = new DependencyTypeConditionType();
 
   public static final SecurityVulnerabilityCategoryConditionType SecurityVulnerabilityCategoryConditionType =
       new SecurityVulnerabilityCategoryConditionType();
-  
+
   public static final SecurityVulnerabilityCweConditionType SecurityVulnerabilityCweConditionType =
       new SecurityVulnerabilityCweConditionType();
+
+  public static final SecurityVulnerabilityCustomRemediationConditionType //
+      SecurityVulnerabilityCustomRemediationConditionType = new SecurityVulnerabilityCustomRemediationConditionType();
 
   public static final IacControlConditionType IacControlConditionType = new IacControlConditionType();
 
@@ -119,6 +121,7 @@ public class ConditionTypes
     add(SecurityVulnerabilityStatusConditionType);
     add(SecurityVulnerabilityCategoryConditionType);
     add(SecurityVulnerabilityCweConditionType);
+    add(SecurityVulnerabilityCustomRemediationConditionType);
     add(SecurityVulnerabilitySourceConditionType);
     add(VulnerabilityGroupConditionType);
     add(SecurityVulnerabilityResearchConditionType);

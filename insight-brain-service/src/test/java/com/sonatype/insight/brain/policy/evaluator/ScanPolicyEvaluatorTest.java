@@ -66,7 +66,36 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.model.policy.conditions.*;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ComponentFormatConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.IacControlConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.PackageUrlConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomCVSSVectorStringConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomRemediationConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCweConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.SecurityVulnerabilityResearch;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
@@ -1957,6 +1986,8 @@ public class ScanPolicyEvaluatorTest
         "is not", SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getId());
     Condition securityVulnerabilityCustomCVSSVectorCondition =
         new Condition(SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID, "matches", "cvss");
+    Condition securityVulnerabilityCustomRemediationCondition =
+        new Condition(SecurityVulnerabilityCustomRemediationConditionType.ID, "exists", null);
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
@@ -1965,7 +1996,8 @@ public class ScanPolicyEvaluatorTest
         vulnerabilityGroupCondition, securityVulnerabilityResearchCondition, packageUrlCondition,
         componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
-        securityVulnerabilitySourceCondition, securityVulnerabilityCustomCVSSVectorCondition);
+        securityVulnerabilitySourceCondition, securityVulnerabilityCustomCVSSVectorCondition,
+        securityVulnerabilityCustomRemediationCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);

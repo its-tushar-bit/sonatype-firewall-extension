@@ -36,7 +36,16 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.policy.conditions.*;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomCVSSVectorStringConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomRemediationConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -375,6 +384,8 @@ public class ApiFirewallServiceTest
     assertThat(releaseQuarantineConfig.get(SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID)
         .autoReleaseQuarantineEnabled)
         .isFalse();
+    assertThat(releaseQuarantineConfig
+        .get(SecurityVulnerabilityCustomRemediationConditionType.ID).autoReleaseQuarantineEnabled).isFalse();
 
     verify(telemetrySenderMock, times(1)).send(argCaptor.capture());
     TelemetryData telemetryData = argCaptor.getValue();
@@ -384,11 +395,12 @@ public class ApiFirewallServiceTest
         .hasSize(1)
         .containsOnly(IntegrityRatingConditionType.ID);
     assertThat(telemetrySent.disabledConditionTypes)
-        .hasSize(7)
+        .hasSize(8)
         .containsExactlyInAnyOrder(SecurityVulnerabilityCategoryConditionType.ID,
             SecurityVulnerabilitySeverityConditionType.ID, LicenseConditionType.ID, LicenseThreatGroupConditionType.ID,
             MatchStateConditionType.ID, SecurityVulnerabilityResearchConditionType.ID,
-            SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID);
+            SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID,
+            SecurityVulnerabilityCustomRemediationConditionType.ID);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTO_RELEASE_FROM_QUARANTINE_CONFIGURATION);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
   }

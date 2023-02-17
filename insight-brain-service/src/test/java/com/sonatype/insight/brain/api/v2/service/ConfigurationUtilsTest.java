@@ -24,10 +24,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -35,9 +35,6 @@ public class ConfigurationUtilsTest
 {
   @Rule
   public LogOutput logOutput = new LogOutput(ConfigurationUtils.class);
-
-  @Rule
-  public ExpectedException expectedEx = ExpectedException.none();
 
   private static final ObjectMapper JSON =
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -309,16 +306,18 @@ public class ConfigurationUtilsTest
 
   @Test
   public void testSessionTimeoutToString_WithLowValue() {
-    expectedEx.expect(RuntimeException.class);
-    expectedEx.expectMessage("Timeout configuration should be in range from 3 to 120 minutes.");
-    ConfigurationUtils.sessionTimeoutToString(2);
+    assertThatThrownBy(() -> {
+      ConfigurationUtils.sessionTimeoutToString(2);
+    }).isInstanceOf(RuntimeException.class)
+        .hasMessageEndingWith("Timeout configuration should be in range from 3 to 120 minutes.");
   }
 
   @Test
   public void testSessionTimeoutToString_WithHighValue() {
-    expectedEx.expect(RuntimeException.class);
-    expectedEx.expectMessage("Timeout configuration should be in range from 3 to 120 minutes.");
-    ConfigurationUtils.sessionTimeoutToString(122);
+    assertThatThrownBy(() -> {
+      ConfigurationUtils.sessionTimeoutToString(122);
+    }).isInstanceOf(RuntimeException.class)
+        .hasMessageEndingWith("Timeout configuration should be in range from 3 to 120 minutes.");
   }
 
   @Test
@@ -354,7 +353,7 @@ public class ConfigurationUtilsTest
   public void testPurgeScanFiles_nullValue() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> ConfigurationUtils.purgeScanFiles(null))
-            .withMessageContaining(String.format(ConfigurationUtils.INVALID_PURGE_SCAN_FILES_VALUE_MSG, null));
+        .withMessageContaining(String.format(ConfigurationUtils.INVALID_PURGE_SCAN_FILES_VALUE_MSG, (String) null));
   }
 
   @Test

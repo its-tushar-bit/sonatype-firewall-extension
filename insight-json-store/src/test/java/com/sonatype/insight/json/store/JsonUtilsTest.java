@@ -171,6 +171,7 @@ public class JsonUtilsTest
 
     public Object b;
 
+    @SuppressWarnings("unused")
     public Pair() {
       // for jackson
     }

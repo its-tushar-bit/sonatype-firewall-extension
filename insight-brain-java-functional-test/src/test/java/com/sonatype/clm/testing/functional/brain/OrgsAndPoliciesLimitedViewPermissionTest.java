@@ -128,7 +128,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
       );
     });
 
-    List<Organization> childOrgs = Collections.EMPTY_LIST;
+    List<Organization> childOrgs = Collections.emptyList();
     List<Application> childApps = applicationDAO.getByOrganizationId(parentOrg1.getId());
 
     login(developerUser.getUsername(), developerUser.getPassword());
@@ -163,7 +163,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
         developerUser.getUsername()
     );
 
-    List<Application> childApps = Collections.EMPTY_LIST;
+    List<Application> childApps = Collections.emptyList();
     commonAncestorOwner = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
 
     login(developerUser.getUsername(), developerUser.getPassword());

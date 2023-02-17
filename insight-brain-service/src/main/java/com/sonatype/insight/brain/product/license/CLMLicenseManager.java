@@ -397,7 +397,7 @@ public class CLMLicenseManager
           case PRODUCT_LIFECYCLE_CLOUD:
           case PRODUCT_LIFECYCLE_FOUNDATION:
             licensedUsersToDisplay = productLicense.getMaxUsers();
-            //$FALL-THROUGH$
+            //$FALL-THROUGH$ fallthrough
           case PRODUCT_FIREWALL:
           case PRODUCT_LIFECYCLE_FIREWALL_CLOUD:
             firewallUsersToDisplay = productLicense.getMaxFirewallUsers();

@@ -11,7 +11,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.hds.ComponentCategoryUpdater;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.migration.DataMigrator;
@@ -20,8 +19,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.version.VersionService;
 
 import io.dropwizard.lifecycle.Managed;
-
-import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
 /**
  * This runs on MTIQ server boot and is responsible for setting up all things Global
@@ -47,15 +44,5 @@ public class MultiTenantApplicationLifecycle
   {
     super(configuration, licenseManager, dataMigrator, newInstancePopulator, licenseDataUpdater, versionService,
         auditRecorder, componentCategoryUpdater, taskScheduler);
-  }
-
-  @Override
-  public void boot() throws Exception {
-    super.boot();
-
-    runAsGlobal(() -> {
-      new MultiTenantGlobalSchemaProtection().enableWriteProtection();
-      return null;
-    });
   }
 }

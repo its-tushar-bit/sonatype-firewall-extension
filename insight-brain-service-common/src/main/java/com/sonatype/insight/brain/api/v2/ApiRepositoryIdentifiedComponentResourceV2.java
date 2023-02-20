@@ -10,4 +10,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 public interface ApiRepositoryIdentifiedComponentResourceV2
 {
   void deleteRepositoryIdentifiedComponent(String hash, ComponentIdentifier componentIdentifier, String purl);
+
+  void deleteAllRepositoryIdentifiedComponents();
 }

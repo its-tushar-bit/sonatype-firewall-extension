@@ -36,4 +36,21 @@ public class ApiRepositoryIdentifiedComponentServiceAuthzTest
     grantConfigureSystemPermission();
     apiRepositoryIdentifiedComponentService.deleteRepositoryIdentifiedComponent(null, null, null);
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteAllRepositoryIdentifiedComponents_Unauthenticated() {
+    apiRepositoryIdentifiedComponentService.deleteAllRepositoryIdentifiedComponents();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testClearCache_Unauthorized() {
+    login();
+    apiRepositoryIdentifiedComponentService.deleteAllRepositoryIdentifiedComponents();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testClearCache_Authorized() {
+    grantConfigureSystemPermission();
+    apiRepositoryIdentifiedComponentService.deleteAllRepositoryIdentifiedComponents();
+  }
 }

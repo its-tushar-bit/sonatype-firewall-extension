@@ -177,4 +177,15 @@ public class RepositoryIdentifiedComponentDAOTest
     assertThat(dao.getAll()).usingRecursiveFieldByFieldElementComparator(
         REPOSITORY_IDENTIFIED_COMPONENT_COMPARISON_CONFIG).containsExactly(repositoryIdentifiedComponent2);
   }
+
+  @Test
+  public void testDeleteAll() {
+    tempEntity.newRepositoryIdentifiedComponent();
+    tempEntity.newRepositoryIdentifiedComponent();
+
+    int result = dao.deleteAll();
+
+    assertThat(result).isEqualTo(2);
+    assertThat(dao.getAll()).isEmpty();
+  }
 }

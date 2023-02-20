@@ -244,6 +244,31 @@ public class ApiRepositoryIdentifiedComponentServiceTest
   }
 
   @Test
+  public void testDeleteAllRepositoryIdentifiedComponents_OnlyInDatabase() {
+    tempEntity.newRepositoryIdentifiedComponent();
+    tempEntity.newRepositoryIdentifiedComponent();
+
+    repositoryIdentifiedComponentService.deleteAllRepositoryIdentifiedComponents();
+
+    assertThat(repositoryIdentifiedComponentDAO.getAll()).map(RepositoryIdentifiedComponent::getHash).isEmpty();
+
+    verifyScheduledTaskClearAll();
+  }
+
+  @Test
+  public void testClearAllCache_OnlyInMemory() {
+    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+        .put("hash1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
+    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+        .put("hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"));
+
+    repositoryIdentifiedComponentService.deleteAllRepositoryIdentifiedComponents();
+
+    assertThat(repositoryIdentifiedComponentCache.getLoadingCache().asMap().keySet()).isEmpty();
+    verifyScheduledTaskClearAll();
+  }
+
+  @Test
   public void testDisallowConcurrentExecution() {
     assertThat(JobBuilder.newJob(ApiRepositoryIdentifiedComponentService.class).build()
         .isConcurrentExectionDisallowed()).isFalse();
@@ -304,6 +329,13 @@ public class ApiRepositoryIdentifiedComponentServiceTest
     verifyNoInteractions(mockTaskScheduler);
   }
 
+  private void verifyScheduledTaskClearAll() {
+    Map<String, String> expectedParameters = new HashMap<>();
+    expectedParameters.put(ApiRepositoryIdentifiedComponentService.TASK_PARAM_CLEAR_ALL, "true");
+    verify(mockTaskScheduler)
+        .scheduleOneTimeTaskForAllOtherNodes(repositoryIdentifiedComponentService, expectedParameters);
+  }
+
   private void verifyScheduledTask(String hash, ComponentIdentifier componentIdentifier) {
     Map<String, String> expectedParameters = new HashMap<>();
     if (hash != null) {
@@ -313,7 +345,7 @@ public class ApiRepositoryIdentifiedComponentServiceTest
       expectedParameters.put(ApiRepositoryIdentifiedComponentService.TASK_PARAM_COMPONENT_IDENTIFIER,
           JsonUtils.writeUnformatted(componentIdentifier));
     }
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(
-        repositoryIdentifiedComponentService, expectedParameters);
+    verify(mockTaskScheduler)
+        .scheduleOneTimeTaskForAllOtherNodes(repositoryIdentifiedComponentService, expectedParameters);
   }
 }

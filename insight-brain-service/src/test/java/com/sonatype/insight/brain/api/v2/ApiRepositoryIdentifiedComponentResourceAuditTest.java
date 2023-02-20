@@ -87,4 +87,14 @@ public class ApiRepositoryIdentifiedComponentResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_REPOSITORY_IDENTIFIED_COMPONENT, null);
     assertCustomData(auditDTO, "packageUrl", packageUrl);
   }
+
+  @Test
+  public void testDeleteAllRepositoryIdentifiedComponents() throws Exception {
+    tempEntity.newRepositoryIdentifiedComponent();
+    HttpResponse response =
+        super.restRequest().path(PublicApiPaths.REPOSITORY_IDENTIFIED_COMPONENT_PATH_V2 + "/clear").delete();
+
+    assertThat(response.getStatusCode()).isEqualTo(204);
+    assertAuditLog(AuditEvent.PURGE_REPOSITORY_IDENTIFIED_COMPONENTS, null);
+  }
 }

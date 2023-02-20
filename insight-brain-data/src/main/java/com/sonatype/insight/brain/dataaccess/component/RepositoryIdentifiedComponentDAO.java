@@ -82,6 +82,11 @@ public class RepositoryIdentifiedComponentDAO
     return createQuery(sQuery, hash).executeUpdate();
   }
 
+  public int deleteAll() {
+    String sQuery = "DELETE FROM RepositoryIdentifiedComponent entity";
+    return createQuery(sQuery).executeUpdate();
+  }
+
   public int deleteByComponentIdentifier(ComponentIdentifier componentIdentifier) {
     String sQuery = "DELETE FROM RepositoryIdentifiedComponent entity" + //
         " WHERE entity.componentIdFormat=?1 AND entity.componentIdCoordinatesJson=?2";

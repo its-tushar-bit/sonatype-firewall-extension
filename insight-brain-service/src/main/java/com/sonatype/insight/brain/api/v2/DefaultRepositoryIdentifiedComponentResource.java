@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Hidden;
 
 /**
  * @since 1.137
@@ -42,6 +43,7 @@ public class DefaultRepositoryIdentifiedComponentResource
   @Override
   @DELETE
   @Audited(AuditEvent.DELETE_REPOSITORY_IDENTIFIED_COMPONENT)
+  @Hidden
   public void deleteRepositoryIdentifiedComponent(
       @QueryParam("hash") String hash,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
@@ -49,6 +51,19 @@ public class DefaultRepositoryIdentifiedComponentResource
   {
     checkBuiltFromSourceEnabled();
     repositoryIdentifiedComponentService.deleteRepositoryIdentifiedComponent(hash, componentIdentifier, packageUrl);
+  }
+
+  /**
+   * Since 156
+   */
+  @Override
+  @DELETE
+  @Path("/clear")
+  @Audited(AuditEvent.PURGE_REPOSITORY_IDENTIFIED_COMPONENTS)
+  @Hidden
+  public void deleteAllRepositoryIdentifiedComponents() {
+    checkBuiltFromSourceEnabled();
+    repositoryIdentifiedComponentService.deleteAllRepositoryIdentifiedComponents();
   }
 
   private void checkBuiltFromSourceEnabled() {

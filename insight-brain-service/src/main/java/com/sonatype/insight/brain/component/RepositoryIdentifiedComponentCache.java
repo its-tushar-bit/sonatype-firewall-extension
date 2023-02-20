@@ -100,4 +100,10 @@ public class RepositoryIdentifiedComponentCache
   public LoadingCache<String, ComponentIdentifier> getLoadingCache() {
     return loadingCache;
   }
+
+  public long removeAll() {
+    long size = loadingCache.size();
+    loadingCache.invalidateAll();
+    return size;
+  }
 }

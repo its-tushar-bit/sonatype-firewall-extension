@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.codahale.metrics.annotation.Timed;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Hidden;
 
 /**
  * @since 1.127
@@ -41,7 +41,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Named
 @Timed
 @Path(value = PublicApiPaths.REPOSITORY_CONNECTION_CONFIG_PATH_V2)
-@Tag(name = "Config Repository Connection")
+@Hidden
 public class DefaultRepositoryConnectionResource
     implements ApiRepositoryConnectionResourceV2
 {

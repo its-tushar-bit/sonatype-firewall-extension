@@ -57,7 +57,8 @@ public class MultiTenantGlobalSchemaProtection
           "DECLARE " +
           "    r RECORD; " +
           "BEGIN " +
-          "FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = '" + GLOBAL_SCHEMA_NAME + "' " + buildExemptTables() +
+          "FOR r IN " +
+          "(SELECT tablename FROM pg_tables WHERE schemaname = '" + GLOBAL_SCHEMA_NAME + "' " + buildExemptTables() +
           ") " +
           "    LOOP " +
           "    EXECUTE 'create or replace trigger write_protect_trigger before insert or update or delete on ' || " +

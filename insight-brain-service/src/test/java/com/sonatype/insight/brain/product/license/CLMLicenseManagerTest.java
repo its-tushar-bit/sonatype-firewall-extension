@@ -296,6 +296,27 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetFeatures_LifecycleSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+        LicensedFeature.IDE_INTEGRATION,
+        LicensedFeature.CI_INTEGRATION,
+        LicensedFeature.RM_STAGING_INTEGRATION,
+        LicensedFeature.DASHBOARD,
+        LicensedFeature.POLICY_MONITORING,
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
+        LicensedFeature.CLI_INTEGRATION,
+        LicensedFeature.QUALITY,
+        LicensedFeature.ENFORCEMENT,
+        LicensedFeature.NOTIFICATIONS,
+        LicensedFeature.POLICY_GRANDFATHERING,
+        LicensedFeature.AUTOMATION,
+        LicensedFeature.IP_ALLOWLIST);
+  }
+
+  @Test
   public void testGetFeatures_Firewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     mockHdsProductLicenseDetails(withFeatures());
@@ -364,6 +385,21 @@ public class CLMLicenseManagerTest
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.IP_ALLOWLIST);
+  }
+
+  @Test
+  public void testGetFeatures_LifecycleFirewallSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.RELEASE_INTEGRITY,
+        LicensedFeature.FIREWALL,
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES,
+        LicensedFeature.RM_STAGING_INTEGRATION,
         LicensedFeature.IP_ALLOWLIST);
   }
 
@@ -464,6 +500,18 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetStageTypes_LifeCycleFirewallSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder(
+        StageTypes.STAGE_RELEASE,
+        StageTypes.RELEASE,
+        StageTypes.PROXY);
+  }
+
+  @Test
   public void testGetStageTypes_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     mockHdsProductLicenseDetails(withStages());
@@ -492,6 +540,22 @@ public class CLMLicenseManagerTest
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
         StageTypes.OPERATE, //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_LifecycleSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder(
+        StageTypes.DEVELOP,
+        StageTypes.SOURCE,
+        StageTypes.BUILD,
+        StageTypes.STAGE_RELEASE,
+        StageTypes.RELEASE,
+        StageTypes.OPERATE,
         StageTypes.PROXY);
   }
 
@@ -938,6 +1002,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseSummary_ProductEditionLifecycleSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_SAAS);
+  }
+
+  @Test
   public void testGetLicenseSummary_ProductEditionFirewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
@@ -962,6 +1035,15 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
+  }
+
+  @Test
+  public void testGetLicenseSummary_ProductEditionLifecycleFirewallSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
   }
 
   @Test
@@ -1038,6 +1120,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseInfo_ProductEditionLifecycleSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    installLicense();
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_SAAS);
+  }
+
+  @Test
   public void testGetLicenseInfo_ProductEditionFirewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
@@ -1062,6 +1153,15 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
+  }
+
+  @Test
+  public void testGetLicenseInfo_ProductEditionLifecycleFirewallSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
+    installLicense();
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
   }
 
   @Test
@@ -1097,6 +1197,11 @@ public class CLMLicenseManagerTest
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
 
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay).isEqualTo(50);
+
     // should be null when product is auditor
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
@@ -1123,6 +1228,12 @@ public class CLMLicenseManagerTest
 
     // should also be null when it is just Lifecycle Firewall Cloud
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay).isNull();
+
+    // should also be null when it is just Lifecycle Firewall Saas
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay).isNull();
@@ -1155,7 +1266,7 @@ public class CLMLicenseManagerTest
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
 
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION,
-        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD, ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
@@ -1190,6 +1301,12 @@ public class CLMLicenseManagerTest
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.firewallUsersToDisplay).isEqualTo(45);
 
+    // should not be null when it is just Lifecycle Firewall Saas
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay).isEqualTo(45);
+
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
@@ -1207,7 +1324,7 @@ public class CLMLicenseManagerTest
     assertThat(info.firewallUsersToDisplay).isEqualTo(45);
 
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION,
-        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD, ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.firewallUsersToDisplay).isEqualTo(45);
@@ -1219,8 +1336,15 @@ public class CLMLicenseManagerTest
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.firewallUsersToDisplay).isNull();
 
-    // should be null when Lifecycle but with null maxFirewallUsers
+    // should be null when Lifecycle Cloud but with null maxFirewallUsers
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
+    licenseManager.setMaxFirewallUsers(null);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay).isNull();
+
+    // should be null when Lifecycle Saas but with null maxFirewallUsers
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     licenseManager.setMaxFirewallUsers(null);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
@@ -1267,6 +1391,13 @@ public class CLMLicenseManagerTest
 
     // should also be null when it is just Lifecycle Firewall Cloud
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.applicationCountToDisplay).isNull();
+
+    // should also be null when it is just Lifecycle Firewall Saas
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay).isNull();

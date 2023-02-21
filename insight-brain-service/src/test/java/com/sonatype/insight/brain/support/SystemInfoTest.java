@@ -26,7 +26,6 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -485,7 +484,8 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.licenseInfo.contactCompany).isEqualTo("Acme");
     assertThat(supportZipLicenseInfo.licenseInfo.contactEmail).isEqualTo("billy@example.com");
     assertThat(supportZipLicenseInfo.licenseInfo.products).containsExactlyInAnyOrder("Nexus Lifecycle",
-        "Nexus Firewall", "Nexus Firewall for Artifactory", "Nexus Lifecycle Cloud", "Nexus Lifecycle Firewall Cloud");
+        "Nexus Firewall", "Nexus Firewall for Artifactory", "Nexus Lifecycle Cloud", "Nexus Lifecycle Firewall Cloud",
+        "Nexus Lifecycle SaaS", "Nexus Lifecycle Firewall SaaS");
     assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
 
     Collection<String> features = supportZipLicenseInfo.features;

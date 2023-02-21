@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -29,7 +28,6 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
-
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.feature.Features;
 import org.sonatype.licensing.product.ProductLicenseKey;
@@ -190,8 +188,9 @@ public class TestProductLicenseManager
 
     private String[] products = {
         ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
-        ProductLicenseDetails.PRODUCT_FIREWALL_V2, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2,
-        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_FIREWALL_V2,
+        ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2,
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD, ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS
     };
 
     private Set<LicensedFeature> features;

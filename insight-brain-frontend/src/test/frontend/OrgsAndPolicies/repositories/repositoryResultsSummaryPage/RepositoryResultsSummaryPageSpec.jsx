@@ -90,7 +90,7 @@ describe('RepositoryResultsSummaryPage', () => {
 
       renderComponent();
       expect(screen.getByText('Re-Evaluate Repository')).toBeInTheDocument();
-      expect(screen.getByText('Repository results for testRepo')).toBeInTheDocument();
+      expect(screen.getByText('testRepo Repository Results')).toBeInTheDocument();
       expect(screen.getByText('1 QUARANTINED')).toBeInTheDocument();
       expect(screen.getByText('component')).toBeInTheDocument();
     });

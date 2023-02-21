@@ -131,7 +131,7 @@ public class RepositoryResultsSummaryTest
   public void testRepositoryResultHeader() {
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
 
-    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Repository Results for Central"));
+    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Central Repository Results"));
 
     RepositoryResultDetailPage.indicatorRow().shouldBe(visible);
     NxSmallThreatCounter counts = RepositoryResultDetailPage.indicatorRow().counts();
@@ -150,7 +150,7 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.indicatorRow().quarantineCaptionSubtext().shouldHave(text("component"));
 
     eyesWatcher.eyesCheck("Repository Detail Page");
-    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Repository Results for Central"));
+    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Central Repository Results"));
 
   }
 
@@ -249,7 +249,7 @@ public class RepositoryResultsSummaryTest
   @Test
   public void testRepositoryResultReEvaluateButton() {
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
-    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Repository Results for Central"));
+    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Central Repository Results"));
     RepositoryResultDetailPage.reEvaluateReportButton().click();
     RepositoryResultDetailPage.reEvaluateModalButton().shouldBe(visible);
     RepositoryResultDetailPage.reEvaluateModalButton().click();
@@ -260,7 +260,7 @@ public class RepositoryResultsSummaryTest
   @Test
   public void testRepositoryResultReEvaluateCancelModalButton() {
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
-    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Repository Results for Central"));
+    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Central Repository Results"));
     RepositoryResultDetailPage.reEvaluateReportButton().click();
     RepositoryResultDetailPage.reEvaluateModalCancelButton().shouldBe(visible);
     RepositoryResultDetailPage.reEvaluateModalCancelButton().click();
@@ -270,7 +270,7 @@ public class RepositoryResultsSummaryTest
   @Test
   public void testClickOnTableRowRedirectsToComponentDetailsPage() {
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
-    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Repository Results for Central"));
+    RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Central Repository Results"));
     RepositoryResultTableRow row = RepositoryResultDetailPage.table().row(1);
     row.click();
 

@@ -136,7 +136,7 @@ public class RepositoriesSummaryViewTest
     try {
       Selenide.switchTo().window(1);
       waitUntilUrl(RepositoryReportContainerPage.url(firstRepo.getId()));
-      RepositoryReportContainerPage.title().shouldHave(text("Repository results for " + firstRepo.getName()));
+      RepositoryReportContainerPage.title().shouldHave(text(firstRepo.getName() + " Repository Results"));
     }
     finally {
       Selenide.switchTo().window(0);

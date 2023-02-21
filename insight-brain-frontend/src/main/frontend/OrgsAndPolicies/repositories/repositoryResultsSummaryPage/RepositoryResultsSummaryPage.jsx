@@ -78,7 +78,7 @@ export default function RepositoryResultsSummaryPage() {
           className="nx-viewport-sized__container"
         >
           <NxPageTitle>
-            <NxH1>Repository results for {repositoryInfo ? repositoryInfo.publicId : ''}</NxH1>
+            <NxH1>{repositoryInfo ? repositoryInfo.publicId : ''} Repository Results</NxH1>
             <NxButtonBar>
               <NxButton
                 id="iq-repository-results-summary-page__reevaluate-button"

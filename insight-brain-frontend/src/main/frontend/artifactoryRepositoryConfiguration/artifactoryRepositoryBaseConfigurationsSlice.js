@@ -16,6 +16,7 @@ import {
   toServerData,
 } from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsUtil';
 import { pathSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { compose } from 'ramda';
 
 export const SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE = 'Saving Configuration';
 export const SUBMIT_MASK_TESTING_CONFIGURATION_MESSAGE = 'Testing Configuration';
@@ -37,6 +38,8 @@ export const initialState = {
 
   submitMaskState: null,
   submitMaskMessage: null,
+
+  isDirty: false,
 };
 
 function resetFormState(state) {
@@ -129,18 +132,34 @@ function startSubmitMaskSuccessTimer(dispatch) {
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
+function computeIsDirty(state) {
+  const originalValues = getOriginalValues(state?.serverData?.artifactoryConnectionStatus);
+  const values = state?.formState;
+  if (values?.enabled !== originalValues?.enabled) {
+    return true;
+  }
+  if (values?.allowOverride !== originalValues?.allowOverride) {
+    return true;
+  }
+  return false;
+}
+
+function updateIsDirty(state) {
+  return { ...state, isDirty: computeIsDirty(state) };
+}
+
 const artifactoryRepositoryBaseConfigurationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    setEnabled: pathSet(['formState', 'enabled']),
-    setAllowOverride: pathSet(['formState', 'allowOverride']),
-    cancel: resetFormState,
+    setEnabled: compose(updateIsDirty, pathSet(['formState', 'enabled'])),
+    setAllowOverride: compose(updateIsDirty, pathSet(['formState', 'allowOverride'])),
+    cancel: compose(updateIsDirty, resetFormState),
     submitMaskTimerDone: propSetConst('submitMaskState', null),
   },
   extraReducers: {
     [load.pending]: loadRequested,
-    [load.fulfilled]: loadFulfilled,
+    [load.fulfilled]: compose(updateIsDirty, loadFulfilled),
     [load.rejected]: loadFailed,
     [save.pending]: saveRequested,
     [save.fulfilled]: saveFulfilled,

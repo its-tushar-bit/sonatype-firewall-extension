@@ -4,20 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { getInitialState } from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsTestData';
-import { getOriginalValues } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsUtil';
 import { NO_CHANGES_MESSAGE } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 
 describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
-  let spyGetOriginalValues,
-    selectAllowChange,
+  let selectAllowChange,
     selectEnabled,
     selectFormState,
     selectInheritedFromOrganizationName,
     selectInheritedFromOrgEnabled,
     selectInnerSourceRepositoryBaseConfigurationsSlice,
     selectIsDirty,
-    selectOriginalValues,
     selectOwnerDTO,
     selectOwnerPublicId,
     selectRepositoryConnections,
@@ -28,16 +24,8 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
     selectLoadError,
     selectInnerSourceRepositoriesEnabled;
   beforeEach(() => {
-    spyGetOriginalValues = jasmine.createSpy('getOriginalValues').and.callFake((serverData) => {
-      return getOriginalValues(serverData);
-    });
     const module = require('inject-loader!../../../../src/main/frontend/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSelectors')(
-      {
-        './innerSourceRepositoryBaseConfigurationsUtil': {
-          initialState: getInitialState(),
-          getOriginalValues: spyGetOriginalValues,
-        },
-      }
+      {}
     );
     ({
       selectAllowChange,
@@ -47,7 +35,6 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
       selectInheritedFromOrgEnabled,
       selectInnerSourceRepositoryBaseConfigurationsSlice,
       selectIsDirty,
-      selectOriginalValues,
       selectOwnerDTO,
       selectOwnerPublicId,
       selectRepositoryConnections,
@@ -173,99 +160,31 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
     });
   });
 
-  describe('selectOriginalValues', () => {
-    it('selects the result of calling `getOriginalValues`', () => {
-      spyGetOriginalValues.and.returnValue('result');
-      const state = {
-        innerSourceRepositoryBaseConfigurations: {
-          serverData: {
-            repositoryConnectionStatus: 'someRepositoryConnectionStatus',
-          },
-        },
-      };
-      expect(selectOriginalValues(state)).toBe('result');
-      expect(spyGetOriginalValues).toHaveBeenCalledWith('someRepositoryConnectionStatus');
-    });
-  });
-
   describe('selectIsDirty', () => {
-    it('selects false if the form has not been changed', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
+    it('selects isDirty from the state', () => {
       const state = {
         innerSourceRepositoryBaseConfigurations: {
-          formState: {
-            enabled: null,
-            allowOverride: true,
-          },
+          isDirty: true,
         },
       };
-      expect(selectIsDirty(state)).toBe(false);
-    });
-
-    it('selects true if enabled has changed', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
-      const state = {
-        innerSourceRepositoryBaseConfigurations: {
-          formState: {
-            enabled: true,
-            allowOverride: true,
-          },
-        },
-      };
-      expect(selectIsDirty(state)).toBe(true);
-    });
-
-    it('selects true if allowOverride has changed', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
-      const state = {
-        innerSourceRepositoryBaseConfigurations: {
-          formState: {
-            enabled: null,
-            allowOverride: false,
-          },
-        },
-      };
-      expect(selectIsDirty(state)).toBe(true);
+      expect(selectIsDirty(state)).toBeTrue();
     });
   });
 
   describe('selectValidationErrors', () => {
     it('selects null if the form is dirty', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
       const state = {
         innerSourceRepositoryBaseConfigurations: {
-          formState: {
-            enabled: true,
-            allowOverride: true,
-          },
+          isDirty: true,
         },
       };
       expect(selectValidationErrors(state)).toBe(null);
     });
 
     it('selects the NO_CHANGES_MESSAGE if the form is not dirty', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
       const state = {
         innerSourceRepositoryBaseConfigurations: {
-          formState: {
-            enabled: null,
-            allowOverride: true,
-          },
+          isDirty: false,
         },
       };
       expect(selectValidationErrors(state)).toBe(NO_CHANGES_MESSAGE);

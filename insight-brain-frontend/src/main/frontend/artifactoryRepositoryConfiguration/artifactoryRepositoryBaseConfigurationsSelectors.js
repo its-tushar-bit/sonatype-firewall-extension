@@ -5,7 +5,6 @@
  */
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
-import { getOriginalValues } from './artifactoryRepositoryBaseConfigurationsUtil';
 import { NO_CHANGES_MESSAGE } from './artifactoryRepositoryConfigurationModalSlice';
 import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -17,6 +16,8 @@ export const selectFormState = createSelector(selectArtifactoryRepositoryBaseCon
 export const selectServerData = createSelector(selectArtifactoryRepositoryBaseConfigurationsSlice, prop('serverData'));
 export const selectLoading = createSelector(selectArtifactoryRepositoryBaseConfigurationsSlice, prop('loading'));
 export const selectLoadError = createSelector(selectArtifactoryRepositoryBaseConfigurationsSlice, prop('loadError'));
+
+export const selectIsDirty = createSelector(selectArtifactoryRepositoryBaseConfigurationsSlice, prop('isDirty'));
 
 export const selectArtifactoryConnectionStatus = createSelector(selectServerData, prop('artifactoryConnectionStatus'));
 
@@ -39,18 +40,6 @@ export const selectInheritedFromOrgEnabled = createSelector(
 export const selectAllowChange = createSelector(selectArtifactoryConnectionStatus, prop('allowChange'));
 
 export const selectArtifactoryConnection = createSelector(selectServerData, prop('artifactoryConnection'));
-
-export const selectOriginalValues = createSelector(selectArtifactoryConnectionStatus, getOriginalValues);
-
-export const selectIsDirty = createSelector(selectFormState, selectOriginalValues, (formState, originalValues) => {
-  if (formState.enabled !== originalValues.enabled) {
-    return true;
-  }
-  if (formState.allowOverride !== originalValues.allowOverride) {
-    return true;
-  }
-  return false;
-});
 
 export const selectValidationErrors = createSelector(selectIsDirty, (isDirty) => {
   if (!isDirty) {

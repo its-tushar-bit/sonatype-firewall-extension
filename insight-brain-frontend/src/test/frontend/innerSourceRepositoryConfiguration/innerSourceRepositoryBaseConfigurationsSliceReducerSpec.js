@@ -34,7 +34,7 @@ describe('innerSourceRepositoryBaseConfigurationsSliceReducer', () => {
   });
 
   describe('innerSourceRepositoryBaseConfigurations/setEnabled action', () => {
-    it('sets `enabled` to the payload', function () {
+    it('sets `enabled` to the payload and sets isDirty to true', function () {
       const state = {};
       const action = {
         type: 'innerSourceRepositoryBaseConfigurations/setEnabled',
@@ -47,11 +47,12 @@ describe('innerSourceRepositoryBaseConfigurationsSliceReducer', () => {
         formState: {
           enabled: true,
         },
+        isDirty: true,
       });
     });
   });
 
-  describe('innerSourceRepositoryBaseConfigurations/setAllowOverride action', () => {
+  describe('innerSourceRepositoryBaseConfigurations/setAllowOverride action and sets isDirty to true', () => {
     it('sets `allowOverride` to the payload', function () {
       const state = {};
       const action = {
@@ -65,11 +66,12 @@ describe('innerSourceRepositoryBaseConfigurationsSliceReducer', () => {
         formState: {
           allowOverride: true,
         },
+        isDirty: true,
       });
     });
   });
 
-  describe('innerSourceRepositoryBaseConfigurations/cancel action', () => {
+  describe('innerSourceRepositoryBaseConfigurations/cancel action and sets isDirty to false', () => {
     it('resets the form to match the initial data if the server data does not exist', function () {
       const state = {};
       const action = {
@@ -78,10 +80,10 @@ describe('innerSourceRepositoryBaseConfigurationsSliceReducer', () => {
 
       const newState = reducer(state, action);
 
-      expect(newState).toEqual({ formState: initialState.formState });
+      expect(newState).toEqual({ formState: initialState.formState, isDirty: false });
     });
 
-    it('resets the form to match the server data if it does exist', function () {
+    it('resets the form to match the server data if it does exist and sets isDirty to false', function () {
       const state = {
         serverData: {
           repositoryConnectionStatus: {
@@ -102,6 +104,7 @@ describe('innerSourceRepositoryBaseConfigurationsSliceReducer', () => {
           enabled: true,
           allowOverride: false,
         },
+        isDirty: false,
       });
     });
   });

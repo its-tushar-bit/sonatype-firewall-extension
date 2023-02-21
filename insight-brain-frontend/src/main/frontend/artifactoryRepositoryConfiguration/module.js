@@ -23,6 +23,7 @@ function routes($stateProvider) {
       component: 'artifactoryRepositoryBaseConfigurations',
       data: {
         title: 'Artifactory Repository Configurations',
+        isDirty: ['artifactoryRepositoryBaseConfigurations', 'isDirty'],
       },
     })
     .state('artifactoryRepositoryBaseConfigurations.organization', {

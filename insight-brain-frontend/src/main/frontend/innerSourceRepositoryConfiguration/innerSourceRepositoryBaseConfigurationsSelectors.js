@@ -5,7 +5,6 @@
  */
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
-import { getOriginalValues } from './innerSourceRepositoryBaseConfigurationsUtil';
 import { NO_CHANGES_MESSAGE } from './innerSourceRepositoryConfigurationModalSlice';
 
 export const selectInnerSourceRepositoryBaseConfigurationsSlice = prop('innerSourceRepositoryBaseConfigurations');
@@ -15,6 +14,8 @@ export const selectFormState = createSelector(selectInnerSourceRepositoryBaseCon
 export const selectServerData = createSelector(selectInnerSourceRepositoryBaseConfigurationsSlice, prop('serverData'));
 export const selectLoading = createSelector(selectInnerSourceRepositoryBaseConfigurationsSlice, prop('loading'));
 export const selectLoadError = createSelector(selectInnerSourceRepositoryBaseConfigurationsSlice, prop('loadError'));
+
+export const selectIsDirty = createSelector(selectInnerSourceRepositoryBaseConfigurationsSlice, prop('isDirty'));
 
 export const selectRepositoryConnectionStatus = createSelector(selectServerData, prop('repositoryConnectionStatus'));
 
@@ -37,18 +38,6 @@ export const selectInheritedFromOrgEnabled = createSelector(
 export const selectAllowChange = createSelector(selectRepositoryConnectionStatus, prop('allowChange'));
 
 export const selectRepositoryConnections = createSelector(selectServerData, prop('repositoryConnections'));
-
-export const selectOriginalValues = createSelector(selectRepositoryConnectionStatus, getOriginalValues);
-
-export const selectIsDirty = createSelector(selectFormState, selectOriginalValues, (formState, originalValues) => {
-  if (formState.enabled !== originalValues.enabled) {
-    return true;
-  }
-  if (formState.allowOverride !== originalValues.allowOverride) {
-    return true;
-  }
-  return false;
-});
 
 export const selectValidationErrors = createSelector(selectIsDirty, (isDirty) => {
   if (!isDirty) {

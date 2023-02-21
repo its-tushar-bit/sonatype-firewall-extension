@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { prop } from 'ramda';
+import { compose, prop } from 'ramda';
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { getRepositoryConnectionUrl } from 'MainRoot/util/CLMLocation';
@@ -45,6 +45,8 @@ export const initialState = {
 
   submitMaskState: null,
   submitMaskMessage: null,
+
+  isDirty: false,
 };
 
 function resetFormState(state) {
@@ -147,18 +149,34 @@ const goToEditPage = () => {
   };
 };
 
+function computeIsDirty(state) {
+  const originalValues = getOriginalValues(state?.serverData?.repositoryConnectionStatus);
+  const values = state?.formState;
+  if (values?.enabled !== originalValues?.enabled) {
+    return true;
+  }
+  if (values?.allowOverride !== originalValues?.allowOverride) {
+    return true;
+  }
+  return false;
+}
+
+function updateIsDirty(state) {
+  return { ...state, isDirty: computeIsDirty(state) };
+}
+
 const innerSourceRepositoryBaseConfigurationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    setEnabled: pathSet(['formState', 'enabled']),
-    setAllowOverride: pathSet(['formState', 'allowOverride']),
-    cancel: resetFormState,
+    setEnabled: compose(updateIsDirty, pathSet(['formState', 'enabled'])),
+    setAllowOverride: compose(updateIsDirty, pathSet(['formState', 'allowOverride'])),
+    cancel: compose(updateIsDirty, resetFormState),
     submitMaskTimerDone: propSetConst('submitMaskState', null),
   },
   extraReducers: {
     [load.pending]: loadRequested,
-    [load.fulfilled]: loadFulfilled,
+    [load.fulfilled]: compose(updateIsDirty, loadFulfilled),
     [load.rejected]: loadFailed,
     [save.pending]: saveRequested,
     [save.fulfilled]: saveFulfilled,

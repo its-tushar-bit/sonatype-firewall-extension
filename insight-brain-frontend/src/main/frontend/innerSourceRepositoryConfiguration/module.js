@@ -23,6 +23,7 @@ function routes($stateProvider) {
       component: 'innerSourceRepositoryBaseConfigurations',
       data: {
         title: 'Repository Configurations',
+        isDirty: ['innerSourceRepositoryBaseConfigurations', 'isDirty'],
       },
     })
     .state('repositoryBaseConfigurations.organization', {

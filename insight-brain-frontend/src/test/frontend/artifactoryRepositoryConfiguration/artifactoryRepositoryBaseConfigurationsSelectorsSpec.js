@@ -4,20 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { getInitialState } from 'TestRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsTestData';
-import { getOriginalValues } from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsUtil';
 import { NO_CHANGES_MESSAGE } from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryConfigurationModalSlice';
 
 describe('artifactoryRepositoryBaseConfigurationsSelectors', function () {
-  let spyGetOriginalValues,
-    selectAllowChange,
+  let selectAllowChange,
     selectEnabled,
     selectFormState,
     selectInheritedFromOrganizationName,
     selectInheritedFromOrgEnabled,
     selectArtifactoryRepositoryBaseConfigurationsSlice,
     selectIsDirty,
-    selectOriginalValues,
     selectOwnerDTO,
     selectOwnerPublicId,
     selectArtifactoryConnection,
@@ -29,16 +25,8 @@ describe('artifactoryRepositoryBaseConfigurationsSelectors', function () {
     selectEditLink,
     selectArtifactoryRepositoriesEnabled;
   beforeEach(() => {
-    spyGetOriginalValues = jasmine.createSpy('getOriginalValues').and.callFake((serverData) => {
-      return getOriginalValues(serverData);
-    });
     const module = require('inject-loader!../../../../src/main/frontend/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsSelectors')(
-      {
-        './artifactoryRepositoryBaseConfigurationsUtil': {
-          initialState: getInitialState(),
-          getOriginalValues: spyGetOriginalValues,
-        },
-      }
+      {}
     );
     ({
       selectAllowChange,
@@ -48,7 +36,6 @@ describe('artifactoryRepositoryBaseConfigurationsSelectors', function () {
       selectInheritedFromOrgEnabled,
       selectArtifactoryRepositoryBaseConfigurationsSlice,
       selectIsDirty,
-      selectOriginalValues,
       selectOwnerDTO,
       selectOwnerPublicId,
       selectArtifactoryConnection,
@@ -175,99 +162,31 @@ describe('artifactoryRepositoryBaseConfigurationsSelectors', function () {
     });
   });
 
-  describe('selectOriginalValues', () => {
-    it('selects the result of calling `getOriginalValues`', () => {
-      spyGetOriginalValues.and.returnValue('result');
-      const state = {
-        artifactoryRepositoryBaseConfigurations: {
-          serverData: {
-            artifactoryConnectionStatus: 'someArtifactoryConnectionStatus',
-          },
-        },
-      };
-      expect(selectOriginalValues(state)).toBe('result');
-      expect(spyGetOriginalValues).toHaveBeenCalledWith('someArtifactoryConnectionStatus');
-    });
-  });
-
   describe('selectIsDirty', () => {
-    it('selects false if the form has not been changed', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
+    it('selects isDirty from the state', () => {
       const state = {
         artifactoryRepositoryBaseConfigurations: {
-          formState: {
-            enabled: null,
-            allowOverride: true,
-          },
+          isDirty: true,
         },
       };
-      expect(selectIsDirty(state)).toBe(false);
-    });
-
-    it('selects true if enabled has changed', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
-      const state = {
-        artifactoryRepositoryBaseConfigurations: {
-          formState: {
-            enabled: true,
-            allowOverride: true,
-          },
-        },
-      };
-      expect(selectIsDirty(state)).toBe(true);
-    });
-
-    it('selects true if allowOverride has changed', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
-      const state = {
-        artifactoryRepositoryBaseConfigurations: {
-          formState: {
-            enabled: null,
-            allowOverride: false,
-          },
-        },
-      };
-      expect(selectIsDirty(state)).toBe(true);
+      expect(selectIsDirty(state)).toBeTrue();
     });
   });
 
   describe('selectValidationErrors', () => {
     it('selects null if the form is dirty', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
       const state = {
         artifactoryRepositoryBaseConfigurations: {
-          formState: {
-            enabled: true,
-            allowOverride: true,
-          },
+          isDirty: true,
         },
       };
       expect(selectValidationErrors(state)).toBe(null);
     });
 
     it('selects the NO_CHANGES_MESSAGE if the form is not dirty', () => {
-      spyGetOriginalValues.and.returnValue({
-        enabled: null,
-        allowOverride: true,
-      });
       const state = {
         artifactoryRepositoryBaseConfigurations: {
-          formState: {
-            enabled: null,
-            allowOverride: true,
-          },
+          isDirty: false,
         },
       };
       expect(selectValidationErrors(state)).toBe(NO_CHANGES_MESSAGE);

@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.InnerSourceRepositoryBaseConfigurationsPage;
 import com.sonatype.clm.testing.functional.pages.InnerSourceRepositoryBaseConfigurationsPage.DeleteModal;
@@ -410,5 +411,35 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     OwnerSummaryPage.innerSourceRepositoryTile().editButton().click();
     waitUntilUrl(InnerSourceRepositoryBaseConfigurationsPage.url(owner.getType().toString(), owner.getId()));
+  }
+
+  @Test
+  public void testUnsavedChanges() {
+    setRepositoryConfiguration(org, true, true);
+    InnerSourceRepositoryBaseConfigurationsPage page = visitPage(org.getType().toString(), org.getId());
+
+    page.allowOverride().click();
+    checkUnsavedChangesModalIsVisible();
+    refresh();
+
+    page.disable().click();
+    checkUnsavedChangesModalIsVisible();
+    refresh();
+
+    setRepositoryConfiguration(org, false, false);
+    page = visitPage(org.getType().toString(), org.getId());
+
+    page.allowOverride().click();
+    checkUnsavedChangesModalIsVisible();
+    refresh();
+
+    page.enable().click();
+    checkUnsavedChangesModalIsVisible();
+  }
+
+  private void checkUnsavedChangesModalIsVisible() {
+    SidebarNavigation.dashboardNavigationButton().click();
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
   }
 }

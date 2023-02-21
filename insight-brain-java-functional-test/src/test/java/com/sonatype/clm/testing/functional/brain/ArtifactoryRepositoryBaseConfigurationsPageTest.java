@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfigurationsPage;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfigurationsPage.ArtifactoryConnectionRow;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfigurationsPage.DeleteModal;
@@ -403,5 +404,35 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
     OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
     OwnerSummaryPage.artifactoryRepositoryTile().editButton().click();
     waitUntilUrl(ArtifactoryRepositoryBaseConfigurationsPage.url(owner.getType().toString(), owner.getId()));
+  }
+
+  @Test
+  public void testUnsavedChanges() {
+    setArtifactoryConfiguration(org, true, true);
+    ArtifactoryRepositoryBaseConfigurationsPage page = visitPage(org.getType().toString(), org.getId());
+
+    page.allowOverride().click();
+    checkUnsavedChangesModalIsVisible();
+    refresh();
+
+    page.disable().click();
+    checkUnsavedChangesModalIsVisible();
+    refresh();
+
+    setArtifactoryConfiguration(org, false, false);
+    page = visitPage(org.getType().toString(), org.getId());
+
+    page.allowOverride().click();
+    checkUnsavedChangesModalIsVisible();
+    refresh();
+
+    page.enable().click();
+    checkUnsavedChangesModalIsVisible();
+  }
+
+  private void checkUnsavedChangesModalIsVisible() {
+    SidebarNavigation.dashboardNavigationButton().click();
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
   }
 }

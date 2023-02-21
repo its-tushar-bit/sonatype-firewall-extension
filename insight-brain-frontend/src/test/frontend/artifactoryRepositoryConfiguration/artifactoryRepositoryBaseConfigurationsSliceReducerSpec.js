@@ -34,7 +34,7 @@ describe('artifactoryRepositoryBaseConfigurationsSliceReducer', () => {
   });
 
   describe('artifactoryRepositoryBaseConfigurations/setEnabled action', () => {
-    it('sets `enabled` to the payload', function () {
+    it('sets `enabled` to the payload and sets isDirty to true', function () {
       const state = {};
       const action = {
         type: 'artifactoryRepositoryBaseConfigurations/setEnabled',
@@ -47,12 +47,13 @@ describe('artifactoryRepositoryBaseConfigurationsSliceReducer', () => {
         formState: {
           enabled: true,
         },
+        isDirty: true,
       });
     });
   });
 
   describe('artifactoryRepositoryBaseConfigurations/setAllowOverride action', () => {
-    it('sets `allowOverride` to the payload', function () {
+    it('sets `allowOverride` to the payload and sets isDirty to true', function () {
       const state = {};
       const action = {
         type: 'artifactoryRepositoryBaseConfigurations/setAllowOverride',
@@ -65,12 +66,13 @@ describe('artifactoryRepositoryBaseConfigurationsSliceReducer', () => {
         formState: {
           allowOverride: true,
         },
+        isDirty: true,
       });
     });
   });
 
   describe('artifactoryRepositoryBaseConfigurations/cancel action', () => {
-    it('resets the form to match the initial data if the server data does not exist', function () {
+    it('resets the form to match the initial data if the server data does not exist and sets isDirty to false', function () {
       const state = {};
       const action = {
         type: 'artifactoryRepositoryBaseConfigurations/cancel',
@@ -78,10 +80,10 @@ describe('artifactoryRepositoryBaseConfigurationsSliceReducer', () => {
 
       const newState = reducer(state, action);
 
-      expect(newState).toEqual({ formState: initialState.formState });
+      expect(newState).toEqual({ formState: initialState.formState, isDirty: false });
     });
 
-    it('resets the form to match the server data if it does exist', function () {
+    it('resets the form to match the server data if it does exist and sets isDirty to false', function () {
       const state = {
         serverData: {
           artifactoryConnectionStatus: {
@@ -102,6 +104,7 @@ describe('artifactoryRepositoryBaseConfigurationsSliceReducer', () => {
           enabled: true,
           allowOverride: false,
         },
+        isDirty: false,
       });
     });
   });

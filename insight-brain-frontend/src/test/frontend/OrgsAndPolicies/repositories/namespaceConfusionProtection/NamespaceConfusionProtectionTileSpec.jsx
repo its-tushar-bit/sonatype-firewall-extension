@@ -82,14 +82,6 @@ describe('NamespaceConfusionProtectionTile', () => {
     renderComponent = () => render(<NamespaceConfusionProtectionTile />);
   });
 
-  describe('when data are being loaded', () => {
-    it('renders loading spinner', () => {
-      renderComponent();
-
-      expect(screen.getByText('Loading…')).toBeVisible();
-    });
-  });
-
   describe('when the page has a loading error', () => {
     beforeEach(() => {
       mock.onPost(getRepositoryComponentNameUrl(), repositoryComponentNameUrlRequestBody).reply(500);
@@ -112,9 +104,7 @@ describe('NamespaceConfusionProtectionTile', () => {
     it('renders default empty message', async () => {
       renderComponent();
 
-      expect(screen.queryByText('Loading…')).toBeVisible();
       await waitFor(() => expect(screen.getByText('No results')).toBeVisible());
-      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
     });
   });
 
@@ -122,7 +112,6 @@ describe('NamespaceConfusionProtectionTile', () => {
     it('renders table with all components', async () => {
       renderComponent();
       const { componentNamePatterns } = repositoryComponentsDetails;
-      expect(screen.queryByText('Loading…')).toBeVisible();
       await waitFor(() => expect(screen.getByText(componentNamePatterns[0].repositoryManagerInstanceId)).toBeVisible());
       expect(
         screen.getByText(componentNamePatterns[0].namespacePattern || componentNamePatterns[0].namePattern)
@@ -262,13 +251,13 @@ describe('NamespaceConfusionProtectionTile', () => {
         ).toBeVisible();
       };
 
-      const sortByNamespacesButton = screen.getByRole('button', { name: /Component Namespaces ascending/i });
+      const sortByNamespacesButton = screen.getByRole('button', { name: /Component Namespace ascending/i });
       const sortByManagerButton = screen.getByRole('button', { name: /Repository Manager unsorted/i });
       const sortByRepositoryButton = screen.getByRole('button', { name: /Repository unsorted/i });
       await waitFor(() => assertFirstRowColsValues(0));
 
       fireEvent.click(sortByNamespacesButton);
-      expect(screen.getByRole('button', { name: /Component Namespaces descending/i })).toBeVisible();
+      expect(screen.getByRole('button', { name: /Component Namespace descending/i })).toBeVisible();
       await waitFor(() => assertFirstRowColsValues(2));
 
       fireEvent.click(sortByManagerButton);

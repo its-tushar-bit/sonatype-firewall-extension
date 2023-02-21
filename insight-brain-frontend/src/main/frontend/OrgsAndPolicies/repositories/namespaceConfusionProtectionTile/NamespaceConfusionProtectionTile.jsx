@@ -20,7 +20,6 @@ import {
   selectSortFields,
   selectSearchFiltersValues,
   selectComponentNamePatterns,
-  selectLoadingComponentNamePatterns,
   selectErrorComponentsTable,
   selectCurrentPage,
   selectHasNextPage,
@@ -32,7 +31,6 @@ const NamespaceConfusionProtectionTile = () => {
   const sortFields = useSelector(selectSortFields);
   const searchFiltersValues = useSelector(selectSearchFiltersValues);
   const componentNamePatterns = useSelector(selectComponentNamePatterns);
-  const loadingComponentNamePatterns = useSelector(selectLoadingComponentNamePatterns);
   const errorComponentsTable = useSelector(selectErrorComponentsTable);
   const currentPage = useSelector(selectCurrentPage);
   const hasNextPage = useSelector(selectHasNextPage);
@@ -80,8 +78,8 @@ const NamespaceConfusionProtectionTile = () => {
         </NxTile.HeaderTitle>
         <NxTile.HeaderSubtitle>
           {'This list shows the current status of '}
-          <NxTextLink newTab external>
-            namespace confusion protection.
+          <NxTextLink newTab external href="https://links.sonatype.com/nexus-firewall/preventing-namespace-confusion">
+            namespace confusion protection
           </NxTextLink>
         </NxTile.HeaderSubtitle>
       </NxTile.Header>
@@ -96,7 +94,7 @@ const NamespaceConfusionProtectionTile = () => {
                   onClick={() => sortComponents('PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME')}
                   className="iq-repository-column--name-space"
                 >
-                  Component Namespaces
+                  Component Namespace
                 </NxTable.Cell>
                 <NxTable.Cell
                   isSortable
@@ -134,7 +132,6 @@ const NamespaceConfusionProtectionTile = () => {
             <NxTable.Body
               id="iq-proprietary-table-body"
               retryHandler={loadRepositories}
-              isLoading={loadingComponentNamePatterns}
               error={errorComponentsTable}
               emptyMessage="No results"
             >

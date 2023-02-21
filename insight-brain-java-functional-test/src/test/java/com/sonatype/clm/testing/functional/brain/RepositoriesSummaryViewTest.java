@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.time.Duration;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -49,13 +48,7 @@ import com.codeborne.selenide.Selenide;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.FluentWait;
-import org.openqa.selenium.support.ui.Wait;
 
-import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
@@ -64,7 +57,6 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoriesSummaryViewTest
@@ -298,14 +290,14 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNameSpaces[0]));
 
     namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn()
-        .shouldHave(attribute("aria-label", "Component Namespaces ascending"));
+        .shouldHave(attribute("aria-label", "Component Namespace ascending"));
 
     namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn().click();
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNameSpaces[0]));
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNameSpaces[2]));
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNameSpaces[1]));
     namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn()
-        .shouldHave(attribute("aria-label", "Component Namespaces descending"));
+        .shouldHave(attribute("aria-label", "Component Namespace descending"));
     namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
     namespaceConfusionProtectionTile.nextPageBtn().shouldNotBe(visible);
   }
@@ -409,13 +401,6 @@ public class RepositoriesSummaryViewTest
         .shouldHave(text(repositoryManagerInstanceIds[1]));
   }
 
-  private void waitUntilSpinnersGone() {
-    Wait<WebDriver> wait = new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(240))
-        .pollingEvery(Duration.ofSeconds(2)).ignoring(NoSuchElementException.class);
-    wait.until(ExpectedConditions.invisibilityOf(RepositoryResultsSummaryPage.getAllLoadingSpinners().get(0)));
-    RepositoryResultsSummaryPage.getAllLoadingSpinners().shouldHave(size(0));
-  }
-
   @Test
   public void testNamespaceConfusionProtection_Pagination() {
     String[] componentNamespaces = {"@testing-library/react", "ant", "b-social", "express", "high-c", "itext", "jproc",
@@ -459,8 +444,6 @@ public class RepositoriesSummaryViewTest
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
 
-    waitUntilSpinnersGone();
-
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[0]));
@@ -475,8 +458,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
 
     namespaceConfusionProtectionTile.nextPageBtn().click();
-    waitUntilSpinnersGone();
-
+    
     namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
         .shouldHave(attribute("aria-label", "previous page"));
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
@@ -489,8 +471,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[11]));
 
     namespaceConfusionProtectionTile.nextPageBtn().click();
-    waitUntilSpinnersGone();
-
+    
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(1);
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[12]));
     namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
@@ -498,8 +479,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.nextPageBtn().shouldNotBe(visible);
 
     namespaceConfusionProtectionTile.previousPageBtn().click();
-    waitUntilSpinnersGone();
-
+    
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
     namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
         .shouldHave(attribute("aria-label", "previous page"));
@@ -513,8 +493,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[11]));
 
     namespaceConfusionProtectionTile.previousPageBtn().click();
-    waitUntilSpinnersGone();
-
+    
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
     namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
@@ -558,7 +537,7 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
 
     namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn()
-        .shouldHave(attribute("aria-label", "Component Namespaces ascending"));
+        .shouldHave(attribute("aria-label", "Component Namespace ascending"));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[5]));
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[0]));
@@ -569,7 +548,7 @@ public class RepositoriesSummaryViewTest
 
     namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn().click();
     namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn()
-        .shouldHave(attribute("aria-label", "Component Namespaces descending"));
+        .shouldHave(attribute("aria-label", "Component Namespace descending"));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[1]));
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[3]));

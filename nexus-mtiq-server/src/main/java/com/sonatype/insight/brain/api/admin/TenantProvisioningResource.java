@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.api.AdminApiPaths;
 
 @Named
 @MtiqAdminEndpoint
-@Path(AdminApiPaths.ADMIN_PROVISION_TENANT_PATH)
+@Path(AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH)
 public class TenantProvisioningResource
 {
   private final TenantProvisioningService tenantProvisioningService;
@@ -27,7 +27,6 @@ public class TenantProvisioningResource
   }
 
   @POST
-  @Path("{tenantSlug}")
   public void provisionTenant(@PathParam("tenantSlug") String tenantSlug) {
     tenantProvisioningService.provisionTenant(tenantSlug);
   }

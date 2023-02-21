@@ -38,6 +38,6 @@ public class TenantValidator
       throw new IllegalArgumentException("Invalid tenant parameter");
     }
 
-    return DatabaseUtil.schemaExists(operationalDataStore.getDataSourceWithoutInit(), tenant.databaseSchema);
+    return DatabaseUtil.databaseSchemaExists(operationalDataStore.getDataSourceWithoutInit(), tenant.databaseSchema);
   }
 }

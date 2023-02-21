@@ -35,7 +35,7 @@ public class AdminTenantFilter
 
   static final String TENANT_PARAMETER = "tenant";
 
-  static final Pattern TENANT_PARAMETER_REGEX = Pattern.compile(".*\\/tenant\\/([^\\/]+)");
+  static final Pattern TENANT_PARAMETER_REGEX = Pattern.compile("/admin/tenants/([^/]+)");
 
   private final TenantManager tenantManager;
 
@@ -65,7 +65,7 @@ public class AdminTenantFilter
     }
     else {
       // The admin endpoint will be used for tenant configuration/maintenance
-      tenantManager.setTenantForAdminRequest(tenantName);
+      setTenant(tenantName);
     }
 
     log.debug("Tenant context set to: {}", TenantThreadLocal.getTenant().tenantSlug);
@@ -88,6 +88,15 @@ public class AdminTenantFilter
     // noop
   }
 
+  private void setTenant(String tenantName) {
+    try {
+      tenantManager.setTenant(tenantName);
+    }
+    catch (IllegalArgumentException exception) {
+      tenantManager.setTenantForAdminRequest(tenantName);
+    }
+  }
+
   private static String getTenantParameter(final ServletRequest request) {
     String tenantName = getTenantParameterFromPath(request);
     if (StringUtils.isBlank(tenantName)) {
@@ -96,7 +105,7 @@ public class AdminTenantFilter
     return tenantName;
   }
 
-  private static String getTenantParameterFromPath(final ServletRequest request) {
+  static String getTenantParameterFromPath(final ServletRequest request) {
     HttpServletRequest req = (HttpServletRequest) request;
 
     Matcher matcher = TENANT_PARAMETER_REGEX.matcher(req.getRequestURI());

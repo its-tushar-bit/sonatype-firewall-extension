@@ -11,5 +11,7 @@ public class AdminApiPaths
 
   public static final String ADMIN_CONFIG_FEATURES_PATH = ADMIN_PATH + "config/features";
 
-  public static final String ADMIN_PROVISION_TENANT_PATH = ADMIN_PATH + "tenant/";
+  public static final String ADMIN_TENANT_PROVISIONING_PATH = ADMIN_PATH + "tenants/{tenantSlug}";
+
+  public static final String ADMIN_TENANT_LICENSE_PATH = ADMIN_PATH + "tenants/{tenantSlug}/license";
 }

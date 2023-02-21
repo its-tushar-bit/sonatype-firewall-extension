@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_PROVISION_TENANT_PATH;
+import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantProvisioningResourceTest
@@ -19,7 +19,7 @@ public class TenantProvisioningResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.adminRequest().path("api/").path(ADMIN_PROVISION_TENANT_PATH);
+    return super.adminRequest().path("api/").path(ADMIN_TENANT_PROVISIONING_PATH);
   }
 
   @Test
@@ -41,7 +41,7 @@ public class TenantProvisioningResourceTest
 
   private HttpRequest provisionTenant(String tenant) {
     if (tenant != null) {
-      return restRequest().path(tenant);
+      return restRequest().parameter(tenant);
     }
     return restRequest();
   }

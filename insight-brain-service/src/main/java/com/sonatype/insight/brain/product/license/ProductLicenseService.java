@@ -37,6 +37,10 @@ public class ProductLicenseService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void installLicense(InputStream is, String filename) {
+    installLicenseNoAuthz(is, filename);
+  }
+
+  public void installLicenseNoAuthz(InputStream is, String filename) {
     try {
       licenseManager.installLicense(is);
       log.info("Nexus IQ License {} successfully installed", filename);

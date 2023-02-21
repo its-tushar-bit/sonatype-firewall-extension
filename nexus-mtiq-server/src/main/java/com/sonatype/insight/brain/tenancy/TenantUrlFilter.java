@@ -63,7 +63,7 @@ public class TenantUrlFilter
     }
     catch (IllegalArgumentException exception) {
       createTenantNotFoundResponse(response);
-      log.debug("Error registering tenant: {} Error: ", serverName, exception.getMessage());
+      log.debug("Error registering tenant: {} Error: {}", serverName, exception.getMessage());
     }
     finally {
       TenantThreadLocal.invalidateTenant();

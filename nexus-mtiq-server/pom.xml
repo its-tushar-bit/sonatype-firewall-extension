@@ -36,6 +36,10 @@
       <artifactId>dropwizard-json-logging</artifactId>
       <version>${dropwizard.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-multipart</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

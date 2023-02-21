@@ -104,14 +104,14 @@ public class TenantValidatorTest
 
   private boolean runValidateTenantExists(String schema, boolean expected) {
     try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
-      dataBaseUtil.when(() -> DatabaseUtil.schemaExists(dataSource, schema)).thenReturn(expected);
+      dataBaseUtil.when(() -> DatabaseUtil.databaseSchemaExists(dataSource, schema)).thenReturn(expected);
       return underTest.validateTenantExists(tenant);
     }
   }
 
   private boolean runValidateTenantNameExists(String schema, boolean expected) {
     try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
-      dataBaseUtil.when(() -> DatabaseUtil.schemaExists(dataSource, schema)).thenReturn(expected);
+      dataBaseUtil.when(() -> DatabaseUtil.databaseSchemaExists(dataSource, schema)).thenReturn(expected);
       return underTest.validateTenantExists(TENANT_NAME);
     }
   }

@@ -11,6 +11,7 @@ import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.setup.JerseyContainerHolder;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import io.dropwizard.setup.Environment;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 public class AdminResourceBundle
@@ -27,6 +28,7 @@ public class AdminResourceBundle
   @Override
   public void run(Configuration configuration, Environment environment) {
     this.jerseyAdminEnvironment = this.setupAdminEnvironment(environment);
+    this.jerseyAdminEnvironment.register(MultiPartFeature.class);
   }
 
   private JerseyEnvironment setupAdminEnvironment(final Environment environment) {
@@ -39,7 +41,7 @@ public class AdminResourceBundle
 
     environment.admin()
         .addServlet("api", servletContainerHolder.getContainer())
-        .addMapping(new String[]{this.basePath});
+        .addMapping(this.basePath);
 
     return jerseyEnvironment;
   }

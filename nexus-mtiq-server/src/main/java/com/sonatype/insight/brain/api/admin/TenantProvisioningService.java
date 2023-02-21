@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.admin;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Service in charge of the logic to provision a new tenant for MTIQ
  */
+@Named
 public class TenantProvisioningService
 {
   private static final Logger log = LoggerFactory.getLogger(TenantProvisioningService.class);

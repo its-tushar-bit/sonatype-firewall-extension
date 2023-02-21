@@ -252,11 +252,29 @@ we call the tenant provisioning process.
 For tenant provisioning we have created a new admin endpoint. You can run the next command to provision a
 new tenant:
 ```bash
-curl -X POST http://{mtiq-ip-address}:8071/api/admin/tenant/{tenant-name}
+curl -X POST http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}
 
 # Here is an example
 
-curl -X POST http://127.0.0.1:8071/api/admin/tenant/cubs
+curl -X POST http://127.0.0.1:8071/api/admin/tenants/cubs
 
 # This will provision tenant with name "cubs"
+```
+
+### Install/Update Tenant License
+
+For MTIQ we also need a proper way to manage the license needed for a tenant. For that purpose we have created a new
+admin endpoint to install or update a license for a tenant. This new endpoint will help us to automatically install 
+the license for a tenant after it is provisioned, so the customer will not need to execute this step manually. 
+
+The final goal is to not depend on a license file, but for now the endpoint expects this file. You can run the next 
+command to install/update a new tenant:
+```bash
+curl -F file="@/path/to/license.lic" -X PUT http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/license
+
+# Here is an example
+
+curl -F file="@sonatype.lic" -X PUT http://127.0.0.1:8071/api/admin/tenants/cubs/license
+
+# This will install/update the license for the tenant "cubs"
 ```

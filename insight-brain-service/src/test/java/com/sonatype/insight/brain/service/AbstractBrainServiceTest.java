@@ -257,11 +257,7 @@ public abstract class AbstractBrainServiceTest
       if (installLicense) {
         installLicense();
       }
-      TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
-      if (taskScheduler != null) {
-        taskScheduler.standby();
-        taskScheduler.clear();
-      }
+      cleanTaskScheduler();
       getCLMServer().resetDisableForTesting();
       InsightConfig insightConfig = getCLMServer().getConfiguration();
       if (insightConfig != null) {
@@ -297,6 +293,14 @@ public abstract class AbstractBrainServiceTest
       if (proxyServerConfigurationService != null) {
         proxyServerConfigurationService.applyProxyServerConfigurationToClients();
       }
+    }
+  }
+
+  protected void cleanTaskScheduler() throws Exception {
+    TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
+    if (taskScheduler != null) {
+      taskScheduler.standby();
+      taskScheduler.clear();
     }
   }
 

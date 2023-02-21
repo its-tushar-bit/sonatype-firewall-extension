@@ -101,4 +101,9 @@ public abstract class AbstractMultiTenantBrainServiceTest
       mtiqConfig.setLocksDatabase(postgresServer.getDatabaseConfig());
     };
   }
+
+  @Override
+  protected void cleanTaskScheduler() {
+    //noop
+  }
 }

@@ -63,6 +63,22 @@ public class DatabaseUtil
     }
   }
 
+  public static boolean databaseSchemaExists(DataSource dataSource, String databaseSchema) {
+    try (Connection connection = dataSource.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(
+             "SELECT * FROM INFORMATION_SCHEMA.SCHEMATA " +
+                 "WHERE SCHEMA_NAME = ?")) {
+      preparedStatement.setString(1, databaseSchema);
+      try (ResultSet result = preparedStatement.executeQuery()) {
+        return result.next();
+      }
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(
+          String.format("Failed attempt to check if %s schema exists.", databaseSchema), e);
+    }
+  }
+
   private static boolean tableExistsWithColumn(
       final DataSource dataSource,
       final String databaseSchema,

@@ -159,7 +159,7 @@ public class SourceControlScanServiceTest
     sourceControlEvent.setApplicationId(APP_ID);
 
     spySourceControlUtils =
-        spy(new SourceControlUtils(null, mockApplicationDAO, mockInsightWork, fileCleaner, mockGitClientFactory));
+        spy(new SourceControlUtils(null, mockInsightWork, fileCleaner, mockGitClientFactory));
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager);

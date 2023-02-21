@@ -17,10 +17,8 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -44,8 +42,6 @@ public class SourceControlUtils
 
   private final ApiSourceControlService sourceControlService;
 
-  private final ApplicationDAO applicationDAO;
-
   private final InsightWork insightWork;
 
   private final FileCleaner fileCleaner;
@@ -55,13 +51,11 @@ public class SourceControlUtils
   @Inject
   public SourceControlUtils(
       ApiSourceControlService sourceControlService,
-      ApplicationDAO applicationDAO,
       InsightWork insightWork,
       FileCleaner fileCleaner,
       GitClientFactory gitClientFactory)
   {
     this.sourceControlService = sourceControlService;
-    this.applicationDAO = applicationDAO;
     this.insightWork = insightWork;
     this.fileCleaner = fileCleaner;
     this.gitClientFactory = gitClientFactory;
@@ -75,8 +69,9 @@ public class SourceControlUtils
    * @return The git repository information for the given application id
    */
   public GitRepositoryInfo getGitRepositoryInfoForApplication(String applicationId) {
-    SourceControl sourceControl = sourceControlService.getSourceControlByOwnerDecrypted(applicationId);
-    if (sourceControl == null) {
+    SourceControl sourceControl = sourceControlService.getCompositeSourceControlByOwnerDecrypted(applicationId);
+    // sourceControl.getOwnerId() will be different from the applicationId if no app-level SourceControl record exists
+    if (sourceControl == null || !applicationId.equals(sourceControl.getOwnerId())) {
       return null;
     }
 
@@ -88,20 +83,6 @@ public class SourceControlUtils
         sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlEvaluationsEnabled(),
         sourceControl.getSshEnabled(), sourceControl.getSourceControlScanTarget());
 
-    if (!gitRepositoryInfo.isDataComplete()) {
-      // check at sub-organization level for missing fields
-      Application application = applicationDAO.getById(sourceControl.getOwnerId());
-      if (application != null && application.getOrganizationId() != null) {
-        SourceControl orgSourceControl =
-            sourceControlService.getSourceControlByOwnerDecrypted(application.getOrganizationId());
-        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, orgSourceControl);
-      }
-
-      // check at root organization level for any missing field
-      populateGitRepositoryInformationFromRootOrganization(gitRepositoryInfo);
-    }
-
-    // TODO remove this check when Aquila has enforced a default branch at the root org level
     if (Strings.isNullOrEmpty(gitRepositoryInfo.baseBranch)) {
       gitRepositoryInfo.baseBranch = DEFAULT_BASE_BRANCH;
     }
@@ -130,65 +111,6 @@ public class SourceControlUtils
         && StringUtils.isNotBlank(gitRepositoryInfo.token)
         && (!gitRepositoryInfo.provider.requiresUsername() || StringUtils.isNotBlank(gitRepositoryInfo.username))
         ;
-  }
-
-  private void populateGitRepositoryInformationFromOrganization(
-      final GitRepositoryInfo gitRepositoryInfo,
-      final SourceControl orgSourceControl)
-  {
-    if (orgSourceControl == null) {
-      // not required, so org-level source control may be null
-      return;
-    }
-
-    if (gitRepositoryInfo.statusChecksEnabled == null) {
-      gitRepositoryInfo.statusChecksEnabled = orgSourceControl.getStatusChecksEnabled();
-    }
-
-    if (gitRepositoryInfo.remediationPullRequestsEnabled == null) {
-      gitRepositoryInfo.remediationPullRequestsEnabled = orgSourceControl.getRemediationPullRequestsEnabled();
-    }
-
-    if (Strings.isNullOrEmpty(gitRepositoryInfo.username)) {
-      gitRepositoryInfo.username = orgSourceControl.getUsername();
-    }
-
-    if (Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
-      gitRepositoryInfo.token = orgSourceControl.getToken();
-    }
-
-    if (Strings.isNullOrEmpty(gitRepositoryInfo.baseBranch)) {
-      gitRepositoryInfo.baseBranch = orgSourceControl.getBaseBranch();
-    }
-
-    if (gitRepositoryInfo.provider == null) {
-      gitRepositoryInfo.provider = orgSourceControl.getProvider();
-    }
-
-    if (gitRepositoryInfo.pullRequestCommentingEnabled == null) {
-      gitRepositoryInfo.pullRequestCommentingEnabled = orgSourceControl.getPullRequestCommentingEnabled();
-    }
-
-    if (gitRepositoryInfo.sourceControlEvaluationsEnabled == null) {
-      gitRepositoryInfo.sourceControlEvaluationsEnabled = orgSourceControl.getSourceControlEvaluationsEnabled();
-    }
-
-    if (gitRepositoryInfo.sshEnabled == null) {
-      gitRepositoryInfo.sshEnabled = orgSourceControl.getSshEnabled();
-    }
-
-    if (gitRepositoryInfo.sourceControlScanTarget == null) {
-      gitRepositoryInfo.sourceControlScanTarget = orgSourceControl.getSourceControlScanTarget();
-    }
-  }
-
-  private void populateGitRepositoryInformationFromRootOrganization(final GitRepositoryInfo gitRepositoryInfo) {
-    // if there are missing fields, check at the root organization level
-    if (!gitRepositoryInfo.isDataComplete()) {
-      SourceControl rootOrgSourceControl =
-          sourceControlService.getSourceControlByOwnerDecrypted(Organization.ROOT_ORGANIZATION_ID);
-      populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, rootOrgSourceControl);
-    }
   }
 
   /**
@@ -262,15 +184,25 @@ public class SourceControlUtils
       String repoUrl,
       SourceControlProvider provider)
   {
+    // check up the organization hierarchy for missing fields
+    SourceControl sourceControl = sourceControlService.getCompositeSourceControlByOwnerDecrypted(orgId);
+    if (sourceControl == null || sourceControl.getOwnerId() == null) {
+      return null;
+    }
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
     gitRepositoryInfo.repositoryUrl = repoUrl;
     gitRepositoryInfo.normalizedRepositoryUrl = SourceControl.normalizeRepositoryUrl(repoUrl);
     gitRepositoryInfo.provider = provider;
-
-    // check at sub-organization level for missing fields
-    SourceControl orgSourceControl = sourceControlService.getSourceControlByOwnerDecrypted(orgId);
-    populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, orgSourceControl);
-    populateGitRepositoryInformationFromRootOrganization(gitRepositoryInfo);
+    gitRepositoryInfo.sshRepositoryUrl = sourceControl.getRepositorySshUrl();
+    gitRepositoryInfo.username = sourceControl.getUsername();
+    gitRepositoryInfo.token = sourceControl.getToken();
+    gitRepositoryInfo.baseBranch = sourceControl.getBaseBranch();
+    gitRepositoryInfo.remediationPullRequestsEnabled = sourceControl.getRemediationPullRequestsEnabled();
+    gitRepositoryInfo.statusChecksEnabled = sourceControl.getStatusChecksEnabled();
+    gitRepositoryInfo.pullRequestCommentingEnabled = sourceControl.getPullRequestCommentingEnabled();
+    gitRepositoryInfo.sourceControlEvaluationsEnabled = sourceControl.getSourceControlEvaluationsEnabled();
+    gitRepositoryInfo.sshEnabled = sourceControl.getSshEnabled();
+    gitRepositoryInfo.sourceControlScanTarget = sourceControl.getSourceControlScanTarget();
 
     return gitRepositoryInfo;
   }

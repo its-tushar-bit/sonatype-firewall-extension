@@ -326,12 +326,17 @@ public class ApiSourceControlService
     }
   }
 
-  public SourceControl getSourceControlByOwnerDecrypted(final String ownerId) {
-    SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
-    if (sourceControl == null) {
-      return null;
+  /** Builds a composite source control record starting from the given ownerId and looking up the owner hierarchy for
+   *  missing fields. It also decrypts any non-empty tokens.
+   *  <br/>
+   *  Note: The composite source control owner ID can be different from the given owner ID.
+   * @param ownerId an application or organization ID
+   */
+  public SourceControl getCompositeSourceControlByOwnerDecrypted(final String ownerId) {
+    SourceControl sourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId(ownerId);
+    if (sourceControl != null && StringUtils.isNotEmpty(sourceControl.getToken())) {
+      decryptToken(sourceControl);
     }
-    decryptToken(sourceControl);
     return sourceControl;
   }
 
@@ -359,7 +364,13 @@ public class ApiSourceControlService
   private void decryptToken(final SourceControl sourceControl) {
     synchronized (plexusCipher) {
       try {
-        sourceControl.setToken(plexusCipher.decrypt(sourceControl.getToken(), ENC));
+        String decrypted = plexusCipher.decrypt(sourceControl.getToken(), ENC);
+        if (StringUtils.isNotBlank(decrypted)) {
+          sourceControl.setToken(decrypted);
+        }
+        else {
+          sourceControl.setToken(null);
+        }
       }
       catch (PlexusCipherException e) {
         log.error("Unable to decrypt SourceControl token", e);
@@ -402,7 +413,7 @@ public class ApiSourceControlService
 
   private SourceControl getCompositeSourceControl(OwnerType ownerType, SourceControl sourceControl) {
     if (OwnerType.APPLICATION.equals(ownerType)) {
-      return sourceControlDAO.getCompositeSourceControlByApplicationId(sourceControl.getOwnerId());
+      return sourceControlDAO.getCompositeSourceControlByOwnerId(sourceControl.getOwnerId());
     }
     return sourceControl;
   }

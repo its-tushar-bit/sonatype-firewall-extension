@@ -584,8 +584,14 @@ public class SourceControlDAO
     return getProviderFromOrganization(tx, organization.getParentOrganizationId());
   }
 
-  public SourceControl getCompositeSourceControlByApplicationId(final String applicationId) {
-    List<String> ownerIds = ownerDAO.getOwnerIds(applicationId);
+  /** Builds a composite source control record starting from the given ownerId and looking up the owner hierarchy for
+   *  missing fields.
+   *  <br/>
+   *  Note: The composite source control owner ID can be different from the given owner ID.
+   * @param ownerId an application or organization ID
+   */
+  public SourceControl getCompositeSourceControlByOwnerId(final String ownerId) {
+    List<String> ownerIds = ownerDAO.getOwnerIds(ownerId);
     if (CollectionUtils.isEmpty(ownerIds)) {
       return null;
     }
@@ -607,7 +613,7 @@ public class SourceControlDAO
   // done transitively in the forEach call below
   private List<SourceControl> expandToCompositeSourceControlEntries(List<String> initialOwnerIdList) {
     List<SourceControl> result = new ArrayList<>();
-    initialOwnerIdList.forEach(ownerId -> result.add(getCompositeSourceControlByApplicationId(ownerId)));
+    initialOwnerIdList.forEach(ownerId -> result.add(getCompositeSourceControlByOwnerId(ownerId)));
     return result;
   }
 

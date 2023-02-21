@@ -335,7 +335,7 @@ public class ApiSourceControlServiceTest
             .build());
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
             validSourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
+    assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
   }
 
   @Test
@@ -344,7 +344,7 @@ public class ApiSourceControlServiceTest
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
             .build());
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, app.getId(), validSourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(app.getId()).getToken()).isEqualTo(TOKEN);
+    assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(app.getId()).getToken()).isEqualTo(TOKEN);
   }
 
   @Test
@@ -405,7 +405,7 @@ public class ApiSourceControlServiceTest
                     .build()));
     sourceControl.token = SourceControl.FAKE_SECRET_KEY;
     sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), sourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
+    assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
   }
 
   @Test
@@ -418,7 +418,7 @@ public class ApiSourceControlServiceTest
     sourceControl.token = null;
     sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
         sourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken()).isNull();
+    assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(org.getId()).getToken()).isNull();
   }
 
   @Test
@@ -585,7 +585,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerDecrypted_DoesNotExist() {
-    final SourceControl sourceControl = sourceControlService.getSourceControlByOwnerDecrypted("FAKE_ID");
+    final SourceControl sourceControl = sourceControlService.getCompositeSourceControlByOwnerDecrypted("FAKE_ID");
     assertThat(sourceControl).isNull();
   }
 
@@ -625,18 +625,52 @@ public class ApiSourceControlServiceTest
     tempEntity.newSourceControl(sourceControl.getOwnerId(), sourceControl.getRepositoryUrl(), sourceControl.getToken(),
         sourceControl.getProvider());
     final SourceControl sourceControlByApplicationId =
-        sourceControlService.getSourceControlByOwnerDecrypted(app.getId());
+        sourceControlService.getCompositeSourceControlByOwnerDecrypted(app.getId());
     assertThat(sourceControlByApplicationId.getOwnerId()).isEqualTo(app.getId());
     assertThat(sourceControlByApplicationId.getRepositoryUrl()).isEqualTo(VALID_URL);
     assertThat(sourceControlByApplicationId.getUsername()).isNull();
     assertThat(sourceControlByApplicationId.getToken()).isEqualTo(TOKEN);
-    assertThat(sourceControlByApplicationId.getProvider()).isNull();
+    assertThat(sourceControlByApplicationId.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
+  @Test
+  public void testGetSourceControlByOwnerDecrypted_nLevelOwnerHierarchy() {
+    // given an org1 under root org, an org2 under org1, and an app under it
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization(org1);
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    // and a series of SourceControl records - for app2
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(app2.getId()).setRepositoryUrl(VALID_URL).build();
+    tempEntity.newSourceControl(sourceControl);
+    // for org2 - sets token
+    sourceControl = new SourceControl.Builder()
+        .setOwnerId(org2.getId()).setToken("token2").build();
+    sourceControlService.encryptToken(sourceControl);
+    tempEntity.newSourceControl(sourceControl);
+    // for org1 - disable RemediationPullRequests
+    sourceControl = new SourceControl.Builder()
+        .setOwnerId(org1.getId()).setRemediationPullRequestsEnabled(false).build();
+    tempEntity.newSourceControl(sourceControl);
+
+    // when:
+    final SourceControl sourceControlByApplicationId =
+        sourceControlService.getCompositeSourceControlByOwnerDecrypted(app2.getId());
+
+    // then:
+    assertThat(sourceControlByApplicationId.getOwnerId()).isEqualTo(app2.getId());
+    assertThat(sourceControlByApplicationId.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(sourceControlByApplicationId.getUsername()).isNull();
+    assertThat(sourceControlByApplicationId.getToken()).isEqualTo("token2"); // from org2
+    assertThat(sourceControlByApplicationId.getRemediationPullRequestsEnabled()).isFalse(); // from org1
+    assertThat(sourceControlByApplicationId.getProvider()).isEqualTo(SourceControlProvider.GITHUB); // from root org
   }
 
   @Test
   public void testGetSourceControlByOwnerDecrypted_NotFound() {
     final SourceControl sourceControlByApplicationId =
-        sourceControlService.getSourceControlByOwnerDecrypted("INVALID_ID");
+        sourceControlService.getCompositeSourceControlByOwnerDecrypted("INVALID_ID");
     assertThat(sourceControlByApplicationId).isNull();
   }
 
@@ -675,7 +709,7 @@ public class ApiSourceControlServiceTest
     sourceControl.token = FAKE_SECRET_KEY;
     sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
         sourceControl);
-    assertThat(sourceControlService.getSourceControlByOwnerDecrypted(org.getId()).getToken())
+    assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(org.getId()).getToken())
         .isEqualTo(TOKEN);
   }
 

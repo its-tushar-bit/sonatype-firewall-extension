@@ -14,6 +14,8 @@ import javax.servlet.Filter;
 import javax.ws.rs.Path;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.MultiTenantAuditRecorder;
 import com.sonatype.insight.brain.component.MultiTenantRepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
@@ -264,6 +266,8 @@ public class MultiTenantInsightBrainService
         bind(RepositoryIdentifiedComponentCache.class).to(MultiTenantRepositoryIdentifiedComponentCache.class);
 
         bind(FeaturesService.class).to(MTIQFeatureService.class);
+
+        bind(AuditRecorder.class).to(MultiTenantAuditRecorder.class);
       }
     };
   }

@@ -32,7 +32,7 @@ public class AuditRecorder
 
   private static final String LOGGER_NAME_PREFIX = BASE_LOGGER_NAME + ".";
 
-  private static final ObjectMapper AUDIT_OBJECT_MAPPER = new ObjectMapper();
+  static final ObjectMapper AUDIT_OBJECT_MAPPER = new ObjectMapper();
 
   static final String BAD_REQUEST = "bad-request";
 
@@ -158,12 +158,11 @@ public class AuditRecorder
   }
 
   @VisibleForTesting
-  static void log(RecordingAuditData auditData, String error) {
+  void log(RecordingAuditData auditData, String error) {
     toLogger(auditData.getEvent()).info(toObjectNode(auditData, error).toString());
   }
 
-  @VisibleForTesting
-  static ObjectNode toObjectNode(RecordingAuditData recordingAuditData, String error) {
+  ObjectNode toObjectNode(RecordingAuditData recordingAuditData, String error) {
     return (ObjectNode) AUDIT_OBJECT_MAPPER.valueToTree(new AuditDTO(recordingAuditData, error));
   }
 

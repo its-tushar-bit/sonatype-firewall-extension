@@ -354,7 +354,8 @@ public class AuditRecorderTest
 
   @Test
   public void testToObjectNode() {
-    ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData(), "derivedError");
+    AuditRecorder auditRecorder = mock(AuditRecorder.class, Mockito.CALLS_REAL_METHODS);
+    ObjectNode objectNode = auditRecorder.toObjectNode(recordingAuditData(), "derivedError");
 
     assertThat(objectNode).isNotNull();
     ZonedDateTime parsed = ZonedDateTime
@@ -379,7 +380,9 @@ public class AuditRecorderTest
   public void testToObjectNode_NonAuthentication_ExcludesMethodPath() {
     RecordingAuditData recordingAuditData = recordingAuditData();
     recordingAuditData.setEvent(AuditEvent.EVALUATE_APPLICATION);
-    ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData, "derivedError");
+
+    AuditRecorder auditRecorder = mock(AuditRecorder.class, Mockito.CALLS_REAL_METHODS);
+    ObjectNode objectNode = auditRecorder.toObjectNode(recordingAuditData, "derivedError");
 
     assertThat(objectNode.has("requestMethod")).isFalse();
     assertThat(objectNode.has("requestUri")).isFalse();
@@ -389,7 +392,9 @@ public class AuditRecorderTest
   public void testToObjectNode_NullData() {
     RecordingAuditData recordingAuditData = new RecordingAuditData(null, null);
     recordingAuditData.setEvent(AuditEvent.AUTHENTICATION_FAILURE);
-    ObjectNode objectNode = AuditRecorder.toObjectNode(recordingAuditData, "derivedError");
+
+    AuditRecorder auditRecorder = mock(AuditRecorder.class, Mockito.CALLS_REAL_METHODS);
+    ObjectNode objectNode = auditRecorder.toObjectNode(recordingAuditData, "derivedError");
 
     assertThat(objectNode).isNotNull();
     ZonedDateTime parsed = ZonedDateTime
@@ -413,10 +418,11 @@ public class AuditRecorderTest
   public void testLog() {
     RecordingAuditData recordingAuditData = recordingAuditData();
 
-    AuditRecorder.log(recordingAuditData, "derivedError");
+    AuditRecorder auditRecorder = mock(AuditRecorder.class, Mockito.CALLS_REAL_METHODS);
+    auditRecorder.log(recordingAuditData, "derivedError");
 
     assertThat(logOutput).atInfoLevel()
-        .contains(AuditRecorder.toObjectNode(recordingAuditData, "derivedError").toString());
+        .contains(auditRecorder.toObjectNode(recordingAuditData, "derivedError").toString());
   }
 
   private RecordingAuditData recordingAuditData() {

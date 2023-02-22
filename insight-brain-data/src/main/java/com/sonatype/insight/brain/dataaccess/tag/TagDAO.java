@@ -14,6 +14,7 @@ import java.util.Map;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -226,7 +228,12 @@ public class TagDAO
     for (ApplicationTag appTag : appTags) {
       applicationTagDAO.delete(tx, appTag);
     }
-
+    // Cascade to vulnerability custom detail
+    VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
+    for (VulnerabilityCustomDetail vulnerabilityCustomDetail : vulnerabilityCustomDetailDAO.getByApplicationTagId(tx,
+        tag.getId())) {
+      vulnerabilityCustomDetailDAO.delete(tx, vulnerabilityCustomDetail);
+    }
     super.delete(tx, tag);
   }
 

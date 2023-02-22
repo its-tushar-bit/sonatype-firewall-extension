@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
@@ -87,6 +88,19 @@ public class TagDAOTest
     // Get
     tag = dao.getById(tag.getId());
     assertThat(tag).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadeVulnerabilityCustomDetail() {
+    Tag tag = new Tag(organization.getId(), "testCRUD Name", "testCRUD description", Color.yellow);
+    tempEntity.newVulnerabilityCustomDetailWithApplicationTag(organization.getId(), "CVE-2022-1234", null, tag);
+    tempEntity.newVulnerabilityCustomDetailWithApplicationTag(organization.getId(), "CVE-2022-4321", null, tag);
+
+    VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
+    assertThat(vulnerabilityCustomDetailDAO.getByApplicationTagId(tag.getId())).extracting("refId")
+        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
+    dao.delete(tag);
+    assertThat(vulnerabilityCustomDetailDAO.getByApplicationTagId(tag.getId())).isEmpty();
   }
 
   @Test

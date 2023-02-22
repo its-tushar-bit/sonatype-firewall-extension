@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -94,20 +93,6 @@ public class ApplicationTagDAOTest
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     ApplicationTag appTag = dao.getByApplicationIdAndTagId(application.getId(), tag.getId());
     assertAppTag(application.getId(), tag.getId(), appTag);
-  }
-
-  @Test
-  public void testCascadeDelete_VulnerabilityCustomDetail() {
-    tempEntity.newApplicationTag(application.getId(), tag.getId());
-    ApplicationTag appTag = dao.getByApplicationIdAndTagId(application.getId(), tag.getId());
-    tempEntity.newVulnerabilityCustomDetailWithApplicationTag(organization.getId(), "CVE-2022-1234", null, appTag);
-    tempEntity.newVulnerabilityCustomDetailWithApplicationTag(organization.getId(), "CVE-2022-4321", null, appTag);
-
-    VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
-    assertThat(vulnerabilityCustomDetailDAO.getByApplicationTagId(appTag.getId())).extracting("refId")
-        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
-    dao.delete(appTag);
-    assertThat(vulnerabilityCustomDetailDAO.getByApplicationTagId(appTag.getId())).isEmpty();
   }
 
   private void assertAppTag(String appId, String tagId, ApplicationTag actual) {

@@ -15,7 +15,7 @@ CREATE TABLE vulnerability_custom_detail
   last_updated_by_username VARCHAR(256) NOT NULL,
   last_updated_at TIMESTAMP NOT NULL,
   CONSTRAINT vulnerability_custom_detail_pk PRIMARY KEY (vulnerability_custom_detail_id),
-  CONSTRAINT vulnerability_custom_detail_fk FOREIGN KEY (application_tag_id) REFERENCES application_tag (application_tag_id),
+  CONSTRAINT vulnerability_custom_detail_fk FOREIGN KEY (application_tag_id) REFERENCES tag (tag_id),
   CONSTRAINT vulnerability_custom_detail_uk UNIQUE (owner_id, refid, component_id_format, component_id_coordinates_json)
 );
 CREATE INDEX vulnerability_custom_detail_owner_refid_component_idx ON vulnerability_custom_detail(owner_id, refid, component_id_format, component_id_coordinates_json);

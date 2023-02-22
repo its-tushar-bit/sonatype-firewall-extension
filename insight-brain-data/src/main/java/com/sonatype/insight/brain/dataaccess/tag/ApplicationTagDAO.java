@@ -8,9 +8,7 @@ package com.sonatype.insight.brain.dataaccess.tag;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -71,19 +69,5 @@ public class ApplicationTagDAO
   public List<ApplicationTag> getAll() {
     String sQuery = "SELECT entity FROM ApplicationTag entity" ;
     return getList(sQuery);
-  }
-
-  /**
-   * @since 1.152
-   */
-  @Override
-  public void delete(TransactionContext tx, ApplicationTag applicationTag) {
-    // Cascade to vulnerability custom detail
-    VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
-    for (VulnerabilityCustomDetail vulnerabilityCustomDetail : vulnerabilityCustomDetailDAO
-        .getByApplicationTagId(tx, applicationTag.getId())) {
-      vulnerabilityCustomDetailDAO.delete(tx, vulnerabilityCustomDetail);
-    }
-    super.delete(tx, applicationTag);
   }
 }

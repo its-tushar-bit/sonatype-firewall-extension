@@ -2857,7 +2857,7 @@ public class TemporaryEntity
       String ownerId,
       String refId,
       ComponentIdentifier componentIdentifier,
-      ApplicationTag applicationTag)
+      Tag applicationTag)
   {
     VulnerabilityCustomDetail
         vulnerabilityCustomDetail = new VulnerabilityCustomDetail(ownerId, refId, componentIdentifier, "username");

@@ -59,7 +59,7 @@ describe('ownerSideNavSlice reducer', () => {
   });
 
   describe('CRUD actions', () => {
-    let stateMock;
+    let stateMock, limitedStateMock;
     beforeEach(() => {
       // ownersMap fixture:
       //
@@ -146,6 +146,16 @@ describe('ownerSideNavSlice reducer', () => {
         grandGrandChildOrg1,
       };
 
+      const limitedOwnersMap = {
+        app1,
+        app2,
+        app3,
+        app5,
+        childOrg1,
+        grandChildOrg1,
+        grandGrandChildOrg1,
+      };
+
       stateMock = Object.freeze({
         ownersMap,
         topParentOrganizationId: 'root',
@@ -159,11 +169,38 @@ describe('ownerSideNavSlice reducer', () => {
           applications: [],
         },
       });
+
+      limitedStateMock = Object.freeze({
+        ownersMap: limitedOwnersMap,
+        topParentOrganizationId: 'childOrg1',
+        displayedOrganization: grandGrandChildOrg1,
+        flattenEntries: {
+          organizations: [childOrg1, grandChildOrg1, grandGrandChildOrg1],
+          applications: [app1, app2, app3, app5],
+        },
+        filteredEntries: {
+          organizations: [],
+          applications: [],
+        },
+      });
     });
 
     describe('ownerSideNav/removeOrganizationFromOwnerHierarchy', () => {
       it('removes organization and its children from owners map', () => {
         const { ownersMap } = reducer(stateMock, {
+          type: 'ownerSideNav/removeOrganizationFromOwnerHierarchy',
+          payload: 'grandChildOrg1',
+        });
+
+        expect(ownersMap.grandChildOrg1).not.toBeDefined();
+        expect(ownersMap.grandGrandChildOrg1).not.toBeDefined();
+        expect(ownersMap.app2).not.toBeDefined();
+        expect(ownersMap.app3).not.toBeDefined();
+        expect(ownersMap.childOrg1.organizationIds.length).toBe(0);
+      });
+
+      it('removes organization and its children from limited owners map', () => {
+        const { ownersMap } = reducer(limitedStateMock, {
           type: 'ownerSideNav/removeOrganizationFromOwnerHierarchy',
           payload: 'grandChildOrg1',
         });
@@ -409,6 +446,44 @@ describe('ownerSideNavSlice reducer', () => {
         expect(ownersMap.root.totalApps).toBe(6);
         expect(ownersMap.root.subOrgs).toBe(6);
         expect(ownersMap.root.organizationIds).toEqual(['newOrg', 'childOrg1', 'childOrg2']);
+      });
+
+      it('updates org flattenEntries and org counters with limited permissions', () => {
+        const state = { ...limitedStateMock, displayedOrganization: limitedStateMock.ownersMap.childOrg1 };
+        const { ownersMap, flattenEntries } = reducer(state, {
+          type: 'ownerSideNav/updateOwnersMapWithNewEntry',
+          payload: {
+            entry: {
+              id: 'newOrg',
+              name: '1 First New Org',
+              parentOrganizationId: 'childOrg1',
+            },
+            isApp: false,
+          },
+        });
+
+        expect(flattenEntries.organizations.length).toBe(4);
+        expect(flattenEntries.organizations).toEqual(
+          jasmine.arrayContaining([jasmine.objectContaining({ id: 'newOrg' })])
+        );
+
+        const createdOrg = ownersMap['newOrg'];
+        expect(createdOrg).not.toBeNull();
+        expect(createdOrg.id).toBe('newOrg');
+        expect(createdOrg.name).toBe('1 First New Org');
+        expect(createdOrg.parentOrganizationId).toBe('childOrg1');
+        expect(createdOrg.type).toBe('organization');
+
+        expect(ownersMap.grandGrandChildOrg1.organizationIds.length).toBe(0);
+        expect(ownersMap.grandGrandChildOrg1.totalApps).toBe(3);
+        expect(ownersMap.grandGrandChildOrg1.subOrgs).toBe(0);
+
+        expect(ownersMap.grandChildOrg1.applicationIds.length).toBe(0);
+        expect(ownersMap.grandChildOrg1.totalApps).toBe(3);
+        expect(ownersMap.grandChildOrg1.subOrgs).toBe(1);
+
+        expect(ownersMap.childOrg1.totalApps).toBe(4);
+        expect(ownersMap.childOrg1.subOrgs).toBe(3);
       });
     });
   });

@@ -378,12 +378,16 @@ const incrementCountersInAllParents = curry((isApp, ownerMap, immediateParentId,
   let currentOrgId = immediateParentId;
   while (currentOrgId) {
     const currentOrg = ownerMap[currentOrgId];
-    if (isApp) {
-      currentOrg.totalApps += value;
+    if (!currentOrg) {
+      currentOrgId = undefined;
     } else {
-      currentOrg.subOrgs += value;
+      if (isApp) {
+        currentOrg.totalApps += value;
+      } else {
+        currentOrg.subOrgs += value;
+      }
+      currentOrgId = currentOrg.parentOrganizationId;
     }
-    currentOrgId = currentOrg.parentOrganizationId;
   }
 });
 

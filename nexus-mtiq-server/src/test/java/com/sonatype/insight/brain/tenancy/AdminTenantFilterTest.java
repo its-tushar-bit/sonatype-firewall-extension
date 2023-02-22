@@ -18,8 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -27,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AdminTenantFilterTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   private static final String TENANT_NAME = "tenant1";
 
@@ -131,9 +129,9 @@ public class AdminTenantFilterTest
 
   @Test
   public void shouldInvalidateTenant_whenRequestFinished() {
-    when(request.getRequestURI()).thenReturn(String.format("/api/admin/tenants/%s", TENANT_NAME));
+    testAsNewTenant(t -> {
+      when(request.getRequestURI()).thenReturn(String.format("/api/admin/tenants/%s", TENANT_NAME));
 
-    testAs(createTenant(TENANT_NAME), t -> {
       underTestDoFilter();
 
       assertThat(TenantThreadLocal.getTenantWithoutValidation().isInvalid()).isTrue();

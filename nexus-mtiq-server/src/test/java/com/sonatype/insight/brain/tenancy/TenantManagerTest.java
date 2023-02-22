@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantManagerTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   static final String TENANT_NAME = "tenant";
 

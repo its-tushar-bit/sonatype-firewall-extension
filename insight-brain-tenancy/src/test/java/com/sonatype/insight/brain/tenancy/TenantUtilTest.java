@@ -14,7 +14,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
 public class TenantUtilTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Test
   public void shouldReturnMultiTenantTrue() {

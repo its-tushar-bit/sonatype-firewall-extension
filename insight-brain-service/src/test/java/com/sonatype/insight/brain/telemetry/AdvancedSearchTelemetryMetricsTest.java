@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -68,17 +68,14 @@ public class AdvancedSearchTelemetryMetricsTest
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
     Runnable mockRunnable = mock(Runnable.class);
 
-    Tenant tenant1 = createTenant("tenant1");
-    Tenant tenant2 = createTenant("tenant2");
-
-    testAs(tenant1, t1 -> {
+    Tenant tenant1 = testAsNewTenant(testName, t1 -> {
       metrics.addSearch(new HashSet<>(Arrays.asList("organizationName", "vulnerabilityId")));
       metrics.addSearch(new HashSet<>(Collections.singletonList("itemType")));
 
       mockRunnable.run();
     });
 
-    testAs(tenant2, t2 -> {
+    Tenant tenant2 = testAsNewTenant(testName, t2 -> {
       metrics.addSearch(new HashSet<>(Collections.singletonList("organizationName")));
 
       mockRunnable.run();

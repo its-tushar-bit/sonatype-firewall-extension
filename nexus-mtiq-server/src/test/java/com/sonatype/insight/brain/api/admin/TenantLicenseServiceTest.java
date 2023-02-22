@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.admin;
 import java.io.InputStream;
 
 import com.sonatype.insight.brain.product.license.ProductLicenseService;
-import com.sonatype.insight.brain.tenancy.MultiTenantTest;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
@@ -21,7 +21,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
@@ -29,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantLicenseServiceTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   public static final String TENANT_NAME = "test";
 
@@ -60,7 +59,7 @@ public class TenantLicenseServiceTest
 
   @Test
   public void shouldUpdateALicense() {
-    testAs(createTenant(TENANT_NAME), tenant -> {
+    testAsNewTenant(tenant -> {
       underTest.updateLicense(inputStream, LICENSE_FILE_NAME, TENANT_NAME);
 
       verify(licenseService).installLicenseNoAuthz(inputStream, LICENSE_FILE_NAME);
@@ -71,7 +70,7 @@ public class TenantLicenseServiceTest
   public void shouldThrowRuntimeException_whenTenantDoesntExist() {
     when(tenantValidator.validateTenantExists(TENANT_NAME)).thenReturn(false);
 
-    testAs(createTenant(TENANT_NAME), tenant -> {
+    testAsNewTenant(tenant -> {
       assertThatThrownBy(() -> underTest.updateLicense(inputStream, LICENSE_FILE_NAME, TENANT_NAME))
           .withFailMessage("Tenant doesn't exist")
           .isInstanceOf(NotFoundException.class);

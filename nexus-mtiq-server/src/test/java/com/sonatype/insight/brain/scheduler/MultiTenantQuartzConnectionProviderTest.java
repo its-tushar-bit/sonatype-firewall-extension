@@ -9,7 +9,7 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.tenancy.MultiTenantTest;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantQuartzConnectionProviderTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Mock
   OperationalDataStore operationalDataStore;

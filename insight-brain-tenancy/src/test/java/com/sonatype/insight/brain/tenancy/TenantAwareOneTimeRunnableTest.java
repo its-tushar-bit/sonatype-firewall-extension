@@ -14,7 +14,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class TenantAwareOneTimeRunnableTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Test
   public void shouldCallWrappedRunnable_usingTenantSetAtCreationTime() {

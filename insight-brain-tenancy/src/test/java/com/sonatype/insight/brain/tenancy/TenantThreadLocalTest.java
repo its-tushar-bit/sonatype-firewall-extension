@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
 public class TenantThreadLocalTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @After
   public void after() {

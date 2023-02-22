@@ -12,24 +12,25 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantRoleTelemetryCollectorTest
-    extends MultiTenantTelemetryCollectorTest
+    extends MultiTenantDatabaseTestSupport
 {
   private RoleTelemetryCollector telemetryCollector;
 
   private RoleDAO roleDAO;
 
   @Before
+  @Override
   public void setup() {
+    super.setup();
     roleDAO = new RoleDAO();
     RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
@@ -38,18 +39,10 @@ public class MultiTenantRoleTelemetryCollectorTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
-    testAs(tenant1, t1 -> {
-      setTestTenant(tenantManager, tenant1);
-
+    testAsNewTenant(t1 -> {
       Role role = new Role("role", "description");
       roleDAO.insert(role);
-    });
 
-    testAs(tenant2, t2 -> {
-      setTestTenant(tenantManager, tenant2);
-    });
-
-    testAs(tenant1, t1 -> {
       List<TelemetryData> telemetryData = telemetryCollector.collectAllData();
 
       assertThat(telemetryData)
@@ -57,7 +50,7 @@ public class MultiTenantRoleTelemetryCollectorTest
           .containsOnlyOnce(HdsClientAnalytics.obfuscate("role"));
     });
 
-    testAs(tenant2, t2 -> {
+    testAsNewTenant(t2 -> {
       List<TelemetryData> telemetryData = telemetryCollector.collectAllData();
 
       assertThat(telemetryData).isNotEmpty()

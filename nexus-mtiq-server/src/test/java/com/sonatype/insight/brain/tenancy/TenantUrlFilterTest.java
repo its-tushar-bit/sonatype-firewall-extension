@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantUrlFilterTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   private static final String TENANT_NAME = "tenant";
 

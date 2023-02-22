@@ -23,8 +23,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -119,17 +119,14 @@ public class TelemetryContainerRequestFilterTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
-    Tenant tenant1 = createTenant("tenant1");
-    Tenant tenant2 = createTenant("tenant2");
-
-    testAs(tenant1, t1 -> {
+    Tenant tenant1 = testAsNewTenant(testName, t1 -> {
       telemetryContainerRequestFilter
           .filter(mockContainerRequestContext("GET", PublicApiPaths.BASE_PATH + "/something"));
       telemetryContainerRequestFilter
           .filter(mockContainerRequestContext("GET", UserInterfaceLinksHelper.RESOURCE_PATH + "/something"));
     });
 
-    testAs(tenant2, t2 -> {
+    Tenant tenant2 = testAsNewTenant(testName, t2 -> {
       telemetryContainerRequestFilter
           .filter(mockContainerRequestContext("GET", PublicApiPaths.BASE_PATH + "/something"));
       telemetryContainerRequestFilter

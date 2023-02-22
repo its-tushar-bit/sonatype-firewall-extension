@@ -27,7 +27,7 @@ import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
 
 import static com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler.TASK_SCHEDULER_THREAD_POOL_SIZE;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 public class MultiTenantTaskSchedulerTest
 {
   @Rule
-  public TestName name = new TestName();
+  public TestName testName = new TestName();
 
   @Mock
   QuartzJobStoreTX quartzJobStoreTX;
@@ -71,7 +71,7 @@ public class MultiTenantTaskSchedulerTest
   @Before
   public void setup() {
     try {
-      underTest = new TestMultiTenantTaskScheduler(quartzJobStoreTX, jobFactory, name.getMethodName(),
+      underTest = new TestMultiTenantTaskScheduler(quartzJobStoreTX, jobFactory, testName.getMethodName(),
           quartzTriggerListener, tenantContextJobListener, systemConfigurationPropertyDAO, tenantManager,
           scheduler, tenantUtil);
 
@@ -115,7 +115,7 @@ public class MultiTenantTaskSchedulerTest
     when(tenantUtil.isGlobalTenant()).thenReturn(true);
     when(scheduler.getJobGroupNames()).thenReturn(tenants);
     InsightJob mockInsightJob = mock(InsightJob.class);
-    when(mockInsightJob.getJobName()).thenReturn(name.getMethodName());
+    when(mockInsightJob.getJobName()).thenReturn(testName.getMethodName());
 
     underTest.unscheduleTask(mockInsightJob);
 
@@ -126,28 +126,30 @@ public class MultiTenantTaskSchedulerTest
 
   @Test
   public void shouldUnscheduleJobForSingleTenant_whenNotGlobal() throws Exception {
-    String tenantSlug = "test-tenant";
-    when(tenantManager.getTenant()).thenReturn(createTenant(tenantSlug));
+    testAsNewTenant(testName, t -> {
+      when(tenantManager.getTenant()).thenReturn(t);
 
-    when(tenantUtil.isGlobalTenant()).thenReturn(false);
-    InsightJob mockInsightJob = mock(InsightJob.class);
-    when(mockInsightJob.getJobName()).thenReturn(name.getMethodName());
+      when(tenantUtil.isGlobalTenant()).thenReturn(false);
+      InsightJob mockInsightJob = mock(InsightJob.class);
+      when(mockInsightJob.getJobName()).thenReturn(testName.getMethodName());
 
-    underTest.unscheduleTask(mockInsightJob);
+      underTest.unscheduleTask(mockInsightJob);
 
-    verify(scheduler).deleteJob(underTest.toJobKey(mockInsightJob, tenantSlug));
+      verify(scheduler).deleteJob(underTest.toJobKey(mockInsightJob, t.tenantSlug));
+    });
   }
 
   @Test
   public void shouldIncludeTenantName_whenGetTriggerKey() {
-    String tenantSlug = "test-tenant";
-    when(tenantManager.getTenant()).thenReturn(createTenant(tenantSlug));
-    InsightJob mockInsightJob = mock(InsightJob.class);
-    when(mockInsightJob.getJobName()).thenReturn(name.getMethodName());
+    testAsNewTenant(testName, t -> {
+      when(tenantManager.getTenant()).thenReturn(t);
+      InsightJob mockInsightJob = mock(InsightJob.class);
+      when(mockInsightJob.getJobName()).thenReturn(testName.getMethodName());
 
-    TriggerKey triggerKey = underTest.toTriggerKey(mockInsightJob);
+      TriggerKey triggerKey = underTest.toTriggerKey(mockInsightJob);
 
-    assertThat(triggerKey.getGroup()).isEqualTo(tenantSlug);
+      assertThat(triggerKey.getGroup()).isEqualTo(t.tenantSlug);
+    });
   }
 
   private static class TestMultiTenantTaskScheduler

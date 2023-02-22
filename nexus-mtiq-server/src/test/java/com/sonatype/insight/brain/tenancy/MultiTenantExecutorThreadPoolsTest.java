@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantExecutorThreadPoolsTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Rule
   public TestName name = new TestName();

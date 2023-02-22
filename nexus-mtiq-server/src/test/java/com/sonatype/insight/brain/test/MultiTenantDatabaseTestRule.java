@@ -103,6 +103,8 @@ public class MultiTenantDatabaseTestRule
 
   @Override
   protected void after() {
+    TenantTestHelper.setSingleTenant();
+
     postgresServer.close();
   }
 
@@ -115,8 +117,7 @@ public class MultiTenantDatabaseTestRule
   }
 
   public void provisionDatabaseForTenant(Tenant tenant) {
-    TenantTestHelper.setTenant(tenant);
-    initializeDatabase();
+    TenantTestHelper.testAs(tenant, t -> initializeDatabase());
   }
 
   private static <T extends Annotation> T isAnnotatedWith(final Description description, Class<T> clazz) {

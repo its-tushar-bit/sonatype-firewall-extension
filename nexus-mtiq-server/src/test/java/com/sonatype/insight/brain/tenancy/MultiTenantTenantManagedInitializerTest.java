@@ -16,7 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MultiTenantTenantManagedInitializerTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Test
   public void shouldCallRegisterOnStart_whenGlobalTenantJob() throws Exception {

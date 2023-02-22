@@ -10,9 +10,8 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.tenancy.MultiTenantTest;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.AbstractDAO.Query;
@@ -27,8 +26,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -36,15 +33,13 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SystemConfigurationPropertyDAOMultiTenantTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   static final String PROPERTY_NAME = "name";
 
   static final String PROPERTY_VALUE = "value";
 
   static final String GLOBAL_TENANT_PROPERTY_VALUE = "global-tenant-value";
-
-  static final Tenant TENANT = createTenant("individual-tenant");
 
   @Mock
   Query query;
@@ -79,76 +74,78 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
 
   @Test
   public void shouldReturnProperty_whenExists() {
-    setTenant(TENANT);
+    testAsNewTenant(t -> {
+      String value = underTest.get(mock(TransactionContext.class), "query");
 
-    String value = underTest.get(mock(TransactionContext.class), "query");
+      assertThat(value).isEqualTo(PROPERTY_VALUE);
 
-    assertThat(value).isEqualTo(PROPERTY_VALUE);
-
-    assertThat(underTest.usedTenants.size()).isEqualTo(1);
-    assertThat(underTest.usedTenants.get(0)).isEqualTo(TENANT);
+      assertThat(underTest.usedTenants.size()).isEqualTo(1);
+      assertThat(underTest.usedTenants.get(0)).isEqualTo(t);
+    });
   }
 
   @Test
   public void shouldReturnValue_whenSingleTenant() {
-    setTenant(SINGLE_TENANT);
+    testAsSingleTenant(s -> {
+      String value = underTest.get(mock(TransactionContext.class), "query");
 
-    String value = underTest.get(mock(TransactionContext.class), "query");
+      assertThat(value).isEqualTo(PROPERTY_VALUE);
 
-    assertThat(value).isEqualTo(PROPERTY_VALUE);
-
-    assertThat(underTest.usedTenants.size()).isEqualTo(1);
-    assertThat(underTest.usedTenants.get(0)).isEqualTo(SINGLE_TENANT);
+      assertThat(underTest.usedTenants.size()).isEqualTo(1);
+      assertThat(underTest.usedTenants.get(0)).isEqualTo(SINGLE_TENANT);
+    });
   }
 
   @Test
   public void shouldReturnNull_whenSingleTenant_andValueNull() {
-    setTenant(SINGLE_TENANT);
-    when(query.get(any())).thenReturn(null);
+    testAsSingleTenant(s -> {
+      when(query.get(any())).thenReturn(null);
 
-    String value = underTest.get(mock(TransactionContext.class), "query");
+      String value = underTest.get(mock(TransactionContext.class), "query");
 
-    assertThat(value).isEqualTo(null);
+      assertThat(value).isEqualTo(null);
 
-    assertThat(underTest.usedTenants.size()).isEqualTo(1);
-    assertThat(underTest.usedTenants.get(0)).isEqualTo(SINGLE_TENANT);
+      assertThat(underTest.usedTenants.size()).isEqualTo(1);
+      assertThat(underTest.usedTenants.get(0)).isEqualTo(SINGLE_TENANT);
+    });
   }
 
   @Test
   public void shouldReturnValue_whenGlobalTenant() {
-    setTenant(GLOBAL_TENANT);
+    testAsGlobalTenant(g -> {
+      String value = underTest.get(mock(TransactionContext.class), "query");
 
-    String value = underTest.get(mock(TransactionContext.class), "query");
+      assertThat(value).isEqualTo(GLOBAL_TENANT_PROPERTY_VALUE);
 
-    assertThat(value).isEqualTo(GLOBAL_TENANT_PROPERTY_VALUE);
-
-    assertThat(underTest.usedTenants.size()).isEqualTo(1);
-    assertThat(underTest.usedTenants.get(0)).isEqualTo(GLOBAL_TENANT);
+      assertThat(underTest.usedTenants.size()).isEqualTo(1);
+      assertThat(underTest.usedTenants.get(0)).isEqualTo(GLOBAL_TENANT);
+    });
   }
 
   @Test
   public void shouldFallBackToGlobalConfig_whenPerTenantConfigNull() {
-    setTenant(TENANT);
-    when(query.get(any())).thenReturn(null).thenReturn(globalTenantProperty);
+    testAsNewTenant(t -> {
+      when(query.get(any())).thenReturn(null).thenReturn(globalTenantProperty);
 
-    String value = underTest.get(mock(TransactionContext.class), "query");
+      String value = underTest.get(mock(TransactionContext.class), "query");
 
-    assertThat(value).isEqualTo(GLOBAL_TENANT_PROPERTY_VALUE);
+      assertThat(value).isEqualTo(GLOBAL_TENANT_PROPERTY_VALUE);
 
-    assertThat(underTest.usedTenants.size()).isEqualTo(2);
-    assertThat(underTest.usedTenants.get(0)).isEqualTo(TENANT);
-    assertThat(underTest.usedTenants.get(1)).isEqualTo(GLOBAL_TENANT);
+      assertThat(underTest.usedTenants.size()).isEqualTo(2);
+      assertThat(underTest.usedTenants.get(0)).isEqualTo(t);
+      assertThat(underTest.usedTenants.get(1)).isEqualTo(GLOBAL_TENANT);
+    });
   }
 
   @Test
   public void shouldNotFallBackToGlobal_whenSetTenantConfig() {
     when(query.get(any())).thenReturn(null);
 
-    TenantTestHelper.testAs(TENANT, t -> {
+    testAsNewTenant(t -> {
       underTest.set(mock(TransactionContext.class), "key", PROPERTY_VALUE);
 
       assertThat(underTest.usedTenants.size()).isEqualTo(1);
-      assertThat(underTest.usedTenants.get(0)).isEqualTo(TENANT);
+      assertThat(underTest.usedTenants.get(0)).isEqualTo(t);
     });
   }
 
@@ -156,7 +153,7 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
   public void shouldNotFallBackToGlobal_whenUpdateTenantConfig() {
     when(query.get(any())).thenReturn(null);
 
-    TenantTestHelper.testAs(TENANT, t -> {
+    testAsNewTenant(t -> {
       try {
         underTest.update(mock(TransactionContext.class), new SystemConfigurationProperty("key", PROPERTY_VALUE));
       }
@@ -165,7 +162,7 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
       }
 
       assertThat(underTest.usedTenants.size()).isEqualTo(1);
-      assertThat(underTest.usedTenants.get(0)).isEqualTo(TENANT);
+      assertThat(underTest.usedTenants.get(0)).isEqualTo(t);
     });
   }
 

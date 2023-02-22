@@ -16,8 +16,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfiguratio
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
 import com.google.common.io.Resources;
 import com.google.inject.Binder;
@@ -34,7 +32,7 @@ import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doAnswer;
@@ -353,12 +351,10 @@ public class SamlDeploymentManagerTest
     SamlConfigurationDAO samlConfigurationDAO = mock(SamlConfigurationDAO.class);
     SamlDeploymentManager saml = new SamlDeploymentManager(samlMetadataTool, samlConfigurationDAO, taskSchedulerMock);
 
-    Tenant tenant1 = createTenant("tenant1");
-    Tenant tenant2 = createTenant("tenant2");
     String tenant1EntityId = "sp-entity-id";
     String tenant2EntityId = "sp-entity-id2";
 
-    TenantTestHelper.testAs(tenant1, t -> {
+    testAsNewTenant(testName, t1 -> {
       SamlConfiguration tenant1SamlConfiguration = new SamlConfiguration();
       tenant1SamlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("no-request-signing.xml"));
       tenant1SamlConfiguration.setEntityId(tenant1EntityId);
@@ -371,7 +367,7 @@ public class SamlDeploymentManagerTest
       assertThat(tenant1SamlDeployment.getEntityID()).isEqualTo(tenant1EntityId);
     });
 
-    TenantTestHelper.testAs(tenant2, t -> {
+    testAsNewTenant(testName, t2 -> {
       SamlConfiguration tenant2SamlConfiguration = new SamlConfiguration();
       tenant2SamlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("encryption-vs-signing-keys.xml"));
       tenant2SamlConfiguration.setEntityId(tenant2EntityId);

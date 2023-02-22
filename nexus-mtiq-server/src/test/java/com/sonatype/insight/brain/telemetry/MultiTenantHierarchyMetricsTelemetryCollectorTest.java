@@ -15,18 +15,18 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantHierarchyMetricsTelemetryCollectorTest
-    extends MultiTenantTelemetryCollectorTest
+    extends MultiTenantDatabaseTestSupport
 {
   private HierarchyMetricsTelemetryCollector telemetryCollector;
 
@@ -35,7 +35,9 @@ public class MultiTenantHierarchyMetricsTelemetryCollectorTest
   private OrganizationDAO organizationDAO;
 
   @Before
+  @Override
   public void setup() {
+    super.setup();
     organizationDAO = new OrganizationDAO();
     applicationDAO = new ApplicationDAO();
     RepositoryDAO repositoryDAO = new RepositoryDAO();
@@ -51,14 +53,11 @@ public class MultiTenantHierarchyMetricsTelemetryCollectorTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
-    setTenant(tenant1);
-    setTestTenant(tenantManager, tenant1);
-    createAppsAndOrgs(2);
+    Tenant tenant1 = testAsNewTenant(t -> {
+      createAppsAndOrgs(2);
+    });
 
-    setTenant(tenant2);
-    setTestTenant(tenantManager, tenant2);
-
-    testAs(tenant2, t2 -> {
+    testAsNewTenant(t2 -> {
       TelemetryData telemetryData = telemetryCollector.collectData();
       assertThat(telemetryData.getAttributes())
           .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "0")

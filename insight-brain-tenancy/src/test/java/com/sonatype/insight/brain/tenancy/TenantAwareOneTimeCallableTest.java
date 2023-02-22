@@ -16,7 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TenantAwareOneTimeCallableTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Test
   public void shouldCallWrappedCallable_usingTenantSetAtCreationTime() throws Exception {

@@ -8,8 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import java.time.Duration;
 
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
-import com.sonatype.insight.brain.tenancy.MultiTenantTest;
-import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,8 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
@@ -27,7 +24,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantTelemetrySchedulerTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Mock
   private MultiTenantTaskScheduler taskScheduler;
@@ -61,33 +58,29 @@ public class MultiTenantTelemetrySchedulerTest
 
   @Test
   public void testRegister_ScheduleForMultiTenant() throws Exception {
-    Tenant tenantA = createTenant("TenantA");
+    testAsNewTenant(t -> {
+      doAnswer(unused -> {
+        assertTenantSet(t);
+        return null;
+      }).when(taskScheduler).schedulePeriodicTask(eq(multiTenantTelemetryScheduler), eq(Duration.ofDays(1)), any());
 
-    setTenant(tenantA);
+      multiTenantTelemetryScheduler.register();
 
-    doAnswer( unused -> {
-      assertTenantSet(tenantA);
-      return null;
-    }).when(taskScheduler).schedulePeriodicTask(eq(multiTenantTelemetryScheduler), eq(Duration.ofDays(1)), any());
-
-    multiTenantTelemetryScheduler.register();
-
-    verify(taskScheduler).schedulePeriodicTask(eq(multiTenantTelemetryScheduler), eq(Duration.ofDays(1)), any());
+      verify(taskScheduler).schedulePeriodicTask(eq(multiTenantTelemetryScheduler), eq(Duration.ofDays(1)), any());
+    });
   }
 
   @Test
   public void testExecute_ScheduleForMultiTenant() throws Exception {
-    Tenant tenantA = createTenant("TenantA");
+    testAsSingleTenant(t -> {
+      doAnswer(unused -> {
+        assertTenantSet(t);
+        return null;
+      }).when(multiTenantTelemetryTask).execute(null);
 
-    setTenant(tenantA);
+      multiTenantTelemetryScheduler.execute(null);
 
-    doAnswer( unused -> {
-      assertTenantSet(tenantA);
-      return null;
-    }).when(multiTenantTelemetryTask).execute(null);
-
-    multiTenantTelemetryScheduler.execute(null);
-
-    verify(multiTenantTelemetryTask).execute(null);
+      verify(multiTenantTelemetryTask).execute(null);
+    });
   }
 }

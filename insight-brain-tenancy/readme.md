@@ -221,13 +221,51 @@ PermanentlyBannedRestResources lists all REST resources that we currently believ
 MilestoneOneBannedRestResources bans resources that are just not needed for the initial Firewall release. When we come
 to re-enable the Lifecycle functionality MilestoneOneBannedRestResources will need changing.
 
+### Unit / Integration tests
+
+Automated tests for MTIQ often require a tenant to be set as well as the ability to switch between tenants. There are
+testing challenges to be aware of:
+
+- Tenants are stored in an InheritableThreadLocal. This means if the tenant is not restored after a test is run then the
+  tenant will live in that thread local for the next test. This can cause issues especially when the next test is a
+  single tenant test and is not expecting anything other than SINGLE_TENANT to be set.
+- The setTenant() methods are tightly access controlled so that they can't accidentally be called from the wrong
+  context. Tenant security is not an issue for tests, so we have to work around the access controls.
+- Tracing tenant issues back to tests can be difficult if vague tenant names are used, such as "tenant1".
+
+To reduce the effects of these challenges there are a number of test support classes and methods that can be used. These
+provide ways to switch the tenant outside the tenancy package, they clear up the tenant after the test is done to
+prevent flaky tests and they also improving tracing by relating the tenant names to the test names.
+
+#### Test support classes
+
+Most tests can make use of a "testAsNewTenant" method from one of the support classes. Those methods control the tenant
+creation and lifecycle.
+
+There are a number of test support classes for testing multi tenant features. This attempts to breakdown which ones to
+use in each circumstance.
+
+- **MultiTenantTestSupport** - Extend this class for writing tests that do not need database access or a running MTIQ
+  instance (e.g. Unit test)
+- **MultiTenantDatabaseTestSupport** can be extended when you need to test against a real database but without the full
+  application booted. It handles database initialization as well as tenant registration in the TenantManager.
+- **TenantTestHelper** In some circumstances it is not appropriate to extend another class. In those cases you can use
+  TenantTestHelper directly. The above classes are essentially convenience wrappers around TenantTestHelper.
+- **AbstractMultiTenantBrainServiceTest** Supports integration testing and boots an MTIQ instance.
+- **AbstractMultiTenantResourceTest** Is an abstraction of AbstractMultiTenantBrainServiceTest specifically for testing
+  REST Resources.
+
+These classes should provide in most cases. There may be cases where you need a more custom setup in which case take a 
+look inside the various support classes to see how they do their setup.
+
 ## Admin Endpoints
 
 In a multi tenant environment, we need a mechanism to let us configure/manage the different tenants that may
-exist, and additionally the same mechanism should let us configure/manage, the multi tenant environment itself. 
+exist, and additionally the same mechanism should let us configure/manage, the multi tenant environment itself.
 Here are some examples:
+
 - We need a way to provision a tenant
-- We need to get information of a tenant for support purposes 
+- We need to get information of a tenant for support purposes
 - We also need to modify/manage common configurations
 
 For that purpose we have defined what we call the Admin Endpoints. These are REST resources that will be 

@@ -10,7 +10,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantAwareFunctionTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Test
   public void shouldCallWrappedFunction_usingTenantSetAtCreationTime() {

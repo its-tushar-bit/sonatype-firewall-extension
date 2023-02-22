@@ -9,7 +9,7 @@ import java.io.File;
 
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.tenancy.MultiTenantTest;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,13 +17,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantLifecycleTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Mock
   CLMLicenseManager licenseManager;
@@ -50,27 +49,27 @@ public class TenantLifecycleTest
 
   @Test
   public void shouldBootTenant() throws Exception {
-    setTenant("tenant");
+    testAsNewTenant(t -> {
+      underTest.bootTenant();
 
-    underTest.bootTenant();
-
-    verify(dataMigrator).migrate();
-    verify(licenseManager).loadLicense();
-    verify(newInstancePopulator).populateIfNewInstance();
+      verify(dataMigrator).migrate();
+      verify(licenseManager).loadLicense();
+      verify(newInstancePopulator).populateIfNewInstance();
+    });
   }
 
   @Test
   public void shouldAttemptToLoadLicenseFile_whenLicenseSpecified() throws Exception {
-    setTenant("tenant");
+    testAsNewTenant(t -> {
+      String sonatypeWorkDir = "tenant/work";
+      String licenseFile = "license.lic";
 
-    String sonatypeWorkDir = "tenant/work";
-    String licenseFile = "license.lic";
+      when(config.getLicenseFile()).thenReturn(licenseFile);
+      when(config.getSonatypeWork()).thenReturn(new File(sonatypeWorkDir));
 
-    when(config.getLicenseFile()).thenReturn(licenseFile);
-    when(config.getSonatypeWork()).thenReturn(new File(sonatypeWorkDir));
+      underTest.bootTenant();
 
-    underTest.bootTenant();
-
-    verify(licenseManager).installLicenseIfUnlicensed(sonatypeWorkDir + "/" + licenseFile);
+      verify(licenseManager).installLicenseIfUnlicensed(sonatypeWorkDir + "/" + licenseFile);
+    });
   }
 }

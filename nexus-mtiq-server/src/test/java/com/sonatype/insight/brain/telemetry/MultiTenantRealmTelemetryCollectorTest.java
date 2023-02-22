@@ -15,9 +15,11 @@ import javax.inject.Provider;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.TenantLifecycle;
+import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -27,19 +29,20 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.telemetry.RealmTelemetryCollector.SAML_CONFIGURED;
-import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantRealmTelemetryCollectorTest
-    extends MultiTenantTelemetryCollectorTest
+    extends MultiTenantDatabaseTestSupport
 {
   private RealmTelemetryCollector telemetryCollector;
 
   private SamlConfigurationDAO samlConfigurationDAO;
 
   @Before
+  @Override
   public void setup() {
+    super.setup();
     Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
     Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
     TenantValidator tenantValidator = new TenantValidator(multiTenantDatabaseTestRule.operationalDataStore);
@@ -54,19 +57,16 @@ public class MultiTenantRealmTelemetryCollectorTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
-    testAs(tenant1, t1 -> {
-      setTestTenant(tenantManager, tenant1);
+    Tenant tenant1 = testAsNewTenant(t1 -> {
+      // No-op initialization
     });
 
-    testAs(tenant2, t2 -> {
-      setTestTenant(tenantManager, tenant2);
+    testAsNewTenant(t2 -> {
       SamlConfiguration samlConfiguration = new SamlConfiguration();
       samlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("valid.xml"));
       samlConfiguration.setEntityId("id");
       samlConfigurationDAO.insert(samlConfiguration);
-    });
 
-    testAs(tenant2, t2 -> {
       TelemetryData telemetryData = telemetryCollector.collectData();
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REALM);
       assertThat(telemetryData.getAttributes()).containsEntry(SAML_CONFIGURED, "true");

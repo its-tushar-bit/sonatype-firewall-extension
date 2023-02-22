@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.shiro;
 import java.time.Duration;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.tenancy.MultiTenantTest;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,7 +28,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QuartzShiroSessionValidationSchedulerTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Mock
   TaskScheduler taskScheduler;
@@ -54,12 +53,10 @@ public class QuartzShiroSessionValidationSchedulerTest
 
   @Test
   public void testIsEnabled_isPerTenant() {
-    Tenant tenant1 = createTenant("tenant1");
-    Tenant tenant2 = createTenant("tenant2");
 
-    testAs(tenant1, t -> assertThat(underTest.isEnabled()).isFalse());
+    Tenant tenant1 = testAsNewTenant(t1 -> assertThat(underTest.isEnabled()).isFalse());
 
-    testAs(tenant2, t -> {
+    testAsNewTenant(t2 -> {
       assertThat(underTest.isEnabled()).isFalse();
 
       underTest.enableSessionValidation();
@@ -67,16 +64,14 @@ public class QuartzShiroSessionValidationSchedulerTest
       assertThat(underTest.isEnabled()).isTrue();
     });
 
-    testAs(tenant1, t -> assertThat(underTest.isEnabled()).isFalse());
+    testAs(tenant1, t1 -> assertThat(underTest.isEnabled()).isFalse());
   }
 
   @Test
   public void testScheduleTask_perTenant() {
-    Tenant tenant1 = createTenant("tenant1");
-
-    testAs(tenant1, t -> {
+    testAsNewTenant(t1 -> {
       doAnswer(i -> {
-        assertTenantSet(tenant1);
+        assertTenantSet(t1);
         return null;
       }).when(taskScheduler).schedulePeriodicTask(any(), any());
 

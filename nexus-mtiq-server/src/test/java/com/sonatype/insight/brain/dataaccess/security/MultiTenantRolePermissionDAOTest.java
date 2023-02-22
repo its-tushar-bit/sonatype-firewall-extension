@@ -5,82 +5,48 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
-import java.util.Collection;
-import java.util.Collections;
-import javax.inject.Provider;
-
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
-import com.sonatype.insight.brain.service.TenantLifecycle;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantManaged;
-import com.sonatype.insight.brain.tenancy.TenantManager;
-import com.sonatype.insight.brain.tenancy.TenantValidator;
-import com.sonatype.insight.brain.test.MultiTenantDatabaseTestRule;
+import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantRolePermissionDAOTest
+    extends MultiTenantDatabaseTestSupport
 {
   private final RolePermissionDAO permDAO = new RolePermissionDAO();
 
-  private Tenant tenant1;
-
-  private Tenant tenant2;
-
-  @Rule
-  public MultiTenantDatabaseTestRule multiTenantDatabaseTestRule = new MultiTenantDatabaseTestRule();
-
-  @Before
-  public void setUp() {
-    tenant1 = createTenant("tenant1");
-    tenant2 = createTenant("tenant2");
-    multiTenantDatabaseTestRule.provisionDatabaseForTenant(tenant1);
-    multiTenantDatabaseTestRule.provisionDatabaseForTenant(tenant2);
-  }
-
   @Test
   public void testRolePermissionDao_doesNotLeakDataBetweenTenants() {
-    Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
-    Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
-    TenantValidator tenantValidator = new TenantValidator(multiTenantDatabaseTestRule.operationalDataStore);
+    testAsNewTenant(t1 -> {
+      Role tenant1Role = newRole(t1.tenantSlug, "description", false);
+      RolePermission tenant1RolePermission = new RolePermission(tenant1Role.getId(), Permission.ADD_APPLICATION);
+      permDAO.insert(tenant1RolePermission);
 
-    TenantManager tenantManager =
-        new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
-            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator);
+      assertThat(permDAO.getRoleIdsByPermission(tenant1RolePermission.getPermission()))
+          .contains(tenant1RolePermission.getRoleId());
 
-    setTestTenant(tenantManager, tenant1);
+      testAsNewTenant(t2 -> {
 
-    Role tenant1Role = newRole(tenant1.tenantSlug + "-role", "description", false);
-    RolePermission tenant1RolePermission = new RolePermission(tenant1Role.getId(), Permission.ADD_APPLICATION);
-    permDAO.insert(tenant1RolePermission);
+        Role tenant2Role = newRole(t2.tenantSlug, "description", false);
+        RolePermission tenant2RolePermission = new RolePermission(tenant2Role.getId(), Permission.ADD_APPLICATION);
+        permDAO.insert(tenant2RolePermission);
 
-    assertThat(permDAO.getRoleIdsByPermission(tenant1RolePermission.getPermission()))
-        .contains(tenant1RolePermission.getRoleId());
+        assertThat(permDAO.getRoleIdsByPermission(tenant2RolePermission.getPermission()))
+            .contains(tenant2RolePermission.getRoleId())
+            .doesNotContain(tenant1RolePermission.getRoleId());
 
-    setTestTenant(tenantManager, tenant2);
-
-    Role tenant2Role = newRole(tenant2.tenantSlug + "-role", "description", false);
-    RolePermission tenant2RolePermission = new RolePermission(tenant2Role.getId(), Permission.ADD_APPLICATION);
-    permDAO.insert(tenant2RolePermission);
-
-    assertThat(permDAO.getRoleIdsByPermission(tenant2RolePermission.getPermission()))
-        .contains(tenant2RolePermission.getRoleId())
-        .doesNotContain(tenant1RolePermission.getRoleId());
-
-    setTestTenant(tenantManager, tenant1);
-
-    assertThat(permDAO.getRoleIdsByPermission(tenant1RolePermission.getPermission()))
-        .contains(tenant1RolePermission.getRoleId())
-        .doesNotContain(tenant2RolePermission.getRoleId());
+        testAs(t1, t1Again -> {
+          assertThat(permDAO.getRoleIdsByPermission(tenant1RolePermission.getPermission()))
+              .contains(tenant1RolePermission.getRoleId())
+              .doesNotContain(tenant2RolePermission.getRoleId());
+        });
+      });
+    });
   }
 
   public Role newRole(String name, String description, boolean global) {

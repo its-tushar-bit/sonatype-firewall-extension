@@ -18,16 +18,15 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantPolicyStatusOverrideTelemetryCollectorTest
-    extends MultiTenantTelemetryCollectorTest
+    extends MultiTenantDatabaseTestSupport
 {
   private PolicyStatusOverrideTelemetryCollector telemetryCollector;
 
@@ -40,7 +39,9 @@ public class MultiTenantPolicyStatusOverrideTelemetryCollectorTest
   private PolicyDAO policyDAO;
 
   @Before
+  @Override
   public void setup() {
+    super.setup();
     SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
     policyDAO = new PolicyDAO();
     policyWaiverDAO = new PolicyWaiverDAO();
@@ -51,15 +52,7 @@ public class MultiTenantPolicyStatusOverrideTelemetryCollectorTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
-    testAs(tenant1, t1 -> {
-      setTestTenant(tenantManager, tenant1);
-    });
-
-    testAs(tenant2, t2 -> {
-      setTestTenant(tenantManager, tenant2);
-    });
-
-    testAs(tenant1, t1 -> {
+    testAsNewTenant(t1 -> {
       Organization organization = new Organization("org");
       organizationDAO.insert(organization);
 
@@ -90,7 +83,7 @@ public class MultiTenantPolicyStatusOverrideTelemetryCollectorTest
           .containsEntry(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT, "3");
     });
 
-    testAs(tenant2, t2 -> {
+    testAsNewTenant(t2 -> {
       assertThat(telemetryCollector.collectData().getAttributes())
           .containsEntry(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT, "0");
     });

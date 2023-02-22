@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.tenancy.MultiTenantTest;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
@@ -35,7 +35,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantConfigurationTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Mock
   ProxyServerConfigurationDAO proxyServerConfigurationDAO;
@@ -102,21 +101,18 @@ public class MultiTenantConfigurationTest
 
   @Test
   public void testConfigurationIsRegistered_forEachTenant() {
-    Tenant tenant1 = createTenant("tenant1");
-    Tenant tenant2 = createTenant("tenant2");
-
     testAs(GLOBAL_TENANT, t -> assertThat(underTest.getHdsUrl()).isEqualTo(GLOBAL_TENANT.tenantSlug));
 
-    testAs(tenant1, t -> {
+    Tenant tenant1 = testAsNewTenant(t1 -> {
       underTest.register();
 
-      assertThat(underTest.getHdsUrl()).isEqualTo(tenant1.tenantSlug);
+      assertThat(underTest.getHdsUrl()).isEqualTo(t1.tenantSlug);
     });
 
-    testAs(tenant2, t -> {
+    testAsNewTenant(t2 -> {
       underTest.register();
 
-      assertThat(underTest.getHdsUrl()).isEqualTo(tenant2.tenantSlug);
+      assertThat(underTest.getHdsUrl()).isEqualTo(t2.tenantSlug);
     });
 
     testAs(tenant1, t -> assertThat(underTest.getHdsUrl()).isEqualTo(tenant1.tenantSlug));

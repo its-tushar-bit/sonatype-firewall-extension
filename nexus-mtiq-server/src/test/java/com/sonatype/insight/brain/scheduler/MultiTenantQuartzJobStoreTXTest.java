@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.scheduler;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.tenancy.MultiTenantTest;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -23,12 +23,11 @@ import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
 import org.quartz.utils.ConnectionProvider;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantQuartzJobStoreTXTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Mock
   ProductLicense productLicense;
@@ -63,11 +62,11 @@ public class MultiTenantQuartzJobStoreTXTest
 
   @Test
   public void shouldUseGlobalTenant_whenDoCheckIn() throws Exception {
-    setTenant("Temporary-Tenant");
+    testAsNewTenant(t -> {
+      underTest.doCheckin();
 
-    underTest.doCheckin();
-
-    assertThat(underTest.lastUsedTenant).isEqualTo(GLOBAL_TENANT);
+      assertThat(underTest.lastUsedTenant).isEqualTo(GLOBAL_TENANT);
+    });
   }
 
   private static class TestMultiTenantQuartzJobStoreTX

@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantContextJobListenerTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Mock
   TenantManager tenantManager;

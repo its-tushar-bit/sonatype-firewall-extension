@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -21,15 +22,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantRepositoryConfigurationCollectorTest
-    extends MultiTenantTelemetryCollectorTest
+    extends MultiTenantDatabaseTestSupport
 {
   private static final String USER_AGENT = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
 
@@ -43,7 +42,9 @@ public class MultiTenantRepositoryConfigurationCollectorTest
   private RepositoryConfigurationCollector telemetryCollector;
 
   @Before
+  @Override
   public void setup() {
+    super.setup();
     repositoryManagerDAO = new RepositoryManagerDAO();
     repositoryDAO = new RepositoryDAO();
     telemetryCollector =
@@ -54,21 +55,13 @@ public class MultiTenantRepositoryConfigurationCollectorTest
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
     when(productLicense.hasFeature(any())).thenReturn(true);
 
-    testAs(tenant1, t1 -> {
-      setTestTenant(tenantManager, tenant1);
-
+    testAsNewTenant(t1 -> {
       RepositoryManager repositoryManager = new RepositoryManager("1");
       repositoryManager.setUserAgent(USER_AGENT);
       repositoryManagerDAO.insert(repositoryManager);
       Repository repository = new Repository(repositoryManager.getId(), "repo");
       repositoryDAO.insert(repository);
-    });
 
-    testAs(tenant2, t2 -> {
-      setTestTenant(tenantManager, tenant2);
-    });
-
-    testAs(tenant1, t1 -> {
       TelemetryData telemetryData = telemetryCollector.collectData();
 
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_CONFIGURATION);
@@ -78,7 +71,7 @@ public class MultiTenantRepositoryConfigurationCollectorTest
           .hasSize(1);
     });
 
-    testAs(tenant2, t2 -> {
+    testAsNewTenant(t2 -> {
       TelemetryData telemetryData = telemetryCollector.collectData();
 
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_CONFIGURATION);

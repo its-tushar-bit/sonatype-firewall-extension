@@ -49,8 +49,8 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doAnswer;
@@ -1631,7 +1631,7 @@ public class CLMLicenseManagerTest
       verify(listener, never()).productLicenseChanged();
     });
 
-    testAs(createTenant("tenant1"), t -> {
+    testAsNewTenant(testName, t -> {
       clmLicenseManager.loadLicense();
       verify(listener).productLicenseChanged();
     });

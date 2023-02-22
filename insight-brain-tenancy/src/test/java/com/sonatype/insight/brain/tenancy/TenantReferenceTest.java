@@ -8,19 +8,14 @@ package com.sonatype.insight.brain.tenancy;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantReferenceTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   static final String VALUE_1 = "value1";
 
   static final String VALUE_2 = "value2";
-
-  Tenant tenant1 = new Tenant("tenant1");
-
-  Tenant tenant2 = new Tenant("tenant2");
 
   TenantReference<String> underTest;
 
@@ -34,40 +29,42 @@ public class TenantReferenceTest
 
   @Test
   public void shouldSetValueDependingOnTenant() {
-    setTenant(tenant1);
-    assertThat(underTest.get()).isNull();
+    Tenant tenant1 = testAsNewTenant(t1 -> {
+      assertThat(underTest.get()).isNull();
 
-    underTest.set(VALUE_1);
-    assertThat(underTest.get()).isEqualTo(VALUE_1);
+      underTest.set(VALUE_1);
+      assertThat(underTest.get()).isEqualTo(VALUE_1);
+    });
 
     // Set the value for a new tenant
-    setTenant(tenant2);
-    assertThat(underTest.get()).isNull();
+    testAsNewTenant(t2 -> {
+      assertThat(underTest.get()).isNull();
 
-    underTest.set(VALUE_2);
-    assertThat(underTest.get()).isEqualTo(VALUE_2);
+      underTest.set(VALUE_2);
+      assertThat(underTest.get()).isEqualTo(VALUE_2);
+    });
 
     // Value for original tenant (tenant1) should still be set
-    setTenant(tenant1);
-    assertThat(underTest.get()).isEqualTo(VALUE_1);
+    TenantTestHelper.testAs(tenant1, t1 -> assertThat(underTest.get()).isEqualTo(VALUE_1));
   }
 
   @Test
   public void shouldComputeValue_whenNull() {
-    setTenant(tenant1);
-    assertThat(underTest.get()).isNull();
+    Tenant tenant1 = testAsNewTenant(t1 -> {
+      assertThat(underTest.get()).isNull();
 
-    assertThat(underTest.computeIfAbsent(t -> VALUE_1)).isEqualTo(VALUE_1);
+      assertThat(underTest.computeIfAbsent(t -> VALUE_1)).isEqualTo(VALUE_1);
+    });
 
     // Set the value for a new tenant
-    setTenant(tenant2);
-    assertThat(underTest.get()).isNull();
+    testAsNewTenant(t2 -> {
+      assertThat(underTest.get()).isNull();
 
-    assertThat(underTest.computeIfAbsent(t -> VALUE_2)).isEqualTo(VALUE_2);
-    assertThat(underTest.get()).isEqualTo(VALUE_2);
+      assertThat(underTest.computeIfAbsent(t -> VALUE_2)).isEqualTo(VALUE_2);
+      assertThat(underTest.get()).isEqualTo(VALUE_2);
+    });
 
     // Value for original tenant (tenant1) should still be set
-    setTenant(tenant1);
-    assertThat(underTest.get()).isEqualTo(VALUE_1);
+    TenantTestHelper.testAs(tenant1, t1 -> assertThat(underTest.get()).isEqualTo(VALUE_1));
   }
 }

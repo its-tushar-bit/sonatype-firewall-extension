@@ -8,8 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.tenancy.MultiTenantTest;
-import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,20 +16,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantTelemetryIdTest
-    extends MultiTenantTest
+    extends MultiTenantTestSupport
 {
   @Mock
   InsightConfig config;
-
-  Tenant tenant1 = createTenant("tenant1");
-
-  Tenant tenant2 = createTenant("tenant2");
 
   MultiTenantTelemetryId underTest;
 
@@ -44,17 +37,18 @@ public class MultiTenantTelemetryIdTest
 
   @Test
   public void getIdShouldStoreValuePerTenant() {
-    setTenant(tenant1);
+    testAsNewTenant(t1 -> {
+      String tenant1Id = underTest.getId();
+      assertThat(tenant1Id).isNotNull();
 
-    String tenant1Id = underTest.getId();
-    assertThat(tenant1Id).isNotNull();
+      testAsNewTenant(t2 -> {
+        // Set the value for a new tenant
+        String tenant2Id = underTest.getId();
+        assertThat(tenant2Id).isNotNull();
 
-    // Set the value for a new tenant
-    setTenant(tenant2);
-    String tenant2Id = underTest.getId();
-    assertThat(tenant2Id).isNotNull();
-
-    assertThat(tenant1Id).isNotEqualTo(tenant2Id);
+        assertThat(tenant1Id).isNotEqualTo(tenant2Id);
+      });
+    });
   }
 
   private static class TestMultiTenantTelemetryId

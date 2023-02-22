@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.27
  */
 @Named
-class SupportService
+public class SupportService
 {
   private static final Logger log = LoggerFactory.getLogger(SupportService.class);
 
@@ -201,7 +201,7 @@ class SupportService
     return outputFile;
   }
 
-  static final class SupportFile
+  public static final class SupportFile
   {
     final SupportFileType supportFileType;
 

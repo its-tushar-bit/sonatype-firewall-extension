@@ -31,6 +31,8 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDA
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -117,6 +119,10 @@ class DbData
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
+  private final PolicyWaiverDAO policyWaiverDAO;
+
   @Inject
   DbData(final RepositoryManagerDAO repositoryManagerDAO,
          final RepositoryDAO repositoryDAO,
@@ -145,7 +151,9 @@ class DbData
          final DataRetentionPolicyDAO dataRetentionPolicyDAO,
          final MigrationTrackerDAO migrationTrackerDAO,
          final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-         final SourceControlDAO sourceControlDAO)
+         final SourceControlDAO sourceControlDAO,
+         final RepositoryComponentDAO repositoryComponentDAO,
+         final PolicyWaiverDAO policyWaiverDAO)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -175,6 +183,8 @@ class DbData
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.sourceControlDAO = sourceControlDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.policyWaiverDAO = policyWaiverDAO;
   }
 
   Entry<String, Object> getRepositoryManager() {
@@ -276,6 +286,14 @@ class DbData
 
   Entry<String, Object> getPolicy() {
     return wrapEntry("policy", policyDAO.getAll());
+  }
+
+  Entry<String, Object> getQuarantinedComponent() {
+    return wrapEntry("quarantinedComponent", repositoryComponentDAO.getAllQuarantinedComponent());
+  }
+
+  Entry<String, Object> getWaiver() {
+    return wrapEntry("waiver", policyWaiverDAO.getAll());
   }
 
   Entry<String, Object> getPolicyMonitoring() {

@@ -104,6 +104,11 @@ public class RepositoryComponentDAO
     return getSingle(Long.class, sQuery);
   }
 
+  public List<RepositoryComponent> getAllQuarantinedComponent() {
+    return getList("SELECT qc FROM RepositoryComponent qc" +
+        " WHERE qc.quarantineTime IS NOT NULL AND qc.unquarantineTime IS NULL");
+  }
+
   public List<RepositoryComponent> getQuarantinedByRepositoryId(TransactionContext tx, String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1 AND entity.quarantineTime IS NOT NULL AND entity.unquarantineTime IS NULL";

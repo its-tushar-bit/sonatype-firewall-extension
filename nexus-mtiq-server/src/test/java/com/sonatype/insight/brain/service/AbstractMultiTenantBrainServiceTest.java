@@ -88,6 +88,7 @@ public abstract class AbstractMultiTenantBrainServiceTest
     MultiTenantInsightConfig insightConfig = new MultiTenantInsightConfig();
     insightConfig.setMainDatabase(postgresServer.getDatabaseConfig());
     insightConfig.setLocksDatabase(postgresServer.getDatabaseConfig()); // for testing use the same config for locks
+
     multiTenantDataSourceFactory.setInsightConfig(insightConfig);
 
     // Reuse the DatabaseContainer and Postgres instance for MTIQ

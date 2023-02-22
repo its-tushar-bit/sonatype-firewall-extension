@@ -170,6 +170,29 @@ public class SystemInfoTest
   }
 
   @Test
+  public void testGetObfuscatedSystemProperties_WithValidFilter() {
+    final Entry<String, SortedMap<String, Object>> entry =
+        systemInfo.getObfuscatedSystemProperties("java", "java-info");
+    assertThat(entry.getKey()).isEqualTo("java-info");
+
+    final SortedMap<String, Object> entries = entry.getValue();
+    assertThat(entries.get("java.runtime.version")).isNotNull();
+    assertThat(entries.get("java.vendor")).isNotNull();
+    assertThat(entries.get("java.vm.name")).isNotNull();
+    assertThat(entries.get("java.vm.specification.version")).isNotNull();
+  }
+
+  @Test
+  public void testGetObfuscatedSystemProperties_WithInvalidFilter() {
+    final Entry<String, SortedMap<String, Object>> entry =
+        systemInfo.getObfuscatedSystemProperties("invalid", "invalid-info");
+    assertThat(entry.getKey()).isEqualTo("invalid-info");
+
+    final SortedMap<String, Object> entries = entry.getValue();
+    assertThat(entries).isEmpty();
+  }
+
+  @Test
   public void testGetObfuscatedEnvironment() {
     final Entry<String, SortedMap<String, Object>> entry = systemInfo.getObfuscatedEnvironment();
     assertThat(entry.getKey()).isEqualTo("system-environment");

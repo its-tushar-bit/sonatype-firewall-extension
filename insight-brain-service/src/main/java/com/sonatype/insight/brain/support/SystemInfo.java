@@ -138,6 +138,27 @@ class SystemInfo
     return wrapEntry("system-properties", entries);
   }
 
+  /**
+   * Gets a Map.Entry of system properties and applies filter to each key of the map
+   *
+   * @param filter    The filter to be applied to the map
+   * @param entryName The entry name for the Map.Entry with the system properties
+   * @return The Map.Entry with the filter applied
+   */
+  Entry<String, SortedMap<String, Object>> getObfuscatedSystemProperties(String filter, String entryName) {
+    final SortedMap<String, Object> entries = new TreeMap<>();
+    final Properties iterationSafeCopy = (Properties) System.getProperties().clone();
+
+    for (final Entry<Object, Object> entry : iterationSafeCopy.entrySet()) {
+      if (entry.getKey().toString().startsWith(filter)) {
+        final String key = entry.getKey() + "";
+        entries.put(key, obfuscateValue(key, entry.getValue()));
+      }
+    }
+
+    return wrapEntry(entryName, entries);
+  }
+
   Entry<String, SortedMap<String, Object>> getObfuscatedEnvironment() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 

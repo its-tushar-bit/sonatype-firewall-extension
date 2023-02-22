@@ -70,6 +70,10 @@ public class PolicyWaiverDAO
     }
   }
 
+  public List<PolicyWaiver> getAll() {
+    return getList("SELECT pw FROM PolicyWaiver pw");
+  }
+
   /**
    * Gets all Active (non expired) policy waivers that target the specified component hash in the context of the given
    * app/org. Note that a component can be subject to a waiver that refers to its specific hash or to a waiver that

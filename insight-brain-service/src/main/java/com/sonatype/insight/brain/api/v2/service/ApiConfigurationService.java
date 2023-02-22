@@ -14,10 +14,12 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -39,6 +41,8 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PURGE_SCAN_FILES;
 
 @Named
 @Singleton
@@ -79,19 +83,23 @@ public class ApiConfigurationService
 
   private final ProductLicense productLicense;
 
+  private final Provider<ScanFileCleaner> scanFileCleanerProvider;
+
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       List<ConfigurationListener> configurationListeners,
       InsightConfig insightConfig,
       TaskScheduler taskScheduler,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      Provider<ScanFileCleaner> scanFileCleanerProvider)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.configurationListeners = configurationListeners;
     this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
     this.productLicense = productLicense;
+    this.scanFileCleanerProvider = scanFileCleanerProvider;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -187,6 +195,13 @@ public class ApiConfigurationService
           property.getStringToValue()
               .apply(new Object[]{insightConfig}, systemConfigurationPropertyDAO.get(tx, propertyName)));
       systemConfigurationPropertyDAO.set(tx, propertyName, null);
+      scheduleTaskForConfigurationDeletion(propertyName);
+    }
+  }
+
+  private void scheduleTaskForConfigurationDeletion(String propertyName) {
+    if (propertyName.equals(PURGE_SCAN_FILES)) {
+      taskScheduler.scheduleOneTimeTask(scanFileCleanerProvider.get());
     }
   }
 

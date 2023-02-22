@@ -5,12 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class FirewallIgnorePatternsDAO
-    extends AbstractOperationalSqlDAO<FirewallIgnorePatterns>
+    extends AbstractDatamartSqlDAO<FirewallIgnorePatterns>
 {
   public static final String SINGLETON_ENTITY_ID = "firewall-ignore-patterns";
 

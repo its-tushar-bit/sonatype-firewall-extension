@@ -892,14 +892,6 @@ CREATE TABLE product_license (
 );
 
 -- Since 1.97
-CREATE TABLE firewall_ignore_patterns (
-  firewall_ignore_patterns_id varchar(50) NOT NULL,
-  firewall_ignore_patterns_json text,
-  CONSTRAINT firewall_ignore_patterns_pk PRIMARY KEY (firewall_ignore_patterns_id)
-);
-INSERT INTO firewall_ignore_patterns(firewall_ignore_patterns_id) VALUES ('firewall-ignore-patterns');
-
--- Since 1.97
 CREATE TABLE lock (
   lock_id varchar(1100) NOT NULL,
   CONSTRAINT lock_pk PRIMARY KEY (lock_id)
@@ -1284,4 +1276,3 @@ CREATE TABLE vulnerability_custom_detail
 );
 CREATE INDEX vulnerability_custom_detail_owner_refid_component_idx ON vulnerability_custom_detail(owner_id, refid, component_id_format, component_id_coordinates_json);
 CREATE INDEX vulnerability_custom_detail_owner_refid_idx ON vulnerability_custom_detail(owner_id, refid);
-

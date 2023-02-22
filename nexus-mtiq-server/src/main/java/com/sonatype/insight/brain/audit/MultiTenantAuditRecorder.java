@@ -39,12 +39,15 @@ public class MultiTenantAuditRecorder
 
     public final String logType;
 
+    public final String message;
+
     public MultiTenantAuditDTO(RecordingAuditData recordingAuditData, String error) {
       super(recordingAuditData, error);
 
       this.mdc = new MdcTenant(TenantThreadLocal.getTenant().tenantSlug);
       this.level = Level.INFO.getName();
       this.logType = "AuditLog";
+      this.message = String.format("Audit event[Domain=%s, Type=%s]", domain, type);
     }
 
     private static class MdcTenant

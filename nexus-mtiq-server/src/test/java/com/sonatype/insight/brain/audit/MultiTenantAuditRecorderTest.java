@@ -42,6 +42,7 @@ public class MultiTenantAuditRecorderTest
     assertThat(result.toString()).contains("\"mdc\":{\"tenant\":\"" + tenantSlug + "\"}");
     assertThat(result.toString()).contains("\"level\":\"INFO\"");
     assertThat(result.toString()).contains("\"logType\":\"AuditLog\"");
+    assertThat(result.toString()).contains("\"message\":\"Audit event[Domain=authentication, Type=failure]\"");
   }
 
   private RecordingAuditData recordingAuditData() {

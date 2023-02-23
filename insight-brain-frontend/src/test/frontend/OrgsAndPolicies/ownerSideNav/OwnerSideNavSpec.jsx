@@ -777,14 +777,16 @@ describe('OwnerSideNav', () => {
         it('renders only applications collapsible menu sections', async () => {
           renderComponent();
           const childMenus = await screen.findAllByRole('menu');
-          expect(childMenus).toHaveSize(1);
+
+          expect(within(childMenus[0]).queryAllByRole('menuitem')).toHaveSize(0);
+          expect(within(childMenus[1]).getAllByRole('menuitem')).toHaveSize(4);
         });
 
         it('child applications menu section contains links to each child and selected app is marked', async () => {
           renderComponent();
           const childMenus = await screen.findAllByRole('group');
           const childApplications = selectedOrg.applicationIds.map((id) => ownersMap[id]);
-          verifyOwnersMenuSection(childMenus[0], childApplications, 'application', selectedApp);
+          verifyOwnersMenuSection(childMenus[1], childApplications, 'application', selectedApp);
         });
       });
     });

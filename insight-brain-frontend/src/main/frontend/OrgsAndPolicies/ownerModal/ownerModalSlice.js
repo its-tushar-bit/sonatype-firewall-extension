@@ -24,6 +24,7 @@ import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEdi
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectOwnerById } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { selectOwnerModalSlice } from './ownerModalSelectors';
 import { stateGo, stateReload } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
@@ -166,8 +167,13 @@ const createNewOwner = createAsyncThunk(
   `${REDUCER_NAME}/createOwner`,
   async (shouldRedirectToNewOrg, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
-    const currentOwner = selectSelectedOwner(state);
     const { ownerName, appId, isApplication, ownerIconType, robotHash, ownerIcon } = selectOwnerModalSlice(state);
+    const isCurrentOwnerAnApp = selectIsApplication(state);
+    let currentOwner = selectSelectedOwner(state);
+
+    if (isCurrentOwnerAnApp) {
+      currentOwner = selectOwnerById(state, currentOwner.organizationId);
+    }
 
     const ownerToSave = isApplication
       ? appData(ownerName.trimmedValue, appId.trimmedValue, currentOwner)

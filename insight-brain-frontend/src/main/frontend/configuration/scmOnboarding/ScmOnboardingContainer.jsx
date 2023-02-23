@@ -11,6 +11,10 @@ import ScmOnboarding from '../scmOnboarding/ScmOnboarding';
 
 function mapStateToProps({ scmOnboarding, router }) {
   return {
+    //permissions
+    loadingPermissions: scmOnboarding.permissionsState.loadingPermissions,
+    loadingPermissionsError: scmOnboarding.permissionsState.loadingPermissionsError,
+
     // config
     loadingPage: scmOnboarding.viewState.loadingPage,
     scmProvider: scmOnboarding.configState.scmProvider,

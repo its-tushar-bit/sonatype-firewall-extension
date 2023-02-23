@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+import { noPayloadActionCreator, payloadParamActionCreator } from 'MainRoot/util/reduxUtil';
 import axios from 'axios';
 import { debounce } from 'debounce';
 import {
@@ -14,12 +14,16 @@ import {
   getScmRepositoriesUrl,
   getScmDefaultHostUrl,
   getImportRepositoriesUrl,
-} from '../../util/CLMLocation';
+} from 'MainRoot/util/CLMLocation';
 import { valueFromHierarchy, tokenForOrg } from './utils/providers';
+import { checkPermissions, checkFeatures } from 'MainRoot/util/authorizationUtil';
 
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
+export const SCM_ONBOARDING_CHECK_PERMISSIONS_REQUESTED = 'SCM_ONBOARDING_CHECK_PERMISSIONS_REQUESTED';
+export const SCM_ONBOARDING_CHECK_PERMISSIONS_FULFILLED = 'SCM_ONBOARDING_CHECK_PERMISSIONS_FULFILLED';
+export const SCM_ONBOARDING_CHECK_PERMISSIONS_FAILED = 'SCM_ONBOARDING_CHECK_PERMISSIONS_FAILED';
 export const SCM_ONBOARDING_LOAD_PAGE_REQUESTED = 'SCM_ONBOARDING_LOAD_PAGE_REQUESTED';
 export const SCM_ONBOARDING_LOAD_PAGE_FULFILLED = 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED';
 export const SCM_ONBOARDING_LOAD_PAGE_FAILED = 'SCM_ONBOARDING_LOAD_PAGE_FAILED';
@@ -55,27 +59,35 @@ export const SCM_ONBOARDING_SHOW_HOST_DIALOG = 'SCM_ONBOARDING_SHOW_HOST_DIALOG'
 
 export const SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE = 'SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE';
 
-export function loadPage(orgId) {
-  function isRoutedFromAndToScmOnboarding(getState) {
-    return (
-      getState().router.currentState.name === 'scmOnboardingOrg' &&
-      getState().router.prevState.name === 'scmOnboardingOrg'
-    );
-  }
+const REQUIRED_PERMISSIONS = ['ADD_APPLICATION'];
 
-  return function (dispatch, getState) {
-    // retain state if navigating using router within the same page
-    if (isRoutedFromAndToScmOnboarding(getState)) {
-      // update form with values from router
-      const selectedOrganization = getState().scmOnboarding.formState.organizations.find(
-        (org) => org.organization.id === orgId
-      );
-      // When an org is added through the form it does not exists in the current list so the list has to be requested again
-      if (selectedOrganization) {
-        dispatch(setSelectedOrganization(selectedOrganization));
-        return;
-      }
+const REQUIRED_FEATURES = ['automation'];
+
+function checkScmOnboardingPermissions(orgId) {
+  console.log(orgId);
+  return function (dispatch) {
+    dispatch(checkPermissionForScmOnboardingRequested());
+    const isAutomationFeatureEnabledRequest = checkFeatures(REQUIRED_FEATURES);
+    let isAuthorizedRequest;
+    if (orgId) {
+      isAuthorizedRequest = checkPermissions(REQUIRED_PERMISSIONS, 'organization', orgId);
+    } else {
+      isAuthorizedRequest = checkPermissions(REQUIRED_PERMISSIONS);
     }
+
+    return Promise.all([isAutomationFeatureEnabledRequest, isAuthorizedRequest])
+      .then(() => {
+        dispatch(checkPermissionForScmOnboardingFulfilled());
+      })
+      .catch((error) => {
+        dispatch(checkPermissionForScmOnboardingFailed(error));
+        return Promise.reject(error);
+      });
+  };
+}
+
+function loadScmOnboardingInformation(orgId) {
+  return function (dispatch) {
     dispatch(loadPageRequested(orgId));
 
     let organizations = axios.get(getScmOrganizationsUrl());
@@ -110,6 +122,33 @@ export function loadPage(orgId) {
       .catch((error) => {
         dispatch(loadPageFailed(error));
       });
+  };
+}
+
+export function loadPage(orgId) {
+  function isRoutedFromAndToScmOnboarding(getState) {
+    return (
+      getState().router.currentState.name === 'scmOnboardingOrg' &&
+      getState().router.prevState.name === 'scmOnboardingOrg'
+    );
+  }
+
+  return function (dispatch, getState) {
+    // retain state if navigating using router within the same page
+    if (isRoutedFromAndToScmOnboarding(getState)) {
+      // update form with values from router
+      const selectedOrganization = getState().scmOnboarding.formState.organizations.find(
+        (org) => org.organization.id === orgId
+      );
+      // When an org is added through the form it does not exists in the current list so the list has to be requested again
+      if (selectedOrganization) {
+        return dispatch(setSelectedOrganization(selectedOrganization));
+      }
+    }
+
+    return dispatch(checkScmOnboardingPermissions(orgId))
+      .then(() => dispatch(loadScmOnboardingInformation(orgId)))
+      .catch((error) => Promise.reject(error));
   };
 }
 
@@ -250,6 +289,10 @@ export function setIsGitHostNeeded(isNeeded) {
     payload: isNeeded,
   };
 }
+
+const checkPermissionForScmOnboardingRequested = noPayloadActionCreator(SCM_ONBOARDING_CHECK_PERMISSIONS_REQUESTED);
+const checkPermissionForScmOnboardingFulfilled = noPayloadActionCreator(SCM_ONBOARDING_CHECK_PERMISSIONS_FULFILLED);
+const checkPermissionForScmOnboardingFailed = payloadParamActionCreator(SCM_ONBOARDING_CHECK_PERMISSIONS_FAILED);
 
 const loadPageRequested = payloadParamActionCreator(SCM_ONBOARDING_LOAD_PAGE_REQUESTED);
 const loadPageFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_PAGE_FULFILLED);

@@ -13,13 +13,14 @@ import { displayName } from './utils/providers';
 import ImportStatusModal from './components/ImportStatusModal';
 import { repositoryPropType } from './scmPropTypes';
 
-const iqAuthorizationErrorMessage = `It appears you do not have permission to access this page.
-        If you believe this to be incorrect please contact your administrator.`;
-
 export default function ScmOnboarding(props) {
   const {
     // actions
     loadPage,
+
+    //permissions state
+    loadingPermissions,
+    loadingPermissionsError,
 
     // configuration state
     loadingPage,
@@ -30,12 +31,9 @@ export default function ScmOnboarding(props) {
     totalRepositories,
 
     // from angular URL router
-    isAuthorized,
     preselectedOrganizationId,
     $state,
   } = props;
-
-  const pageError = !isAuthorized ? iqAuthorizationErrorMessage : null;
 
   function load() {
     loadPage(preselectedOrganizationId);
@@ -50,7 +48,7 @@ export default function ScmOnboarding(props) {
   return (
     <main id="scm-onboarding-container" className="nx-page-main">
       {
-        <LoadWrapper loading={loadingPage} error={pageError} retryHandler={load}>
+        <LoadWrapper loading={loadingPermissions || loadingPage} error={loadingPermissionsError} retryHandler={load}>
           <ImportStatusModal {...props} />
           <div className="nx-page-title iq-scmonboarding-title">
             {scmProvider && (
@@ -76,6 +74,10 @@ export default function ScmOnboarding(props) {
 }
 
 ScmOnboarding.propTypes = {
+  //permissions
+  loadingPermissions: PropTypes.bool.isRequired,
+  loadingPermissionsError: LoadWrapper.propTypes.error,
+
   // config
   loadingPage: PropTypes.bool.isRequired,
   $state: PropTypes.object.isRequired,
@@ -91,7 +93,6 @@ ScmOnboarding.propTypes = {
   importedRepositoryCount: PropTypes.number,
 
   // from angular router
-  isAuthorized: PropTypes.bool.isRequired,
   preselectedOrganizationId: PropTypes.string,
 
   // actions

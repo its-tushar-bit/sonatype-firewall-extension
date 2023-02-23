@@ -4,9 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getPermissionContextTestUrl } from 'MainRoot/util/CLMLocation';
+import { getPermissionContextTestUrl, getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
 
-import { getPermissions, checkPermissions, authErrorMessage } from '../../../main/frontend/util/authorizationUtil';
+import {
+  getPermissions,
+  checkPermissions,
+  getFeatures,
+  checkFeatures,
+  authErrorMessage,
+  featureNotEnableErrorMessage,
+} from 'MainRoot/util/authorizationUtil';
 
 const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
@@ -16,6 +23,11 @@ describe('authorizationUtil', () => {
       put: {
         [getPermissionContextTestUrl('ownerType', 'ownerId')]: Promise.resolve({
           data: ['permission1', 'permission2'],
+        }),
+      },
+      get: {
+        [getProductFeaturesUrl()]: Promise.resolve({
+          data: ['feature1', 'feature2'],
         }),
       },
     });
@@ -50,6 +62,43 @@ describe('authorizationUtil', () => {
       getPermissions(['permission1', 'permission2', 'permission3'], 'ownerType', 'ownerId')
         .then((result) => {
           expect(result).toEqual(['permission1', 'permission2']);
+          done();
+        })
+        .catch(() => {
+          done.fail('Promise should have been resolved');
+        });
+    });
+  });
+
+  describe('checkFeatures', () => {
+    it('returns resolved empty promise if all features are supported', (done) => {
+      checkFeatures(['feature1', 'feature2'])
+        .then((result) => {
+          expect(result).toBeUndefined();
+          done();
+        })
+        .catch(() => {
+          done.fail('Promise should have been resolved');
+        });
+    });
+
+    it('returns rejected promise if at least one feature is not supported', (done) => {
+      checkFeatures(['feature1', 'feature2', 'feature3'])
+        .then(() => {
+          done.fail('Promise should have been rejected');
+        })
+        .catch((message) => {
+          expect(message).toBe(featureNotEnableErrorMessage);
+          done();
+        });
+    });
+  });
+
+  describe('getFeatures', () => {
+    it('returns resolved array of authorized permissions', (done) => {
+      getFeatures()
+        .then((result) => {
+          expect(result).toEqual(['feature1', 'feature2']);
           done();
         })
         .catch(() => {

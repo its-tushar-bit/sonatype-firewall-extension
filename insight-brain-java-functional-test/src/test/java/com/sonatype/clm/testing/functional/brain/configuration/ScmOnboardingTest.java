@@ -207,7 +207,12 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then a permission denied error is shown
-    scmOnboardingPage.loadError().shouldBe(visible).shouldHave(text("you do not have permission to access this page"));
+    scmOnboardingPage.loadError().shouldBe(visible).shouldHave(
+        text(
+          "An error occurred loading data. It appears that your current licence do not support this feature(s). "
+          + "If you believe this to be incorrect please contact your administrator."
+        )
+    );
 
     // and form elements are hidden
     scmOnboardingPage.hostUrl().shouldBe(hidden);

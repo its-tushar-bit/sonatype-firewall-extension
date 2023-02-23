@@ -45,7 +45,7 @@ export default angular
   .component('proxyConfig', iqReact2Angular(ProxyConfigContainer, [], ['$ngRedux', '$state']))
   .component('advancedSearchConfig', iqReact2Angular(AdvancedSearchConfigContainer, ['isAuthorized'], ['$ngRedux']))
   .component('gettingStarted', iqReact2Angular(GettingStartedContainer, [], ['$ngRedux']))
-  .component('scmOnboarding', iqReact2Angular(ScmOnboardingContainer, ['isAuthorized'], ['$ngRedux', '$state']))
+  .component('scmOnboarding', iqReact2Angular(ScmOnboardingContainer, [], ['$ngRedux', '$state']))
   .component('labsDataInsights', iqReact2Angular(LabsDataInsightsContainer, ['isAuthorized'], ['$ngRedux']))
   .component('successMetricsConfiguration', iqReact2Angular(SuccessMetricsConfigurationContainer, [], ['$ngRedux']))
   .component('systemNoticeConfiguration', iqReact2Angular(SystemNoticeConfigurationContainer, [], ['$ngRedux']))
@@ -61,18 +61,6 @@ function routes($stateProvider) {
     component: 'scmOnboarding',
     data: {
       title: 'Onboarding',
-    },
-    resolve: {
-      isAuthorized: [
-        'PermissionService',
-        function (PermissionService) {
-          const configPromise = PermissionService.isAuthorized(['ADD_APPLICATION'], false);
-          const automationPromise = PermissionService.isAutomationFeatureEnabled();
-          return Promise.all([configPromise, automationPromise]).then((data) => {
-            return data[0] && data[1];
-          });
-        },
-      ],
     },
   };
 

@@ -206,19 +206,18 @@ export default function OwnerSideNav() {
       organizationId: displayedOrganization.id,
     });
 
-    const plusButton =
-      !isApplication && !organization.synthetic ? (
-        <NxStatefulIconDropdown icon={faPlus} title="Add Application">
-          <button onClick={() => openOwnerEditorModal(true)} className="nx-dropdown-button">
-            New Application
-          </button>
-          <a href={scmOnboardingHref} className="nx-dropdown-button">
-            Import Applications
-          </a>
-        </NxStatefulIconDropdown>
-      ) : (
-        <></>
-      );
+    const plusButton = !organization.synthetic ? (
+      <NxStatefulIconDropdown icon={faPlus} title="Add Application">
+        <button onClick={() => openOwnerEditorModal(true)} className="nx-dropdown-button">
+          New Application
+        </button>
+        <a href={scmOnboardingHref} className="nx-dropdown-button">
+          Import Applications
+        </a>
+      </NxStatefulIconDropdown>
+    ) : (
+      <></>
+    );
 
     return (
       <NxCollapsibleItems
@@ -246,18 +245,14 @@ export default function OwnerSideNav() {
 
   const renderOrganizations = (organization) => {
     const childOrganizationIds = organization.organizationIds ?? [];
-    if (isApplication && isEmpty(childOrganizationIds)) {
-      return null;
-    }
 
-    const plusButton =
-      !isApplication && !organization.synthetic ? (
-        <NxButton variant="icon-only" title="Add New Organization" onClick={() => openOwnerEditorModal(false)}>
-          <NxFontAwesomeIcon icon={faPlus} />
-        </NxButton>
-      ) : (
-        <></>
-      );
+    const plusButton = !organization.synthetic ? (
+      <NxButton variant="icon-only" title="Add New Organization" onClick={() => openOwnerEditorModal(false)}>
+        <NxFontAwesomeIcon icon={faPlus} />
+      </NxButton>
+    ) : (
+      <></>
+    );
 
     return (
       <NxCollapsibleItems

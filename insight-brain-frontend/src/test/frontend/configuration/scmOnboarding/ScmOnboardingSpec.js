@@ -42,7 +42,9 @@ describe('ScmOnboarding', function () {
 
     it('receives pageError prop', () => {
       // given authN failed
-      const component = getShallowComponent({ isAuthorized: false }),
+      const component = getShallowComponent({
+          loadingPermissionsError: 'It appears you do not have permission to access this page.',
+        }),
         loadWrapper = component.find(LoadWrapper);
 
       // when error is rendered

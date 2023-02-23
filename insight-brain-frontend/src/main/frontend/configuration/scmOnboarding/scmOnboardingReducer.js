@@ -3,8 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createReducerFromActionMap } from '../../util/reduxUtil';
+import { createReducerFromActionMap } from 'MainRoot/util/reduxUtil';
 import {
+  SCM_ONBOARDING_CHECK_PERMISSIONS_REQUESTED,
+  SCM_ONBOARDING_CHECK_PERMISSIONS_FULFILLED,
+  SCM_ONBOARDING_CHECK_PERMISSIONS_FAILED,
   SCM_ONBOARDING_IMPORT_REPOS_FAILED,
   SCM_ONBOARDING_IMPORT_REPOS_FULFILLED,
   SCM_ONBOARDING_IMPORT_REPOS_REQUESTED,
@@ -27,17 +30,22 @@ import {
   SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE,
   SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE,
 } from './scmOnboardingActions';
-import { caseInsensitiveComparator, sortItemsByFieldsWithComparator } from '../../util/sortUtils';
+import { caseInsensitiveComparator, sortItemsByFieldsWithComparator } from 'MainRoot/util/sortUtils';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { validateHostUrl } from './utils/validators';
-import { hasValidationErrors } from '../../util/validationUtil';
+import { hasValidationErrors } from 'MainRoot/util/validationUtil';
 import { over, lensPath } from 'ramda';
-import { propSet } from '../../util/jsUtil';
-import { UI_ROUTER_ON_FINISH } from '../../reduxUiRouter/routerActions';
-import ownerConstant from '../../utility/services/owner.constant';
+import { propSet } from 'MainRoot/util/jsUtil';
+import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
+import ownerConstant from 'MainRoot/utility/services/owner.constant';
 import { valueFromHierarchy, tokenForOrg } from './utils/providers';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const initialState = {
+  permissionsState: {
+    loadingPermissions: false,
+    loadingPermissionsError: null,
+  },
   configState: {
     isScmTokenConfigured: null,
     isScmTokenOverridden: null,
@@ -96,6 +104,36 @@ function onRouterFinish(payload, state) {
     ...initialState,
     // retain only the config
     configState: state.configState,
+  };
+}
+
+function checkScmOnboardingPermissionsRequested() {
+  return {
+    ...initialState,
+    permissionsState: {
+      ...initialState.permissionsState,
+      loadingPermissions: true,
+    },
+  };
+}
+
+function checkScmOnboardingPermissionsFailed(payload) {
+  return {
+    ...initialState,
+    permissionsState: {
+      loadingPermissions: false,
+      loadingPermissionsError: Messages.getHttpErrorMessage(payload),
+    },
+  };
+}
+
+function checkScmOnboardingPermissionsFulfilled(_, state) {
+  return {
+    ...state,
+    permissionsState: {
+      loadingPermissions: false,
+      loadingPermissionsError: null,
+    },
   };
 }
 
@@ -502,6 +540,10 @@ function setCurrentHostUrl(payload, state) {
 }
 
 const reducerActionMap = {
+  [SCM_ONBOARDING_CHECK_PERMISSIONS_REQUESTED]: checkScmOnboardingPermissionsRequested,
+  [SCM_ONBOARDING_CHECK_PERMISSIONS_FULFILLED]: checkScmOnboardingPermissionsFulfilled,
+  [SCM_ONBOARDING_CHECK_PERMISSIONS_FAILED]: checkScmOnboardingPermissionsFailed,
+
   [SCM_ONBOARDING_LOAD_PAGE_REQUESTED]: loadPageRequested,
   [SCM_ONBOARDING_LOAD_PAGE_FULFILLED]: loadPageFulfilled,
   [SCM_ONBOARDING_LOAD_PAGE_FAILED]: loadPageFailed,

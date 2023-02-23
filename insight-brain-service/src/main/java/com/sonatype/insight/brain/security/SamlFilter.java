@@ -50,6 +50,9 @@ class SamlFilter
   static final String MSG_SAML_FAILURE =
       "Authentication failed due to SAML error. Please contact your IT administrator.";
 
+  static final String MSG_SAML_INTERNAL_ERROR =
+      "Internal error in SAML authentication process initiation. Please contact your IT administrator.";
+
   private final SamlDeploymentManager samlDeploymentManager;
 
   private final LandingService landingService;
@@ -127,7 +130,14 @@ class SamlFilter
       if (requestPath.startsWith("/saml") || EcpAuthenticationHandler.canHandle(httpFacade)) {
         request.removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
         log.debug("Initiating SAML authentication via identity provider");
-        challenge.challenge(httpFacade);
+        try {
+          challenge.challenge(httpFacade);
+        }
+        catch (Exception e) {
+          log.error("Error initiating SAML authentication request", e);
+          LoginErrorResponseHandler.sendError(httpResponse,
+              new ErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MSG_SAML_INTERNAL_ERROR));
+        }
       }
       else {
         // let the UI know that SAML SSO should be a login option

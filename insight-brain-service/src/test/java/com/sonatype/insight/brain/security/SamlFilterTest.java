@@ -30,6 +30,7 @@ import org.keycloak.adapters.spi.HttpFacade;
 import org.keycloak.adapters.spi.HttpFacade.Request;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.security.SamlFilter.MSG_SAML_INTERNAL_ERROR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -148,6 +149,16 @@ public class SamlFilterTest
 
     verify(mockHttpServletRequest).removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
     verify(mockAuthChallenge).challenge(any(HttpFacade.class));
+  }
+
+  @Test
+  public void testOnPreHandle_ChallengeSamlPath_InternalError() throws Exception {
+    when(mockAuthChallenge.challenge(any(HttpFacade.class))).thenThrow(new RuntimeException("serious error"));
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/saml", "", null, false);
+
+    verify(mockHttpServletResponse).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    verify(mockHttpServletResponse).setContentType(ErrorResponse.CONTENT_TYPE);
+    verify(mockHttpServletResponse.getWriter()).print(MSG_SAML_INTERNAL_ERROR);
   }
 
   @Test

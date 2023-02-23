@@ -7,8 +7,9 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Data class to represent a single Tenant within IQ. Note that even 'regular' IQ, clustered or not, is considered to
@@ -16,6 +17,8 @@ import java.util.regex.Pattern;
  */
 public class Tenant
 {
+  private static final Pattern slugPattern = Pattern.compile("^[a-z][a-z0-9-]*[a-z0-9]$");
+
   // Regular IQ (even clustered) still has tenancy, but there can only ever be a single tenant
   // Note the invalid database schema name to ensure it is never actually used
   public static final Tenant SINGLE_TENANT = new Tenant("notused", "shouldnotexist!");
@@ -42,21 +45,22 @@ public class Tenant
   }
 
   private String setDbSchemaSlug(final String tenantSlug) {
+    validateSlug(tenantSlug);
     String prefix = this.equals(GLOBAL_TENANT) ? "" : "t_";
-
-    return validateSlug(prefix + tenantSlug.replace('-', '_'));
+    return prefix + tenantSlug.replace('-', '_');
   }
 
-  private String validateSlug(final String slug) {
-    Pattern pattern = Pattern.compile("^([[a-zA-Z]_][[a-zA-Z0-9]_]*)$");
-
-    Matcher matcher = pattern.matcher(slug);
-
-    if (!matcher.matches()) {
-      throw new InvalidTenantSlugException(slug + " is not a valid tenant slug");
+  private void validateSlug(final String slug) {
+    if (StringUtils.isBlank(slug) || slug.length() < 3) {
+      throw new InvalidTenantSlugException("Slug name must be at least 3 characters");
     }
 
-    return slug;
+    if (slug.length() > 61) {
+      throw new InvalidTenantSlugException("Slug name must not exceed 61 characters");
+    }
+    if (!slugPattern.matcher(slug).matches()) {
+      throw new InvalidTenantSlugException(slug + " is not a valid tenant slug");
+    }
   }
 
   @Override

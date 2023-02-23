@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import { any, isEmpty } from 'ramda';
 import {
   nxTextInputStateHelpers,
@@ -180,8 +180,8 @@ const createNewOwner = createAsyncThunk(
       : orgData(ownerName.trimmedValue, currentOwner);
 
     try {
-      const { payload } = await dispatch(ownerEditorActions.updateOwner({ ownerToSave, isApp: isApplication }));
-
+      const updatedOwnerAction = await dispatch(ownerEditorActions.updateOwner({ ownerToSave, isApp: isApplication }));
+      const payload = unwrapResult(updatedOwnerAction);
       if (payload) {
         dispatch(
           ownerSideNavActions.updateOwnersMapWithNewEntry({

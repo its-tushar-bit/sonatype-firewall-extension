@@ -51,10 +51,10 @@ public class TenantTestHelper
   }
 
   static Tenant createTenant(TestName testName) {
-    String test = StringUtils.left(testName.getMethodName().toLowerCase(), 45);
+    String test = StringUtils.left(testName.getMethodName().toLowerCase().replace('_', '-'), 45);
     String randomness = StringUtils.left(UUID.randomUUID().toString(), 10);
 
-    return new Tenant(test + "_" + randomness);
+    return new Tenant(test + "-" + randomness);
   }
 
   public static void setSingleTenant() {

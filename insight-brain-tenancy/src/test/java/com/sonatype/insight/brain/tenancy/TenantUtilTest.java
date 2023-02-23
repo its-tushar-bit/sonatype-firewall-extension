@@ -71,7 +71,7 @@ public class TenantUtilTest
 
   @Test
   public void shouldUseInternedTenantString_forSynchronization() {
-    char[] tenantNameCharArray = {'t', '1'};
+    char[] tenantNameCharArray = {'t', '-', '1'};
 
     // Strings initialized from char arrays do not get interned
     TenantThreadLocal.setTenant(new Tenant(new String(tenantNameCharArray)));

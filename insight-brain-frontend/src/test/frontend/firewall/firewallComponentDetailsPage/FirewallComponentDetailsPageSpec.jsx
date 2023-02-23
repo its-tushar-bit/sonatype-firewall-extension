@@ -56,7 +56,6 @@ describe('FirewallComponentDetailsPage', function () {
         repositoryId: 'repositoryId',
         componentHash: 'componentHash',
         matchState: 'exact',
-        proprietary: 'false',
         tabId: 'overview',
         componentIdentifier: 'componentIdentifier',
         pathname: 'pathname',

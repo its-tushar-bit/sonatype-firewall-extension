@@ -216,8 +216,6 @@ describe('firewallActions', function () {
           },
           repositoryId: 'repositoryId',
           matchState: 'matchState',
-          proprietary: 'proprietary',
-          identificationSource: 'identificationSource',
           pathname,
         }),
         currentState: {
@@ -1443,8 +1441,6 @@ describe('firewallActions', function () {
           violationId: 'policyViolationId',
           repositoryId: 'repositoryId',
           matchState: 'matchState',
-          proprietary: 'proprietary',
-          identificationSource: 'identificationSource',
           pathname,
           tabId: undefined,
         },

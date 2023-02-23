@@ -547,8 +547,6 @@ export function onGoToRepositoryComponentWaiversPage(violationId) {
       componentIdentifier,
       componentHash,
       matchState,
-      proprietary,
-      identificationSource,
       pathname,
       tabId,
     } = selectFirewallComponentDetailsPageRouteParams(getState());
@@ -559,8 +557,6 @@ export function onGoToRepositoryComponentWaiversPage(violationId) {
         componentHash,
         matchState,
         violationId,
-        proprietary,
-        identificationSource,
         pathname,
         tabId,
       })

@@ -45,8 +45,7 @@ function routes($stateProvider) {
       },
     })
     .state('firewall.componentDetailsPage', {
-      url:
-        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?proprietary&identificationSource&pathname',
+      url: '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?pathname',
       component: 'firewallComponentDetailsPage',
       data: {
         title: 'Firewall Component Details',
@@ -87,12 +86,12 @@ function routes($stateProvider) {
     })
     .state('firewall.violationWaivers', {
       url:
-        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/waivers/{violationId}?proprietary&identificationSource&pathname',
+        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/waivers/{violationId}?pathname',
       component: 'listWaiversPage',
     })
     .state('firewall.addWaiver', {
       url:
-        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/addWaiver/{violationId}?proprietary&identificationSource&pathname',
+        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/addWaiver/{violationId}?pathname',
       component: 'addWaiverPage',
       data: {
         title: 'Add Waiver',
@@ -105,8 +104,7 @@ function routes($stateProvider) {
       abstract: true,
     })
     .state('repository.componentDetailsPage', {
-      url:
-        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?proprietary&identificationSource&pathname',
+      url: '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?pathname',
       component: 'firewallComponentDetailsPage',
       data: {
         title: 'Repository Component Details',
@@ -147,12 +145,12 @@ function routes($stateProvider) {
     })
     .state('repository.violationWaivers', {
       url:
-        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/waivers/{violationId}?proprietary&identificationSource&pathname',
+        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/waivers/{violationId}?pathname',
       component: 'listWaiversPage',
     })
     .state('repository.addWaiver', {
       url:
-        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/addWaiver/{violationId}?proprietary&identificationSource&pathname',
+        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/addWaiver/{violationId}?pathname',
       component: 'addWaiverPage',
       data: {
         title: 'Add Waiver',

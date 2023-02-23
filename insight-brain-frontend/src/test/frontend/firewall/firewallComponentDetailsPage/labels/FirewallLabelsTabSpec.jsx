@@ -31,7 +31,6 @@ describe('FirewallLabelsTab', () => {
       '{"format":"maven","coordinates":{"artifactId":"ant","classifier":"","extension":"jar","groupId":"ant","version":"1.6"}}',
     hash = '7a3c2521ae0c6f53e044',
     matchState = 'exact',
-    proprietary = 'propietary',
     pathname = 'ant/ant/1.6/ant-1.6.jar',
     labelId = '3c55ae7183a246d6b153b1665f087d33';
 
@@ -93,7 +92,6 @@ describe('FirewallLabelsTab', () => {
         componentIdentifier,
         componentHash: hash,
         matchState,
-        proprietary: 'false',
         pathname,
         tabId: 'legal',
       },
@@ -176,7 +174,6 @@ describe('FirewallLabelsTab', () => {
       componentIdentifier,
       hash,
       matchState,
-      proprietary,
     }),
     applicableLabelsUrl = getApplicableLabelsUrl(ownerType, ownerId),
     saveLabelScopeUrl = getSaveLabelScopeUrl(ownerType, ownerId, hash),

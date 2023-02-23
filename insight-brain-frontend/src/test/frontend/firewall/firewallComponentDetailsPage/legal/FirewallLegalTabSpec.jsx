@@ -27,7 +27,6 @@ describe('FirewallLegalTab', () => {
       '{"format":"maven","coordinates":{"artifactId":"ant","classifier":"","extension":"jar","groupId":"ant","version":"1.6"}}',
     hash = '7a3c2521ae0c6f53e044',
     matchState = 'exact',
-    proprietary = 'propietary',
     pathname = 'ant/ant/1.6/ant-1.6.jar',
     newComment = 'adding a new comment';
 
@@ -138,7 +137,6 @@ describe('FirewallLegalTab', () => {
         componentIdentifier,
         componentHash: hash,
         matchState,
-        proprietary: 'false',
         pathname,
         tabId: 'legal',
       },
@@ -169,7 +167,6 @@ describe('FirewallLegalTab', () => {
       componentIdentifier,
       hash,
       matchState,
-      proprietary,
     });
   let baseLicenseOverrideUrl = getBaseLicenseOverrideUrl(ownerType, ownerId);
 

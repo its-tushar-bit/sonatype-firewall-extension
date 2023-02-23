@@ -31,8 +31,6 @@ describe('firewallSelectors', () => {
         componentIdentifier: 'abc123',
         componentHash: 'abc123456',
         matchState: 'exact',
-        proprietary: 'false',
-        identificationSource: 'sonatype',
         tabId: 'overview',
         notValidProperty: 'notValidProperty',
         pathname: 'pathname',
@@ -54,8 +52,6 @@ describe('firewallSelectors', () => {
       'componentIdentifier',
       'componentHash',
       'matchState',
-      'proprietary',
-      'identificationSource',
       'tabId',
       'pathname',
     ]);

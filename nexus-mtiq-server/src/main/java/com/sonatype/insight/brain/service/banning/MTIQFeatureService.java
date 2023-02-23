@@ -34,6 +34,8 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
+import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
+import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.getTenant;
 import static com.sonatype.insight.license.model.LicensedFeature.*;
@@ -69,7 +71,8 @@ public class MTIQFeatureService
       QUALITY,
       RELEASE_INTEGRITY,
       RM_STAGING_INTEGRATION,
-      SAML_USER_TOKENS
+      SAML_USER_TOKENS,
+      MULTI_TENANT
   );
 
   private final ApiConfigFeaturesService service;
@@ -95,7 +98,10 @@ public class MTIQFeatureService
 
   //Visible for testing
   Set<Feature> getBaseFeatures() {
-    return super.getFeatures();
+    Set<Feature> features = super.getFeatures();
+    features.remove(SINGLE_TENANT);
+    features.add(MULTI_TENANT);
+    return features;
   }
 
   public boolean isEnabled(Feature feature) {

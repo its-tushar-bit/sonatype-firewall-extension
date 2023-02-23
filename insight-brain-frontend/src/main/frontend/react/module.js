@@ -56,6 +56,7 @@ export default angular
         'isLegalEnabled',
         'isApiPageEnabled',
         'isDataInsightsEnabled',
+        'tenantMode',
       ],
       ['$state']
     )

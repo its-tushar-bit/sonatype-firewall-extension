@@ -86,3 +86,19 @@ export const selectIsAdvancedSearchConfigurationEnabled = createSelector(
   selectProductFeatures,
   prop('advanced-search-configuration')
 );
+
+const selectIsSingleTenantEnabled = createSelector(selectProductFeatures, prop('single-tenant'));
+const selectIsMultiTenantEnabled = createSelector(selectProductFeatures, prop('multi-tenant'));
+
+export const selectTenantMode = createSelector(
+  selectIsSingleTenantEnabled,
+  selectIsMultiTenantEnabled,
+  (single, multi) => {
+    if (single) {
+      return 'single';
+    } else if (multi) {
+      return 'multi';
+    }
+    return 'unknown';
+  }
+);

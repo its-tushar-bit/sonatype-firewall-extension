@@ -25,10 +25,12 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
+import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
+import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
 import static com.sonatype.insight.license.model.LicensedFeature.*;
 import static java.util.Arrays.stream;
@@ -140,6 +142,16 @@ public class MTIQFeatureServiceTest
     assertThatThrownBy(() -> underTest.disableFeature(featureName))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Feature not supported: " + featureName);
+  }
+
+  @Test
+  public void testGetFeatures_containsMultiTenant() {
+    Set<Feature> features = new MTIQFeatureService(
+        productLicense, configuration, systemConfigurationPropertyDAO, service
+    ).getFeatures();
+
+    assertThat(features).contains(MULTI_TENANT);
+    assertThat(features).doesNotContain(SINGLE_TENANT);
   }
 
   private List<SystemConfigurationPropertyFeature> getDisabledSystemConfigurationPropertyFeatures() {

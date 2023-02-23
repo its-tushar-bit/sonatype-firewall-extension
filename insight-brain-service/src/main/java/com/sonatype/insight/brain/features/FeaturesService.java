@@ -25,6 +25,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
+
 /**
  * Provides means to inspect the available features of the server.
  *
@@ -72,6 +74,8 @@ public class FeaturesService
       );
 
       removeDisabledFeatures(features);
+
+      features.add(SINGLE_TENANT);
     }
     log.debug("Found features: {}", features);
     return features;

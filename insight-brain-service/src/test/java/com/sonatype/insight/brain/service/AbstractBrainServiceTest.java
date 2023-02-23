@@ -182,6 +182,10 @@ public abstract class AbstractBrainServiceTest
     }
   }
 
+  protected void initialiseLicenseThreatGroups() {
+    setUpTestLicenseThreatGroups();
+  }
+
   protected void initDatabaseContainer() {
     if (databaseContainer == null) {
       DatabaseProvisionUtils databaseProvisionUtils =

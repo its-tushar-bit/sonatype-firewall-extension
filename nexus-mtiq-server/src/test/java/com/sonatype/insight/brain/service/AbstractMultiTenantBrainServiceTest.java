@@ -31,6 +31,11 @@ public abstract class AbstractMultiTenantBrainServiceTest
   private static Configurator mtiqConfigurator;
 
   @Override
+  public void setUpTestLicenseThreatGroups() {
+    // no-op because the default creates LicenseThreatGroups under global which is now write protected
+  }
+
+  @Override
   protected void initServer(Configurator configurator) throws Exception {
     if (configurator == null) {
       // Setup the MTIQ postgres DB via the configurator

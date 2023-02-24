@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -38,6 +39,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.nexus.git.utils.api.GitApi;
+import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
@@ -58,9 +61,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ApiSourceControlServiceTest
     extends AbstractComponentTest
@@ -94,9 +99,13 @@ public class ApiSourceControlServiceTest
 
   private final SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
 
+  @Mock
+  private GitApiFactory gitApiFactory;
+
   @Override
   public void configure(final Binder binder) {
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(GitApiFactory.class).toInstance(gitApiFactory);
     super.configure(binder);
   }
 
@@ -165,6 +174,43 @@ public class ApiSourceControlServiceTest
   public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Create() {
     testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(false, null,
         "https://github.com/org/b", "https://github.com/org/a");
+  }
+
+  private final GitApi mockGitApiInstance = mock(GitApi.class);
+
+  @Test
+  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Create_Ssh()
+      throws Exception
+  {
+    String httpUrl = "https://github.com/a/b.git";
+    String sshUrl = "git@github.com:a/b.git";
+
+    HashMap<String, String> headCommitsForAllBranches = new HashMap<>();
+    headCommitsForAllBranches.put("main", "data");
+
+    when(mockGitApiInstance.getHeadCommitsForAllBranches(httpUrl)).thenReturn(headCommitsForAllBranches);
+    when(gitApiFactory.createGitApi(any())).thenReturn(mockGitApiInstance);
+
+    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null, sshUrl, httpUrl);
+
+    // Verify ssh url also inserted in source control entity
+    SourceControl sourceControl
+        = sourceControlDAO.getAll().stream().filter(sc -> httpUrl.equals(sc.getRepositoryUrl())).findAny().get();
+    assertThat(sourceControl.getRepositorySshUrl()).isEqualTo(sshUrl);
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Create_Ssh_ExistsNot()
+      throws Exception
+  {
+    String httpUrl = "https://github.com/a/b.git";
+    String sshUrl = "git@github.com:a/b.git";
+
+    when(gitApiFactory.createGitApi(any())).thenReturn(mockGitApiInstance);
+    when(mockGitApiInstance.getHeadCommitsForAllBranches(httpUrl)).thenThrow(new GitException(""));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null, sshUrl, httpUrl));
   }
 
   @Test

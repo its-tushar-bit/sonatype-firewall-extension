@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlRepositoryUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -91,6 +92,8 @@ public class ApiSourceControlService
 
   private final FileCleaner fileCleaner;
 
+  private final SourceControlRepositoryUtils sourceControlRepositoryUtils;
+
   @Inject
   public ApiSourceControlService(
       final PlexusCipher plexusCipher,
@@ -103,7 +106,8 @@ public class ApiSourceControlService
       final SourceControlPullRequestMetrics sourceControlPullRequestMetrics,
       final SourceControlEventDAO sourceControlEventDAO,
       final InsightWork insightWork,
-      final FileCleaner fileCleaner)
+      final FileCleaner fileCleaner,
+      final SourceControlRepositoryUtils sourceControlRepositoryUtils)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
@@ -116,6 +120,7 @@ public class ApiSourceControlService
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.insightWork = insightWork;
     this.fileCleaner = fileCleaner;
+    this.sourceControlRepositoryUtils = sourceControlRepositoryUtils;
   }
 
   @Authorize(permission = Permission.READ)
@@ -156,8 +161,8 @@ public class ApiSourceControlService
 
   private ApiSourceControlDTO addOrUpdateSourceControl(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
-      final String repositoryUrl,
-      final String sshUrl,
+      String repositoryUrl,
+      String sshUrl,
       final boolean bypassAutomatedSCM,
       final String defaultBranch)
   {
@@ -167,6 +172,23 @@ public class ApiSourceControlService
     if (application == null) {
       throw new NotFoundException("Cannot find application with public ID: '" + publicId + "'");
     }
+
+    // check if we can find the http url of the repository from the ssh url
+    if (sourceControlDAO.getByOwnerId(application.getId()) == null && repositoryUrl.startsWith("git@")) {
+      String httpUrlFromSshUrl = sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(repositoryUrl);
+      log.debug("HTTP URL derived: {} from provided repository URL: {}", httpUrlFromSshUrl, repositoryUrl);
+      if (httpUrlFromSshUrl != null) {
+        if (sourceControlRepositoryUtils.isRepositoryReachable(application, httpUrlFromSshUrl)) {
+          log.debug("Using derived URL {} for source control.", httpUrlFromSshUrl);
+          sshUrl = repositoryUrl;
+          repositoryUrl = httpUrlFromSshUrl;
+        }
+        else {
+          log.debug("Derived HTTP URL not reachable/accessible.");
+        }
+      }
+    }
+
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
     validateUrl(repositoryUrl);
 

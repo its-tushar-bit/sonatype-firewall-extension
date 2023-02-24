@@ -73,10 +73,15 @@ const removeApplicationFromList = (state, { payload }) => {
   state.applications = reject(propEq('id', payload))(state.applications);
 };
 
+const removeApplicationsFromList = (state, { payload = [] }) => {
+  state.applications = reject((app) => payload.includes(app?.publicId))(state.applications);
+};
+
 const applicationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
+    removeApplicationsFromList,
     removeApplicationFromList,
     updateApplication,
   },

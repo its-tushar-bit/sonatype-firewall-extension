@@ -31,6 +31,16 @@ export const selectOwnerById = createSelector(
   }
 );
 
+export const selectChildApplicationsByOrgId = createSelector(
+  selectOwnersMap,
+  (_, organizationId) => organizationId,
+  (organizations, organizationId) => {
+    if (!organizations || !organizationId) return [];
+    if (!organizations[organizationId]) return [];
+    return organizations[organizationId].applicationIds || [];
+  }
+);
+
 export const selectIsDisplayedOrganizationSynthetic = createSelector(selectDisplayedOrganization, prop('synthetic'));
 
 export const selectTotalDescendantsCount = createSelector(

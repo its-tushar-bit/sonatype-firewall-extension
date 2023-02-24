@@ -43,6 +43,18 @@ describe('deleteOwnerActions', () => {
             },
           },
           organizations: SidebarResourceMockData.getOwnerListUrl(),
+          ownerSideNav: {
+            ownersMap: {
+              organizationTwoID: {
+                id: 'organizationTwoID',
+                name: OWNER_ORG_NAME,
+                parentOrganizationId: 'ROOT_ORGANIZATION_ID',
+                applicationIds: ['application-one', 'application-two'],
+              },
+              app1: { id: 'app-one-id', publicId: 'application-one', name: 'Application one' },
+              app2: { id: 'app-two-id', publicId: 'application-two', name: 'Application two' },
+            },
+          },
         },
       };
       store = SpecUtil.mockReduxStore(state);
@@ -66,9 +78,10 @@ describe('deleteOwnerActions', () => {
         expect(axios.delete).toHaveBeenCalledTimes(1);
 
         const actions = store.getActions();
-        expect(actions.length).toBe(4);
+        expect(actions.length).toBe(5);
         expect(actions).toHaveActionTypesInOrder([
           'ownerActions/delete/removeOwner/pending',
+          'applications/removeApplicationsFromList',
           'organizations/removeOrganizationFromList',
           'ownerSideNav/removeOrganizationFromOwnerHierarchy',
           'ownerActions/delete/removeOwner/fulfilled',
@@ -76,9 +89,10 @@ describe('deleteOwnerActions', () => {
 
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(6);
         expect(actions).toHaveActionTypesInOrder([
           'ownerActions/delete/removeOwner/pending',
+          'applications/removeApplicationsFromList',
           'organizations/removeOrganizationFromList',
           'ownerSideNav/removeOrganizationFromOwnerHierarchy',
           'ownerActions/delete/removeOwner/fulfilled',

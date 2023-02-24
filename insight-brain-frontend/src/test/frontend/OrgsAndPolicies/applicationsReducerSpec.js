@@ -129,4 +129,43 @@ describe('applications reducer', () => {
       expect(newState.applications).toEqual([]);
     });
   });
+
+  describe('applications/removeApplicationsFromList', () => {
+    it('removes a list of applications from the list', () => {
+      const state = Object.freeze({
+        applications: [
+          {
+            publicId: 'application-one',
+            name: 'Application one',
+          },
+          {
+            publicId: 'application-two',
+            name: 'Application two',
+          },
+          {
+            publicId: 'application-three',
+            name: 'Application three',
+          },
+          {
+            publicId: 'application-four',
+            name: 'Application four',
+          },
+        ],
+      });
+      const newState = reducer(state, {
+        type: 'applications/removeApplicationsFromList',
+        payload: ['application-two', 'application-three'],
+      });
+      expect(newState.applications).toEqual([
+        {
+          publicId: 'application-one',
+          name: 'Application one',
+        },
+        {
+          publicId: 'application-four',
+          name: 'Application four',
+        },
+      ]);
+    });
+  });
 });

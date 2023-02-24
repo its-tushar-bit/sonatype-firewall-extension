@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -14,8 +16,12 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -71,17 +77,35 @@ public class RoleDAOTest
   @Test
   public void testDeleteCascadesToPolicyNotifyActions() {
     Role role = newRole("cascade");
+    Role other = newRole("other");
     tempEntity.newPolicy(organization);
     Policy policyWithNotifyActions = tempEntity.newPolicy(organization);
     policyWithNotifyActions.getNotifications().add(
         new RoleNotification(role.getId(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
+    policyWithNotifyActions.getNotifications().add(
+        new RoleNotification(other.getId(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
+    Map<String, Notifications> policyNotificationsOverrides = new LinkedHashMap<>();
+    Notifications orgNotificationsOverride = new Notifications();
+    orgNotificationsOverride.add(new RoleNotification(role.getId(), ReleaseStageType.ID));
+    orgNotificationsOverride.add(new RoleNotification(other.getId(), ReleaseStageType.ID));
+    policyNotificationsOverrides.put("org2", orgNotificationsOverride);
+    Notifications appNotificationsOverride = new Notifications();
+    appNotificationsOverride.add(new RoleNotification(role.getId(), DevelopStageType.ID, StageReleaseStageType.ID));
+    appNotificationsOverride.add(new RoleNotification(other.getId(), DevelopStageType.ID, StageReleaseStageType.ID));
+    policyNotificationsOverrides.put("app", appNotificationsOverride);
+    policyWithNotifyActions.setPolicyNotificationsOverrides(policyNotificationsOverrides);
     PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.update(policyWithNotifyActions);
 
     roleDAO.delete(role);
 
     policyWithNotifyActions = policyDAO.getById(policyWithNotifyActions.getId());
-    assertThat(policyWithNotifyActions.getNotifications().getRoleNotifications()).isEmpty();
+    assertThat(policyWithNotifyActions.getNotifications().getRoleNotifications()).extracting(
+        RoleNotification::getRoleId).containsExactly(other.getId());
+    for (Notifications notifications : policyWithNotifyActions.getPolicyNotificationsOverrides().values()) {
+      assertThat(notifications.getRoleNotifications()).extracting(RoleNotification::getRoleId)
+          .containsExactly(other.getId());
+    }
   }
 
   @Test

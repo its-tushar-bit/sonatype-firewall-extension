@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import javax.inject.Inject;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -44,6 +44,9 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -165,16 +168,22 @@ public class ApplicationMoveServiceTest
     return tempEntity.newPolicy(policy);
   }
 
-  private Policy createPolicyWithActionsOverrides(String name, String ownerId, String overridingOwnerId) {
+  private Policy createPolicyWithOverrides(String name, String ownerId, String overridingOwnerId) {
     Policy policy = tempEntity.newPolicy(ownerId, name);
+
     policy.setPolicyActionsOverrideAllowed(true);
     Map<String, String> actionsOverrides = new LinkedHashMap<>();
     actionsOverrides.put("stage-release", "fail");
     actionsOverrides.put("release", "fail");
     actionsOverrides.put("build", "warn");
 
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    Notifications notificationsOverride = new Notifications();
+    notificationsOverride.add(new UserNotification("user@domain", BuildStageType.ID));
+
     String internalOwnerId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, overridingOwnerId);
     policy.addPolicyActionsOverride(internalOwnerId, actionsOverrides);
+    policy.addPolicyNotificationsOverride(internalOwnerId, notificationsOverride);
     policyDAO.update(policy);
     return policy;
   }
@@ -616,15 +625,15 @@ public class ApplicationMoveServiceTest
   }
 
   @Test
-  public void testMoveApplication_OldPolicyActionsOverridesAreRemoved() {
+  public void testMoveApplication_OldPolicyOverridesAreRemoved() {
     Application app = tempEntity.newApplication(oldOrg.getId());
-    Policy oldOrgPolicy = createPolicyWithActionsOverrides(
-            "Policy with actions overrides", oldOrg.getId(), app.getId()
+    Policy oldOrgPolicy = createPolicyWithOverrides(
+        "Policy with overrides", oldOrg.getId(), app.getId()
     );
-    Policy rootOrgPolicy = createPolicyWithActionsOverrides(
-            "Policy with actions overrides 2", Organization.ROOT_ORGANIZATION_ID, app.getId()
+    Policy rootOrgPolicy = createPolicyWithOverrides(
+        "Policy with overrides 2", Organization.ROOT_ORGANIZATION_ID, app.getId()
     );
-    createPolicyWithActionsOverrides("Policy with actions overrides", newOrg.getId(), app.getId());
+    createPolicyWithOverrides("Policy with overrides", newOrg.getId(), app.getId());
     applicationMoveService.moveApplication(app.getId(), newOrg.getId());
 
     oldOrgPolicy = policyDAO.getById(oldOrgPolicy.getId());
@@ -632,5 +641,8 @@ public class ApplicationMoveServiceTest
 
     assertThat(oldOrgPolicy.getPolicyActionsOverrides().get(app.getId())).isNull();
     assertThat(rootOrgPolicy.getPolicyActionsOverrides().get(app.getId())).hasSize(3);
+
+    assertThat(oldOrgPolicy.getPolicyNotificationsOverrides().get(app.getId())).isNull();
+    assertThat(rootOrgPolicy.getPolicyNotificationsOverrides().get(app.getId()).getAllNotifications()).hasSize(1);
   }
 }

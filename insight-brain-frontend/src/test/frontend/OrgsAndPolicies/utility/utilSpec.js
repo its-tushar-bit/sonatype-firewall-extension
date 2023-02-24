@@ -12,6 +12,7 @@ import {
   sortByThreatLevel,
   policiesComparator,
   getRolesWithLocalMembers,
+  getNotificationsOverride,
 } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { getRolesWithoutLocalMembers } from '../../../../main/frontend/OrgsAndPolicies/utility/util';
 
@@ -159,6 +160,90 @@ describe('OrgsAndPolicies util', () => {
       policy.policyActionsOverrides.appId = { build: 'warn', release: 'warn' };
       expect(getActionsOverride(ownerHierarchyIds, policy)).toEqual({
         actionsOverride: { build: 'warn', release: 'warn' },
+        isCurrentOwnerOverride: true,
+      });
+    });
+  });
+
+  describe('getNotificationsOverride', () => {
+    let ownerHierarchyIds, policy;
+
+    beforeEach(() => {
+      ownerHierarchyIds = ['appId', 'parentOrgId', 'grandParentOrgId', 'rootOrgId'];
+      policy = {
+        ownerId: 'grandParentOrgId',
+        policyNotificationsOverrideAllowed: true,
+        policyNotificationsOverrides: {
+          someOtherOrg: {
+            userNotifications: [{ emailAddress: 'user@email.com', stageIds: ['proxy', 'develop'] }],
+          },
+        },
+      };
+    });
+
+    it('returns null if policyNotificationsOverrideAllowed is false', () => {
+      policy.policyNotificationsOverrideAllowed = false;
+      expect(getNotificationsOverride(ownerHierarchyIds, policy)).toBe(null);
+    });
+
+    it('returns null if policyNotificationsOverrides is null', () => {
+      policy.policyNotificationsOverrides = null;
+      expect(getNotificationsOverride(ownerHierarchyIds, policy)).toBe(null);
+    });
+
+    it('returns null if there are no overrides for given hierarchy', () => {
+      expect(getNotificationsOverride(ownerHierarchyIds, policy)).toBe(null);
+    });
+
+    it('returns null if the override is for the parent of the policy owner', () => {
+      policy.policyNotificationsOverrides.rootOrgId = {
+        userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }],
+      };
+      expect(getNotificationsOverride(ownerHierarchyIds, policy)).toBe(null);
+    });
+
+    it('returns null if the override is for the policy owner', () => {
+      policy.policyNotificationsOverrides.grandParentOrgId = {
+        userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }],
+      };
+      expect(getNotificationsOverride(ownerHierarchyIds, policy)).toBe(null);
+    });
+
+    it('returns override for parent owner, which is the child of the policy owner', () => {
+      policy.policyNotificationsOverrides.parentOrgId = {
+        userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }],
+      };
+      expect(getNotificationsOverride(ownerHierarchyIds, policy)).toEqual({
+        notificationsOverride: {
+          userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }],
+        },
+        isCurrentOwnerOverride: false,
+      });
+    });
+
+    it('returns override for current owner', () => {
+      policy.policyNotificationsOverrides.appId = {
+        userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }],
+      };
+      expect(getNotificationsOverride(ownerHierarchyIds, policy)).toEqual({
+        notificationsOverride: {
+          userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }],
+        },
+        isCurrentOwnerOverride: true,
+      });
+    });
+
+    it('ignores an override for the parent owner if there is an override for current owner', () => {
+      policy.policyNotificationsOverrides.parentOrgId = {
+        userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }],
+      };
+      policy.policyNotificationsOverrides.appId = {
+        userNotifications: [{ emailAddress: 'user3@email.com', stageIds: ['operate'] }],
+      };
+      expect(getNotificationsOverride(ownerHierarchyIds, policy)).toEqual({
+        notificationsOverride: {
+          userNotifications: [{ emailAddress: 'user3@email.com', stageIds: ['operate'] }],
+        },
         isCurrentOwnerOverride: true,
       });
     });

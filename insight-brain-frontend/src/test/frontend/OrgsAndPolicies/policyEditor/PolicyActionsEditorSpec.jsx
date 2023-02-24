@@ -218,7 +218,8 @@ describe('PolicyActionsEditor', () => {
     it('renders enabled radios when action overrides are enabled', () => {
       const preloadedState = compose(
         pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
-        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyActionsOverrideAllowed'], true)
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyActionsOverrideAllowed'], true),
+        pathSet(['productFeatures', 'productFeatures', 'firewall'], true)
       )(state);
       renderComponent(preloadedState);
 
@@ -229,6 +230,24 @@ describe('PolicyActionsEditor', () => {
       expect(inheritParentActionsRadio).toBeEnabled();
       expect(overrideParentActionsRadio).toBeVisible();
       expect(overrideParentActionsRadio).toBeEnabled();
+    });
+
+    it('renders disabled radios if no permission', () => {
+      const preloadedState = compose(
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'hasEditIqPermission'], false),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyActionsOverrideAllowed'], true),
+        pathSet(['productFeatures', 'productFeatures', 'firewall'], true)
+      )(state);
+      renderComponent(preloadedState);
+
+      const inheritParentActionsRadio = screen.getByLabelText(/Inherit parent actions/i);
+      const overrideParentActionsRadio = screen.getByLabelText(/Override parent actions/i);
+
+      expect(inheritParentActionsRadio).toBeVisible();
+      expect(inheritParentActionsRadio).toBeDisabled();
+      expect(overrideParentActionsRadio).toBeVisible();
+      expect(overrideParentActionsRadio).toBeDisabled();
     });
 
     it('renders disabled radios when action overrides are not enabled', () => {

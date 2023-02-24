@@ -110,7 +110,8 @@ public class JiraPolicyAlertNotifierTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
+        .createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
+            evaluation.isForMonitoring());
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
@@ -146,8 +147,9 @@ public class JiraPolicyAlertNotifierTest
     ComponentIdentifier identifier = ComponentIdentifier.createAnameCoordinates("jquery", "", "3.0.0");
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy, identifier, "abcd"));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil.createPolicyNotifications(policyViolations,
-        evaluation.getStageTypeId(), evaluation.isForMonitoring());
+    List<PolicyNotification> policyNotifications =
+        PolicyNotificationUtil.createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
+            evaluation.isForMonitoring());
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
@@ -178,7 +180,8 @@ public class JiraPolicyAlertNotifierTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
+        .createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
+            evaluation.isForMonitoring());
 
     Exception ex = new RuntimeException();
     doThrow(ex).when(jiraClient).createIssue(any(JiraIssueCreateRequest.class), anyBoolean());
@@ -205,8 +208,9 @@ public class JiraPolicyAlertNotifierTest
 
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
-    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
+    List<PolicyNotification> policyNotifications =
+        PolicyNotificationUtil.createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
+            evaluation.isForMonitoring());
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
@@ -259,7 +263,8 @@ public class JiraPolicyAlertNotifierTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(evaluation, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, evaluation.getStageTypeId(), evaluation.isForMonitoring());
+        .createPolicyNotifications(application, policyViolations, evaluation.getStageTypeId(),
+            evaluation.isForMonitoring());
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 

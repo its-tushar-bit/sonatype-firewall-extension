@@ -22,7 +22,11 @@ import {
   selectConditionTypes,
 } from 'MainRoot/OrgsAndPolicies/constraintSelectors';
 import { actions as constraintActions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
-import { selectCurrentPolicyConstraints, selectIsInherited } from 'MainRoot/OrgsAndPolicies/policySelectors';
+import {
+  selectCurrentPolicyConstraints,
+  selectHasEditIqPermission,
+  selectIsInherited,
+} from 'MainRoot/OrgsAndPolicies/policySelectors';
 
 import ReadOnlyConstraint from './ReadOnlyConstraint';
 import EditableConstraint from './EditableConstraint';
@@ -36,7 +40,9 @@ export default function ConstraintsEditor() {
   const conditionTypesMap = useSelector(selectConditionTypesMap);
   const conditionTypes = useSelector(selectConditionTypes);
   const constraints = useSelector(selectCurrentPolicyConstraints);
-  const readOnly = useSelector(selectIsInherited);
+  const isInherited = useSelector(selectIsInherited);
+  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
+  const readOnly = isInherited || !hasEditIqPermission;
 
   const setConstraint = (constraints) => dispatch(policyActions.setConstraint(constraints));
   const setCondition = (constraints) => dispatch(policyActions.setCondition(constraints));

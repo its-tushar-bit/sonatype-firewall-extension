@@ -23,6 +23,7 @@ import {
   selectCurrentPolicyThreatLevel,
   selectIsInherited,
   selectCurrentPolicyViolationGrandfatheringAllowed,
+  selectHasEditIqPermission,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -33,7 +34,9 @@ export default function EditPolicySummary() {
   const name = useSelector(selectCurrentPolicyName);
 
   const threatLevel = useSelector(selectCurrentPolicyThreatLevel);
-  const readOnly = useSelector(selectIsInherited);
+  const isInherited = useSelector(selectIsInherited);
+  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
+  const readOnly = isInherited || !hasEditIqPermission;
   const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
   const policyViolationGrandfatheringAllowed = useSelector(selectCurrentPolicyViolationGrandfatheringAllowed);
 

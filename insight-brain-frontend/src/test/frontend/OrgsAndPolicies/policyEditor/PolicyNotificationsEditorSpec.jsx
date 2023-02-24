@@ -6,7 +6,7 @@
 import React from 'react';
 
 import { render, screen, fireEvent, axiosMockAdapter, waitFor, within } from 'TestRoot/SpecUtil';
-import { initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { actions as policyActions, initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
 import PolicyNotificationsEditor from 'MainRoot/OrgsAndPolicies/policyEditor/policyNotificationsEditor';
 import {
   getNotificationWebhooksUrl,
@@ -14,11 +14,14 @@ import {
   getIsJiraEnabledUrl,
   getJiraProjectsUrl,
 } from 'MainRoot/util/CLMLocation';
+import { compose, last } from 'ramda';
+import { pathSet } from 'MainRoot/util/jsUtil';
 
 const actionStages = [
   { stageTypeId: 'proxy', shortName: 'PROXY' },
   { stageTypeId: 'develop', shortName: 'DEVELOP' },
   { stageTypeId: 'source', shortName: 'SOURCE' },
+  { stageTypeId: 'build', shortName: 'BUILD' },
   { stageTypeId: 'stage', shortName: 'STAGE' },
   { stageTypeId: 'release', shortName: 'RELEASE' },
   { stageTypeId: 'operate', shortName: 'OPERATE' },
@@ -52,14 +55,24 @@ describe('PolicyNotificationsEditor', () => {
   beforeEach(() => {
     state = {
       orgsAndPolicies: {
+        root: {
+          policiesByOwner: [{ ownerId: 'ownerId' }, { ownerId: 'ROOT_ORGANIZATION_ID' }],
+          selectedOwner: {
+            id: 'ownerId',
+          },
+        },
         policy: {
           ...initialState,
+          originalOverrideNotificationsFlag: false,
+          overrideNotificationsFlag: false,
+          hasEditIqPermission: true,
           isInherited: false,
-          currentPolicy: { notifications },
+          currentPolicy: { notifications, constraints: [] },
           notificationsEditor: {
             roles,
             notificationWebhooks,
           },
+          notificationWebhooks: [],
         },
         stages: { action: { stageTypes: actionStages, loading: false, error: null } },
       },
@@ -418,5 +431,357 @@ describe('PolicyNotificationsEditor', () => {
         exact: false,
       })
     ).toBeInTheDocument();
+  });
+
+  describe('when policy is inherited', () => {
+    it('dispatches setOverrideParentNotifications and setNotificationsOverride actions', async () => {
+      const spSetOverrideParentNotifications = spyOn(policyActions, 'setOverrideParentNotifications').and.callThrough();
+      const spySetNotificationsOverride = spyOn(policyActions, 'setNotificationsOverride').and.callThrough();
+      const preloadedState = compose(
+        pathSet(['productFeatures', 'productFeatures', 'firewall'], true),
+        pathSet(['productFeatures', 'productFeatures', 'enforcement'], true),
+        pathSet(['productFeatures', 'productFeatures', 'policy-monitoring'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'overrideNotificationsFlag'], false),
+        pathSet(['orgsAndPolicies', 'policy', 'originalOverrideNotificationsFlag'], false),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'notifications'], {
+          roleNotifications: [
+            {
+              roleId: 'roleId',
+              stageIds: ['proxy', 'develop', 'source', 'build', 'stage', 'release', 'operate', 'continuous-monitoring'],
+            },
+          ],
+          userNotifications: [
+            {
+              emailAddress: 'email@email.com',
+              stageIds: ['proxy', 'develop', 'source', 'build', 'stage', 'release', 'operate', 'continuous-monitoring'],
+            },
+          ],
+          webhookNotifications: [
+            {
+              webhookId: 'webhookId',
+              stageIds: ['develop', 'source', 'build', 'stage', 'release', 'operate', 'continuous-monitoring'],
+            },
+          ],
+          jiraNotifications: [
+            {
+              projectKey: 'key1',
+              issueTypeId: 1,
+              stageIds: ['develop', 'source', 'build', 'stage', 'release', 'operate', 'continuous-monitoring'],
+            },
+          ],
+        }),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrides'], null)
+      )(state);
+      renderComponent(preloadedState);
+      await waitFor(() => screen.getByRole('table'));
+      const overrideParentNotificationsRadio = screen.getByLabelText(/Override parent notifications/i);
+      expect(overrideParentNotificationsRadio).not.toBeChecked();
+      const table = screen.getByRole('table', { name: 'Edit policy notifications table' });
+      const checkboxes = within(table).getAllByRole('checkbox');
+      expect(checkboxes.length).toBe(32);
+      checkboxes.forEach((checkbox) => expect(checkbox).not.toBeEnabled());
+
+      fireEvent.click(overrideParentNotificationsRadio);
+
+      expect(overrideParentNotificationsRadio).toBeChecked();
+      expect(checkboxes.length).toBe(32);
+      checkboxes.forEach((checkbox, index) => {
+        // Webhook and JIRA don't allow proxy stage
+        if (index === 8 || index === 24) {
+          expect(checkbox).not.toBeEnabled();
+          expect(checkbox).not.toBeChecked();
+        } else {
+          expect(checkbox).toBeEnabled();
+          expect(checkbox).toBeChecked();
+        }
+      });
+      expect(spSetOverrideParentNotifications).toHaveBeenCalled();
+      expect(spySetNotificationsOverride).toHaveBeenCalledWith({
+        ownerId: preloadedState.orgsAndPolicies.root.selectedOwner.id,
+        notificationsOverride: preloadedState.orgsAndPolicies.policy.currentPolicy.notifications,
+      });
+    });
+
+    it('dispatches unSetOverrideParentNotifications action', async () => {
+      const spy = spyOn(policyActions, 'unSetOverrideParentNotifications').and.callThrough();
+      const preloadedState = compose(
+        pathSet(['productFeatures', 'productFeatures', 'firewall'], true),
+        pathSet(['productFeatures', 'productFeatures', 'enforcement'], true),
+        pathSet(['productFeatures', 'productFeatures', 'policy-monitoring'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'overrideNotificationsFlag'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'originalOverrideNotificationsFlag'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'notifications'], {
+          userNotifications: [
+            {
+              emailAddress: 'email@email.com',
+              stageIds: [],
+            },
+          ],
+        }),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrides'], {
+          ownerId: {
+            userNotifications: [
+              {
+                emailAddress: 'email2@email.com',
+                stageIds: [
+                  'proxy',
+                  'develop',
+                  'source',
+                  'build',
+                  'stage',
+                  'release',
+                  'operate',
+                  'continuous-monitoring',
+                ],
+              },
+            ],
+          },
+        })
+      )(state);
+      renderComponent(preloadedState);
+      await waitFor(() => screen.getByRole('table'));
+      const table = screen.getByRole('table', { name: 'Edit policy notifications table' });
+      let checkboxes = within(table).getAllByRole('checkbox');
+      expect(checkboxes.length).toBe(8);
+      checkboxes.forEach((checkbox) => expect(checkbox).toBeEnabled());
+      checkboxes.forEach((checkbox) => expect(checkbox).toBeChecked());
+      const inheritParentNotificationsRadio = screen.getByLabelText(/Inherit parent notifications/i);
+      expect(inheritParentNotificationsRadio).not.toBeChecked();
+
+      fireEvent.click(inheritParentNotificationsRadio);
+
+      expect(spy).toHaveBeenCalledWith(preloadedState.orgsAndPolicies.root.selectedOwner.id);
+      expect(inheritParentNotificationsRadio).toBeChecked();
+      checkboxes = within(table).getAllByRole('checkbox');
+      expect(checkboxes.length).toBe(8);
+      checkboxes.forEach((checkbox) => expect(checkbox).not.toBeEnabled());
+      checkboxes.forEach((checkbox) => expect(checkbox).not.toBeChecked());
+    });
+
+    it('renders notifications overrides disabled message when notification overrides are disabled', async () => {
+      const preloadedState = compose(
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], false)
+      )(state);
+      renderComponent(preloadedState);
+      await waitFor(() => screen.getByRole('table'));
+
+      const notificationsOverridesDisabledMessage = screen.getByText(
+        /Notification overrides have been disabled for this policy./i
+      );
+
+      expect(notificationsOverridesDisabledMessage).toBeVisible();
+    });
+
+    it('renders notifications overrides enabled message when notification overrides are enabled', async () => {
+      const preloadedState = compose(
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], true)
+      )(state);
+      renderComponent(preloadedState);
+      await waitFor(() => screen.getByRole('table'));
+
+      const notificationsOverridesEnabledMessage = screen.getByText(
+        /Notification overrides have been enabled for this policy. Modifying notifications will only affect this level./i
+      );
+
+      expect(notificationsOverridesEnabledMessage).toBeVisible();
+    });
+
+    it('renders enabled radios when notification overrides are enabled', async () => {
+      const preloadedState = compose(
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], true)
+      )(state);
+      renderComponent(preloadedState);
+      await waitFor(() => screen.getByRole('table'));
+
+      const inheritParentNotificationsRadio = screen.getByLabelText(/Inherit parent notifications/i);
+      const overrideParentNotificationsRadio = screen.getByLabelText(/Override parent notifications/i);
+
+      expect(inheritParentNotificationsRadio).toBeVisible();
+      expect(inheritParentNotificationsRadio).toBeEnabled();
+      expect(overrideParentNotificationsRadio).toBeVisible();
+      expect(overrideParentNotificationsRadio).toBeEnabled();
+    });
+
+    it('renders disabled radios when notification overrides are not enabled', async () => {
+      const preloadedState = compose(
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], false)
+      )(state);
+      renderComponent(preloadedState);
+      await waitFor(() => screen.getByRole('table'));
+
+      const inheritParentNotificationsRadio = screen.getByLabelText(/Inherit parent notifications/i);
+      const overrideParentNotificationsRadio = screen.getByLabelText(/Override parent notifications/i);
+
+      expect(inheritParentNotificationsRadio).toBeVisible();
+      expect(inheritParentNotificationsRadio).toBeDisabled();
+      expect(overrideParentNotificationsRadio).toBeVisible();
+      expect(overrideParentNotificationsRadio).toBeDisabled();
+    });
+
+    it('renders disabled radios when there is no permission', async () => {
+      const preloadedState = compose(
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'hasEditIqPermission'], false)
+      )(state);
+      renderComponent(preloadedState);
+      await waitFor(() => screen.getByRole('table'));
+
+      const inheritParentNotificationsRadio = screen.getByLabelText(/Inherit parent notifications/i);
+      const overrideParentNotificationsRadio = screen.getByLabelText(/Override parent notifications/i);
+
+      expect(inheritParentNotificationsRadio).toBeVisible();
+      expect(inheritParentNotificationsRadio).toBeDisabled();
+      expect(overrideParentNotificationsRadio).toBeVisible();
+      expect(overrideParentNotificationsRadio).toBeDisabled();
+    });
+
+    it('renders table with disabled radios when policy notifications overriding is not enabled', async () => {
+      const preloadedState = compose(
+        pathSet(['productFeatures', 'productFeatures', 'firewall'], true),
+        pathSet(['productFeatures', 'productFeatures', 'enforcement'], true),
+        pathSet(['productFeatures', 'productFeatures', 'policy-monitoring'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'overrideNotificationsFlag'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'originalOverrideNotificationsFlag'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], false),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'notifications'], {
+          userNotifications: [
+            {
+              emailAddress: 'email@email.com',
+              stageIds: [],
+            },
+          ],
+        }),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrides'], {
+          ownerId: {
+            userNotifications: [
+              {
+                emailAddress: 'email2@email.com',
+                stageIds: [
+                  'proxy',
+                  'develop',
+                  'source',
+                  'build',
+                  'stage',
+                  'release',
+                  'operate',
+                  'continuous-monitoring',
+                ],
+              },
+            ],
+          },
+        })
+      )(state);
+      renderComponent(preloadedState);
+      await waitFor(() => screen.getByRole('table'));
+
+      const table = screen.getByRole('table', { name: 'Edit policy notifications table' });
+      const checkboxes = within(table).getAllByRole('checkbox');
+
+      expect(checkboxes.length).toBe(8);
+      checkboxes.forEach((checkbox) => expect(checkbox).toBeDisabled());
+    });
+
+    it('dispatches toggleNotificationRecipientStage action when notifications overriding is enabled and a checkbox is clicked', async () => {
+      const spy = spyOn(policyActions, 'toggleNotificationRecipientStage').and.callThrough();
+      const preloadedState = compose(
+        pathSet(['productFeatures', 'productFeatures', 'firewall'], true),
+        pathSet(['productFeatures', 'productFeatures', 'enforcement'], true),
+        pathSet(['productFeatures', 'productFeatures', 'policy-monitoring'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'overrideNotificationsFlag'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'originalOverrideNotificationsFlag'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], true),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'notifications'], {
+          userNotifications: [
+            {
+              emailAddress: 'email@email.com',
+              stageIds: [],
+            },
+          ],
+        }),
+        pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrides'], {
+          ownerId: {
+            userNotifications: [
+              {
+                emailAddress: 'email2@email.com',
+                stageIds: [
+                  'proxy',
+                  'develop',
+                  'source',
+                  'build',
+                  'stage',
+                  'release',
+                  'operate',
+                  'continuous-monitoring',
+                ],
+              },
+            ],
+          },
+        })
+      )(state);
+      renderComponent(preloadedState);
+      await waitFor(() => screen.getByRole('table'));
+      const table = screen.getByRole('table', { name: 'Edit policy notifications table' });
+      const checkboxes = within(table).getAllByRole('checkbox');
+      checkboxes.forEach((checkbox) => expect(checkbox).toBeEnabled());
+      expect(last(checkboxes)).toBeEnabled();
+      expect(last(checkboxes)).toBeChecked();
+
+      fireEvent.click(last(checkboxes));
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith({
+        ownerId: 'ownerId',
+        recipient: {
+          emailAddress: 'email2@email.com',
+          stageIds: ['proxy', 'develop', 'source', 'build', 'stage', 'release', 'operate', 'continuous-monitoring'],
+          displayName: 'email2@email.com',
+        },
+        stageId: 'continuous-monitoring',
+      });
+      expect(last(checkboxes)).toBeEnabled();
+      expect(last(checkboxes)).not.toBeChecked();
+    });
+
+    describe('when enforcement is not supported', () => {
+      it('renders notifications not supported message when firewall is not supported', async () => {
+        const preloadedState = compose(
+          pathSet(['productFeatures', 'productFeatures', 'firewall'], false),
+          pathSet(['productFeatures', 'productFeatures', 'notifications'], false),
+          pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+          pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], false)
+        )(state);
+        renderComponent(preloadedState);
+        await waitFor(() => screen.getByRole('table'));
+
+        const alert = screen.getByText('Notifications are not supported by your product license.');
+
+        expect(alert).toBeVisible();
+      });
+
+      it('renders only proxy notifications are supported message when firewall is supported', async () => {
+        const preloadedState = compose(
+          pathSet(['productFeatures', 'productFeatures', 'firewall'], true),
+          pathSet(['productFeatures', 'productFeatures', 'notifications'], false),
+          pathSet(['orgsAndPolicies', 'policy', 'isInherited'], true),
+          pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrideAllowed'], false)
+        )(state);
+        renderComponent(preloadedState);
+        await waitFor(() => screen.getByRole('table'));
+
+        const alert = screen.getByText('Only Proxy Notifications are supported with your Firewall product license.');
+
+        expect(alert).toBeVisible();
+      });
+    });
   });
 });

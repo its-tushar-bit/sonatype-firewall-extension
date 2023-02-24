@@ -70,6 +70,7 @@ describe('ConstraintsEditor', () => {
         constraints: [],
       },
       isInherited: false,
+      hasEditIqPermission: true,
     },
     constraint: {
       editConstraintMap,
@@ -123,6 +124,39 @@ describe('ConstraintsEditor', () => {
     const constraintListEditable = screen.getAllByTestId('editable-constraint');
     expect(constraintListReadOnly.length).toBe(0);
     expect(constraintListEditable.length).toBe(2);
+  });
+
+  it('renders disabled if there is no permission', () => {
+    editConstraintMap = {
+      1660254072492: true,
+    };
+
+    renderComponent({
+      orgsAndPolicies: {
+        ...orgsAndPoliciesInitialState,
+        policy: { ...orgsAndPoliciesInitialState.policy, hasEditIqPermission: false },
+        constraint: { ...orgsAndPoliciesInitialState.constraint, editConstraintMap },
+      },
+    });
+
+    const addConstraintBtn = screen.getByText('Add Constraint').closest('button');
+    expect(addConstraintBtn).toBeDisabled();
+
+    const constraintListReadOnly = screen.getAllByTestId('read-only-constraint');
+    expect(constraintListReadOnly.length).toBe(1);
+    const constraintListReadOnlyButtons = within(constraintListReadOnly[0]).getAllByRole('button');
+    expect(constraintListReadOnlyButtons.length).toBe(2);
+    const addConstraintButton = constraintListReadOnlyButtons[0];
+    expect(addConstraintButton).toBeDisabled();
+    let deleteConstraintButton = constraintListReadOnlyButtons[1];
+    expect(deleteConstraintButton).toBeDisabled();
+
+    const constraintListEditable = screen.getAllByTestId('editable-constraint');
+    expect(constraintListEditable.length).toBe(1);
+    const constraintListEditableButtons = within(constraintListEditable[0]).getAllByRole('button');
+    expect(constraintListEditableButtons.length).toBe(3);
+    deleteConstraintButton = constraintListEditableButtons[0];
+    expect(deleteConstraintButton).toBeDisabled();
   });
 
   it('renders editable and read only constraints', () => {

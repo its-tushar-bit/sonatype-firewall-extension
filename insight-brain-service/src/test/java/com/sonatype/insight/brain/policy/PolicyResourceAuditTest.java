@@ -39,10 +39,16 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -444,7 +450,7 @@ public class PolicyResourceAuditTest
   }
 
   @Test
-  public void testAddActionsOverride_Application() throws Exception {
+  public void testUpdateOverrides_Add_ForActions_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyActionsOverrideAllowed(true);
@@ -454,71 +460,151 @@ public class PolicyResourceAuditTest
     actionsOverride.put("stage-release", "fail");
     actionsOverride.put("release", "fail");
     actionsOverride.put("build", "warn");
-    policyResourceRequest(app).path(policy.getId(), "actionsOverrides").body(actionsOverride).put();
+    policyResourceRequest(app).path(policy.getId(), "overrides").body(new PolicyOverridesDTO(actionsOverride))
+        .put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_ACTIONS_OVERRIDE, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
     assertApplicationData(auditDTO, app);
-    assertPolicyActionOverrideData(auditDTO, policy, app.getPublicId(), false);
+    assertPolicyOverrideData(auditDTO, policy, app.getPublicId(), true, false);
   }
 
   @Test
-  public void testAddActionsOverride_Organization() throws Exception {
+  public void testUpdateOverrides_Add_ForNotifications_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy();
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    new PolicyDAO().update(policy);
+
+    Notifications notificationsOverride = new Notifications();
+    notificationsOverride.add(new UserNotification("app@domain.com", BuildStageType.ID));
+    policyResourceRequest(app).path(policy.getId(), "overrides").body(new PolicyOverridesDTO(notificationsOverride))
+        .put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
+    assertApplicationData(auditDTO, app);
+    assertPolicyOverrideData(auditDTO, policy, app.getPublicId(), false, true);
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForActions_Organization() throws Exception {
     //Root Organization is the owner
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyActionsOverrideAllowed(true);
     new PolicyDAO().update(policy);
 
-    policyResourceRequest(organization).path(policy.getId(), "actionsOverrides").body(new LinkedHashMap<>()).put();
+    policyResourceRequest(organization).path(policy.getId(), "overrides")
+        .body(new PolicyOverridesDTO(new LinkedHashMap<>())).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_ACTIONS_OVERRIDE, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
     assertOrganizationData(auditDTO, organization);
-    assertPolicyActionOverrideData(auditDTO, policy, organization.getId(), true);
+    assertPolicyOverrideData(auditDTO, policy, organization.getId(), true, false);
   }
 
   @Test
-  public void testAddActionsOverride_Unauthorized() throws Exception {
+  public void testUpdateOverrides_Add_ForNotifications_Organization() throws Exception {
+    //Root Organization is the owner
+    Policy policy = tempEntity.newPolicy();
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    new PolicyDAO().update(policy);
+
+    policyResourceRequest(organization).path(policy.getId(), "overrides")
+        .body(new PolicyOverridesDTO(new Notifications())).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
+    assertOrganizationData(auditDTO, organization);
+    assertPolicyOverrideData(auditDTO, policy, organization.getId(), false, true);
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_Unauthorized() throws Exception {
     Policy policy = tempEntity.newPolicy();
 
     policyResourceRequest(organization)
-            .path(policy.getId(), "actionsOverrides")
-            .body(new LinkedHashMap<>())
-            .with(unauthorizedUser())
-            .put();
+        .path(policy.getId(), "overrides")
+        .body(new PolicyOverridesDTO())
+        .with(unauthorizedUser())
+        .put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_ACTIONS_OVERRIDE, "unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, "unauthorized");
     assertOrganizationData(auditDTO, organization);
   }
 
+  private JsonNode createDeleteBody(boolean deleteActionsOverride, boolean deleteNotificationsOverride) {
+    ObjectNode json = JsonUtils.asTree(new PolicyOverridesDTO());
+    if (!deleteActionsOverride) {
+      json.remove("actions");
+    }
+    if (!deleteNotificationsOverride) {
+      json.remove("notifications");
+    }
+    return json;
+  }
+
   @Test
-  public void testDeleteActionsOverride_Application() throws Exception {
+  public void testUpdateOverrides_Delete_ForActions_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy();
 
-    policyResourceRequest(app).path(policy.getId(), "actionsOverrides").delete();
+    policyResourceRequest(app).path(policy.getId(), "overrides").body(createDeleteBody(true, false)).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_ACTIONS_OVERRIDE, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
     assertApplicationData(auditDTO, app);
-    assertPolicyActionOverrideData(auditDTO, policy, app.getPublicId(), true);
+    assertPolicyOverrideData(auditDTO, policy, app.getPublicId(), false, false);
   }
 
   @Test
-  public void testDeleteActionsOverride_Organization() throws Exception {
+  public void testUpdateOverrides_Delete_ForNotifications_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy();
 
-    policyResourceRequest(organization).path(policy.getId(), "actionsOverrides").delete();
+    policyResourceRequest(app).path(policy.getId(), "overrides").body(createDeleteBody(false, true)).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_ACTIONS_OVERRIDE, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
+    assertApplicationData(auditDTO, app);
+    assertPolicyOverrideData(auditDTO, policy, app.getPublicId(), false, false);
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_Organization() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+
+    policyResourceRequest(organization).path(policy.getId(), "overrides").body(createDeleteBody(true, false)).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
     assertOrganizationData(auditDTO, organization);
-    assertPolicyActionOverrideData(auditDTO, policy, organization.getId(), true);
+    assertPolicyOverrideData(auditDTO, policy, organization.getId(), false, false);
   }
 
   @Test
-  public void testDeleteActionsOverride_Unauthorized() throws Exception {
+  public void testUpdateOverrides_Delete_ForNotifications_Organization() throws Exception {
     Policy policy = tempEntity.newPolicy();
 
-    policyResourceRequest(organization).path(policy.getId(), "actionsOverrides").with(unauthorizedUser()).delete();
+    policyResourceRequest(organization).path(policy.getId(), "overrides").body(createDeleteBody(false, true)).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_ACTIONS_OVERRIDE, "unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
+    assertOrganizationData(auditDTO, organization);
+    assertPolicyOverrideData(auditDTO, policy, organization.getId(), false, false);
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_Unauthorized() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+
+    policyResourceRequest(organization).path(policy.getId(), "overrides").body(createDeleteBody(true, false))
+        .with(unauthorizedUser()).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_Unauthorized() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+
+    policyResourceRequest(organization).path(policy.getId(), "overrides").body(createDeleteBody(false, true))
+        .with(unauthorizedUser()).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, "unauthorized");
     assertOrganizationData(auditDTO, organization);
   }
 
@@ -634,9 +720,10 @@ public class PolicyResourceAuditTest
     }
   }
 
-  private void assertPolicyTagAuditData(final AuditDTO auditDTO,
-                                        final Policy policy,
-                                        final String inheritanceScope)
+  private void assertPolicyTagAuditData(
+      final AuditDTO auditDTO,
+      final Policy policy,
+      final String inheritanceScope)
   {
     PolicyDAO policyDAO = new PolicyDAO();
     assertThat(policyDAO.getById((String) auditDTO.data.get("policyId"))).isNotNull();
@@ -644,10 +731,11 @@ public class PolicyResourceAuditTest
     assertCustomData(auditDTO, "inheritanceScope", inheritanceScope);
   }
 
-  private void assertDeletedPolicyOnImport(final Policy policy,
-                                           List<ConstraintDTO> constraints,
-                                           List<AuditDTO> auditLogs,
-                                           Owner owner)
+  private void assertDeletedPolicyOnImport(
+      final Policy policy,
+      List<ConstraintDTO> constraints,
+      List<AuditDTO> auditLogs,
+      Owner owner)
   {
     AuditDTO foundDTO = auditLogs.stream().filter(auditDTO -> auditDTO.data.get("policyId").equals(policy.getId()))
         .findFirst().get();

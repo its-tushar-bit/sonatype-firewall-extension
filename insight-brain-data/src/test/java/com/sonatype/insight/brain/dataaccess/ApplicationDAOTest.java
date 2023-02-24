@@ -60,6 +60,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -749,17 +751,22 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testDelete_CascadesToPolicyActionOverrides() {
+  public void testDelete_CascadesToPolicyOverrides() {
     Map<String, String> policyActionsOverrides = new HashMap<>();
     policyActionsOverrides.put("build", "warn");
     Policy policyWithOverrides = tempEntity.newPolicy(application.getOrganizationId());
     policyWithOverrides.addPolicyActionsOverride(application.getId(), policyActionsOverrides);
     policyWithOverrides.addPolicyActionsOverride("fakeOwnerId", policyActionsOverrides);
+    Notifications policyNotificationsOverride = new Notifications();
+    policyNotificationsOverride.add(new UserNotification("user@domain", BuildStageType.ID));
+    policyWithOverrides.addPolicyNotificationsOverride(application.getId(), policyNotificationsOverride);
+    policyWithOverrides.addPolicyNotificationsOverride("fakeOwnerId", policyNotificationsOverride);
     new PolicyDAO().update(policyWithOverrides);
 
     applicationDAO.delete(application);
     Policy policy = new PolicyDAO().getById(policyWithOverrides.getId());
     assertThat(policy.getPolicyActionsOverrides().keySet()).containsExactly("fakeOwnerId");
+    assertThat(policy.getPolicyNotificationsOverrides().keySet()).containsExactly("fakeOwnerId");
   }
 
   @Test

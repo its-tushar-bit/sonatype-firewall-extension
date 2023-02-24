@@ -28,10 +28,11 @@ import {
   selectIsActionOverrideEnabled,
   selectCurrentPolicyActions,
   selectActionsOverridesForCurrentPolicy,
-  selectHasEditIqPermission,
   selectIsInherited,
   selectOverrideActionsFlag,
   selectShouldShowQuarantineWarning,
+  selectIsActionsInheritOverrideEnabled,
+  selectIsActionsTableEnabled,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import {
   selectIsEnforcementSupported,
@@ -59,22 +60,21 @@ export default function PolicyActionsEditor() {
   const actionsOverrides = useSelector(selectActionsOverridesForCurrentPolicy);
   const currentPolicyActions = useSelector(selectCurrentPolicyActions);
   const isInherited = useSelector(selectIsInherited);
-  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const isEnforcementSupported = useSelector(selectIsEnforcementSupported);
   const isFirewallSupported = useSelector(selectIsFirewallSupported);
   const isOverrideParentActionsEnabled = useSelector(selectOverrideActionsFlag);
   const actionStagesLoadError = useSelector(selectActionStagesLoadError);
   const shouldShowQuarantineWarning = useSelector(selectShouldShowQuarantineWarning);
   const actions = actionsOverrides || currentPolicyActions;
-  const isReadOnly = isInherited && (!isActionOverrideEnabled || !hasEditIqPermission);
   const tableGridTemplateStyles = {
     gridTemplateColumns: `minmax(90px, 1fr) repeat(${actionStages?.length}, min-content) minmax(48px, min-content) 60px`,
   };
+  const isActionsInheritOverrideEnabled = useSelector(selectIsActionsInheritOverrideEnabled);
+  const isActionsTableEnabled = useSelector(selectIsActionsTableEnabled);
 
   const isDisabled = (stageTypeId) => {
-    const isEnforcementSupportedForStage = (isFirewallSupported && stageTypeId === 'proxy') || isEnforcementSupported;
-    const isInheritedActionsOverrideDisabled = isInherited && !isOverrideParentActionsEnabled;
-    return isReadOnly || !isEnforcementSupportedForStage || isInheritedActionsOverrideDisabled;
+    const isEnforcementSupportedForStage = isEnforcementSupported || (isFirewallSupported && stageTypeId === 'proxy');
+    return !isActionsTableEnabled || !isEnforcementSupportedForStage;
   };
 
   const getActionFor = (stageTypeId) => actions[stageTypeId] || null;
@@ -116,7 +116,7 @@ export default function PolicyActionsEditor() {
                 id="edit-policy-actions-override-inherit"
                 name="overrideParentActionsStatus"
                 value={null}
-                disabled={!isActionOverrideEnabled}
+                disabled={!isActionsInheritOverrideEnabled}
                 isChecked={!isOverrideParentActionsEnabled}
                 onChange={() => onOverrideParentActionsChange(false)}
               >
@@ -127,7 +127,7 @@ export default function PolicyActionsEditor() {
                 id="edit-policy-actions-override-override"
                 name="overrideParentActionsStatus"
                 value="allowOverrideParentActionsStatus"
-                disabled={!isActionOverrideEnabled}
+                disabled={!isActionsInheritOverrideEnabled}
                 isChecked={isOverrideParentActionsEnabled}
                 onChange={() => onOverrideParentActionsChange(true)}
               >

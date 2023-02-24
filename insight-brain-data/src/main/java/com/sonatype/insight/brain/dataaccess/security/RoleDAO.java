@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -14,6 +15,7 @@ import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -123,12 +125,11 @@ public class RoleDAO
     // Cascade to policy notify actions
     PolicyDAO policyDAO = new PolicyDAO();
     for (Policy policy : policyDAO.getAll(tx)) {
-      boolean policyWasChanged = false;
-      for (Iterator<RoleNotification> it = policy.getNotifications().getRoleNotifications().iterator(); it.hasNext();) {
-        RoleNotification notification = it.next();
-        if (entity.getId().equals(notification.getRoleId())) {
-          it.remove();
-          policyWasChanged = true;
+      boolean policyWasChanged = removeRoleNotificationsIfNeeded(entity, policy.getNotifications());
+      Map<String, Notifications> notificationsOverrides = policy.getPolicyNotificationsOverrides();
+      if (notificationsOverrides != null) {
+        for (Notifications notificationsOverride : notificationsOverrides.values()) {
+          policyWasChanged = removeRoleNotificationsIfNeeded(entity, notificationsOverride) || policyWasChanged;
         }
       }
       if (policyWasChanged) {
@@ -137,6 +138,17 @@ public class RoleDAO
     }
 
     super.delete(tx, entity);
+  }
+
+  private boolean removeRoleNotificationsIfNeeded(Role roleToRemove, Notifications notifications) {
+    for (Iterator<RoleNotification> it = notifications.getRoleNotifications().iterator(); it.hasNext(); ) {
+      RoleNotification notification = it.next();
+      if (roleToRemove.getId().equals(notification.getRoleId())) {
+        it.remove();
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

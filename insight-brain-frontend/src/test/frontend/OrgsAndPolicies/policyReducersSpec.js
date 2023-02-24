@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { omit } from 'ramda';
+import { clone, omit } from 'ramda';
 import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
@@ -171,6 +171,9 @@ describe('policySlice reducers', () => {
   describe('policy/setHasPolicyCategories', () => {
     it('sets hasPolicyCategories', () => {
       const state = Object.freeze({
+        currentPolicy: {
+          constraints: [],
+        },
         hasPolicyCategories: false,
       });
 
@@ -268,6 +271,45 @@ describe('policySlice reducers', () => {
     });
   });
 
+  describe('policy/togglePolicyNotificationsOverrideAllowed', () => {
+    it('toggles policyNotificationsOverrideAllowed for a category from false to true', () => {
+      const state = Object.freeze({
+        isDirty: false,
+        currentPolicy: { policyNotificationsOverrideAllowed: false, constraints: [] },
+      });
+
+      const { currentPolicy, isDirty } = reducer(state, {
+        type: 'policy/togglePolicyNotificationsOverrideAllowed',
+      });
+
+      expect(currentPolicy.policyNotificationsOverrideAllowed).toBeTrue();
+      expect(isDirty).toBeTrue();
+    });
+
+    it('toggles policyNotificationsOverrideAllowed for a category from true to false', () => {
+      const state = Object.freeze({
+        isDirty: false,
+        currentPolicy: {
+          constraints: [],
+          policyNotificationsOverrideAllowed: true,
+          policyNotificationsOverrides: {
+            df9ad82193e44f4f9385e0c9e8835409: {
+              userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }],
+            },
+          },
+        },
+      });
+
+      const { currentPolicy, isDirty } = reducer(state, {
+        type: 'policy/togglePolicyNotificationsOverrideAllowed',
+      });
+
+      expect(currentPolicy.policyNotificationsOverrideAllowed).toBeFalse();
+      expect(currentPolicy.policyNotificationsOverrides).toBeNull();
+      expect(isDirty).toBeTrue();
+    });
+  });
+
   describe('policy/setConstraint', () => {
     it('sets currentPolicy constraints and compute isDirty', () => {
       const state = Object.freeze({
@@ -361,7 +403,7 @@ describe('policySlice reducers', () => {
 
       const { currentPolicy, isDirty } = reducer(state, {
         type: 'policy/setUserNotifications',
-        payload: userNotifications,
+        payload: { notifications: userNotifications, ownerId: null },
       });
 
       expect(currentPolicy.notifications.userNotifications).toEqual(userNotifications);
@@ -383,7 +425,7 @@ describe('policySlice reducers', () => {
 
       const { currentPolicy, isDirty } = reducer(state, {
         type: 'policy/setRoleNotifications',
-        payload: roleNotifications,
+        payload: { notifications: roleNotifications, ownerId: null },
       });
 
       expect(currentPolicy.notifications.roleNotifications).toEqual(roleNotifications);
@@ -406,7 +448,7 @@ describe('policySlice reducers', () => {
 
       const { currentPolicy, isDirty } = reducer(state, {
         type: 'policy/setJiraNotifications',
-        payload: jiraNotifications,
+        payload: { notifications: jiraNotifications, ownerId: null },
       });
 
       expect(currentPolicy.notifications.jiraNotifications).toEqual(jiraNotifications);
@@ -429,7 +471,7 @@ describe('policySlice reducers', () => {
 
       const { currentPolicy, isDirty } = reducer(state, {
         type: 'policy/setWebhookNotifications',
-        payload: webhookNotifications,
+        payload: { notifications: webhookNotifications, ownerId: null },
       });
 
       expect(currentPolicy.notifications.webhookNotifications).toEqual(webhookNotifications);
@@ -1552,7 +1594,83 @@ describe('policySlice reducers', () => {
     });
   });
 
-  describe('policy/saveActionsOverride/fulfilled', () => {
+  describe('policy/setNotificationsOverride', () => {
+    it('adds provided notifications override for provided owner and sets isDirty to true if override has changed', () => {
+      const state = Object.freeze({
+        isDirty: true,
+        isInherited: true,
+        overrideNotificationsFlag: true,
+        originalOverrideNotificationsFlag: false,
+        currentPolicy: {
+          constraints: [],
+          policyNotificationsOverrides: {
+            someOwnerId: { userNotifications: [] },
+          },
+        },
+        originalPolicy: {
+          policyNotificationsOverrides: {
+            someOwnerId: { userNotifications: [] },
+          },
+        },
+      });
+
+      const action = {
+        type: 'policy/setNotificationsOverride',
+        payload: {
+          ownerId: 'currentOwnerId',
+          notificationsOverride: { userNotifications: [{ emailAddress: 'user@email.com', stageIds: ['operate'] }] },
+        },
+      };
+
+      const { currentPolicy, isDirty } = reducer(state, action);
+
+      expect(currentPolicy.policyNotificationsOverrides.someOwnerId).toEqual({ userNotifications: [] });
+      expect(currentPolicy.policyNotificationsOverrides.currentOwnerId).toEqual({
+        userNotifications: [{ emailAddress: 'user@email.com', stageIds: ['operate'] }],
+      });
+      expect(isDirty).toBe(true);
+    });
+
+    it('adds notifications override and sets isDirty to false if override has not changed', () => {
+      const state = Object.freeze({
+        isDirty: true,
+        isInherited: true,
+        overrideNotificationsFlag: false,
+        originalOverrideNotificationsFlag: false,
+        currentPolicy: {
+          constraints: [],
+          policyNotificationsOverrides: {
+            someOwnerId: { userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build'] }] },
+          },
+        },
+        originalPolicy: {
+          policyNotificationsOverrides: {
+            someOwnerId: { userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build'] }] },
+            currentOwnerId: {
+              userNotifications: [{ emailAddress: 'email2@email.com', stageIds: ['release', 'operate'] }],
+            },
+          },
+        },
+      });
+
+      const action = {
+        type: 'policy/setNotificationsOverride',
+        payload: {
+          ownerId: 'currentOwnerId',
+          notificationsOverride: {
+            userNotifications: [{ emailAddress: 'email2@email.com', stageIds: ['release', 'operate'] }],
+          },
+        },
+      };
+
+      const { currentPolicy, isDirty } = reducer(state, action);
+
+      expect(currentPolicy.policyNotificationsOverrides).toEqual(state.originalPolicy.policyNotificationsOverrides);
+      expect(isDirty).toBe(false);
+    });
+  });
+
+  describe('policy/updateOverrides/fulfilled', () => {
     it('resets loading flags, resets isDirty and resets the policy from payload', () => {
       const state = Object.freeze({
         submitMaskState: false,
@@ -1560,133 +1678,111 @@ describe('policySlice reducers', () => {
         isDirty: true,
         currentPolicy: 'current policy',
         originalPolicy: 'original policy',
-        overrideActionsFlag: false,
+      });
+
+      const action = {
+        type: 'policy/updateOverrides/fulfilled',
+        payload: { name: 'updated policy' },
+      };
+
+      const { submitMaskState, loadError, isDirty, currentPolicy, originalPolicy } = reducer(state, action);
+
+      expect(submitMaskState).toBeTrue();
+      expect(loadError).toBe(null);
+      expect(isDirty).toBe(false);
+      expect(currentPolicy).toEqual({
+        name: {
+          isPristine: true,
+          value: 'updated policy',
+          trimmedValue: 'updated policy',
+          validationErrors: null,
+        },
+      });
+      expect(originalPolicy).toEqual({
+        name: {
+          isPristine: true,
+          value: 'updated policy',
+          trimmedValue: 'updated policy',
+          validationErrors: null,
+        },
+      });
+    });
+
+    it('sets override action flags to true', () => {
+      const state = Object.freeze({
+        overrideActionsFlag: true,
         originalOverrideActionsFlag: false,
       });
 
       const action = {
-        type: 'policy/saveActionsOverride/fulfilled',
+        type: 'policy/updateOverrides/fulfilled',
         payload: { name: 'updated policy' },
       };
 
-      const {
-        submitMaskState,
-        loadError,
-        isDirty,
-        currentPolicy,
-        originalPolicy,
-        overrideActionsFlag,
-        originalOverrideActionsFlag,
-      } = reducer(state, action);
+      const { overrideActionsFlag, originalOverrideActionsFlag } = reducer(state, action);
 
-      expect(submitMaskState).toBeTrue();
-      expect(loadError).toBe(null);
-      expect(isDirty).toBe(false);
-      expect(currentPolicy).toEqual({
-        name: {
-          isPristine: true,
-          value: 'updated policy',
-          trimmedValue: 'updated policy',
-          validationErrors: null,
-        },
-      });
-      expect(originalPolicy).toEqual({
-        name: {
-          isPristine: true,
-          value: 'updated policy',
-          trimmedValue: 'updated policy',
-          validationErrors: null,
-        },
-      });
       expect(overrideActionsFlag).toBeTrue();
       expect(originalOverrideActionsFlag).toBeTrue();
     });
-  });
 
-  describe('policy/saveActionsOverride/pending', () => {
-    it('resets loadError and sets loading to true', () => {
-      const state = Object.freeze({ loadError: 'error', submitMaskState: null });
-
-      const { loadError, submitMaskState } = reducer(state, {
-        type: 'policy/saveActionsOverride/pending',
-      });
-
-      expect(loadError).toBeNull();
-      expect(submitMaskState).toBeFalse();
-    });
-  });
-
-  describe('policy/saveActionsOverride/failed', () => {
-    it('resets loading and sets loadError', () => {
-      const state = Object.freeze({ loadError: null, submitMaskState: false });
-
-      const { loadError, submitMaskState } = reducer(state, {
-        type: 'policy/saveActionsOverride/rejected',
-        payload: 'error',
-      });
-
-      expect(loadError).toBe('error');
-      expect(submitMaskState).toBeNull();
-    });
-  });
-
-  describe('policy/removeActionsOverride/fulfilled', () => {
-    it('resets loading flags, resets isDirty and resets the policy from payload', () => {
+    it('sets override action flags to false', () => {
       const state = Object.freeze({
-        submitMaskState: false,
-        loadError: 'some error',
-        isDirty: true,
-        currentPolicy: 'current policy',
-        originalPolicy: 'original policy',
-        overrideActionsFlag: true,
+        overrideActionsFlag: false,
         originalOverrideActionsFlag: true,
       });
 
       const action = {
-        type: 'policy/removeActionsOverride/fulfilled',
-        payload: { name: 'removed overrides for policy' },
+        type: 'policy/updateOverrides/fulfilled',
+        payload: { name: 'updated policy' },
       };
 
-      const {
-        submitMaskState,
-        loadError,
-        isDirty,
-        currentPolicy,
-        originalPolicy,
-        overrideActionsFlag,
-        originalOverrideActionsFlag,
-      } = reducer(state, action);
+      const { overrideActionsFlag, originalOverrideActionsFlag } = reducer(state, action);
 
-      expect(submitMaskState).toBeTrue();
-      expect(loadError).toBe(null);
-      expect(isDirty).toBe(false);
-      expect(currentPolicy).toEqual({
-        name: {
-          isPristine: true,
-          value: 'removed overrides for policy',
-          trimmedValue: 'removed overrides for policy',
-          validationErrors: null,
-        },
+      expect(overrideActionsFlag).toBeFalsy();
+      expect(originalOverrideActionsFlag).toBeFalsy();
+    });
+
+    it('sets override notification flags to true', () => {
+      const state = Object.freeze({
+        overrideNotificationsFlag: true,
+        originalOverrideNotificationsFlag: false,
       });
-      expect(originalPolicy).toEqual({
-        name: {
-          isPristine: true,
-          value: 'removed overrides for policy',
-          trimmedValue: 'removed overrides for policy',
-          validationErrors: null,
-        },
+
+      const action = {
+        type: 'policy/updateOverrides/fulfilled',
+        payload: { name: 'updated policy' },
+      };
+
+      const { overrideNotificationsFlag, originalOverrideNotificationsFlag } = reducer(state, action);
+
+      expect(overrideNotificationsFlag).toBeTrue();
+      expect(originalOverrideNotificationsFlag).toBeTrue();
+    });
+
+    it('sets override notification flags to false', () => {
+      const state = Object.freeze({
+        overrideNotificationsFlag: false,
+        originalOverrideNotificationsFlag: true,
       });
-      expect(overrideActionsFlag).toBeFalse();
-      expect(originalOverrideActionsFlag).toBeFalse();
+
+      const action = {
+        type: 'policy/updateOverrides/fulfilled',
+        payload: { name: 'updated policy' },
+      };
+
+      const { overrideNotificationsFlag, originalOverrideNotificationsFlag } = reducer(state, action);
+
+      expect(overrideNotificationsFlag).toBeFalsy();
+      expect(originalOverrideNotificationsFlag).toBeFalsy();
     });
   });
 
-  describe('policy/removeActionsOverride/pending', () => {
+  describe('policy/updateOverrides/pending', () => {
     it('resets loadError and sets loading to true', () => {
       const state = Object.freeze({ loadError: 'error', submitMaskState: null });
 
       const { loadError, submitMaskState } = reducer(state, {
-        type: 'policy/removeActionsOverride/pending',
+        type: 'policy/updateOverrides/pending',
       });
 
       expect(loadError).toBeNull();
@@ -1694,12 +1790,12 @@ describe('policySlice reducers', () => {
     });
   });
 
-  describe('policy/removeActionsOverride/failed', () => {
+  describe('policy/updateOverrides/failed', () => {
     it('resets loading and sets loadError', () => {
       const state = Object.freeze({ loadError: null, submitMaskState: false });
 
       const { loadError, submitMaskState } = reducer(state, {
-        type: 'policy/removeActionsOverride/rejected',
+        type: 'policy/updateOverrides/rejected',
         payload: 'error',
       });
 
@@ -1736,6 +1832,34 @@ describe('policySlice reducers', () => {
     });
   });
 
+  describe('policy/setOverrideParentNotifications', () => {
+    it('sets overrideNotificationsFlag and isDirty', () => {
+      const state = Object.freeze({
+        overrideNotificationsFlag: false,
+        originalOverrideNotificationsFlag: false,
+        isDirty: false,
+        isInherited: true,
+        currentPolicy: {
+          constraints: [],
+        },
+        originalPolicy: {
+          policyNotificationsOverrides: {
+            someOwnerId: { userNotifications: [] },
+            currentOwnerId: { userNotifications: [] },
+          },
+        },
+      });
+
+      const { isDirty, overrideNotificationsFlag } = reducer(state, {
+        type: 'policy/setOverrideParentNotifications',
+        payload: true,
+      });
+
+      expect(overrideNotificationsFlag).toBeTrue();
+      expect(isDirty).toBeTrue();
+    });
+  });
+
   describe('policy/unSetOverrideParentActions', () => {
     it('removes override from current policy, sets overrideActionsFlag and isDirty', () => {
       const state = Object.freeze({
@@ -1764,6 +1888,35 @@ describe('policySlice reducers', () => {
       expect(overrideActionsFlag).toBeFalse();
       expect(isDirty).toBeTrue();
       expect(currentPolicy.policyActionsOverrides).toEqual({});
+    });
+  });
+
+  describe('policy/unSetOverrideParentNotifications', () => {
+    it('removes override from current policy, sets overrideNotificationsFlag and isDirty', () => {
+      const state = Object.freeze({
+        overrideNotificationsFlag: true,
+        originalOverrideNotificationsFlag: true,
+        isDirty: false,
+        isInherited: true,
+        currentPolicy: {
+          constraints: [],
+          policyNotificationsOverrides: {
+            id201: { userNotifications: [] },
+          },
+        },
+        originalPolicy: {
+          policyNotificationsOverrides: null,
+        },
+      });
+
+      const { isDirty, overrideNotificationsFlag, currentPolicy } = reducer(state, {
+        type: 'policy/unSetOverrideParentNotifications',
+        payload: 'id201',
+      });
+
+      expect(overrideNotificationsFlag).toBeFalse();
+      expect(isDirty).toBeTrue();
+      expect(currentPolicy.policyNotificationsOverrides).toEqual({});
     });
   });
 
@@ -1797,6 +1950,44 @@ describe('policySlice reducers', () => {
       });
     });
 
+    it('adds overridden user notification recipient', () => {
+      const state = Object.freeze({
+        isInherited: true,
+        notificationsEditor: {
+          formState: {
+            recipientType: { value: 'Email', trimmedValue: 'Email' },
+            recipientEmail: { value: ' nonTrimmedEmail@email.com ', trimmedValue: 'trimmedEmail@email.com' },
+          },
+        },
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [],
+            userNotifications: [],
+            webhookNotifications: [],
+          },
+          policyNotificationsOverrideAllowed: true,
+          policyNotificationsOverrides: {
+            orgId: {
+              roleNotifications: [],
+              userNotifications: [],
+              webhookNotifications: [],
+            },
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/addNotificationRecipient',
+        payload: 'orgId',
+      });
+
+      expect(currentPolicy.notifications).toEqual(state.currentPolicy.notifications);
+      const expected = clone(state.currentPolicy.policyNotificationsOverrides);
+      expected.orgId.userNotifications = [{ emailAddress: 'trimmedEmail@email.com', stageIds: [] }];
+      expect(currentPolicy.policyNotificationsOverrides).toEqual(expected);
+    });
+
     it('adds role notification recipient', () => {
       const state = Object.freeze({
         notificationsEditor: {
@@ -1824,6 +2015,44 @@ describe('policySlice reducers', () => {
         userNotifications: [],
         webhookNotifications: [],
       });
+    });
+
+    it('adds overridden role notification recipient', () => {
+      const state = Object.freeze({
+        isInherited: true,
+        notificationsEditor: {
+          formState: {
+            recipientType: { value: 'Role', trimmedValue: 'Role' },
+            recipientRoleId: { value: 'roleId', trimmedValue: 'roleId' },
+          },
+        },
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [],
+            userNotifications: [],
+            webhookNotifications: [],
+          },
+          policyNotificationsOverrideAllowed: true,
+          policyNotificationsOverrides: {
+            orgId: {
+              roleNotifications: [],
+              userNotifications: [],
+              webhookNotifications: [],
+            },
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/addNotificationRecipient',
+        payload: 'orgId',
+      });
+
+      expect(currentPolicy.notifications).toEqual(state.currentPolicy.notifications);
+      const expected = clone(state.currentPolicy.policyNotificationsOverrides);
+      expected.orgId.roleNotifications = [{ roleId: 'roleId', stageIds: [] }];
+      expect(currentPolicy.policyNotificationsOverrides).toEqual(expected);
     });
 
     it('adds webhook notification recipient', () => {
@@ -1856,6 +2085,44 @@ describe('policySlice reducers', () => {
     });
   });
 
+  it('adds overridden webhook notification recipient', () => {
+    const state = Object.freeze({
+      isInherited: true,
+      notificationsEditor: {
+        formState: {
+          recipientType: { value: 'Webhook', trimmedValue: 'Webhook' },
+          recipientWebhookId: { value: 'webhookId', trimmedValue: 'webhookId' },
+        },
+      },
+      currentPolicy: {
+        constraints: [],
+        notifications: {
+          roleNotifications: [],
+          userNotifications: [],
+          webhookNotifications: [],
+        },
+        policyNotificationsOverrideAllowed: true,
+        policyNotificationsOverrides: {
+          orgId: {
+            roleNotifications: [],
+            userNotifications: [],
+            webhookNotifications: [],
+          },
+        },
+      },
+    });
+
+    const { currentPolicy } = reducer(state, {
+      type: 'policy/addNotificationRecipient',
+      payload: 'orgId',
+    });
+
+    expect(currentPolicy.notifications).toEqual(state.currentPolicy.notifications);
+    const expected = clone(state.currentPolicy.policyNotificationsOverrides);
+    expected.orgId.webhookNotifications = [{ webhookId: 'webhookId', stageIds: [] }];
+    expect(currentPolicy.policyNotificationsOverrides).toEqual(expected);
+  });
+
   describe('policy/removeNotificationRecipient', () => {
     it('removes user notification recipient', () => {
       const state = Object.freeze({
@@ -1881,6 +2148,40 @@ describe('policySlice reducers', () => {
         webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
         jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
       });
+    });
+
+    it('removes overridden user notification recipient', () => {
+      const state = Object.freeze({
+        isInherited: true,
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+            jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+          },
+          policyNotificationsOverrideAllowed: true,
+          policyNotificationsOverrides: {
+            orgId: {
+              roleNotifications: [{ roleId: 'roleId2', stageIds: [] }],
+              userNotifications: [{ emailAddress: 'email2@email.com', stageIds: [] }],
+              webhookNotifications: [{ webhookId: 'webhookId2', stageIds: [] }],
+              jiraNotifications: [{ projectKey: 2, issueTypeId: 2, stageIds: [] }],
+            },
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/removeNotificationRecipient',
+        payload: { recipient: { emailAddress: 'email2@email.com', stageIds: [] }, ownerId: 'orgId' },
+      });
+
+      expect(currentPolicy.notifications).toEqual(state.currentPolicy.notifications);
+      const expected = clone(state.currentPolicy.policyNotificationsOverrides);
+      expected.orgId.userNotifications = [];
+      expect(currentPolicy.policyNotificationsOverrides).toEqual(expected);
     });
 
     it('removes role notification recipient', () => {
@@ -1909,6 +2210,40 @@ describe('policySlice reducers', () => {
       });
     });
 
+    it('removes overridden role notification recipient', () => {
+      const state = Object.freeze({
+        isInherited: true,
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+            jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+          },
+          policyNotificationsOverrideAllowed: true,
+          policyNotificationsOverrides: {
+            orgId: {
+              roleNotifications: [{ roleId: 'roleId2', stageIds: [] }],
+              userNotifications: [{ emailAddress: 'email2@email.com', stageIds: [] }],
+              webhookNotifications: [{ webhookId: 'webhookId2', stageIds: [] }],
+              jiraNotifications: [{ projectKey: 2, issueTypeId: 2, stageIds: [] }],
+            },
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/removeNotificationRecipient',
+        payload: { recipient: { roleId: 'roleId2', stageIds: [] }, ownerId: 'orgId' },
+      });
+
+      expect(currentPolicy.notifications).toEqual(state.currentPolicy.notifications);
+      const expected = clone(state.currentPolicy.policyNotificationsOverrides);
+      expected.orgId.roleNotifications = [];
+      expect(currentPolicy.policyNotificationsOverrides).toEqual(expected);
+    });
+
     it('removes webhook notification recipient', () => {
       const state = Object.freeze({
         currentPolicy: {
@@ -1933,6 +2268,40 @@ describe('policySlice reducers', () => {
         webhookNotifications: [],
         jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
       });
+    });
+
+    it('removes overridden webhook notification recipient', () => {
+      const state = Object.freeze({
+        isInherited: true,
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+            jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+          },
+          policyNotificationsOverrideAllowed: true,
+          policyNotificationsOverrides: {
+            orgId: {
+              roleNotifications: [{ roleId: 'roleId2', stageIds: [] }],
+              userNotifications: [{ emailAddress: 'email2@email.com', stageIds: [] }],
+              webhookNotifications: [{ webhookId: 'webhookId2', stageIds: [] }],
+              jiraNotifications: [{ projectKey: 2, issueTypeId: 2, stageIds: [] }],
+            },
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/removeNotificationRecipient',
+        payload: { recipient: { webhookId: 'webhookId2', stageIds: [] }, ownerId: 'orgId' },
+      });
+
+      expect(currentPolicy.notifications).toEqual(state.currentPolicy.notifications);
+      const expected = clone(state.currentPolicy.policyNotificationsOverrides);
+      expected.orgId.webhookNotifications = [];
+      expect(currentPolicy.policyNotificationsOverrides).toEqual(expected);
     });
 
     it('removes jira notification recipient', () => {
@@ -1962,6 +2331,40 @@ describe('policySlice reducers', () => {
     });
   });
 
+  it('removes overridden jira notification recipient', () => {
+    const state = Object.freeze({
+      isInherited: true,
+      currentPolicy: {
+        constraints: [],
+        notifications: {
+          roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+          userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+          webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+          jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+        },
+        policyNotificationsOverrideAllowed: true,
+        policyNotificationsOverrides: {
+          orgId: {
+            roleNotifications: [{ roleId: 'roleId2', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email2@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId2', stageIds: [] }],
+            jiraNotifications: [{ projectKey: 2, issueTypeId: 2, stageIds: [] }],
+          },
+        },
+      },
+    });
+
+    const { currentPolicy } = reducer(state, {
+      type: 'policy/removeNotificationRecipient',
+      payload: { recipient: { projectKey: 2, issueTypeId: 2, stageIds: [] }, ownerId: 'orgId' },
+    });
+
+    expect(currentPolicy.notifications).toEqual(state.currentPolicy.notifications);
+    const expected = clone(state.currentPolicy.policyNotificationsOverrides);
+    expected.orgId.jiraNotifications = [];
+    expect(currentPolicy.policyNotificationsOverrides).toEqual(expected);
+  });
+
   describe('policy/toggleNotificationRecipientStage', () => {
     it('toogles off notification recipient stage', () => {
       const state = Object.freeze({
@@ -1987,6 +2390,42 @@ describe('policySlice reducers', () => {
       });
     });
 
+    it('toogles off overridden notification recipient stage', () => {
+      const state = Object.freeze({
+        isInherited: true,
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['proxy'] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+          },
+          policyNotificationsOverrideAllowed: true,
+          policyNotificationsOverrides: {
+            orgId: {
+              roleNotifications: [{ roleId: 'roleId2', stageIds: [] }],
+              userNotifications: [{ emailAddress: 'email2@email.com', stageIds: ['proxy'] }],
+              webhookNotifications: [{ webhookId: 'webhookId2', stageIds: [] }],
+            },
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/toggleNotificationRecipientStage',
+        payload: {
+          stageId: 'proxy',
+          recipient: { emailAddress: 'email2@email.com', stageIds: ['proxy'] },
+          ownerId: 'orgId',
+        },
+      });
+
+      expect(currentPolicy.notifications).toEqual(state.currentPolicy.notifications);
+      const expected = clone(state.currentPolicy.policyNotificationsOverrides);
+      expected.orgId.userNotifications = [{ emailAddress: 'email2@email.com', stageIds: [] }];
+      expect(currentPolicy.policyNotificationsOverrides).toEqual(expected);
+    });
+
     it('toogles on notification recipient stage', () => {
       const state = Object.freeze({
         currentPolicy: {
@@ -2010,6 +2449,42 @@ describe('policySlice reducers', () => {
         webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
       });
     });
+  });
+
+  it('toogles on overridden notification recipient stage', () => {
+    const state = Object.freeze({
+      isInherited: true,
+      currentPolicy: {
+        constraints: [],
+        notifications: {
+          roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+          userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+          webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+        },
+        policyNotificationsOverrideAllowed: true,
+        policyNotificationsOverrides: {
+          orgId: {
+            roleNotifications: [{ roleId: 'roleId2', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email2@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId2', stageIds: [] }],
+          },
+        },
+      },
+    });
+
+    const { currentPolicy } = reducer(state, {
+      type: 'policy/toggleNotificationRecipientStage',
+      payload: {
+        stageId: 'proxy',
+        recipient: { emailAddress: 'email2@email.com', stageIds: [] },
+        ownerId: 'orgId',
+      },
+    });
+
+    expect(currentPolicy.notifications).toEqual(state.currentPolicy.notifications);
+    const expected = clone(state.currentPolicy.policyNotificationsOverrides);
+    expected.orgId.userNotifications = [{ emailAddress: 'email2@email.com', stageIds: ['proxy'] }];
+    expect(currentPolicy.policyNotificationsOverrides).toEqual(expected);
   });
 
   describe('policy/setNotificationsEditorFormFieldValue', () => {
@@ -2387,6 +2862,58 @@ describe('policySlice reducers', () => {
 
       expect(policyTile.loadError).toBe('error');
       expect(policyTile.loading).toBeFalse();
+    });
+  });
+
+  describe('policy/toggleShowActionsOverridesConfirmationModal', () => {
+    it('toggles showActionsOverridesConfirmationModal from false to true', () => {
+      const state = Object.freeze({
+        showActionsOverridesConfirmationModal: false,
+      });
+
+      const { showActionsOverridesConfirmationModal } = reducer(state, {
+        type: 'policy/toggleShowActionsOverridesConfirmationModal',
+      });
+
+      expect(showActionsOverridesConfirmationModal).toBeTrue();
+    });
+
+    it('toggles showActionsOverridesConfirmationModal from true to false', () => {
+      const state = Object.freeze({
+        showActionsOverridesConfirmationModal: true,
+      });
+
+      const { showActionsOverridesConfirmationModal } = reducer(state, {
+        type: 'policy/toggleShowActionsOverridesConfirmationModal',
+      });
+
+      expect(showActionsOverridesConfirmationModal).toBeFalse();
+    });
+  });
+
+  describe('policy/toggleShowNotificationsOverridesConfirmationModal', () => {
+    it('toggles showNotificationsOverridesConfirmationModal from false to true', () => {
+      const state = Object.freeze({
+        showNotificationsOverridesConfirmationModal: false,
+      });
+
+      const { showNotificationsOverridesConfirmationModal } = reducer(state, {
+        type: 'policy/toggleShowNotificationsOverridesConfirmationModal',
+      });
+
+      expect(showNotificationsOverridesConfirmationModal).toBeTrue();
+    });
+
+    it('toggles showNotificationsOverridesConfirmationModal from true to false', () => {
+      const state = Object.freeze({
+        showNotificationsOverridesConfirmationModal: true,
+      });
+
+      const { showNotificationsOverridesConfirmationModal } = reducer(state, {
+        type: 'policy/toggleShowNotificationsOverridesConfirmationModal',
+      });
+
+      expect(showNotificationsOverridesConfirmationModal).toBeFalse();
     });
   });
 });

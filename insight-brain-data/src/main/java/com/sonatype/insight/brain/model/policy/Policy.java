@@ -60,6 +60,16 @@ public class Policy
 
   private Map<String, Map<String, String>> policyActionsOverrides;
 
+  /**
+   * @since TBD
+   */
+  private boolean policyNotificationsOverrideAllowed;
+
+  /**
+   * @since TBD
+   */
+  private Map<String, Notifications> policyNotificationsOverrides;
+
   public Policy() {
   }
 
@@ -140,7 +150,7 @@ public class Policy
    * @param stageId the id of the stage to retrieve actions for
    * @param continuousMonitoring is this for continuous monitoring
    * @param ownerIds optional, sorted list of ids of all the owners up in the hierarchy starting from the application
-   *                 and ending with root org. This is used for actions overrides.
+   *                 and ending with root org. This is used for overrides.
    * @return list of Action objects
    */
   public List<Action> toActions(String stageId, boolean continuousMonitoring, List<String> ownerIds) {
@@ -156,12 +166,12 @@ public class Policy
         result.add(new Action(actionId));
       }
     }
-    result.addAll(notifications.getApplicable(stageId, continuousMonitoring).toActions());
+    result.addAll(getEffectiveNotifications(ownerIds).getApplicable(stageId, continuousMonitoring).toActions());
     return result;
   }
 
   private Map<String, String> getActionOverrides(final List<String> ownerIds) {
-    if (!isOverrideApplicable(ownerIds) || policyActionsOverrides == null || policyActionsOverrides.isEmpty()) {
+    if (!isActionsOverrideApplicable(ownerIds) || policyActionsOverrides == null || policyActionsOverrides.isEmpty()) {
       return null;
     }
 
@@ -176,7 +186,7 @@ public class Policy
     return null;
   }
 
-  private boolean isOverrideApplicable(final List<String> ownerIds) {
+  private boolean isActionsOverrideApplicable(final List<String> ownerIds) {
     return policyActionsOverrideAllowed && ownerIds != null;
   }
 
@@ -322,5 +332,60 @@ public class Policy
       policyActionsOverrides = new LinkedHashMap<>();
     }
     policyActionsOverrides.put(ownerId, policyActionsOverride);
+  }
+
+  public boolean isPolicyNotificationsOverrideAllowed() {
+    return policyNotificationsOverrideAllowed;
+  }
+
+  public void setPolicyNotificationsOverrideAllowed(boolean policyNotificationsOverrideAllowed) {
+    this.policyNotificationsOverrideAllowed = policyNotificationsOverrideAllowed;
+  }
+
+  public Map<String, Notifications> getPolicyNotificationsOverrides() {
+    return policyNotificationsOverrides;
+  }
+
+  public void setPolicyNotificationsOverrides(Map<String, Notifications> policyNotificationsOverrides) {
+    this.policyNotificationsOverrides = policyNotificationsOverrides;
+  }
+
+  private Notifications getNotificationsOverride(List<String> ownerIds) {
+    if (!isNotificationsOverrideApplicable(ownerIds) || policyNotificationsOverrides == null ||
+        policyNotificationsOverrides.isEmpty()) {
+      return null;
+    }
+
+    for (int i = 0; i < ownerIds.size() - 1; i++) {
+      Notifications notificationsOverride = policyNotificationsOverrides.get(ownerIds.get(i));
+      // walk through the hierarchy stops in front of the policy owner
+      if (notificationsOverride != null || ownerIds.get(i + 1).equals(this.getOwnerId())) {
+        return notificationsOverride;
+      }
+    }
+
+    return null;
+  }
+
+  private boolean isNotificationsOverrideApplicable(List<String> ownerIds) {
+    return policyNotificationsOverrideAllowed && ownerIds != null;
+  }
+
+  /**
+   * Add notifications override to this policy
+   *
+   * @param ownerId                     the id of the org or app to which the override should be applied to
+   * @param policyNotificationsOverride notifications mapped to stages
+   */
+  public void addPolicyNotificationsOverride(String ownerId, Notifications policyNotificationsOverride) {
+    if (policyNotificationsOverrides == null) {
+      policyNotificationsOverrides = new LinkedHashMap<>();
+    }
+    policyNotificationsOverrides.put(ownerId, policyNotificationsOverride);
+  }
+
+  public Notifications getEffectiveNotifications(List<String> ownerIds) {
+    Notifications notificationsOverride = getNotificationsOverride(ownerIds);
+    return notificationsOverride != null ? notificationsOverride : notifications;
   }
 }

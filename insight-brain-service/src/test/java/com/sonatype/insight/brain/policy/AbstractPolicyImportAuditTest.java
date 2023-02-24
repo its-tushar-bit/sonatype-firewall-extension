@@ -149,22 +149,25 @@ public abstract class AbstractPolicyImportAuditTest
     assertCustomObject(auditDTO, "notifications", NotificationDTO.transcribe(policy.getNotifications()));
   }
 
-  protected void assertPolicyActionOverrideData(final AuditDTO auditDTO,
-                                                final Policy policy,
-                                                final String overridingOwnerId,
-                                                boolean actionsOverrideDeleted)
+  protected void assertPolicyOverrideData(
+      final AuditDTO auditDTO,
+      final Policy policy,
+      final String overridingOwnerId,
+      boolean actionsOverrideAdded,
+      boolean notificationsOverrideAdded)
   {
     String auditedPolicyId = (String) auditDTO.data.get("policyId");
     String auditedOverridingOwnerId = (String) auditDTO.data.get("overridingOwnerId");
 
     assertThat(auditedPolicyId).isNotNull();
     assertThat(auditedOverridingOwnerId).isNotNull().isEqualTo(overridingOwnerId);
-    if (!actionsOverrideDeleted) {
-      assertThat(new PolicyDAO().getById(auditedPolicyId)).isNotNull();
+    assertThat(auditedPolicyId).isEqualTo(policy.getId());
+    assertThat(new PolicyDAO().getById(auditedPolicyId)).isNotNull();
+    if (actionsOverrideAdded) {
       assertThat(auditDTO.data.get("actionsOverride")).isNotNull();
     }
-    else {
-      assertThat(auditedPolicyId).isEqualTo(policy.getId());
+    if (notificationsOverrideAdded) {
+      assertThat(auditDTO.data.get("notificationsOverride")).isNotNull();
     }
   }
 

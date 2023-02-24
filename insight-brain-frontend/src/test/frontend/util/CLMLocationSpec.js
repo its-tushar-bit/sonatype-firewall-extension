@@ -900,13 +900,11 @@ describe('CLMLocation.js', function () {
     });
   });
 
-  describe('getPolicyActionsOverridesUrl', () => {
-    it('returns policy actions overrides url ', () => {
-      const expectedUrl = '/rest/policy/organization/someOrganization/somePolicyId/actionsOverrides';
+  describe('getPolicyOverridesUrl', () => {
+    it('returns policy overrides url ', () => {
+      const expectedUrl = '/rest/policy/organization/someOrganization/somePolicyId/overrides';
 
-      expect(clmLocation.getPolicyActionsOverridesUrl('organization', 'someOrganization', 'somePolicyId')).toBe(
-        expectedUrl
-      );
+      expect(clmLocation.getPolicyOverridesUrl('organization', 'someOrganization', 'somePolicyId')).toBe(expectedUrl);
     });
   });
 

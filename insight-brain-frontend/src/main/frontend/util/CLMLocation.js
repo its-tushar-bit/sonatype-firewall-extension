@@ -1074,8 +1074,8 @@ export const getPolicyCRUDUrl = (ownerType, ownerId, policyId) => {
   return getPolicyUrl(ownerType, ownerId) + `/${policyId}`;
 };
 
-export const getPolicyActionsOverridesUrl = (ownerType, ownerId, policyId) => {
-  return getPolicyCRUDUrl(ownerType, ownerId, policyId) + '/actionsOverrides';
+export const getPolicyOverridesUrl = (ownerType, ownerId, policyId) => {
+  return getPolicyCRUDUrl(ownerType, ownerId, policyId) + '/overrides';
 };
 
 export const getApplicablePolicies = (ownerType, ownerId) => {

@@ -44,6 +44,9 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -464,7 +467,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testDelete_CascadesToPolicyActionOverrides() {
+  public void testDelete_CascadesToPolicyOverrides() {
     Organization organization = tempEntity.newOrganization("organization");
 
     Map<String, String> policyActionsOverrides = new HashMap<>();
@@ -472,11 +475,16 @@ public class OrganizationDAOTest
     Policy policyWithOverrides = tempEntity.newPolicy(organization.getParentOrganizationId());
     policyWithOverrides.addPolicyActionsOverride(organization.getId(), policyActionsOverrides);
     policyWithOverrides.addPolicyActionsOverride("fakeOwnerId", policyActionsOverrides);
+    Notifications policyNotificationsOverride = new Notifications();
+    policyNotificationsOverride.add(new UserNotification("user@domain", BuildStageType.ID));
+    policyWithOverrides.addPolicyNotificationsOverride(organization.getId(), policyNotificationsOverride);
+    policyWithOverrides.addPolicyNotificationsOverride("fakeOwnerId", policyNotificationsOverride);
     new PolicyDAO().update(policyWithOverrides);
 
     dao.delete(organization);
     Policy policy = new PolicyDAO().getById(policyWithOverrides.getId());
     assertThat(policy.getPolicyActionsOverrides().keySet()).containsExactly("fakeOwnerId");
+    assertThat(policy.getPolicyNotificationsOverrides().keySet()).containsExactly("fakeOwnerId");
   }
 
   @Test

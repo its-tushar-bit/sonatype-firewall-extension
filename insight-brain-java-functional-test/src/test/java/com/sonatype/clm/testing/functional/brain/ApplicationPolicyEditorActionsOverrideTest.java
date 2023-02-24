@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.OverridesConfirmationModal;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -239,6 +240,10 @@ public class ApplicationPolicyEditorActionsOverrideTest
     policyActionsOverride.shouldNotBe(disabled).shouldBe(visible).shouldBe(selected);
 
     policyActionsOverride.click();
+    OverridesConfirmationModal overridesConfirmationModal = new OverridesConfirmationModal();
+    overridesConfirmationModal.shouldBe(visible);
+    overridesConfirmationModal.continueButton().shouldBe(enabled).click();
+    overridesConfirmationModal.shouldNotBe(visible);
     policyActionsOverride.shouldBe(visible).shouldNotBe(selected);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
     PolicyEditorPage.savePolicy();

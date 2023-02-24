@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { prop, isNil, map, indexBy, flatten, any, includes } from 'ramda';
+import { prop, isNil, map, indexBy, flatten, any, includes, equals } from 'ramda';
 
 import { selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
 import {
@@ -13,9 +13,14 @@ import {
 } from './orgsAndPoliciesSelectors';
 import { eqValues, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectConditionTypesMap } from 'MainRoot/OrgsAndPolicies/constraintSelectors';
-import { getActionsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { getActionsOverride, getNotificationsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { getDisabledConditions } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
-import { selectIsWebhooksSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsEnforcementSupported,
+  selectIsFirewallSupported,
+  selectIsNotificationsSupported,
+  selectIsWebhooksSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { RECIPIENT_TYPES } from './policySlice';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
@@ -71,6 +76,12 @@ export const selectIsActionOverrideEnabled = createSelector(
   (isInherited, currentPolicy) => isInherited && currentPolicy.policyActionsOverrideAllowed
 );
 
+export const selectIsNotificationOverrideEnabled = createSelector(
+  selectIsInherited,
+  selectCurrentPolicy,
+  (isInherited, currentPolicy) => isInherited && currentPolicy.policyNotificationsOverrideAllowed
+);
+
 export const selectIsDirty = createSelector(selectPolicySlice, prop('isDirty'));
 
 export const selectHasPolicyCategories = createSelector(selectPolicySlice, prop('hasPolicyCategories'));
@@ -122,6 +133,7 @@ export const selectIfSubmitButtonShouldBeDisabled = createSelector(
   selectCurrentPolicyName,
   selectIsInherited,
   selectIsActionOverrideEnabled,
+  selectIsNotificationOverrideEnabled,
   (
     validationError,
     currentConstraints,
@@ -129,7 +141,8 @@ export const selectIfSubmitButtonShouldBeDisabled = createSelector(
     isPolicyDirty,
     policyName,
     isInherited,
-    isActionOverrideEnabled
+    isActionOverrideEnabled,
+    isNotificationOverrideEnabled
   ) => {
     const disabled = getDisabledConditions(conditionTypesMap);
     if (!currentConstraints) return;
@@ -137,13 +150,17 @@ export const selectIfSubmitButtonShouldBeDisabled = createSelector(
     const hasUnsupportedConditions = any((condition) => includes(condition.conditionTypeId, disabled), conditions)
       ? 'Unable to save: unsupported conditions added'
       : null;
-    const isDirty = !isPolicyDirty ? MSG_NO_CHANGES_TO_SAVE : null;
-    const isNameValid =
+    const isNotDirtyMessage = !isPolicyDirty ? MSG_NO_CHANGES_TO_SAVE : null;
+    const isNameNotValid =
       policyName.validationErrors?.length > 0 && !policyName.isPristine
         ? 'Unable to save: fields with invalid or missing data'
         : null;
     return (
-      (isInherited && !isActionOverrideEnabled) || isDirty || validationError || hasUnsupportedConditions || isNameValid
+      (isInherited && !isActionOverrideEnabled && !isNotificationOverrideEnabled) ||
+      isNotDirtyMessage ||
+      validationError ||
+      hasUnsupportedConditions ||
+      isNameNotValid
     );
   }
 );
@@ -154,13 +171,91 @@ export const selectCurrentPolicyOwnerName = createSelector(selectCurrentPolicyOw
 export const selectOriginalPolicy = createSelector(selectPolicySlice, prop('originalPolicy'));
 export const selectOriginalPolicyName = createSelector(selectOriginalPolicy, prop('name'));
 
+export const selectShowActionsOverridesConfirmationModal = createSelector(
+  selectPolicySlice,
+  prop('showActionsOverridesConfirmationModal')
+);
+export const selectShowNotificationsOverridesConfirmationModal = createSelector(
+  selectPolicySlice,
+  prop('showNotificationsOverridesConfirmationModal')
+);
+
+export const selectActionsOverridesCount = createSelector(
+  selectOriginalPolicy,
+  (originalPolicy) => Object.keys(originalPolicy?.policyActionsOverrides ?? {}).length
+);
+
+export const selectNotificationsOverridesCount = createSelector(
+  selectOriginalPolicy,
+  (originalPolicy) => Object.keys(originalPolicy?.policyNotificationsOverrides ?? {}).length
+);
+
 export const selectOverrideActionsFlag = createSelector(selectPolicySlice, prop('overrideActionsFlag'));
 export const selectOriginalOverrideActionsFlag = createSelector(selectPolicySlice, prop('originalOverrideActionsFlag'));
 
-export const selectOverrideNeedsToBeRemoved = createSelector(
+export const selectOverrideNotificationsFlag = createSelector(selectPolicySlice, prop('overrideNotificationsFlag'));
+
+export const selectOriginalOverrideNotificationsFlag = createSelector(
+  selectPolicySlice,
+  prop('originalOverrideNotificationsFlag')
+);
+
+export const selectActionsOverrideNeedsToBeAdded = createSelector(
+  selectOriginalOverrideActionsFlag,
+  selectOverrideActionsFlag,
+  (originalOverrideFlag, overrideFlag) => !originalOverrideFlag && overrideFlag
+);
+export const selectActionsOverrideNeedsToBeRemoved = createSelector(
   selectOriginalOverrideActionsFlag,
   selectOverrideActionsFlag,
   (originalOverrideFlag, overrideFlag) => originalOverrideFlag && !overrideFlag
+);
+
+export const selectActionsOverrideNeedsToBeUpdated = createSelector(
+  selectOriginalPolicy,
+  selectCurrentPolicy,
+  (originalPolicy, currentPolicy) =>
+    !equals(originalPolicy?.policyActionsOverrides, currentPolicy?.policyActionsOverrides)
+);
+
+export const selectNotificationsOverrideNeedsToBeAdded = createSelector(
+  selectOriginalOverrideNotificationsFlag,
+  selectOverrideNotificationsFlag,
+  (originalOverrideFlag, overrideFlag) => !originalOverrideFlag && overrideFlag
+);
+
+export const selectNotificationsOverrideNeedsToBeRemoved = createSelector(
+  selectOriginalOverrideNotificationsFlag,
+  selectOverrideNotificationsFlag,
+  (originalOverrideFlag, overrideFlag) => originalOverrideFlag && !overrideFlag
+);
+
+export const selectNotificationsOverrideNeedsToBeUpdated = createSelector(
+  selectOriginalPolicy,
+  selectCurrentPolicy,
+  (originalPolicy, currentPolicy) =>
+    !equals(originalPolicy?.policyNotificationsOverrides, currentPolicy?.policyNotificationsOverrides)
+);
+
+export const selectOverrideNeedsToBeAdded = createSelector(
+  selectActionsOverrideNeedsToBeAdded,
+  selectNotificationsOverrideNeedsToBeAdded,
+  (actionsOverrideNeedsToBeAdded, notificationsOverrideNeedsToBeAdded) =>
+    actionsOverrideNeedsToBeAdded || notificationsOverrideNeedsToBeAdded
+);
+
+export const selectOverrideNeedsToBeRemoved = createSelector(
+  selectActionsOverrideNeedsToBeRemoved,
+  selectNotificationsOverrideNeedsToBeRemoved,
+  (actionsOverrideNeedsToBeRemoved, notificationsOverrideNeedsToBeRemoved) =>
+    actionsOverrideNeedsToBeRemoved || notificationsOverrideNeedsToBeRemoved
+);
+
+export const selectOverrideNeedsToBeUpdated = createSelector(
+  selectActionsOverrideNeedsToBeUpdated,
+  selectNotificationsOverrideNeedsToBeUpdated,
+  (actionsOverrideNeedsToBeUpdated, notificationsOverrideNeedsToBeUpdated) =>
+    actionsOverrideNeedsToBeUpdated || notificationsOverrideNeedsToBeUpdated
 );
 
 export const selectActionsOverridesForCurrentPolicy = createSelector(
@@ -174,6 +269,17 @@ export const selectActionsOverridesForCurrentPolicy = createSelector(
   }
 );
 
+export const selectNotificationsOverridesForCurrentPolicy = createSelector(
+  mainSelectPoliciesByOwner,
+  selectCurrentPolicy,
+  (policiesByOwner, currentPolicy) => {
+    const ownerIds = policiesByOwner?.map(prop('ownerId'));
+    const notificationsOverrideInfo = getNotificationsOverride(ownerIds, currentPolicy);
+
+    return notificationsOverrideInfo?.notificationsOverride;
+  }
+);
+
 export const selectNotificationsEditor = createSelector(selectPolicySlice, prop('notificationsEditor'));
 
 export const selectNotificationsEditorLoading = createSelector(selectNotificationsEditor, prop('loading'));
@@ -184,11 +290,93 @@ export const selectNotificationWebhooks = createSelector(selectNotificationsEdit
 
 export const selectNotificationsEditorFormState = createSelector(selectNotificationsEditor, prop('formState'));
 
-export const selectApplicableWebhooks = createSelector(
+export const selectIsNotificationsInheritOverrideEnabled = createSelector(
+  selectHasEditIqPermission,
+  selectIsNotificationsSupported,
+  selectIsFirewallSupported,
+  selectIsInherited,
+  selectIsNotificationOverrideEnabled,
+  (hasEditIqPermission, isNotificationsSupported, isFirewallSupported, isInherited, isNotificationOverrideEnabled) => {
+    if (!hasEditIqPermission) {
+      return false;
+    }
+    if (!isNotificationsSupported && !isFirewallSupported) {
+      return false;
+    }
+    if (isInherited && !isNotificationOverrideEnabled) {
+      return false;
+    }
+    return true;
+  }
+);
+
+export const selectIsNotificationsTableEnabled = createSelector(
+  selectIsNotificationsInheritOverrideEnabled,
+  selectIsInherited,
+  selectOverrideNotificationsFlag,
+  (isNotificationsInheritOverrideEnabled, isInherited, overrideNotificationsFlag) => {
+    if (!isNotificationsInheritOverrideEnabled) {
+      return false;
+    }
+    if (isInherited && !overrideNotificationsFlag) {
+      return false;
+    }
+    return true;
+  }
+);
+
+export const selectIsActionsInheritOverrideEnabled = createSelector(
+  selectHasEditIqPermission,
+  selectIsEnforcementSupported,
+  selectIsFirewallSupported,
+  selectIsInherited,
+  selectIsActionOverrideEnabled,
+  (hasEditIqPermission, isEnforcementSupported, isFirewallSupported, isInherited, isActionOverrideEnabled) => {
+    if (!hasEditIqPermission) {
+      return false;
+    }
+    if (!isEnforcementSupported && !isFirewallSupported) {
+      return false;
+    }
+    if (isInherited && !isActionOverrideEnabled) {
+      return false;
+    }
+    return true;
+  }
+);
+
+export const selectIsActionsTableEnabled = createSelector(
+  selectIsActionsInheritOverrideEnabled,
+  selectIsInherited,
+  selectOverrideActionsFlag,
+  (isActionsInheritOverrideEnabled, isInherited, overrideActionsFlag) => {
+    if (!isActionsInheritOverrideEnabled) {
+      return false;
+    }
+    if (isInherited && !overrideActionsFlag) {
+      return false;
+    }
+    return true;
+  }
+);
+
+export const selectNotifications = createSelector(
+  selectIsNotificationOverrideEnabled,
+  selectOverrideNotificationsFlag,
+  selectNotificationsOverridesForCurrentPolicy,
   selectCurrentPolicy,
+  (notificationOverrideEnabled, overrideNotificationsFlag, notificationOverrides, currentPolicy = {}) => {
+    return notificationOverrideEnabled && overrideNotificationsFlag
+      ? notificationOverrides ?? {}
+      : currentPolicy?.notifications ?? {};
+  }
+);
+
+export const selectApplicableWebhooks = createSelector(
+  selectNotifications,
   selectNotificationWebhooks,
-  (currentPolicy = {}, webhooks) => {
-    const { webhookNotifications } = currentPolicy?.notifications ?? {};
+  (notifications, webhooks) => {
+    const { webhookNotifications } = notifications;
     const isNotAlreadyUsedForNotifications = (webhook) => !webhookNotifications.some((n) => webhook.id === n.webhookId);
     const toWebhookWithDisplayName = (webhook) => ({ ...webhook, displayName: webhook.description ?? webhook.url });
 
@@ -204,10 +392,10 @@ export const selectApplicableWebhooks = createSelector(
 
 export const selectRolesForCurrentOwner = createSelector(selectNotificationsEditor, prop('roles'));
 export const selectAvailableRoles = createSelector(
-  selectCurrentPolicy,
+  selectNotifications,
   selectRolesForCurrentOwner,
-  (currentPolicy, roles) => {
-    const { roleNotifications = [] } = currentPolicy?.notifications ?? {};
+  (notifications, roles) => {
+    const { roleNotifications = [] } = notifications;
     const isNotPresentInNotificationSettings = ({ roleId }) => !roleNotifications.some((n) => roleId === n.roleId);
 
     if (isNilOrEmpty(roleNotifications)) return roles;
@@ -253,10 +441,10 @@ export const selectNotificationRecipientTypeOptions = createSelector(
 );
 
 export const selectAvailableJiraProjects = createSelector(
-  selectCurrentPolicy,
+  selectNotifications,
   selectJiraProjects,
-  (currentPolicy, jiraProjects = []) => {
-    const { jiraNotifications = [] } = currentPolicy?.notifications ?? {};
+  (notifications, jiraProjects = []) => {
+    const { jiraNotifications = [] } = notifications;
     if (isNilOrEmpty(jiraProjects)) return [];
 
     return jiraProjects.filter((project) => {
@@ -268,15 +456,19 @@ export const selectAvailableJiraProjects = createSelector(
 );
 
 export const selectNotificationRecipients = createSelector(
-  selectCurrentPolicy,
+  selectNotifications,
   selectNotificationWebhooks,
   selectRolesForCurrentOwner,
   selectJiraProjectNames,
   selectJiraIssueTypeNames,
-  (currentPolicy, notificationWebhooks, roles = [], jiraProjectNames = {}, jiraIssueTypes = {}) => {
+  (notifications, notificationWebhooks, roles = [], jiraProjectNames = {}, jiraIssueTypes = {}) => {
     const rolesIndexedById = indexBy(prop('roleId'), roles ?? []);
-    const { roleNotifications = [], userNotifications = [], jiraNotifications = [], webhookNotifications = [] } =
-      currentPolicy?.notifications ?? {};
+    const {
+      roleNotifications = [],
+      userNotifications = [],
+      jiraNotifications = [],
+      webhookNotifications = [],
+    } = notifications;
 
     const getJiraDisplayName = (recipient) => {
       if (jiraProjectNames?.[recipient.projectKey] && jiraIssueTypes[recipient.issueTypeId]) {

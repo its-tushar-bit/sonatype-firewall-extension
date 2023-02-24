@@ -205,11 +205,20 @@ public class OwnerDAO
       securityVulnerabilityOverrideDAO.delete(tx, securityVulnerabilityOverride);
     }
 
-    // Cascade to policy action overrides
+    // Cascade to policy overrides
     PolicyDAO policyDAO = new PolicyDAO();
     for (Policy policy : policyDAO.getAll(tx)) {
+      boolean updated = false;
       if (policy.getPolicyActionsOverrides() != null && policy.getPolicyActionsOverrides().containsKey(owner.getId())) {
         policy.getPolicyActionsOverrides().remove(owner.getId());
+        updated = true;
+      }
+      if (policy.getPolicyNotificationsOverrides() != null &&
+          policy.getPolicyNotificationsOverrides().containsKey(owner.getId())) {
+        policy.getPolicyNotificationsOverrides().remove(owner.getId());
+        updated = true;
+      }
+      if (updated) {
         policyDAO.update(tx, policy);
       }
     }

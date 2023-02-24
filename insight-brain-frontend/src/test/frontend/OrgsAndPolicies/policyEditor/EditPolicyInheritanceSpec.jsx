@@ -7,25 +7,66 @@ import React from 'react';
 
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import EditPolicyInheritance from 'MainRoot/OrgsAndPolicies/policyEditor/editPolicyInheritance/EditPolicyInheritance';
-import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
-import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
-
-const currentPolicy = { ownerId: 'ownerId', policyActionsOverrideAllowed: true };
+import { actions as policyActions, initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
 
 describe('EditPolicyInheritance', () => {
-  let renderComponent;
+  let state, renderComponent;
 
   beforeEach(() => {
-    spyOn(policySelectors, 'selectCategories').and.returnValue([]);
-    spyOn(policySelectors, 'selectIsInherited').and.returnValue(false);
-    spyOn(policySelectors, 'selectHasEditIqPermission').and.returnValue(true);
-    spyOn(policySelectors, 'selectCurrentPolicy').and.returnValue(currentPolicy);
+    state = {
+      orgsAndPolicies: {
+        root: {
+          policiesByOwner: [],
+          selectedOwner: {
+            id: 'ownerId',
+          },
+        },
+        policy: {
+          ...initialState,
+          isInherited: false,
+          hasEditIqPermission: true,
+          categories: [],
+          currentPolicy: {
+            ownerId: 'ownerId',
+            policyActionsOverrideAllowed: true,
+            policyNotificationsOverrideAllowed: true,
+            constraints: [],
+          },
+          originalPolicy: {
+            ownerId: 'ownerId',
+            policyActionsOverrideAllowed: true,
+            policyNotificationsOverrideAllowed: true,
+            constraints: [],
+          },
+        },
+      },
+      productFeatures: {
+        productFeatures: {
+          notifications: true,
+          firewall: true,
+          enforcement: true,
+          'policy-monitoring': true,
+        },
+      },
+    };
 
-    renderComponent = () => render(<EditPolicyInheritance />);
+    renderComponent = (preloadedState = state) => render(<EditPolicyInheritance />, { preloadedState });
   });
 
-  it('renders disabled radios', () => {
-    policySelectors.selectIsInherited.and.returnValue(true);
+  it('renders disabled radios if inherited', () => {
+    state.orgsAndPolicies.policy.isInherited = true;
+
+    renderComponent();
+
+    const hasNoCategoriesRadio = screen.getByLabelText(/all applications/i);
+    const hasCategoriesRadio = screen.getByLabelText(/Applications of the specified Application Categories in/i);
+
+    expect(hasCategoriesRadio).toBeDisabled();
+    expect(hasNoCategoriesRadio).toBeDisabled();
+  });
+
+  it('renders disabled radios if it does not have permission', () => {
+    state.orgsAndPolicies.policy.hasEditIqPermission = false;
 
     renderComponent();
 
@@ -73,12 +114,7 @@ describe('EditPolicyInheritance', () => {
   });
 
   describe('actions overrides section', () => {
-    beforeEach(() => {
-      policySelectors.selectIsInherited.and.returnValue(false);
-    });
-
     it('renders actions override checkbox', () => {
-      policySelectors.selectCurrentPolicy.and.returnValue({ ...currentPolicy, policyActionsOverrideAllowed: true });
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -90,7 +126,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('renders unchecked actions override checkbox when policy actions override is not allowed ', () => {
-      policySelectors.selectCurrentPolicy.and.returnValue({ ...currentPolicy, policyActionsOverrideAllowed: false });
+      state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -102,7 +138,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('renders disabled actions override checkbox when is inherited policy', () => {
-      policySelectors.selectIsInherited.and.returnValue(true);
+      state.orgsAndPolicies.policy.isInherited = true;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -113,7 +149,7 @@ describe('EditPolicyInheritance', () => {
     });
 
     it('renders disabled actions override checkbox when user has no edit permission', () => {
-      policySelectors.selectHasEditIqPermission.and.returnValue(false);
+      state.orgsAndPolicies.policy.hasEditIqPermission = false;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -125,7 +161,7 @@ describe('EditPolicyInheritance', () => {
 
     it('dispatches togglePolicyActionsOverrideAllowed action', () => {
       const spy = spyOn(policyActions, 'togglePolicyActionsOverrideAllowed').and.callThrough();
-      policySelectors.selectCurrentPolicy.and.callThrough();
+      state.orgsAndPolicies.policy.currentPolicy.policyActionsOverrideAllowed = false;
       renderComponent();
 
       const actionsOverrideCheckbox = screen.getByLabelText(
@@ -136,6 +172,266 @@ describe('EditPolicyInheritance', () => {
 
       expect(spy).toHaveBeenCalled();
       expect(actionsOverrideCheckbox).toBeChecked();
+    });
+
+    it('dispatches toggleShowActionsOverridesConfirmationModal action when disabling if action overrides exist', () => {
+      const spy = spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal').and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
+      };
+      renderComponent();
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at organization and application levels/i
+      );
+      expect(actionsOverrideCheckbox).toBeChecked();
+
+      fireEvent.click(actionsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(actionsOverrideCheckbox).toBeChecked();
+      expect(
+        screen.getByText('Caution: Disabling overrides will reset actions for 1 organizations and applications.')
+      ).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Continue' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+    });
+
+    it('dispatches togglePolicyActionsOverrideAllowed action when disabling if action overrides do not exist', () => {
+      const spy = spyOn(policyActions, 'togglePolicyActionsOverrideAllowed').and.callThrough();
+      renderComponent();
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at organization and application levels/i
+      );
+      expect(actionsOverrideCheckbox).toBeChecked();
+
+      fireEvent.click(actionsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(actionsOverrideCheckbox).not.toBeChecked();
+    });
+
+    it('dispatches toggleShowActionsOverridesConfirmationModal action when cancelling', () => {
+      const spy = spyOn(policyActions, 'toggleShowActionsOverridesConfirmationModal').and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
+      };
+      renderComponent();
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at organization and application levels/i
+      );
+      fireEvent.click(actionsOverrideCheckbox);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(
+        screen.getByText('Caution: Disabling overrides will reset actions for 1 organizations and applications.')
+      ).toBeVisible();
+      const cancel = screen.getByRole('button', { name: 'Cancel' });
+
+      fireEvent.click(cancel);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(
+        screen.queryByText('Caution: Disabling overrides will reset actions for 1 organizations and applications.')
+      ).toBeNull();
+    });
+
+    it('dispatches togglePolicyActionsOverrideAllowed action when continuing', () => {
+      const spyTogglePolicyActionsOverrideAllowed = spyOn(
+        policyActions,
+        'togglePolicyActionsOverrideAllowed'
+      ).and.callThrough();
+      const spyToggleShowActionsOverridesConfirmationModal = spyOn(
+        policyActions,
+        'toggleShowActionsOverridesConfirmationModal'
+      ).and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyActionsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': { build: 'warn' },
+      };
+      renderComponent();
+      const actionsOverrideCheckbox = screen.getByLabelText(
+        /Allow action overrides at organization and application levels/i
+      );
+      expect(actionsOverrideCheckbox).toBeChecked();
+      fireEvent.click(actionsOverrideCheckbox);
+      expect(spyToggleShowActionsOverridesConfirmationModal).toHaveBeenCalledTimes(1);
+      expect(
+        screen.getByText('Caution: Disabling overrides will reset actions for 1 organizations and applications.')
+      ).toBeVisible();
+      const continueButton = screen.getByRole('button', { name: 'Continue' });
+
+      fireEvent.click(continueButton);
+
+      expect(actionsOverrideCheckbox).not.toBeChecked();
+      expect(spyTogglePolicyActionsOverrideAllowed).toHaveBeenCalled();
+      expect(spyToggleShowActionsOverridesConfirmationModal).toHaveBeenCalledTimes(2);
+      expect(
+        screen.queryByText('Caution: Disabling overrides will reset actions for 1 organizations and applications.')
+      ).toBeNull();
+    });
+  });
+
+  describe('notification overrides section', () => {
+    it('renders checked notifications override checkbox when policy notifications override is allowed', () => {
+      renderComponent();
+
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+
+      expect(notificationsOverrideCheckbox).toBeVisible();
+      expect(notificationsOverrideCheckbox).toBeChecked();
+    });
+
+    it('renders unchecked notifications override checkbox when policy notifications override is not allowed ', () => {
+      state.orgsAndPolicies.policy.currentPolicy.policyNotificationsOverrideAllowed = false;
+      renderComponent();
+
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+
+      expect(notificationsOverrideCheckbox).toBeVisible();
+      expect(notificationsOverrideCheckbox).not.toBeChecked();
+    });
+
+    it('renders disabled notifications override checkbox when policy is inherited', () => {
+      state.orgsAndPolicies.policy.isInherited = true;
+      renderComponent();
+
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+
+      expect(notificationsOverrideCheckbox).toBeDisabled();
+    });
+
+    it('renders disabled notifications override checkbox when user has no edit permission', () => {
+      state.orgsAndPolicies.policy.hasEditIqPermission = false;
+      renderComponent();
+
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+
+      expect(notificationsOverrideCheckbox).toBeDisabled();
+    });
+
+    it('dispatches togglePolicyNotificationsOverrideAllowed action when enabling', () => {
+      const spy = spyOn(policyActions, 'togglePolicyNotificationsOverrideAllowed').and.callThrough();
+      state.orgsAndPolicies.policy.currentPolicy.policyNotificationsOverrideAllowed = false;
+      renderComponent();
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+      expect(notificationsOverrideCheckbox).not.toBeChecked();
+
+      fireEvent.click(notificationsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(notificationsOverrideCheckbox).toBeChecked();
+    });
+
+    it('dispatches toggleShowNotificationsOverridesConfirmationModal action when disabling if notification overrides exist', () => {
+      const spy = spyOn(policyActions, 'toggleShowNotificationsOverridesConfirmationModal').and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': {
+          userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
+        },
+      };
+      renderComponent();
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+      expect(notificationsOverrideCheckbox).toBeChecked();
+
+      fireEvent.click(notificationsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(notificationsOverrideCheckbox).toBeChecked();
+      expect(
+        screen.getByText('Caution: Disabling overrides will reset notifications for 1 organizations and applications.')
+      ).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Continue' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+    });
+
+    it('dispatches togglePolicyNotificationsOverrideAllowed action when disabling if notification overrides do not exist', () => {
+      const spy = spyOn(policyActions, 'togglePolicyNotificationsOverrideAllowed').and.callThrough();
+      renderComponent();
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+      expect(notificationsOverrideCheckbox).toBeChecked();
+
+      fireEvent.click(notificationsOverrideCheckbox);
+
+      expect(spy).toHaveBeenCalled();
+      expect(notificationsOverrideCheckbox).not.toBeChecked();
+    });
+
+    it('dispatches toggleShowNotificationsOverridesConfirmationModal action when cancelling', () => {
+      const spy = spyOn(policyActions, 'toggleShowNotificationsOverridesConfirmationModal').and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': {
+          userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
+        },
+      };
+      renderComponent();
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+      fireEvent.click(notificationsOverrideCheckbox);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(
+        screen.getByText('Caution: Disabling overrides will reset notifications for 1 organizations and applications.')
+      ).toBeVisible();
+      const cancel = screen.getByRole('button', { name: 'Cancel' });
+
+      fireEvent.click(cancel);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(
+        screen.queryByText(
+          'Caution: Disabling overrides will reset notifications for 1 organizations and applications.'
+        )
+      ).toBeNull();
+    });
+
+    it('dispatches togglePolicyNotificationsOverrideAllowed action when continuing', () => {
+      const spyTogglePolicyNotificationsOverrideAllowed = spyOn(
+        policyActions,
+        'togglePolicyNotificationsOverrideAllowed'
+      ).and.callThrough();
+      const spyToggleShowNotificationsOverridesConfirmationModal = spyOn(
+        policyActions,
+        'toggleShowNotificationsOverridesConfirmationModal'
+      ).and.callThrough();
+      state.orgsAndPolicies.policy.originalPolicy.policyNotificationsOverrides = {
+        '05602dd5ba934c318ad011ca4e4f5cfe': {
+          userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
+        },
+      };
+      renderComponent();
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+      expect(notificationsOverrideCheckbox).toBeChecked();
+      fireEvent.click(notificationsOverrideCheckbox);
+      expect(spyToggleShowNotificationsOverridesConfirmationModal).toHaveBeenCalledTimes(1);
+      expect(
+        screen.getByText('Caution: Disabling overrides will reset notifications for 1 organizations and applications.')
+      ).toBeVisible();
+      const continueButton = screen.getByRole('button', { name: 'Continue' });
+
+      fireEvent.click(continueButton);
+
+      expect(notificationsOverrideCheckbox).not.toBeChecked();
+      expect(spyTogglePolicyNotificationsOverrideAllowed).toHaveBeenCalled();
+      expect(spyToggleShowNotificationsOverridesConfirmationModal).toHaveBeenCalledTimes(2);
+      expect(
+        screen.queryByText(
+          'Caution: Disabling overrides will reset notifications for 1 organizations and applications.'
+        )
+      ).toBeNull();
     });
   });
 });

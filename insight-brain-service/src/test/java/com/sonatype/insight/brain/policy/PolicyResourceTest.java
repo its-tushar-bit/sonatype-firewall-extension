@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -16,17 +17,26 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -182,12 +192,12 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testAddActionsOverride() throws Exception {
+  public void testUpdateOverrides_Add_ForActions() throws Exception {
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyActionsOverrideAllowed(true);
     policyDAO.update(policy);
 
-    String applicationPublicId = "PolicyResourceTest_testAddActionOverride";
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Add_ForActions";
     Application app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Map<String, String> actionsOverride = new LinkedHashMap<>();
@@ -196,8 +206,8 @@ public class PolicyResourceTest
     actionsOverride.put("build", "warn");
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
-        .path(policy.getId(), "actionsOverrides")
-        .body(actionsOverride)
+        .path(policy.getId(), "overrides")
+        .body(new PolicyOverridesDTO(actionsOverride))
         .put();
 
     assertResponseStatus(200, response);
@@ -211,10 +221,32 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testAddActionsOverride_policyOverrideIsNotEnabled() throws Exception {
+  public void testUpdateOverrides_Add_ForNotifications() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    policyDAO.update(policy);
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Add_ForNotifications";
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    Notifications notificationsOverride = new Notifications();
+    notificationsOverride.add(new UserNotification("app@domain.com", BuildStageType.ID));
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
+        .path(policy.getId(), "overrides")
+        .body(new PolicyOverridesDTO(notificationsOverride))
+        .put();
+
+    assertResponseStatus(200, response);
+    Policy updatedPolicy = response.getBody(Policy.class);
+    Notifications savedNotificationsOverride = updatedPolicy.getPolicyNotificationsOverrides().get(app.getId());
+    assertThat(notificationsOverride).usingRecursiveComparison().isEqualTo(savedNotificationsOverride);
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_ForActions_policyActionsOverrideIsDisabled() throws Exception {
     Policy policy = tempEntity.newPolicy();
 
-    String applicationPublicId = "PolicyResourceTest_testAddActionOverride";
+    String applicationPublicId =
+        "PolicyResourceTest_testUpdateOverrides_Add_ForActions_policyActionsOverrideIsDisabled";
     tempEntity.newApplicationWithParent(applicationPublicId);
 
     Map<String, String> actionsOverride = new LinkedHashMap<>();
@@ -223,8 +255,8 @@ public class PolicyResourceTest
     actionsOverride.put("build", "warn");
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
-        .path(policy.getId(), "actionsOverrides")
-        .body(actionsOverride)
+        .path(policy.getId(), "overrides")
+        .body(new PolicyOverridesDTO(actionsOverride))
         .put();
 
     assertResponseStatus(400, response);
@@ -233,18 +265,32 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testAddActionsOverride_invalidPolicyId() throws Exception {
-    String applicationPublicId = "PolicyResourceTest_testAddActionOverride";
+  public void testUpdateOverrides_Add_ForNotifications_policyNotificationsOverrideIsDisabled() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+    String applicationPublicId =
+        "PolicyResourceTest_testUpdateOverrides_Add_ForNotifications_policyNotificationsOverrideIsDisabled";
     tempEntity.newApplicationWithParent(applicationPublicId);
-
-    Map<String, String> actionsOverride = new LinkedHashMap<>();
-    actionsOverride.put("stage-release", "fail");
-    actionsOverride.put("release", "fail");
-    actionsOverride.put("build", "warn");
+    Notifications notificationsOverride = new Notifications();
+    notificationsOverride.add(new UserNotification("app@domain.com", BuildStageType.ID));
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
-        .path("123", "actionsOverrides")
-        .body(actionsOverride)
+        .path(policy.getId(), "overrides")
+        .body(new PolicyOverridesDTO(notificationsOverride))
+        .put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo(
+        "Notifications override is not allowed for policy with id " + policy.getId());
+  }
+
+  @Test
+  public void testUpdateOverrides_Add_invalidPolicyId() throws Exception {
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Add_invalidPolicyId";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
+        .path("123", "overrides")
+        .body(new PolicyOverridesDTO(new LinkedHashMap<>()))
         .put();
 
     assertResponseStatus(404, response);
@@ -252,11 +298,69 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testDeleteActionsOverrides() throws Exception {
+  public void testUpdateOverrides_nullJson() throws Exception {
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Add_noOverrides";
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
+    Policy policy = tempEntity.newPolicy(application.getParentOwnerId());
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
+        .path(policy.getId(), "overrides")
+        .put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("A policy overrides configuration must be specified.");
+  }
+
+  @Test
+  public void testUpdateOverrides_noOverrides() throws Exception {
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Add_noOverrides";
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
+    Policy policy = tempEntity.newPolicy(application.getParentOwnerId());
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
+        .path(policy.getId(), "overrides")
+        .body(new ObjectMapper().createObjectNode())
+        .put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("A policy overrides configuration must be specified.");
+  }
+
+  @Test
+  public void testUpdateOverrides_badJson() throws Exception {
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Add_noOverrides";
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
+    Policy policy = tempEntity.newPolicy(application.getParentOwnerId());
+    ObjectNode objectNode = new ObjectMapper().createObjectNode();
+    objectNode.put("actions", 1);
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
+        .path(policy.getId(), "overrides")
+        .body(objectNode)
+        .put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo(
+        "The given JSON cannot be deserialized into a policy overrides configuration.");
+  }
+
+  private JsonNode createDeleteBody(boolean deleteActionsOverride, boolean deleteNotificationsOverride) {
+    ObjectNode json = JsonUtils.asTree(new PolicyOverridesDTO());
+    if (!deleteActionsOverride) {
+      json.remove("actions");
+    }
+    if (!deleteNotificationsOverride) {
+      json.remove("notifications");
+    }
+    return json;
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions() throws Exception {
     Policy policy = tempEntity.newPolicy();
-    String applicationPublicId = "PolicyResourceTest_testDeleteActionsOverrides";
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Delete_ForActions";
     Organization testOrg = tempEntity.newOrganization("TestOrganization");
-    Application testApp = tempEntity.newApplication(applicationPublicId,testOrg.getId());
+    Application testApp = tempEntity.newApplication(applicationPublicId, testOrg.getId());
 
     Map<String, String> applicationActionsOverrides = new LinkedHashMap<>();
     applicationActionsOverrides.put("stage-release", "fail");
@@ -272,8 +376,10 @@ public class PolicyResourceTest
     policyDAO.update(policy);
 
     HttpResponse response =
-        restRequest(OwnerType.APPLICATION, applicationPublicId).path(policy.getId(), "actionsOverrides")
-            .delete();
+        restRequest(OwnerType.APPLICATION, applicationPublicId)
+            .path(policy.getId(), "overrides")
+            .body(createDeleteBody(true, false))
+            .put();
 
     assertResponseStatus(200, response);
     final Policy updatedPolicy = response.getBody(Policy.class);
@@ -290,11 +396,48 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testDeleteActionsOverrides_OverrideDoesNotExist() throws Exception {
+  public void testUpdateOverrides_Delete_ForNotifications() throws Exception {
     Policy policy = tempEntity.newPolicy();
-    String applicationPublicId = "PolicyResourceTest_testDeleteActionsOverrides";
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Delete_ForNotifications";
     Organization testOrg = tempEntity.newOrganization("TestOrganization");
-    tempEntity.newApplication(applicationPublicId,testOrg.getId());
+    Application testApp = tempEntity.newApplication(applicationPublicId, testOrg.getId());
+
+    Notifications applicationNotificationsOverride = new Notifications();
+    applicationNotificationsOverride.add(new UserNotification("app@domain.com", BuildStageType.ID));
+
+    Notifications organizationNotificationsOverride = new Notifications();
+    organizationNotificationsOverride.add(new UserNotification("org@domain.com", ReleaseStageType.ID));
+
+    policy.addPolicyNotificationsOverride(testApp.getId(), applicationNotificationsOverride);
+    policy.addPolicyNotificationsOverride(testOrg.getId(), organizationNotificationsOverride);
+    policyDAO.update(policy);
+
+    HttpResponse response =
+        restRequest(OwnerType.APPLICATION, applicationPublicId)
+            .path(policy.getId(), "overrides")
+            .body(createDeleteBody(false, true))
+            .put();
+
+    assertResponseStatus(200, response);
+    Policy updatedPolicy = response.getBody(Policy.class);
+    assertThat(updatedPolicy.getPolicyNotificationsOverrides())
+        .isNotNull()
+        .hasSize(1)
+        .containsEntry(testOrg.getId(), organizationNotificationsOverride);
+
+    Policy policyOnDB = new PolicyDAO().getById(policy.getId());
+    assertThat(policyOnDB.getPolicyNotificationsOverrides())
+        .isNotNull()
+        .hasSize(1)
+        .containsEntry(testOrg.getId(), organizationNotificationsOverride);
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Delete_ForActions_OverrideDoesNotExist";
+    Organization testOrg = tempEntity.newOrganization("TestOrganization");
+    tempEntity.newApplication(applicationPublicId, testOrg.getId());
 
     Map<String, String> organizationActionsOverrides = new LinkedHashMap<>();
     organizationActionsOverrides.put("stage-release", "warn");
@@ -304,8 +447,10 @@ public class PolicyResourceTest
     policyDAO.update(policy);
 
     HttpResponse response =
-        restRequest(OwnerType.APPLICATION, applicationPublicId).path(policy.getId(), "actionsOverrides")
-            .delete();
+        restRequest(OwnerType.APPLICATION, applicationPublicId)
+            .path(policy.getId(), "overrides")
+            .body(createDeleteBody(true, false))
+            .put();
 
     assertResponseStatus(200, response);
     final Policy updatedPolicy = response.getBody(Policy.class);
@@ -319,6 +464,39 @@ public class PolicyResourceTest
         .isNotNull()
         .hasSize(1)
         .containsEntry(testOrg.getId(), organizationActionsOverrides);
+  }
+
+  @Test
+  public void testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+    String applicationPublicId = "PolicyResourceTest_testUpdateOverrides_Delete_ForNotifications_OverrideDoesNotExist";
+    Organization testOrg = tempEntity.newOrganization("TestOrganization");
+    tempEntity.newApplication(applicationPublicId, testOrg.getId());
+
+    Notifications organizationNotificationsOverride = new Notifications();
+    organizationNotificationsOverride.add(new UserNotification("org@domain.com", ReleaseStageType.ID));
+
+    policy.addPolicyNotificationsOverride(testOrg.getId(), organizationNotificationsOverride);
+    policyDAO.update(policy);
+
+    HttpResponse response =
+        restRequest(OwnerType.APPLICATION, applicationPublicId)
+            .path(policy.getId(), "overrides")
+            .body(createDeleteBody(false, true))
+            .put();
+
+    assertResponseStatus(200, response);
+    Policy updatedPolicy = response.getBody(Policy.class);
+    assertThat(updatedPolicy.getPolicyNotificationsOverrides())
+        .isNotNull()
+        .hasSize(1)
+        .containsEntry(testOrg.getId(), organizationNotificationsOverride);
+
+    Policy policyOnDB = new PolicyDAO().getById(policy.getId());
+    assertThat(policyOnDB.getPolicyNotificationsOverrides())
+        .isNotNull()
+        .hasSize(1)
+        .containsEntry(testOrg.getId(), organizationNotificationsOverride);
   }
 
   private void testUpdatePolicy_InvalidPolicy(OwnerType ownerType, String ownerId, String publicOwnerid)
@@ -648,5 +826,48 @@ public class PolicyResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Importing policies into an application is no longer supported.");
+  }
+
+  @Test
+  public void testCreatePolicy_PolicyNotificationsOverrideAllowed() throws Exception {
+    testCreatePolicy_PolicyNotificationsOverrideAllowed(
+        new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID));
+    testCreatePolicy_PolicyNotificationsOverrideAllowed(tempEntity.newOrganization());
+    testCreatePolicy_PolicyNotificationsOverrideAllowed(tempEntity.newApplicationWithParent());
+  }
+
+  private void testCreatePolicy_PolicyNotificationsOverrideAllowed(Owner owner) throws Exception {
+    Policy policy = createPolicy();
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    
+    HttpResponse response;
+    List<Policy> result;
+
+    // Create
+    response = restRequest(owner.getType(), owner.getPublicId()).body(policy).post();
+    assertResponseStatus(200, response);
+    result = policyDAO.getByName(policy.getName());
+    assertThat(result).hasSize(1);
+    policy = result.get(0);
+    tempEntity.register(policy);
+    assertThat(policy.isPolicyNotificationsOverrideAllowed()).isTrue();
+    
+    // Update
+    policy.setPolicyNotificationsOverrideAllowed(false);
+    response = restRequest(owner.getType(), owner.getPublicId()).body(policy).put();
+    assertResponseStatus(200, response);
+    result = policyDAO.getByName(policy.getName());
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).isPolicyNotificationsOverrideAllowed()).isFalse();
+  }
+
+  private Policy createPolicy() {
+    Policy policy = new Policy();
+    policy.setName(UUID.randomUUID().toString().replace("-", ""));
+    Constraint constraint = new Constraint();
+    constraint.setName("PolicyResourceTest new constraint");
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    policy.addConstraint(constraint);
+    return policy;
   }
 }

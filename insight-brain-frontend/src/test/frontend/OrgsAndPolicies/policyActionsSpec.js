@@ -14,7 +14,7 @@ import TagResourceMockData from 'TestRoot/owner.manager/mock.data/tag.resource.m
 import {
   getApplicableCategoriesUrl,
   getApplicablePolicies,
-  getPolicyActionsOverridesUrl,
+  getPolicyOverridesUrl,
   getPolicyCRUDUrl,
   getPolicyTagUrl,
   getPolicyUrl,
@@ -274,6 +274,7 @@ describe('policySlice actions', () => {
           },
         ],
         overrideActionsFlag: false,
+        overrideNotificationsFlag: false,
         currentPolicy: initialState.currentPolicy,
         currentPolicyOwner: {
           id: 'f3cea033acf84984ae08d9250db4aa7b',
@@ -367,6 +368,7 @@ describe('policySlice actions', () => {
             },
           ],
           overrideActionsFlag: false,
+          overrideNotificationsFlag: false,
           currentPolicy: {
             id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
             name: {
@@ -707,7 +709,7 @@ describe('policySlice actions', () => {
     });
   });
 
-  describe('saveActionsOverride', () => {
+  describe('updateOverrides adding', () => {
     beforeEach(() => {
       jasmine.clock().install();
     });
@@ -715,16 +717,21 @@ describe('policySlice actions', () => {
     afterEach(() => {
       jasmine.clock().uninstall();
     });
-    it('calls crud endpoint with proper parameters and returns updated policy', (done) => {
+    it('calls update override endpoint with proper parameters and returns updated policy', (done) => {
       const currentPolicy = {
         id: 'policyID',
         policyActionsOverrides: {
           currentOwnerId: { build: 'warn' },
         },
+        policyNotificationsOverrides: {
+          currentOwnerId: { userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }] },
+        },
       };
 
-      const url = getPolicyActionsOverridesUrl(mockOwnerType, mockOwnerId, 'policyID');
+      const url = getPolicyOverridesUrl(mockOwnerType, mockOwnerId, 'policyID');
       spyOn(selectors, 'selectCurrentPolicy').and.returnValue(currentPolicy);
+      spyOn(selectors, 'selectActionsOverrideNeedsToBeAdded').and.returnValue(true);
+      spyOn(selectors, 'selectNotificationsOverrideNeedsToBeAdded').and.returnValue(true);
       spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwnerId').and.returnValue('currentOwnerId');
 
       mockAxiosCalls({
@@ -733,16 +740,22 @@ describe('policySlice actions', () => {
         },
       });
 
-      store.dispatch(actions.saveActionsOverride()).then(() => {
+      store.dispatch(actions.updateOverrides()).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         expect(axios.put).toHaveBeenCalledTimes(1);
-        expect(axios.put.calls.argsFor(0)).toEqual([url, { build: 'warn' }]);
+        expect(axios.put.calls.argsFor(0)).toEqual([
+          url,
+          {
+            actions: { build: 'warn' },
+            notifications: { userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }] },
+          },
+        ]);
         const actions = store.getActions();
         expect(actions.length).toBe(3);
 
         expect(actions).toHaveActionTypesInOrder([
-          'policy/saveActionsOverride/pending',
-          'policy/saveActionsOverride/fulfilled',
+          'policy/updateOverrides/pending',
+          'policy/updateOverrides/fulfilled',
           'policy/saveMaskTimerDone',
         ]);
         expect(actions[1].payload).toEqual('updated policy placeholder');
@@ -751,7 +764,7 @@ describe('policySlice actions', () => {
     });
   });
 
-  describe('removeActionsOverride', () => {
+  describe('updateOverrides removing', () => {
     beforeEach(() => {
       jasmine.clock().install();
     });
@@ -759,34 +772,97 @@ describe('policySlice actions', () => {
     afterEach(() => {
       jasmine.clock().uninstall();
     });
-    it('calls remove override endpoint with proper parameters', (done) => {
+    it('calls update override endpoint with proper parameters and returns updated policy', (done) => {
       const currentPolicy = {
         id: 'policyID',
       };
 
-      const url = getPolicyActionsOverridesUrl(mockOwnerType, mockOwnerId, 'policyID');
+      const url = getPolicyOverridesUrl(mockOwnerType, mockOwnerId, 'policyID');
       spyOn(selectors, 'selectCurrentPolicy').and.returnValue(currentPolicy);
+      spyOn(selectors, 'selectActionsOverrideNeedsToBeRemoved').and.returnValue(true);
+      spyOn(selectors, 'selectNotificationsOverrideNeedsToBeRemoved').and.returnValue(true);
 
       mockAxiosCalls({
-        del: {
-          [url]: Promise.resolve({ data: 'removed policy actions overrides placeholder' }),
+        put: {
+          [url]: Promise.resolve({ data: 'updated policy placeholder' }),
         },
       });
 
-      store.dispatch(actions.removeActionsOverride()).then(() => {
+      store.dispatch(actions.updateOverrides()).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-        expect(axios.delete).toHaveBeenCalledTimes(1);
-        expect(axios.delete.calls.argsFor(0)).toEqual([url]);
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put.calls.argsFor(0)).toEqual([
+          url,
+          {
+            actions: null,
+            notifications: null,
+          },
+        ]);
         const actions = store.getActions();
 
         expect(actions.length).toBe(3);
 
         expect(actions).toHaveActionTypesInOrder([
-          'policy/removeActionsOverride/pending',
-          'policy/removeActionsOverride/fulfilled',
+          'policy/updateOverrides/pending',
+          'policy/updateOverrides/fulfilled',
           'policy/saveMaskTimerDone',
         ]);
-        expect(actions[1].payload).toEqual('removed policy actions overrides placeholder');
+        expect(actions[1].payload).toEqual('updated policy placeholder');
+        done();
+      });
+    });
+  });
+
+  describe('updateOverrides updating', () => {
+    beforeEach(() => {
+      jasmine.clock().install();
+    });
+
+    afterEach(() => {
+      jasmine.clock().uninstall();
+    });
+    it('calls update override endpoint with proper parameters and returns updated policy', (done) => {
+      const currentPolicy = {
+        id: 'policyID',
+        policyActionsOverrides: {
+          currentOwnerId: { build: 'warn' },
+        },
+        policyNotificationsOverrides: {
+          currentOwnerId: { userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }] },
+        },
+      };
+
+      const url = getPolicyOverridesUrl(mockOwnerType, mockOwnerId, 'policyID');
+      spyOn(selectors, 'selectCurrentPolicy').and.returnValue(currentPolicy);
+      spyOn(selectors, 'selectActionsOverrideNeedsToBeUpdated').and.returnValue(true);
+      spyOn(selectors, 'selectNotificationsOverrideNeedsToBeUpdated').and.returnValue(true);
+      spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwnerId').and.returnValue('currentOwnerId');
+
+      mockAxiosCalls({
+        put: {
+          [url]: Promise.resolve({ data: 'updated policy placeholder' }),
+        },
+      });
+
+      store.dispatch(actions.updateOverrides()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put.calls.argsFor(0)).toEqual([
+          url,
+          {
+            actions: { build: 'warn' },
+            notifications: { userNotifications: [{ emailAddress: 'user2@email.com', stageIds: ['build', 'release'] }] },
+          },
+        ]);
+        const actions = store.getActions();
+        expect(actions.length).toBe(3);
+
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/updateOverrides/pending',
+          'policy/updateOverrides/fulfilled',
+          'policy/saveMaskTimerDone',
+        ]);
+        expect(actions[1].payload).toEqual('updated policy placeholder');
         done();
       });
     });

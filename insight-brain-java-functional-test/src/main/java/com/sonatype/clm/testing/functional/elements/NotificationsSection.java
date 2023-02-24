@@ -39,6 +39,18 @@ public class NotificationsSection
     return $$(createSelector(ROOT_SELECTOR, "th:nth-child(n+2):nth-child(-n+9)"));
   }
 
+  public NxRadio inheritParentNotifications() {
+    return new NxRadio($("#edit-policy-notifications-override-inherit"));
+  }
+
+  public NxRadio overrideParentNotifications() {
+    return new NxRadio($("#edit-policy-notifications-override-override"));
+  }
+
+  public SelenideElement notificationsOverrideSection() {
+    return $(createSelector("#edit-policy-notifications-override"));
+  }
+
   public static class NotificationItem
   {
     private final String rootSelector;

@@ -129,8 +129,9 @@ public class PolicyResourceAuthzTest
   }
 
   @Test
-  public void testAddActionsOverride() throws Exception {
-    HttpRequest request = restRequest().path("{policyId}/actionsOverrides").body(new LinkedHashMap<>());
+  public void testUpdateOverrides() throws Exception {
+    HttpRequest request =
+        restRequest().path("{policyId}/overrides").body(new PolicyOverridesDTO(new LinkedHashMap<>()));
 
     grantWritePermission(app.getId());
 
@@ -152,27 +153,6 @@ public class PolicyResourceAuthzTest
     policy.setPolicyActionsOverrideAllowed(true);
     new PolicyDAO().update(policy);
     testAuthzPut(
-        request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
-  }
-
-  @Test
-  public void testDeleteActionsOverride() throws Exception {
-    HttpRequest request = restRequest().path("{policyId}/actionsOverrides");
-
-    grantWritePermission(app.getId());
-
-    Policy policy = tempEntity.newPolicy(app);
-    testAuthzDelete(request.parameter(OwnerType.APPLICATION, app.getPublicId(), policy.getId()));
-
-    grantWritePermission(org.getId());
-
-    policy = tempEntity.newPolicy(org);
-    testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
-
-    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-
-    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    testAuthzDelete(
         request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
   }
 }

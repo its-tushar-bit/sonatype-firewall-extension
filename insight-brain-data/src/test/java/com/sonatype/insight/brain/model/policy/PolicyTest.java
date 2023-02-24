@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -417,6 +419,78 @@ public class PolicyTest
 
     assertThat(deploy.size()).isOne();
     assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_WARN);
+  }
+
+  @Test
+  public void testGetEffectiveNotifications_NullOverrides() {
+    Policy policy = createPolicyWithOverrides("org1", "org2");
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    policy.setPolicyNotificationsOverrides(null);
+
+    assertThat(policy.getEffectiveNotifications(Arrays.asList("app", "org2", "org1"))).isSameAs(
+        policy.getNotifications());
+  }
+
+  @Test
+  public void testGetEffectiveNotifications_EmptyOverrides() {
+    Policy policy = createPolicyWithOverrides("org1", "org2");
+    policy.setPolicyNotificationsOverrideAllowed(true);
+    policy.setPolicyNotificationsOverrides(new LinkedHashMap<>());
+
+    assertThat(policy.getEffectiveNotifications(Arrays.asList("app", "org2", "org1"))).isSameAs(
+        policy.getNotifications());
+  }
+
+  @Test
+  public void testGetEffectiveNotifications_NullOwnerIds() {
+    Policy policy = createPolicyWithOverrides("org1", "org2");
+    policy.setPolicyNotificationsOverrideAllowed(true);
+
+    assertThat(policy.getEffectiveNotifications(null)).isSameAs(policy.getNotifications());
+  }
+
+  @Test
+  public void testGetEffectiveNotifications_NotificationsOverrideNotAllowed() {
+    Policy policy = createPolicyWithOverrides("org1", "org2");
+    policy.setPolicyNotificationsOverrideAllowed(false);
+
+    assertThat(policy.getEffectiveNotifications(Arrays.asList("app", "org2", "org1"))).isSameAs(
+        policy.getNotifications());
+  }
+
+  @Test
+  public void testGetEffectiveNotifications_NotificationsOverrideAllowed_OrgLevel() {
+    testGetEffectiveNotifications_NotificationsOverrideAllowed("org2");
+  }
+
+  @Test
+  public void testGetEffectiveNotifications_NotificationsOverrideAllowed_AppLevel() {
+    testGetEffectiveNotifications_NotificationsOverrideAllowed("app");
+  }
+
+  @Test
+  public void testGetEffectiveNotifications_NotificationsOverrideAllowed_AppAndOrgLevel() {
+    testGetEffectiveNotifications_NotificationsOverrideAllowed("org2", "app");
+  }
+
+  private void testGetEffectiveNotifications_NotificationsOverrideAllowed(String... overrideOwnerIds) {
+    Policy policy = createPolicyWithOverrides("org1", overrideOwnerIds);
+    policy.setPolicyNotificationsOverrideAllowed(true);
+
+    assertThat(policy.getEffectiveNotifications(Arrays.asList("app", "org2", "org1"))).isSameAs(
+        policy.getPolicyNotificationsOverrides().get(overrideOwnerIds[overrideOwnerIds.length - 1]));
+  }
+
+  private Policy createPolicyWithOverrides(String ownerId, String... overrideOwnerIds) {
+    Policy policy = new Policy();
+    policy.setOwnerId(ownerId);
+    policy.setNotifications(new Notifications());
+    Map<String, Notifications> policyNotificationsOverrides = new LinkedHashMap<>();
+    for (String overrideOwnerId : overrideOwnerIds) {
+      policyNotificationsOverrides.put(overrideOwnerId, new Notifications());
+    }
+    policy.setPolicyNotificationsOverrides(policyNotificationsOverrides);
+    return policy;
   }
 
   @Test

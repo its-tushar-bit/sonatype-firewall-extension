@@ -8,8 +8,8 @@ package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -58,5 +58,29 @@ public class PolicyInheritsToSection
 
   public NxCheckbox policyActionsOverrideCheckbox() {
     return new NxCheckbox($("#editor-policy-actions-override"));
+  }
+
+  public NxCheckbox policyNotificationsOverrideCheckbox() {
+    return new NxCheckbox($("#editor-policy-notifications-override"));
+  }
+
+  public static class OverridesConfirmationModal
+      extends BasicElement<OverridesConfirmationModal>
+  {
+    public OverridesConfirmationModal() {
+      super("#policy-overrides-confirmation-modal");
+    }
+
+    public SelenideElement header() {
+      return child(".nx-modal-header");
+    }
+
+    public SelenideElement continueButton() {
+      return child(".nx-footer", ".nx-btn--primary");
+    }
+
+    public SelenideElement cancelButton() {
+      return child(".nx-form__cancel-btn");
+    }
   }
 }

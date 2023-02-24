@@ -172,7 +172,7 @@ public class PolicyAlertEmailerTest
     Policy policy = tempEntity.newPolicy(app);
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
@@ -197,7 +197,7 @@ public class PolicyAlertEmailerTest
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
 
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
@@ -219,7 +219,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     Exception ex = new RuntimeException();
     doThrow(ex).when(mailer).sendHtml(anyString(), anyString(), anyString());
@@ -248,7 +248,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // emailAddress3 should not get a message
@@ -270,7 +270,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0)).sendHtml(any(), anyString(), anyString());
@@ -292,7 +292,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     assertEmailAddresses(emailAddress1, emailAddress2);
@@ -324,7 +324,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // emailAddress4 should not get a message
@@ -352,7 +352,7 @@ public class PolicyAlertEmailerTest
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = Collections.singletonList(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(anyString(), anyString(), anyString());
@@ -385,7 +385,7 @@ public class PolicyAlertEmailerTest
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = Collections.singletonList(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(anyString(), anyString(), anyString());
@@ -416,7 +416,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     assertEmailAddresses("test.user1_1@company.com", "test.user2_1@company.com", "test.user3_1@company.com",
@@ -443,7 +443,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     assertEmailAddresses("test.user1_1@company.com", "test.user2_1@company.com", "test.user1_2@company.com",
@@ -470,7 +470,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
     List<LdapServer> ldapServers = new LdapServerDAO().getAll();
     assertThat(ldapServers).hasSize(2);
 
@@ -519,7 +519,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // emailAddress4 should not get a message
@@ -539,7 +539,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
@@ -616,7 +616,7 @@ public class PolicyAlertEmailerTest
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+        .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
   }
 

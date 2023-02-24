@@ -13,7 +13,9 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
@@ -25,12 +27,15 @@ import com.sonatype.insight.brain.utils.ComponentFactUtil;
  */
 public class PolicyNotificationUtil
 {
-  public static List<PolicyNotification> createPolicyNotifications(List<PolicyViolation> policyViolations,
-                                                                   String stageTypeId,
-                                                                   boolean forMonitoring)
+  public static List<PolicyNotification> createPolicyNotifications(
+      Owner owner,
+      List<PolicyViolation> policyViolations,
+      String stageTypeId,
+      boolean forMonitoring)
   {
     List<PolicyNotification> result = new ArrayList<>();
     PolicyDAO policyDAO = new PolicyDAO();
+    List<String> ownerIds = new OwnerDAO().getOwnerIds(owner);
 
     Map<String, PolicyFact> policyFactsByPolicyId = new LinkedHashMap<>();
     for (PolicyViolation policyViolation : policyViolations) {
@@ -41,7 +46,8 @@ public class PolicyNotificationUtil
         policyFactsByPolicyId.put(policyId, policyFact);
 
         Policy policy = policyDAO.getByIdNotNull(policyId);
-        Notifications notifications = policy.getNotifications().getApplicable(stageTypeId, forMonitoring);
+        Notifications notifications =
+            policy.getEffectiveNotifications(ownerIds).getApplicable(stageTypeId, forMonitoring);
         PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);
         result.add(policyNotification);
       }

@@ -87,6 +87,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '2f49695abba44dfbb9de1f3ec87ba2b2',
@@ -121,6 +123,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '15263322b1604e2ba0163016df6845a9',
@@ -153,6 +157,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '71e6585bb3ce4629b7647c8e393c5b90',
@@ -186,6 +192,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '19445684df4f4df39df80c39686ea6b8',
@@ -212,6 +220,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'aa3f4d00bf6945809ff1315941dbaeb3',
@@ -242,6 +252,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '9d5c30f793a54446a9601cf36c18e9e3',
@@ -268,6 +280,15 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: true,
               policyActionsOverrides: { '05602dd5ba934c318ad011ca4e4f5cfe': { proxy: 'warn' } },
+              policyNotificationsOverrideAllowed: true,
+              policyNotificationsOverrides: {
+                '05602dd5ba934c318ad011ca4e4f5cfe': {
+                  roleNotifications: [{ roleId: 'roleId', stageIds: ['build', 'release'] }],
+                  userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
+                  webhookNotifications: [{ webhookId: 'webhookId', stageIds: ['build', 'release'] }],
+                  jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: ['build', 'release'] }],
+                },
+              },
             },
             {
               id: '741ae19c406b4843b5393818808b9a3f',
@@ -299,6 +320,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '6ba8065aa4ff4b05abbaa4e3eb0cf5a0',
@@ -330,6 +353,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '15f557b2f6034faa862b2f85311becb3',
@@ -368,6 +393,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'e21f3514fada490fa7fb5bcfd82c288b',
@@ -449,6 +476,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '87fcc415a76b4969830febd7b9e33e98',
@@ -480,6 +509,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '7170d22553c840a49cb4e603d35d13c1',
@@ -511,6 +542,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '2a1cb71651d14a60b0fa77ef829f5ec0',
@@ -537,6 +570,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'bbbddfc5b6104bd88c351e511f2773a3',
@@ -564,6 +599,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'abe230cd77a94d58b8444f7594f56d62',
@@ -591,6 +628,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '12f2086417ab44f9a63ba5e91786c570',
@@ -623,6 +662,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: true,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: true,
+              policyNotificationsOverrides: null,
             },
             {
               id: '23926a7504af45cfa1ef062c46bfa0ff',
@@ -650,6 +691,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'f7cbc5b0ca6448db9e97fc8dd6417aeb',
@@ -681,6 +724,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
           ],
           policyTags: [
@@ -765,6 +810,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
           ],
           policyTags: [],
@@ -822,6 +869,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '2f49695abba44dfbb9de1f3ec87ba2b2',
@@ -856,6 +905,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '15263322b1604e2ba0163016df6845a9',
@@ -888,6 +939,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '71e6585bb3ce4629b7647c8e393c5b90',
@@ -921,6 +974,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '19445684df4f4df39df80c39686ea6b8',
@@ -947,6 +1002,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'aa3f4d00bf6945809ff1315941dbaeb3',
@@ -977,6 +1034,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '9d5c30f793a54446a9601cf36c18e9e3',
@@ -1003,6 +1062,15 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: true,
               policyActionsOverrides: { '05602dd5ba934c318ad011ca4e4f5cfe': { proxy: 'warn' } },
+              policyNotificationsOverrideAllowed: true,
+              policyNotificationsOverrides: {
+                '05602dd5ba934c318ad011ca4e4f5cfe': {
+                  roleNotifications: [{ roleId: 'roleId', stageIds: ['build', 'release'] }],
+                  userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
+                  webhookNotifications: [{ webhookId: 'webhookId', stageIds: ['build', 'release'] }],
+                  jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: ['build', 'release'] }],
+                },
+              },
             },
             {
               id: '741ae19c406b4843b5393818808b9a3f',
@@ -1034,6 +1102,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '6ba8065aa4ff4b05abbaa4e3eb0cf5a0',
@@ -1065,6 +1135,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '15f557b2f6034faa862b2f85311becb3',
@@ -1103,6 +1175,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'e21f3514fada490fa7fb5bcfd82c288b',
@@ -1184,6 +1258,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '87fcc415a76b4969830febd7b9e33e98',
@@ -1215,6 +1291,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '7170d22553c840a49cb4e603d35d13c1',
@@ -1246,6 +1324,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '2a1cb71651d14a60b0fa77ef829f5ec0',
@@ -1272,6 +1352,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'bbbddfc5b6104bd88c351e511f2773a3',
@@ -1299,6 +1381,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'abe230cd77a94d58b8444f7594f56d62',
@@ -1326,6 +1410,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '12f2086417ab44f9a63ba5e91786c570',
@@ -1358,6 +1444,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: true,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: true,
+              policyNotificationsOverrides: null,
             },
             {
               id: '23926a7504af45cfa1ef062c46bfa0ff',
@@ -1385,6 +1473,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'f7cbc5b0ca6448db9e97fc8dd6417aeb',
@@ -1416,6 +1506,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
           ],
           policyTags: [
@@ -1509,6 +1601,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
           ],
           policyTags: [],
@@ -1566,6 +1660,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '2f49695abba44dfbb9de1f3ec87ba2b2',
@@ -1600,6 +1696,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '15263322b1604e2ba0163016df6845a9',
@@ -1632,6 +1730,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '71e6585bb3ce4629b7647c8e393c5b90',
@@ -1665,6 +1765,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '19445684df4f4df39df80c39686ea6b8',
@@ -1691,6 +1793,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'aa3f4d00bf6945809ff1315941dbaeb3',
@@ -1721,6 +1825,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '7170d22553c840a49cb4e603d35d13c1',
@@ -1752,6 +1858,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '2a1cb71651d14a60b0fa77ef829f5ec0',
@@ -1778,6 +1886,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'bbbddfc5b6104bd88c351e511f2773a3',
@@ -1805,6 +1915,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'abe230cd77a94d58b8444f7594f56d62',
@@ -1832,6 +1944,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: '12f2086417ab44f9a63ba5e91786c570',
@@ -1864,6 +1978,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: true,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: true,
+              policyNotificationsOverrides: null,
             },
             {
               id: '23926a7504af45cfa1ef062c46bfa0ff',
@@ -1891,6 +2007,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
             {
               id: 'f7cbc5b0ca6448db9e97fc8dd6417aeb',
@@ -1922,6 +2040,8 @@ export const applicablePolicies = {
               },
               policyActionsOverrideAllowed: false,
               policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
             },
           ],
           policyTags: [
@@ -2213,4 +2333,6 @@ export const savedPolicy = {
   },
   policyActionsOverrideAllowed: true,
   policyActionsOverrides: null,
+  policyNotificationsOverrideAllowed: true,
+  policyNotificationsOverrides: null,
 };

@@ -17,8 +17,11 @@ import {
   selectSubmitError,
   selectCurrentSubmitMaskState,
   selectPolicyDeleteError,
-  selectIsActionOverrideEnabled,
+  selectOverrideNeedsToBeAdded,
   selectOverrideNeedsToBeRemoved,
+  selectOverrideNeedsToBeUpdated,
+  selectHasEditIqPermission,
+  selectIsDirty,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectLoading as selectOwnerDetailTreeLoading } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSelectors';
 
@@ -37,6 +40,7 @@ import ConstraintsEditor from './constraints/ConstraintsEditor';
 import PolicyNotificationsEditor from './policyNotificationsEditor/PolicyNotificationsEditor';
 import PolicyActionsEditor from './policyActionsEditor/PolicyActionsEditor';
 import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
+import classNames from 'classnames';
 
 export default function PolicyEditor() {
   const dispatch = useDispatch();
@@ -48,24 +52,29 @@ export default function PolicyEditor() {
   const ownerDetailTreeLoading = useSelector(selectOwnerDetailTreeLoading);
   const isOrgOwner = useSelector(selectIsOrgOwner);
   const isInherited = useSelector(selectIsInherited);
+  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
+  const isDirty = useSelector(selectIsDirty);
   const validationError = useSelector(selectIfSubmitButtonShouldBeDisabled);
   const submitError = useSelector(selectSubmitError);
   const submitMaskState = useSelector(selectCurrentSubmitMaskState);
-  const isActionOverrideEnabled = useSelector(selectIsActionOverrideEnabled);
-  const overrideNeedsToBeRemoved = useSelector(selectOverrideNeedsToBeRemoved);
   const selectedOwner = useSelector(selectSelectedOwner);
+  const overrideNeedsToBeAdded = useSelector(selectOverrideNeedsToBeAdded);
+  const overrideNeedsToBeRemoved = useSelector(selectOverrideNeedsToBeRemoved);
+  const overrideNeedsToBeUpdated = useSelector(selectOverrideNeedsToBeUpdated);
   const isLoading = ownerDetailTreeLoading || loading;
 
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
   const checkEditIqPermission = () => dispatch(actions.checkEditIqPermission());
   const savePolicy = () => dispatch(actions.savePolicy());
-  const removeActionsOverride = () => dispatch(actions.removeActionsOverride());
-  const saveActionsOverride = () => dispatch(actions.saveActionsOverride());
+  const updateOverrides = () => dispatch(actions.updateOverrides());
   const removePolicy = () => dispatch(actions.removePolicy());
 
   const onSave = () => {
-    if (isActionOverrideEnabled) {
-      overrideNeedsToBeRemoved ? removeActionsOverride() : saveActionsOverride();
+    if (!hasEditIqPermission || !isDirty) {
+      return;
+    }
+    if (isInherited && (overrideNeedsToBeAdded || overrideNeedsToBeRemoved || overrideNeedsToBeUpdated)) {
+      updateOverrides();
       return;
     }
     savePolicy();
@@ -102,6 +111,9 @@ export default function PolicyEditor() {
           submitBtnText={dirtyPolicy?.id ? 'Update' : 'Create'}
           submitMaskMessage="Saving…"
           submitMaskState={submitMaskState}
+          submitBtnClasses={classNames({
+            disabled: !hasEditIqPermission || !isDirty,
+          })}
           doLoad={loadPolicyEditor}
           loadError={loadError}
           loading={isLoading}
@@ -114,6 +126,7 @@ export default function PolicyEditor() {
                 id="delete-policy-button"
                 variant="tertiary"
                 onClick={() => setIsDeleteModalOpen(true)}
+                disabled={!hasEditIqPermission}
                 type="button"
               >
                 Delete

@@ -294,7 +294,7 @@ public class ApplicationMoveService
           if (owner.getId().equals(newParent.getParentOwnerId()) || owner.getId().equals(newParent.getId())) {
             break;
           }
-          removePolicyActionOverrides(tx, owner.getId(), application.getId());
+          removePolicyOverrides(tx, owner.getId(), application.getId());
         }
 
         loadOldPolicyConfiguration();
@@ -335,13 +335,23 @@ public class ApplicationMoveService
       return warnings;
     }
 
-    private void removePolicyActionOverrides(TransactionContext tx, String internalOwnerId, String applicationId) {
-      policyDAO.getByOwnerId(tx, internalOwnerId).stream() //
-          .filter(policy -> policy.getPolicyActionsOverrides() != null
-              && policy.getPolicyActionsOverrides().containsKey(applicationId)) //
+    private void removePolicyOverrides(TransactionContext tx, String internalOwnerId, String applicationId) {
+      policyDAO.getByOwnerId(tx, internalOwnerId)
           .forEach(policy -> {
-            policy.getPolicyActionsOverrides().remove(applicationId);
-            policyDAO.update(tx, policy);
+            boolean updated = false;
+            if (policy.getPolicyActionsOverrides() != null &&
+                policy.getPolicyActionsOverrides().containsKey(applicationId)) {
+              policy.getPolicyActionsOverrides().remove(applicationId);
+              updated = true;
+            }
+            if (policy.getPolicyNotificationsOverrides() != null &&
+                policy.getPolicyNotificationsOverrides().containsKey(applicationId)) {
+              policy.getPolicyNotificationsOverrides().remove(applicationId);
+              updated = true;
+            }
+            if (updated) {
+              policyDAO.update(tx, policy);
+            }
           });
     }
 

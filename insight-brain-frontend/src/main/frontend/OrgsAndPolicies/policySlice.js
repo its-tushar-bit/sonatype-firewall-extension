@@ -53,7 +53,7 @@ import {
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getNotificationWebhooksUrl,
-  getPolicyActionsOverridesUrl,
+  getPolicyOverridesUrl,
   getPolicyCRUDUrl,
   getPolicyTagUrl,
   getPolicyUrl,
@@ -62,16 +62,27 @@ import {
   getIsJiraEnabledUrl,
 } from '../util/CLMLocation';
 import {
+  selectActionsOverrideNeedsToBeAdded,
+  selectActionsOverrideNeedsToBeRemoved,
+  selectActionsOverrideNeedsToBeUpdated,
   selectCategories,
   selectCurrentPolicy,
   selectHasPolicyCategories,
   selectIsEditMode,
   selectIsOrgOwner,
+  selectNotificationsOverrideNeedsToBeAdded,
+  selectNotificationsOverrideNeedsToBeRemoved,
+  selectNotificationsOverrideNeedsToBeUpdated,
   selectOriginalPolicyName,
   selectRolesForCurrentOwner,
 } from './policySelectors';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
-import { deriveEditRoute, policiesComparator, getActionsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
+import {
+  deriveEditRoute,
+  policiesComparator,
+  getActionsOverride,
+  getNotificationsOverride,
+} from 'MainRoot/OrgsAndPolicies/utility/util';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, pathSet, allEqual, anyIndexed } from 'MainRoot/util/jsUtil';
 import { propSet as reduxPropSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
@@ -93,7 +104,7 @@ import {
   withDefaultValue,
 } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 import { loadActionStages } from './stagesSlice';
-import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
+import { startSaveMaskSuccessTimer, toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
 
@@ -126,6 +137,10 @@ export const initialState = {
   submitError: null,
   overrideActionsFlag: null,
   originalOverrideActionsFlag: null,
+  overrideNotificationsFlag: null,
+  originalOverrideNotificationsFlag: null,
+  showActionsOverridesConfirmationModal: false,
+  showNotificationsOverridesConfirmationModal: false,
   currentPolicy: {
     id: undefined,
     name: initUserInput('', policyNameValidator([], '')),
@@ -134,12 +149,14 @@ export const initialState = {
     policyActionsOverrideAllowed: null,
     actions: {},
     policyActionsOverrides: null,
+    policyNotificationsOverrideAllowed: null,
     notifications: {
       userNotifications: [],
       roleNotifications: [],
       jiraNotifications: [],
       webhookNotifications: [],
     },
+    policyNotificationsOverrides: null,
     constraints: [
       {
         id: '' + new Date().getTime(),
@@ -267,7 +284,7 @@ const loadCategoriesForPolicyFailed = (state, { payload }) => {
   state.loadingCategories = false;
   state.categoriesForPolicyLoadError = Messages.getHttpErrorMessage(payload);
   state.isDirty = false;
-  state.currentPolicy = state.originalPolicy;
+  state.currentPolicy = clone(state.originalPolicy);
 };
 
 const loadPolicyTile = createAsyncThunk(`${REDUCER_NAME}/loadPolicyTile`, (_, { rejectWithValue, dispatch }) => {
@@ -474,6 +491,8 @@ const loadPolicyEditor = createAsyncThunk(
         const ownerIds = policiesByOwner.map(prop('ownerId'));
         const actionsOverrideInfo = getActionsOverride(ownerIds, currentPolicy);
         const overrideActionsFlag = actionsOverrideInfo?.isCurrentOwnerOverride || false;
+        const notificationsOverrideInfo = getNotificationsOverride(ownerIds, currentPolicy);
+        const overrideNotificationsFlag = notificationsOverrideInfo?.isCurrentOwnerOverride || false;
         return {
           siblings,
           currentPolicy,
@@ -484,6 +503,7 @@ const loadPolicyEditor = createAsyncThunk(
           originalProxyStageAction,
           policiesByOwner,
           overrideActionsFlag,
+          overrideNotificationsFlag,
         };
       })
       .catch(rejectWithValue);
@@ -509,10 +529,11 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
     isRootOrg,
     originalProxyStageAction,
     overrideActionsFlag,
+    overrideNotificationsFlag,
   } = payload;
   state.siblings = siblings;
   state.currentPolicy = currentPolicy;
-  state.originalPolicy = currentPolicy;
+  state.originalPolicy = clone(currentPolicy);
   state.currentPolicyOwner = currentPolicyOwner;
   state.isInherited = isInherited;
   state.isOrgOwner = isOrgOwner;
@@ -520,13 +541,15 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
   state.originalProxyStageAction = originalProxyStageAction;
   state.overrideActionsFlag = overrideActionsFlag;
   state.originalOverrideActionsFlag = overrideActionsFlag;
+  state.overrideNotificationsFlag = overrideNotificationsFlag;
+  state.originalOverrideNotificationsFlag = overrideNotificationsFlag;
 };
 
 const loadPolicyEditorFailed = (state, { payload }) => {
   state.loadingPolicyEditor = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
   state.isDirty = false;
-  state.currentPolicy = state.originalPolicy;
+  state.currentPolicy = clone(state.originalPolicy);
 };
 
 const checkEditIqPermission = createAsyncThunk(
@@ -622,7 +645,7 @@ const savePolicyFulfilled = (state, { payload }) => {
   state.submitMaskState = true;
 
   if (payload?.isEditMode) {
-    state.originalPolicy = state.currentPolicy;
+    state.originalPolicy = clone(state.currentPolicy);
     state.originalCategories = state.categories;
     state.originalHasPolicyCategories = state.hasPolicyCategories;
     state.originalProxyStageAction = state.currentPolicy.actions['proxy'];
@@ -639,26 +662,40 @@ const savePolicyFailed = (state, { payload }) => {
   state.submitMaskState = null;
 };
 
-const saveActionsOverrideFulfilled = (state, { payload }) => {
-  state.loadError = null;
-  state.isDirty = false;
-  const policy = { ...payload, name: initUserInput(payload.name) };
-  state.currentPolicy = policy;
-  state.originalPolicy = policy;
-  state.overrideActionsFlag = true;
-  state.originalOverrideActionsFlag = true;
-  state.submitMaskState = true;
-};
-
-const saveActionsOverride = createAsyncThunk(
-  `${REDUCER_NAME}/saveActionsOverride`,
+const updateOverrides = createAsyncThunk(
+  `${REDUCER_NAME}/updateOverrides`,
   (_, { getState, rejectWithValue, dispatch }) => {
     const state = getState();
-    const { id, policyActionsOverrides } = selectCurrentPolicy(state);
+    const actionsOverrideNeedsToBeAdded = selectActionsOverrideNeedsToBeAdded(state);
+    const actionsOverrideNeedsToBeRemoved = selectActionsOverrideNeedsToBeRemoved(state);
+    const actionsOverrideNeedsToBeUpdated = selectActionsOverrideNeedsToBeUpdated(state);
+    const notificationsOverrideNeedsToBeAdded = selectNotificationsOverrideNeedsToBeAdded(state);
+    const notificationsOverrideNeedsToBeRemoved = selectNotificationsOverrideNeedsToBeRemoved(state);
+    const notificationsOverrideNeedsToBeUpdated = selectNotificationsOverrideNeedsToBeUpdated(state);
+    const { id, policyActionsOverrides, policyNotificationsOverrides } = selectCurrentPolicy(state);
     const { ownerType, ownerId } = selectOwnerProperties(state);
     const ownerInternalId = selectSelectedOwnerId(state);
+
+    const payload = {};
+    // check if the overrides need to be added/removed/updated and set the data appropriately, check update last
+    // because it could be true along with one of the other flags, but addition/removal should take precedence
+    if (actionsOverrideNeedsToBeAdded) {
+      payload.actions = policyActionsOverrides ? policyActionsOverrides[ownerInternalId] : null;
+    } else if (actionsOverrideNeedsToBeRemoved) {
+      payload.actions = null;
+    } else if (actionsOverrideNeedsToBeUpdated) {
+      payload.actions = policyActionsOverrides ? policyActionsOverrides[ownerInternalId] : null;
+    }
+    if (notificationsOverrideNeedsToBeAdded) {
+      payload.notifications = policyNotificationsOverrides ? policyNotificationsOverrides[ownerInternalId] : null;
+    } else if (notificationsOverrideNeedsToBeRemoved) {
+      payload.notifications = null;
+    } else if (notificationsOverrideNeedsToBeUpdated) {
+      payload.notifications = policyNotificationsOverrides ? policyNotificationsOverrides[ownerInternalId] : null;
+    }
+
     return axios
-      .put(getPolicyActionsOverridesUrl(ownerType, ownerId, id), policyActionsOverrides[ownerInternalId])
+      .put(getPolicyOverridesUrl(ownerType, ownerId, id), payload)
       .then(({ data: updatedPolicy }) => {
         startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
         return updatedPolicy;
@@ -667,31 +704,34 @@ const saveActionsOverride = createAsyncThunk(
   }
 );
 
-const removeActionsOverride = createAsyncThunk(
-  `${REDUCER_NAME}/removeActionsOverride`,
-  (_, { getState, rejectWithValue, dispatch }) => {
-    const state = getState();
-    const { id } = selectCurrentPolicy(state);
-    const { ownerType, ownerId } = selectOwnerProperties(state);
+const updateOverridesFulfilled = (state, { payload }) => {
+  const stateToSelectFrom = { orgsAndPolicies: { policy: state } };
+  const actionsOverrideNeedsToBeAdded = selectActionsOverrideNeedsToBeAdded(stateToSelectFrom);
+  const actionsOverrideNeedsToBeRemoved = selectActionsOverrideNeedsToBeRemoved(stateToSelectFrom);
+  const notificationsOverrideNeedsToBeAdded = selectNotificationsOverrideNeedsToBeAdded(stateToSelectFrom);
+  const notificationsOverrideNeedsToBeRemoved = selectNotificationsOverrideNeedsToBeRemoved(stateToSelectFrom);
 
-    return axios
-      .delete(getPolicyActionsOverridesUrl(ownerType, ownerId, id))
-      .then(({ data: updatedPolicy }) => {
-        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
-        return updatedPolicy;
-      })
-      .catch(rejectWithValue);
+  if (actionsOverrideNeedsToBeAdded) {
+    state.overrideActionsFlag = true;
+    state.originalOverrideActionsFlag = true;
+  } else if (actionsOverrideNeedsToBeRemoved) {
+    state.overrideActionsFlag = false;
+    state.originalOverrideActionsFlag = false;
   }
-);
 
-const removeActionsOverrideFulfilled = (state, { payload }) => {
+  if (notificationsOverrideNeedsToBeAdded) {
+    state.overrideNotificationsFlag = true;
+    state.originalOverrideNotificationsFlag = true;
+  } else if (notificationsOverrideNeedsToBeRemoved) {
+    state.overrideNotificationsFlag = false;
+    state.originalOverrideNotificationsFlag = false;
+  }
+
   state.loadError = null;
   state.isDirty = false;
   const policy = { ...payload, name: initUserInput(payload.name) };
   state.currentPolicy = policy;
-  state.originalPolicy = policy;
-  state.overrideActionsFlag = false;
-  state.originalOverrideActionsFlag = false;
+  state.originalPolicy = clone(policy);
   state.submitMaskState = true;
 };
 
@@ -788,31 +828,61 @@ const isDirtyConstraints = (originalConstraints, currentConstraints) => {
 };
 
 const computeIsDirty = (state) => {
-  const { currentPolicy, originalPolicy, isInherited, overrideActionsFlag, originalOverrideActionsFlag } = state;
+  const {
+    currentPolicy,
+    originalPolicy,
+    isInherited,
+    overrideActionsFlag,
+    originalOverrideActionsFlag,
+    overrideNotificationsFlag,
+    originalOverrideNotificationsFlag,
+    hasPolicyCategories,
+    originalHasPolicyCategories,
+    categories,
+    originalCategories,
+  } = state;
   const isDirtyObservedProps = [
     ['name', 'value'],
     ['threatLevel'],
     ['policyViolationGrandfatheringAllowed'],
     ['policyActionsOverrideAllowed'],
-    ['notifications'],
+    ['policyNotificationsOverrideAllowed'],
   ];
   const isDirtyActionsProps = [['actions'], ['policyActionsOverrides']];
 
+  const isDirtyNotificationsProps = [['notifications'], ['policyNotificationsOverrides']];
+
   const isDirty = hasDirtyProps(originalPolicy, currentPolicy, isDirtyObservedProps);
-  const isConstraintsDirty = isDirtyConstraints(originalPolicy?.constraints, currentPolicy.constraints);
+  const isConstraintsDirty = isDirtyConstraints(originalPolicy?.constraints, currentPolicy?.constraints);
   const isDirtyActions = hasDirtyProps(originalPolicy, currentPolicy, isDirtyActionsProps);
   const policyActionOverrideIsDirty = overrideActionsFlag !== originalOverrideActionsFlag;
+  const isDirtyNotifications = hasDirtyProps(originalPolicy, currentPolicy, isDirtyNotificationsProps);
+  const policyNotificationOverrideIsDirty = overrideNotificationsFlag !== originalOverrideNotificationsFlag;
+  const isDirtyHasPolicyCategories = hasPolicyCategories !== originalHasPolicyCategories;
+  const isDirtyCategories = !equals(categories, originalCategories);
 
   if (overrideActionsFlag && isDirtyActions) {
     return propSet('isDirty', isDirtyActions, state);
   }
 
-  if (!policyActionOverrideIsDirty && isInherited) {
+  if (overrideNotificationsFlag && isDirtyNotifications) {
+    return propSet('isDirty', isDirtyNotifications, state);
+  }
+
+  if (!policyActionOverrideIsDirty && !policyNotificationOverrideIsDirty && isInherited) {
     return propSet('isDirty', isDirty, state);
   }
 
-  const isContentDirty = isDirty || isConstraintsDirty;
-  return propSet('isDirty', isContentDirty || (policyActionOverrideIsDirty && isInherited) || isDirtyActions, state);
+  const isContentDirty = isDirty || isConstraintsDirty || isDirtyHasPolicyCategories || isDirtyCategories;
+  return propSet(
+    'isDirty',
+    isContentDirty ||
+      (policyActionOverrideIsDirty && isInherited) ||
+      isDirtyActions ||
+      (policyNotificationOverrideIsDirty && isInherited) ||
+      isDirtyNotifications,
+    state
+  );
 };
 
 const computeValidatableFieldsForCoordinates = (fields) => {
@@ -873,12 +943,24 @@ const setPolicyNameField = curryN(2, function setPolicyField(state, { payload })
 
 const setOverrideParentActions = (state) => computeIsDirty({ ...state, overrideActionsFlag: true });
 
+const setOverrideParentNotifications = (state) => computeIsDirty({ ...state, overrideNotificationsFlag: true });
+
 const unSetOverrideParentActions = (state, { payload }) => {
   const ownerId = payload;
   const currentActionsOverrides = state.currentPolicy.policyActionsOverrides || {};
   const updatedActionsOverrides = omit([ownerId], currentActionsOverrides);
   const newState = { ...state, overrideActionsFlag: false };
   return updatedComputedProps(pathSet(['currentPolicy', 'policyActionsOverrides'], updatedActionsOverrides, newState));
+};
+
+const unSetOverrideParentNotifications = (state, { payload }) => {
+  const ownerId = payload;
+  const currentNotificationsOverrides = state.currentPolicy.policyNotificationsOverrides || {};
+  const updatedNotificationsOverrides = omit([ownerId], currentNotificationsOverrides);
+  const newState = { ...state, overrideNotificationsFlag: false };
+  return updatedComputedProps(
+    pathSet(['currentPolicy', 'policyNotificationsOverrides'], updatedNotificationsOverrides, newState)
+  );
 };
 
 const toggleField = curryN(2, function toggleField(fieldName, state) {
@@ -908,13 +990,21 @@ const setConstraintNameField = curryN(3, function setConstraintNameField(fieldNa
 });
 
 const setNotifications = curryN(3, function setNotifications(notificationType, state, { payload }) {
-  return updatedComputedProps(pathSet(['currentPolicy', 'notifications', notificationType], payload, state));
+  const notificationsPath = isNotificationOverrideEnabled(state)
+    ? ['policyNotificationsOverrides', payload.ownerId]
+    : ['notifications'];
+  return updatedComputedProps(
+    pathSet(['currentPolicy', ...notificationsPath, notificationType], payload.notifications, state)
+  );
 });
 
 const setNotificationStageIds = curryN(3, function setNotificationStageIds(notificationType, state, { payload }) {
-  const { index, value } = payload;
+  const { index, value, ownerId } = payload;
+  const notificationsPath = isNotificationOverrideEnabled(state)
+    ? ['policyNotificationsOverrides', ownerId]
+    : ['notifications'];
   return updatedComputedProps(
-    pathSet(['currentPolicy', 'notifications', notificationType, index, 'stageIds'], value, state)
+    pathSet(['currentPolicy', ...notificationsPath, notificationType, index, 'stageIds'], value, state)
   );
 });
 
@@ -1009,7 +1099,9 @@ const setConstraintCondition = curryN(2, function setConstraintCondition(state, 
 });
 
 const toggleCategoryIsApplied = (state, { payload: index }) => {
-  state.categories[index].isApplied = !state.categories[index].isApplied;
+  const newState = { ...state, categories: clone(state.categories) };
+  newState.categories[index].isApplied = !state.categories[index].isApplied;
+  return updatedComputedProps(newState);
 };
 
 const togglePolicyActionsOverrideAllowed = (state) => {
@@ -1026,6 +1118,23 @@ const togglePolicyActionsOverrideAllowed = (state) => {
     return updatedComputedProps(newState);
   } else {
     return toggleField('policyActionsOverrideAllowed')(state);
+  }
+};
+
+const togglePolicyNotificationsOverrideAllowed = (state) => {
+  const currentPolicyNotificationsOverrideAllowed = state.currentPolicy.policyNotificationsOverrideAllowed;
+  if (currentPolicyNotificationsOverrideAllowed) {
+    const newState = {
+      ...state,
+      currentPolicy: {
+        ...state.currentPolicy,
+        policyNotificationsOverrideAllowed: !currentPolicyNotificationsOverrideAllowed,
+        policyNotificationsOverrides: null,
+      },
+    };
+    return updatedComputedProps(newState);
+  } else {
+    return toggleField('policyNotificationsOverrideAllowed')(state);
   }
 };
 
@@ -1047,38 +1156,49 @@ const resetNotificationsEditorFormState = (state) => {
   );
 };
 
-const addEmailRecipient = (state, emailAddress) => {
-  const { userNotifications = [] } = state.currentPolicy?.notifications ?? {};
+const isNotificationOverrideEnabled = (state) => {
+  return state?.isInherited && state?.currentPolicy?.policyNotificationsOverrideAllowed;
+};
+
+const getNotifications = (state, ownerId) => {
+  if (isNotificationOverrideEnabled(state)) {
+    return state?.currentPolicy?.policyNotificationsOverrides[ownerId] ?? {};
+  }
+  return state?.currentPolicy?.notifications ?? {};
+};
+
+const addEmailRecipient = (state, ownerId, emailAddress) => {
+  const { userNotifications = [] } = getNotifications(state, ownerId);
   const emailExists = userNotifications.some((item) => item.emailAddress === emailAddress);
   if (!emailExists) {
     const newNotification = { emailAddress, stageIds: [] };
-    const payload = userNotifications.concat(newNotification);
+    const payload = { notifications: userNotifications.concat(newNotification), ownerId: ownerId };
     return setNotifications('userNotifications', state, { payload });
   }
 };
 
-const addRoleRecipient = (state, roleId) => {
-  const { roleNotifications = [] } = state.currentPolicy?.notifications ?? {};
+const addRoleRecipient = (state, ownerId, roleId) => {
+  const { roleNotifications = [] } = getNotifications(state, ownerId);
   const newNotification = { roleId, stageIds: [] };
-  const payload = roleNotifications.concat(newNotification);
+  const payload = { notifications: roleNotifications.concat(newNotification), ownerId: ownerId };
   return setNotifications('roleNotifications', state, { payload });
 };
 
-const addWebhookRecipient = (state, webhookId) => {
-  const { webhookNotifications = [] } = state.currentPolicy?.notifications ?? {};
+const addWebhookRecipient = (state, ownerId, webhookId) => {
+  const { webhookNotifications = [] } = getNotifications(state, ownerId);
   const newNotification = { webhookId, stageIds: [] };
-  const payload = webhookNotifications.concat(newNotification);
+  const payload = { notifications: webhookNotifications.concat(newNotification), ownerId: ownerId };
   return setNotifications('webhookNotifications', state, { payload });
 };
 
-const addJiraRecipient = (state, projectKey, issueTypeId) => {
-  const { jiraNotifications = [] } = state.currentPolicy?.notifications ?? {};
+const addJiraRecipient = (state, ownerId, projectKey, issueTypeId) => {
+  const { jiraNotifications = [] } = getNotifications(state, ownerId);
   const newNotification = { projectKey, issueTypeId, stageIds: [] };
-  const payload = jiraNotifications.concat(newNotification);
+  const payload = { notifications: jiraNotifications.concat(newNotification), ownerId: ownerId };
   return setNotifications('jiraNotifications', state, { payload });
 };
 
-const addNotificationRecipient = (originalState) => {
+const addNotificationRecipient = (originalState, { payload }) => {
   const values = map(prop('trimmedValue'), originalState?.notificationsEditor?.formState);
   const {
     recipientType,
@@ -1093,59 +1213,84 @@ const addNotificationRecipient = (originalState) => {
 
   switch (recipientType) {
     case RECIPIENT_TYPES.EMAIL:
-      return addEmailRecipient(state, recipientEmail);
+      return addEmailRecipient(state, payload, recipientEmail);
     case RECIPIENT_TYPES.ROLE:
-      return addRoleRecipient(state, recipientRoleId);
+      return addRoleRecipient(state, payload, recipientRoleId);
     case RECIPIENT_TYPES.WEBHOOK:
-      return addWebhookRecipient(state, recipientWebhookId);
+      return addWebhookRecipient(state, payload, recipientWebhookId);
     case RECIPIENT_TYPES.JIRA:
-      return addJiraRecipient(state, recipientProjectKey, recipientIssueTypeId);
+      return addJiraRecipient(state, payload, recipientProjectKey, recipientIssueTypeId);
   }
 };
 
 const removeNotificationRecipient = (state, { payload }) => {
-  const { recipient } = payload;
+  const { ownerId, recipient } = payload;
   const removeRecipientFrom = without([omit(['displayName'], recipient)]);
   const setNotificationsFor = (notificationType, payload) => setNotifications(notificationType, state, { payload });
-  const { webhookNotifications = [], userNotifications = [], roleNotifications = [], jiraNotifications = [] } =
-    state.currentPolicy?.notifications ?? {};
+  const {
+    webhookNotifications = [],
+    userNotifications = [],
+    roleNotifications = [],
+    jiraNotifications = [],
+  } = getNotifications(state, ownerId);
 
   if (recipient.roleId) {
-    return setNotificationsFor('roleNotifications', removeRecipientFrom(roleNotifications));
+    return setNotificationsFor('roleNotifications', {
+      notifications: removeRecipientFrom(roleNotifications),
+      ownerId: ownerId,
+    });
   } else if (recipient.emailAddress) {
-    return setNotificationsFor('userNotifications', removeRecipientFrom(userNotifications));
+    return setNotificationsFor('userNotifications', {
+      notifications: removeRecipientFrom(userNotifications),
+      ownerId: ownerId,
+    });
   } else if (recipient.webhookId) {
-    return setNotificationsFor('webhookNotifications', removeRecipientFrom(webhookNotifications));
+    return setNotificationsFor('webhookNotifications', {
+      notifications: removeRecipientFrom(webhookNotifications),
+      ownerId: ownerId,
+    });
   } else if (recipient.projectKey) {
-    return setNotificationsFor('jiraNotifications', removeRecipientFrom(jiraNotifications));
+    return setNotificationsFor('jiraNotifications', {
+      notifications: removeRecipientFrom(jiraNotifications),
+      ownerId: ownerId,
+    });
   }
 };
 
 const toggleNotificationRecipientStage = (state, { payload }) => {
-  const { recipient, stageId } = payload;
-  const { webhookNotifications = [], userNotifications = [], roleNotifications = [], jiraNotifications = [] } =
-    state.currentPolicy?.notifications ?? {};
+  const { ownerId, recipient, stageId } = payload;
+  const notifications = getNotifications(state, ownerId);
+  const {
+    webhookNotifications = [],
+    userNotifications = [],
+    roleNotifications = [],
+    jiraNotifications = [],
+  } = notifications;
   const setStageIdsFor = (notificationType, payload) => setNotificationStageIds(notificationType, state, { payload });
   const updatedStageIds = recipient.stageIds.includes(stageId)
     ? without([stageId], recipient.stageIds)
     : recipient.stageIds.concat(stageId);
   if (recipient.roleId) {
     return setStageIdsFor('roleNotifications', {
+      ownerId: ownerId,
       index: findIndex(propEq('roleId', recipient.roleId), roleNotifications),
       value: updatedStageIds,
     });
   } else if (recipient.emailAddress) {
     return setStageIdsFor('userNotifications', {
+      ownerId: ownerId,
       index: findIndex(propEq('emailAddress', recipient.emailAddress), userNotifications),
       value: updatedStageIds,
     });
   } else if (recipient.webhookId) {
     return setStageIdsFor('webhookNotifications', {
+      ownerId: ownerId,
       index: findIndex(propEq('webhookId', recipient.webhookId), webhookNotifications),
       value: updatedStageIds,
     });
   } else if (recipient.projectKey) {
     return setStageIdsFor('jiraNotifications', {
+      ownerId: ownerId,
       index: findIndex(propEq('projectKey', recipient.projectKey), jiraNotifications),
       value: updatedStageIds,
     });
@@ -1166,8 +1311,8 @@ export const loadRolesForCurrentOwner = createAsyncThunk(
 );
 
 const setNotificationsEditorFormFieldValue = (state, { payload }) => {
-  const { field, value } = payload;
-  const { userNotifications = [] } = state?.currentPolicy?.notifications ?? {};
+  const { field, value, ownerId } = payload;
+  const { userNotifications = [] } = getNotifications(state, ownerId);
 
   const hasSameEmailAddress = (val) => (notification) => notification.emailAddress === val;
   const isEmailAlreadyInUse = (error) => (val) =>
@@ -1251,10 +1396,13 @@ const policySlice = createSlice({
   initialState,
   reducers: {
     resetIsDirty: propSetConst('isDirty', initialState.isDirty),
-    setHasPolicyCategories: reduxPropSet('hasPolicyCategories'),
+    setHasPolicyCategories(state, payload) {
+      return updatedComputedProps(reduxPropSet('hasPolicyCategories', state, payload));
+    },
     toggleCategoryIsApplied,
     togglePolicyViolationGrandfatheringAllowed: toggleField('policyViolationGrandfatheringAllowed'),
     togglePolicyActionsOverrideAllowed,
+    togglePolicyNotificationsOverrideAllowed,
     setPolicyName: setPolicyNameField(),
     setThreatLevel: setPolicyField('threatLevel'),
     setActions: setPolicyField('actions'),
@@ -1265,6 +1413,14 @@ const policySlice = createSlice({
       return updatedComputedProps(pathSet(['currentPolicy', 'policyActionsOverrides'], updatedActionsOverrides, state));
     },
     setConstraint: setPolicyField('constraints'),
+    setNotificationsOverride(state, { payload }) {
+      const { ownerId, notificationsOverride } = payload;
+      const currentNotificationsOverrides = state.currentPolicy.policyNotificationsOverrides || {};
+      const updatedNotificationsOverrides = { ...currentNotificationsOverrides, [ownerId]: notificationsOverride };
+      return updatedComputedProps(
+        pathSet(['currentPolicy', 'policyNotificationsOverrides'], updatedNotificationsOverrides, state)
+      );
+    },
     setUserNotifications: setNotifications('userNotifications'),
     setRoleNotifications: setNotifications('roleNotifications'),
     setJiraNotifications: setNotifications('jiraNotifications'),
@@ -1291,9 +1447,13 @@ const policySlice = createSlice({
     setMultiInputConditionValue: setConstraintConditionFieldByDataType,
     setOverrideParentActions,
     unSetOverrideParentActions,
+    setOverrideParentNotifications,
+    unSetOverrideParentNotifications,
     changeSortField,
     saveMaskTimerDone: propSet('submitMaskState', null),
     clearDeleteError: propSet('deleteError', null),
+    toggleShowActionsOverridesConfirmationModal: toggleBooleanProp('showActionsOverridesConfirmationModal'),
+    toggleShowNotificationsOverridesConfirmationModal: toggleBooleanProp('showNotificationsOverridesConfirmationModal'),
   },
   extraReducers: {
     [loadCategoriesForPolicy.pending]: loadCategoriesForPolicyRequested,
@@ -1313,13 +1473,10 @@ const policySlice = createSlice({
     [removePolicy.pending]: removePolicyRequested,
     [removePolicy.fulfilled]: removePolicyFulfilled,
     [removePolicy.rejected]: removePolicyFailed,
-    [saveActionsOverride.pending]: savePolicyRequested,
-    [saveActionsOverride.fulfilled]: saveActionsOverrideFulfilled,
-    [saveActionsOverride.rejected]: savePolicyFailed,
 
-    [removeActionsOverride.pending]: savePolicyRequested,
-    [removeActionsOverride.fulfilled]: removeActionsOverrideFulfilled,
-    [removeActionsOverride.rejected]: savePolicyFailed,
+    [updateOverrides.pending]: savePolicyRequested,
+    [updateOverrides.fulfilled]: updateOverridesFulfilled,
+    [updateOverrides.rejected]: savePolicyFailed,
 
     [checkEditIqPermission.fulfilled]: checkEditIqPermissionFulfilled,
     [checkEditIqPermission.rejected]: checkEditIqPermissionFailed,
@@ -1337,8 +1494,7 @@ export const actions = {
   loadPolicyTile,
   savePolicy,
   removePolicy,
-  saveActionsOverride,
-  removeActionsOverride,
+  updateOverrides,
   checkEditIqPermission,
   loadNotificationWebhooks,
   loadNotificationsEditor,

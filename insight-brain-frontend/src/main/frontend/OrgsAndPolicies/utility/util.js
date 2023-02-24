@@ -109,6 +109,33 @@ export const getActionsOverride = (ownerHierarchyIds, policy) => {
   return actionsOverride ? { actionsOverride, isCurrentOwnerOverride } : null;
 };
 
+/**
+ * @param ownerHierarchyIds - the ids in the owner hierarchy starting with current owner and ending with root org.
+ * @param policy - the policy to get notifications override for.
+ * @returns {notificationsOverride, isCurrentOwnerOverride} object or null if there is no override.
+ */
+export const getNotificationsOverride = (ownerHierarchyIds, policy) => {
+  if (!policy.policyNotificationsOverrideAllowed || !policy.policyNotificationsOverrides) {
+    return null;
+  }
+
+  const { ownerId, policyNotificationsOverrides } = policy;
+  const policyOwnerIndex = findIndex(equals(ownerId), ownerHierarchyIds);
+  const ownerIdsUptoPolicyOwnerId = ownerHierarchyIds.slice(0, policyOwnerIndex);
+
+  let notificationsOverride, isCurrentOwnerOverride;
+
+  ownerIdsUptoPolicyOwnerId.some((id, index) => {
+    if (policyNotificationsOverrides[id]) {
+      notificationsOverride = policyNotificationsOverrides[id];
+      isCurrentOwnerOverride = index === 0;
+      return true;
+    }
+  });
+
+  return notificationsOverride ? { notificationsOverride, isCurrentOwnerOverride } : null;
+};
+
 export const sortByThreatLevel = sortWith([descend(prop('threatLevel')), descend(prop('name'))]);
 
 export const rscToAngularColorMap = {

@@ -4,7 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxCheckbox, NxDivider, NxFieldset, NxH2, NxRadio } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxCheckbox,
+  NxDivider,
+  NxFieldset,
+  NxH2,
+  NxModal,
+  NxRadio,
+  NxWarningAlert,
+} from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { propEq } from 'ramda';
 
@@ -16,6 +25,10 @@ import {
   selectCurrentPolicyOwnerName,
   selectCurrentPolicy,
   selectHasEditIqPermission,
+  selectShowActionsOverridesConfirmationModal,
+  selectShowNotificationsOverridesConfirmationModal,
+  selectActionsOverridesCount,
+  selectNotificationsOverridesCount,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { IqAssociationEditor, FieldType } from 'MainRoot/react/IqAssociationEditor';
@@ -31,6 +44,10 @@ export default function EditPolicyInheritance() {
   const isInherited = useSelector(selectIsInherited);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const hasCategories = categories?.length;
+  const showActionsOverridesConfirmationModal = useSelector(selectShowActionsOverridesConfirmationModal);
+  const showNotificationsOverridesConfirmationModal = useSelector(selectShowNotificationsOverridesConfirmationModal);
+  const actionsOverridesCount = useSelector(selectActionsOverridesCount);
+  const notificationsOverridesCount = useSelector(selectNotificationsOverridesCount);
 
   const onCategoryToggled = (category) => {
     const categoryIndexForToggle = categories.findIndex(propEq('id', category.id));
@@ -38,6 +55,42 @@ export default function EditPolicyInheritance() {
   };
   const onHasCategoriesChange = (hasCategories) => dispatch(policyActions.setHasPolicyCategories(!!hasCategories));
   const togglePolicyActionsOverrideAllowed = () => dispatch(policyActions.togglePolicyActionsOverrideAllowed());
+  const togglePolicyNotificationsOverrideAllowed = () =>
+    dispatch(policyActions.togglePolicyNotificationsOverrideAllowed());
+  const toggleShowActionsOverridesConfirmationModal = () =>
+    dispatch(policyActions.toggleShowActionsOverridesConfirmationModal());
+  const toggleShowNotificationsOverridesConfirmationModal = () =>
+    dispatch(policyActions.toggleShowNotificationsOverridesConfirmationModal());
+
+  const createOverridesConfirmationModal = (overridesType, overridesCount, onCancel, onContinue) => {
+    return (
+      <NxModal
+        id="policy-overrides-confirmation-modal"
+        role="alertdialog"
+        onCancel={onCancel}
+        aria-labelledby="policy-overrides-confirmation-modal-header"
+      >
+        <header className="nx-modal-header">
+          <h2 className="nx-h2" id="policy-overrides-confirmation-modal-header">
+            Existing Overrides Configured
+          </h2>
+        </header>
+        <div className="nx-modal-content">
+          <NxWarningAlert>
+            Caution: Disabling overrides will reset {overridesType} for {overridesCount} organizations and applications.
+          </NxWarningAlert>
+        </div>
+        <footer className="nx-footer">
+          <div className="nx-btn-bar">
+            <NxButton onClick={onCancel}>Cancel</NxButton>
+            <NxButton variant="primary" onClick={onContinue}>
+              Continue
+            </NxButton>
+          </div>
+        </footer>
+      </NxModal>
+    );
+  };
 
   return (
     <div id="policy-edit-inheritance">
@@ -47,7 +100,7 @@ export default function EditPolicyInheritance() {
         <NxRadio
           name="hasCategories"
           value={null}
-          disabled={isInherited}
+          disabled={isInherited || !hasEditIqPermission}
           isChecked={!hasPolicyCategories}
           onChange={onHasCategoriesChange}
         >
@@ -57,7 +110,7 @@ export default function EditPolicyInheritance() {
         <NxRadio
           name="hasCategories"
           value={'hasCategories'}
-          disabled={!hasCategories || isInherited}
+          disabled={!hasCategories || isInherited || !hasEditIqPermission}
           isChecked={hasPolicyCategories}
           onChange={onHasCategoriesChange}
         >
@@ -78,14 +131,52 @@ export default function EditPolicyInheritance() {
         )}
       </NxFieldset>
 
-      <NxFieldset id="editor-policy-actions-override-fieldset" label="Policy Actions Override">
+      {showActionsOverridesConfirmationModal &&
+        createOverridesConfirmationModal(
+          'actions',
+          actionsOverridesCount,
+          toggleShowActionsOverridesConfirmationModal,
+          () => {
+            togglePolicyActionsOverrideAllowed();
+            toggleShowActionsOverridesConfirmationModal();
+          }
+        )}
+
+      {showNotificationsOverridesConfirmationModal &&
+        createOverridesConfirmationModal(
+          'notifications',
+          notificationsOverridesCount,
+          toggleShowNotificationsOverridesConfirmationModal,
+          () => {
+            togglePolicyNotificationsOverrideAllowed();
+            toggleShowNotificationsOverridesConfirmationModal();
+          }
+        )}
+
+      <NxFieldset id="editor-inheritance-overrides-fieldset" label="Inheritance Overrides">
         <NxCheckbox
           id="editor-policy-actions-override"
           isChecked={!!currentPolicy.policyActionsOverrideAllowed}
           disabled={isInherited || !hasEditIqPermission}
-          onChange={togglePolicyActionsOverrideAllowed}
+          onChange={
+            currentPolicy.policyActionsOverrideAllowed && actionsOverridesCount > 0
+              ? toggleShowActionsOverridesConfirmationModal
+              : togglePolicyActionsOverrideAllowed
+          }
         >
           Allow action overrides at organization and application levels
+        </NxCheckbox>
+        <NxCheckbox
+          id="editor-policy-notifications-override"
+          isChecked={!!currentPolicy.policyNotificationsOverrideAllowed}
+          disabled={isInherited || !hasEditIqPermission}
+          onChange={
+            currentPolicy.policyNotificationsOverrideAllowed && notificationsOverridesCount > 0
+              ? toggleShowNotificationsOverridesConfirmationModal
+              : togglePolicyNotificationsOverrideAllowed
+          }
+        >
+          Allow notification overrides at organization and application levels
         </NxCheckbox>
       </NxFieldset>
 

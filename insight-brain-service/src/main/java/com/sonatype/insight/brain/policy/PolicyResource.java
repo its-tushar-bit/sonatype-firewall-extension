@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
@@ -54,7 +55,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
@@ -201,61 +204,76 @@ public class PolicyResource
   }
 
   @PUT
-  @Path("{policyId}/actionsOverrides")
+  @Path("{policyId}/overrides")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  @Audited(AuditEvent.ADD_ACTIONS_OVERRIDE)
-  public Policy addActionsOverride(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+  @Audited(AuditEvent.UPDATE_OVERRIDES)
+  public Policy updateOverrides(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @PathParam("policyId") final String policyId,
-      final Map<String, String> actionsOverride)
+      JsonNode jsonNode)
   {
-    log.debug("Received request to addActionsOverride for ownerId {}, policyId {}", ownerId, policyId);
+    log.debug("Received request to update overrides for ownerId {}, policyId {}", ownerId, policyId);
+
+    AuditData auditData = AuditData.get().setData("overridingOwnerId", ownerId);
 
     PolicyDAO policyDAO = new PolicyDAO();
     Policy policy = policyDAO.getByIdNotNull(policyId);
-    if (!policy.isPolicyActionsOverrideAllowed()) {
-      throw new BadRequestException("Actions override is not allowed for policy with id " + policy.getId());
+    auditData.setPolicy(policy);
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    boolean actionsOverridesUpdateNeeded = jsonNode != null && jsonNode.has("actions");
+    boolean notificationsOverridesUpdateNeeded = jsonNode != null && jsonNode.has("notifications");
+
+    if (!actionsOverridesUpdateNeeded && !notificationsOverridesUpdateNeeded) {
+      throw new BadRequestException("A policy overrides configuration must be specified.");
+    }
+    PolicyOverridesDTO policyOverridesDTO;
+    try {
+      policyOverridesDTO = JsonUtils.asPojo(jsonNode, PolicyOverridesDTO.class);
+    }
+    catch (IOException e) {
+      throw new BadRequestException("The given JSON cannot be deserialized into a policy overrides configuration.");
     }
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-    policy.addPolicyActionsOverride(internalOwnerId, actionsOverride);
+    if (actionsOverridesUpdateNeeded) {
+      if (policyOverridesDTO.actions == null) {
+        Map<String, Map<String, String>> policyActionOverrides = policy.getPolicyActionsOverrides();
+        if (MapUtils.getObject(policyActionOverrides, internalOwnerId) != null) {
+          policyActionOverrides.remove(internalOwnerId);
+        }
+        auditData.setData("actionsOverride", "null");
+      }
+      else {
+        if (!policy.isPolicyActionsOverrideAllowed()) {
+          throw new BadRequestException("Actions override is not allowed for policy with id " + policy.getId());
+        }
+        policy.addPolicyActionsOverride(internalOwnerId, policyOverridesDTO.actions);
+        auditData.setData("actionsOverride", policyOverridesDTO.actions);
+      }
+    }
+
+    if (notificationsOverridesUpdateNeeded) {
+      if (policyOverridesDTO.notifications == null) {
+        Map<String, Notifications> policyNotificationsOverrides = policy.getPolicyNotificationsOverrides();
+        if (MapUtils.getObject(policyNotificationsOverrides, internalOwnerId) != null) {
+          policyNotificationsOverrides.remove(internalOwnerId);
+        }
+        auditData.setData("notificationsOverride", "null");
+      }
+      else {
+        if (!policy.isPolicyNotificationsOverrideAllowed()) {
+          throw new BadRequestException("Notifications override is not allowed for policy with id " + policy.getId());
+        }
+        policy.addPolicyNotificationsOverride(internalOwnerId, policyOverridesDTO.notifications);
+        auditData.setData("notificationsOverride", policyOverridesDTO.notifications);
+      }
+    }
+
     policyDAO.update(policy);
-    AuditData.get().setPolicy(policy).setData("overridingOwnerId", ownerId)
-      .setData("actionsOverride", actionsOverride);
 
-    managementEventService.postEvent(UPDATED, policy);
-
-    return policy;
-  }
-
-  @DELETE
-  @Path("{policyId}/actionsOverrides")
-  @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
-  @Audited(AuditEvent.REMOVE_ACTIONS_OVERRIDE)
-  public Policy deleteActionsOverride(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-      @PathParam("policyId") final String policyId)
-  {
-    log.debug("Received request to delete {} policy's actions overrides for ownerId {}, policyId {}", ownerType,
-        ownerId, policyId);
-
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-    Policy policy = new PolicyDAO().getByIdNotNull(policyId);
-
-    Map<String, Map<String, String>> policyActionOverrides = policy.getPolicyActionsOverrides();
-    if (policyActionOverrides != null && !policyActionOverrides.isEmpty()
-        && policyActionOverrides.containsKey(internalOwnerId)) {
-      policyActionOverrides.remove(internalOwnerId);
-      policy.setPolicyActionsOverrides(policyActionOverrides);
-      new PolicyDAO().update(policy);
-    }
-
-    AuditData.get().setPolicy(policy).setData("overridingOwnerId", ownerId);
     managementEventService.postEvent(UPDATED, policy);
 
     return policy;

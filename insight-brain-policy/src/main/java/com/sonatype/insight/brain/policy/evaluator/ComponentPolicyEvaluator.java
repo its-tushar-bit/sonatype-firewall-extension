@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -151,7 +152,8 @@ public class ComponentPolicyEvaluator
     for (PolicyFact policyFact : policyFacts) {
       Policy policy = policiesById.get(policyFact.getPolicyId());
 
-      Notifications notifications = policy.getNotifications().getApplicable(stage.getStageTypeId(), forMonitoring);
+      Notifications notifications =
+          policy.getEffectiveNotifications(ownerIds).getApplicable(stage.getStageTypeId(), forMonitoring);
       PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);
       List<Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring, ownerIds);
       PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);

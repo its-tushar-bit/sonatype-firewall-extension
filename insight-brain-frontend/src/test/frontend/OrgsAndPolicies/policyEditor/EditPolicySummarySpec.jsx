@@ -18,15 +18,39 @@ describe('EditPolicySummary', () => {
   });
 
   it('focuses name input on load', () => {
+    spyOn(policySelectors, 'selectHasEditIqPermission').and.returnValue(true);
+
     renderComponent();
 
     const policyNameInput = screen.getByRole('textbox');
     expect(policyNameInput).toHaveFocus();
   });
 
+  it('renders disabled inputs when there is no permission', () => {
+    spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue(true);
+    spyOn(policySelectors, 'selectIsInherited').and.returnValue(false);
+    spyOn(policySelectors, 'selectHasEditIqPermission').and.returnValue(false);
+
+    renderComponent();
+
+    const policyNameInput = screen.getByRole('textbox');
+    const threatLevelInput = screen.getByRole('button');
+    const policyViolationGrandfatheringInput = screen.getByRole('checkbox');
+    const policyViolationGrandfatheringMessage = screen.queryByText(
+      /Policy Violation Grandfathering is not supported by your license/i
+    );
+
+    expect(policyViolationGrandfatheringMessage).toBeNull();
+
+    expect(policyNameInput).toBeDisabled();
+    expect(threatLevelInput).toHaveClassName('disabled');
+    expect(policyViolationGrandfatheringInput).toBeDisabled();
+  });
+
   it('renders disabled inputs when the policy is inherited', () => {
     spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue(true);
     spyOn(policySelectors, 'selectIsInherited').and.returnValue(true);
+    spyOn(policySelectors, 'selectHasEditIqPermission').and.returnValue(true);
 
     renderComponent();
 
@@ -46,6 +70,7 @@ describe('EditPolicySummary', () => {
 
   it('renders disabled Grandfathering Input when inherited is not supported', () => {
     spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue(false);
+    spyOn(policySelectors, 'selectHasEditIqPermission').and.returnValue(true);
 
     renderComponent();
 

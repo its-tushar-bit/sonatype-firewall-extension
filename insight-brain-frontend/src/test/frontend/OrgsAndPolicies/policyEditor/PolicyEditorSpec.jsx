@@ -5,18 +5,23 @@
  */
 import React from 'react';
 
-import { render, screen, axiosMockAdapter, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter, fireEvent, within } from 'TestRoot/SpecUtil';
 import {
   getActionStageUrl,
   getApplicableCategoriesUrl,
   getApplicablePolicies,
   getConditionTypeUrl,
   getConditionValueTypeUrl,
-  getPolicyActionsOverridesUrl,
+  getPolicyOverridesUrl,
   getPolicyCRUDUrl,
   getPolicyTagUrl,
   getPolicyUrl,
   getOwnerDetailsUrl,
+  getNotificationWebhooksUrl,
+  getRoleMappingForCurrentOwnerUrl,
+  getIsJiraEnabledUrl,
+  getJiraProjectsUrl,
+  getPermissionContextTestUrl,
 } from 'MainRoot/util/CLMLocation';
 import PolicyEditor from 'MainRoot/OrgsAndPolicies/policyEditor/PolicyEditor';
 import {
@@ -28,6 +33,7 @@ import {
   policyTag,
   savedPolicy,
 } from './mockData';
+import { initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
 
 describe('PolicyEditorSpec', () => {
   let initState;
@@ -39,10 +45,22 @@ describe('PolicyEditorSpec', () => {
   const APP_ID = 'testapp';
   let mockAxiosCalls;
 
-  const setInitStateAndMockHttpRequests = (ownerType, ownerId, policyId) => {
+  const setInitStateAndMockHttpRequests = (ownerType, ownerId, policyId, mockNotificationEndpoints, permissions) => {
     initState = {
       router: {
         currentState: { name: ownerType },
+      },
+      orgsAndPolicies: {
+        root: {
+          selectedOwner: {
+            id: ownerId,
+          },
+        },
+      },
+      productFeatures: {
+        productFeatures: {
+          firewall: true,
+        },
       },
     };
     if (ownerType === 'organization') {
@@ -72,6 +90,60 @@ describe('PolicyEditorSpec', () => {
     mockAxiosCalls.onGet(applicablePoliciesUrl).reply(200, applicablePolicies[ownerType][ownerId]);
 
     mockAxiosCalls.onGet(policyTagUrl).reply(200, policyTag[ownerType][ownerId][policyId]);
+
+    if (mockNotificationEndpoints) {
+      const webhooksUrl = getNotificationWebhooksUrl(ownerType, ownerId);
+      const rolesUrl = getRoleMappingForCurrentOwnerUrl(ownerType, ownerId);
+      const isJiraEnabledUrl = getIsJiraEnabledUrl();
+      const jiraProjectsUrl = getJiraProjectsUrl();
+      const notificationWebhooks = [
+        {
+          description: 'webhook1name',
+          eventTypes: null,
+          id: 'webhook1',
+          secretKey: null,
+          url: 'http://sdf.com',
+        },
+      ];
+      mockAxiosCalls.onGet(webhooksUrl).reply(200, notificationWebhooks);
+      const roles = [{ roleId: '1', roleName: 'developer' }];
+      mockAxiosCalls.onGet(rolesUrl).reply(200, { membersByRole: roles });
+      mockAxiosCalls.onGet(isJiraEnabledUrl).reply(200, true);
+      const jiraProjects = [
+        {
+          key: 'key1',
+          name: 'Project One',
+          issueTypes: [
+            {
+              id: 1,
+              name: 'Bug',
+            },
+            {
+              id: 2,
+              name: 'Task',
+            },
+          ],
+        },
+        {
+          key: 'key2',
+          name: 'Project Two',
+          issueTypes: [
+            {
+              id: 1,
+              name: 'Bug',
+            },
+            {
+              id: 3,
+              name: 'Issue',
+            },
+          ],
+        },
+      ];
+      mockAxiosCalls.onGet(jiraProjectsUrl).reply(200, jiraProjects);
+    }
+    mockAxiosCalls
+      .onPut(getPermissionContextTestUrl(ownerType, ownerId), ['WRITE'])
+      .reply(200, [...(permissions ? permissions : ['WRITE'])]);
   };
 
   beforeAll(() => {
@@ -79,6 +151,30 @@ describe('PolicyEditorSpec', () => {
   });
 
   const renderComponent = (preloadedState) => render(<PolicyEditor />, { preloadedState });
+
+  it('disables the Update button when there is no permission', async () => {
+    setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
+    renderComponent(initState);
+    const updateButton = await screen.findByText('Update');
+    expect(updateButton).toBeVisible();
+    expect(updateButton).toHaveClassName('disabled');
+  });
+
+  it('disables the Update button if there are no changes', async () => {
+    setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true);
+    renderComponent(initState);
+    const updateButton = await screen.findByText('Update');
+    expect(updateButton).toBeVisible();
+    expect(updateButton).toHaveClassName('disabled');
+  });
+
+  it('disables the Delete button when there is no permission', async () => {
+    setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
+    renderComponent(initState);
+    const deleteButton = await screen.findByText('Delete');
+    expect(deleteButton).toBeVisible();
+    expect(deleteButton).toBeDisabled();
+  });
 
   describe('Local policy', () => {
     describe('Update policy', () => {
@@ -325,10 +421,11 @@ describe('PolicyEditorSpec', () => {
 
   describe('Inherited policy', () => {
     it('renders the form with disabled update button, disabled fields and no delete button', async () => {
-      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_NOT_ENABLED);
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_NOT_ENABLED, true);
       renderComponent(initState);
       const updateButton = await screen.findByText('Update');
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
+      const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
       const deleteButton = screen.queryByText('Delete');
       const policyTitle = screen.getByText('View Policy');
       expect(policyTitle).toBeVisible();
@@ -336,11 +433,30 @@ describe('PolicyEditorSpec', () => {
       expect(updateButton).not.toHaveAttribute('aria-label');
       expect(deleteButton).toBeNull();
       expect(overrideParentActionsInput).toBeDisabled();
+      expect(overrideParentNotificationsInput).toBeDisabled();
     });
 
     it('enables the update button when the actions override status changes', async () => {
       setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
-      renderComponent(initState);
+      renderComponent({
+        ...initState,
+        orgsAndPolicies: {
+          ...(initState?.orgsAndPolicies || {}),
+          policy: {
+            ...(initState?.orgsAndPolicies?.policy || initialState),
+            isInherited: true,
+            overrideActionsFlag: true,
+            originalOverrideActionsFlag: true,
+            overrideNotificationsFlag: true,
+            originalOverrideNotificationsFlag: true,
+            currentPolicy: {
+              ...(initState?.orgsAndPolicies?.policy?.currentPolicy || initialState.currentPolicy),
+              policyActionsOverrideAllowed: true,
+              policyNotificationsOverrideAllowed: true,
+            },
+          },
+        },
+      });
       let updateButton = await screen.findByText('Update');
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
       const deleteButton = screen.queryByText('Delete');
@@ -354,10 +470,26 @@ describe('PolicyEditorSpec', () => {
       expect(updateButton).not.toHaveClassName('disabled');
     });
 
+    it('enables the update button when the notifications override status changes', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true);
+      renderComponent(initState);
+      let updateButton = await screen.findByText('Update');
+      const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
+      const deleteButton = screen.queryByText('Delete');
+      const policyTitle = screen.getByText('View Policy');
+      expect(policyTitle).toBeVisible();
+      expect(updateButton).toBeVisible();
+      expect(deleteButton).toBeNull();
+      expect(overrideParentNotificationsInput).not.toBeDisabled();
+      fireEvent.click(overrideParentNotificationsInput);
+      updateButton = screen.getByText('Update');
+      expect(updateButton).not.toHaveClassName('disabled');
+    });
+
     it('saves a policy successfully when adding an action override, shows the save mask with the success message', async () => {
       setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
       mockAxiosCalls
-        .onPut(getPolicyActionsOverridesUrl('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN))
+        .onPut(getPolicyOverridesUrl('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN))
         .reply(200, savedPolicy);
       mockAxiosCalls.onGet(getOwnerDetailsUrl('organization', ORG_ID)).reply(200, {});
       renderComponent(initState);
@@ -372,15 +504,97 @@ describe('PolicyEditorSpec', () => {
       expect(successMask).toBeVisible();
     });
 
+    it('saves a policy successfully when adding a notification override, shows the save mask with the success message', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true);
+      mockAxiosCalls
+        .onPut(getPolicyOverridesUrl('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN))
+        .reply(200, savedPolicy);
+      mockAxiosCalls.onGet(getOwnerDetailsUrl('organization', ORG_ID)).reply(200, {});
+      renderComponent(initState);
+      const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
+      fireEvent.click(overrideParentNotificationsInput);
+      const updateButton = screen.getByText('Update');
+      expect(updateButton).not.toHaveClassName('disabled');
+      fireEvent.click(updateButton);
+      const savingMask = screen.getByText('Saving…');
+      expect(savingMask).toBeVisible();
+      const successMask = await screen.findByText(/Success/);
+      expect(successMask).toBeVisible();
+    });
+
     it('saves a policy successfully when removing an action override, shows the save mask with the success message', async () => {
       setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED);
       mockAxiosCalls
-        .onDelete(getPolicyActionsOverridesUrl('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED))
+        .onPut(getPolicyOverridesUrl('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED))
         .reply(200, savedPolicy);
       mockAxiosCalls.onGet(getOwnerDetailsUrl('organization', ORG_ID)).reply(200, {});
       renderComponent(initState);
       const inheritParentActionsInput = await screen.findByLabelText('Inherit parent actions');
       fireEvent.click(inheritParentActionsInput);
+      const updateButton = screen.getByText('Update');
+      expect(updateButton).not.toHaveClassName('disabled');
+      fireEvent.click(updateButton);
+      const savingMask = screen.getByText('Saving…');
+      expect(savingMask).toBeVisible();
+      const successMask = await screen.findByText(/Success/);
+      expect(successMask).toBeVisible();
+    });
+
+    it('saves a policy successfully when removing a notification override, shows the save mask with the success message', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true);
+      mockAxiosCalls
+        .onPut(getPolicyOverridesUrl('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED))
+        .reply(200, savedPolicy);
+      mockAxiosCalls.onGet(getOwnerDetailsUrl('organization', ORG_ID)).reply(200, {});
+      renderComponent(initState);
+      const inheritParentNotificationsInput = await screen.findByLabelText('Inherit parent notifications');
+      fireEvent.click(inheritParentNotificationsInput);
+      const updateButton = screen.getByText('Update');
+      expect(updateButton).not.toHaveClassName('disabled');
+      fireEvent.click(updateButton);
+      const savingMask = screen.getByText('Saving…');
+      expect(savingMask).toBeVisible();
+      const successMask = await screen.findByText(/Success/);
+      expect(successMask).toBeVisible();
+    });
+
+    it('saves a policy successfully when updating a notification override, shows the save mask with the success message', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true);
+      mockAxiosCalls
+        .onPut(getPolicyOverridesUrl('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED))
+        .reply(200, savedPolicy);
+      mockAxiosCalls.onGet(getOwnerDetailsUrl('organization', ORG_ID)).reply(200, {});
+      renderComponent(initState);
+      await screen.findByLabelText('Inherit parent notifications');
+      const table = await screen.getByRole('table', { name: 'Edit policy notifications table' });
+      const checkboxes = within(table).getAllByRole('checkbox');
+      expect(checkboxes[8]).toBeEnabled();
+
+      fireEvent.click(checkboxes[8]);
+
+      const updateButton = screen.getByText('Update');
+      expect(updateButton).not.toHaveClassName('disabled');
+      fireEvent.click(updateButton);
+      const savingMask = screen.getByText('Saving…');
+      expect(savingMask).toBeVisible();
+      const successMask = await screen.findByText(/Success/);
+      expect(successMask).toBeVisible();
+    });
+
+    it('saves a policy successfully when removing a single notification override, shows the save mask with the success message', async () => {
+      setInitStateAndMockHttpRequests('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true);
+      mockAxiosCalls
+        .onPut(getPolicyOverridesUrl('organization', ORG_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED))
+        .reply(200, savedPolicy);
+      mockAxiosCalls.onGet(getOwnerDetailsUrl('organization', ORG_ID)).reply(200, {});
+      renderComponent(initState);
+      await screen.findByLabelText('Inherit parent notifications');
+      const table = await screen.getByRole('table', { name: 'Edit policy notifications table' });
+      const removeButtons = within(table).getAllByLabelText('Remove recipient');
+      expect(removeButtons[0]).toBeEnabled();
+
+      fireEvent.click(removeButtons[0]);
+
       const updateButton = screen.getByText('Update');
       expect(updateButton).not.toHaveClassName('disabled');
       fireEvent.click(updateButton);

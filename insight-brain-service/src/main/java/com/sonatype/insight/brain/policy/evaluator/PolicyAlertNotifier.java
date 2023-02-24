@@ -55,7 +55,7 @@ public class PolicyAlertNotifier
   {
     if (!results.notifiableViolations.isEmpty()) {
       List<PolicyNotification> policyNotifications = PolicyNotificationUtil
-          .createPolicyNotifications(results.notifiableViolations, results.evaluation.getStageTypeId(),
+          .createPolicyNotifications(app, results.notifiableViolations, results.evaluation.getStageTypeId(),
               results.evaluation.isForMonitoring());
 
       // sort the alerts by threat-level, which is common means to represent in most notifiers

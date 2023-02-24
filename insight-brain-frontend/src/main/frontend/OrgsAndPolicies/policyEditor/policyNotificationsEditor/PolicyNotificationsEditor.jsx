@@ -9,6 +9,7 @@ import {
   NxButton,
   NxButtonBar,
   NxCheckbox,
+  NxFieldset,
   NxFontAwesomeIcon,
   NxFormGroup,
   NxFormRow,
@@ -17,15 +18,15 @@ import {
   NxInfoAlert,
   NxLoadWrapper,
   NxOverflowTooltip,
+  NxP,
+  NxRadio,
   NxTable,
   NxTextInput,
   NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faPlus, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
-
 import { actions as policyActions, RECIPIENT_TYPES } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
-  selectCurrentPolicy,
   selectIsInherited,
   selectApplicableWebhooks,
   selectNotificationsEditorLoadError,
@@ -36,6 +37,11 @@ import {
   selectAvailableJiraProjects,
   selectSelectedJiraProject,
   selectNotificationsEditorLoading,
+  selectIsNotificationOverrideEnabled,
+  selectOverrideNotificationsFlag,
+  selectNotifications,
+  selectIsNotificationsTableEnabled,
+  selectIsNotificationsInheritOverrideEnabled,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import {
@@ -45,24 +51,34 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { validateEmailPatternMatch, hasValidationErrors } from 'MainRoot/util/validationUtil';
+import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 const isValidEmail = (email) => !hasValidationErrors(validateEmailPatternMatch('Invalid email format', email));
 
 export default function PolicyNotificationsEditor() {
   const dispatch = useDispatch();
   const loadNotificationsEditor = () => dispatch(policyActions.loadNotificationsEditor());
-  const addNotificationRecipient = () => dispatch(policyActions.addNotificationRecipient());
-  const removeNotificationRecipient = (payload) => dispatch(policyActions.removeNotificationRecipient(payload));
+  const addNotificationRecipient = () => dispatch(policyActions.addNotificationRecipient(ownerId));
+  const removeNotificationRecipient = (payload) =>
+    dispatch(policyActions.removeNotificationRecipient({ ...payload, ownerId }));
   const toggleNotificationRecipientStage = (payload) =>
-    dispatch(policyActions.toggleNotificationRecipientStage(payload));
+    dispatch(policyActions.toggleNotificationRecipientStage({ ...payload, ownerId }));
   const setNotificationsEditorFormFieldValue = (field, value) =>
-    dispatch(policyActions.setNotificationsEditorFormFieldValue({ field, value }));
+    dispatch(policyActions.setNotificationsEditorFormFieldValue({ field, value, ownerId }));
+  const setOverrideParentNotifications = () => dispatch(policyActions.setOverrideParentNotifications());
+  const unsetOverrideParentNotifications = (ownerId) =>
+    dispatch(policyActions.unSetOverrideParentNotifications(ownerId));
+  const setNotificationsOverride = (ownerId, notificationsOverride) =>
+    dispatch(policyActions.setNotificationsOverride({ ownerId, notificationsOverride }));
 
+  const ownerId = useSelector(selectSelectedOwnerId);
   const isFirewallSupported = useSelector(selectIsFirewallSupported);
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
   const isNotificationsSupported = useSelector(selectIsNotificationsSupported);
+  const isNotificationOverrideEnabled = useSelector(selectIsNotificationOverrideEnabled);
+  const isOverrideParentNotificationsEnabled = useSelector(selectOverrideNotificationsFlag);
+  const notifications = useSelector(selectNotifications);
   const actionStages = useSelector(selectActionStageTypes);
-  const currentPolicy = useSelector(selectCurrentPolicy);
   const isInherited = useSelector(selectIsInherited);
   const applicableNotificationWebhooks = useSelector(selectApplicableWebhooks);
   const loading = useSelector(selectNotificationsEditorLoading);
@@ -80,26 +96,23 @@ export default function PolicyNotificationsEditor() {
   const recipientWebhookId = formState?.recipientWebhookId?.value;
   const recipientProjectKey = formState?.recipientProjectKey?.value;
   const recipientIssueTypeId = formState?.recipientIssueTypeId?.value;
-  const isNotificationsFormDisabled = isInherited || !(isNotificationsSupported || isFirewallSupported);
-  const { userNotifications = [] } = currentPolicy?.notifications ?? {};
+  const { userNotifications = [] } = notifications ?? {};
   const tableGridTemplateStyles = {
     gridTemplateColumns: `minmax(90px, 1fr) repeat(${actionStages?.length}, min-content) minmax(48px, min-content) 60px`,
   };
+  const isNotificationsInheritOverrideEnabled = useSelector(selectIsNotificationsInheritOverrideEnabled);
+  const isNotificationsTableEnabled = useSelector(selectIsNotificationsTableEnabled);
 
   const hasStage = (notification, stageId) => (notification.stageIds ?? []).includes(stageId);
 
   const isNotificationsSupportedForStage = (stageId) =>
-    (isFirewallSupported && stageId === 'proxy') || isNotificationsSupported;
+    isNotificationsSupported || (isFirewallSupported && stageId === 'proxy');
 
   const isDisabled = (recipient, stageId) => {
-    const isStageApplicable = !recipient.projectKey || stageId !== 'proxy';
+    // JIRA/Webhook notifications can't use proxy stage
+    const isJiraOrWebhookProxyStage = (recipient?.projectKey || recipient?.webhookId) && stageId === 'proxy';
 
-    return (
-      isInherited ||
-      !isStageApplicable ||
-      !isNotificationsSupportedForStage(stageId) ||
-      (recipient?.webhookId && stageId === 'proxy')
-    );
+    return !isNotificationsTableEnabled || isJiraOrWebhookProxyStage || !isNotificationsSupportedForStage(stageId);
   };
 
   const emailExists = (emailAddress) => {
@@ -113,7 +126,7 @@ export default function PolicyNotificationsEditor() {
       (recipientType === RECIPIENT_TYPES.JIRA && (!recipientProjectKey || !recipientIssueTypeId)) ||
       (recipientType === RECIPIENT_TYPES.EMAIL &&
         (!recipientEmail || !isValidEmail(recipientEmail) || emailExists(recipientEmail))) ||
-      isNotificationsFormDisabled
+      !isNotificationsTableEnabled
     );
   };
 
@@ -125,6 +138,15 @@ export default function PolicyNotificationsEditor() {
 
     if (!isNotificationsSupportedForStage(stage.stageTypeId)) return 'Notifications are not supported by your license.';
     else return '';
+  };
+
+  const onOverrideParentNotificationsChange = (enableOverrides) => {
+    if (enableOverrides) {
+      setOverrideParentNotifications();
+      setNotificationsOverride(ownerId, notifications ?? {});
+    } else {
+      unsetOverrideParentNotifications(ownerId);
+    }
   };
 
   useEffect(() => {
@@ -141,6 +163,40 @@ export default function PolicyNotificationsEditor() {
               ? 'Only Proxy Notifications are supported with your Firewall product license.'
               : 'Notifications are not supported by your product license.'}
           </NxInfoAlert>
+        )}
+
+        {isInherited && (
+          <div id="edit-policy-notifications-override">
+            <NxP>
+              {isNotificationOverrideEnabled
+                ? 'Notification overrides have been enabled for this policy. Modifying notifications will only affect this level.'
+                : 'Notification overrides have been disabled for this policy.'}
+            </NxP>
+
+            <NxFieldset id="editor-policy-notification-inherit" label="Override Status" isRequired={true}>
+              <NxRadio
+                id="edit-policy-notifications-override-inherit"
+                name="overrideParentNotificationsStatus"
+                value={null}
+                disabled={!isNotificationsInheritOverrideEnabled}
+                isChecked={!isOverrideParentNotificationsEnabled}
+                onChange={() => onOverrideParentNotificationsChange(false)}
+              >
+                Inherit parent notifications
+              </NxRadio>
+
+              <NxRadio
+                id="edit-policy-notifications-override-override"
+                name="overrideParentNotificationsStatus"
+                value="allowOverrideParentNotificationsStatus"
+                disabled={!isNotificationsInheritOverrideEnabled}
+                isChecked={isOverrideParentNotificationsEnabled}
+                onChange={() => onOverrideParentNotificationsChange(true)}
+              >
+                Override parent notifications
+              </NxRadio>
+            </NxFieldset>
+          </div>
         )}
 
         <NxTable
@@ -192,7 +248,7 @@ export default function PolicyNotificationsEditor() {
                     >
                       <NxCheckbox
                         aria-label={`notify ${recipient.displayName} for continuous-monitoring`}
-                        disabled={isInherited || !isMonitoringSupported}
+                        disabled={isDisabled(recipient, 'continuous-monitoring') || !isMonitoringSupported}
                         isChecked={hasStage(recipient, 'continuous-monitoring')}
                         onChange={() =>
                           toggleNotificationRecipientStage({ recipient, stageId: 'continuous-monitoring' })
@@ -205,12 +261,12 @@ export default function PolicyNotificationsEditor() {
                       <NxButton
                         type="button"
                         variant="icon-only"
-                        title={isNotificationsFormDisabled ? '' : 'Remove recipient'}
+                        title={!isNotificationsTableEnabled ? '' : 'Remove recipient'}
                         aria-label="Remove recipient"
                         className="iq-notifications-action"
-                        disabled={isNotificationsFormDisabled}
+                        disabled={!isNotificationsTableEnabled}
                         onClick={() => {
-                          if (!isNotificationsFormDisabled) removeNotificationRecipient({ recipient });
+                          if (isNotificationsTableEnabled) removeNotificationRecipient({ recipient });
                         }}
                       >
                         <NxFontAwesomeIcon icon={faTrashAlt} />
@@ -226,7 +282,7 @@ export default function PolicyNotificationsEditor() {
           <NxFormGroup label="Recipient Type" isRequired>
             <NxFormSelect
               id="recipient-type"
-              disabled={isNotificationsFormDisabled}
+              disabled={!isNotificationsTableEnabled}
               value={recipientType}
               onChange={(event) => setNotificationsEditorFormFieldValue('recipientType', event.currentTarget.value)}
             >
@@ -242,7 +298,7 @@ export default function PolicyNotificationsEditor() {
               <NxTextInput
                 id="recipient-email"
                 validatable
-                disabled={isNotificationsFormDisabled}
+                disabled={!isNotificationsTableEnabled}
                 {...formState?.recipientEmail}
                 onChange={(value) => setNotificationsEditorFormFieldValue('recipientEmail', value)}
                 onKeyDown={(evt) => {
@@ -260,7 +316,7 @@ export default function PolicyNotificationsEditor() {
             <NxFormGroup label="Role" isRequired>
               <NxFormSelect
                 id="recipient-role"
-                disabled={isNotificationsFormDisabled}
+                disabled={!isNotificationsTableEnabled}
                 value={recipientRoleId}
                 onChange={(event) => setNotificationsEditorFormFieldValue('recipientRoleId', event.currentTarget.value)}
               >
@@ -281,7 +337,7 @@ export default function PolicyNotificationsEditor() {
             <NxFormGroup label="Select Webhook" isRequired>
               <NxFormSelect
                 id="recipient-webhook"
-                disabled={isNotificationsFormDisabled}
+                disabled={!isNotificationsTableEnabled}
                 value={recipientWebhookId}
                 onChange={(event) =>
                   setNotificationsEditorFormFieldValue('recipientWebhookId', event.currentTarget.value)
@@ -305,7 +361,7 @@ export default function PolicyNotificationsEditor() {
               <NxFormGroup label="Project" isRequired>
                 <NxFormSelect
                   id="recipient-jira-project"
-                  disabled={isNotificationsFormDisabled}
+                  disabled={!isNotificationsTableEnabled}
                   value={formState?.recipientProjectKey?.value}
                   onChange={(event) =>
                     setNotificationsEditorFormFieldValue('recipientProjectKey', event.currentTarget.value)
@@ -326,7 +382,7 @@ export default function PolicyNotificationsEditor() {
               <NxFormGroup label="Issue Type" isRequired>
                 <NxFormSelect
                   id="recipient-jira-issue-type"
-                  disabled={isNotificationsFormDisabled || !recipientProjectKey}
+                  disabled={!isNotificationsTableEnabled || !recipientProjectKey}
                   value={formState?.recipientIssueTypeId?.value}
                   onChange={(event) =>
                     setNotificationsEditorFormFieldValue('recipientIssueTypeId', event.currentTarget.value)

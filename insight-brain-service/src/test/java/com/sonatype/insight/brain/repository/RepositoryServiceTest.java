@@ -30,6 +30,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -97,6 +98,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
   private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
   private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+
+  private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
+      new ProprietaryComponentNamePatternDAO();
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -784,12 +788,10 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   @Test
   public void testGetProprietaryComponentNamePatterns() {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repo = tempEntity.newRepository(repoManager, "testRepoPublicId");
-    ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(
-        repoManager.getInstanceId(), repo.getPublicId(), "maven", "testNamespacePattern1", "testNamePattern1");
-    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(
-        repoManager.getInstanceId(), repo.getPublicId(), "maven", "testNamespacePattern2", "testNamePattern2");
+    ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern("repoManagerInstanceId",
+        "repoPublicId", "maven", "testNamespacePattern1", "testNamePattern1");
+    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern("repoManagerInstanceId",
+        "repoPublicId", "maven", "testNamespacePattern2", "testNamePattern2", false /* enabled */);
 
     // Result must indicate next page exists
     ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
@@ -824,6 +826,39 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern2);
   }
 
+  @Test
+  public void testUpdateProprietaryComponentNamePattern() {
+    ProprietaryComponentNamePattern pattern = tempEntity.newProprietaryComponentNamePattern("repoManagerInstanceId",
+        "repoPublicId", "maven", "testNamespacePattern", "testNamePattern");
+    // Sanity check
+    pattern = proprietaryComponentNamePatternDAO.getById(pattern.getId());
+    assertThat(pattern.isEnabled()).isTrue();
+
+    ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO =
+        new ProprietaryComponentNamePatternDTO(pattern);
+    proprietaryComponentNamePatternDTO.enabled = false;
+
+    repositoryService.updateProprietaryComponentNamePattern(proprietaryComponentNamePatternDTO);
+    pattern = proprietaryComponentNamePatternDAO.getById(pattern.getId());
+    assertThat(pattern.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testUpdateProprietaryComponentNamePattern_NullRequest() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.updateProprietaryComponentNamePattern(null))
+        .withMessage("Missing request parameters");
+  }
+
+  @Test
+  public void testUpdateProprietaryComponentNamePattern_PatternDoesNotExist() {
+    ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO = new ProprietaryComponentNamePatternDTO();
+    proprietaryComponentNamePatternDTO.id = "does-not-exist";
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryService.updateProprietaryComponentNamePattern(proprietaryComponentNamePatternDTO))
+        .withMessage("Cannot find a proprietary component name pattern with ID=does-not-exist");
+  }
+
   private void assertProprietaryComponentNamePattern(
       ProprietaryComponentNamePatternDTO actual,
       ProprietaryComponentNamePattern expected)
@@ -834,5 +869,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(actual.repositoryManagerInstanceId).isEqualTo(expected.getRepositoryManagerInstanceId());
     assertThat(actual.repositoryPublicId).isEqualTo(expected.getRepositoryPublicId());
     assertThat(actual.format).isEqualTo(expected.getFormat());
+    assertThat(actual.enabled).isEqualTo(expected.isEnabled());
   }
 }

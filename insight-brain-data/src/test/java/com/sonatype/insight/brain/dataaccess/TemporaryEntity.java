@@ -574,6 +574,8 @@ public class TemporaryEntity
 
   private Collection<PolicyWaiver> waivers;
 
+  private Collection<ProprietaryComponentNamePattern> proprietaryComponentNamePatterns;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -625,6 +627,7 @@ public class TemporaryEntity
     artifactoryConnections = new ArrayList<>();
     repositoryIdentifiedComponents = new ArrayList<>();
     sourceControlPullRequestResults = new ArrayList<>();
+    proprietaryComponentNamePatterns = new ArrayList<>();
 
     // Disable search
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
@@ -770,6 +773,7 @@ public class TemporaryEntity
     reverseProxyAuthenticationConfigurationDAO.delete();
     jiraConfigurationDAO.delete();
     sourceControlConfigurationDAO.delete();
+    delete(proprietaryComponentNamePatterns, proprietaryComponentNamePatternDAO);
   }
 
   private <E> void detachEntity(E entity) {
@@ -3989,10 +3993,24 @@ public class TemporaryEntity
       String namespacePattern,
       String namePattern)
   {
+    return newProprietaryComponentNamePattern(repositoryManagerInstanceId, repositoryPublicId, format, namespacePattern,
+        namePattern, true /* enabled */);
+  }
+
+  public ProprietaryComponentNamePattern newProprietaryComponentNamePattern(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      String format,
+      String namespacePattern,
+      String namePattern,
+      boolean enabled)
+  {
     ProprietaryComponentNamePattern proprietaryComponentNamePattern =
         new ProprietaryComponentNamePattern(format).withNamePattern(namePattern).withNamespacePattern(namespacePattern)
             .withRepository(repositoryManagerInstanceId, repositoryPublicId);
+    proprietaryComponentNamePattern.setEnabled(enabled);
     proprietaryComponentNamePatternDAO.insert(proprietaryComponentNamePattern);
+    proprietaryComponentNamePatterns.add(proprietaryComponentNamePattern);
     return proprietaryComponentNamePattern;
   }
 }

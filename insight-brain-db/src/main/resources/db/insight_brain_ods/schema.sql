@@ -575,6 +575,7 @@ CREATE TABLE proprietary_component_name_pattern (
 
   repository_manager_instance_id varchar(50) NOT NULL,
   repository_public_id varchar(500) NOT NULL,
+  enabled boolean DEFAULT true NOT NULL,
 
   CONSTRAINT proprietary_component_name_pattern_pk PRIMARY KEY (proprietary_component_name_pattern_id),
   -- to make this uniqueness constraint work as desired, note that all included columns are not nullable, using empty strings instead if needed

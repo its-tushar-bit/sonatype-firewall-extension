@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -391,6 +392,28 @@ public class RepositoryServiceAuthzTest
   public void testGetProprietaryComponentNamePatterns_Unauthorized() {
     login();
     repositoryService.getProprietaryComponentNamePatterns(null);
+  }
+
+  @Test
+  public void testUpdateProprietaryComponentNamePattern_Authorized() {
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    ProprietaryComponentNamePattern proprietaryComponentNamePattern = tempEntity.newProprietaryComponentNamePattern(
+        "repositoryManagerInstanceId", "repositoryPublicId", ComponentIdentifier.FORMAT_NPM, "namespacePattern", null);
+    ProprietaryComponentNamePatternDTO request =
+        new ProprietaryComponentNamePatternDTO(proprietaryComponentNamePattern);
+    repositoryService.updateProprietaryComponentNamePattern(request);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateProprietaryComponentNamePattern_Unauthenticated() {
+    repositoryService.updateProprietaryComponentNamePattern(null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdateProprietaryComponentNamePattern_Unauthorized() {
+    login();
+    repositoryService.updateProprietaryComponentNamePattern(null);
   }
 
   @Test

@@ -1981,6 +1981,31 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testAddProprietaryComponentNames_DoesNotChangePatternEnabledStatus() {
+    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoId = "hosted-repo";
+    String namespacePattern = "testNamespacePattern";
+    String namePattern = "testNamePattern";
+    // Existing disabled patterns
+    ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId,
+        ComponentIdentifier.FORMAT_NPM, null /* namespacePattern */, namePattern, false /* enabled */);
+    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId,
+        ComponentIdentifier.FORMAT_NPM, namespacePattern, null /* namePattern */, false /* enabled */);
+    assertThat(proprietaryComponentNamePatternDAO.getEnabledByFormat(ComponentIdentifier.FORMAT_NPM)).isEmpty();
+
+    // Add the existing patterns
+    ProprietaryComponentNames proprietaryComponentNames =
+        new ProprietaryComponentNames("npm").addNames(namePattern).addNamespaces(namespacePattern);
+    getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+
+    pattern1 = proprietaryComponentNamePatternDAO.getById(pattern1.getId());
+    assertThat(pattern1.isEnabled()).isFalse();
+    pattern2 = proprietaryComponentNamePatternDAO.getById(pattern2.getId());
+    assertThat(pattern2.isEnabled()).isFalse();
+    assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM)).hasSize(2);
+  }
+
+  @Test
   public void testAddProprietaryComponentNames_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class)

@@ -51,14 +51,24 @@ public class ProprietaryComponentNameDetector
   }
 
   private ComponentNameMatcher getMatcher(String format) {
+    return new ComponentNameMatcher(format, proprietaryComponentNamePatternDAO.getEnabledByFormat(format));
+  }
+
+  private ComponentNameMatcher getMatcherWithDisabledPatterns(String format) {
     return new ComponentNameMatcher(format, proprietaryComponentNamePatternDAO.getByFormat(format));
   }
 
+  /**
+   * This method is intended to be called by NXRM/Artifactory when they push Namespace Confusion Protection patterns to
+   * IQ. The patterns may already exists in IQ and they may be disabled.
+   * This method should not change the enabled/disabled state of the existing patterns.
+   * 
+   * @return The number of new patterns added
+   */
   public int addPatterns(String format, Collection<ProprietaryComponentNamePattern> patterns) {
-    Collection<ProprietaryComponentNamePattern> newlyAdded = getMatcher(format).add(patterns);
-    if (!newlyAdded.isEmpty()) {
-      log.debug("Adding {} new proprietary component names ({})", newlyAdded.size(), format);
-    }
+    Collection<ProprietaryComponentNamePattern> newlyAdded = getMatcherWithDisabledPatterns(format).add(patterns);
+    log.debug("Adding {} new proprietary component names ({})", newlyAdded.size(), format);
+
     int inserted = 0;
     for (ProprietaryComponentNamePattern pattern : newlyAdded) {
       try {

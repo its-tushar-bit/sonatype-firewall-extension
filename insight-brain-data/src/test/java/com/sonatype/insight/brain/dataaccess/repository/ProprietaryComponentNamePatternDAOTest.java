@@ -41,9 +41,9 @@ public class ProprietaryComponentNamePatternDAOTest
 
   @Test
   public void testCRD() {
+    // Insert
     ProprietaryComponentNamePattern pattern =
-        new ProprietaryComponentNamePattern("npm").withNamespacePattern("@sonatype").withRepository(repoManId, repoId);
-    dao.insert(pattern);
+        tempEntity.newProprietaryComponentNamePattern(repoManId, repoId, "npm", "@sonatype", null);
 
     pattern = dao.getById(pattern.getId());
     assertThat(pattern.getFormat()).isEqualTo("npm");
@@ -51,7 +51,16 @@ public class ProprietaryComponentNamePatternDAOTest
     assertThat(pattern.getNamePattern()).isNull();
     assertThat(pattern.getRepositoryManagerInstanceId()).isEqualTo(repoManId);
     assertThat(pattern.getRepositoryPublicId()).isEqualTo(repoId);
+    assertThat(pattern.isEnabled()).isTrue();
 
+    // Update
+    pattern.setEnabled(false);
+    dao.update(pattern);
+
+    pattern = dao.getById(pattern.getId());
+    assertThat(pattern.isEnabled()).isFalse();
+
+    // Delete
     dao.delete(pattern);
 
     assertThat(dao.getById(pattern.getId())).isNull();
@@ -72,12 +81,16 @@ public class ProprietaryComponentNamePatternDAOTest
 
   @Test
   public void testGetByFormat() {
+    // Enabled npm pattern
     ProprietaryComponentNamePattern pattern1 =
         new ProprietaryComponentNamePattern("npm").withNamespacePattern("@sonatype").withRepository(repoManId, repoId);
     dao.insert(pattern1);
+    // Disabled npm pattern
     ProprietaryComponentNamePattern pattern2 =
         new ProprietaryComponentNamePattern("npm").withNamePattern("sonatype").withRepository(repoManId, repoId);
+    pattern2.setEnabled(false);
     dao.insert(pattern2);
+    // Enabled nuget pattern
     ProprietaryComponentNamePattern pattern3 =
         new ProprietaryComponentNamePattern("nuget").withNamePattern("sonatype").withRepository(repoManId, repoId);
     dao.insert(pattern3);
@@ -85,6 +98,28 @@ public class ProprietaryComponentNamePatternDAOTest
     assertThat(dao.getByFormat("npm")).extracting(ProprietaryComponentNamePattern::getId)
         .containsExactlyInAnyOrder(pattern1.getId(), pattern2.getId());
     assertThat(dao.getByFormat("nuget")).extracting(ProprietaryComponentNamePattern::getId)
+        .containsExactlyInAnyOrder(pattern3.getId());
+  }
+
+  @Test
+  public void testGetEnabledByFormat() {
+    // Enabled npm pattern
+    ProprietaryComponentNamePattern pattern1 =
+        new ProprietaryComponentNamePattern("npm").withNamespacePattern("@sonatype").withRepository(repoManId, repoId);
+    dao.insert(pattern1);
+    // Disabled npm pattern
+    ProprietaryComponentNamePattern pattern2 =
+        new ProprietaryComponentNamePattern("npm").withNamePattern("sonatype").withRepository(repoManId, repoId);
+    pattern2.setEnabled(false);
+    dao.insert(pattern2);
+    // Enabled nuget pattern
+    ProprietaryComponentNamePattern pattern3 =
+        new ProprietaryComponentNamePattern("nuget").withNamePattern("sonatype").withRepository(repoManId, repoId);
+    dao.insert(pattern3);
+
+    assertThat(dao.getEnabledByFormat("npm")).extracting(ProprietaryComponentNamePattern::getId)
+        .containsExactlyInAnyOrder(pattern1.getId());
+    assertThat(dao.getEnabledByFormat("nuget")).extracting(ProprietaryComponentNamePattern::getId)
         .containsExactlyInAnyOrder(pattern3.getId());
   }
 
@@ -483,5 +518,6 @@ public class ProprietaryComponentNamePatternDAOTest
     assertThat(actual.getRepositoryManagerInstanceId()).isEqualTo(expected.getRepositoryManagerInstanceId());
     assertThat(actual.getRepositoryPublicId()).isEqualTo(expected.getRepositoryPublicId());
     assertThat(actual.getFormat()).isEqualTo(expected.getFormat());
+    assertThat(actual.isEnabled()).isEqualTo(expected.isEnabled());
   }
 }

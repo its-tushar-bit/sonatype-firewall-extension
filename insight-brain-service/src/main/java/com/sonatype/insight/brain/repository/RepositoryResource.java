@@ -10,6 +10,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -54,6 +55,9 @@ public class RepositoryResource
   static final String POLICY_VIOLATION_PATH = REPOSITORY_PATH + "/policyViolation/{repositoryPolicyViolationId}";
 
   static final String PROPRIETARY_COMPONENT_NAME_PATTERN_PATH = "proprietaryComponentNamePatterns";
+
+  static final String PROPRIETARY_COMPONENT_NAME_PATTERN_UPDATE_PATH =
+      PROPRIETARY_COMPONENT_NAME_PATTERN_PATH + "/update";
 
   private RepositoryService repositoryService;
 
@@ -167,11 +171,25 @@ public class RepositoryResource
    */
   @POST
   @Path(PROPRIETARY_COMPONENT_NAME_PATTERN_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
   public ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatterns(
       ProprietaryComponentNamePatternRequest request)
   {
     return repositoryService.getProprietaryComponentNamePatterns(request);
+  }
+
+  /**
+   * @since 1.157
+   */
+  @POST
+  @Path(PROPRIETARY_COMPONENT_NAME_PATTERN_UPDATE_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Timed
+  public void updateProprietaryComponentNamePattern(
+      ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO)
+  {
+    repositoryService.updateProprietaryComponentNamePattern(proprietaryComponentNamePatternDTO);
   }
 }

@@ -29,13 +29,14 @@ public class ProprietaryComponentNamePatternDAO
     return get(tx, sQuery, id);
   }
 
-  @Override
-  public void update(TransactionContext tx, ProprietaryComponentNamePattern entity) {
-    throw new UnsupportedOperationException();
-  }
-
   public List<ProprietaryComponentNamePattern> getByFormat(String format) {
     String sQuery = "SELECT entity FROM ProprietaryComponentNamePattern entity WHERE entity.format = ?1";
+    return getList(sQuery, format);
+  }
+
+  public List<ProprietaryComponentNamePattern> getEnabledByFormat(String format) {
+    String sQuery = "SELECT entity FROM ProprietaryComponentNamePattern entity" + //
+        " WHERE entity.format = ?1 AND entity.enabled = true";
     return getList(sQuery, format);
   }
 
@@ -54,6 +55,20 @@ public class ProprietaryComponentNamePatternDAO
     createQuery(sQuery, repositoryManagerInstanceId, repositoryPublicId).executeUpdate();
   }
 
+  @Override
+  public final void delete(ProprietaryComponentNamePattern entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting all patterns for a repository or repository manager.
+    super.delete(entity);
+  }
+
+  @Override
+  public final void delete(TransactionContext tx, ProprietaryComponentNamePattern entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting all patterns for a repository or repository manager.
+    super.delete(tx, entity);
+  }
+
   public List<ProprietaryComponentNamePattern> getByFilter(
       ProprietaryComponentNamePatternFilter filter)
   {
@@ -65,7 +80,8 @@ public class ProprietaryComponentNamePatternDAO
         "name_pattern, " + //
         "CONCAT(namespace_pattern, name_pattern) as pattern, " + // to be able to sort and filter on both fields
         "repository_manager_instance_id, " + //
-        "repository_public_id" + //
+        "repository_public_id, " + //
+        "enabled" + //
         " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".proprietary_component_name_pattern";
     String sQuery = "SELECT proprietary_component_name_pattern_id, " + //
         "format, " + //
@@ -73,7 +89,8 @@ public class ProprietaryComponentNamePatternDAO
         "name_pattern, " + //
         "pattern, " + //
         "repository_manager_instance_id, " + //
-        "repository_public_id" + //
+        "repository_public_id, " + //
+        "enabled" + //
         " FROM (" + innerSelect + ")";
 
     // Filters
@@ -147,7 +164,8 @@ public class ProprietaryComponentNamePatternDAO
               (String) array[3], // namePattern
               // Skip 4 - the concatenated namespacePattern+namePattern
               (String) array[5], // repositoryManagerInstanceId
-              (String) array[6])) // repositoryPublicId
+              (String) array[6], // repositoryPublicId
+              (boolean) array[7])) // enabled
           .collect(Collectors.toList());
 
       return results;

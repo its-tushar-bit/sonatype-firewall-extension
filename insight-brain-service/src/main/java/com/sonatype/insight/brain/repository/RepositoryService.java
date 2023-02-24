@@ -16,6 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -416,8 +417,35 @@ public class RepositoryService
     return result;
   }
 
+  public void updateProprietaryComponentNamePattern(
+      ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO)
+  {
+    checkWritePermission(RepositoryContainer.SINGLETON);
+
+    if (proprietaryComponentNamePatternDTO == null) {
+      throw new BadRequestException("Missing request parameters");
+    }
+
+    log.debug("Updating proprietary component name pattern: {}", proprietaryComponentNamePatternDTO);
+
+    ProprietaryComponentNamePattern proprietaryComponentNamePattern =
+        proprietaryComponentNamePatternDAO.getById(proprietaryComponentNamePatternDTO.id);
+    if (proprietaryComponentNamePattern == null) {
+      throw new NotFoundException(
+          "Cannot find a proprietary component name pattern with ID=" + proprietaryComponentNamePatternDTO.id);
+    }
+
+    // Only the enabled flag can be updated
+    proprietaryComponentNamePattern.setEnabled(proprietaryComponentNamePatternDTO.enabled);
+    proprietaryComponentNamePatternDAO.update(proprietaryComponentNamePattern);
+  }
+
   @Authorize(permission = Permission.READ)
   void checkReadPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  void checkWritePermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
   }
 
   public boolean checkReadPermissionRepositoryContainer() {

@@ -138,6 +138,35 @@ public class ProprietaryComponentNameDetectorTest
   }
 
   @Test
+  public void testAddPatterns_DoesNotChangePatternEnabledStatus() {
+    ProprietaryComponentNamePattern pattern = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId,
+        ComponentIdentifier.FORMAT_NPM, null /* namespacePattern */, "testNamePattern");
+    assertThat(pattern.isEnabled()).isTrue();
+
+    // Enabled pattern
+    assertThat(proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM, Arrays.asList(pattern)))
+        .isEqualTo(0);
+    pattern = proprietaryComponentNamePatternDAO.getById(pattern.getId());
+    assertThat(pattern.isEnabled()).isTrue();
+
+    // Disabled pattern
+    pattern.setEnabled(false);
+    proprietaryComponentNamePatternDAO.update(pattern);
+    assertThat(proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM, Arrays.asList(pattern)))
+        .isEqualTo(0);
+    pattern = proprietaryComponentNamePatternDAO.getById(pattern.getId());
+    assertThat(pattern.isEnabled()).isFalse();
+
+    // Back to enabled pattern
+    pattern.setEnabled(true);
+    proprietaryComponentNamePatternDAO.update(pattern);
+    assertThat(proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM, Arrays.asList(pattern)))
+        .isEqualTo(0);
+    pattern = proprietaryComponentNamePatternDAO.getById(pattern.getId());
+    assertThat(pattern.isEnabled()).isTrue();
+  }
+
+  @Test
   public void testRemovePatterns_ForSpecificRepo() {
     ProprietaryComponentNamePattern pattern = new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
         .withNamePattern("sonatype*").withRepository(repoManId, repoId);

@@ -36,6 +36,9 @@ public class ProprietaryComponentNamePattern
   @Column(name = "repository_public_id")
   private String repositoryPublicId;
 
+  @Column(name = "enabled")
+  private boolean enabled = true;
+
   public ProprietaryComponentNamePattern() {
   }
 
@@ -49,7 +52,8 @@ public class ProprietaryComponentNamePattern
       String namespacePattern,
       String namePattern,
       String repositoryManagerInstanceId,
-      String repositoryPublicId)
+      String repositoryPublicId,
+      boolean enabled)
   {
     this.id = id;
     this.format = format;
@@ -57,6 +61,7 @@ public class ProprietaryComponentNamePattern
     this.namePattern = namePattern;
     this.repositoryManagerInstanceId = repositoryManagerInstanceId;
     this.repositoryPublicId = repositoryPublicId;
+    this.enabled = enabled;
   }
 
   @Override
@@ -117,6 +122,14 @@ public class ProprietaryComponentNamePattern
 
   public void setRepositoryPublicId(String repositoryPublicId) {
     this.repositoryPublicId = repositoryPublicId;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
   }
 
   public ProprietaryComponentNamePattern withRepository(String repositoryManagerInstanceId, String repositoryPublicId) {

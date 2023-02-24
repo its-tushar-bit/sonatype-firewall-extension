@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -29,7 +30,6 @@ import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePatte
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
-import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -222,12 +222,10 @@ public class RepositoryResourceTest
 
   @Test
   public void testGetProprietaryComponentNamePatterns() throws Exception {
-    RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    repo = tempEntity.newRepository(repoManager, "testRepoPublicId");
     ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(
-        repoManager.getInstanceId(), repo.getPublicId(), "maven", "testNamespacePattern1", "testNamePattern1");
+        "repoManagerInstanceId", "repoPublicId", "maven", "testNamespacePattern1", "testNamePattern1");
     tempEntity.newProprietaryComponentNamePattern(
-        repoManager.getInstanceId(), repo.getPublicId(), "maven", "testNamespacePattern2", "testNamePattern2");
+        "repoManagerInstanceId", "repoPublicId", "maven", "testNamespacePattern2", "testNamePattern2");
     ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
     request.page = 1;
     request.pageSize = 1;
@@ -251,10 +249,30 @@ public class RepositoryResourceTest
     ProprietaryComponentNamePatternDTO patternDTO =
         proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns.get(0);
     assertThat(patternDTO.id).isEqualTo(pattern1.getId());
-    assertThat(patternDTO.repositoryManagerInstanceId).isEqualTo(repoManager.getInstanceId());
-    assertThat(patternDTO.repositoryPublicId).isEqualTo(repo.getPublicId());
+    assertThat(patternDTO.repositoryManagerInstanceId).isEqualTo("repoManagerInstanceId");
+    assertThat(patternDTO.repositoryPublicId).isEqualTo("repoPublicId");
     assertThat(patternDTO.format).isEqualTo(pattern1.getFormat());
     assertThat(patternDTO.namespacePattern).isEqualTo(pattern1.getNamespacePattern());
     assertThat(patternDTO.namePattern).isEqualTo(pattern1.getNamePattern());
+    assertThat(patternDTO.enabled).isEqualTo(pattern1.isEnabled());
+  }
+
+  @Test
+  public void testUpdateProprietaryComponentNamePattern() throws Exception {
+    ProprietaryComponentNamePattern pattern = tempEntity.newProprietaryComponentNamePattern(
+        "repoManagerInstanceId", "repoPublicId", "maven", "testNamespacePattern", "testNamePattern");
+    ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO =
+        new ProprietaryComponentNamePatternDTO(pattern);
+    proprietaryComponentNamePatternDTO.enabled = false;
+    // Sanity check
+    assertThat(new ProprietaryComponentNamePatternDAO().getById(pattern.getId()).isEnabled()).isTrue();
+
+    HttpResponse response =
+        restRequest()
+            .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_UPDATE_PATH)
+            .body(proprietaryComponentNamePatternDTO).post();
+
+    assertResponseStatus(204, response);
+    assertThat(new ProprietaryComponentNamePatternDAO().getById(pattern.getId()).isEnabled()).isFalse();
   }
 }

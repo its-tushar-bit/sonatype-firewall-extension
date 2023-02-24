@@ -22,6 +22,7 @@ public class ProprietaryComponentNamePatternDTO
     namePattern = proprietaryComponentNamePattern.getNamePattern();
     repositoryManagerInstanceId = proprietaryComponentNamePattern.getRepositoryManagerInstanceId();
     repositoryPublicId = proprietaryComponentNamePattern.getRepositoryPublicId();
+    enabled = proprietaryComponentNamePattern.isEnabled();
   }
 
   public String id;
@@ -35,4 +36,13 @@ public class ProprietaryComponentNamePatternDTO
   public String repositoryManagerInstanceId;
 
   public String repositoryPublicId;
+
+  public boolean enabled;
+
+  @Override
+  public String toString() {
+    return "ProprietaryComponentNamePatternDTO [id=" + id + ", format=" + format + ", namespacePattern="
+        + namespacePattern + ", namePattern=" + namePattern + ", repositoryManagerInstanceId="
+        + repositoryManagerInstanceId + ", repositoryPublicId=" + repositoryPublicId + ", enabled=" + enabled + "]";
+  }
 }

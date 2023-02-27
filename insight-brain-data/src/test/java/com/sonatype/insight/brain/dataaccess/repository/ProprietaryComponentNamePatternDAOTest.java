@@ -13,8 +13,11 @@ import javax.persistence.EntityExistsException;
 import javax.persistence.PersistenceException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -509,6 +512,44 @@ public class ProprietaryComponentNamePatternDAOTest
     assertThat(result).hasSize(2);
     assertPattern(result.get(0), pattern2);
     assertPattern(result.get(1), pattern1);
+  }
+
+  @Test
+  public void testGetByFilter_FiltersAndSorting_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+
+      RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager("testInstanceId1");
+      ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(
+          repositoryManager1.getInstanceId(), repoId, "maven", "testNamespacePattern1", "");
+      RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager("testInstanceId2");
+      ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(
+          repositoryManager2.getInstanceId(), repoId, "maven", "testNamespacePattern1", "");
+      RepositoryManager repositoryManager3 = tempEntity.newRepositoryManager("testInstanceId3");
+      tempEntity.newProprietaryComponentNamePattern(repositoryManager3.getInstanceId(), repoId, "maven",
+          "testNamespacePattern3", "");
+
+      ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
+      filter.page = 1;
+      filter.pageSize = 3;
+
+      // Filter on namespace and sort on repo manager instance ID DESC
+      filter.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
+          ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+          "testNamespacePattern1"));
+      filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+          ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID, false /* asc */,
+          1 /* sortPriority */));
+
+      List<ProprietaryComponentNamePattern> result = dao.getByFilter(filter);
+      assertThat(result).hasSize(2);
+      assertPattern(result.get(0), pattern2);
+      assertPattern(result.get(1), pattern1);
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 
   private void assertPattern(ProprietaryComponentNamePattern actual, ProprietaryComponentNamePattern expected) {

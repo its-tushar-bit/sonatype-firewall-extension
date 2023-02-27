@@ -91,7 +91,7 @@ public class ProprietaryComponentNamePatternDAO
         "repository_manager_instance_id, " + //
         "repository_public_id, " + //
         "enabled" + //
-        " FROM (" + innerSelect + ")";
+        " FROM (" + innerSelect + ") AS inner_sql";
 
     // Filters
     List<String> queryParams = new ArrayList<>();

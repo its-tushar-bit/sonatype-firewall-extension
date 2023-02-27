@@ -319,14 +319,12 @@ public class ApiComponentReleaseQuarantineServiceTest
           .isEqualTo(repositoryComponent.getComponentIdentifier());
       assertThat(repositoryComponentDTO.packageUrl)
           .isEqualTo(PackageUrlIdentifier.toPackageUrl(repositoryComponent.getComponentIdentifier()));
-      assertThat(repositoryComponentDTO.displayName).isEqualTo(
-          ComponentDisplayNameUtil.fromIdentifier(repositoryComponent.getComponentIdentifier()).toString());
     }
     else {
       assertThat(repositoryComponentDTO.componentIdentifier).isNull();
       assertThat(repositoryComponentDTO.packageUrl).isNull();
-      assertThat(repositoryComponentDTO.displayName).isNull();
     }
+    assertThat(repositoryComponentDTO.displayName).isEqualTo(repositoryComponent.getDisplayName());
     assertThat(repositoryComponentDTO.proprietary).isNull();
     assertThat(repositoryComponentDTO.quarantineTime).isEqualTo(quarantineTime);
     assertThat(repositoryComponentDTO.quarantineReleaseTime).isAfter(quarantineTime);

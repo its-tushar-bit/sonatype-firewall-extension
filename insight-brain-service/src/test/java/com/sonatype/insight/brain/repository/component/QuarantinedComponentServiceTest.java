@@ -236,7 +236,7 @@ public class QuarantinedComponentServiceTest
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
         quarantinedComponentService.getQuarantinedComponentOverview(encodedToken);
 
-    assertThat(quarantinedComponentOverviewDto.componentDisplayName).isEqualTo("testPathname");
+    assertThat(quarantinedComponentOverviewDto.componentDisplayName).isEqualTo("testPathname (testPathname)");
     assertThat(quarantinedComponentOverviewDto.isQuarantined).isTrue();
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(2);
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo(repository.getPublicId());

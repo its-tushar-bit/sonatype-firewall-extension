@@ -22,7 +22,6 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -126,7 +125,7 @@ public class QuarantinedComponentService
     checkAccess(repositoryComponent);
 
     final QuarantinedComponentOverviewDto quarantinedComponentOverviewDto = new QuarantinedComponentOverviewDto();
-    quarantinedComponentOverviewDto.componentDisplayName = getComponentDisplayName(repositoryComponent);
+    quarantinedComponentOverviewDto.componentDisplayName = repositoryComponent.getDisplayName();
     if (repositoryComponent.getComponentIdentifier() != null) {
       quarantinedComponentOverviewDto.componentVersion =
           repositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION);
@@ -230,7 +229,7 @@ public class QuarantinedComponentService
     List<String> otherVersionComponentDisplayNames =
         otherVersionComponents.stream()
             .sorted(comparator)
-            .map(this::getComponentDisplayName)
+            .map(RepositoryComponent::getDisplayName)
             .skip(skipCount).limit(pageSize).collect(Collectors.toList());
 
     return new ApiPageResult<>(otherVersionComponents.size(), page, pageSize, otherVersionComponentDisplayNames);
@@ -243,14 +242,6 @@ public class QuarantinedComponentService
       return StringUtils.join(Arrays.copyOf(arr, arr.length - 2), PATHNAME_SEPARATOR) + PATHNAME_SEPARATOR;
     }
     return pathname;
-  }
-
-  private String getComponentDisplayName(RepositoryComponent repositoryComponent) {
-    ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
-    if (componentIdentifier == null) {
-      return repositoryComponent.getPathname();
-    }
-    return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
   }
 
   private int getQuarantinedPolicyViolationsCount(RepositoryComponent repositoryComponent) {

@@ -14,8 +14,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayName;
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -228,9 +226,7 @@ public class ApiComponentReleaseQuarantineService
     repositoryComponentDTO.componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     repositoryComponentDTO.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
-    ComponentDisplayName componentDisplayName =
-        ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
-    repositoryComponentDTO.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
+    repositoryComponentDTO.displayName = repositoryComponent.getDisplayName();
     repositoryComponentDTO.hash = repositoryComponent.getHash();
     repositoryComponentDTO.proprietary = null;
     repositoryComponentDTO.quarantineTime = repositoryComponent.getQuarantineTime();

@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryCompon
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -569,6 +570,41 @@ public class ApiFirewallServiceTest
     final ApiFirewallComponentDTO componentDTO1 = unquarantineList.getResults().get(0);
     assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, june2nd2020);
     assertRepositoryComponentZeroViolations(unquarantineList.getResults().get(1), june2nd2020, june3rd2020);
+  }
+
+  @Test
+  public void testGetComponents_UnknownComponent() {
+    Date date = new Date();
+    Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager(), "testRepo", true, true);
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
+        "testPathName", "testHash", null /* componentIdentifier */, date, date);
+    Policy policy = tempEntity.newPolicy();
+    RepositoryPolicyViolation policyViolation =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy, component, tempEntity);
+
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.QUARANTINE,
+            FirewallSortableField.QUARANTINE_TIME, true /* asc */, Collections.emptyList());
+
+    ApiPageResult<ApiFirewallComponentDTO> result = apiFirewallService.getComponents(filter);
+
+    assertThat(result.getTotal()).isEqualTo(1);
+    assertThat(result.getResults()).hasSize(1);
+
+    ApiFirewallComponentDTO apiFirewallComponentDTO = result.getResults().get(0);
+    assertThat(apiFirewallComponentDTO.displayName).isEqualTo("testPathName (testPathName)");
+    assertThat(apiFirewallComponentDTO.repository).isEqualTo(repository.getPublicId());
+    assertThat(apiFirewallComponentDTO.dateCleared).isNull();
+    assertThat(apiFirewallComponentDTO.quarantineDate).isEqualTo(date);
+    assertThat(apiFirewallComponentDTO.componentIdentifier).isNull();
+    assertThat(apiFirewallComponentDTO.pathname).isEqualTo("testPathName");
+    assertThat(apiFirewallComponentDTO.hash).isEqualTo("testHash");
+    assertThat(apiFirewallComponentDTO.matchState).isEqualTo(MatchState.UNKNOWN.getId());
+    assertThat(apiFirewallComponentDTO.repositoryId).isEqualTo(repository.getId());
+    assertThat(apiFirewallComponentDTO.quarantined).isTrue();
+    assertThat(apiFirewallComponentDTO.quarantinePolicyViolations).hasSize(1);
+    PolicyViolationTestHelper.assertApiPolicyViolationDTOV2(apiFirewallComponentDTO.quarantinePolicyViolations.get(0),
+        policyViolation);
   }
 
   @Test

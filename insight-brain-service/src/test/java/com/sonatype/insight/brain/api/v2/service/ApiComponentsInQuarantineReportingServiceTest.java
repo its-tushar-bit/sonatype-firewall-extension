@@ -12,7 +12,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentsInQuarantineDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
@@ -80,6 +79,20 @@ public class ApiComponentsInQuarantineReportingServiceTest
         "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
     RepositoryPolicyViolation policyViolation = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component, tempEntity);
+
+    ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
+
+    assertThereIsOnlyOneRepositoryAndOnlyOneComponentAndOnlyOnePolicyViolation(componentsInQuarantineDTO, repository,
+        component, policyViolation);
+  }
+
+  @Test
+  public void testGetComponentsInQuarantine_UnknownComponent() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
+        "testPathname", "testHash", null /* componentIdentifier */, new Date(), new Date());
+    RepositoryPolicyViolation policyViolation =
+        PolicyViolationTestHelper.createPolicyViolationFail(policy1, component, tempEntity);
 
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = service.getComponentsInQuarantine();
 
@@ -305,11 +318,14 @@ public class ApiComponentsInQuarantineReportingServiceTest
         expectedComponent.getComponentIdentifier()));
     assertThat(repositoryComponentDTO.hash).isEqualTo(expectedComponent.getHash());
 
-    ComponentIdentifier expectedComponentIdentifier = expectedComponent.getComponentIdentifier();
-    assertThat(repositoryComponentDTO.componentIdentifier.toComponentIdentifier())
-        .isEqualTo(expectedComponentIdentifier);
-    assertThat(repositoryComponentDTO.displayName)
-        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponentIdentifier).toString());
+    if (expectedComponent.getComponentIdentifier() == null) {
+      assertThat(repositoryComponentDTO.componentIdentifier).isNull();
+    }
+    else {
+      assertThat(repositoryComponentDTO.componentIdentifier.toComponentIdentifier())
+          .isEqualTo(expectedComponent.getComponentIdentifier());
+    }
+    assertThat(repositoryComponentDTO.displayName).isEqualTo(expectedComponent.getDisplayName());
 
     assertThat(repositoryComponentDTO.quarantineId).isEqualTo(expectedComponent.getId());
     assertThat(repositoryComponentDTO.quarantineTime).isEqualTo(expectedComponent.getQuarantineTime());

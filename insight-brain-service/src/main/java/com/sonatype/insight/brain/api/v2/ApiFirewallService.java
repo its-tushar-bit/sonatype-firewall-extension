@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
@@ -315,8 +314,7 @@ public class ApiFirewallService
     // for each component, attach policy violations for that component
     for (RepositoryComponent component : autoUnquarantinedComponents) {
       final ApiFirewallComponentDTO apiFirewallComponentDTO = new ApiFirewallComponentDTO();
-      apiFirewallComponentDTO.displayName =
-          ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier()).toString();
+      apiFirewallComponentDTO.displayName = component.getDisplayName();
       apiFirewallComponentDTO.repository = repositoryMap.get(component.getRepositoryId()).getPublicId();
       apiFirewallComponentDTO.dateCleared = component.getUnquarantineTime();
       apiFirewallComponentDTO.quarantineDate = component.getQuarantineTime();

@@ -54,7 +54,7 @@ public class DatabaseProvisionUtils
     initializeDatabasesWithoutMigration(new DatabaseConfigProvider(insightConfig));
   }
 
-  private void initializeDatabasesWithoutMigration(DatabaseConfigProvider databaseConfigProvider) {
+  public void initializeDatabasesWithoutMigration(DatabaseConfigProvider databaseConfigProvider) {
     DatabaseConfig odsDatabaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.ods);
     operationalDataStore.initWithoutMigration(odsDatabaseConfig);
 

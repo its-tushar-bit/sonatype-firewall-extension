@@ -14,6 +14,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -42,7 +43,7 @@ public class TenantManager
 
   private final Collection<TenantManaged> tenantManagedBeans;
 
-  private final InsightConfig insightConfig;
+  private final MultiTenantDatabaseConfigProvider multiTenantDatabaseConfigProvider;
 
   // This is a provider to prevent circular dependencies between Guice beans
   private final Provider<TenantLifecycle> tenantLifecycle;
@@ -60,10 +61,11 @@ public class TenantManager
       final TenantValidator tenantValidator)
   {
     this.tenantManagedBeans = tenantManagedBeans;
-    this.insightConfig = insightConfig;
     this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.tenantValidator = tenantValidator;
+
+    multiTenantDatabaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
   }
 
   public Tenant getTenant() {
@@ -126,7 +128,7 @@ public class TenantManager
     log.info("Registering tenant {}", tenant.tenantSlug);
 
     long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
-        () -> databaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
+        () -> databaseProvisionUtils.initializeDatabasesWithoutMigration(multiTenantDatabaseConfigProvider));
 
     start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
 

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.admin;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.service.DatabaseConfigProvider;
+import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
@@ -31,7 +31,7 @@ public class TenantProvisioningService
 
   private final DatabaseProvisionUtils databaseProvisionUtils;
 
-  private final DatabaseConfigProvider databaseConfigProvider;
+  private final MultiTenantDatabaseConfigProvider databaseConfigProvider;
 
   private final TenantUtil tenantUtil;
 
@@ -41,7 +41,6 @@ public class TenantProvisioningService
   public TenantProvisioningService(
       InsightConfig insightConfig,
       DatabaseProvisionUtils databaseProvisionUtils,
-      DatabaseConfigProvider databaseConfigProvider,
       TenantUtil tenantUtil,
       TenantValidator tenantValidator)
   {
@@ -49,7 +48,8 @@ public class TenantProvisioningService
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
-    this.databaseConfigProvider = databaseConfigProvider;
+
+    databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
   }
 
   /**

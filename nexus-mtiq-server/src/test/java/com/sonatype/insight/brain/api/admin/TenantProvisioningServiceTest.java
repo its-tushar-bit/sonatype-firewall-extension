@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import com.sonatype.insight.brain.service.DatabaseConfigProvider;
+import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,9 +38,6 @@ public class TenantProvisioningServiceTest
   private DatabaseProvisionUtils databaseProvisionUtils;
 
   @Mock
-  private DatabaseConfigProvider databaseConfigProvider;
-
-  @Mock
   private TenantValidator tenantValidator;
 
   private TenantUtil tenantUtil;
@@ -51,7 +49,7 @@ public class TenantProvisioningServiceTest
   public void setup() {
     super.setup();
     tenantUtil = new TenantUtil();
-    underTest = new TenantProvisioningService(insightConfig, databaseProvisionUtils, databaseConfigProvider, tenantUtil,
+    underTest = new TenantProvisioningService(insightConfig, databaseProvisionUtils, tenantUtil,
         tenantValidator);
   }
 
@@ -62,7 +60,8 @@ public class TenantProvisioningServiceTest
 
       underTest.provisionTenant(TENANT_NAME);
 
-      verify(databaseProvisionUtils).initializeDatabases(insightConfig, databaseConfigProvider);
+      verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
+          any(MultiTenantDatabaseConfigProvider.class));
     });
   }
 

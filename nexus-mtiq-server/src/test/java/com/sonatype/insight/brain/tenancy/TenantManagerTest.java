@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -25,7 +26,7 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSe
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -206,7 +207,7 @@ public class TenantManagerTest
 
     verify(job).register();
     verify(lifecycle).bootTenant();
-    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration(eq(config));
+    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration(any(MultiTenantDatabaseConfigProvider.class));
   }
 
   private static class MockTenantManaged

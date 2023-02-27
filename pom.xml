@@ -329,7 +329,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>24.1.1-jre</version>
+        <version>31.1-jre</version>
         <exclusions>
           <exclusion>
             <groupId>com.google.code.findbugs</groupId>
@@ -345,11 +345,7 @@
           </exclusion>
           <exclusion>
             <groupId>org.checkerframework</groupId>
-            <artifactId>checker-compat-qual</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>animal-sniffer-annotations</artifactId>
+            <artifactId>checker-qual</artifactId>
           </exclusion>
         </exclusions>
       </dependency>

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -41,6 +43,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class SourceControlDAO
     extends AbstractOperationalSqlDAO<SourceControl>
 {
+  public static final int EXTERNAL_EVALUATION_WINDOW_IN_DAYS = 7;
+
   // Visible for tests
   static final long PULL_REQUEST_POLLING_INITIAL_OFFSET_MS = 1000L * 60 * 60 * 72; // 72 hours
 
@@ -63,11 +67,15 @@ public class SourceControlDAO
       "     JOIN _SCHEMA_.policy_evaluation pe ON pe.policy_evaluation_id = lpe.policy_evaluation_id" +
       "     WHERE lpe.stage_type_id='source' " +
       ") lpe ON lpe.application_id = sc.owner_id " +
-      "WHERE ( lpe.time < ?1 " +
-      "        AND lpe.scan_trigger_type " +
-      "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING', " +
-      "                'SOURCE_CONTROL_INTERNAL_PULL_REQUEST'))" +
-      // Here we retrieve applications that don't have a first source policy evaluation
+      "WHERE " +
+      // Either: last source stage PE is internally triggered, but not by DBM, and it's older than the DBM run window
+      "( lpe.time < ?1 AND lpe.scan_trigger_type " +
+      "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_PULL_REQUEST') ) " +
+      // Or: the last source stage PE is triggered by SC API, and it's older than the external eval. window (7 days)
+      "      OR ( lpe.time < ?2 AND lpe.scan_trigger_type = 'SOURCE_CONTROL_API' ) " +
+      // Or: the last source stage PE is triggered by DBM; we'll keep doing DBM for this app
+      "      OR lpe.scan_trigger_type = 'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING' " +
+      // Or: we don't have any source-stage PE
       // This case happens if the user manually creates the application with source control information
       "      OR lpe.application_id IS NULL ";
 
@@ -601,9 +609,13 @@ public class SourceControlDAO
   public List<SourceControl> getCompositeSourceControlForOutdatedSourceScans(
       final Date scanLimitDate)
   {
+    Date externalEvaluationLimitDate = Date.from(
+        LocalDateTime.now().minusDays(EXTERNAL_EVALUATION_WINDOW_IN_DAYS).atZone(ZoneId.systemDefault()).toInstant());
+
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query = tx.createNativeQuery(injectSchemaName(SELECT_APPLICATIONS_FOR_SOURCE_SCAN));
       query.setParameter(1, scanLimitDate);
+      query.setParameter(2, externalEvaluationLimitDate);
       List<String> initialOwnerIdList = query.getResultList();
       return expandToCompositeSourceControlEntries(initialOwnerIdList);
     }

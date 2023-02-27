@@ -119,7 +119,7 @@ public class DefaultBranchMonitorTest
     defaultBranchMonitor.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(defaultBranchMonitor,
-        Duration.ofHours(12),
+        Duration.ofHours(24),
         expectedStartTime);
   }
 
@@ -199,7 +199,7 @@ public class DefaultBranchMonitorTest
     defaultBranchMonitor.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(defaultBranchMonitor,
-        Duration.ofHours(12),
+        Duration.ofHours(24),
         defaultBranchMonitor.getDefaultBranchMonitorStartTime(new SourceControlConfiguration()));
   }
 
@@ -212,7 +212,7 @@ public class DefaultBranchMonitorTest
     configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock).schedulePeriodicTask(defaultBranchMonitor,
-        Duration.ofHours(12),
+        Duration.ofHours(24),
         defaultBranchMonitor.getDefaultBranchMonitorStartTime(sourceControlConfiguration));
   }
 
@@ -225,7 +225,7 @@ public class DefaultBranchMonitorTest
     configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock).schedulePeriodicTask(defaultBranchMonitor,
-        Duration.ofHours(6),
+        Duration.ofHours(12),
         defaultBranchMonitor.getDefaultBranchMonitorStartTime(sourceControlConfiguration));
   }
 

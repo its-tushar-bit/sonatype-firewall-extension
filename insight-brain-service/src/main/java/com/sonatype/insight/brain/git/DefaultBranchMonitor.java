@@ -102,14 +102,8 @@ public class DefaultBranchMonitor
     if (!SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.isEnabled()) {
       return;
     }
-    // If we schedule the task every intervalInHours (as configured),
-    // then apps that have policy evals after now - intervalInHours are not included in the next default branch
-    // monitoring execution,
-    // which means they will be included only in the subsequent execution,
-    // resulting in a policy eval triggered by monitoring every 2 * intervalInHours.
-    // That's why we use half intervalInHours below.
     SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
-    intervalInMinutes = sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() * 60 / 2;
+    intervalInMinutes = sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() * 60;
 
     Date defaultBranchMonitorStartTime = getDefaultBranchMonitorStartTime(sourceControlConfiguration);
     taskScheduler.schedulePeriodicTask(this, Duration.ofMinutes(intervalInMinutes), defaultBranchMonitorStartTime);

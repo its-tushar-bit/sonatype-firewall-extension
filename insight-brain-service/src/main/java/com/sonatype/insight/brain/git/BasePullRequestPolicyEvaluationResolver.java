@@ -10,6 +10,7 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 
 public abstract class BasePullRequestPolicyEvaluationResolver
@@ -19,8 +20,6 @@ public abstract class BasePullRequestPolicyEvaluationResolver
   protected static final Stage SOURCE_STAGE = new Stage(Stage.ID_SOURCE);
 
   protected static final Stage DEVELOP_STAGE = new Stage(Stage.ID_DEVELOP);
-
-  private static final int EXTERNAL_EVALUATION_WINDOW_IN_DAYS = 7;
 
   protected final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -35,7 +34,7 @@ public abstract class BasePullRequestPolicyEvaluationResolver
   }
 
   protected boolean hasExternalPolicyEvaluations(final String applicationId) {
-    OffsetDateTime dateTime = OffsetDateTime.now().minusDays(EXTERNAL_EVALUATION_WINDOW_IN_DAYS);
+    OffsetDateTime dateTime = OffsetDateTime.now().minusDays(SourceControlDAO.EXTERNAL_EVALUATION_WINDOW_IN_DAYS);
     Date cutoffTime = Date.from(dateTime.toInstant());
     return policyEvaluationDAO.hasExternalPolicyEvaluations(applicationId, cutoffTime);
   }

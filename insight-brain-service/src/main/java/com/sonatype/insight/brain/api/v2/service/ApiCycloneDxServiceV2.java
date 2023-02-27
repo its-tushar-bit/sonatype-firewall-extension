@@ -186,22 +186,20 @@ public class ApiCycloneDxServiceV2
           dependenciesData = apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
           addDependencyTree(dependenciesData, bom, new HashSet<>(components));
         }
-        addMetadata(policyEvaluation, dependenciesData, bom);
+        addMetadata(policyEvaluation, dependenciesData, bom, version);
       }
 
       if (MediaType.APPLICATION_JSON.equals(acceptType)) {
         BomJsonGenerator generator = BomGeneratorFactory.createJson(version, bom);
         return Response.ok(generator.toJsonString(), MediaType.APPLICATION_JSON)
             .header(HttpHeaders.CONTENT_DISPOSITION,
-                HttpHeaderUtils.buildContentDispositionHeaderValue(application.getPublicId() + '-' + scanId + ".json"))
-            .build();
+                HttpHeaderUtils.buildContentDispositionHeaderValue(application.getPublicId() + "-bom.json")).build();
       }
       BomXmlGenerator generator = BomGeneratorFactory.createXml(version, bom);
       generator.generate();
       return Response.ok(generator.toXmlString(), MediaType.APPLICATION_XML)
           .header(HttpHeaders.CONTENT_DISPOSITION,
-              HttpHeaderUtils.buildContentDispositionHeaderValue(application.getPublicId() + '-' + scanId + ".xml"))
-          .build();
+              HttpHeaderUtils.buildContentDispositionHeaderValue(application.getPublicId() + "-bom.xml")).build();
     }
     catch (IOException | ParserConfigurationException | GeneratorException e) {
       throw new InternalServerException("An error occurred generating report", e);
@@ -222,12 +220,21 @@ public class ApiCycloneDxServiceV2
   }
 
   private void addMetadata(
-      PolicyEvaluation policyEvaluation,
-      ApiDependencyTreeNodeDTO dependenciesData,
-      Bom bom)
+      final PolicyEvaluation policyEvaluation,
+      final ApiDependencyTreeNodeDTO dependenciesData,
+      final Bom bom,
+      final Version version)
   {
     if (policyEvaluation != null) {
       Metadata metadata = new Metadata();
+
+      if (version.compareTo(Version.VERSION_12) > 0) {
+        Property property = new Property();
+        property.setName("Scan ID");
+        property.setValue(policyEvaluation.getScanId());
+        metadata.addProperty(property);
+      }
+
       metadata.setTimestamp(policyEvaluation.getTime());
       if (dependenciesData != null && dependenciesData.getPackageUrl() != null) {
         ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();

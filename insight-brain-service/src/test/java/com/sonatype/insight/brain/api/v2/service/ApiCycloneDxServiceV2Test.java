@@ -431,6 +431,18 @@ public class ApiCycloneDxServiceV2Test
       assertThat(metadata).isNotNull();
       assertThat(metadata.getTimestamp()).isEqualToIgnoringMillis(policyEvaluation.getTime());
       assertToolVendor(metadata);
+
+      if (version.getVersion() > 1.2) {
+        assertThat(metadata.getProperties()).hasSize(1);
+
+        Property property = new Property();
+        property.setName("Scan ID");
+        property.setValue(scanId);
+        assertThat(metadata.getProperties()).containsExactly(property);
+      }
+      else {
+        assertThat(metadata.getProperties()).isNull();
+      }
     }
   }
 

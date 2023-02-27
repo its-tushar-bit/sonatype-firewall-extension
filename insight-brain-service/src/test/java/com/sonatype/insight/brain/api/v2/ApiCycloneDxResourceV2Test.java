@@ -182,6 +182,18 @@ public class ApiCycloneDxResourceV2Test
   }
 
   @Test
+  public void testGetByReportId_Empty_Json() throws Exception {
+    String sourceReportDir = "/" + getClass().getSimpleName() + "-empty/report";
+    HttpResponse response =
+        getHttpRequestByReportId(
+            ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION,
+            Version.VERSION_14,
+            MediaType.APPLICATION_JSON,
+            sourceReportDir).get();
+    assertValidEmptyResponse(response, "json");
+  }
+
+  @Test
   public void testGetByReportId_With_Version_1_3_Xml() throws Exception {
     HttpResponse response =
         getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_13,
@@ -315,6 +327,13 @@ public class ApiCycloneDxResourceV2Test
     assertThat(bom.getSpecVersion()).isEqualTo(version.getVersionString());
     assertThat(bom.getComponents()).hasSize(3);
     assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(contentType);
+    assertFileName(response);
+  }
+
+  private void assertFileName(HttpResponse response) {
+    String fileName =
+        response.getHeader(HttpHeaders.CONTENT_DISPOSITION).replaceFirst("(?i)^.*filename=\"?([^\"]+)\"?.*$", "$1");
+    assertThat(fileName.matches("^(?i)(?:[a-zA-Z0-9][a-zA-Z0-9_.-]+-)?bom\\.(?:xml|json)$")).isTrue();
   }
 
   private void assertValidEmptyResponse(HttpResponse response, String format)
@@ -330,7 +349,8 @@ public class ApiCycloneDxResourceV2Test
     parser = BomParserFactory.createParser(expectedBytes);
     Bom expectedBom = parser.parse(expectedBytes);
     assertThat(actualBom).usingRecursiveComparison()
-        .ignoringFields("externalReferences", "serialNumber", "metadata.timestamp", "metadata.tools.version")
+        .ignoringFields("externalReferences", "serialNumber", "metadata.timestamp", "metadata.tools.version",
+            "metadata.properties.value")
         .isEqualTo(expectedBom);
   }
 

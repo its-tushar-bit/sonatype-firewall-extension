@@ -1,0 +1,29 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.4",
+  "serialNumber" : "urn:uuid:272b82ee-904a-45e7-a1de-4299540a284a",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2023-02-24T15:21:56Z",
+    "tools" : [
+      {
+        "vendor" : "Sonatype Inc.",
+        "name" : "Nexus IQ Server",
+        "version" : "1.157.0-SNAPSHOT"
+      }
+    ],
+    "properties" : [
+      {
+        "name" : "Scan ID",
+        "value" : "272b82ee904a45e7a1de4299540a284a"
+      }
+    ]
+  },
+  "externalReferences" : [
+    {
+      "type" : "bom",
+      "url" : "http://localhost:10004/ui/links/application/DUMMY-PUBLIC-ID-bc3a1ff1400947f7aee5df278f3564a0/report/272b82ee904a45e7a1de4299540a284a",
+      "comment" : "IQ Report"
+    }
+  ]
+}

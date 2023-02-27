@@ -10,6 +10,9 @@
         <version>1.153.0</version>
       </tool>
     </tools>
+    <properties>
+      <property name="Scan ID">Random Value</property>
+    </properties>
   </metadata>
   <externalReferences>
     <reference type="bom">

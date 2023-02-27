@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -33,6 +33,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
+import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
+import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.saml.SPMetadataDescriptor;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ProcessingException;
@@ -174,12 +176,17 @@ public class ApiSamlConfigurationService
     try {
       String certificatePem =
           Base64.getEncoder().encodeToString(samlConfigurationDAO.get().getCertificate().getEncoded());
-      Element key = SPMetadataDescriptor.buildKeyInfoElement(null, certificatePem);
+      Element keyElement = SPMetadataDescriptor.buildKeyInfoElement(null, certificatePem);
+      KeyDescriptorType signingCert =
+          SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.SIGNING, null /* algorithm */);
+      KeyDescriptorType encryptionCert =
+          SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.ENCRYPTION, null /* algorithm */);
       URI bindingUri = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
-      EntityDescriptorType spDescriptor = SPMetadataDescriptor.buildSPdescriptor(bindingUri,
+      EntityDescriptorType spDescriptor = SPMetadataDescriptor.buildSPDescriptor(bindingUri,
           bindingUri, samlEndpointUrl, samlEndpointUrl, samlDeployment.getIDP().getSingleSignOnService().signRequest(),
           samlDeployment.getIDP().getSingleSignOnService().validateAssertionSignature(), true,
-          samlDeployment.getEntityID(), samlDeployment.getNameIDPolicyFormat(), Arrays.asList(key), Arrays.asList(key));
+          samlDeployment.getEntityID(), samlDeployment.getNameIDPolicyFormat(), //
+          Collections.singletonList(signingCert), Collections.singletonList(encryptionCert));
       return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + spDescriptorAsString(spDescriptor);
     }
     catch (Exception e) {

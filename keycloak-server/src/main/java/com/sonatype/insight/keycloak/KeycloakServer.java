@@ -23,9 +23,10 @@ public class KeycloakServer
 {
   private static final Logger log = LoggerFactory.getLogger(KeycloakServer.class);
 
+  // Available docker images at https://quay.io/repository/keycloak/keycloak?tab=tags
   public static final String IMAGE_NAME = "keycloak/keycloak";
 
-  public static final String IMAGE_VERSION = "20.0.3-0";
+  public static final String IMAGE_VERSION = "21.0.0";
 
   public static final String IMAGE = IMAGE_NAME + ":" + IMAGE_VERSION;
 

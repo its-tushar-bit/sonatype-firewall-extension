@@ -127,7 +127,7 @@ public class LabelService
 
   @Authorize(permission = Permission.READ)
   ApplicableLabels getApplicableLabelsWithAuthzCheck(
-      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId)
   {
     ApplicableLabels result = new ApplicableLabels();

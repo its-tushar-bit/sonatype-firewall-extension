@@ -26,6 +26,7 @@ import {
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
   SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
 } from 'MainRoot/configuration/scmOnboarding/scmOnboardingActions';
+import { authErrorMessage, featureNotEnableErrorMessage } from 'MainRoot/util/authorizationUtil';
 import { getOwnersMap } from 'TestRoot/OrgsAndPolicies/ownerSideNav/nLevelMockData';
 
 describe('scmOnboardingActions', function () {
@@ -292,8 +293,8 @@ describe('scmOnboardingActions', function () {
       });
     });
 
-    xdescribe('handle auth errors', function () {
-      function authTestFailure(authTestLabel, authResponsesSupplier) {
+    describe('handle auth errors', function () {
+      function authTestFailure(authTestLabel, errorMessage, authResponsesSupplier) {
         beforeEach(function () {
           store = SpecUtil.mockReduxStore({
             scmOnboarding: {
@@ -312,24 +313,25 @@ describe('scmOnboardingActions', function () {
           });
         });
 
-        it(`fails properly when authorization is perform and it calls ${authTestLabel}`, () => {
+        it(`fails properly when authorization is perform and it calls ${authTestLabel}`, async () => {
           mockAxiosCalls(authResponsesSupplier());
+          try {
+            await store.dispatch(scmOnboardingActions.loadPage('ownerId'));
+          } catch (error) {
+            expect(error).toEqual(errorMessage);
+          }
+          let actions = store.getActions();
+          expect(actions.length).toBe(2);
+          expect(actions[0].type).toBe('SCM_ONBOARDING_CHECK_PERMISSIONS_REQUESTED');
+          expect(actions[0].payload).toBeUndefined();
 
-          return store.dispatch(scmOnboardingActions.loadPage('ownerId')).then(() => {
-            // then SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created
-            let actions = store.getActions();
-            expect(actions.length).toBe(2);
-            expect(actions[0].type).toBe('SCM_ONBOARDING_CHECK_PERMISSIONS_REQUESTED');
-            expect(actions[0].payload).toBeUndefined();
-
-            // and SCM_ONBOARDING_CHECK_PERMISSIONS_FAILED action is created
-            expect(actions[1].type).toBe('SCM_ONBOARDING_CHECK_PERMISSIONS_FAILED');
-            expect(actions[1].payload).toEqual('failed call');
-          });
+          // and SCM_ONBOARDING_CHECK_PERMISSIONS_FAILED action is created
+          expect(actions[1].type).toBe('SCM_ONBOARDING_CHECK_PERMISSIONS_FAILED');
+          expect(actions[1].payload).toEqual(errorMessage);
         });
       }
 
-      authTestFailure('permissionsUrl', () => {
+      authTestFailure('permissionsUrl-networkError', 'failed call', () => {
         return {
           get: {
             [getProductFeaturesUrl()]: Promise.resolve({
@@ -341,7 +343,7 @@ describe('scmOnboardingActions', function () {
           },
         };
       });
-      authTestFailure('featuresUrl', () => {
+      authTestFailure('featuresUrl-networkError', 'failed call', () => {
         return {
           get: {
             [getProductFeaturesUrl()]: Promise.reject('failed call'),
@@ -353,9 +355,37 @@ describe('scmOnboardingActions', function () {
           },
         };
       });
+      authTestFailure('permissionsUrl-noPermission', authErrorMessage, () => {
+        return {
+          get: {
+            [getProductFeaturesUrl()]: Promise.resolve({
+              data: ['automation'],
+            }),
+          },
+          put: {
+            [getPermissionContextTestUrl('organization', 'ownerId')]: Promise.resolve({
+              data: [],
+            }),
+          },
+        };
+      });
+      authTestFailure('featuresUrl-featureNotEnable', featureNotEnableErrorMessage, () => {
+        return {
+          get: {
+            [getProductFeaturesUrl()]: Promise.resolve({
+              data: ['another feature'],
+            }),
+          },
+          put: {
+            [getPermissionContextTestUrl('organization', 'ownerId')]: Promise.resolve({
+              data: ['ADD_APPLICATION'],
+            }),
+          },
+        };
+      });
     });
 
-    xdescribe('handles errors', function () {
+    describe('handles errors', function () {
       const organizationsPayload = [{ id: 'ownerId' }, { id: undefined }];
 
       function testFailure(testLabel, responsesSupplier) {
@@ -388,8 +418,12 @@ describe('scmOnboardingActions', function () {
             expect(actions[2].payload).toEqual('ownerId');
 
             // and SCM_ONBOARDING_LOAD_PAGE_FAILED action is created
-            expect(actions[9].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FAILED');
-            expect(actions[9].payload).toEqual('failed call');
+            const failureAction = actions.find((action) => {
+              return action.type === 'SCM_ONBOARDING_LOAD_PAGE_FAILED';
+            });
+            expect(failureAction).not.toBeNull();
+            expect(failureAction.type).toBe('SCM_ONBOARDING_LOAD_PAGE_FAILED');
+            expect(failureAction.payload).toEqual('failed call');
           });
         });
       }

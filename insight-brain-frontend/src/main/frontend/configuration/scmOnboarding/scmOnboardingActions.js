@@ -64,7 +64,6 @@ const REQUIRED_PERMISSIONS = ['ADD_APPLICATION'];
 const REQUIRED_FEATURES = ['automation'];
 
 function checkScmOnboardingPermissions(orgId) {
-  console.log(orgId);
   return function (dispatch) {
     dispatch(checkPermissionForScmOnboardingRequested());
     const isAutomationFeatureEnabledRequest = checkFeatures(REQUIRED_FEATURES);

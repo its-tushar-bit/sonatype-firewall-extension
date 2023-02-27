@@ -289,6 +289,10 @@ public class MembershipMappingService
     setMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
   }
 
+  public void setMembershipMappingsForGlobalContextNoAuthz(Map<String, List<Member>> roleToMembers) {
+    setMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
+  }
+
   @Authorize(permission = Permission.EDIT_ACCESS_CONTROL)
   void grantRoleMembershipForNonGlobalContext(
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,

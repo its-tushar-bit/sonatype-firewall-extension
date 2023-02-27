@@ -287,14 +287,27 @@ For MTIQ the initial step for on-boarding any new customer, will be to ensure th
 This includes the schema creation and the proper creation and population of the tables, this is what
 we call the tenant provisioning process.
 
-For tenant provisioning we have created a new admin endpoint. You can run the next command to provision a
+For tenant provisioning we have created a new admin endpoint. You can run the next commands to provision a
 new tenant:
+
+#### For Local Development
 ```bash
 curl -X POST http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}
 
 # Here is an example
 
 curl -X POST http://127.0.0.1:8071/api/admin/tenants/cubs
+
+# This will provision tenant with name "cubs"
+```
+
+#### For AWS Dev Environment 
+```bash
+curl -X POST https://admin.<env>.mtiq.cloudy.sonatype.dev/api/admin/tenants/{tenant-slug}
+ 
+# Here is an example for dev Env
+
+curl -X POST https://admin.dev-1.mtiq.cloudy.sonatype.dev/api/admin/tenants/cubs
 
 # This will provision tenant with name "cubs"
 ```
@@ -306,7 +319,9 @@ admin endpoint to install or update a license for a tenant. This new endpoint wi
 the license for a tenant after it is provisioned, so the customer will not need to execute this step manually. 
 
 The final goal is to not depend on a license file, but for now the endpoint expects this file. You can run the next 
-command to install/update a new tenant:
+commands to install/update a license for a tenant:
+
+#### For Local Development
 ```bash
 curl -F file="@/path/to/license.lic" -X PUT http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/license
 
@@ -316,3 +331,88 @@ curl -F file="@sonatype.lic" -X PUT http://127.0.0.1:8071/api/admin/tenants/cubs
 
 # This will install/update the license for the tenant "cubs"
 ```
+
+#### For AWS Dev Environment
+```bash
+curl -X PUT https://admin.<env>.mtiq.cloudy.sonatype.dev/api/admin/tenants/{tenant-slug}/license
+ 
+# Here is an example for dev Env
+
+curl -X PUT https://admin.dev-1.mtiq.cloudy.sonatype.dev/api/admin/tenants/cubs/license
+
+# This will install/update the license for the tenant "cubs"
+```
+
+### Update Security Configuration
+For MTIQ the plan is to leverage Auth0 for authentication/authorization of the different endpoints. In order to achieve
+this we need to configure SAML for MTIQ considering the Auth0 SAML metadata and the fields mappings needed to ensure
+the customers can login and have access to MTIQ. 
+
+As the plan for tenant onboarding for MTIQ is to automate as much configuration steps as possible, we are created an
+admin endpoint to assist with SAML configuration for a tenant. You can run the next commands to insert/update the SAML 
+configuration for a tenant:
+
+#### For Local Development
+```bash
+curl -d "@request.json" -X PUT http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/security
+
+# Here is an example
+
+curl -d "@request.json" -X PUT http://127.0.0.1:8071/api/admin/tenants/cubs/security
+
+# This will update security configuration for the tenant "cubs"
+```
+
+#### For AWS Dev Environment
+```bash
+curl -d "@request.json" -X PUT https://admin.<env>.mtiq.cloudy.sonatype.dev/api/admin/tenants/{tenant-slug}/security
+ 
+# Here is an example for dev Env
+
+curl -d "@request.json" -X PUT https://admin.dev-1.mtiq.cloudy.sonatype.dev/api/admin/tenants/cubs/security
+
+# This will update security configuration for the tenant "cubs"
+```
+
+#### Request Details
+```json
+{
+  "adminEmails": ["<default admin emails>"],
+  "base64IdentityProviderXml": "<IdP SAML Metadata XML encoded in Base64>",
+  "samlConfiguration": {
+    "identityProviderName": "<Name of the IdP used for authentication, in our case defaulted to Auth0>",
+    "entityId": "<The URI that IQ Server will use to identify itself in requests to the single sign-on service>",
+    "firstNameAttributeName": "<Namespace for the first name on the SAML Auth message>",
+    "lastNameAttributeName": "<Namespace for the last name on the SAML Auth message>",
+    "emailAttributeName": "<Namespace for the email on the SAML Auth message>",
+    "usernameAttributeName": "<Namespace for the username on the SAML Auth message>",
+    "groupsAttributeName": "<Namespace for the groups on the SAML Auth message>",
+    "validateResponseSignature": "<True to validate signature of the SAML response>",
+    "validateAssertionSignature": "<True to validate signature of the SAML response assertions>"
+  }
+}
+```
+
+Here is an example:
+
+```json
+{
+  "adminEmails": ["admin@cubs.com"],
+  "base64IdentityProviderXml": "PEVudGl0eURlc2NyaXB0b3IgZW5...eURIgZ",
+  "samlConfiguration": {
+    "identityProviderName": "Auth0",
+    "entityId": "https://cubs.dev-1.mtiq.cloudy.sonatype.dev/api/v2/config/saml/metadata",
+    "firstNameAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+    "lastNameAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/lastname",
+    "emailAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+    "usernameAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+    "groupsAttributeName": "http://schemas.auth0.com/Roles",
+    "validateResponseSignature": true,
+    "validateAssertionSignature": true
+  }
+}
+```
+
+The admin endpoint is using the same parameters as the existing endpoint on IQ to insert/update SAML configuration, you 
+can find more details in 
+[Configure SAML Integration](https://help.sonatype.com/iqserver/automating/rest-apis/saml-rest-api---v2#SAMLRESTAPIv2-ConfigureSAMLIntegration).

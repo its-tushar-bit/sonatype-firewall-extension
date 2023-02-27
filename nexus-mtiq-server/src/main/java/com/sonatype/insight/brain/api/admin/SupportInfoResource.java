@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
+import com.sonatype.insight.brain.api.admin.service.SupportInfoService;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 
 @Named

@@ -13,6 +13,7 @@ import javax.ws.rs.PathParam;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
+import com.sonatype.insight.brain.api.admin.service.TenantProvisioningService;
 
 @Named
 @MtiqAdminEndpoint

@@ -89,6 +89,13 @@ public class ApiSamlConfigurationService
       String identityProviderXml,
       ApiSamlConfigurationDTO apiSamlConfigurationDTO)
   {
+    insertOrUpdateSamlConfigurationNoAuthz(identityProviderXml, apiSamlConfigurationDTO);
+  }
+
+  public void insertOrUpdateSamlConfigurationNoAuthz(
+      String identityProviderXml,
+      ApiSamlConfigurationDTO apiSamlConfigurationDTO)
+  {
     SamlConfiguration persisted = samlConfigurationDAO.get();
     boolean update = persisted != null;
 

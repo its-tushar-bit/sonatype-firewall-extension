@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class Tenant
 {
-  private static final Pattern slugPattern = Pattern.compile("^[a-z][a-z0-9-]*[a-z0-9]$");
+  private static final Pattern SLUG_PATTERN = Pattern.compile("^[a-z][a-z0-9-]*[a-z0-9]$");
 
   // Regular IQ (even clustered) still has tenancy, but there can only ever be a single tenant
   // Note the invalid database schema name to ensure it is never actually used
@@ -58,7 +58,7 @@ public class Tenant
     if (slug.length() > 61) {
       throw new InvalidTenantSlugException("Slug name must not exceed 61 characters");
     }
-    if (!slugPattern.matcher(slug).matches()) {
+    if (!SLUG_PATTERN.matcher(slug).matches()) {
       throw new InvalidTenantSlugException(slug + " is not a valid tenant slug");
     }
   }

@@ -3,13 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.admin;
+package com.sonatype.insight.brain.api.admin.service;
 
 import java.io.InputStream;
 
 import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
-import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -21,7 +20,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,8 +28,6 @@ import static org.mockito.Mockito.when;
 public class TenantLicenseServiceTest
     extends MultiTenantTestSupport
 {
-  public static final String TENANT_NAME = "test";
-
   public static final String LICENSE_FILE_NAME = "license.lic";
 
   @Mock
@@ -53,14 +49,14 @@ public class TenantLicenseServiceTest
     super.setup();
     tenantUtil = new TenantUtil();
     underTest = new TenantLicenseService(tenantUtil, tenantValidator, licenseService);
-
-    when(tenantValidator.validateTenantExists(TENANT_NAME)).thenReturn(true);
   }
 
   @Test
   public void shouldUpdateALicense() {
     testAsNewTenant(tenant -> {
-      underTest.updateLicense(inputStream, LICENSE_FILE_NAME, TENANT_NAME);
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+
+      underTest.updateLicense(inputStream, LICENSE_FILE_NAME, tenant.tenantSlug);
 
       verify(licenseService).installLicenseNoAuthz(inputStream, LICENSE_FILE_NAME);
     });
@@ -68,10 +64,10 @@ public class TenantLicenseServiceTest
 
   @Test
   public void shouldThrowRuntimeException_whenTenantDoesntExist() {
-    when(tenantValidator.validateTenantExists(TENANT_NAME)).thenReturn(false);
-
     testAsNewTenant(tenant -> {
-      assertThatThrownBy(() -> underTest.updateLicense(inputStream, LICENSE_FILE_NAME, TENANT_NAME))
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      assertThatThrownBy(() -> underTest.updateLicense(inputStream, LICENSE_FILE_NAME, tenant.tenantSlug))
           .withFailMessage("Tenant doesn't exist")
           .isInstanceOf(NotFoundException.class);
     });
@@ -79,8 +75,8 @@ public class TenantLicenseServiceTest
 
   @Test
   public void shouldThrowRuntimeException_whenUsingGlobalTenant() {
-    testAs(Tenant.GLOBAL_TENANT, tenant -> {
-      assertThatThrownBy(() -> underTest.updateLicense(inputStream, LICENSE_FILE_NAME, TENANT_NAME))
+    testAsGlobalTenant(tenant -> {
+      assertThatThrownBy(() -> underTest.updateLicense(inputStream, LICENSE_FILE_NAME, tenant.tenantSlug))
           .withFailMessage("Invalid tenant")
           .isInstanceOf(BadRequestException.class);
     });

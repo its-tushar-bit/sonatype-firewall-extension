@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.admin;
+package com.sonatype.insight.brain.api.admin.service;
 
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -29,8 +29,6 @@ import static org.mockito.Mockito.when;
 public class TenantProvisioningServiceTest
     extends MultiTenantTestSupport
 {
-  public static final String TENANT_NAME = "test";
-
   @Mock
   private InsightConfig insightConfig;
 
@@ -56,9 +54,9 @@ public class TenantProvisioningServiceTest
   @Test
   public void shouldProvisionNewTenant() {
     testAsNewTenant(tenant -> {
-      when(tenantValidator.validateTenantExists(TENANT_NAME)).thenReturn(false);
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
 
-      underTest.provisionTenant(TENANT_NAME);
+      underTest.provisionTenant(tenant.tenantSlug);
 
       verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
           any(MultiTenantDatabaseConfigProvider.class));
@@ -69,11 +67,12 @@ public class TenantProvisioningServiceTest
   public void shouldThrowRuntimeException_whenTenantAlreadyExists() {
     final String errorMessage = "Tenant already exists";
 
-    testAsNewTenant(t -> {
-      when(tenantValidator.validateTenantExists(TENANT_NAME)).thenReturn(true);
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
-      assertThatThrownBy(() -> underTest.provisionTenant(TENANT_NAME)).isInstanceOf(ConflictException.class)
-          .withFailMessage(errorMessage);
+      assertThatThrownBy(() -> underTest.provisionTenant(tenant.tenantSlug))
+          .withFailMessage(errorMessage)
+          .isInstanceOf(ConflictException.class);
     });
   }
 
@@ -81,9 +80,10 @@ public class TenantProvisioningServiceTest
   public void shouldThrowRuntimeException_whenUsingGlobalTenant() {
     final String errorMessage = "Invalid tenant";
 
-    testAsGlobalTenant(g -> {
-      assertThatThrownBy(() -> underTest.provisionTenant(TENANT_NAME)).isInstanceOf(BadRequestException.class)
-          .withFailMessage(errorMessage);
+    testAsGlobalTenant(tenant -> {
+      assertThatThrownBy(() -> underTest.provisionTenant(tenant.tenantSlug))
+          .withFailMessage(errorMessage)
+          .isInstanceOf(BadRequestException.class);
     });
   }
 }

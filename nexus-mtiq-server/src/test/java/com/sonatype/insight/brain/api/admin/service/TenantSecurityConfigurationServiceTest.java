@@ -1,0 +1,144 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.admin.service;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.sonatype.insight.brain.api.admin.dto.SecurityConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.security.Member;
+import com.sonatype.insight.brain.security.MembershipMappingService;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class TenantSecurityConfigurationServiceTest
+    extends MultiTenantTestSupport
+{
+  private static final String IDENTITY_PROVIDER_XML = "<xml>IdP Metadata<xml>";
+
+  @Mock
+  private TenantValidator tenantValidator;
+
+  @Mock
+  private ApiSamlConfigurationService apiSamlConfigurationService;
+
+  @Mock
+  private MembershipMappingService membershipMappingService;
+
+  @Mock
+  private RoleDAO roleDAO;
+
+  @Captor
+  ArgumentCaptor<Map<String, List<Member>>> roleToMembersCaptor;
+
+  private SecurityConfigurationDTO securityConfiguration;
+
+  private List<Role> globalRoles;
+
+  private TenantUtil tenantUtil;
+
+  private TenantSecurityConfigurationService underTest;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    tenantUtil = new TenantUtil();
+    underTest = new TenantSecurityConfigurationService(tenantUtil, tenantValidator, apiSamlConfigurationService,
+        membershipMappingService, roleDAO);
+
+    securityConfiguration = new SecurityConfigurationDTO();
+    securityConfiguration.setBase64IdentityProviderXml(getEncodedIdPMetadata(IDENTITY_PROVIDER_XML));
+    securityConfiguration.setSamlConfiguration(new ApiSamlConfigurationDTO());
+    securityConfiguration.setAdminEmails(Arrays.asList("admin@local.com"));
+
+    Role globalRole1 = new Role();
+    globalRole1.setId("global-role-1");
+    Role globalRole2 = new Role();
+    globalRole2.setId("global-role-2");
+
+    globalRoles = Arrays.asList(globalRole1, globalRole2);
+  }
+
+  @Test
+  public void shouldUpdateSamlConfiguration() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(roleDAO.getGlobalRoles()).thenReturn(globalRoles);
+
+      underTest.updateSamlConfigurationAndGrantAdminPermissions(securityConfiguration, tenant.tenantSlug);
+
+      verify(apiSamlConfigurationService).insertOrUpdateSamlConfigurationNoAuthz(IDENTITY_PROVIDER_XML,
+          securityConfiguration.getSamlConfiguration());
+      verify(roleDAO).getGlobalRoles();
+      verify(membershipMappingService).setMembershipMappingsForGlobalContextNoAuthz(roleToMembersCaptor.capture());
+
+      assertRolesToMembersMappingIsTheExpected();
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_whenTenantDoesntExist() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      assertThatThrownBy(
+          () -> underTest.updateSamlConfigurationAndGrantAdminPermissions(securityConfiguration, tenant.tenantSlug))
+          .withFailMessage("Tenant doesn't exist")
+          .isInstanceOf(NotFoundException.class);
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_whenUsingGlobalTenant() {
+    testAsGlobalTenant(tenant -> {
+      assertThatThrownBy(
+          () -> underTest.updateSamlConfigurationAndGrantAdminPermissions(securityConfiguration, tenant.tenantSlug))
+          .withFailMessage("Invalid tenant")
+          .isInstanceOf(BadRequestException.class);
+    });
+  }
+
+  private String getEncodedIdPMetadata(String identityProviderXml) {
+    return Base64.getEncoder().encodeToString(identityProviderXml.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private void assertRolesToMembersMappingIsTheExpected() {
+    Map<String, List<Member>> roleToMembers = roleToMembersCaptor.getValue();
+
+    List<Member> members = roleToMembers.values().stream().flatMap(List::stream).collect(Collectors.toList());
+    Set<String> keys = roleToMembers.keySet();
+
+    assertThat(keys.stream()).contains("global-role-1", "global-role-2");
+    assertThat(members.stream().map(Member::getInternalName)).containsExactly("admin@local.com", "admin@local.com");
+  }
+}

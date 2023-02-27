@@ -16,4 +16,6 @@ public class AdminApiPaths
   public static final String ADMIN_TENANT_LICENSE_PATH = ADMIN_PATH + "tenants/{tenantSlug}/license";
 
   public static final String ADMIN_SUPPORT_INFO_PATH = ADMIN_PATH + "tenants/{tenantSlug}/supportInfo";
+
+  public static final String ADMIN_TENANT_SECURITY_CONFIG_PATH = ADMIN_PATH + "tenants/{tenantSlug}/security";
 }

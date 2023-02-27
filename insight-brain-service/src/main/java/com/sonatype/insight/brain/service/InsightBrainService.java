@@ -461,7 +461,7 @@ public class InsightBrainService
 
   protected void addServletFilters(Environment env, boolean attachToAdminApi) {
     addServletFilter(env, true, ServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
-    addServletFilter(env, BaseUrlFilter.class, "/*");
+    addServletFilter(env, attachToAdminApi, BaseUrlFilter.class, "/*");
     addServletFilter(env, attachToAdminApi, AuditFilter.class, AuditFilter.URL_PATTERNS);
     addServletFilter(env, attachToAdminApi, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
     addServletFilter(env, attachToAdminApi, ContentTypeOptionsHeaderFilter.class, "/*");

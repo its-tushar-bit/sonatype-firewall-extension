@@ -20,7 +20,6 @@ import java.util.zip.ZipFile;
 
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
-import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.AfterClass;
@@ -36,7 +35,6 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SupportInfoUtilTest
-    extends MultiTenantTestSupport
 {
   @Mock
   private MultiTenantInsightConfig insightConfig;
@@ -44,9 +42,8 @@ public class SupportInfoUtilTest
   private SupportInfoUtil supportInfoUtil;
 
   @Before
-  @Override
   public void setup() {
-    super.setup();
+    SupportInfoUtil.COUNTER.set(0);
     supportInfoUtil = new SupportInfoUtil(insightConfig);
   }
 

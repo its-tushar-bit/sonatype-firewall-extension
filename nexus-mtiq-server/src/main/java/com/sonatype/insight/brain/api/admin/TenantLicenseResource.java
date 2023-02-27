@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
+import com.sonatype.insight.brain.api.admin.service.TenantLicenseService;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;

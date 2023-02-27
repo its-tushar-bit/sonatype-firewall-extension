@@ -37,7 +37,7 @@ public class SupportInfoUtil
   /**
    * Counter used to generate unique names.
    */
-  private static final AtomicLong COUNTER = new AtomicLong();
+  static final AtomicLong COUNTER = new AtomicLong();
 
   /**
    * Token added to files to indicate truncation has occurred

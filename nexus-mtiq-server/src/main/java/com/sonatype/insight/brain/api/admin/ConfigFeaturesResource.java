@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
+import com.sonatype.insight.brain.api.admin.service.ConfigFeaturesService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;

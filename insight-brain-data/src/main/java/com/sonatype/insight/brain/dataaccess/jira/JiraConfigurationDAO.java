@@ -51,10 +51,10 @@ public class JiraConfigurationDAO
   static final String EMPTY_OR_WHITESPACE_USERNAME_ERROR_MSG = "The username cannot be empty or only whitespace.";
 
   // Visible for testing
-  static final int MAX_PASSWORD_LENGTH = 255;
+  static final int MAX_PASSWORD_LENGTH = 2000;  // This is maximum encrypted password length allowed..
 
   // Visible for testing
-  static final String LONG_PASSWORD_ERROR_MSG = "The password cannot exceed 255 characters.";
+  static final String LONG_PASSWORD_ERROR_MSG = "The password is too long.";
 
   // Visible for testing
   static final String EMPTY_OR_WHITESPACE_PASSWORD_ERROR_MSG = "The password cannot be empty or only whitespace.";

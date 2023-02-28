@@ -60,7 +60,7 @@ public class SourceControlDAO
   private static final String SELECT_APPLICATIONS_FOR_SOURCE_SCAN =
       "SELECT sc.owner_id " +
       "FROM _SCHEMA_.source_control sc " +
-      "JOIN application a ON sc.owner_id = a.application_id " +
+      "JOIN _SCHEMA_.application a ON sc.owner_id = a.application_id " +
       "LEFT JOIN ( " +
       "   SELECT pe.application_id, pe.time, pe.scan_trigger_type " +
       "     FROM _SCHEMA_.last_policy_evaluation lpe " +

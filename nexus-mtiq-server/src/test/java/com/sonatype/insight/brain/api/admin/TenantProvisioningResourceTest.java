@@ -24,17 +24,18 @@ public class TenantProvisioningResourceTest
 
   @Test
   public void shouldProvisionTenant() throws Exception {
-    HttpResponse response = provisionTenant("tenant1").post();
+    HttpResponse response = provisionTenant(generateTestTenantName()).post();
 
     assertResponseStatus(204, response);
   }
 
   @Test
   public void shouldSend400_whenTenantAlreadyExists() throws Exception {
-    HttpResponse response = provisionTenant("tenant2").post();
+    String tenantSlug = generateTestTenantName();
+    HttpResponse response = provisionTenant(tenantSlug).post();
     assertResponseStatus(204, response);
 
-    response = provisionTenant("tenant2").post();
+    response = provisionTenant(tenantSlug).post();
     assertResponseStatus(409, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant already exists");
   }

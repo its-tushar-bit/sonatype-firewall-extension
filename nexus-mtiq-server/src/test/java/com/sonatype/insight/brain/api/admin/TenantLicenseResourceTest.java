@@ -23,14 +23,17 @@ public class TenantLicenseResourceTest
     return super.adminRequest().path("api/").path(path);
   }
 
+  private String tenantSlug;
+
   @Before
   public void setUp() throws Exception {
-    provisionTenant("tenant3").post();
+    tenantSlug = generateTestTenantName();
+    provisionTenant(tenantSlug).post();
   }
 
   @Test
   public void shouldUpdateLicense() throws Exception {
-    HttpResponse response = updateLicense("tenant3").put();
+    HttpResponse response = updateLicense(tenantSlug).put();
 
     assertResponseStatus(204, response);
   }

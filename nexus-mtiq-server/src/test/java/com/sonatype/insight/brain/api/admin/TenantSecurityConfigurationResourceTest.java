@@ -32,14 +32,17 @@ public class TenantSecurityConfigurationResourceTest
     return super.adminRequest().path("api/").path(path);
   }
 
+  private String tenantSlug;
+
   @Before
   public void setUp() throws Exception {
-    provisionTenant("tenant6").post();
+    tenantSlug = generateTestTenantName();
+    provisionTenant(tenantSlug).post();
   }
 
   @Test
   public void shouldUpdateSecurityConfigurationForATenant() throws Exception {
-    HttpResponse response = updateSecurityConfiguration("tenant6").put();
+    HttpResponse response = updateSecurityConfiguration(tenantSlug).put();
 
     assertResponseStatus(204, response);
   }

@@ -5,7 +5,12 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
+
 public abstract class AbstractMultiTenantResourceTest
     extends AbstractMultiTenantBrainServiceTest
 {
+  protected String generateTestTenantName() {
+    return TenantTestHelper.createTenantName(testName);
+  }
 }

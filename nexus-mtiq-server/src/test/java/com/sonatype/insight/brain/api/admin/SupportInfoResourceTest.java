@@ -18,8 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SupportInfoResourceTest
     extends AbstractMultiTenantResourceTest
 {
-  static final String TENANT_NAME = "test";
-
   @Override
   protected HttpRequest restRequest() {
     return super.adminRequest().path("api/");
@@ -28,9 +26,10 @@ public class SupportInfoResourceTest
   @Test
   public void shouldSend200_GetSupportInfo() throws Exception {
     // Provisioning a tenant to evaluate Support Info endpoint
-    restRequest().path(ADMIN_TENANT_PROVISIONING_PATH).parameter(TENANT_NAME).post();
+    String tenantSlug = generateTestTenantName();
+    restRequest().path(ADMIN_TENANT_PROVISIONING_PATH).parameter(tenantSlug).post();
     HttpResponse response = restRequest().path(ADMIN_SUPPORT_INFO_PATH)
-        .parameter(TENANT_NAME).get();
+        .parameter(tenantSlug).get();
     //
     assertResponseStatus(200, response);
   }

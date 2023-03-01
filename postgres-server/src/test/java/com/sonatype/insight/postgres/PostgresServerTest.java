@@ -31,7 +31,7 @@ public class PostgresServerTest
           DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
         assertThat(connection.isValid(10)).isTrue();
         assertThat(connection.getMetaData().getDatabaseProductName()).isEqualTo("PostgreSQL");
-        assertThat(connection.getMetaData().getDatabaseProductVersion()).isEqualTo("15.1");
+        assertThat(connection.getMetaData().getDatabaseProductVersion()).isEqualTo("10.7");
 
         postgres.loadSqlDump(Paths.get(getClass().getResource("/dump-valid.sql").toURI()));
         try (Statement statement = connection.createStatement();

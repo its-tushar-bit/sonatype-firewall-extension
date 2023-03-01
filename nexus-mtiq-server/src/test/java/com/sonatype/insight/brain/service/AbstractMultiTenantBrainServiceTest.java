@@ -71,7 +71,7 @@ public abstract class AbstractMultiTenantBrainServiceTest
     }
 
     if (postgresServer == null) {
-      postgresServer = new PostgresServer();
+      postgresServer = new PostgresServer(PostgresServer.MTIQ_IMAGE_VERSION);
     }
 
     MultiTenantDataSourceFactory multiTenantDataSourceFactory = new MultiTenantDataSourceFactory();

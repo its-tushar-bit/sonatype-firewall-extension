@@ -33,7 +33,7 @@ public class MultiTenantDbMigrationCommandTest
 
   @Test
   public void testQuartzTableDoesExist() {
-    try (PostgresServer postgresServer = new PostgresServer()) {
+    try (PostgresServer postgresServer = new PostgresServer(PostgresServer.MTIQ_IMAGE_VERSION)) {
       // do migration (setup global schema) and global quartz table does exist
       setupTest(postgresServer.getDatabaseConfig(), true);
       assertThat(multiTenantDbMigrationCommand.quartzSchedulerStateTableExists()).isTrue();
@@ -42,7 +42,7 @@ public class MultiTenantDbMigrationCommandTest
 
   @Test
   public void testQuartzTableDoesNotExist() {
-    try (PostgresServer postgresServer = new PostgresServer()) {
+    try (PostgresServer postgresServer = new PostgresServer(PostgresServer.MTIQ_IMAGE_VERSION)) {
       // do NOT DO migration (setup global schema) and global quartz table DOES NOT exist
       setupTest(postgresServer.getDatabaseConfig(), false);
       assertThat(multiTenantDbMigrationCommand.quartzSchedulerStateTableExists()).isFalse();

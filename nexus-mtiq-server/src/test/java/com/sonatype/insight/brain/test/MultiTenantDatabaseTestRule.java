@@ -86,7 +86,7 @@ public class MultiTenantDatabaseTestRule
     databaseProvisionUtils = new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
         thirdPartyScansDataStore);
 
-    postgresServer = new PostgresServer();
+    postgresServer = new PostgresServer(PostgresServer.MTIQ_IMAGE_VERSION);
 
     insightConfig = new MultiTenantInsightConfig();
     insightConfig.setMainDatabase(postgresServer.getDatabaseConfig());

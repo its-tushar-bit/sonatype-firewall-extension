@@ -39,11 +39,13 @@ public class PostgresServer
 {
   private static final Logger log = LoggerFactory.getLogger(PostgresServer.class);
 
-  public static final String IMAGE_NAME = "postgres";
+  public static final String DEFAULT_IMAGE_NAME = "postgres";
 
-  public static final String IMAGE_VERSION = "15.1-alpine";
+  public static final String DEFAULT_IMAGE_VERSION = "10.7-alpine";
 
-  public static final String IMAGE = IMAGE_NAME + ":" + IMAGE_VERSION;
+  public static final String MTIQ_IMAGE_VERSION = "14.0-alpine";
+
+  public static final String DEFAULT_IMAGE = DEFAULT_IMAGE_NAME + ":" + DEFAULT_IMAGE_VERSION;
 
   public static final String DEFAULT_NAME = "testdata";
 
@@ -71,14 +73,21 @@ public class PostgresServer
 
   private final String hostname;
 
+  private final String image;
+
   public PostgresServer() {
-    this(null);
+    this(DEFAULT_IMAGE, null);
   }
 
-  public PostgresServer(Network network) {
+  public PostgresServer(String imageVersion) {
+    this(DEFAULT_IMAGE_NAME + ":" + imageVersion, null);
+  }
+
+  public PostgresServer(String image, Network network) {
+    this.image = image;
     Utils.assumeSupported();
     try {
-      container = new GenericContainer<>(DockerImageName.parse(Utils.applyRegistry(IMAGE)));
+      container = new GenericContainer<>(DockerImageName.parse(Utils.applyRegistry(this.image)));
       container.addExposedPort(DEFAULT_PORT);
       container.waitingFor(new WaitAllStrategy()
           .withStrategy(Wait.forListeningPort())
@@ -120,6 +129,7 @@ public class PostgresServer
         ", containerName='" + containerName + '\'' +
         ", port=" + port +
         ", hostname='" + hostname + '\'' +
+        ", image='" + image + '\'' +
         '}';
   }
 

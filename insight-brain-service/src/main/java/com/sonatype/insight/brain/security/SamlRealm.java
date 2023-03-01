@@ -18,7 +18,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -43,14 +42,14 @@ public class SamlRealm
 
   public static final String ID = SamlUser.SAML_REALM_ID;
 
-  private final SamlUserDAO samlUserDAO;
+  private final SamlUserGroupHelper samlUserGroupHelper;
 
   @Inject
-  public SamlRealm(SamlUserDAO samlUserDAO) {
+  public SamlRealm(SamlUserGroupHelper samlUserGroupHelper) {
     super(new AllowAllCredentialsMatcher());
     setName("SAML");
     setAuthenticationTokenClass(SamlAuthenticationToken.class);
-    this.samlUserDAO = samlUserDAO;
+    this.samlUserGroupHelper = samlUserGroupHelper;
   }
 
   @Override
@@ -76,7 +75,7 @@ public class SamlRealm
     groups.removeIf(StringUtils::isBlank);
     SamlUser samlUser = new SamlUser(username, firstName, lastName, email, groups);
 
-    samlUserDAO.upsertByUsername(samlUser);
+    samlUserGroupHelper.updateSamlUserAndGroups(samlUser, groups);
 
     return new SimpleAuthenticationInfo(
         new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), ID, samlUser.getGroups()), null,

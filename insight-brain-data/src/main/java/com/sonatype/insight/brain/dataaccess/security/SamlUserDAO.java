@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -15,6 +18,8 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * @since 1.133
@@ -27,6 +32,40 @@ public class SamlUserDAO
     String sQuery = "SELECT entity FROM SamlUser entity" + //
         " WHERE entity.id=?1";
     return get(tx, sQuery, id);
+  }
+
+  public List<SamlUser> getByIds(Set<String> ids) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIds(tx, ids);
+    }
+  }
+
+  public List<SamlUser> getByIds(TransactionContext tx, Set<String> ids) {
+    if (CollectionUtils.isEmpty(ids)) {
+      return Collections.emptyList();
+    }
+    String sQuery = "SELECT entity from SamlUser entity" + //
+        " WHERE entity.id IN ?1" + //
+        " ORDER BY entity.username";
+    return getList(tx, sQuery, ids);
+  }
+
+  public List<SamlUser> getByUsernames(Set<String> usernames) {
+    if (CollectionUtils.isEmpty(usernames)) {
+      return Collections.emptyList();
+    }
+    String sQuery = "SELECT entity from SamlUser entity" + //
+        " WHERE entity.username IN ?1" + //
+        " ORDER BY entity.username";
+    return getList(sQuery, usernames);
+  }
+
+  public List<SamlUser> findUsersByNameQuery(String nameQuery) {
+    nameQuery = nameQuery.trim().toLowerCase(Locale.ENGLISH);
+    String sQuery = "SELECT entity FROM SamlUser entity" + //
+        " WHERE lower(concat(entity.firstName, ' ', entity.lastName)) LIKE ?1" + //
+        " ORDER BY entity.username";
+    return getList(sQuery, nameQuery);
   }
 
   public SamlUser getByUsername(TransactionContext tx, String username) {
@@ -88,6 +127,10 @@ public class SamlUserDAO
     // Cascade to user viewed product notifications
     UserViewedProductNotificationDAO userViewedProductNotificationDAO = new UserViewedProductNotificationDAO();
     userViewedProductNotificationDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), SamlUser.SAML_REALM_ID);
+
+    // Cascade to saml user group mappings
+    SamlUserGroupDAO samlUserGroupDAO = new SamlUserGroupDAO();
+    samlUserGroupDAO.deleteBySamlUserId(tx, entity.getId());
 
     super.delete(tx, entity);
   }

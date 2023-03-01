@@ -39,6 +39,8 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.SamlGroup;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 
 import org.codehaus.plexus.util.StringUtils;
@@ -99,6 +101,8 @@ public class UserDirectory
 
   private final UserDAO userDao;
 
+  private final SamlUserGroupHelper samlUserGroupHelper;
+
   private final CrowdConfigurationDAO crowdConfigurationDAO;
 
   private final LdapService ldapService;
@@ -108,18 +112,25 @@ public class UserDirectory
   @Inject
   public UserDirectory(
       UserDAO userDao,
+      SamlUserGroupHelper samlUserGroupHelper,
       CrowdConfigurationDAO crowdConfigurationDAO,
       LdapService ldapService,
       CrowdClientFactory crowdClientFactory)
   {
     this.userDao = userDao;
+    this.samlUserGroupHelper = samlUserGroupHelper;
     this.crowdConfigurationDAO = crowdConfigurationDAO;
     this.ldapService = ldapService;
     this.crowdClientFactory = crowdClientFactory;
   }
 
-  public UserDirectory(UserDAO userDao, LdapService ldapService, CrowdClientFactory crowdClientFactory) {
-    this(userDao, null, ldapService, crowdClientFactory);
+  public UserDirectory(
+      UserDAO userDao,
+      SamlUserGroupHelper samlUserGroupHelper,
+      LdapService ldapService,
+      CrowdClientFactory crowdClientFactory)
+  {
+    this(userDao, samlUserGroupHelper, null, ldapService, crowdClientFactory);
   }
 
   /**
@@ -178,6 +189,15 @@ public class UserDirectory
           }
         }
       }
+    }
+
+    if (!groupNames.isEmpty() && samlUserGroupHelper.isSamlConfigured()) {
+      Set<String> existingSamlGroupNames = samlUserGroupHelper.filterExistingSamlGroupNames(groupNames);
+      List<Member> samlGroupMembers = existingSamlGroupNames.stream()
+          .map(group -> new Member(MemberType.GROUP, group, group, null, SamlRealm.ID))
+          .collect(Collectors.toList());
+      result.get().addAll(samlGroupMembers);
+      groupNames.removeAll(existingSamlGroupNames);
     }
 
     if (!groupNames.isEmpty()) {
@@ -261,6 +281,16 @@ public class UserDirectory
       }
     }
 
+    if (!sortedUserNames.isEmpty() && samlUserGroupHelper.isSamlConfigured()) {
+      List<SamlUser> samlUsers = samlUserGroupHelper.getSamlUsersByUsernames(sortedUserNames);
+      for (SamlUser samlUser : samlUsers) {
+        Member member = new Member(MemberType.USER, samlUser.getUsername(), samlUser.calculateDisplayName(),
+            samlUser.getEmail(), SamlUser.SAML_REALM_ID);
+        members.add(member);
+        sortedUserNames.remove(samlUser.getUsername());
+      }
+    }
+
     if (!sortedUserNames.isEmpty()) {
       CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
       if (crowdClient != null) {
@@ -310,10 +340,12 @@ public class UserDirectory
       CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
       // searching for users
       addLDAPUsersByQuery(users, ldapServers, query, namingExceptions, otherExceptions);
+      addSamlUsersByQuery(users, query);
       addCrowdUsersByQuery(users, crowdClient, query, otherExceptions);
       // searching for groups
       if (groupsEnabled) {
         addLDAPGroupsByQuery(groups, ldapServers, query, namingExceptions, otherExceptions);
+        addSamlGroupsByQuery(groups, query);
         addCrowdGroupsByQuery(groups, crowdClient, query, otherExceptions);
       }
     }
@@ -364,6 +396,20 @@ public class UserDirectory
         catch (Exception e) {
           otherExceptions.add(e);
         }
+      }
+    }
+  }
+
+  private void addSamlUsersByQuery(
+      Map<String, Member> users,
+      String query)
+  {
+    if (samlUserGroupHelper.isSamlConfigured()) {
+      String nameQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
+      for (SamlUser samlUser : samlUserGroupHelper.findSamlUsersByNameQuery(nameQuery)) {
+        Member member = new Member(MemberType.USER, samlUser.getUsername(), samlUser.calculateDisplayName(),
+            samlUser.getEmail(), SamlRealm.ID);
+        users.put(member.getInternalNameLowerCase(), member);
       }
     }
   }
@@ -427,6 +473,29 @@ public class UserDirectory
     }
   }
 
+  private void addSamlGroupsByQuery(
+      Map<String, Member> groups,
+      String query)
+  {
+    if (samlUserGroupHelper.isSamlConfigured()) {
+      String nameQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
+      List<SamlGroup> samlMatchedGroups = samlUserGroupHelper.findSamlGroupsByNameQuery(nameQuery);
+      List<Member> samlGroupMembers = samlMatchedGroups.stream()
+          .map(group -> new Member(MemberType.GROUP, group.getName(), group.getName(), null, SamlRealm.ID))
+          .collect(Collectors.toList());
+      for (Member samlGroupMember : samlGroupMembers) {
+        String key = samlGroupMember.getInternalNameLowerCase();
+        // Ignore any group that was already discovered in the other realms.
+        if (!groups.containsKey(key)) {
+          groups.put(key, samlGroupMember);
+        }
+        else {
+          log.debug(IGNORING_MEMBER_MESSAGE, "group", key, samlGroupMember.getRealm(), groups.get(key).getRealm());
+        }
+      }
+    }
+  }
+
   private void addCrowdGroupsByQuery(
       Map<String, Member> groups,
       CrowdClient crowdClient,
@@ -479,7 +548,7 @@ public class UserDirectory
   }
 
   public boolean isGroupSearchDisabled() {
-    return ldapService.isDynamicGroupSearchDisabled() &&
+    return ldapService.isDynamicGroupSearchDisabled() && !samlUserGroupHelper.isSamlConfigured() &&
         (!SystemConfigurationPropertyFeature.CROWD_INTEGRATION.isEnabled() || crowdConfigurationDAO.get() == null);
   }
 

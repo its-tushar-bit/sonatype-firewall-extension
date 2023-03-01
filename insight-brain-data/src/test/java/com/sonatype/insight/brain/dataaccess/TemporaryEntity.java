@@ -99,7 +99,9 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
@@ -212,7 +214,9 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
+import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
@@ -294,6 +298,10 @@ public class TemporaryEntity
   private final UserDAO userDAO = new UserDAO();
 
   private final SamlUserDAO samlUserDAO = new SamlUserDAO();
+
+  private final SamlGroupDAO samlGroupDAO = new SamlGroupDAO();
+
+  private final SamlUserGroupDAO samlUserGroupDAO = new SamlUserGroupDAO();
 
   private final RoleDAO roleDAO = new RoleDAO(true);
 
@@ -490,8 +498,6 @@ public class TemporaryEntity
 
   private Collection<User> users;
 
-  private Collection<SamlUser> samlUsers;
-
   private Collection<String> usernames;
 
   private Collection<Role> roles;
@@ -546,8 +552,6 @@ public class TemporaryEntity
 
   private Collection<SystemConfigurationProperty> systemConfigurationProperties;
 
-  private Collection<SamlConfiguration> samlConfigurations;
-
   private Collection<ThirdPartyFile> thirdPartyFileConfigurations;
 
   private Collection<ThirdPartyVulnerability> thirdPartyVulnerabilities;
@@ -583,7 +587,6 @@ public class TemporaryEntity
     orgs = new ArrayList<>();
     licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
-    samlUsers = new ArrayList<>();
     usernames = new ArrayList<>();
     roles = new ArrayList<>();
     ldapServers = new ArrayList<>();
@@ -612,7 +615,6 @@ public class TemporaryEntity
     sourceControls = new ArrayList<>();
     sourceControlPullRequests = new ArrayList<>();
     systemConfigurationProperties = new ArrayList<>();
-    samlConfigurations = new ArrayList<>();
     thirdPartyFileConfigurations = new ArrayList<>();
     thirdPartyVulnerabilities = new ArrayList<>();
     userTokens = new ArrayList<>();
@@ -661,7 +663,9 @@ public class TemporaryEntity
     delete(vulnerabilityGroups, vulnerabilityGroupDAO);
     delete(vulnerabilityCustomDetails, vulnerabilityCustomDetailDAO);
     delete(users, userDAO);
-    delete(samlUsers, samlUserDAO);
+    samlUserGroupDAO.getAll().forEach(samlUserGroupDAO::delete);
+    samlUserDAO.getAll().forEach(samlUserDAO::delete);
+    samlGroupDAO.getAll().forEach(samlGroupDAO::delete);
     delete(usernames, userDAO);
     delete(roles, roleDAO);
     delete(ldapServers, ldapServerDAO);
@@ -683,8 +687,7 @@ public class TemporaryEntity
     delete(sourceControls, sourceControlDAO);
     delete(sourceControlPullRequests, sourceControlPullRequestDAO);
     delete(systemConfigurationProperties, systemConfigurationPropertyDAO);
-    delete(samlConfigurations, entity -> samlConfigurationDAO.getById(entity.getId()),
-        samlConfiguration -> samlConfigurationDAO.delete());
+    samlConfigurationDAO.delete();
     delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
     delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
     delete(componentLabels, componentLabelDAO);
@@ -1042,10 +1045,6 @@ public class TemporaryEntity
     Collections.addAll(this.users, users);
   }
 
-  public void register(SamlUser... samlUsers) {
-    Collections.addAll(this.samlUsers, samlUsers);
-  }
-
   public void registerUsernames(String... usernames) {
     Collections.addAll(this.usernames, usernames);
   }
@@ -1202,11 +1201,31 @@ public class TemporaryEntity
         new LinkedHashSet<>(Arrays.asList("group1" + uuid, "group2" + uuid)));
   }
 
+  public SamlUser newSamlUser(String username, Set<String> groups) {
+    String uuid = uuid();
+    return newSamlUser(username, "firstName" + uuid, "lastName" + uuid, "email@domain" + uuid + ".com", groups);
+  }
+
   public SamlUser newSamlUser(String username, String firstName, String lastName, String email, Set<String> groups) {
     SamlUser samlUser = new SamlUser(username, firstName, lastName, email, groups);
     samlUserDAO.insert(samlUser);
-    samlUsers.add(samlUser);
     return samlUser;
+  }
+
+  public SamlGroup newSamlGroup() {
+    return newSamlGroup("name" + uuid());
+  }
+
+  public SamlGroup newSamlGroup(String name) {
+    SamlGroup samlGroup = new SamlGroup(name);
+    samlGroupDAO.insert(samlGroup);
+    return samlGroup;
+  }
+
+  public SamlUserGroup newSamlUserGroup(String samlUserId, String samlGroupId) {
+    SamlUserGroup samlUserGroup = new SamlUserGroup(samlUserId, samlGroupId);
+    samlUserGroupDAO.insert(samlUserGroup);
+    return samlUserGroup;
   }
 
   public Role newRole(boolean global, Permission... permissions) {
@@ -3238,7 +3257,6 @@ public class TemporaryEntity
     samlConfiguration.setIdentityProviderMetadataXml(identityProviderMetadataXml);
     samlConfiguration.setEntityId(entityId);
     samlConfigurationDAO.insert(samlConfiguration);
-    samlConfigurations.add(samlConfiguration);
     return samlConfiguration;
   }
 
@@ -3395,7 +3413,6 @@ public class TemporaryEntity
     samlConfiguration.setValidateAssertionSignature(validateAssertionSignature);
 
     samlConfigurationDAO.insert(samlConfiguration);
-    samlConfigurations.add(samlConfiguration);
 
     return samlConfiguration;
   }

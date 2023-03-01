@@ -267,7 +267,6 @@ public class SamlRealmTest
     SamlUser storedSamlUser = samlUserDAO.getByUsername(samlUser.getUsername());
     assertThat(storedSamlUser).isNotNull();
     samlUser.setId(storedSamlUser.getId());
-    tempEntity.register(samlUser);
     assertThat(storedSamlUser).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUser);
     assertThat(userPrincipal.getUsername()).isEqualTo(samlUser.getUsername());
     assertThat(userPrincipal.getDisplayName()).isEqualTo(samlUser.calculateDisplayName());

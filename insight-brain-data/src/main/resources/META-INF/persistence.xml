@@ -89,6 +89,8 @@
     <class>com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration</class>
     <class>com.sonatype.insight.brain.model.repository.RepositoryConnection</class>
     <class>com.sonatype.insight.brain.model.security.SamlUser</class>
+    <class>com.sonatype.insight.brain.model.security.SamlGroup</class>
+    <class>com.sonatype.insight.brain.model.security.SamlUserGroup</class>
     <class>com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration</class>
     <class>com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection</class>
     <class>com.sonatype.insight.brain.model.jira.JiraConfiguration</class>

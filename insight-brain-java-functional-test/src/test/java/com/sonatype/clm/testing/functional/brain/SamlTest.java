@@ -19,14 +19,12 @@ import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.KeycloakLoginPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.keycloak.KeycloakServerRule;
 import com.sonatype.insight.keycloak.KeycloakServerUtil;
 
@@ -70,14 +68,6 @@ public class SamlTest
   @After
   public void after() {
     keycloak.clean();
-    try {
-      apiSamlConfigurationService.deleteSamlConfiguration();
-      SamlUserDAO samlUserDAO = new SamlUserDAO();
-      samlUserDAO.getAll().forEach(samlUserDAO::delete);
-    }
-    catch (NotFoundException ignored) {
-      // fine
-    }
   }
 
   @Test

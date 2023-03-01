@@ -53,6 +53,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.SamlGroup;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
@@ -61,6 +63,7 @@ import com.sonatype.insight.brain.security.CrowdClient;
 import com.sonatype.insight.brain.security.CrowdClientFactory;
 import com.sonatype.insight.brain.security.CrowdRealm;
 import com.sonatype.insight.brain.security.Member;
+import com.sonatype.insight.brain.security.SamlUserGroupHelper;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DefaultBaseUrl;
@@ -107,6 +110,9 @@ public class PolicyAlertEmailerTest
 
   @Inject
   private UserDirectory userDirectory;
+
+  @Inject
+  private SamlUserGroupHelper samlUserGroupHelper;
 
   @Mock
   private InsightMail mailer;
@@ -479,10 +485,24 @@ public class PolicyAlertEmailerTest
     doThrow(expectedException).when(ldapServiceSpy)
         .getUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy, mockCrowdClientFactory);
-    PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(DefaultBaseUrl.class), userDirectory,
-        new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO(),
-            mockCrowdClientFactory), new AuditRecorder(null), testProductLicense);
+    UserDirectory userDirectory =
+        new UserDirectory(new UserDAO(), samlUserGroupHelper, ldapServiceSpy, mockCrowdClientFactory);
+    PolicyAlertEmailResolver policyAlertEmailResolver = new PolicyAlertEmailResolver(
+        userDirectory,
+        ldapServiceSpy,
+        new OwnerDAO(),
+        samlUserGroupHelper,
+        new MembershipMappingDAO(),
+        mockCrowdClientFactory
+    );
+    PolicyAlertEmailer undertest = new PolicyAlertEmailer(
+        mailer,
+        lookup(DefaultBaseUrl.class),
+        userDirectory,
+        policyAlertEmailResolver,
+        new AuditRecorder(null),
+        testProductLicense
+    );
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // make sure emails from server 2 still go out
@@ -599,6 +619,28 @@ public class PolicyAlertEmailerTest
     assertEmailAddresses("email1", "email5");
     await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atErrorLevel()
         .contains("Cannot send notifications to members of group group3 using Crowd server."));
+  }
+
+  @Test
+  public void testSendNotifications_Role_Saml() {
+    tempEntity.newSamlConfiguration();
+    String uuid = tempEntity.uuid();
+    SamlUser samlUser1 = tempEntity.newSamlUser("username1" + uuid, null, null, "email1", null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("username2" + uuid, null, null, null, null);
+    SamlUser samlUser3 = tempEntity.newSamlUser("username3" + uuid, null, null, "", null);
+    SamlUser samlUser4 = tempEntity.newSamlUser("username4" + uuid, null, null, " ", null);
+    SamlUser samlUser5 = tempEntity.newSamlUser("username5" + uuid, null, null, "email5", null);
+    SamlGroup samlGroup1 = tempEntity.newSamlGroup();
+    SamlGroup samlGroup2 = tempEntity.newSamlGroup();
+    tempEntity.newSamlUserGroup(samlUser1.getId(), samlGroup1.getId());
+    tempEntity.newSamlUserGroup(samlUser2.getId(), samlGroup1.getId());
+    tempEntity.newSamlUserGroup(samlUser3.getId(), samlGroup1.getId());
+    tempEntity.newSamlUserGroup(samlUser4.getId(), samlGroup1.getId());
+    tempEntity.newSamlUserGroup(samlUser5.getId(), samlGroup2.getId());
+
+    sendRoleNotifications(samlGroup1.getName(), samlGroup2.getName(), "group3");
+
+    assertEmailAddresses("email1", "email5");
   }
 
   private void sendRoleNotifications(String... groupNames) {

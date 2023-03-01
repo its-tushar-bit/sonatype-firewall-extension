@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
@@ -62,8 +61,6 @@ public class SamlAuthcTest
   @After
   public void exit() throws Exception {
     restRequest().path(PublicApiPaths.SAML_CONFIG_RESOURCE_PATH_V2).delete();
-    SamlUserDAO samlUserDAO = new SamlUserDAO();
-    samlUserDAO.getAll().forEach(samlUserDAO::delete);
   }
 
   @Before

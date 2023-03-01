@@ -28,11 +28,14 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.security.CrowdClient;
 import com.sonatype.insight.brain.security.CrowdClientFactory;
 import com.sonatype.insight.brain.security.CrowdRealm;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MemberAttributeResolver;
+import com.sonatype.insight.brain.security.SamlRealm;
+import com.sonatype.insight.brain.security.SamlUserGroupHelper;
 import com.sonatype.insight.brain.security.UserDirectory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +55,8 @@ public class PolicyAlertEmailResolver
 
   private final OwnerDAO ownerDAO;
 
+  private final SamlUserGroupHelper samlUserGroupHelper;
+
   private final CrowdClientFactory crowdClientFactory;
 
   @Inject
@@ -59,12 +64,14 @@ public class PolicyAlertEmailResolver
       final UserDirectory userDirectory,
       final LdapService ldapService,
       final OwnerDAO ownerDAO,
+      final SamlUserGroupHelper samlUserGroupHelper,
       final MembershipMappingDAO membershipMappingDAO,
       final CrowdClientFactory crowdClientFactory)
   {
     this.userDirectory = userDirectory;
     this.ldapService = ldapService;
     this.ownerDAO = ownerDAO;
+    this.samlUserGroupHelper = samlUserGroupHelper;
     this.membershipMappingDAO = membershipMappingDAO;
     this.crowdClientFactory = crowdClientFactory;
   }
@@ -127,6 +134,9 @@ public class PolicyAlertEmailResolver
         if (CrowdRealm.ID.equals(member.getRealm())) {
           addEmailAddressesForCrowdGroupMembers(emailAddresses, member);
         }
+        else if (SamlRealm.ID.equals(member.getRealm())) {
+          addEmailAddressesForSamlGroupMembers(emailAddresses, member);
+        }
         else {
           addEmailAddressesForLDAPGroupMembers(emailAddresses, member);
         }
@@ -148,6 +158,17 @@ public class PolicyAlertEmailResolver
       }
       catch (Exception e) {
         log.error("Cannot send notifications to members of group {} using Crowd server.", group.getInternalName(), e);
+      }
+    }
+  }
+
+  private void addEmailAddressesForSamlGroupMembers(Set<String> emailAddresses, Member group) {
+    if (samlUserGroupHelper.isSamlConfigured()) {
+      List<SamlUser> samlUsers = samlUserGroupHelper.getSamlUsersByGroupName(group.getInternalName());
+      for (SamlUser samlUser : samlUsers) {
+        if (StringUtils.isNotBlank(samlUser.getEmail())) {
+          emailAddresses.add(samlUser.getEmail());
+        }
       }
     }
   }

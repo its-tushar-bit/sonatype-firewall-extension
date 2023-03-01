@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -18,7 +21,9 @@ import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
+import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -42,13 +47,14 @@ public class SamlUserDAOTest
   private final UserViewedProductNotificationDAO userViewedProductNotificationDAO =
       new UserViewedProductNotificationDAO();
 
+  private final SamlUserGroupDAO samlUserGroupDAO = new SamlUserGroupDAO();
+
   @Test
   public void testCRUD() {
     // Create
     SamlUser samlUser = createSamlUser();
     samlUserDAO.insert(samlUser);
     assertThat(samlUser.getId()).isNotNull();
-    tempEntity.register(samlUser);
 
     // Read
     SamlUser storedSamlUser = samlUserDAO.getById(samlUser.getId());
@@ -68,6 +74,23 @@ public class SamlUserDAOTest
     // Delete
     samlUserDAO.delete(samlUser);
     assertThat(samlUserDAO.getById(samlUser.getId())).isNull();
+  }
+
+  @Test
+  public void testGetByIds_Empty() {
+    assertThat(samlUserDAO.getByIds(Collections.emptySet())).isEmpty();
+  }
+
+  @Test
+  public void testGetByIds() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", null, null, null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", null, null, null, null);
+    tempEntity.newSamlUser();
+
+    assertThat(samlUserDAO.getByIds(
+        new HashSet<>(Arrays.asList(samlUser1.getId(), samlUser2.getId()))))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
   }
 
   @Test
@@ -193,6 +216,24 @@ public class SamlUserDAOTest
   }
 
   @Test
+  public void testDeleteCascadesToSamlUserGroups() {
+    SamlUser samlUser1 = tempEntity.newSamlUser();
+    SamlUser samlUser2 = tempEntity.newSamlUser();
+    SamlGroup samlGroup1 = tempEntity.newSamlGroup();
+    SamlGroup samlGroup2 = tempEntity.newSamlGroup();
+    tempEntity.newSamlUserGroup(samlUser1.getId(), samlGroup1.getId());
+    tempEntity.newSamlUserGroup(samlUser1.getId(), samlGroup2.getId());
+    SamlUserGroup samlUserGroup21 = tempEntity.newSamlUserGroup(samlUser2.getId(), samlGroup1.getId());
+    SamlUserGroup samlUserGroup22 = tempEntity.newSamlUserGroup(samlUser2.getId(), samlGroup2.getId());
+
+    samlUserDAO.delete(samlUser1);
+
+    assertThat(samlUserDAO.getById(samlUser1.getId())).isNull();
+    assertThat(samlUserGroupDAO.getAll()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(samlUserGroup21, samlUserGroup22);
+  }
+
+  @Test
   public void testGetAll() {
     SamlUser samlUser1 = tempEntity.newSamlUser();
     SamlUser samlUser2 = tempEntity.newSamlUser();
@@ -224,6 +265,62 @@ public class SamlUserDAOTest
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> samlUserDAO.getByUsernameNotNull(username))
         .withMessageContaining("Cannot find a SAML user with username " + username + ".");
+  }
+
+  @Test
+  public void testGetByUsernames_Empty() {
+    assertThat(samlUserDAO.getByUsernames(Collections.emptySet())).isEmpty();
+  }
+
+  @Test
+  public void testGetByUsernames() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", null, null, null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", null, null, null, null);
+    tempEntity.newSamlUser();
+
+    Set<String> usernames = new HashSet<>(Arrays.asList(samlUser1.getUsername(), samlUser2.getUsername()));
+    assertThat(samlUserDAO.getByUsernames(usernames))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testFindUsersByName_Exact() {
+    SamlUser samlUser = tempEntity.newSamlUser("userA", "bob", "smith", null, null);
+    tempEntity.newSamlUser("other", "john", "smith", null, null);
+
+    assertThat(samlUserDAO.findUsersByNameQuery("BoB sMiTh")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser);
+  }
+
+  @Test
+  public void testFindUsersByName_Prefix() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", "BOB", "smith", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", "bob", "doe", null, null);
+    tempEntity.newSamlUser("other", "john", "smith", null, null);
+
+    assertThat(samlUserDAO.findUsersByNameQuery("BoB%")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testFindUsersByName_Suffix() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", "bob", "SMITH", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", "john", "smith", null, null);
+    tempEntity.newSamlUser("other", "john", "doe", null, null);
+
+    assertThat(samlUserDAO.findUsersByNameQuery("%SmItH")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testFindUsersByName_PrefixAndSuffix() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", "johnny", "smith", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", "bobby", "smithson", null, null);
+    tempEntity.newSamlUser("other", "john", "doe", null, null);
+
+    assertThat(samlUserDAO.findUsersByNameQuery("%y SmItH%")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
   }
 
   private SamlUser createSamlUser() {

@@ -12,11 +12,16 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.TenantManagedInitializer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 @Singleton
 public class MultiTenantTenantManagedInitializer
     implements TenantManagedInitializer
 {
+  private static final Logger log = LoggerFactory.getLogger(MultiTenantTenantManagedInitializer.class);
+
   private final Collection<TenantManaged> tenantLifecycles;
 
   @Inject
@@ -42,7 +47,12 @@ public class MultiTenantTenantManagedInitializer
     for (TenantManaged tenantLifecycle : tenantLifecycles) {
       if (tenantLifecycle instanceof GlobalTenantJob) {
         TenantThreadLocal.runAsGlobal(() -> {
-          tenantLifecycle.deregister();
+          try {
+            tenantLifecycle.deregister();
+          }
+          catch (Exception e) {
+            log.error("Failed to deregister job {} during shutdown ", tenantLifecycle.getClass(), e);
+          }
           return null;
         });
       }

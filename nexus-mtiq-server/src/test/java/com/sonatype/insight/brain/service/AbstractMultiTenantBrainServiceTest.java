@@ -5,25 +5,36 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.insight.test.networking.PortAllocator;
 
+import org.junit.AfterClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class AbstractMultiTenantBrainServiceTest
     extends AbstractBrainServiceTest
 {
+  private static final Logger log = LoggerFactory.getLogger(AbstractMultiTenantBrainServiceTest.class);
+
   private static PostgresServer postgresServer;
 
   private static DatabaseContainer mtiqDatabaseContainer;
@@ -35,16 +46,42 @@ public abstract class AbstractMultiTenantBrainServiceTest
     // no-op because the default creates LicenseThreatGroups under global which is now write protected
   }
 
+  /**
+   * This results in slower tests but means we get a clean slate after each MTIQ Integration test and prevents MTIQ
+   * implementations leaking into non-MTIQ tests.
+   */
+  @AfterClass
+  public static void shutdownMtiq() {
+    try {
+      testCLMServer.stop();
+    }
+    catch (Exception e) {
+      log.error("Failed to stop MTIQ", e);
+    }
+
+    testCLMServer = null;
+    postgresServer.close();
+    postgresServer = null;
+
+    OperationalDataStoreProvider.setInstance(null);
+    AggregationDataStoreProvider.setInstance(null);
+    ThirdPartyScansProvider.setInstance(null);
+    DatamartProvider.setInstance(null);
+
+    MultiTenantDataSourceFactory factory = (MultiTenantDataSourceFactory) mtiqDatabaseContainer.getDataSourceFactory();
+    factory.setInsightConfig(null);
+
+    mtiqDatabaseContainer = null;
+
+    // When MTIQ starts it sets the tenant to Global therefore it needs to be reset when MTIQ is shutdown
+    TenantTestHelper.setSingleTenant();
+  }
+
   @Override
   protected void initServer(Configurator configurator) throws Exception {
     if (configurator == null) {
       // Setup the MTIQ postgres DB via the configurator
       configurator = mtiqConfigurator;
-    }
-
-    if (testCLMServer != null && !testCLMServer.isReusable(isProxyRequiredToReachHds(), configurator)) {
-      testCLMServer.stop();
-      testCLMServer = null;
     }
 
     if (testCLMServer == null) {

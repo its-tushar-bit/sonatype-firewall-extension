@@ -15,6 +15,7 @@ import {
   NxFontAwesomeIcon,
   NxLoadWrapper,
   NxList,
+  NxTableContainer,
 } from '@sonatype/react-shared-components';
 import { selectSelectedOwnerName, selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
@@ -85,14 +86,16 @@ export default function PoliciesTile() {
             {isEmpty(local?.policies) ? (
               <NxList emptyMessage="No local policies defined" />
             ) : (
-              <PoliciesTable
-                ariaLabel="Policy tile local policies"
-                owner={local}
-                stages={actionStages}
-                isFirewallSupported={isFirewallSupported}
-                isEnforcementSupported={isEnforcementSupported}
-                sorting={sorting}
-              />
+              <NxTableContainer>
+                <PoliciesTable
+                  ariaLabel="Policy tile local policies"
+                  owner={local}
+                  stages={actionStages}
+                  isFirewallSupported={isFirewallSupported}
+                  isEnforcementSupported={isEnforcementSupported}
+                  sorting={sorting}
+                />
+              </NxTableContainer>
             )}
           </NxTile.Subsection>
           {inherited?.map((owner) => {
@@ -102,16 +105,18 @@ export default function PoliciesTile() {
                   <NxTile.SubsectionHeader>
                     <NxH3>Inherited from {owner.ownerName}</NxH3>
                   </NxTile.SubsectionHeader>
-                  <PoliciesTable
-                    ariaLabel={`Policy tile inherited from ${owner.ownerName} policies`}
-                    emptyMessage="No policies defined"
-                    owner={owner}
-                    stages={actionStages}
-                    isFirewallSupported={isFirewallSupported}
-                    isEnforcementSupported={isEnforcementSupported}
-                    sorting={sorting}
-                    isRepositories={isRepositories}
-                  />
+                  <NxTableContainer>
+                    <PoliciesTable
+                      ariaLabel={`Policy tile inherited from ${owner.ownerName} policies`}
+                      emptyMessage="No policies defined"
+                      owner={owner}
+                      stages={actionStages}
+                      isFirewallSupported={isFirewallSupported}
+                      isEnforcementSupported={isEnforcementSupported}
+                      sorting={sorting}
+                      isRepositories={isRepositories}
+                    />
+                  </NxTableContainer>
                 </NxTile.Subsection>
               );
             }

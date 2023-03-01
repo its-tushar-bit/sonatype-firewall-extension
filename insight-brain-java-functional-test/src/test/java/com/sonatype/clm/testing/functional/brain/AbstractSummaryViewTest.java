@@ -1075,7 +1075,7 @@ public abstract class AbstractSummaryViewTest
     policyElement.column(9).shouldBe(visible).shouldHave(PolicyTile.noActionText())
         .shouldHave(PolicyTileList.CELL_DISABLED);
 
-    policyElement.chevron().shouldBe(visible);
+    policyElement.chevron().should(exist);
   }
 
   @Test

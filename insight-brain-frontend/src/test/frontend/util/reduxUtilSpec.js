@@ -58,7 +58,7 @@ describe('reduxUtil', function () {
       done();
     });
 
-    it('calls(dispatches) a function as promise', async function (done) {
+    it('calls(dispatches) a function as promise', function (done) {
       const dispatch = (func) => func;
       let value = jasmine.createSpy('whatAmI');
 

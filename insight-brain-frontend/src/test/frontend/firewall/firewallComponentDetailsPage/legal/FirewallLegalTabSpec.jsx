@@ -571,7 +571,6 @@ describe('FirewallLegalTab', () => {
     await waitFor(() => expect(screen.queryByText(/License Detections/)).toBeVisible());
     expect(screen.queryByText(/overridden/)).toBeVisible();
     expect(screen.queryAllByText(/Apache-1.1/).length).toBe(4);
-    expect(screen.queryByText(/Review Obligations/)).toBeVisible;
     expect(screen.queryByText(/Legal Policy Violations/)).toBeVisible();
     expect(screen.queryByText(/Policy\/Action/)).toBeVisible();
     expect(screen.queryByText(/Luis Policy/)).toBeVisible();

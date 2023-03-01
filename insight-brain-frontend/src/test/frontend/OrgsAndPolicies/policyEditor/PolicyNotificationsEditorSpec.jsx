@@ -156,12 +156,12 @@ describe('PolicyNotificationsEditor', () => {
     expect(await screen.findByText('Notifications')).toBeVisible();
   });
 
-  it('renders table headers', () => {
+  it('renders table headers', async () => {
     renderComponent();
 
-    actionStages.forEach(async (stage) => {
+    const assertion = async (stage) =>
       expect(await screen.findByRole('columnheader', { name: stage.shortName })).toBeVisible();
-    });
+    await Promise.all(actionStages.map(assertion));
   });
 
   it('renders recipients', async () => {

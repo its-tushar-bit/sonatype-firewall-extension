@@ -270,7 +270,7 @@ describe('MoveApplicationModal', () => {
     it('renders error message, retry and ok button when loading orgs fails', async () => {
       axiosMock.onGet(getDestinationOrganizationsUrl('b96799515b294417859c5d6e400dd0b8')).reply(500, 'Error Messages');
       renderComponent();
-      checkAlertAndRetry();
+      await checkAlertAndRetry();
       expect(await screen.findByText('An error occurred loading data. Error Messages')).toBeVisible();
       expect(await screen.findByRole('button', { name: 'OK' })).toBeVisible();
     });
@@ -302,8 +302,8 @@ describe('MoveApplicationModal', () => {
           .onPost(getMoveApplicationUrl('b96799515b294417859c5d6e400dd0b8', '457800f1bd624699a224150aead48cf3'))
           .reply(500, 'Error Messages');
         renderComponent();
-        goToNextWindow();
-        checkAlertAndRetry();
+        await goToNextWindow();
+        await checkAlertAndRetry();
         expect(await screen.findByText('An error occurred saving data. Error Messages')).toBeVisible();
       });
       it('renders error message for incompatible destination.', async () => {
@@ -311,8 +311,8 @@ describe('MoveApplicationModal', () => {
           .onPost(getMoveApplicationUrl('b96799515b294417859c5d6e400dd0b8', '457800f1bd624699a224150aead48cf3'))
           .reply(409, { errors: ['Error 1', 'Error 2'] });
         renderComponent();
-        goToNextWindow();
-        checkAlertAndRetry();
+        await goToNextWindow();
+        await checkAlertAndRetry();
         expect(await screen.findByText('Incompatible Destinations:')).toBeVisible();
         expect(await screen.findByText('Error 1. Error 2')).toBeVisible();
       });

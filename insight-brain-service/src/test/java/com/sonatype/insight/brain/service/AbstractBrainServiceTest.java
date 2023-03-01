@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
@@ -84,6 +85,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.networking.PortAllocator;
+
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -95,6 +97,7 @@ import com.google.inject.Module;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
@@ -160,10 +163,13 @@ public abstract class AbstractBrainServiceTest
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
+  @BeforeClass
+  public static void disableWaitToCloseOldClients() {
+    DefaultHdsClient.waitToCloseOldClients = false;
+  }
+
   @Before
   public void initTest() throws Exception {
-    DefaultHdsClient.waitToCloseOldClients = false;
-
     log.info("Before: {}", testName.getMethodName());
     initHds();
     initDatabaseContainer();

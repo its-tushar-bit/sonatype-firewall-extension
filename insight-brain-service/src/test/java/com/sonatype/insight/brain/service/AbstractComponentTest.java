@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -44,6 +45,7 @@ import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
+
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -61,6 +63,7 @@ import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
@@ -112,6 +115,11 @@ public class AbstractComponentTest
   private SecurityManager securityManager;
 
   private final Collection<Managed> managedComponents = new ArrayList<>();
+
+  @BeforeClass
+  public static void disableWaitToCloseOldClients() {
+    DefaultHdsClient.waitToCloseOldClients = false;
+  }
 
   @Before
   public final void beforeTest() {

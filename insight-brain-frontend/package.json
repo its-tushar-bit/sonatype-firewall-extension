@@ -74,7 +74,7 @@
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
     "sjcl": "^1.0.7",
-    "swagger-ui-react": "^4.13.0"
+    "swagger-ui-react": "^4.16.1"
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",

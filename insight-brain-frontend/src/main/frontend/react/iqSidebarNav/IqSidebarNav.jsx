@@ -47,7 +47,7 @@ function IqSidebarNav(props) {
     isLegalEnabled,
     isApiPageEnabled,
     isDataInsightsEnabled,
-    tenantMode,
+    isShowVersionEnabled,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -190,8 +190,12 @@ function IqSidebarNav(props) {
           )}
         </NxGlobalSidebarNavigation>
       )}
-      {productEdition && releaseVersion && tenantMode !== 'unknown' && (
-        <IqSidebarNavFooter productName={productEdition} releaseNumber={releaseVersion} tenantMode={tenantMode} />
+      {productEdition && releaseVersion && (
+        <IqSidebarNavFooter
+          productName={productEdition}
+          releaseNumber={releaseVersion}
+          isShowVersionEnabled={isShowVersionEnabled}
+        />
       )}
     </NxGlobalSidebar>
   );
@@ -211,6 +215,6 @@ IqSidebarNav.propTypes = {
   isLegalEnabled: PropTypes.bool,
   isApiPageEnabled: PropTypes.bool,
   isDataInsightsEnabled: PropTypes.bool,
-  tenantMode: PropTypes.string,
+  isShowVersionEnabled: PropTypes.string,
 };
 export default IqSidebarNav;

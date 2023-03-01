@@ -14,7 +14,7 @@ describe('IqSidebarNavFooter', function () {
   let getShallowComponent;
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(IqSidebarNavFooter, { tenantMode: 'single' });
+    getShallowComponent = enzymeUtils.getShallowComponent(IqSidebarNavFooter, { isShowVersionEnabled: true });
   });
 
   it('renders an NxGlobalSidebarFooter', function () {
@@ -49,8 +49,8 @@ describe('IqSidebarNavFooter', function () {
     expect(productName).toHaveText('Cool Stuff');
   });
 
-  it('does not display release until mode is established', function () {
-    const component = getShallowComponent({ releaseNumber: '2', tenantMode: 'unknown' }),
+  it('does not display release when version is disabled', function () {
+    const component = getShallowComponent({ releaseNumber: '2', isShowVersionEnabled: false }),
       releaseText = component.prop('releaseText');
 
     function Fixture() {
@@ -60,14 +60,14 @@ describe('IqSidebarNavFooter', function () {
     expect(shallow(<Fixture />)).not.toIncludeText('Release 2');
   });
 
-  it('does not display release when in multi tenant mode', function () {
-    const component = getShallowComponent({ releaseNumber: '2', tenantMode: 'multi' }),
+  it('displays release when version is enabled', function () {
+    const component = getShallowComponent({ releaseNumber: '2', isShowVersionEnabled: true }),
       releaseText = component.prop('releaseText');
 
     function Fixture() {
       return releaseText;
     }
 
-    expect(shallow(<Fixture />)).not.toIncludeText('Release 2');
+    expect(shallow(<Fixture />)).toIncludeText('Release 2');
   });
 });

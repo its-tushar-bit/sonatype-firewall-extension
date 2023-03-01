@@ -14,7 +14,7 @@ import {
   selectIsReportListSupported,
   selectIsApiPageSupported,
   selectIsDataInsightsSupported,
-  selectTenantMode,
+  selectIsShowVersionEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
@@ -90,7 +90,7 @@ function mapStateToThis(state) {
     isReportListSupported: selectIsReportListSupported(state),
     isApiPageEnabled: selectIsApiPageSupported(state),
     isDataInsightsEnabled: selectIsDataInsightsSupported(state),
-    tenantMode: selectTenantMode(state),
+    isShowVersionEnabled: selectIsShowVersionEnabled(state),
   };
 }
 

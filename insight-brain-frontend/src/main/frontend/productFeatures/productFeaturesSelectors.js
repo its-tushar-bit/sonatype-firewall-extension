@@ -90,15 +90,21 @@ export const selectIsAdvancedSearchConfigurationEnabled = createSelector(
 const selectIsSingleTenantEnabled = createSelector(selectProductFeatures, prop('single-tenant'));
 const selectIsMultiTenantEnabled = createSelector(selectProductFeatures, prop('multi-tenant'));
 
-export const selectTenantMode = createSelector(
-  selectIsSingleTenantEnabled,
-  selectIsMultiTenantEnabled,
-  (single, multi) => {
-    if (single) {
-      return 'single';
-    } else if (multi) {
-      return 'multi';
-    }
-    return 'unknown';
+const SINGLE_TENANT = 'single-tenant';
+const MULTI_TENANT = 'multi-tenant';
+const UNKNOWN_TENANT = 'unknown-tenant';
+const selectTenantMode = createSelector(selectIsSingleTenantEnabled, selectIsMultiTenantEnabled, (single, multi) => {
+  if (single) {
+    return SINGLE_TENANT;
+  } else if (multi) {
+    return MULTI_TENANT;
   }
-);
+  return UNKNOWN_TENANT;
+});
+
+export const selectIsShowVersionEnabled = createSelector(selectTenantMode, (mode) => {
+  return mode === SINGLE_TENANT;
+});
+export const selectIsShowNotificationMenuEnabled = createSelector(selectTenantMode, (mode) => {
+  return mode === SINGLE_TENANT;
+});

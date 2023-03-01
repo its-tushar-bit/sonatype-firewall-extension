@@ -31,6 +31,7 @@ export const MenuBar = ({
   isAutomaticApplicationConfigurationEnabled,
   isAutomaticScmConfigurationEnabled,
   isAdvancedSearchConfigurationEnabled,
+  isShowNotificationMenuEnabled,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
@@ -55,7 +56,7 @@ export const MenuBar = ({
       {breadcrumbPortalContainer}
       <div id="menu-bar" className="nx-global-header__actions menu-bar">
         <HelpMenu majorMinorVersion={majorMinorVersion} />
-        <NotificationsMenuContainer />
+        {isShowNotificationMenuEnabled && <NotificationsMenuContainer />}
         {hasAnyPermissions && (
           <SystemPreferencesMenu
             permissions={permissions}
@@ -104,6 +105,7 @@ MenuBar.propTypes = {
   isAutomaticApplicationConfigurationEnabled: PropTypes.bool,
   isAutomaticScmConfigurationEnabled: PropTypes.bool,
   isAdvancedSearchConfigurationEnabled: PropTypes.bool,
+  isNotificationMenuEnabled: PropTypes.bool,
 };
 
 export default MenuBar;

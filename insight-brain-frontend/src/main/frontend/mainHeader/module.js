@@ -58,6 +58,7 @@ export default angular
         'isAutomaticApplicationConfigurationEnabled',
         'isAutomaticScmConfigurationEnabled',
         'isAdvancedSearchConfigurationEnabled',
+        'isShowNotificationMenuEnabled',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

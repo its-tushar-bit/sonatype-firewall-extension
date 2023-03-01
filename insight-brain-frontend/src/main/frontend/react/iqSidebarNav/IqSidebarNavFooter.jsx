@@ -6,8 +6,9 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxGlobalSidebarFooter } from '@sonatype/react-shared-components';
+import { SINGLE_TENANT } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-export default function IqSidebarNavFooter({ productName, releaseNumber, tenantMode }) {
+export default function IqSidebarNavFooter({ productName, releaseNumber, isShowVersionEnabled }) {
   const releaseText = (
     <Fragment>
       <span className="iq-sidebar-nav-footer__product-name visual-testing-ignore">{productName}</span>
@@ -16,7 +17,7 @@ export default function IqSidebarNavFooter({ productName, releaseNumber, tenantM
   );
 
   function displayVersion() {
-    if (tenantMode === 'single') {
+    if (isShowVersionEnabled) {
       return (
         <>
           {` `}Release {releaseNumber}
@@ -39,5 +40,5 @@ export default function IqSidebarNavFooter({ productName, releaseNumber, tenantM
 IqSidebarNavFooter.propTypes = {
   productName: PropTypes.string,
   releaseNumber: PropTypes.string,
-  tenantMode: PropTypes.string,
+  isShowVersionEnabled: PropTypes.string,
 };

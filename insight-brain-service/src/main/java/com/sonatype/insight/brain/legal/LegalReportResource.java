@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -20,11 +21,9 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.v2.service.legal.report.ApplicationAttributionReportBuilder;
 import com.sonatype.insight.brain.api.v2.service.legal.report.LegalCustomReportParameters;
-import com.sonatype.insight.error.exception.*;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.Timed;
-import com.google.common.base.Throwables;
-
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.message.internal.MediaTypes;
@@ -73,26 +72,17 @@ public class LegalReportResource
   @Produces(MediaType.TEXT_HTML)
   public String getLicenseLegalMultiApplicationReportFromActiveUserFilter(FormDataMultiPart formData) {
     LegalCustomReportParameters.Builder reportParametersBuilder = LegalCustomReportParameters.builder();
-    try {
-      reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
-          .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
-          .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
-          .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
-          .withIncludeStandardLicenseTexts(
-              Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
-          .withIncludeIncludeSonatypeSpecialLicenses(
-              Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_SONATYPE_SPECIAL_LICENSES,
-                  DEFAULT_VALUE_FALSE)))
-          .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
-          .withNoticeFiles(getNoticeFilesFromFormData(formData))
-          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE,
-              DEFAULT_VALUE_FALSE)))
-          .build();
-    }
-    catch (Exception ex) { // if we got exception at this point it's because of invalid request
-      Throwables.throwIfInstanceOf(ex, BadRequestException.class);
-      throw new BadRequestException(ex.getMessage());
-    }
+    reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
+        .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
+        .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
+        .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
+        .withIncludeStandardLicenseTexts(
+            Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
+        .withIncludeIncludeSonatypeSpecialLicenses(Boolean
+            .parseBoolean(getMultiPartValue(formData, REPORT_FORM_SONATYPE_SPECIAL_LICENSES, DEFAULT_VALUE_FALSE)))
+        .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
+        .withNoticeFiles(getNoticeFilesFromFormData(formData)).withIncludeInnerSource(
+            Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, DEFAULT_VALUE_FALSE)));
     return applicationAttributionReportBuilder
         .generateLegalMultiApplicationAttributionReportFromActiveUserFilter(reportParametersBuilder.build());
   }

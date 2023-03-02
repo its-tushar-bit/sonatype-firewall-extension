@@ -45,7 +45,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.codahale.metrics.annotation.Timed;
-import com.google.common.base.Throwables;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.message.internal.MediaTypes;
@@ -176,25 +175,17 @@ public class DefaultApiLegalReportResourceV2
       FormDataMultiPart formData)
   {
     final LegalCustomReportParameters.Builder reportParametersBuilder = LegalCustomReportParameters.builder();
-    try {
-      reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
-          .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
-          .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
-          .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
-          .withIncludeStandardLicenseTexts(
-              Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
-          .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
-          .withIncludeIncludeSonatypeSpecialLicenses(Boolean.parseBoolean(getMultiPartValue(formData,
-              REPORT_FORM_SONATYPE_SPECIAL_LICENSES, DEFAULT_VALUE_FALSE)))
-          .withNoticeFiles(getNoticeFilesFromFormData(formData))
-          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE,
-              DEFAULT_VALUE_FALSE)))
-          .build();
-    }
-    catch (final Exception ex) { // if we got exception at this point it's because of invalid request
-      Throwables.throwIfInstanceOf(ex, BadRequestException.class);
-      throw new BadRequestException(ex.getMessage());
-    }
+    reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
+        .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
+        .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
+        .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
+        .withIncludeStandardLicenseTexts(
+            Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
+        .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
+        .withIncludeIncludeSonatypeSpecialLicenses(Boolean
+            .parseBoolean(getMultiPartValue(formData, REPORT_FORM_SONATYPE_SPECIAL_LICENSES, DEFAULT_VALUE_FALSE)))
+        .withNoticeFiles(getNoticeFilesFromFormData(formData)).withIncludeInnerSource(
+            Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, DEFAULT_VALUE_FALSE)));
 
     return applicationAttributionReportBuilder
         .generateCustomLegalApplicationAttributionReport(
@@ -211,26 +202,19 @@ public class DefaultApiLegalReportResourceV2
   public String getLicenseLegalCustomMultiApplicationHTMLReport(FormDataMultiPart formData) {
     Set<AttributionReportApplicationDTO> applicationsAndStages;
     final LegalCustomReportParameters.Builder reportParametersBuilder = LegalCustomReportParameters.builder();
-    try {
-      reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
-          .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
-          .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
-          .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
-          .withIncludeStandardLicenseTexts(
-              Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
-          .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
-          .withNoticeFiles(getNoticeFilesFromFormData(formData))
-          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE,
-              DEFAULT_VALUE_FALSE)))
-          .withIncludeIncludeSonatypeSpecialLicenses(Boolean.parseBoolean(getMultiPartValue(formData,
-              REPORT_FORM_SONATYPE_SPECIAL_LICENSES, DEFAULT_VALUE_FALSE)))
-          .build();
-      applicationsAndStages = getApplicationsAndStagesFromFormData(formData);
-    }
-    catch (final Exception ex) { // if we got exception at this point it's because of invalid request
-      Throwables.throwIfInstanceOf(ex, BadRequestException.class);
-      throw new BadRequestException(ex.getMessage());
-    }
+    reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
+        .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
+        .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
+        .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
+        .withIncludeStandardLicenseTexts(
+            Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
+        .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
+        .withNoticeFiles(getNoticeFilesFromFormData(formData))
+        .withIncludeInnerSource(
+            Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, DEFAULT_VALUE_FALSE)))
+        .withIncludeIncludeSonatypeSpecialLicenses(Boolean
+            .parseBoolean(getMultiPartValue(formData, REPORT_FORM_SONATYPE_SPECIAL_LICENSES, DEFAULT_VALUE_FALSE)));
+    applicationsAndStages = getApplicationsAndStagesFromFormData(formData);
     return applicationAttributionReportBuilder
         .generateCustomLegalMultiApplicationAttributionReport(applicationsAndStages, reportParametersBuilder.build());
   }
@@ -249,13 +233,7 @@ public class DefaultApiLegalReportResourceV2
     List<String> noticeFiles = new ArrayList<>();
     if (request != null && request.getLength() > 0) {
       FormDataMultiPart multiPart = request.readEntity(FormDataMultiPart.class);
-      try {
-        noticeFiles = getNoticeFilesFromFormData(multiPart);
-      }
-      catch (Exception ex) { // if we got exception at this point it's because of invalid request
-        Throwables.throwIfInstanceOf(ex, BadRequestException.class);
-        throw new BadRequestException(ex.getMessage());
-      }
+      noticeFiles = getNoticeFilesFromFormData(multiPart);
     }
     LegalCustomReportParameters reportParameters = LegalCustomReportParameters.builder()
         .fromAttributionReportTemplateDTO(templateDTO)
@@ -277,14 +255,8 @@ public class DefaultApiLegalReportResourceV2
     Set<AttributionReportApplicationDTO> applicationsAndStagesSet = new HashSet<>();
     if (requestForm != null && requestForm.getLength() > 0) {
       final FormDataMultiPart multiPart = requestForm.readEntity(FormDataMultiPart.class);
-      try {
-        noticeFilesList = getNoticeFilesFromFormData(multiPart);
-        applicationsAndStagesSet = getApplicationsAndStagesFromFormData(multiPart);
-      }
-      catch (final Exception exc) { // if we got exception at this point it's because of invalid request
-        Throwables.throwIfInstanceOf(exc, BadRequestException.class);
-        throw new BadRequestException(exc.getMessage());
-      }
+      noticeFilesList = getNoticeFilesFromFormData(multiPart);
+      applicationsAndStagesSet = getApplicationsAndStagesFromFormData(multiPart);
     }
     LegalCustomReportParameters reportParameters =
         LegalCustomReportParameters.builder().withNoticeFiles(noticeFilesList).buildMultiApplicationWithDefaults(
@@ -308,14 +280,8 @@ public class DefaultApiLegalReportResourceV2
     Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
     if (request != null && request.getLength() > 0) {
       final FormDataMultiPart multiPart = request.readEntity(FormDataMultiPart.class);
-      try {
-        noticeFiles = getNoticeFilesFromFormData(multiPart);
-        applicationsAndStages = getApplicationsAndStagesFromFormData(multiPart);
-      }
-      catch (final Exception ex) { // if we got exception at this point it's because of invalid request
-        Throwables.throwIfInstanceOf(ex, BadRequestException.class);
-        throw new BadRequestException(ex.getMessage());
-      }
+      noticeFiles = getNoticeFilesFromFormData(multiPart);
+      applicationsAndStages = getApplicationsAndStagesFromFormData(multiPart);
     }
     return applicationAttributionReportBuilder
         .generateCustomLegalMultiApplicationAttributionReport(applicationsAndStages, LegalCustomReportParameters
@@ -339,13 +305,7 @@ public class DefaultApiLegalReportResourceV2
     List<String> noticeFiles = new ArrayList<>();
     if (request != null && request.getLength() > 0) {
       final FormDataMultiPart multiPart = request.readEntity(FormDataMultiPart.class);
-      try {
-        noticeFiles = getNoticeFilesFromFormData(multiPart);
-      }
-      catch (final Exception ex) { // if we got exception at this point it's because of invalid request
-        Throwables.throwIfInstanceOf(ex, BadRequestException.class);
-        throw new BadRequestException(ex.getMessage());
-      }
+      noticeFiles = getNoticeFilesFromFormData(multiPart);
     }
 
     return applicationAttributionReportBuilder.generateCustomLegalApplicationAttributionReport(

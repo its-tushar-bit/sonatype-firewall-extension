@@ -30,6 +30,7 @@ import {
 
 import ReadOnlyConstraint from './ReadOnlyConstraint';
 import EditableConstraint from './EditableConstraint';
+import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -41,6 +42,7 @@ export default function ConstraintsEditor() {
   const conditionTypes = useSelector(selectConditionTypes);
   const constraints = useSelector(selectCurrentPolicyConstraints);
   const isInherited = useSelector(selectIsInherited);
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const readOnly = isInherited || !hasEditIqPermission;
 
@@ -209,7 +211,7 @@ export default function ConstraintsEditor() {
         className="constraint-editor__add-constraint-btn"
         type="button"
         onClick={addConstraint}
-        disabled={readOnly}
+        disabled={isRepositoriesRelated ? false : readOnly}
       >
         <NxFontAwesomeIcon icon={faPlus} />
         <span>Add Constraint</span>

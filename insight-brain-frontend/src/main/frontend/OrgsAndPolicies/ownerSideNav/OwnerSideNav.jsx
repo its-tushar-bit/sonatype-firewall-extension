@@ -31,12 +31,12 @@ import Application from './Application';
 import Organization from './Organization';
 import {
   selectIsRootOrganization,
-  selectIsRepositories,
   selectIsOrganization,
   selectIsApplication,
   selectApplicationId,
   selectIsManagementViewRouterState,
   selectIncludesManagementView,
+  selectIsRepositoriesRelated,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
@@ -57,16 +57,16 @@ export default function OwnerSideNav() {
   } = useSelector(selectOwnerSideNavSlice);
   const isRootOrganization = useSelector(selectIsRootOrganization);
   const isOrganization = useSelector(selectIsOrganization);
-  const isRepositories = useSelector(selectIsRepositories);
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isApplication = useSelector(selectIsApplication);
-  const showRepositoriesLink = showRepositories && (isRootOrganization || isRepositories);
+  const showRepositoriesLink = showRepositories && (isRootOrganization || isRepositoriesRelated);
   const selectedApplicationId = useSelector(selectApplicationId);
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
   const isSummaryPage = useSelector(selectIncludesManagementView);
   const repositoriesCounter = useSelector(selectRepositoriesLength);
 
   const uiRouterState = useRouterState();
-  const goToRepositoriesUrl = uiRouterState.href('management.view.repositories');
+  const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container');
   const treeViewPageHref = uiRouterState.href('management.tree');
 
   const onSearch = (query) => dispatch(actions.filterSidebarEntries(query));
@@ -97,7 +97,7 @@ export default function OwnerSideNav() {
       active: isOrganization,
     });
 
-    if (isApplication || isRepositories) {
+    if (isApplication || isRepositoriesRelated) {
       const organizationUrl = uiRouterState.href('management.view.organization', {
         organizationId: displayedOrganization.id,
       });
@@ -124,7 +124,7 @@ export default function OwnerSideNav() {
   const renderRepositoriesNavigationItem = () => {
     if (!showRepositoriesLink) return null;
     const repositoriesClassnames = classnames('iq-navbar-item iq-repositories-link', {
-      active: isRepositories,
+      active: isRepositoriesRelated,
     });
     return (
       <a className={repositoriesClassnames} href={goToRepositoriesUrl}>
@@ -197,7 +197,7 @@ export default function OwnerSideNav() {
   };
 
   const renderApplications = (organization) => {
-    if (isRootOrganization || isRepositories) {
+    if (isRootOrganization || isRepositoriesRelated) {
       return null;
     }
     const childApplicationIds = organization.applicationIds ?? [];

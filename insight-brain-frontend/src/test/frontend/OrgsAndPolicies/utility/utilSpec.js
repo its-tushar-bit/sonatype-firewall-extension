@@ -75,7 +75,7 @@ describe('OrgsAndPolicies util', () => {
     it('derives edit route for Repository Container', () => {
       router = {
         currentState: {
-          name: 'management.view.repositories',
+          name: 'management.view.repository_container',
         },
         currentParams: {
           repositoryContainerId: 'REPOSITORY_CONTAINER_ID',

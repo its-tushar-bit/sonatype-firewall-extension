@@ -8,6 +8,8 @@ import OwnerDetailSidebar from 'MainRoot/owner.manager/navigation/OwnerDetailSid
 import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { getOwnerDetailsUrl } from 'MainRoot/util/CLMLocation';
+import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const APPS = [
   {
@@ -168,14 +170,40 @@ describe('OwnerDetailSidebar', () => {
   });
 
   it('renders correct sidebar with correct list open at Repositories', () => {
+    spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').and.returnValue({
+      ownerId: 'REPOSITORY_CONTAINER_ID',
+      ownerType: 'repository_container',
+    });
+    spyOn(routerSelectors, 'selectIsRepositoriesRelated').and.returnValue(true);
+
+    mock
+      .onGet(getOwnerDetailsUrl('repository_container', 'REPOSITORY_CONTAINER_ID', true))
+      .reply(200, ownerDetailMockData);
+
     renderComponent(repositoryState);
     expect(screen.getByText('Access')).toBeVisible();
 
     expect(screen.queryAllByText('Application Categories').length).toBe(0);
-    expect(screen.queryAllByText('Policies').length).toBe(0);
+    expect(screen.queryAllByText('Policies').length).toBe(1);
     expect(screen.queryAllByText('Component Labels').length).toBe(0);
     expect(screen.queryAllByText('License Threat Groups').length).toBe(0);
     expect(screen.queryAllByText('Source Control').length).toBe(0);
+  });
+
+  it('renders correct sidebar modifying Repository Container', () => {
+    spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').and.returnValue({
+      ownerId: 'REPOSITORY_CONTAINER_ID',
+      ownerType: 'repository_container',
+    });
+    spyOn(routerSelectors, 'selectIsRepositoriesRelated').and.returnValue(true);
+
+    mock
+      .onGet(getOwnerDetailsUrl('repository_container', 'REPOSITORY_CONTAINER_ID', true))
+      .reply(200, ownerDetailMockData);
+
+    renderComponent(repositoryState);
+    expect(screen.getByText('Access')).toBeVisible();
+    expect(screen.queryAllByText('Policies').length).toBe(1);
   });
 
   it('renders correct sidebar with correct list open at Application level', () => {

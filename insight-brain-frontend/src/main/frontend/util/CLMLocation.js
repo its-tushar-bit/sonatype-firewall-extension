@@ -434,6 +434,9 @@ export function getQuarantinedComponentViewAnonymousAccessEnabledState() {
  * @since 1.18.0
  */
 export function getPermissionContextTestUrl(ownerType, ownerId) {
+  if (ownerType === 'repository_container') {
+    return uriTemplate`/rest/user/permissions/repository_container`;
+  }
   return uriTemplate`/rest/user/permissions/${ownerType}` + (ownerId ? `/${ownerId}` : '');
 }
 

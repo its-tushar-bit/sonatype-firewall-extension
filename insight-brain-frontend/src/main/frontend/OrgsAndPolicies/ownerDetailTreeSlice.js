@@ -12,7 +12,7 @@ import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { getOwnerDetailsUrl } from 'MainRoot/util/CLMLocation';
 
 import { selectOwnerProperties, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsApplication, selectIsRepositories } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsApplication, selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as ownerDetailTreeActions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
@@ -30,7 +30,7 @@ export const initialState = {
 const loadOwnerDetails = createAsyncThunk(`${REDUCER_NAME}/loadOwnerDetails`, (_, { getState, rejectWithValue }) => {
   const state = getState();
   const { ownerType, ownerId } = selectOwnerProperties(state);
-  const isRepositories = selectIsRepositories(state);
+  const isRepositories = selectIsRepositoriesRelated(state);
   return axios.get(getOwnerDetailsUrl(ownerType, ownerId, isRepositories)).then(prop('data')).catch(rejectWithValue);
 });
 
@@ -57,7 +57,7 @@ const loadSidebar = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { getS
   const promises = [dispatch(ownerDetailTreeActions.loadOwnerDetails())];
 
   const isApp = selectIsApplication(state);
-  const isRepositories = selectIsRepositories(state);
+  const isRepositories = selectIsRepositoriesRelated(state);
 
   if (isApp) {
     promises.push(dispatch(applicationActions.loadApplications()));
@@ -78,7 +78,7 @@ const loadSidebar = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { getS
 
         dispatch(rootActions.setSelectedOwner(owner));
       } else {
-        dispatch(rootActions.setSelectedOwner({ name: 'Repositories' }));
+        dispatch(rootActions.setSelectedOwner({ name: 'Repositories', id: 'REPOSITORY_CONTAINER_ID' }));
       }
     })
     .catch(rejectWithValue);

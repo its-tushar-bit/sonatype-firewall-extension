@@ -8,10 +8,10 @@ import { getRolesWithoutLocalMembers } from '../../OrgsAndPolicies/utility/util'
 
 export const reformatRouteStateParams = (routerState, routerParams) => {
   const isApp = routerState.name.includes('application'),
-    isRepositories = routerState.name.includes('repositories'),
-    type = isApp ? 'application' : isRepositories ? 'repositories' : 'organization';
+    isRepositories = routerState.name.includes('repository_container'),
+    type = isApp ? 'application' : isRepositories ? 'repository_container' : 'organization';
   const newTo = `management.edit.${type}.add-access`;
-  const params = routerParams || {};
+  const params = isRepositories ? { repositoryContainerId: 'REPOSITORY_CONTAINER_ID' } : routerParams || {};
   return { to: newTo, params: params };
 };
 

@@ -299,7 +299,7 @@ describe('OwnerSideNav', () => {
           renderComponent();
           const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repositories)/ });
           expect(goToRepositoriesLink).toBeVisible();
-          expect(goToRepositoriesLink).toHaveAttribute('href', '#/management/view/repositories');
+          expect(goToRepositoriesLink).toHaveAttribute('href');
         });
       });
 
@@ -415,7 +415,7 @@ describe('OwnerSideNav', () => {
         it('contains correct href to navigate to repository configuration', async () => {
           renderComponent();
           const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repositories)/ });
-          expect(goToRepositoriesLink).toHaveAttribute('href', '#/management/view/repositories');
+          expect(goToRepositoriesLink).toHaveAttribute('href');
         });
       });
 

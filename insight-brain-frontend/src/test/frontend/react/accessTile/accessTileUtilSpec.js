@@ -22,15 +22,15 @@ describe('accessTileUtil', () => {
     });
 
     it('validates repositories with params', () => {
-      const customParams = { name: 'test' };
+      const customParams = { repositoryContainerId: 'REPOSITORY_CONTAINER_ID' };
       const routerState = {
-        name: 'test.repositories',
+        name: 'test.repository_container',
         data: {
-          organizationId: customParams,
+          repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
         },
       };
       const result = reformatRouteStateParams(routerState, customParams);
-      expect(result.to).toBe('management.edit.repositories.add-access');
+      expect(result.to).toBe('management.edit.repository_container.add-access');
       expect(result.params).toEqual(customParams);
     });
 

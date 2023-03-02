@@ -30,16 +30,11 @@ export function deriveViewRoute(routerState, to, params = {}) {
 function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
   const { currentState, currentParams } = routerState;
   const isApp = includes('application', currentState.name);
-  const isRepositories = includes('repositories', currentState.name);
-  const isRepositoryContainer = includes('management.view.repositories', currentState.name);
+  const isRepositoryContainer =
+    includes('management.view.repository_container', currentState.name) ||
+    includes('repository_container', currentState.name);
 
-  const type = isRepositoryContainer
-    ? 'repository_container'
-    : isApp
-    ? 'application'
-    : isRepositories
-    ? 'repositories'
-    : 'organization';
+  const type = isRepositoryContainer ? 'repository_container' : isApp ? 'application' : 'organization';
   const ownerId = isRepositoryContainer ? 'REPOSITORY_CONTAINER_ID' : isApp ? 'applicationPublicId' : 'organizationId';
 
   if (isRepositoryContainer) {

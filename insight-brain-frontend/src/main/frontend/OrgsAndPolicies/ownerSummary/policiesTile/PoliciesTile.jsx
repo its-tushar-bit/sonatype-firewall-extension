@@ -31,7 +31,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import PoliciesTable from './PoliciesTable';
-import { selectIsRepositories } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function PoliciesTile() {
   const dispatch = useDispatch();
@@ -45,7 +45,7 @@ export default function PoliciesTile() {
   const loadError = useSelector(selectPolicyTileLoadError);
   const selectedOwner = useSelector(selectSelectedOwner);
   const sorting = useSelector(selectPolicyTileSorting);
-  const isRepositories = useSelector(selectIsRepositories);
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
 
   const doLoad = () => dispatch(actions.loadPolicyTile());
 
@@ -60,23 +60,23 @@ export default function PoliciesTile() {
   const stagesNumber = `policy-tile__stages-num--${actionStages?.length || 7}`;
 
   return (
-    <NxTile id="owner-pill-policy">
+    <NxTile id="owner-pill-policy" data-testid="policies-tile">
       <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
         <NxTile.Header>
           <NxTile.Headings>
             <NxTile.HeaderTitle>
               <NxH2>Policies</NxH2>
             </NxTile.HeaderTitle>
-            <NxTile.HeaderSubtitle>applying to {ownerName}</NxTile.HeaderSubtitle>
+            <NxTile.HeaderSubtitle>
+              applying to {isRepositoriesRelated ? 'All Repositories' : ownerName}
+            </NxTile.HeaderSubtitle>
           </NxTile.Headings>
-          {!isRepositories && (
-            <NxTile.HeaderActions>
-              <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
-                <NxFontAwesomeIcon icon={faPlus} />
-                <span>Add a Policy</span>
-              </NxButton>
-            </NxTile.HeaderActions>
-          )}
+          <NxTile.HeaderActions>
+            <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
+              <NxFontAwesomeIcon icon={faPlus} />
+              <span>Add a Policy</span>
+            </NxButton>
+          </NxTile.HeaderActions>
         </NxTile.Header>
         <NxTile.Content className={stagesNumber}>
           <NxTile.Subsection>
@@ -114,7 +114,7 @@ export default function PoliciesTile() {
                       isFirewallSupported={isFirewallSupported}
                       isEnforcementSupported={isEnforcementSupported}
                       sorting={sorting}
-                      isRepositories={isRepositories}
+                      isRepositories={isRepositoriesRelated}
                     />
                   </NxTableContainer>
                 </NxTile.Subsection>

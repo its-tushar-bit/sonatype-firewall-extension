@@ -88,7 +88,11 @@ import {
   selectIsNotificationsSupported,
   selectIsWebhooksSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsRepositoriesRelated,
+  selectIsRepositoryContainer,
+  selectRouterCurrentParams,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { RECIPIENT_TYPES } from 'MainRoot/OrgsAndPolicies/policySlice';
 
 describe('policySelectors', () => {
@@ -1295,6 +1299,7 @@ describe('policySelectors', () => {
         selectCurrentPolicyActions,
         selectOriginalProxyStageAction,
         selectIsRootOrg,
+        selectIsRepositoryContainer,
       ]);
     });
 
@@ -1304,34 +1309,44 @@ describe('policySelectors', () => {
         originalProxyStageAction: 'fail',
         isRootOrg: true,
         result: false,
+        isRepositoryContainer: false,
       },
       {
         actions: { proxy: 'fail' },
         originalProxyStageAction: 'fail',
         isRootOrg: true,
         result: false,
+        isRepositoryContainer: false,
       },
       {
         actions: { proxy: 'fail' },
         originalProxyStageAction: 'warn',
         isRootOrg: false,
         result: false,
+        isRepositoryContainer: false,
       },
       {
         actions: { proxy: 'fail' },
         originalProxyStageAction: 'warn',
         isRootOrg: true,
         result: true,
+        isRepositoryContainer: false,
       },
     ];
 
-    testCases.forEach(({ actions, originalProxyStageAction, isRootOrg, result }) => {
+    testCases.forEach(({ actions, originalProxyStageAction, isRootOrg, result, isRepositoryContainer }) => {
       it(`selects shouldShowQuarantineWarning with the following params: ${JSON.stringify({
         actions,
         originalProxyStageAction,
         isRootOrg,
+        isRepositoryContainer,
       })}`, () => {
-        const selected = selectShouldShowQuarantineWarning.resultFunc(actions, originalProxyStageAction, isRootOrg);
+        const selected = selectShouldShowQuarantineWarning.resultFunc(
+          actions,
+          originalProxyStageAction,
+          isRootOrg,
+          isRepositoryContainer
+        );
 
         expect(selected).toBe(result);
       });
@@ -1593,6 +1608,7 @@ describe('policySelectors', () => {
         selectIsFirewallSupported,
         selectIsInherited,
         selectIsNotificationOverrideEnabled,
+        selectIsRepositoriesRelated,
       ]);
     });
 
@@ -1635,6 +1651,7 @@ describe('policySelectors', () => {
         selectIsNotificationsInheritOverrideEnabled,
         selectIsInherited,
         selectOverrideNotificationsFlag,
+        selectIsRepositoriesRelated,
       ]);
     });
 

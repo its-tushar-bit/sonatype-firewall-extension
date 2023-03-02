@@ -16,6 +16,7 @@ import {
   NxP,
   NxRadio,
   NxTable,
+  NxTooltip,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import { faExclamationCircle, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
@@ -38,6 +39,7 @@ import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const ACTIONS = [
   { label: 'No Action', value: null },
@@ -72,7 +74,11 @@ export default function PolicyActionsEditor() {
   const isActionsInheritOverrideEnabled = useSelector(selectIsActionsInheritOverrideEnabled);
   const isActionsTableEnabled = useSelector(selectIsActionsTableEnabled);
 
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isDisabled = (stageTypeId) => {
+    if (isRepositoriesRelated) {
+      return stageTypeId !== 'proxy';
+    }
     const isEnforcementSupportedForStage = isEnforcementSupported || (isFirewallSupported && stageTypeId === 'proxy');
     return !isActionsTableEnabled || !isEnforcementSupportedForStage;
   };
@@ -97,6 +103,9 @@ export default function PolicyActionsEditor() {
       setActions(updatedActions);
     }
   };
+
+  const getRadioTooltipMessage = (stage) =>
+    isRepositoriesRelated && stage.stageTypeId !== 'proxy' ? 'Actions are only supported at Proxy stage' : '';
 
   return (
     <NxLoadWrapper loading={!actionStages} error={actionStagesLoadError} retryHandler={loadActionStages}>
@@ -174,13 +183,15 @@ export default function PolicyActionsEditor() {
                 </NxTable.Cell>
                 {actionStages?.map((stage) => (
                   <NxTable.Cell key={`${action.value}-${stage.stageTypeId}`} className={stage.shortName?.toLowerCase()}>
-                    <NxRadio
-                      name={`action-for-${stage.stageTypeId}`}
-                      value={action.value}
-                      disabled={isDisabled(stage.stageTypeId)}
-                      onChange={() => onActionsChange(stage.stageTypeId, action.value)}
-                      isChecked={getActionFor(stage.stageTypeId) === action.value}
-                    />
+                    <NxTooltip title={getRadioTooltipMessage(stage)}>
+                      <NxRadio
+                        name={`action-for-${stage.stageTypeId}`}
+                        value={action.value}
+                        disabled={isDisabled(stage.stageTypeId)}
+                        onChange={() => onActionsChange(stage.stageTypeId, action.value)}
+                        isChecked={getActionFor(stage.stageTypeId) === action.value}
+                      />
+                    </NxTooltip>
                   </NxTable.Cell>
                 ))}
                 <NxTable.Cell className="placeholder continuous-monitoring" />

@@ -67,7 +67,10 @@ export default function RepositoryResultsSummaryPage() {
     <>
       <RepositoryResultsComponentsFilter repositoryId={params.repositoryId} />
       <NxPageMain>
-        <MenuBarBackButton href={uiRouterState.href('management.view.repositories')} text="Back to Repositories" />
+        <MenuBarBackButton
+          href={uiRouterState.href('management.view.repository_container')}
+          text="Back to Repositories"
+        />
         {showMaskSuccessDialog && <NxStatefulSubmitMask success={showReEvaluateMaskSuccess} message="Re-Evaluating" />}
         <NxLoadWrapper
           retryHandler={() => {

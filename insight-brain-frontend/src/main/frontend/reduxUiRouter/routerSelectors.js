@@ -10,6 +10,7 @@ import { createSelector } from '@reduxjs/toolkit';
 export const selectRouterSlice = prop('router');
 export const selectRouterCurrentParams = createSelector(selectRouterSlice, prop('currentParams'));
 export const selectRouterState = createSelector(selectRouterSlice, prop('currentState'));
+export const selectRouterStateUrl = createSelector(selectRouterState, prop('url'));
 
 export const selectCurrentRouteName = createSelector(selectRouterState, prop('name'));
 
@@ -25,12 +26,32 @@ const nameIncludesApplication = includesNamePart('application');
 const nameIncludesRepositories = includesNamePart('repositories');
 const nameIncludesRepository = includesNamePart('repository');
 const nameIncludesFirewall = includesNamePart('firewall');
+const nameIncludesRepositoryContainer = includesNamePart('repository_container');
+const nameIncludesCategory = includesNamePart('category');
+const nameIncludesPolicy = includesNamePart('policy');
+const nameIncludesGrandfathering = includesNamePart('grandfathering');
+const nameIncludesMonitoring = includesNamePart('monitoring');
+const nameIncludesProprietary = includesNamePart('proprietary');
+const nameIncludesLabel = includesNamePart('label');
+const nameIncludesLicenseThreatGroup = includesNamePart('licenseThreatGroup');
+const nameIncludesSourceControl = includesNamePart('source-control');
+const nameIncludesAccess = includesNamePart('access');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
 export const selectIsApplication = createSelector(selectCurrentRouteName, nameIncludesApplication);
 export const selectIsRepositories = createSelector(selectCurrentRouteName, nameIncludesRepositories);
 export const selectIsRepository = createSelector(selectCurrentRouteName, nameIncludesRepository);
 export const selectIsFirewall = createSelector(selectCurrentRouteName, nameIncludesFirewall);
+export const selectIsRepositoryContainer = createSelector(selectCurrentRouteName, nameIncludesRepositoryContainer);
+export const selectIsCategory = createSelector(selectRouterStateUrl, nameIncludesCategory);
+export const selectIsGrandfathering = createSelector(selectRouterStateUrl, nameIncludesGrandfathering);
+export const selectIsPolicy = createSelector(selectRouterStateUrl, nameIncludesPolicy);
+export const selectIsMonitoring = createSelector(selectRouterStateUrl, nameIncludesMonitoring);
+export const selectIsProprietary = createSelector(selectRouterStateUrl, nameIncludesProprietary);
+export const selectIsLabel = createSelector(selectRouterStateUrl, nameIncludesLabel);
+export const selectIsLicenseThreatGroup = createSelector(selectRouterStateUrl, nameIncludesLicenseThreatGroup);
+export const selectIsSourceControl = createSelector(selectRouterStateUrl, nameIncludesSourceControl);
+export const selectIsAccess = createSelector(selectRouterStateUrl, nameIncludesAccess);
 export const selectIsPrevFirewall = createSelector(selectPreviousRouteName, nameIncludesFirewall);
 // we can access to component details page from application report but also from firewall or repository results view,
 // so this is used to find out if the route is a firewall route or repository route
@@ -38,6 +59,14 @@ export const selectIsFirewallOrRepository = createSelector(
   selectIsFirewall,
   selectIsRepository,
   (isFirewall, isRepository) => isFirewall || isRepository
+);
+// for some pages, state treatment is the same regardless if the route contains /repository, /repository_container
+// or /repositories
+export const selectIsRepositoriesRelated = createSelector(
+  selectIsRepository,
+  selectIsRepositories,
+  selectIsRepositoryContainer,
+  (isRepository, isRepositories, isRepositoryContainer) => isRepository || isRepositories || isRepositoryContainer
 );
 
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, propOr('', 'organizationId'));

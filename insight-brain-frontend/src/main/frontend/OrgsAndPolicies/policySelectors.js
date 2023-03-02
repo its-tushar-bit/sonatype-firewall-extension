@@ -6,7 +6,11 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { prop, isNil, map, indexBy, flatten, any, includes, equals } from 'ramda';
 
-import { selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
+import {
+  selectIsRepositoriesRelated,
+  selectIsRepositoryContainer,
+  selectRouterCurrentParams,
+} from '../reduxUiRouter/routerSelectors';
 import {
   selectPoliciesByOwner as mainSelectPoliciesByOwner,
   selectOrgsAndPoliciesSlice,
@@ -115,8 +119,9 @@ export const selectShouldShowQuarantineWarning = createSelector(
   selectCurrentPolicyActions,
   selectOriginalProxyStageAction,
   selectIsRootOrg,
-  (actions, originalProxyStageAction, isRootOrg) =>
-    actions?.proxy === 'fail' && originalProxyStageAction !== 'fail' && isRootOrg
+  selectIsRepositoryContainer,
+  (actions, originalProxyStageAction, isRootOrg, isRepositoryContainer) =>
+    actions?.proxy === 'fail' && originalProxyStageAction !== 'fail' && (isRootOrg || isRepositoryContainer)
 );
 
 export const selectIsCurrentPolicyDirty = createSelector(
@@ -296,7 +301,18 @@ export const selectIsNotificationsInheritOverrideEnabled = createSelector(
   selectIsFirewallSupported,
   selectIsInherited,
   selectIsNotificationOverrideEnabled,
-  (hasEditIqPermission, isNotificationsSupported, isFirewallSupported, isInherited, isNotificationOverrideEnabled) => {
+  selectIsRepositoriesRelated,
+  (
+    hasEditIqPermission,
+    isNotificationsSupported,
+    isFirewallSupported,
+    isInherited,
+    isNotificationOverrideEnabled,
+    isRepositoriesRelated
+  ) => {
+    if (isRepositoriesRelated) {
+      return true;
+    }
     if (!hasEditIqPermission) {
       return false;
     }
@@ -314,7 +330,11 @@ export const selectIsNotificationsTableEnabled = createSelector(
   selectIsNotificationsInheritOverrideEnabled,
   selectIsInherited,
   selectOverrideNotificationsFlag,
-  (isNotificationsInheritOverrideEnabled, isInherited, overrideNotificationsFlag) => {
+  selectIsRepositoriesRelated,
+  (isNotificationsInheritOverrideEnabled, isInherited, overrideNotificationsFlag, isRepositoriesRelated) => {
+    if (isRepositoriesRelated) {
+      return true;
+    }
     if (!isNotificationsInheritOverrideEnabled) {
       return false;
     }

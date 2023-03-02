@@ -160,6 +160,11 @@ export default angular
           name: 'Application',
           id: 'applicationPublicId',
         },
+        {
+          type: 'repository_container',
+          name: 'Repositories',
+          id: 'repositoryContainerId',
+        },
       ];
 
       $stateProvider
@@ -184,46 +189,27 @@ export default angular
         .state('management.edit', {
           abstract: true,
         })
-        .state('management.view.repositories', {
-          url: '/repositories',
+        .state('management.view.repository_container', {
+          url: '/repository_container/REPOSITORY_CONTAINER_ID',
           data: {
             title: 'Repositories Management',
             viewportSized: true,
           },
           component: 'repositoriesSummaryView',
-        })
-        .state('management.edit.repositories', {
-          url: '/edit/repositories',
-          data: {
-            title: 'Repositories Management',
-          },
-          template: editTemplate,
-        })
-        .state('management.edit.repositories.add-access', {
-          url: '/access',
-          data: {
-            isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
-          },
-          component: 'accessPage',
-        })
-        .state('management.edit.repositories.edit-access', {
-          url: '/access/{roleId}',
-          data: {
-            isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
-          },
-          component: 'accessPage',
         });
 
       ownerTypes.forEach(function (ownerType) {
-        $stateProvider
-          .state('management.view.' + ownerType.type, {
+        if (ownerType.type !== 'repository_container') {
+          $stateProvider.state('management.view.' + ownerType.type, {
             url: '/' + ownerType.type + '/{' + ownerType.id + '}',
             data: {
               title: ownerType.name + ' Management',
               viewportSized: true,
             },
             template: summaryViewTemplate,
-          })
+          });
+        }
+        $stateProvider
           .state('management.edit.' + ownerType.type, {
             url: '/edit/' + ownerType.type + '/{' + ownerType.id + '}',
             data: {

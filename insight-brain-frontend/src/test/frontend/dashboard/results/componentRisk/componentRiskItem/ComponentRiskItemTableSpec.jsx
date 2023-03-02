@@ -124,7 +124,7 @@ describe('ComponentRiskItemTable', () => {
     expect(screen.getByText('< 1%')).toBeVisible();
     expect(screen.getByText('2h')).toBeVisible();
     expect(screen.getByText('2d')).toBeVisible();
-    expect(screen.getByText('2mo')).toBeVisible();
+    expect(screen.getByText('1mo')).toBeVisible();
     expect(screen.getByText('2y')).toBeVisible();
   });
 });

@@ -16,9 +16,6 @@ public class OwnerDetailsEditingPage
   }
 
   public static String url(OwnerType ownerType, String ownerId) {
-    if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType)) {
-      return BaseUrl.resolvePageUrl("/management/edit/repositories");
-    }
     return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}", ownerType, ownerId);
   }
 }

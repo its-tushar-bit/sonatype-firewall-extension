@@ -27,6 +27,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function EditPolicySummary() {
   const dispatch = useDispatch();
@@ -36,7 +37,8 @@ export default function EditPolicySummary() {
   const threatLevel = useSelector(selectCurrentPolicyThreatLevel);
   const isInherited = useSelector(selectIsInherited);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
-  const readOnly = isInherited || !hasEditIqPermission;
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
+  const readOnly = isRepositoriesRelated ? false : isInherited || !hasEditIqPermission;
   const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
   const policyViolationGrandfatheringAllowed = useSelector(selectCurrentPolicyViolationGrandfatheringAllowed);
 
@@ -56,7 +58,7 @@ export default function EditPolicySummary() {
             {...name}
             onChange={setPolicyName}
             validatable={!name.isPristine || !name.value}
-            disabled={readOnly}
+            disabled={isRepositoriesRelated ? false : readOnly}
             id="editor-policy-name"
             name="policy"
             autoFocus
@@ -66,7 +68,7 @@ export default function EditPolicySummary() {
           className="edit-policy-threat-dropdown"
           threatLevel={threatLevel}
           onSelectThreatLevel={setThreatLevel}
-          disabled={readOnly}
+          disabled={isRepositoriesRelated ? false : readOnly}
           id="editor-policy-threat-level"
         />
       </NxFormRow>
@@ -75,16 +77,18 @@ export default function EditPolicySummary() {
           Policy Violation Grandfathering is not supported by your license
         </NxStatefulInfoAlert>
       )}
-      <NxFieldset label="Policy Violation Grandfathering">
-        <NxCheckbox
-          id="editor-policy-violation-grandfathering"
-          onChange={togglePolicyViolationGrandfatheringAllowed}
-          isChecked={!!policyViolationGrandfatheringAllowed}
-          disabled={readOnly || !isGrandfatheringSupported}
-        >
-          Allow this policy to be grandfathered
-        </NxCheckbox>
-      </NxFieldset>
+      {!isRepositoriesRelated && (
+        <NxFieldset label="Policy Violation Grandfathering">
+          <NxCheckbox
+            id="editor-policy-violation-grandfathering"
+            onChange={togglePolicyViolationGrandfatheringAllowed}
+            isChecked={!!policyViolationGrandfatheringAllowed}
+            disabled={isRepositoriesRelated ? false : readOnly || !isGrandfatheringSupported}
+          >
+            Allow this policy to be grandfathered
+          </NxCheckbox>
+        </NxFieldset>
+      )}
       <NxDivider />
     </div>
   );

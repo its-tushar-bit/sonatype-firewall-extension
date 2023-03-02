@@ -45,7 +45,6 @@ describe('productFeaturesSelectors', () => {
           'policy-grandfathering': true,
           notifications: true,
           'webhooks-for-applications': true,
-          'webhooks-for-repositories': true,
           automation: true,
           'inner-source-repository-integration': true,
           'built-from-source': true,
@@ -118,7 +117,7 @@ describe('productFeaturesSelectors', () => {
   });
 
   describe('selectIsWebhooksSupported', () => {
-    it('returns true if either webhooks-for-applications or webhooks-for-repositories are enabled', () => {
+    it('returns true if webhooks-for-applications is enabled', () => {
       expect(selectIsWebhooksSupported(mockState)).toBeTrue();
     });
   });

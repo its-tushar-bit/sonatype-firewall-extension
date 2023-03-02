@@ -928,7 +928,7 @@ public class RepositoriesSummaryViewTest
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldBe(visible);
     policyTile.subHeader().shouldBe(visible).shouldHave(PolicyTile.subHeaderText("All Repositories"));
-    policyTile.newButton().shouldNotBe(visible);
+    policyTile.newButton().shouldBe(visible);
 
     PolicyTileList policyList = policyTile.policyList(0);
     policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));

@@ -52,6 +52,7 @@ import {
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { validateEmailPatternMatch, hasValidationErrors } from 'MainRoot/util/validationUtil';
 import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const isValidEmail = (email) => !hasValidationErrors(validateEmailPatternMatch('Invalid email format', email));
 
@@ -89,6 +90,7 @@ export default function PolicyNotificationsEditor() {
   const recipientTypeOptions = useSelector(selectNotificationRecipientTypeOptions);
   const availableJiraProjects = useSelector(selectAvailableJiraProjects);
   const selectedJiraProject = useSelector(selectSelectedJiraProject);
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
 
   const recipientType = formState?.recipientType?.value;
   const recipientEmail = formState?.recipientEmail?.value;
@@ -106,7 +108,9 @@ export default function PolicyNotificationsEditor() {
   const hasStage = (notification, stageId) => (notification.stageIds ?? []).includes(stageId);
 
   const isNotificationsSupportedForStage = (stageId) =>
-    isNotificationsSupported || (isFirewallSupported && stageId === 'proxy');
+    isRepositoriesRelated
+      ? stageId === 'proxy' && isNotificationsSupported
+      : (isFirewallSupported && stageId === 'proxy') || isNotificationsSupported;
 
   const isDisabled = (recipient, stageId) => {
     // JIRA/Webhook notifications can't use proxy stage
@@ -131,6 +135,10 @@ export default function PolicyNotificationsEditor() {
   };
 
   const getCheckboxTooltipMessage = (recipient, stage) => {
+    if (isRepositoriesRelated && stage.stageTypeId !== 'proxy') {
+      return 'Notifications are only supported at Proxy stage';
+    }
+
     if (stage.stageTypeId === 'proxy') {
       if (recipient.webhookId) return 'Webhooks are not available for policy violations at Proxy stage.';
       if (recipient.projectKey) return 'Jira notifications are not available for policy violations at Proxy stage.';
@@ -248,7 +256,11 @@ export default function PolicyNotificationsEditor() {
                     >
                       <NxCheckbox
                         aria-label={`notify ${recipient.displayName} for continuous-monitoring`}
-                        disabled={isDisabled(recipient, 'continuous-monitoring') || !isMonitoringSupported}
+                        disabled={
+                          isDisabled(recipient, 'continuous-monitoring') ||
+                          !isMonitoringSupported ||
+                          isRepositoriesRelated
+                        }
                         isChecked={hasStage(recipient, 'continuous-monitoring')}
                         onChange={() =>
                           toggleNotificationRecipientStage({ recipient, stageId: 'continuous-monitoring' })

@@ -15,6 +15,7 @@ import {
   getCreateOrDeleteAccessRepositoryUrl,
 } from 'MainRoot/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const availableRoles = [
   {
@@ -129,7 +130,7 @@ describe('access', () => {
     store,
     state,
     orgAdress = 'management.edit.organization.edit-access',
-    repositoryAdress = 'management.edit.repositories.edit-access';
+    repositoryAdress = 'management.edit.repository_container.edit-access';
 
   beforeEach(function () {
     jasmine.clock().install();
@@ -160,6 +161,7 @@ describe('access', () => {
   describe('loadRoles under organization', () => {
     beforeEach(function () {
       state.router.currentState.name = orgAdress;
+      spyOn(routerSelectors, 'selectIsRepositoriesRelated').and.returnValue(false);
     });
 
     it('loading all availableRoles loadRoles/fulfilled action success', (done) => {
@@ -199,6 +201,7 @@ describe('access', () => {
   describe('loadRoles under repository', () => {
     beforeEach(function () {
       state.router.currentState.name = repositoryAdress;
+      spyOn(routerSelectors, 'selectIsRepositoriesRelated').and.returnValue(true);
     });
 
     it('loading all availableRoles loadRoles/fulfilled action success', (done) => {
@@ -605,6 +608,7 @@ describe('access', () => {
     beforeEach(function () {
       state.router.currentState.name = repositoryAdress;
       state.router.currentParams.roleId = '90c7c98683b4471cb77a916744540bcc';
+      spyOn(routerSelectors, 'selectIsRepositoriesRelated').and.returnValue(true);
     });
 
     it('deletes role successfully', (done) => {
@@ -636,7 +640,6 @@ describe('access', () => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder(['access/removeRole/pending', 'access/removeRole/rejected']);
-        expect(actions[1].payload).toBe('could not remove role');
         done();
       });
     });

@@ -29,7 +29,16 @@ import {
   selectIsApplication,
   selectRouterState,
   selectRouterCurrentParams,
-  selectIsRepositories,
+  selectIsRepositoriesRelated,
+  selectIsCategory,
+  selectIsPolicy,
+  selectIsGrandfathering,
+  selectIsMonitoring,
+  selectIsProprietary,
+  selectIsLabel,
+  selectIsLicenseThreatGroup,
+  selectIsSourceControl,
+  selectIsAccess,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsMonitoringSupported,
@@ -62,7 +71,16 @@ export default function OwnerDetailSidebar() {
   );
   const { tags, policies, labels, licenseThreatGroups, roles } = useSelector(selectOwnerDetails);
   const doesRolesWithoutLocalMembersExist = useSelector(selectRolesWithoutLocalMembersExist);
-  const isRepositories = useSelector(selectIsRepositories);
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
+  const isCategory = useSelector(selectIsCategory);
+  const isPolicy = useSelector(selectIsPolicy);
+  const isGrandfathering = useSelector(selectIsGrandfathering);
+  const isMonitoring = useSelector(selectIsMonitoring);
+  const isProprietary = useSelector(selectIsProprietary);
+  const isLabel = useSelector(selectIsLabel);
+  const isLicenseThreatGroup = useSelector(selectIsLicenseThreatGroup);
+  const isSourceControl = useSelector(selectIsSourceControl);
+  const isAccess = useSelector(selectIsAccess);
   const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
   const labelsSublings = useSelector(selectLabelsSiblings);
@@ -74,27 +92,33 @@ export default function OwnerDetailSidebar() {
 
   const uiRouterState = useRouterState();
 
-  const backButtonHref = uiRouterState.href(
-    `management.view.${isRepositories ? 'repositories' : isApp ? 'application' : 'organization'}`,
-    isApp
-      ? {
-          applicationPublicId: owner.publicId,
-        }
-      : {
-          organizationId: owner.id,
-        }
-  );
+  const getBackButtonHref = (isApp, isRepositoriesRelated, owner) => {
+    if (isRepositoriesRelated) {
+      return uiRouterState.href('management.view.repository_container', {
+        repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+      });
+    } else if (isApp) {
+      return uiRouterState.href('management.view.application', { applicationPublicId: owner.publicId });
+    } else {
+      return uiRouterState.href('management.view.organization', { organizationId: owner.id });
+    }
+  };
 
-  const linkMainHref = uiRouterState.href(
-    `management.edit.${isRepositories ? 'repositories' : isApp ? 'application' : 'organization'}`,
-    isApp
-      ? {
-          applicationPublicId: owner.publicId,
-        }
-      : {
-          organizationId: owner.id,
-        }
-  );
+  const backButtonHref = getBackButtonHref(isApp, isRepositoriesRelated, owner);
+
+  const getLinkMainHref = (isApp, isRepositoriesRelated, owner) => {
+    if (isRepositoriesRelated) {
+      return uiRouterState.href('management.edit.repository_container', {
+        repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+      });
+    } else if (isApp) {
+      return uiRouterState.href('management.edit.application', { applicationPublicId: owner.publicId });
+    } else {
+      return uiRouterState.href('management.edit.organization', { organizationId: owner.id });
+    }
+  };
+
+  const linkMainHref = getLinkMainHref(isApp, isRepositoriesRelated, owner);
 
   const doLoad = () => dispatch(actions.loadSidebar());
 
@@ -112,35 +136,35 @@ export default function OwnerDetailSidebar() {
   }, []);
 
   useEffect(() => {
-    if (url.includes('/category')) {
+    if (isCategory) {
       setCategoryOpenState(true);
       setPoliciesOpenState(false);
       setLabelsOpenState(false);
       setLtgOpenState(false);
       setAccessOpenState(false);
     }
-    if (url.includes('/policy')) {
+    if (isPolicy) {
       setCategoryOpenState(false);
       setPoliciesOpenState(true);
       setLabelsOpenState(false);
       setLtgOpenState(false);
       setAccessOpenState(false);
     }
-    if (url.includes('/label')) {
+    if (isLabel) {
       setCategoryOpenState(false);
       setPoliciesOpenState(false);
       setLabelsOpenState(true);
       setLtgOpenState(false);
       setAccessOpenState(false);
     }
-    if (url.includes('/licenseThreatGroup')) {
+    if (isLicenseThreatGroup) {
       setCategoryOpenState(false);
       setPoliciesOpenState(false);
       setLabelsOpenState(false);
       setLtgOpenState(true);
       setAccessOpenState(false);
     }
-    if (url.includes('/access')) {
+    if (isAccess) {
       setCategoryOpenState(false);
       setPoliciesOpenState(false);
       setLabelsOpenState(false);
@@ -151,24 +175,27 @@ export default function OwnerDetailSidebar() {
 
   return (
     <div id="owner-detail-sidebar">
-      <MenuBarBackButton href={backButtonHref} text={isRepositories ? 'All Repositories' : `Back to ${owner.name}`} />
+      <MenuBarBackButton
+        href={backButtonHref}
+        text={isRepositoriesRelated ? 'All Repositories' : `Back to ${owner.name}`}
+      />
       <NxH3>{owner.name}</NxH3>
       <NxH4>Policy Management</NxH4>
 
       {/* Categories */}
-      {!isRepositories && (
+      {!isRepositoriesRelated && (
         <NxCollapsibleItems
           id="application-category-group"
           role="menu"
           onToggleCollapse={onCategoryCollapse}
           isOpen={categoryOpen}
           triggerContent="Application Categories"
-          className={url.includes('/category') ? 'active' : ''}
+          className={isCategory ? 'active' : ''}
         >
           <NxTooltip title={isApp && !areAnyCategoriesDefined ? 'No application categories defined.' : ''}>
             <NxCollapsibleItems.Child role="menuitem">
               <NxTextLink
-                className={url.includes('/category') && !categoryId ? 'selected' : ''}
+                className={isCategory && !categoryId ? 'selected' : ''}
                 href={`${linkMainHref}/category`}
                 disabled={isApp && !areAnyCategoriesDefined}
               >
@@ -196,46 +223,42 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* Policies */}
-      {!isRepositories && (
-        <NxCollapsibleItems
-          id="policy-group"
-          role="menu"
-          onToggleCollapse={onPoliciesCollapse}
-          isOpen={policiesOpen}
-          triggerContent="Policies"
-          className={url.includes('/policy') ? 'active' : ''}
-        >
-          <NxCollapsibleItems.Child role="menuitem">
-            <NxTextLink
-              className={url.includes('/policy') && !policyId ? 'selected' : ''}
-              href={`${linkMainHref}/policy`}
-            >
-              <NxFontAwesomeIcon icon={faPlus} />
-              New Policy
-            </NxTextLink>
-          </NxCollapsibleItems.Child>
-          {policies &&
-            sort((a, b) => b.threatLevel - a.threatLevel, policies).map(({ name, id, threatLevel }) => (
-              <NxOverflowTooltip key={name}>
-                <NxCollapsibleItems.Child role="menuitem">
-                  <NxTextLink className={id === policyId ? 'selected' : ''} href={`${linkMainHref}/policy/${id}`}>
-                    <NxThreatIndicator policyThreatLevel={threatLevel} />
-                    {name}
-                  </NxTextLink>
-                </NxCollapsibleItems.Child>
-              </NxOverflowTooltip>
-            ))}
-        </NxCollapsibleItems>
-      )}
+      <NxCollapsibleItems
+        id="policy-group"
+        role="menu"
+        onToggleCollapse={onPoliciesCollapse}
+        isOpen={policiesOpen}
+        triggerContent="Policies"
+        className={isPolicy ? 'active' : ''}
+      >
+        <NxCollapsibleItems.Child role="menuitem">
+          <NxTextLink className={isPolicy && !policyId ? 'selected' : ''} href={`${linkMainHref}/policy`}>
+            <NxFontAwesomeIcon icon={faPlus} />
+            New Policy
+          </NxTextLink>
+        </NxCollapsibleItems.Child>
+        {policies &&
+          sort((a, b) => b.threatLevel - a.threatLevel, policies).map(({ name, id, threatLevel }) => (
+            <NxOverflowTooltip key={name}>
+              <NxCollapsibleItems.Child role="menuitem">
+                <NxTextLink className={id === policyId ? 'selected' : ''} href={`${linkMainHref}/policy/${id}`}>
+                  <NxThreatIndicator policyThreatLevel={threatLevel} />
+                  {name}
+                </NxTextLink>
+              </NxCollapsibleItems.Child>
+            </NxOverflowTooltip>
+          ))}
+      </NxCollapsibleItems>
+
       {/* Grandfathering */}
-      {!isRepositories && (
+      {!isRepositoriesRelated && (
         <NxTooltip
           title={!isGrandfatheringSupported ? 'Policy Violation Grandfathering is not supported by your license' : ''}
         >
           <NxCollapsibleItems.Child>
             <NxTextLink
               id="grandfathering-link"
-              className={`iq-noncollapsible ${url.includes('/grandfathering') && !currentRoleId ? 'selected' : ''}`}
+              className={`iq-noncollapsible ${isGrandfathering && !currentRoleId ? 'selected' : ''}`}
               href={`${linkMainHref}/grandfathering`}
               disabled={!isGrandfatheringSupported}
             >
@@ -245,12 +268,12 @@ export default function OwnerDetailSidebar() {
         </NxTooltip>
       )}
       {/* Monitoring */}
-      {!isRepositories && (
+      {!isRepositoriesRelated && (
         <NxTooltip title={!isMonitoringSupported ? 'Policy Monitoring is not supported by your license' : ''}>
           <NxCollapsibleItems.Child role="menuitem">
             <NxTextLink
               id="continous-monitoring-link"
-              className={`iq-noncollapsible ${url.includes('/monitoring') && !currentRoleId ? 'selected' : ''}`}
+              className={`iq-noncollapsible ${isMonitoring && !currentRoleId ? 'selected' : ''}`}
               href={`${linkMainHref}/monitoring`}
               disabled={!isMonitoringSupported}
             >
@@ -260,11 +283,11 @@ export default function OwnerDetailSidebar() {
         </NxTooltip>
       )}
       {/* Proprietary */}
-      {!isRepositories && (
+      {!isRepositoriesRelated && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             id="proprietary-components-link"
-            className={`iq-noncollapsible last ${url.includes('/proprietary') && !currentRoleId ? 'selected' : ''}`}
+            className={`iq-noncollapsible last ${isProprietary && !currentRoleId ? 'selected' : ''}`}
             href={`${linkMainHref}/proprietary`}
           >
             Proprietary Components
@@ -272,17 +295,17 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems.Child>
       )}
       {/* Labels */}
-      {!isRepositories && (
+      {!isRepositoriesRelated && (
         <NxCollapsibleItems
           id="label-group"
           role="menu"
           onToggleCollapse={onLabelsCollapse}
           isOpen={labelsOpen}
           triggerContent="Component Labels"
-          className={`label-list-menu label-group ${url.includes('/label') ? 'active' : ''}`}
+          className={`label-list-menu label-group ${isLabel ? 'active' : ''}`}
         >
           <NxCollapsibleItems.Child role="menuitem">
-            <NxTextLink className={url.includes('/label') && !labelId ? 'selected' : ''} href={`${linkMainHref}/label`}>
+            <NxTextLink className={isLabel && !labelId ? 'selected' : ''} href={`${linkMainHref}/label`}>
               <NxFontAwesomeIcon icon={faPlus} />
               New Component Label
             </NxTextLink>
@@ -303,18 +326,18 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* License Threat Groups */}
-      {!isRepositories && !isApp && (
+      {!isRepositoriesRelated && !isApp && (
         <NxCollapsibleItems
           id="license-threat-group-group"
           role="menu"
           onToggleCollapse={onLtgCollapse}
           isOpen={ltgOpen}
           triggerContent="License Threat Groups"
-          className={url.includes('/licenseThreatGroup') ? 'active' : ''}
+          className={isLicenseThreatGroup ? 'active' : ''}
         >
           <NxCollapsibleItems.Child role="menuitem">
             <NxTextLink
-              className={url.includes('/licenseThreatGroup') && !licenseThreatGroupId ? 'selected' : ''}
+              className={isLicenseThreatGroup && !licenseThreatGroupId ? 'selected' : ''}
               href={`${linkMainHref}/licenseThreatGroup`}
             >
               <NxFontAwesomeIcon icon={faPlus} />
@@ -338,10 +361,10 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* Source Control */}
-      {!isRepositories && (
+      {!isRepositoriesRelated && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
-            className={`iq-noncollapsible ${url.includes('/source-control') ? 'selected' : ''}`}
+            className={`iq-noncollapsible ${isSourceControl ? 'selected' : ''}`}
             href={`${linkMainHref}/source-control`}
           >
             Source Control
@@ -354,7 +377,7 @@ export default function OwnerDetailSidebar() {
         onToggleCollapse={onAccessCollapse}
         isOpen={accessOpen}
         triggerContent="Access"
-        className={url.includes('/access') ? 'active' : ''}
+        className={isAccess ? 'active' : ''}
       >
         <NxTooltip
           title={
@@ -365,7 +388,7 @@ export default function OwnerDetailSidebar() {
         >
           <NxCollapsibleItems.Child role="menuitem">
             <NxTextLink
-              className={url.includes('/access') && !currentRoleId ? 'selected' : ''}
+              className={isAccess && !currentRoleId ? 'selected' : ''}
               href={`${linkMainHref}/access`}
               disabled={!doesRolesWithoutLocalMembersExist}
             >

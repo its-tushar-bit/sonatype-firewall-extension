@@ -21,7 +21,7 @@ public class RepositoryResultsSummaryPage
   }
 
   public static String url() {
-    return BaseUrl.resolvePageUrl("/management/view/repositories");
+    return BaseUrl.resolvePageUrl("/management/view/repository_container/REPOSITORY_CONTAINER_ID");
   }
 
   public static RepositoriesSummaryTile summaryTile() {

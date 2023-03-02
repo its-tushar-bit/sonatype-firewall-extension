@@ -1633,7 +1633,14 @@ public abstract class AbstractPolicyEditorTest
   {
     ScrollUtil.scrollIntoView(PolicyEditorPage.actionsSection().header());
 
-    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || actionsReadOnly ? disabled : enabled;
+    com.codeborne.selenide.Condition disabledOrEnabled;
+    if (OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
+      disabledOrEnabled = enabled;
+    }
+    else {
+      disabledOrEnabled = isReadOnly || actionsReadOnly ? disabled : enabled;
+    }
+
     ActionsSection actionsTable = PolicyEditorPage.actionsSection();
 
     // Policy actions for Developer and Build are set to Warn and Fail, respectively.

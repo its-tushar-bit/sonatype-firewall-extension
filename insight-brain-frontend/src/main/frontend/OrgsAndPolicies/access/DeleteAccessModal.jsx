@@ -13,13 +13,15 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { isEmpty } from 'ramda';
 
 import { selectUnSortedAddedUsers, selectOwnerType, selectAccessSlice } from './accessSelectors';
+import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function DeleteAccessModal({ removeRole, closeDeleteModal }) {
   const accessProps = useSelector(selectAccessSlice);
   const { role, deleteMaskState, deleteError } = accessProps;
   const ownerType = useSelector(selectOwnerType);
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const addedUsers = useSelector(selectUnSortedAddedUsers);
-  const deleteRoleModalOwnerText = ownerType === 'repository' ? 'all repositories' : `this ${ownerType}`;
+  const deleteRoleModalOwnerText = isRepositoriesRelated ? 'all repositories' : `this ${ownerType}`;
   const deleteRoleModalText = `
       You are about to remove the ${role.roleName} role from ${deleteRoleModalOwnerText}.
  `;

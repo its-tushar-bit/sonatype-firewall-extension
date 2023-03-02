@@ -39,7 +39,6 @@ describe('productFeaturesActions', () => {
               'policy-grandfathering',
               'notifications',
               'webhooks-for-applications',
-              'webhooks-for-repositories',
             ],
           }),
         },
@@ -64,7 +63,6 @@ describe('productFeaturesActions', () => {
           'policy-grandfathering',
           'notifications',
           'webhooks-for-applications',
-          'webhooks-for-repositories',
         ]);
         expect(actions[3].payload).toEqual({
           enforcement: true,
@@ -73,7 +71,6 @@ describe('productFeaturesActions', () => {
           'policy-grandfathering': true,
           notifications: true,
           'webhooks-for-applications': true,
-          'webhooks-for-repositories': true,
         });
 
         done();
@@ -88,7 +85,6 @@ describe('productFeaturesActions', () => {
         'policy-grandfathering': true,
         notifications: true,
         'webhooks-for-applications': true,
-        'webhooks-for-repositories': true,
       });
 
       store.dispatch(actions.fetchProductFeaturesIfNeeded()).then(() => {

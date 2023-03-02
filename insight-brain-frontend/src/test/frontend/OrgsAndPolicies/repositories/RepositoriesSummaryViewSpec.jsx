@@ -32,7 +32,6 @@ describe('RepositoriesSummaryView', () => {
 
     expect(screen.getByTestId('repositories_configuration')).toBeVisible();
     expect(screen.getByTestId('repositories_access')).toBeVisible();
-    expect(screen.getByText('Configuration')).toBeInTheDocument();
-    expect(screen.getByText('Access')).toBeInTheDocument();
+    expect(screen.getByTestId('policies-tile')).toBeVisible();
   });
 });

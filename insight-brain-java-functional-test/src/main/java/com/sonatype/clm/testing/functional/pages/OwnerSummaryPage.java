@@ -41,9 +41,6 @@ public class OwnerSummaryPage
   }
 
   public static String url(OwnerType ownerType, String id) {
-    if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType)) {
-      return BaseUrl.resolvePageUrl("/management/view/repositories");
-    }
     return BaseUrl.resolvePageUrl("/management/view/{ownerType}/{ownerId}", ownerType, id);
   }
 

@@ -15,9 +15,14 @@ export const selectIsFirewallSupported = createSelector(selectProductFeatures, p
 export const selectIsMonitoringSupported = createSelector(selectProductFeatures, prop('policy-monitoring'));
 export const selectIsGrandfatheringSupported = createSelector(selectProductFeatures, prop('policy-grandfathering'));
 export const selectIsNotificationsSupported = createSelector(selectProductFeatures, prop('notifications'));
-export const selectIsWebhooksSupported = createSelector(selectProductFeatures, (features) => {
-  return features['webhooks-for-applications'] || features['webhooks-for-repositories'];
-});
+import { selectIsRepositories, selectIsRepositoryContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+export const selectIsWebhooksSupported = createSelector(
+  selectProductFeatures,
+  selectIsRepositories,
+  selectIsRepositoryContainer,
+  (features, isRepositories, isRepositoryContainer) =>
+    features['webhooks-for-applications'] && !isRepositories && !isRepositoryContainer
+);
 
 export const selectIsSourceControlSupported = createSelector(selectProductFeatures, prop('automation'));
 export const selectIsInnerSourceRepositorySupported = createSelector(

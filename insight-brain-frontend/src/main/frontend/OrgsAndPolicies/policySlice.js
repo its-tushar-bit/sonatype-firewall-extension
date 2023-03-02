@@ -50,6 +50,7 @@ import {
   selectRouterSlice,
   selectRouterCurrentParams,
   selectOwnerInfo,
+  selectIsRepositoriesRelated,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getNotificationWebhooksUrl,
@@ -556,11 +557,20 @@ const checkEditIqPermission = createAsyncThunk(
   `${REDUCER_NAME}/checkEditIqPermission`,
   (_, { rejectWithValue, getState }) => {
     const state = getState();
-    const ownerType = selectIsOrganization(state) ? 'organization' : 'application';
-    const ownerId = selectSelectedOwnerId(state);
+    const isRepositories = selectIsRepositoriesRelated(state);
+    const ownerType = getOwnerType(state);
+    const ownerId = isRepositories ? 'REPOSITORY_CONTAINER_ID' : selectSelectedOwnerId(state);
     return checkPermissions(['WRITE'], ownerType, ownerId).catch(rejectWithValue);
   }
 );
+
+const getOwnerType = (state) => {
+  const isRepositories = selectIsRepositoriesRelated(state);
+  if (isRepositories) {
+    return 'repository_container';
+  }
+  return selectIsOrganization(state) ? 'organization' : 'application';
+};
 
 const checkEditIqPermissionFulfilled = (state) => {
   state.hasEditIqPermission = true;
@@ -1349,16 +1359,20 @@ const loadJiraProjects = createAsyncThunk(`${REDUCER_NAME}/loadJiraProjects`, as
 
 export const loadNotificationsEditor = createAsyncThunk(
   `${REDUCER_NAME}/loadNotificationsEditor`,
-  (_, { dispatch, rejectWithValue }) =>
-    Promise.all([
-      dispatch(loadRolesForCurrentOwner()),
-      dispatch(loadNotificationWebhooks()),
-      dispatch(loadJiraProjects()),
-    ])
+  (_, { getState, dispatch, rejectWithValue }) => {
+    const state = getState();
+    let notificationPromises = [dispatch(loadRolesForCurrentOwner()), dispatch(loadJiraProjects())];
+    const isRepositoriesRelated = selectIsRepositoriesRelated(state);
+    if (!isRepositoriesRelated) {
+      notificationPromises = [...notificationPromises, dispatch(loadNotificationWebhooks())];
+    }
+    return Promise.all(notificationPromises)
       .then((results) => {
         const { membersByRole } = unwrapResult(results[0]);
-        const notificationWebhooks = unwrapResult(results[1]);
-        const { isJiraEnabled, projects } = unwrapResult(results[2]);
+        const { isJiraEnabled, projects } = unwrapResult(results[1]);
+        const notificationWebhooks = isRepositoriesRelated
+          ? initialState.notificationsEditor.notificationWebhooks
+          : unwrapResult(results[2]);
 
         return {
           membersByRole,
@@ -1367,7 +1381,8 @@ export const loadNotificationsEditor = createAsyncThunk(
           projects,
         };
       })
-      .catch(rejectWithValue)
+      .catch(rejectWithValue);
+  }
 );
 
 const loadNotificationsEditorRequested = (state) => {

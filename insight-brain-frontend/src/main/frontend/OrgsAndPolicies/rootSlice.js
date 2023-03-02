@@ -42,7 +42,7 @@ const loadApplicablePoliciesByOwner = createAsyncThunk(
   (_, { getState, rejectWithValue }) => {
     let ownerType, ownerId;
     const currentRouteName = selectCurrentRouteName(getState());
-    if (currentRouteName === 'management.view.repositories') {
+    if (currentRouteName === 'management.view.repository_container') {
       ownerType = 'repository_container';
       ownerId = 'REPOSITORY_CONTAINER_ID';
     } else {

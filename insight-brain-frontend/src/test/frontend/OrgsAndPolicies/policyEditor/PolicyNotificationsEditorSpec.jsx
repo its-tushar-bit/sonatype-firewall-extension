@@ -85,7 +85,6 @@ describe('PolicyNotificationsEditor', () => {
           firewall: true,
           notifications: true,
           'policy-monitoring': true,
-          'webhooks-for-repositories': true,
           'webhooks-for-applications': true,
         },
       },

@@ -102,10 +102,11 @@ public abstract class AbstractOwnerDetailsEditingTest
     else {
       OwnerDetailSidebar.header().shouldBe(visible).shouldHave(text("Repositories"));
       OwnerDetailSidebar.applicationCategoryGroup().shouldBe(hidden);
-      OwnerDetailSidebar.policyGroup().shouldBe(hidden);
+      OwnerDetailSidebar.policyGroup().shouldBe(visible);
       OwnerDetailSidebar.componentLabelGroup().shouldBe(hidden);
       OwnerDetailSidebar.ltgGroup().shouldBe(hidden);
       OwnerDetailSidebar.accessGroup().shouldBe(visible);
+      testRouting_Policies(OwnerDetailSidebar.policyGroup());
       testRouting_Access(OwnerDetailSidebar.accessGroup());
     }
   }
@@ -262,7 +263,6 @@ public abstract class AbstractOwnerDetailsEditingTest
     waitUntilUrl(AccessEditorPage.urlToCreate(currentOwner));
 
     back();
-
     detailGroup.item(1).shouldBe(visible).shouldHave(text(ROLES.get(0).getName())).click();
     detailGroup.item(1).shouldBe(CLM.SELECTED);
     waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, ROLES.get(0).getId()));

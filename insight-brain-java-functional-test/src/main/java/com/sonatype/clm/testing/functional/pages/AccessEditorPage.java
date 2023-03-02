@@ -49,9 +49,6 @@ public class AccessEditorPage
   }
 
   public static String urlToCreate(OwnerType ownerType, String ownerId) {
-    if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType)) {
-      return BaseUrl.resolvePageUrl("/management/edit/repositories/access");
-    }
     return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/access", ownerType, ownerId);
   }
 

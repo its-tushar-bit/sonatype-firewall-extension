@@ -15,7 +15,11 @@ import {
   NxH3,
   NxLoadWrapper,
 } from '@sonatype/react-shared-components';
-import { selectRouterCurrentParams, selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsRepositoriesRelated,
+  selectRouterCurrentParams,
+  selectRouterState,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import classnames from 'classnames';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { reformatRouteStateParams } from './accessTileUtil';
@@ -35,7 +39,7 @@ export default function AccessTile() {
   const routerParams = useSelector(selectRouterCurrentParams);
   const routerState = useSelector(selectRouterState);
   const loading = useSelector(selectLoading);
-
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const extMembersRoles = useSelector(selectExtendedMembersByRole);
   const rolesWithoutLocalMembersExist = useSelector(selectRolesWithoutLocalMembersExist);
   const ownerName = useSelector(selectSelectedOwnerName);
@@ -109,7 +113,9 @@ export default function AccessTile() {
             <NxTile.HeaderTitle>
               <NxH2>Access</NxH2>
             </NxTile.HeaderTitle>
-            <NxTile.HeaderSubtitle>{ownerName} users by role.</NxTile.HeaderSubtitle>
+            <NxTile.HeaderSubtitle>
+              {isRepositoriesRelated ? 'All Repositories' : ownerName} users by role.
+            </NxTile.HeaderSubtitle>
             <NxTile.HeaderActions>
               <a
                 id="add-role-button"

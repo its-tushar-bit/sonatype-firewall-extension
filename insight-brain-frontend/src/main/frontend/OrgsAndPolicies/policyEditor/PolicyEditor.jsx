@@ -41,6 +41,7 @@ import PolicyNotificationsEditor from './policyNotificationsEditor/PolicyNotific
 import PolicyActionsEditor from './policyActionsEditor/PolicyActionsEditor';
 import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
 import classNames from 'classnames';
+import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function PolicyEditor() {
   const dispatch = useDispatch();
@@ -61,6 +62,7 @@ export default function PolicyEditor() {
   const overrideNeedsToBeAdded = useSelector(selectOverrideNeedsToBeAdded);
   const overrideNeedsToBeRemoved = useSelector(selectOverrideNeedsToBeRemoved);
   const overrideNeedsToBeUpdated = useSelector(selectOverrideNeedsToBeUpdated);
+  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isLoading = ownerDetailTreeLoading || loading;
 
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
@@ -70,6 +72,10 @@ export default function PolicyEditor() {
   const removePolicy = () => dispatch(actions.removePolicy());
 
   const onSave = () => {
+    if (isRepositoriesRelated) {
+      savePolicy();
+    }
+
     if (!hasEditIqPermission || !isDirty) {
       return;
     }
@@ -112,7 +118,7 @@ export default function PolicyEditor() {
           submitMaskMessage="Saving…"
           submitMaskState={submitMaskState}
           submitBtnClasses={classNames({
-            disabled: !hasEditIqPermission || !isDirty,
+            disabled: isRepositoriesRelated ? false : !hasEditIqPermission || !isDirty,
           })}
           doLoad={loadPolicyEditor}
           loadError={loadError}
@@ -126,7 +132,7 @@ export default function PolicyEditor() {
                 id="delete-policy-button"
                 variant="tertiary"
                 onClick={() => setIsDeleteModalOpen(true)}
-                disabled={!hasEditIqPermission}
+                disabled={isRepositoriesRelated ? false : !hasEditIqPermission}
                 type="button"
               >
                 Delete

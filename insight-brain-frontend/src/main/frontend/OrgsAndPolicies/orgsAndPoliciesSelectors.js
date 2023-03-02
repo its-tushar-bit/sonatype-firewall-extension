@@ -33,10 +33,20 @@ export const selectPoliciesByOwner = createSelector(selectRootSlice, prop('polic
 
 export const selectOwnerProperties = createSelector(
   selectRouterCurrentParams,
-  ({ applicationPublicId, organizationId, applicationId }) => ({
-    ownerType: organizationId ? 'organization' : 'application',
-    ownerId: organizationId ?? applicationId ?? applicationPublicId,
-  })
+  selectIsRepositories,
+  ({ applicationPublicId, organizationId, applicationId, repositoryContainerId }, isRepositories) => {
+    if (repositoryContainerId || isRepositories) {
+      return {
+        ownerType: 'repository_container',
+        ownerId: repositoryContainerId || 'REPOSITORY_CONTAINER_ID',
+      };
+    } else {
+      return {
+        ownerType: organizationId ? 'organization' : 'application',
+        ownerId: organizationId ?? applicationId ?? applicationPublicId,
+      };
+    }
+  }
 );
 
 export const selectEntityId = createSelector(

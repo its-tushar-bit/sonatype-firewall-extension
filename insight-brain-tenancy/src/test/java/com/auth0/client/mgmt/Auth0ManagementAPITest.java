@@ -114,12 +114,12 @@ public class Auth0ManagementAPITest
   }
 
   @Test
-  public void testGetSamlMetaData() throws Exception {
+  public void testGetSamlMetaDataFile() throws Exception {
     doReturn("saml content").when(auth0ManagementAPI)
         .downloadSamlMetadata("https://sonatype.auth0.com/samlp/metadata/abcdefg");
     File samlMetaDataFile = null;
     try {
-      samlMetaDataFile = auth0ManagementAPI.getSamlMetaData("abcdefg");
+      samlMetaDataFile = auth0ManagementAPI.getSamlMetaDataFile("abcdefg");
       assertThat(samlMetaDataFile).isNotNull().content().isEqualTo("saml content");
     }
     finally {
@@ -130,10 +130,19 @@ public class Auth0ManagementAPITest
   }
 
   @Test
+  public void testGetSamlMetaData() throws Exception {
+    doReturn("saml content").when(auth0ManagementAPI)
+        .downloadSamlMetadata("https://sonatype.auth0.com/samlp/metadata/abcdefg");
+
+    String samlMetaDataFile = auth0ManagementAPI.getSamlMetaData("abcdefg");
+    assertThat(samlMetaDataFile).isNotNull().isEqualTo("saml content");
+  }
+
+  @Test
   public void testGetSamlMetaData_NoAuth0Content() {
     doReturn(null).when(auth0ManagementAPI)
         .downloadSamlMetadata("https://sonatype.auth0.com/samlp/metadata/abcdefg");
-    File samlMetaDataFile = auth0ManagementAPI.getSamlMetaData("abcdefg");
+    File samlMetaDataFile = auth0ManagementAPI.getSamlMetaDataFile("abcdefg");
     assertThat(samlMetaDataFile).isNull();
   }
 

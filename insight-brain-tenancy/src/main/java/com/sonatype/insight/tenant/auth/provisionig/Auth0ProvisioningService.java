@@ -41,7 +41,7 @@ public class Auth0ProvisioningService
     log.info(String.format("Created new auth0 account for tenant=%s, clientId=%s", subdomain,
         tenant.getClientId()));
 
-    File samlMetaDataFile = api.getSamlMetaData(tenant.getClientId());
+    File samlMetaDataFile = api.getSamlMetaDataFile(tenant.getClientId());
     if (samlMetaDataFile == null) {
       log.error(String.format("Unable to download the saml metadata for tenant=%s, clientId=%s", subdomain,
           tenant.getClientId()));

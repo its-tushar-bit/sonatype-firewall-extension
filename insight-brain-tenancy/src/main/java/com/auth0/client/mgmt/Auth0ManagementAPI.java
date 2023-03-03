@@ -96,14 +96,9 @@ public class Auth0ManagementAPI
     }
   }
 
-  public File getSamlMetaData(String auth0ClientId) {
-    String url = getBaseUrl()
-        .newBuilder()
-        .addPathSegments("samlp/metadata/")
-        .addPathSegment(auth0ClientId)
-        .build()
-        .toString();
-    String samlMetadata = downloadSamlMetadata(url);
+  public File getSamlMetaDataFile(String auth0ClientId) {
+    String samlMetadata = getSamlMetaData(auth0ClientId);
+
     if (samlMetadata != null) {
       try {
         Path tempFile = Files.createTempFile(auth0ClientId + "-", "-samlmetadata.xml");
@@ -114,7 +109,19 @@ public class Auth0ManagementAPI
         throw new RuntimeException(e);
       }
     }
+
     return null;
+  }
+
+  public String getSamlMetaData(String auth0ClientId) {
+    String url = getBaseUrl()
+        .newBuilder()
+        .addPathSegments("samlp/metadata/")
+        .addPathSegment(auth0ClientId)
+        .build()
+        .toString();
+
+    return downloadSamlMetadata(url);
   }
 
   String downloadSamlMetadata(String url) {

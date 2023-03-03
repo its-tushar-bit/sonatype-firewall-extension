@@ -60,7 +60,7 @@ public class Auth0ProvisioningServiceTest
 
     when(mockClient.getClientId()).thenReturn(mockClientId);
     when(managementAPI.createTenant("tenant1", null, null)).thenReturn(mockClient);
-    when(managementAPI.getSamlMetaData(mockClientId)).thenReturn(tempFile);
+    when(managementAPI.getSamlMetaDataFile(mockClientId)).thenReturn(tempFile);
 
     auth0ProvisioningService.provision(parameters);
     logOutput.assertThat().contains("Created new auth0 account for tenant=tenant1, clientId=abcdefg").atInfoLevel();
@@ -91,7 +91,7 @@ public class Auth0ProvisioningServiceTest
     when(auth0ProvisioningService.getManagementAPI()).thenReturn(managementAPI);
     when(mockClient.getClientId()).thenReturn(mockClientId);
     when(managementAPI.createTenant("tenant1", null, null)).thenReturn(mockClient);
-    when(managementAPI.getSamlMetaData(mockClientId)).thenReturn(null);
+    when(managementAPI.getSamlMetaDataFile(mockClientId)).thenReturn(null);
 
     auth0ProvisioningService.provision(parameters);
     logOutput.assertThat().contains("Created new auth0 account for tenant=tenant1, clientId=abcdefg").atInfoLevel();

@@ -267,37 +267,40 @@ public abstract class AbstractBrainServiceTest
       if (installLicense) {
         installLicense();
       }
-      cleanTaskScheduler();
-      getCLMServer().resetDisableForTesting();
-      InsightConfig insightConfig = getCLMServer().getConfiguration();
-      if (insightConfig != null) {
-        getCLMServer().getConfiguration().setFeatures(Collections.emptyMap());
-        getCLMServer().getConfiguration().setSystemAllowlist(Collections.emptyList());
+
+      if (getCLMServer().isRunning()) {
+        cleanTaskScheduler();
+        getCLMServer().resetDisableForTesting();
+        InsightConfig insightConfig = getCLMServer().getConfiguration();
+        if (insightConfig != null) {
+          getCLMServer().getConfiguration().setFeatures(Collections.emptyMap());
+          getCLMServer().getConfiguration().setSystemAllowlist(Collections.emptyList());
+        }
+        resetProperties(SystemConfigurationProperty.BASE_URL,
+            SystemConfigurationProperty.FORCE_BASE_URL,
+            SystemConfigurationProperty.CSRF_PROTECTION,
+            SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH,
+            SystemConfigurationProperty.PURGE_SCAN_FILES,
+            SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH,
+            SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH,
+            SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS,
+            SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS,
+            SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS,
+            SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
+            SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
+            SystemConfigurationProperty.POLICY_MONITORING_HOUR,
+            SystemConfigurationProperty.DB_BACKUP_DIR,
+            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
+            SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
+            SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
+            SystemConfigurationProperty.ACCESS_ALLOWLIST,
+            SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED);
       }
-      resetProperties(SystemConfigurationProperty.BASE_URL,
-          SystemConfigurationProperty.FORCE_BASE_URL,
-          SystemConfigurationProperty.CSRF_PROTECTION,
-          SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH,
-          SystemConfigurationProperty.PURGE_SCAN_FILES,
-          SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH,
-          SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH,
-          SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS,
-          SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS,
-          SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS,
-          SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
-          SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
-          SystemConfigurationProperty.POLICY_MONITORING_HOUR,
-          SystemConfigurationProperty.DB_BACKUP_DIR,
-          SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
-          SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
-          SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
-          SystemConfigurationProperty.ACCESS_ALLOWLIST,
-          SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED);
     }
     releaseScmPerpetualLock();
     new ProxyServerConfigurationDAO().delete();
     tempEntity.setSavedProxyServerConfiguration(null);
-    if (testCLMServer != null) {
+    if (testCLMServer != null && getCLMServer().isRunning()) {
       ApiProxyServerConfigurationService proxyServerConfigurationService =
           getCLMServer().getInstance(ApiProxyServerConfigurationService.class);
       if (proxyServerConfigurationService != null) {

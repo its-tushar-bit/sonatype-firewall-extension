@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -47,9 +47,12 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
+@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
 public class TaskScheduler
     implements Managed
 {
+  public static final int TASK_SCHEDULER_BEAN_PRIORITY = 1;
+
   // Visible for testing
   public static final String DEFAULT_SCHEDULER_NAME = "QuartzScheduler";
 

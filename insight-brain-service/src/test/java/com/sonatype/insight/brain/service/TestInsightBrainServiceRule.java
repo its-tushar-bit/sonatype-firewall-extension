@@ -168,4 +168,8 @@ public class TestInsightBrainServiceRule
     }
     return brain.getTestProxyServerConfiguration();
   }
+
+  public boolean isRunning() {
+    return brain != null;
+  }
 }

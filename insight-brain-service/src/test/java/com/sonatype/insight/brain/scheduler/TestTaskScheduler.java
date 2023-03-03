@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.UUID;
-
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,6 +16,7 @@ import org.quartz.spi.JobFactory;
 
 @Named
 @Singleton
+@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
 public class TestTaskScheduler
     extends TaskScheduler
 {

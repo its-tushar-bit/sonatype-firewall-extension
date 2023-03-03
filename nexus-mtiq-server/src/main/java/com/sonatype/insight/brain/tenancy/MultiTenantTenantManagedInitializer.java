@@ -6,17 +6,25 @@
 package com.sonatype.insight.brain.tenancy;
 
 import java.util.Collection;
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.TenantManagedInitializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The priority is set to be less than the TaskScheduler to ensure that start() is called on the TaskScheduler before
+ * this bean runs so that jobs can be registered correctly and equally so that stop() is called before the TaskScheduler
+ * is shutdown. See https://issues.sonatype.org/browse/CLM-24625
+ */
 @Named
 @Singleton
+@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY - 1)
 public class MultiTenantTenantManagedInitializer
     implements TenantManagedInitializer
 {

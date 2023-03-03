@@ -16,11 +16,13 @@ import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
@@ -44,6 +46,11 @@ public abstract class BrainInjectedTest
    */
   @Rule(order = 1)
   public DataStoreRule dataStoreRule = new DataStoreRule();
+
+  @BeforeClass
+  public static void disableWaitToCloseOldClients() {
+    DefaultHdsClient.waitToCloseOldClients = false;
+  }
 
   @Before
   @Override

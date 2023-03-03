@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -63,11 +62,10 @@ import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
-import org.mockito.Mock;
+import org.mockito.MockMakers;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
@@ -80,6 +78,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 
 /**
  * Support class for tests of Sisu components.
@@ -108,18 +107,11 @@ public class AbstractComponentTest
 
   protected static final String USERNAME = "testuser";
 
-  @Mock
   protected Subject subject;
 
-  @Mock
   private SecurityManager securityManager;
 
   private final Collection<Managed> managedComponents = new ArrayList<>();
-
-  @BeforeClass
-  public static void disableWaitToCloseOldClients() {
-    DefaultHdsClient.waitToCloseOldClients = false;
-  }
 
   @Before
   public final void beforeTest() {
@@ -183,8 +175,14 @@ public class AbstractComponentTest
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
+  protected String getMockMaker() {
+    return MockMakers.INLINE;
+  }
+
   protected void setUpSecurity() {
+    subject = mock(Subject.class, withSettings().mockMaker(getMockMaker()));
     lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", InternalRealm.ID));
+    securityManager = mock(SecurityManager.class, withSettings().mockMaker(getMockMaker()));
     lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);
     ThreadContext.bind(subject);
@@ -244,7 +242,7 @@ public class AbstractComponentTest
     binder.bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
     binder.bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
     binder.bind(TaskScheduler.class).to(TestTaskScheduler.class);
-    binder.bind(TelemetryId.class).toInstance(mock(TelemetryId.class));
+    binder.bind(TelemetryId.class).toInstance(mock(TelemetryId.class, withSettings().mockMaker(getMockMaker())));
 
     super.configure(binder);
   }

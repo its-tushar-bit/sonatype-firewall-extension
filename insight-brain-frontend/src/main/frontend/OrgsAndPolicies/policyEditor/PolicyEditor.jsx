@@ -73,7 +73,7 @@ export default function PolicyEditor() {
 
   const onSave = () => {
     if (isRepositoriesRelated) {
-      savePolicy();
+      return savePolicy();
     }
 
     if (!hasEditIqPermission || !isDirty) {

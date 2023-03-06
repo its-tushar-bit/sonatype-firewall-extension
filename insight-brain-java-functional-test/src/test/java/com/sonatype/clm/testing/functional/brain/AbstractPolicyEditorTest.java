@@ -173,6 +173,7 @@ public abstract class AbstractPolicyEditorTest
 
   @Test
   @Ignore
+  // Flaky test to be addressed at CLM-24728
   public void testCreatePolicy() {
     setFeatures(LicensedFeature.RELEASE_INTEGRITY, LicensedFeature.HYGIENE, LicensedFeature.POLICY_MONITORING,
         LicensedFeature.ENFORCEMENT,

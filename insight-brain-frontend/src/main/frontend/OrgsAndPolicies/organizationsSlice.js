@@ -49,6 +49,10 @@ const removeOrganizationFromList = (state, { payload }) => {
   state.organizations = reject(propEq('id', payload))(state.organizations);
 };
 
+const removeOrganizationsFromList = (state, { payload }) => {
+  state.organizations = reject((org) => payload.includes(org?.id))(state.organizations);
+};
+
 const loadOrganizations = createAsyncThunk(
   `${REDUCER_NAME}/loadOrganizations`,
   (forceReload, { rejectWithValue, getState }) => {
@@ -71,6 +75,7 @@ const organizationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
+    removeOrganizationsFromList,
     removeOrganizationFromList,
     updateOrganization,
   },

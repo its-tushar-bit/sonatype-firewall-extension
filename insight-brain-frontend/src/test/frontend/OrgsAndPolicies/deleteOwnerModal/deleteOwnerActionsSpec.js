@@ -50,9 +50,13 @@ describe('deleteOwnerActions', () => {
                 name: OWNER_ORG_NAME,
                 parentOrganizationId: 'ROOT_ORGANIZATION_ID',
                 applicationIds: ['application-one', 'application-two'],
+                organizationIds: ['childOrgOne', 'childOrgTwo', 'childOrgThree'],
               },
               app1: { id: 'app-one-id', publicId: 'application-one', name: 'Application one' },
               app2: { id: 'app-two-id', publicId: 'application-two', name: 'Application two' },
+              childOrgOne: { id: 'childOrgOne' },
+              childOrgTwo: { id: 'childOrgTwo' },
+              childOrgThree: { id: 'childOrgThree' },
             },
           },
         },
@@ -82,7 +86,7 @@ describe('deleteOwnerActions', () => {
         expect(actions).toHaveActionTypesInOrder([
           'ownerActions/delete/removeOwner/pending',
           'applications/removeApplicationsFromList',
-          'organizations/removeOrganizationFromList',
+          'organizations/removeOrganizationsFromList',
           'ownerSideNav/removeOrganizationFromOwnerHierarchy',
           'ownerActions/delete/removeOwner/fulfilled',
         ]);
@@ -93,7 +97,7 @@ describe('deleteOwnerActions', () => {
         expect(actions).toHaveActionTypesInOrder([
           'ownerActions/delete/removeOwner/pending',
           'applications/removeApplicationsFromList',
-          'organizations/removeOrganizationFromList',
+          'organizations/removeOrganizationsFromList',
           'ownerSideNav/removeOrganizationFromOwnerHierarchy',
           'ownerActions/delete/removeOwner/fulfilled',
           'ownerActions/delete/closeModal',

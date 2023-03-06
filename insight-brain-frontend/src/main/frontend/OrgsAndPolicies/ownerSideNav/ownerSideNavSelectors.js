@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { prop } from 'ramda';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { isEmpty, prop } from 'ramda';
 import { selectOrgsAndPoliciesSlice, selectSelectedOwner } from '../orgsAndPoliciesSelectors';
 
 export const selectOwnerSideNavSlice = createSelector(selectOrgsAndPoliciesSlice, prop('ownerSideNav'));
@@ -38,6 +39,33 @@ export const selectChildApplicationsByOrgId = createSelector(
     if (!organizations || !organizationId) return [];
     if (!organizations[organizationId]) return [];
     return organizations[organizationId].applicationIds || [];
+  }
+);
+
+export const selectAllDescendantsByParentId = createSelector(
+  selectOwnersMap,
+  (_, organizationId) => organizationId,
+  (organizations, parentOrganizationId) => {
+    if (!organizations || !parentOrganizationId) return {};
+    if (!organizations[parentOrganizationId]) return {};
+
+    const applicationIds = [];
+    const organizationIds = [];
+    const parentOrganizations = [organizations[parentOrganizationId].id];
+
+    while (!isEmpty(parentOrganizations)) {
+      const parentOrganization = organizations[parentOrganizations.shift()];
+
+      if (!isNilOrEmpty(parentOrganization.applicationIds)) {
+        applicationIds.push(...parentOrganization.applicationIds);
+      }
+      if (!isNilOrEmpty(parentOrganization.organizationIds)) {
+        parentOrganizations.push(...parentOrganization.organizationIds);
+        organizationIds.push(...parentOrganization.organizationIds);
+      }
+    }
+
+    return { applicationIds, organizationIds };
   }
 );
 

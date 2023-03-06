@@ -11,7 +11,7 @@ import { actions as organizationActions } from '../organizationsSlice';
 import { actions as applicationsActions } from '../applicationsSlice';
 import { actions as ownerSideNavActions } from '../ownerSideNav/ownerSideNavSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectChildApplicationsByOrgId } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import { selectAllDescendantsByParentId } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
@@ -57,9 +57,11 @@ const removeOwner = createAsyncThunk(`${REDUCER_NAME}/removeOwner`, (_, { getSta
         dispatch(applicationsActions.removeApplicationFromList(ownerToDelete.id));
         dispatch(ownerSideNavActions.removeApplicationFromOwnerHierarchy(ownerToDelete.publicId));
       } else {
-        const ownerToDeleteApplicationIds = selectChildApplicationsByOrgId(state, ownerToDelete.id);
-        dispatch(applicationsActions.removeApplicationsFromList(ownerToDeleteApplicationIds));
-        dispatch(organizationActions.removeOrganizationFromList(ownerToDelete.id));
+        const descendants = selectAllDescendantsByParentId(state, ownerToDelete.id);
+        dispatch(applicationsActions.removeApplicationsFromList(descendants?.applicationIds));
+        dispatch(
+          organizationActions.removeOrganizationsFromList([ownerToDelete.id, ...(descendants?.organizationIds || [])])
+        );
         dispatch(ownerSideNavActions.removeOrganizationFromOwnerHierarchy(ownerToDelete.id));
       }
 

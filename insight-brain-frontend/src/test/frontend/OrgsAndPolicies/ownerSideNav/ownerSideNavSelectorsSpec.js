@@ -13,6 +13,7 @@ import {
   selectShowRepositories,
   selectOwnerById,
   selectIsDisplayedOrganizationSynthetic,
+  selectAllDescendantsByParentId,
 } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
 describe('ownerSideNavSelectors', () => {
@@ -117,6 +118,57 @@ describe('ownerSideNavSelectors', () => {
       const result = selectIsDisplayedOrganizationSynthetic.resultFunc(displayedOrganization);
 
       expect(result).toEqual(displayedOrganization.synthetic);
+    });
+  });
+
+  describe('selectAllDescendantsByParentId', () => {
+    it('is composed from the following selector', () => {
+      expect(selectAllDescendantsByParentId.dependencies).toEqual([selectOwnersMap, jasmine.any(Function)]);
+    });
+
+    it('selects all descentand apps and orgs for a given parent org', () => {
+      const ownersMap = {
+        parent: {
+          id: 'parent',
+          name: 'parent',
+          synthetic: false,
+          applicationIds: ['nexus', 'lifecycle'],
+          organizationIds: ['orgLevelTwo'],
+        },
+        nexus: { publicId: 'nexus', name: 'nexus', synthetic: false },
+        lifecycle: { publicId: 'lifecycle', name: 'lifecycle', synthetic: false },
+        orgLevelOne: {
+          id: 'orgLevelOne',
+          name: 'orgLevelOne',
+          synthetic: false,
+          applicationIds: ['hds'],
+          organizationIds: [],
+        },
+        hds: { publicId: 'hds', name: 'hds', synthetic: false },
+        orgLevelTwo: {
+          id: 'orgLevelTwo',
+          name: 'orgLevelTwo',
+          synthetic: false,
+          applicationIds: ['childOrgAppOne', 'childOrgAppTwo'],
+          organizationIds: ['orgLevelThree'],
+        },
+        childOrgAppOne: { publicId: 'childOrgAppOne', name: 'childOrgAppOne', synthetic: false },
+        childOrgAppTwo: { publicId: 'childOrgAppTwo', name: 'childOrgAppTwo', synthetic: false },
+        orgLevelThree: {
+          id: 'orgLevelThree',
+          name: 'orgLevelThree',
+          synthetic: false,
+          applicationIds: ['childOrgAppThree'],
+          organizationIds: [],
+        },
+        childOrgAppThree: { publicId: 'childOrgAppThree', name: 'childOrgAppThree', synthetic: false },
+      };
+      const result = selectAllDescendantsByParentId.resultFunc(ownersMap, 'parent');
+
+      expect(result).toEqual({
+        applicationIds: ['nexus', 'lifecycle', 'childOrgAppOne', 'childOrgAppTwo', 'childOrgAppThree'],
+        organizationIds: ['orgLevelTwo', 'orgLevelThree'],
+      });
     });
   });
 });

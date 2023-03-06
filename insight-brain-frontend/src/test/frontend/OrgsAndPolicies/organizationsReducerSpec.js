@@ -87,6 +87,23 @@ describe('organizations reducer', () => {
     });
   });
 
+  describe('organizations/removeOrganizationsFromList', () => {
+    it('removes organization from the list by id', () => {
+      const state = Object.freeze({
+        organizations: [
+          { id: 'org-one', name: 'org one' },
+          { id: 'org-two', name: 'org two' },
+          { id: 'org-three', name: 'org three' },
+        ],
+      });
+      const newState = reducer(state, {
+        type: 'organizations/removeOrganizationsFromList',
+        payload: ['org-one', 'org-three'],
+      });
+      expect(newState.organizations).toEqual([{ id: 'org-two', name: 'org two' }]);
+    });
+  });
+
   describe('organizations/updateOrganization', () => {
     it('sets newly created organization', () => {
       const newOrganization = {

@@ -179,8 +179,8 @@ Map<String, Closure> getParallelTests() {
   Map<String, Closure> testStages = [:]
   testStages << createGebTests()
   testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-B].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests B', '.*/[C-H].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests C', '.*/[I-Q].*Test.class')
+  testStages << createFunctionalTests('Java Functional Tests B', '.*/[C-E].*Test.class')
+  testStages << createFunctionalTests('Java Functional Tests C', '.*/[F-Q].*Test.class')
   testStages << createFunctionalTests('Java Functional Tests D', '.*/[R-Z].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-D].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[E-O].*Test.class')

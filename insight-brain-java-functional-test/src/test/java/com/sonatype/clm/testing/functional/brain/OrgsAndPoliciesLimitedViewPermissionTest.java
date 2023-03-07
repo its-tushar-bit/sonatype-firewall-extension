@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPageWithLimitedVisibility;
+import com.sonatype.clm.testing.functional.utils.NameSupplierDictionary;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -63,7 +64,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
 
   @Test
   public void testOrgsAndPoliciesSideNavbar_userHasAccessToOnlyOneOrg() {
-    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 5, 3);
+    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 5, 3, new NameSupplierDictionary());
     Organization organizationWithPermissions = organizations.get(2);
     commonAncestorOwner = organizationWithPermissions;
 

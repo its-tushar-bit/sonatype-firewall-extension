@@ -954,6 +954,22 @@ public class TemporaryEntity
     return organizations;
   }
 
+  /*
+    Use this function with a name function if you wish to override the way orgs are name,
+    or if you wish for the names to be constant
+   */
+  public List<Organization> newRelatedOrganizationsAsList(
+      int orgsPerLevel,
+      int depth,
+      int appsPerOrg,
+      Function<String, String> nameSupplier
+  )
+  {
+    Map<Integer, List<Organization>> orgs =
+        newRelatedOrganizationsAsMap(null, orgsPerLevel, depth, appsPerOrg, nameSupplier);
+    return  orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
+  }
+
   public List<Organization> newRelatedOrganizationsAsList(int orgsPerLevel, int depth, int appsPerOrg) {
     Map<Integer, List<Organization>> orgs =
         newRelatedOrganizationsAsMap(null, orgsPerLevel, depth, appsPerOrg);
@@ -976,11 +992,24 @@ public class TemporaryEntity
       Organization parentOrg,
       int orgsPerLevel,
       int depth,
+      int appsPerOrg,
+      Function<String, String> nameSupplier
+  )
+  {
+    Map<Integer, List<Organization>> organizations = new HashMap<>();
+    newRelatedOrganizations(parentOrg, orgsPerLevel, depth - 1, appsPerOrg, organizations, nameSupplier);
+    return organizations;
+  }
+
+  public Map<Integer, List<Organization>> newRelatedOrganizationsAsMap(
+      Organization parentOrg,
+      int orgsPerLevel,
+      int depth,
       int appsPerOrg
   )
   {
     Map<Integer, List<Organization>> organizations = new HashMap<>();
-    newRelatedOrganizations(parentOrg, orgsPerLevel, depth - 1, appsPerOrg, organizations);
+    newRelatedOrganizations(parentOrg, orgsPerLevel, depth - 1, appsPerOrg, organizations, null);
     return organizations;
   }
 
@@ -989,27 +1018,39 @@ public class TemporaryEntity
       int orgsPerLevel,
       int depth,
       int appsPerOrg,
-      Map<Integer, List<Organization>> organizations
+      Map<Integer, List<Organization>> organizations,
+      Function<String, String> nameSupplier
   )
   {
     if (depth >= 0) {
       List<Organization> levelOrganizations = organizations.getOrDefault(depth, new LinkedList<>());
       for (int childOrgIndex = 0; childOrgIndex < orgsPerLevel; childOrgIndex++) {
         String orgName;
-        if (parentOrg != null) {
-          orgName = parentOrg.getName() + "_" + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+        if (nameSupplier != null) {
+          orgName = nameSupplier.apply("TestOrg_");
         }
         else {
-          orgName = "Test Org " + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+          if (parentOrg != null) {
+            orgName = parentOrg.getName() + "_" + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+          }
+          else {
+            orgName = "TestOrg_" + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+          }
         }
         Organization currentOrg = newOrganization(orgName, parentOrg);
         levelOrganizations.add(currentOrg);
         if (appsPerOrg >= 1) {
           for (int childAppIndex = 0; childAppIndex < appsPerOrg; childAppIndex++) {
-            newApplication(currentOrg.getId());
+            if (nameSupplier != null) {
+              String appName = nameSupplier.apply("TestApp_");
+              newApplication(appName, appName, currentOrg.getId());
+            }
+            else {
+              newApplication(currentOrg.getId());
+            }
           }
         }
-        newRelatedOrganizations(currentOrg, orgsPerLevel, depth - 1, appsPerOrg, organizations);
+        newRelatedOrganizations(currentOrg, orgsPerLevel, depth - 1, appsPerOrg, organizations, nameSupplier);
       }
       organizations.put(depth, levelOrganizations);
     }

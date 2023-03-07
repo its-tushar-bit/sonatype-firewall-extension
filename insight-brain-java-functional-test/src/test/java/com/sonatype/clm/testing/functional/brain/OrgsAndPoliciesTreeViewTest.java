@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerTreeViewPage;
+import com.sonatype.clm.testing.functional.utils.NameSupplierDictionary;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -36,7 +37,7 @@ public class OrgsAndPoliciesTreeViewTest
 
   @Before
   public void init() {
-    organizations = tempEntity.newRelatedOrganizationsAsList(null, 2, 3, 3);
+    organizations = tempEntity.newRelatedOrganizationsAsList(2, 3, 3, new NameSupplierDictionary());
     refreshOrOpen(OwnerTreeViewPage.url());
   }
 

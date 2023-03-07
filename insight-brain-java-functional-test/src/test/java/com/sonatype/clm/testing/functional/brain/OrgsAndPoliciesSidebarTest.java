@@ -24,6 +24,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPageWithLimitedVisibility;
 import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
+import com.sonatype.clm.testing.functional.utils.NameSupplierDictionary;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -61,7 +62,7 @@ public class OrgsAndPoliciesSidebarTest
 
   @Before
   public void init() {
-    organizations = tempEntity.newRelatedOrganizationsAsMap(null, 2, 3, 3);
+    organizations = tempEntity.newRelatedOrganizationsAsMap(null, 2, 3, 3, new NameSupplierDictionary());
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
   }
 
@@ -73,19 +74,18 @@ public class OrgsAndPoliciesSidebarTest
       Collections.sort(organizations.get(key), Comparator.comparing(o -> o.getName().toUpperCase()));
     });
 
-    Owner currentOwner = organizations.get(2).get(0);
-    testSideNavbarContent("Root Organization", currentOwner.getName(), 21, 6);
+    //Getting ROOT_ORG
+    Owner selectedOrg = organizationDAO.getById("ROOT_ORGANIZATION_ID");
+    testSideNavbarContent(selectedOrg, 21, 6);
 
-    Owner parentOwner = currentOwner;
-    currentOwner = organizations.get(1).get(0);
-    testSideNavbarContent(parentOwner.getName(), currentOwner.getName(), 9, 2);
+    selectedOrg = findFirstOrgChild(selectedOrg.getId(), organizations.get(2));
+    testSideNavbarContent(selectedOrg, 9, 2);
 
-    parentOwner = currentOwner;
-    currentOwner = organizations.get(0).get(0);
-    testSideNavbarContent(parentOwner.getName(), currentOwner.getName(), 3, 0);
+    selectedOrg = findFirstOrgChild(selectedOrg.getId(), organizations.get(1));
+    testSideNavbarContent(selectedOrg, 3, 0);
 
-    parentOwner = currentOwner;
-    testSideNavbarContent(parentOwner.getName(), "", 0, 0);
+    selectedOrg = findFirstOrgChild(selectedOrg.getId(), organizations.get(0));
+    testSideNavbarContent(selectedOrg, 0, 0);
   }
 
   @Test
@@ -210,30 +210,56 @@ public class OrgsAndPoliciesSidebarTest
     );
   }
 
-  private void testSideNavbarContent(String parentName, String childName, int apps, int orgs) {
-    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+  private Organization findFirstOrgChild(String parentOrgId, List<Organization> organizations) {
+    organizations.sort(Comparator.comparing(organization -> organization.getName().toUpperCase()));
+    return organizations.stream()
+        .filter(org -> org.getParentOrganizationId().equals(parentOrgId))
+        .findFirst()
+        .get();
+  }
 
-    NxCollapsible childOrganizations = orgsAndPoliciesSidebar.getOrganizationList();
+  private void testSideNavbarContent(Owner parentOwner, int apps, int orgs) {
+    String parentName = parentOwner.getName();
+
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
     orgsAndPoliciesSidebar.selectedOrg().shouldHave(text(parentName));
 
     if (parentName != "Root Organization") {
-      NxCollapsible childApplications = orgsAndPoliciesSidebar.getApplicationList();
-      childApplications.children().shouldHaveSize(3);
-      SelenideElement firstChildApp = childApplications.children().get(0);
-      firstChildApp.shouldHave(text("Test App "));
+      List<Application> childApps =
+          new ArrayList<>(applicationDAO.getByOrganizationId(parentOwner.getId()));
+
+      if (childApps != null && !childApps.isEmpty()) {
+        childApps.sort(Comparator.comparing(application -> application.getName().toUpperCase()));
+
+        NxCollapsible childApplications = orgsAndPoliciesSidebar.getApplicationList();
+        childApplications.children().shouldHaveSize(childApps.size());
+        for (int i = 0; i < childApps.size(); i++) {
+          SelenideElement childApp = childApplications.children().get(i);
+          childApp.shouldHave(text(childApps.get(i).getName()));
+        }
+      }
     }
 
-    if (childOrganizations.children().size() > 0) {
-      childOrganizations.children().shouldHaveSize(2);
+    List<Organization> childOrgs =
+        new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOwner.getId()));
+
+    if (childOrgs != null && !childOrgs.isEmpty()) {
+      childOrgs.sort(Comparator.comparing(organization -> organization.getName().toUpperCase()));
+      NxCollapsible childOrganizations = orgsAndPoliciesSidebar.getOrganizationList();
+      childOrganizations.children().shouldHaveSize(childOrgs.size());
+
+      for (int i = 0; i < childOrgs.size(); i++) {
+        OrgsAndPoliciesSidebar.OwnerItem childOrg = orgsAndPoliciesSidebar.getOrganizationLink(i);
+        childOrg.ownerName().shouldHave(text(childOrgs.get(i).getName()));
+        childOrg.orgCounter().shouldHave(text(String.format("(%d)", apps + orgs)));
+        childOrg.orgCounter().hover();
+
+        NxTooltip tooltip = new NxTooltip();
+        tooltip.shouldHave(text("Sub-Orgs: " + orgs));
+        tooltip.shouldHave(text("Total Apps: " + apps));
+      }
+
       OrgsAndPoliciesSidebar.OwnerItem firstChildOrg = orgsAndPoliciesSidebar.getOrganizationLink(0);
-      firstChildOrg.ownerName().shouldHave(text(childName));
-      firstChildOrg.orgCounter().shouldHave(text(String.format("(%d)", apps + orgs)));
-      firstChildOrg.orgCounter().hover();
-
-      NxTooltip tooltip = new NxTooltip();
-      tooltip.shouldHave(text("Sub-Orgs: " + orgs));
-      tooltip.shouldHave(text("Total Apps: " + apps));
-
       firstChildOrg.click();
     }
   }

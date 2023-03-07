@@ -15,40 +15,52 @@ import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_SUPPORT_INFO_PA
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SupportInfoResourceTest
+public class TenantSupportInfoResourceTest
     extends AbstractMultiTenantResourceTest
 {
-  @Override
-  protected HttpRequest restRequest() {
-    return super.adminRequest().path("api/");
+  protected HttpRequest restRequest(String path) {
+    return super.adminRequest().path("api/").path(path);
   }
 
   @Test
   public void shouldSend200_GetSupportInfo() throws Exception {
-    // Provisioning a tenant to evaluate Support Info endpoint
     String tenantSlug = generateTestTenantName();
-    restRequest().path(ADMIN_TENANT_PROVISIONING_PATH).parameter(tenantSlug).post();
-    HttpResponse response = restRequest().path(ADMIN_SUPPORT_INFO_PATH)
-        .parameter(tenantSlug).get();
-    //
+
+    // Provisioning a tenant to evaluate Support Info endpoint
+    provisionTenant(tenantSlug).post();
+
+    HttpResponse response = getSupportInfoZip(tenantSlug).get();
+
     assertResponseStatus(200, response);
   }
 
   @Test
   public void shouldSend404_whenTenantDoesNotExist() throws Exception {
-    HttpResponse response = restRequest().path(ADMIN_SUPPORT_INFO_PATH)
-        .parameter("non-existent").get();
+    HttpResponse response = getSupportInfoZip("non-existent").get();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Tenant does not exist");
+    assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
   @Test
   public void shouldSend400_whenTenantIsGlobal() throws Exception {
-    HttpResponse response = restRequest().path(ADMIN_SUPPORT_INFO_PATH)
-        .parameter("global").get();
+    HttpResponse response = getSupportInfoZip("global").get();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid Tenant");
+    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
+  }
+
+  private HttpRequest getSupportInfoZip(String tenant) {
+    if (tenant != null) {
+      return restRequest(ADMIN_SUPPORT_INFO_PATH).parameter(tenant);
+    }
+    return restRequest();
+  }
+
+  private HttpRequest provisionTenant(String tenant) {
+    if (tenant != null) {
+      return restRequest(ADMIN_TENANT_PROVISIONING_PATH).parameter(tenant);
+    }
+    return restRequest();
   }
 }

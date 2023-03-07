@@ -11,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseEngine;
@@ -207,5 +209,26 @@ public class DatabaseUtil
       return PostgresDatabaseEngine.INSTANCE;
     }
     throw new DatabaseException("Unsupported database engine: " + databaseProductName);
+  }
+
+  public static Map<String, Integer> getDatabaseSchemaVersions(DataSource dataSource, String databaseSchema) {
+    String sql = setSchema("SELECT * FROM %s.schema_version", databaseSchema);
+    Map<String, Integer> schemaVersions = new HashMap<>();
+
+    try (Connection connection = dataSource.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      ResultSet result = preparedStatement.executeQuery();
+      while (result != null && result.next()) {
+        schemaVersions.put(result.getString("data_store_id"), result.getInt("schema_version"));
+      }
+      return schemaVersions;
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Failed attempt to read " + databaseSchema + " schema_version table.", e);
+    }
+  }
+
+  private static String setSchema(String sql, String databaseSchema) {
+    return String.format(sql, databaseSchema.trim().replace(" ", "-"));
   }
 }

@@ -11,11 +11,11 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_LICENSE_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
+import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_SCHEMA_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TenantLicenseResourceTest
+public class TenantSchemaResourceTest
     extends AbstractMultiTenantResourceTest
 {
   protected HttpRequest restRequest(String path) {
@@ -23,43 +23,43 @@ public class TenantLicenseResourceTest
   }
 
   @Test
-  public void shouldUpdateLicense() throws Exception {
+  public void shouldGetTenantSchemaVersions() throws Exception {
     String tenantSlug = generateTestTenantName();
 
-    // Provisioning a tenant to update license
+    // Provisioning a tenant to get schema versions
     provisionTenant(tenantSlug).post();
 
-    HttpResponse response = updateLicense(tenantSlug).put();
+    HttpResponse response = getSchemaVersions(tenantSlug).get();
+    String data = response.getBodyText();
 
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
+    assertThat(data).contains("insight_brain_ods");
+    assertThat(data).contains("insight_brain_third_party_scans");
+    assertThat(data).contains("insight_brain_aggregation");
+    assertThat(data).contains("insight_brain_dm");
+  }
+
+  @Test
+  public void shouldSend404_whenTenantDoesNotExist() throws Exception {
+    HttpResponse response = getSchemaVersions("non-existent").get();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
   @Test
   public void shouldSend400_whenTenantIsGlobal() throws Exception {
-    HttpResponse response = updateLicense("global").put();
+    HttpResponse response = getSchemaVersions("global").get();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
-  @Test
-  public void shouldSend404_whenTenantDoesntExist() throws Exception {
-    HttpResponse response = updateLicense("tenant4").put();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
-  }
-
-  private HttpRequest updateLicense(String tenant) {
-    HttpRequest request;
-
+  private HttpRequest getSchemaVersions(String tenant) {
     if (tenant != null) {
-      request = restRequest(ADMIN_TENANT_LICENSE_PATH).parameter(tenant);
+      return restRequest(ADMIN_TENANT_SCHEMA_PATH).parameter(tenant);
     }
-    else {
-      request = restRequest();
-    }
-    request.part("file", "sonatype.lic", new byte[1]);
-    return request;
+    return restRequest();
   }
 
   private HttpRequest provisionTenant(String tenant) {

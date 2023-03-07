@@ -343,7 +343,7 @@ curl -X PUT https://admin.dev-1.mtiq.cloudy.sonatype.dev/api/admin/tenants/cubs/
 # This will install/update the license for the tenant "cubs"
 ```
 
-### Update Security Configuration
+### Update Security Configuration For A Tenant
 For MTIQ the plan is to leverage Auth0 for authentication/authorization of the different endpoints. In order to achieve
 this we need to configure SAML for MTIQ considering the Auth0 SAML metadata and the fields mappings needed to ensure
 the customers can login and have access to MTIQ. 
@@ -416,3 +416,52 @@ Here is an example:
 The admin endpoint is using the same parameters as the existing endpoint on IQ to insert/update SAML configuration, you 
 can find more details in 
 [Configure SAML Integration](https://help.sonatype.com/iqserver/automating/rest-apis/saml-rest-api---v2#SAMLRESTAPIv2-ConfigureSAMLIntegration).
+
+### Get Schema Versions For A Tenant
+For MTIQ we also need a proper way to know what are the different database schema versions a tenant has to be able to 
+diagnose/troubleshoot issues related to database and to ensure our tenants are in the right schema versions. For that 
+reason we are adding and admin endpoint that will let us get the schema versions for all the different data stores.
+You can run the next commands to get the tenant schema versions:
+
+#### For Local Development
+```bash
+curl http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/schema
+
+# Here is an example
+
+curl http://127.0.0.1:8071/api/admin/tenants/cubs/schema
+
+# This will ge the schema versions for the tenant "cubs"
+```
+
+#### For AWS Dev Environment
+```bash
+curl https://admin.<env>.mtiq.cloudy.sonatype.dev/api/admin/tenants/{tenant-slug}/schema
+ 
+# Here is an example for dev Env
+
+curl https://admin.dev-1.mtiq.cloudy.sonatype.dev/api/admin/tenants/cubs/schema
+
+# This will update security configuration for the tenant "cubs"
+```
+
+#### Response Details
+```json
+{
+  "insight_brain_ods": "<Operational DataStore Schema Version>",
+  "insight_brain_third_party_scans": "<Third Party DataStore Schema Version>",
+  "insight_brain_aggregation": "<Aggregation DataStore Schema Version>",
+  "insight_brain_dm": "<Data Mart DataStore Schema Version>"
+}
+```
+
+Here is an example:
+
+```json
+{
+  "insight_brain_ods": 280,
+  "insight_brain_third_party_scans": 12,
+  "insight_brain_aggregation": 12,
+  "insight_brain_dm": 11
+}
+```

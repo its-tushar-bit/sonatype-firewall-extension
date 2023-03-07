@@ -40,6 +40,14 @@ public class TenantProvisioningResourceTest
     assertThat(response.getBodyText()).isEqualTo("Tenant already exists");
   }
 
+  @Test
+  public void shouldSend400_whenTenantIsGlobal() throws Exception {
+    HttpResponse response = provisionTenant("global").post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
+  }
+
   private HttpRequest provisionTenant(String tenant) {
     if (tenant != null) {
       return restRequest().parameter(tenant);

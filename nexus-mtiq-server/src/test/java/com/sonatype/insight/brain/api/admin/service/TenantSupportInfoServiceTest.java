@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SupportInfoServiceTest
+public class TenantSupportInfoServiceTest
     extends MultiTenantTestSupport
 {
   protected Tenant tenant;
@@ -41,7 +41,7 @@ public class SupportInfoServiceTest
   @Mock
   private TenantValidator tenantValidator;
 
-  private SupportInfoService supportInfoService;
+  private TenantSupportInfoService tenantSupportInfoService;
 
   @Mock
   private SupportInformation supportInformation;
@@ -52,7 +52,7 @@ public class SupportInfoServiceTest
   @Before
   @Override
   public void setup() {
-    supportInfoService = new SupportInfoService(tenantUtil, tenantValidator,
+    tenantSupportInfoService = new TenantSupportInfoService(tenantUtil, tenantValidator,
         supportInformation, supportInfoUtil);
   }
 
@@ -74,7 +74,7 @@ public class SupportInfoServiceTest
         when(supportInformation.withWaivers()).thenReturn(supportInformation);
         when(supportInformation.build()).thenReturn(new ArrayList<>());
         when(supportInfoUtil.generateZip(any(), any())).thenReturn(new File("mtiq-support.zip"));
-        File supportZip = supportInfoService.getSupportZip();
+        File supportZip = tenantSupportInfoService.getSupportZip();
 
         assertThat(supportZip).hasName("mtiq-support.zip");
       }
@@ -90,7 +90,7 @@ public class SupportInfoServiceTest
 
     testAsGlobalTenant(global -> {
       when(tenantUtil.isGlobalTenant()).thenReturn(true);
-      assertThatThrownBy(() -> supportInfoService.getSupportZip())
+      assertThatThrownBy(() -> tenantSupportInfoService.getSupportZip())
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
@@ -98,11 +98,11 @@ public class SupportInfoServiceTest
 
   @Test
   public void shouldThrowNotFoundException_whenTenantDoesNotExist() {
-    final String errorMessage = "Tenant does not exist";
+    final String errorMessage = "Tenant doesn't exist";
 
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant)).thenReturn(false);
-      assertThatThrownBy(() -> supportInfoService.getSupportZip())
+      assertThatThrownBy(() -> tenantSupportInfoService.getSupportZip())
           .withFailMessage(errorMessage)
           .isInstanceOf(NotFoundException.class);
     });

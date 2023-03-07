@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class SupportInfoService
+public class TenantSupportInfoService
 {
-  private static final Logger log = LoggerFactory.getLogger(SupportInfoService.class);
+  private static final Logger log = LoggerFactory.getLogger(TenantSupportInfoService.class);
 
   private final TenantUtil tenantUtil;
 
@@ -40,7 +40,7 @@ public class SupportInfoService
   private final SupportInfoUtil supportInfoUtil;
 
   @Inject
-  public SupportInfoService(
+  public TenantSupportInfoService(
       TenantUtil tenantUtil,
       TenantValidator tenantValidator,
       SupportInformation supportInformation,
@@ -57,12 +57,12 @@ public class SupportInfoService
 
     if (tenantUtil.isGlobalTenant()) {
       log.error("Cannot generate Support Info, invalid Tenant: {}", tenant);
-      throw new BadRequestException("Invalid Tenant");
+      throw new BadRequestException("Invalid tenant");
     }
 
     if (!tenantValidator.validateTenantExists(tenant)) {
       log.error("Cannot generate Support Info, Tenant does not exist");
-      throw new NotFoundException("Tenant does not exist");
+      throw new NotFoundException("Tenant doesn't exist");
     }
 
     final List<SupportFile> supportFiles = supportInformation

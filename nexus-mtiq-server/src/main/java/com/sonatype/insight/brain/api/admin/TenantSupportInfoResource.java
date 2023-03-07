@@ -18,25 +18,25 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
-import com.sonatype.insight.brain.api.admin.service.SupportInfoService;
+import com.sonatype.insight.brain.api.admin.service.TenantSupportInfoService;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 
 @Named
 @MtiqAdminEndpoint
 @Path(AdminApiPaths.ADMIN_SUPPORT_INFO_PATH)
-public class SupportInfoResource
+public class TenantSupportInfoResource
 {
-  private final SupportInfoService supportInfoService;
+  private final TenantSupportInfoService tenantSupportInfoService;
 
   @Inject
-  public SupportInfoResource(SupportInfoService supportInfoService) {
-    this.supportInfoService = supportInfoService;
+  public TenantSupportInfoResource(TenantSupportInfoService tenantSupportInfoService) {
+    this.tenantSupportInfoService = tenantSupportInfoService;
   }
 
   @GET
   @Produces("application/zip")
   public Response getSupportZip() throws IOException {
-    final File supportZip = supportInfoService.getSupportZip();
+    final File supportZip = tenantSupportInfoService.getSupportZip();
 
     final ResponseBuilder response = Response.ok();
     response.entity(supportZip);

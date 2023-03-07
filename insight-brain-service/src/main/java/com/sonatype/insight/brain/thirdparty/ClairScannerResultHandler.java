@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,8 @@ import com.sonatype.insight.scan.manifest.ClairScannerVulnerability;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedFixedBy;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
@@ -45,6 +48,8 @@ public class ClairScannerResultHandler
 
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = new ThirdPartyCoordinateSecurityDAO();
 
+  private static final Logger log = LoggerFactory.getLogger(ClairScannerResultHandler.class);
+
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(
       ThirdPartyScanContent content,
@@ -62,7 +67,7 @@ public class ClairScannerResultHandler
 
           Set<ClairScannerVulnerability> filteredVulnerabilities = clairScannerResult.getVulnerabilities().stream()
               .map(vulnerability -> saveVulnerability(vulnerability, thirdPartyFile, hashFileCoordinateIdMap, tx))
-              .map(this::filterIdentities).collect(Collectors.toSet());
+              .filter(Objects::nonNull).map(this::filterIdentities).collect(Collectors.toSet());
 
           filteredClairScannerResult.setVulnerabilities(filteredVulnerabilities);
         }
@@ -90,6 +95,13 @@ public class ClairScannerResultHandler
     String version = getTruncatedVersion(vulnerability.getFeatureVersion());
     vulnerability.setFeatureVersion(version);
 
+    // format, name and version are mandatory, if they are null/blank it should be skipped
+    if (StringUtils.isAnyBlank(format, name, version)) {
+      log.debug("Skipping clair vulnerability with missing mandatory coordinates. format={}, name={}, version={}. ",
+          format, name, version);
+      return null;
+    }
+
     String fakeHash = ThirdPartyScanResultUtils
         .hash(format + ":" + vulnerability.getFeatureName() + ":" + vulnerability.getFeatureVersion());
 
@@ -104,7 +116,15 @@ public class ClairScannerResultHandler
       fileCoordinateId = fileCoordinate.getId();
       hashFileCoordinateIdMap.put(fakeHash, fileCoordinateId);
     }
+    saveVulnerabilityInfo(vulnerability, fileCoordinateId, tx);
+    return vulnerability;
+  }
 
+  private void saveVulnerabilityInfo(
+      final ClairScannerVulnerability vulnerability,
+      final String fileCoordinateId,
+      final TransactionContext tx)
+  {
     float severity = getSeverity(vulnerability.getSeverity());
 
     String link = getTruncatedLink(vulnerability.getLink());
@@ -124,8 +144,6 @@ public class ClairScannerResultHandler
     coordinateSecurity.setVulnerabilitySource(vulnerabilitySource);
     coordinateSecurity.setSeverityDescription(severityDescription);
     thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
-
-    return vulnerability;
   }
 
   float getSeverity(final String severity) {

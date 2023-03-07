@@ -158,6 +158,43 @@ public class ClairScannerResultsHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_filterContent_invalidData() {
+    ClairScannerResult clairScannerResult = new ClairScannerResult();
+    clairScannerResult.setImage("imageTest");
+
+    Set<ClairScannerVulnerability> vulnerabilities = new HashSet<>();
+
+    ClairScannerVulnerability vulnerability1 =
+        buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", "High");
+    vulnerabilities.add(vulnerability1);
+
+    // Component with empty namespace
+    ClairScannerVulnerability vulnerability2 =
+        buildVulnerability("fn", "fv", "", "test 2", "CSV-test-2", "www.test2.com", "Low");
+    vulnerabilities.add(vulnerability2);
+
+    clairScannerResult.setVulnerabilities(vulnerabilities);
+
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertThat(filteredContent).isNotNull();
+
+    ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
+    assertClairScannerResult(filteredClairScannerResult);
+
+    assertThat(filteredClairScannerResult.getVulnerabilities()).hasSize(1);
+    filteredClairScannerResult.getVulnerabilities()
+        .forEach(this::assertClairScannerVulnerability);
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+    assertThirdPartyFileCoordinate(vulnerability1, thirdPartyFile, coordinates.get(0));
+  }
+
+  @Test
   public void testHandleAndFilterContents_nullContent() {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();

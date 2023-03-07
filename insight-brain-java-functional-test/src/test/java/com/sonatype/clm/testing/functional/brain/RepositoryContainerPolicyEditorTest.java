@@ -112,6 +112,65 @@ public class RepositoryContainerPolicyEditorTest
   }
 
   @Test
+  public void testCreateDuplicatedPolicyFails() {
+    RepositoriesSummaryPage.policyTile().addPolicyButton().click();
+
+    SummarySection summary = PolicyEditorPage.summarySection();
+    summary.policyName().input().val("New Policy");
+
+    assertActionsSectionIsInCorrectState();
+
+    ThreatDropdownSelector.dropdownButton().shouldBe(visible, enabled).click();
+    ThreatDropdownSelector.threatLevelListItem(1).shouldBe(visible).click();
+    ThreatDropdownSelector.selectedThreatLabel().shouldHave(text(String.valueOf(9)));
+
+    PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
+    PolicyEditorPage.actionsSection().proxy().warnRadio().click();
+
+    ScrollUtil.awaitEndOfScrolling(PolicyEditorPage.saveButton().scrollIntoView(true));
+
+    PolicyEditorPage.actionsSection().build().warnRadio().click();
+
+    ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
+    ConstraintEditSection newConstraint = constraintSection.constraintEditor(0);
+    newConstraint.name().shouldBe(empty).val("New Constraint");
+    AgeConditionEditSection ageCondition = newConstraint.ageCondition(0);
+    ageCondition.value().age().shouldBe(empty).val("3");
+
+    eyesWatcher.eyesCheck("Repositories New Policy");
+
+    PolicyEditorPage.savePolicy();
+
+    refresh();
+
+    summary.policyName().input().val("New Policy");
+    ThreatDropdownSelector.dropdownButton().shouldBe(visible, enabled).click();
+    ThreatDropdownSelector.threatLevelListItem(1).shouldBe(visible).click();
+    ThreatDropdownSelector.selectedThreatLabel().shouldHave(text(String.valueOf(9)));
+
+    PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
+    PolicyEditorPage.actionsSection().proxy().warnRadio().click();
+
+    ScrollUtil.awaitEndOfScrolling(PolicyEditorPage.saveButton().scrollIntoView(true));
+
+    PolicyEditorPage.actionsSection().build().warnRadio().click();
+
+    constraintSection.constraintEditor(0);
+    newConstraint.name().shouldBe(empty).val("New Constraint");
+    newConstraint.ageCondition(0);
+    ageCondition.value().age().shouldBe(empty).val("3");
+    PolicyEditorPage.savePolicy();
+
+    Policy newPolicy = new PolicyDAO().getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, "New Policy");
+    try {
+      PolicyEditorPage.alert().shouldHave(text("There were validation errors"));
+    }
+    finally {
+      policyDAO.delete(newPolicy);
+    }
+  }
+
+  @Test
   public void testReturnsToCreatePolicyAfterRemovePolicy() {
     Policy policy = createPolicy();
     refresh();

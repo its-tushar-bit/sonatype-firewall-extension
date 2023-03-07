@@ -98,6 +98,10 @@ public class PolicyEditorPage
     return new NxBackButton("#menu-bar__back-button-container");
   }
 
+  public static SelenideElement alert() {
+    return $(".nx-alert__content");
+  }
+
   public static void savePolicy() {
     ScrollUtil.scrollIntoView(saveButton());
     saveButton().shouldNotHave(DISABLED).click();

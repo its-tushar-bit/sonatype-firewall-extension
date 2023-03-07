@@ -18,10 +18,6 @@ const Organization = memo(({ organizationId, displayParentNameInTooltip = false,
   const parentOrganization = useSelector((state) => selectOwnerById(state, organization?.parentOrganizationId));
   const organizationUrl = uiRouterState.href('management.view.organization', { organizationId });
 
-  if (!organization) {
-    return null;
-  }
-
   const organizationTooltip = (
     <>
       {

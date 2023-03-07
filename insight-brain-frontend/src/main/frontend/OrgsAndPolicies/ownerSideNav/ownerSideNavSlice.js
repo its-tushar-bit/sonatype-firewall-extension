@@ -108,6 +108,12 @@ const sortOwnerIdListByOwnerName = (ownerIds = [], owners) => {
   return sortOwnerByName(getFromOwnersMap)(ownerIds);
 };
 
+const updateDisplayedOrganization = (state, { payload }) => {
+  state.displayedOrganization = getDisplayedOrganization(state.ownersMap, state.topParentOrganizationId, {
+    organizationId: payload.organizationId,
+  });
+};
+
 const getDisplayedOrganization = (ownersMap, topParentOrganizationId = 'ROOT_ORGANIZATION_ID', routerParams) => {
   if (!ownersMap) {
     return null;
@@ -409,6 +415,7 @@ const ownerSideNavSlice = createSlice({
     updateOwnersMapWithNewAppId,
     updateOwnersMapWithNewEntry,
     moveApplication,
+    updateDisplayedOrganization,
   },
   extraReducers: {
     [loadOwnerList.fulfilled]: loadOwnerListFulfilled,

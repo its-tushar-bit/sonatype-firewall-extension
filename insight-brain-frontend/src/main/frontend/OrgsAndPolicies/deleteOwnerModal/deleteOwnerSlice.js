@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
+import { batch } from 'react-redux';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getOrganizationsUrl, getApplicationsUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -53,24 +54,28 @@ const removeOwner = createAsyncThunk(`${REDUCER_NAME}/removeOwner`, (_, { getSta
   return axios
     .delete(url)
     .then(() => {
-      if (isApp) {
-        dispatch(applicationsActions.removeApplicationFromList(ownerToDelete.id));
-        dispatch(ownerSideNavActions.removeApplicationFromOwnerHierarchy(ownerToDelete.publicId));
-      } else {
-        const descendants = selectAllDescendantsByParentId(state, ownerToDelete.id);
-        dispatch(applicationsActions.removeApplicationsFromList(descendants?.applicationIds));
-        dispatch(
-          organizationActions.removeOrganizationsFromList([ownerToDelete.id, ...(descendants?.organizationIds || [])])
-        );
-        dispatch(ownerSideNavActions.removeOrganizationFromOwnerHierarchy(ownerToDelete.id));
-      }
-
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
-        dispatch(
-          stateGo('management.view.organization', {
-            organizationId: isApp ? ownerToDelete.organizationId : ownerToDelete.parentOrganizationId,
-          })
-        );
+        const organizationId = isApp ? ownerToDelete.organizationId : ownerToDelete.parentOrganizationId;
+        dispatch(stateGo('management.view.organization', { organizationId }));
+
+        batch(() => {
+          if (isApp) {
+            dispatch(applicationsActions.removeApplicationFromList(ownerToDelete.id));
+            dispatch(ownerSideNavActions.removeApplicationFromOwnerHierarchy(ownerToDelete.publicId));
+          } else {
+            const descendants = selectAllDescendantsByParentId(state, ownerToDelete.id);
+            dispatch(applicationsActions.removeApplicationsFromList(descendants?.applicationIds));
+            dispatch(
+              organizationActions.removeOrganizationsFromList([
+                ownerToDelete.id,
+                ...(descendants?.organizationIds || []),
+              ])
+            );
+            dispatch(ownerSideNavActions.removeOrganizationFromOwnerHierarchy(ownerToDelete.id));
+          }
+
+          dispatch(ownerSideNavActions.updateDisplayedOrganization({ organizationId }));
+        });
       });
     })
     .catch((err) => rejectWithValue(err));

@@ -138,6 +138,10 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
     public Button componentNameClearFilterButton() {
       return new Button(".iq-repository-filter--component button");
     }
+
+    public Button quarantinedHeaderSortButton() {
+      return new Button(".iq-repository-column--quarantine-date button");
+    }
   }
 
   public static class RepositoryResultTableRow extends BasicElement<RepositoryResultTableRow>

@@ -392,7 +392,7 @@ export function reevaluateComponent() {
       .post(getReevaluateComponentUrl(repositoryId, hash))
       .then(() => {
         dispatch(reevaluateComponentFulfilled());
-        window.location.reload();
+        return dispatch(loadComponentDetails(selectFirewallComponentDetailsPageRouteParams(getState())));
       })
       .catch((error) => {
         dispatch(reevaluateComponentFailed(Messages.getHttpErrorMessage(error)));

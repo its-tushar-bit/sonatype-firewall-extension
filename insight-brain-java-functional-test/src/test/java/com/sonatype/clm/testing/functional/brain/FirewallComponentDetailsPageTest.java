@@ -584,10 +584,14 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void testTabs() {
+  public void testTabsFromFirewallDashboard() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    testTabs(FirewallComponentDetailsPage.defaultUrl(component), component);
+  }
+
+  public void testTabs(String url, RepositoryComponent component) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
     ElementsCollection tabs = firewallComponentDetailsPage.tabs();
     tabs.shouldHaveSize(5);
@@ -617,10 +621,17 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void testRiskRemediationTile_VersionGraphExplorer() {
+  public void testRiskRemediationTile_FromFirewallDashboard() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    String url = FirewallComponentDetailsPage.defaultUrl(component);
+    testRiskRemediationTile_VersionGraphExplorer(url);
+    testRiskRemediationTile_RecommendedVersions_NoRecommendation(url);
+    testCompareVersionsTable(url);
+  }
+
+  public void testRiskRemediationTile_VersionGraphExplorer(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
@@ -634,11 +645,8 @@ public class FirewallComponentDetailsPageTest
     versionExplorerSection.content().shouldBe(visible);
   }
 
-  @Test
-  public void testRiskRemediationTile_RecommendedVersions_NoRecommendation() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+  public void testRiskRemediationTile_RecommendedVersions_NoRecommendation(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
@@ -658,11 +666,8 @@ public class FirewallComponentDetailsPageTest
     recommendation.subText().shouldHave(text("No recommended versions are available for the current component"));
   }
 
-  @Test
-  public void testCompareVersionsTable() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+  public void testCompareVersionsTable(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
@@ -849,35 +854,43 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void testRiskRemediationTile() {
+  public void testRiskRemediationTile_CompareButtons_FromFirewallDashboard() {
     createSecurityPolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    testRiskRemediationTile_CompareButtons(FirewallComponentDetailsPage.defaultUrl(component));
+  }
+
+  public void testRiskRemediationTile_CompareButtons(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     testCompareButtons(0);
 
-    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     testCompareButtons(1);
 
-    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     testCompareButtons(2);
 
-    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     testCompareButtons(3);
   }
 
   @Test
-  public void testComponentOverviewTile() {
+  public void testComponentOverviewTileFromFirewallDashboard() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    testComponentOverviewTile(FirewallComponentDetailsPage.defaultUrl(component));
+  }
+
+  public void testComponentOverviewTile(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
@@ -898,17 +911,7 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void testComponentDirectLinkFirewallPolicyViolations() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-    waitUntilSpinnersGone();
-
-    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
-  }
-
-  @Test
-  public void testComponentFirewallPolicyViolationsClickTab() {
+  public void testComponentPolicyViolationsClickTab() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
@@ -923,42 +926,25 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void testComponentPolicyViolationsTitle() {
+  public void testComponentPolicyViolationsTileFromFirewallDashboard() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    testComponentPolicyViolationsTile(FirewallComponentDetailsPage.urlViolationsTab(component));
+  }
+
+  public void testComponentPolicyViolationsTile(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
     firewallComponentDetailsPage.getComponentPolicyViolationsTitle().shouldBe(visible);
-  }
-
-  @Test
-  public void testComponentPolicyViolationsTable() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-    waitUntilSpinnersGone();
-
     firewallComponentDetailsPage.getComponentPolicyViolationsTable().shouldBe(visible);
-  }
-
-  @Test
-  public void testComponentPolicyViolationsRows() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-    waitUntilSpinnersGone();
-
     firewallComponentDetailsPage.getComponentPolicyViolationsTableCols().first().findAll(By.tagName("td"));
+    testComponentPolicyViolationsRowHeaders();
+    testPolicyViolationsTableContent();
   }
 
-  @Test
   public void testComponentPolicyViolationsRowHeaders() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-    waitUntilSpinnersGone();
-
     firewallComponentDetailsPage.getComponentPolicyViolationsTableHeaders(0).shouldHave(text("Threat"));
     firewallComponentDetailsPage.getComponentPolicyViolationsTableHeaders(1).shouldHave(text("Policy/Action"));
     firewallComponentDetailsPage.getComponentPolicyViolationsTableHeaders(2).shouldHave(text("Constraint Name"));
@@ -967,13 +953,7 @@ public class FirewallComponentDetailsPageTest
     eyesWatcher.eyesCheck("Firewall Component Details Page - Policy violation table ");
   }
 
-  @Test
   public void testPolicyViolationsTableContent() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
-    waitUntilSpinnersGone();
-
     FirewallPolicyViolationsTable policyViolationsTable =
         FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
     policyViolationsTable.shouldBe(visible);
@@ -1106,10 +1086,18 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void testSecurityTabSecurityViolationsTable() {
+  public void testSecurityTabFromFirewallDashboard() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+    String url = FirewallComponentDetailsPage.urlSecurityTab(component);
+    testSecurityTabSecurityViolationsTable(url);
+    testSecurityTabVulnerabilitiesTable(url);
+    testSecurityTabVulnerabilitiesTableRowClick(url);
+    testSecurityTabVulnerabilityOverrideForm_vulnerabilityOverride(url);
+  }
+
+  public void testSecurityTabSecurityViolationsTable(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     PolicyViolationsTable policyViolationsTable =
@@ -1133,11 +1121,8 @@ public class FirewallComponentDetailsPageTest
     policyViolationsRow2.get(3).shouldHave(text("security vulnerability severity >= 4.3"));
   }
 
-  @Test
-  public void testSecurityTabVulnerabilitiesTable() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+  public void testSecurityTabVulnerabilitiesTable(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     VulnerabilitiesTable vulnerabilitiesTable =
@@ -1168,12 +1153,9 @@ public class FirewallComponentDetailsPageTest
         .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
   }
 
-  @Test
-  public void testSecurityTabVulnerabilitiesTableRowClick() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
+  public void testSecurityTabVulnerabilitiesTableRowClick(String url) {
     mockHdsResponsesForVulnerabilityDetails();
-    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     VulnerabilitiesTable vulnerabilitiesTable =
@@ -1186,23 +1168,23 @@ public class FirewallComponentDetailsPageTest
     VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
 
     vulnerabilityRow1Cells.get(3).click();
+    waitUntilSpinnersGone();
     vulnerabilityRow1Cells.get(2)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityRow1Cells.get(1).shouldHave(text(vulnerabilityDetailsPopover.vulnerabilityTitle().getText()));
     vulnerabilityDetailsPopover.getCloseButton().click();
 
     vulnerabilityRow2Cells.get(3).click();
+    waitUntilSpinnersGone();
     vulnerabilityRow2Cells.get(2)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityRow2Cells.get(1).shouldHave(text(vulnerabilityDetailsPopover.vulnerabilityTitle().getText()));
+    vulnerabilityDetailsPopover.getCloseButton().click();
   }
 
-  @Test
-  public void testSecurityTabVulnerabilityOverrideForm_vulnerabilityOverride() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
+  public void testSecurityTabVulnerabilityOverrideForm_vulnerabilityOverride(String url) {
     mockHdsResponsesForVulnerabilityDetails();
-    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     VulnerabilitiesTable vulnerabilitiesTable =
@@ -1214,6 +1196,7 @@ public class FirewallComponentDetailsPageTest
     VulnerabilityOverrideForm vulnerabilityOverrideForm = vulnerabilityDetailsPopover.getVulnerabilityOverrideForm();
 
     vulnerabilityRowCells.get(3).click();
+    waitUntilSpinnersGone();
     vulnerabilityRowCells.get(2)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityOverrideForm.comment().shouldNot(visible);
@@ -1225,16 +1208,22 @@ public class FirewallComponentDetailsPageTest
     vulnerabilityDetailsPopover.getCloseButton().click();
 
     vulnerabilityRowCells.get(3).click();
+    waitUntilSpinnersGone();
     vulnerabilityRowCells.get(2)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityOverrideForm.comment().shouldHave(text(overriddenVulnerabilityComment));
+    vulnerabilityDetailsPopover.getCloseButton().click();
   }
 
   @Test
-  public void testViolationTabWaiverTable() {
+  public void testViolationTabWaiverTableFromFirewallDashboard() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    testViolationTabWaiverTable(FirewallComponentDetailsPage.urlViolationsTab(component));
+  }
+
+  public void testViolationTabWaiverTable(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
 
     Date waiverCreateDate = date;
@@ -1278,10 +1267,14 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void testLegalTab_singleLicenseComponent() {
+  public void testLegalTab_singleLicenseComponent_FromFirewallDashboard() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    testLegalTab_singleLicenseComponent(FirewallComponentDetailsPage.urlLegalTab(component));
+  }
+
+  public void testLegalTab_singleLicenseComponent(String url) {
+    refreshOrOpen(url);
     waitUntilSpinnersGone();
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
@@ -1412,6 +1405,13 @@ public class FirewallComponentDetailsPageTest
     NxSubmitMask.seeAndWaitForDismissal();
   }
 
+  @Test
+  public void testLegalTab_overridenLicensesStatusFromFirewallDashboard() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+    testLegalTab_overridenLicensesStatus(FirewallComponentDetailsPage.urlLegalTab(component));
+  }
+
   public void testLegalTab_overridenLicensesStatus(String url) {
     refreshOrOpen(url);
 
@@ -1452,20 +1452,6 @@ public class FirewallComponentDetailsPageTest
     effectiveLicenses.get(1).shouldHave(text("10tec-Company-License-Agreement"));
 
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
-  }
-
-  @Test
-  public void testLegalTab_overridenLicensesStatusFromFirewallDashboard() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData(overriddenLicense);
-    testLegalTab_overridenLicensesStatus(FirewallComponentDetailsPage.urlLegalTab(component));
-  }
-
-  @Test
-  public void testLegalTab_overridenLicensesStatusFromRepositoryResultsView() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData(overriddenLicense);
-    testLegalTab_overridenLicensesStatus(FirewallComponentDetailsPage.urlLegalTabFromRepositoryResultsView(component));
   }
 
   @Test
@@ -2748,5 +2734,103 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
 
     waiversPagesFromRepositoryComponentDetailsPage_commonBackButtonsAssertions("#/repository/");
+  }
+
+  @Test
+  public void testRepositoryResultsViewStateAfterReevaluatingComponent() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+
+    refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    waitUntilSpinnersGone();
+
+    RepositoryResultTable repositoryResultsTable = new RepositoryResultTable();
+    repositoryResultsTable.policyName().input().setValue("Security");
+    repositoryResultsTable.header().quarantined().click();
+    waitUntilSpinnersGone();
+
+    RepositoryResultDetailPage.table().policyName().input().shouldHave(attribute("value", "Security"));
+    RepositoryResultDetailPage.table().quarantinedHeaderSortButton().shouldHave(
+        attribute("aria-label", "QUARANTINED ascending"));
+
+    RepositoryResultDetailPage.table().row(1).component().click();
+    waitUntilSpinnersGone();
+
+    firewallComponentDetailsPage.reevaluateButton().click();
+    waitUntilSpinnersGone();
+
+    MainHeader.backButton().click();
+    waitUntilSpinnersGone();
+
+    RepositoryResultDetailPage.page().shouldBe(visible);
+    RepositoryResultDetailPage.table().policyName().input().shouldHave(attribute("value", "Security"));
+    RepositoryResultDetailPage.table().quarantinedHeaderSortButton().shouldHave(
+        attribute("aria-label", "QUARANTINED ascending"));
+
+    String repositoryResultsViewCDPUrl =
+        firewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component);
+
+    testTabs(repositoryResultsViewCDPUrl, component);
+
+    //overview tab
+    testComponentOverviewTile(repositoryResultsViewCDPUrl);
+    testRiskRemediationTile_VersionGraphExplorer(repositoryResultsViewCDPUrl);
+    testRiskRemediationTile_RecommendedVersions_NoRecommendation(repositoryResultsViewCDPUrl);
+    testCompareVersionsTable(repositoryResultsViewCDPUrl);
+
+    // violations tab
+    String violationsTabUrl = FirewallComponentDetailsPage.urlViolationsTabFromRepositoryResultsView(component);
+    testComponentPolicyViolationsTile(violationsTabUrl);
+    testViolationTabWaiverTable(violationsTabUrl);
+
+    // security tab
+    String securityTabUrl = FirewallComponentDetailsPage.urlSecurityTabFromRepositoryResultsView(component);
+    testSecurityTabSecurityViolationsTable(securityTabUrl);
+    testSecurityTabVulnerabilitiesTable(securityTabUrl);
+    testSecurityTabVulnerabilitiesTableRowClick(securityTabUrl);
+    testSecurityTabVulnerabilityOverrideForm_vulnerabilityOverride(securityTabUrl);
+
+    // legal tab
+    testLegalTab_singleLicenseComponent(FirewallComponentDetailsPage.urlLegalTabFromRepositoryResultsView(component));
+  }
+
+  @Test
+  public void testRiskRemediationTile_RecommendedVersionsAfterReevaluatingComponent() {
+    createSecurityPolicies();
+    RepositoryComponent component = setupAllTestData();
+
+    refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    waitUntilSpinnersGone();
+
+    RepositoryResultDetailPage.table().row(1).component().click();
+    waitUntilSpinnersGone();
+
+    firewallComponentDetailsPage.reevaluateButton().click();
+    waitUntilSpinnersGone();
+
+    MainHeader.backButton().click();
+    waitUntilSpinnersGone();
+
+    testRiskRemediationTile_CompareButtons(firewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component));
+  }
+
+  @Test
+  public void testLegalTab_overridenLicensesStatusAfterReevaluatingComponent() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    waitUntilSpinnersGone();
+
+    RepositoryResultDetailPage.table().row(1).component().click();
+    waitUntilSpinnersGone();
+
+    firewallComponentDetailsPage.reevaluateButton().click();
+    waitUntilSpinnersGone();
+
+    MainHeader.backButton().click();
+    waitUntilSpinnersGone();
+
+    testLegalTab_overridenLicensesStatus(FirewallComponentDetailsPage.urlLegalTabFromRepositoryResultsView(component));
   }
 }

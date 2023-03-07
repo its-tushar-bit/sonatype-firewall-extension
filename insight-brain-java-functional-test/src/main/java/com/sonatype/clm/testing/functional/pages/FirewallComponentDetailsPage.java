@@ -87,6 +87,10 @@ public class FirewallComponentDetailsPage
     return getBaseUrl(component, SECURITY_TAB_ID, true);
   }
 
+  public static String urlSecurityTabFromRepositoryResultsView(RepositoryComponent component) {
+    return getBaseUrl(component, SECURITY_TAB_ID, false);
+  }
+
   public static String urlLegalTab(RepositoryComponent component) {
     return getBaseUrl(component, LEGAL_TAB_ID, true);
   }

@@ -216,6 +216,18 @@ describe('FirewallComponentDetailsPage', function () {
       expect(reevaluateComponentSpy).toHaveBeenCalledTimes(1);
       component.unmount();
     });
+
+    it('should load component details after reevaluating a component', () => {
+      let component = getMountedComponent({
+        ...minimalProps,
+        CDPResponseState: { ...minimalProps.CDPResponseState, isLoadingComponentDetails: false },
+      });
+      component.find('#firewall-component-details-page__reevaluate-button').first().simulate('click');
+
+      component.update();
+      expect(loadComponentDetailsSpy).toHaveBeenCalledTimes(1);
+      component.unmount();
+    });
   });
 
   describe('loadComponentPolicyViolations', () => {

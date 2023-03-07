@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 
 import com.google.inject.Inject;
+import org.junit.After;
 import org.junit.Test;
 import org.quartz.Scheduler;
 
@@ -40,6 +41,13 @@ public class IqShutdownTest
     getCLMServer().stop();
 
     assertThat(tenantManaged.schedulerDuringDeregistration).isNotNull();
+  }
+
+  @After
+  public void restartClmServer() throws Exception {
+    if (!getCLMServer().isRunning()) {
+      getCLMServer().start();
+    }
   }
 
   @Named

@@ -225,10 +225,9 @@ public class OrgsAndPoliciesSidebarTest
     orgsAndPoliciesSidebar.selectedOrg().shouldHave(text(parentName));
 
     if (parentName != "Root Organization") {
-      List<Application> childApps =
-          new ArrayList<>(applicationDAO.getByOrganizationId(parentOwner.getId()));
+      List<Application> childApps = new ArrayList<>(applicationDAO.getByOrganizationId(parentOwner.getId()));
 
-      if (childApps != null && !childApps.isEmpty()) {
+      if (!childApps.isEmpty()) {
         childApps.sort(Comparator.comparing(application -> application.getName().toUpperCase()));
 
         NxCollapsible childApplications = orgsAndPoliciesSidebar.getApplicationList();
@@ -240,10 +239,9 @@ public class OrgsAndPoliciesSidebarTest
       }
     }
 
-    List<Organization> childOrgs =
-        new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOwner.getId()));
+    List<Organization> childOrgs = new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOwner.getId()));
 
-    if (childOrgs != null && !childOrgs.isEmpty()) {
+    if (!childOrgs.isEmpty()) {
       childOrgs.sort(Comparator.comparing(organization -> organization.getName().toUpperCase()));
       NxCollapsible childOrganizations = orgsAndPoliciesSidebar.getOrganizationList();
       childOrganizations.children().shouldHaveSize(childOrgs.size());

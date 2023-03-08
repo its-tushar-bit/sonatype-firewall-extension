@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionTy
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -32,11 +33,16 @@ import static com.sonatype.insight.brain.model.repository.RepositoryContainer.RE
 
 /**
  * @since 1.105
+ *
+ * For mtiq we only want to run this listener per tenant. Global tenant is not aware of any firewall feature.
+ * Moreover, if the global were to be included the value would be configured for global on startup and due to the
+ * fallback method employed by the <code>systemConfigurationPropertyDAO.getByName</code> would then prevent tenants from
+ * getting initialised correctly.
  */
 @Named
 @Singleton
 public class FirewallReleaseIntegrityLicenseListener
-    implements ProductLicenseListener
+    implements ProductLicenseListener, TenantManaged
 {
   private static final Logger log = LoggerFactory.getLogger(FirewallReleaseIntegrityLicenseListener.class);
 

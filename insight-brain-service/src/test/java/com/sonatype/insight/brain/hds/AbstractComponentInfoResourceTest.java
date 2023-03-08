@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -124,7 +125,7 @@ public abstract class AbstractComponentInfoResourceTest
     HttpResponse response = detailsRequest(getOwnerId(), MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).get();
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
+    NamedComponentDetails componentDetails = response.getBody(NamedComponentDetails.class);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getHash()).isEqualTo(hash);
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);
@@ -156,7 +157,7 @@ public abstract class AbstractComponentInfoResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
+    NamedComponentDetails componentDetails = response.getBody(NamedComponentDetails.class);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getHash()).isEqualTo(hash);
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_COORDINATES);

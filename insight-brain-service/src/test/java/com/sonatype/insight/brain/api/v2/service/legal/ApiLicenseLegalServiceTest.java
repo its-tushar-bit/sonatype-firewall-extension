@@ -241,7 +241,7 @@ public class ApiLicenseLegalServiceTest
     apiLicenseDataAdapterSpy = spy(new DefaultApiLicenseDataAdapter(new MultiLicenseDAO()));
     binder.bind(ApiLicenseDataAdapter.class).toInstance(apiLicenseDataAdapterSpy);
     componentInfoServiceSpy = spy(new ComponentInfoService(null, null, new ComponentDetailsLoaderFactory(null), null,
-        mockThirdPartyComponentDAO, repositoryQueryService, multiLicenseDAO));
+        mockThirdPartyComponentDAO, repositoryQueryService, multiLicenseDAO, null));
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceSpy);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(mockThirdPartyComponentDAO);
     binder.bind(ComponentLegalService.class).toInstance(mockComponentLegalService);

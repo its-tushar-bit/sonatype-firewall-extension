@@ -77,6 +77,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
@@ -1347,11 +1348,12 @@ public class ComponentInfoServiceTest
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);
     mockHdsGetComponentDetails(hdsComponentDetails);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_A1_COORDINATES,
+    NamedComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_A1_COORDINATES,
         MatchState.UNKNOWN.getId(), hash, false /* proprietary */, httpRequestMock);
 
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+    assertThat(componentDetails.getDisplayName().toString()).isEqualTo("g1 : a1 : v1");
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).hasSize(1);
     assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
@@ -1373,7 +1375,7 @@ public class ComponentInfoServiceTest
 
   // CLM-4195
   @Test
-  public void testGetComponentDetails_UnknownComponentNullIdentifier() throws Exception {
+  public void testGetComponentDetails_UnknownComponentNullIdentifier_Application() throws Exception {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(ProprietaryConditionType.ID, "is true"));
     Policy policy1 = new Policy("PolicyId1", "Policy1");
@@ -1386,16 +1388,42 @@ public class ComponentInfoServiceTest
     String hash = "01234567890123456789";
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application,
+    NamedComponentDetails componentDetails = componentInfoService.getComponentDetails(application,
         null /* componentIdentifier */, MatchState.UNKNOWN.getId(), hash, true /* proprietary */, httpRequestMock);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getHash()).isEqualTo(hash);
     assertThat(componentDetails.getComponentIdentifier()).isNull();
+    assertThat(componentDetails.getDisplayName()).isNull();
 
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.UNKNOWN.getId());
 
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).hasSize(1);
+  }
+
+  @Test
+  public void testGetComponentDetails_UnknownComponentNullIdentifier_Repository() throws Exception {
+    String hash = "01234567890123456789";
+
+    // Component is unknown and it is not in the repository
+    NamedComponentDetails componentDetails = componentInfoService.getComponentDetails(repository,
+        null /* componentIdentifier */, MatchState.UNKNOWN.getId(), hash, false /* proprietary */, httpRequestMock);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getComponentIdentifier()).isNull();
+    assertThat(componentDetails.getDisplayName()).isNull();
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.UNKNOWN.getId());
+
+    // Add the component to the repository and test again - it should have a display name
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
+        "testPathname", hash, null /* identifier */, false /* quarantined */);
+    componentDetails = componentInfoService.getComponentDetails(repository,
+        null /* componentIdentifier */, MatchState.UNKNOWN.getId(), hash, false /* proprietary */, httpRequestMock);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getHash()).isEqualTo(hash);
+    assertThat(componentDetails.getComponentIdentifier()).isNull();
+    assertThat(componentDetails.getDisplayName().toString()).isEqualTo(repositoryComponent.getDisplayName());
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.UNKNOWN.getId());
   }
 
   @Test

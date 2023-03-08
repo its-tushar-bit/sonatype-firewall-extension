@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -184,7 +185,7 @@ public class ComponentInfoResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
+    NamedComponentDetails componentDetails = response.getBody(NamedComponentDetails.class);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(tpComponentIdentifier);
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());

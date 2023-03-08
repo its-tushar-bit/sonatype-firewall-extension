@@ -11,12 +11,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
@@ -30,6 +32,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -97,25 +100,9 @@ public class ApiCycloneDxServiceV2Test
     setBaseUrl("http://localhost:8070/");
   }
 
-  private void createReportAndPolicyEvaluation() throws IOException {
+  private void createReportAndPolicyEvaluation(String folder) throws IOException {
     File reportFile = work.getReportFile(application.getId(), scanId);
-    FileUtils.copyURLToFile(ReportHelper.zipReport("/" + getClass().getSimpleName() + "/report", tempDir), reportFile);
-
-    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
-  }
-
-  private void createNpmComponentReportAndPolicyEvaluation() throws IOException {
-    File reportFile = work.getReportFile(application.getId(), scanId);
-    FileUtils.copyURLToFile(ReportHelper.zipReport("/" + getClass().getSimpleName() + "-npmComponent/report", tempDir),
-        reportFile);
-
-    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
-  }
-
-  private void createMavenComponentReportAndPolicyEvaluation() throws IOException {
-    File reportFile = work.getReportFile(application.getId(), scanId);
-    FileUtils.copyURLToFile(
-        ReportHelper.zipReport("/" + getClass().getSimpleName() + "-mavenComponent/report", tempDir),
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/" + getClass().getSimpleName() + "/" + folder, tempDir),
         reportFile);
 
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
@@ -181,14 +168,14 @@ public class ApiCycloneDxServiceV2Test
       when(versionService.getVersion()).thenReturn("1.0");
     }
 
-    createReportAndPolicyEvaluation();
+    createReportAndPolicyEvaluation("report");
     Response response = service.getByScanId(application.getId(), scanId, contentType, version);
     assertBom(response, version, hasVulnerabilities);
   }
 
   @Test
   public void testGetByScanId_npmComponent() throws Exception {
-    createNpmComponentReportAndPolicyEvaluation();
+    createReportAndPolicyEvaluation("npmComponent");
     Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_11);
     byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(bytes);
@@ -199,10 +186,37 @@ public class ApiCycloneDxServiceV2Test
     assertThat(bom.getExternalReferences()).hasSize(1);
 
     Component component =
-        createComponent(Version.VERSION_11, "pkg:npm/lodash@4.17.19", "d60a2eb7c051d8d933df", "exact", "MIT",
+        createComponent(Version.VERSION_11, "pkg:npm/lodash@4.17.19", "d60a2eb7c051d8d933df", "MIT",
             "Not-Supported");
 
     assertThat(bom.getComponents()).contains(component);
+  }
+
+  @Test
+  public void testGetByScanId_multipleComponentsWithDuplicatedIdentity() throws Exception {
+    when(versionService.getVersion()).thenReturn("1.0");
+
+    createReportAndPolicyEvaluation("duplicatedComponents");
+    Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_14);
+    Bom bom = ThirdPartyUtils.parseAndValidateSbom(response.getEntity().toString(), "xml");
+
+    assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
+    assertMetadata(bom, application, scanId, Version.VERSION_14);
+    assertThat(bom.getExternalReferences()).hasSize(1);
+
+    String commonPurl1 = "pkg:generic/Apache.NMS.dll@2.0.0.0?nexusnamespace=Apache&nexustype=pecoff";
+
+    Component component1 =
+        createComponent(Version.VERSION_14, commonPurl1, "367c5c858d5f3057d93b", "Not Provided");
+    Component component2 = createComponent(Version.VERSION_14, commonPurl1, "f19ac613238ca6e4ae77");
+
+    assertThat(bom.getComponents()).usingRecursiveFieldByFieldElementComparator(
+            RecursiveComparisonConfiguration.builder()
+                .withIgnoreCollectionOrder(true)
+                .withIgnoreAllExpectedNullFields(true)
+                .withIgnoredFields("bomRef")
+                .build())
+        .containsExactlyInAnyOrder(component1, component2);
   }
 
   @Test
@@ -219,14 +233,14 @@ public class ApiCycloneDxServiceV2Test
     if (version != Version.VERSION_11) {
       when(versionService.getVersion()).thenReturn("1.0");
     }
-    createMavenComponentReportAndPolicyEvaluation();
+    createReportAndPolicyEvaluation("mavenComponent");
     Response response = service.getByScanId(application.getId(), scanId, contentType, version);
     assertBomMaven(response);
   }
 
   @Test
   public void testGetByScanId_mavenComponent_minorVersion() throws Exception {
-    createMavenComponentReportAndPolicyEvaluation();
+    createReportAndPolicyEvaluation("mavenComponent");
     Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_11);
     byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(bytes);
@@ -268,7 +282,7 @@ public class ApiCycloneDxServiceV2Test
     if (version != Version.VERSION_11) {
       when(versionService.getVersion()).thenReturn("1.0");
     }
-    createReportAndPolicyEvaluation();
+    createReportAndPolicyEvaluation("report");
     Response response = service.getLatest(application.getId(), BuildStageType.ID, contentType, version);
     assertBom(response, version, false);
   }
@@ -351,18 +365,22 @@ public class ApiCycloneDxServiceV2Test
     Component component2 = createComponent(version, "pkg:nuget/jQuery@3.2.1", "0babbbd2c221d24484f5", "similar",
         true, "CC0-1.0", "CDDL-1.1", "MIT");
     Component component3 = createComponent(version, "pkg:a-name/knockout.validation@2.0.0-Pre", "7c9933a349f37d5f3131",
-        "exact","MPL-1.1", "LGPL-2.1", "Apache-1.1", "Apache-1.0", "LGPL-3.0", "Apache-2.0");
+        "MPL-1.1", "LGPL-2.1", "Apache-1.1", "Apache-1.0", "LGPL-3.0", "Apache-2.0");
 
-    assertThat(bom.getComponents()).usingRecursiveFieldByFieldElementComparator(
-        RecursiveComparisonConfiguration.builder().withIgnoreCollectionOrder(true).withIgnoreAllExpectedNullFields(true)
-            .build()).contains(component1, component2, component3);
+    assertThat(bom.getComponents())
+        .usingRecursiveFieldByFieldElementComparator(
+            RecursiveComparisonConfiguration.builder()
+                .withIgnoreCollectionOrder(true)
+                .withIgnoreAllExpectedNullFields(true)
+                .build())
+        .contains(component1, component2, component3);
 
     if (hasVulnerabilities) {
       Vulnerability vulnerability = new Vulnerability();
 
       List<Affect> affects = new ArrayList<>();
       Affect affect = new Affect();
-      affect.setRef(component1.getPurl());
+      affect.setRef(component1.getBomRef());
       affects.add(affect);
       vulnerability.setAffects(affects);
       vulnerability.setId("sonatype-2019-0115");
@@ -389,7 +407,7 @@ public class ApiCycloneDxServiceV2Test
 
       affects = new ArrayList<>();
       affect = new Affect();
-      affect.setRef(component2.getPurl());
+      affect.setRef(component2.getBomRef());
       affects.add(affect);
       vulnerability2.setAffects(affects);
       vulnerability2.setId("sonatype-2019-0116");
@@ -409,7 +427,8 @@ public class ApiCycloneDxServiceV2Test
       vulnerability2.addRating(rating);
       vulnerability2.addCwe(20);
 
-      assertThat(bom.getVulnerabilities()).usingRecursiveFieldByFieldElementComparator()
+      assertThat(bom.getVulnerabilities())
+          .usingRecursiveFieldByFieldElementComparatorIgnoringFields("affects.ref")
           .containsExactlyInAnyOrder(vulnerability, vulnerability2);
     }
     else {
@@ -461,10 +480,9 @@ public class ApiCycloneDxServiceV2Test
       Version bomVersion,
       String packageUrl,
       String hashStr,
-      String matchState,
       String... licenses)
   {
-    return createComponent(bomVersion, packageUrl, hashStr, matchState, false, licenses);
+    return createComponent(bomVersion, packageUrl, hashStr, "exact", false, licenses);
   }
 
   private Component createComponent(
@@ -475,7 +493,7 @@ public class ApiCycloneDxServiceV2Test
           String matchState,
           String... licenses)
   {
-    Component component =  createComponent(bomVersion, packageUrl, hashStr, matchState, false, licenses);
+    Component component = createComponent(bomVersion, packageUrl, hashStr, matchState, false, licenses);
     Hash hash = new Hash(Hash.Algorithm.SHA_256, sha256);
     component.addHash(hash);
     return component;
@@ -499,7 +517,13 @@ public class ApiCycloneDxServiceV2Test
     component.setVersion(purl.getVersion());
     component.setPurl(packageUrl);
     component.setModified(modified);
-    component.setBomRef(packageUrl);
+
+    if (!purl.getFormat().equals(ComponentIdentifier.FORMAT_GENERIC)) {
+      ComponentIdentifier ci = purl.toComponentIdentifier();
+      if (ci.getFormat().equals(ComponentIdentifier.FORMAT_GENERIC)) {
+        component.setBomRef(packageUrl);
+      }
+    }
 
     if (bomVersion.compareTo(Version.VERSION_12) > 0 && hashStr != null) {
       Property property = new Property();
@@ -507,15 +531,15 @@ public class ApiCycloneDxServiceV2Test
       property.setValue(hashStr);
       component.addProperty(property);
 
-      Property identificationSource = new Property();
-      identificationSource.setName(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME);
-      identificationSource.setValue(IdentificationSource.SONATYPE.getName());
-      component.addProperty(identificationSource);
-
       Property matchStateProperty = new Property();
       matchStateProperty.setName("Match State");
       matchStateProperty.setValue(matchState);
       component.addProperty(matchStateProperty);
+
+      Property identificationSource = new Property();
+      identificationSource.setName(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME);
+      identificationSource.setValue(IdentificationSource.SONATYPE.getName());
+      component.addProperty(identificationSource);
     }
 
     LicenseChoice licenseChoice = new LicenseChoice();
@@ -535,27 +559,29 @@ public class ApiCycloneDxServiceV2Test
       }
       licenseChoice.addLicense(license);
     }
-    component.setLicenseChoice(licenseChoice);
+    if (licenseChoice.getLicenses() != null) {
+      component.setLicenseChoice(licenseChoice);
+    }
+
     return component;
   }
 
   @Test
   public void test_getVulnerabilityInformation() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
-    List<String> matchingComponents = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
-    ApiReportComponentDTOV2 component =
-        createComponentReport("pkg:generic/test@2", "cve", 9.8f, "10", "CVSSv3", "www.test.com", "critical",
-            "CVE-2022-1234");
-    matchingComponents.add(component.packageUrl);
-    componentReport.add(component);
+    String bomRef = "testId";
+
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@2", "f19ac613238ca6e4ae77", "cve",
+        9.8f, "10", "CVSSv3", "www.test.com", "critical", "CVE-2022-1234", bomRef);
 
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
 
     Vulnerability vulnerability = new Vulnerability();
     vulnerability.setId("CVE-2022-1234");
     Affect affect = new Affect();
-    affect.setRef(component.packageUrl);
+    affect.setRef(bomRef);
     Source sourceVuln = new Source();
     sourceVuln.setName("NVD");
     sourceVuln.setUrl("www.test.com");
@@ -584,7 +610,7 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void test_getVulnerabilityInformation_invalidInfo() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
-    List<String> matchingComponents = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
     ApiReportComponentDTOV2 unknownComponent = new ApiReportComponentDTOV2();
     unknownComponent.matchState = MatchState.UNKNOWN.getId();
@@ -608,19 +634,13 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void test_getVulnerabilityInformation_source() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
-    List<String> matchingComponents = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
-    ApiReportComponentDTOV2 cveAsSource =
-        createComponentReport("pkg:generic/test@2", "cve", 9.8f, "10", "CVSSv3", "www.test.com", "critical",
-            "CVE-2022-1234");
-    matchingComponents.add(cveAsSource.packageUrl);
-    componentReport.add(cveAsSource);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@2", "f19ac613238ca6e4ae77", "cve",
+        9.8f, "10", "CVSSv3", "www.test.com", "critical", "CVE-2022-1234", "test1");
 
-    ApiReportComponentDTOV2 sonatypeAsSource =
-        createComponentReport("pkg:generic/test@3", "sonatype", 1.0f, "10", "CVSSv3", "www.test1.com", "critical",
-            "CVE-2022-1235");
-    matchingComponents.add(sonatypeAsSource.packageUrl);
-    componentReport.add(sonatypeAsSource);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@3", "f19ac613238ca6e4ae78",
+        "sonatype", 1.0f, "10", "CVSSv3", "www.test1.com", "critical", "CVE-2022-1235", "test2");
 
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
 
@@ -636,25 +656,16 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void test_getVulnerabilityInformation_method() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
-    List<String> matchingComponents = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
-    ApiReportComponentDTOV2 cdxMethod =
-        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "10", "CVSSv3", "www.test.com", "critical",
-            "CVE-2022-1234");
-    matchingComponents.add(cdxMethod.packageUrl);
-    componentReport.add(cdxMethod);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@5", "cve", "f19ac613238ca6e4ae77",
+        9.8f, "10", "CVSSv3", "www.test.com", "critical", "CVE-2022-1234", "test1");
 
-    ApiReportComponentDTOV2 sonatypeMethod =
-        createComponentReport("pkg:generic/test@6", "cve", 9.8f, "10", "sonatype_cve_cvss_2", "www.test.com",
-            "critical", "CVE-2022-1235");
-    matchingComponents.add(sonatypeMethod.packageUrl);
-    componentReport.add(sonatypeMethod);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@6", "cve", "f19ac613238ca6e4ae78",
+        9.8f, "10", "sonatype_cve_cvss_2", "www.test.com", "critical", "CVE-2022-1235", "test2");
 
-    ApiReportComponentDTOV2 otherMethod =
-        createComponentReport("pkg:generic/test@7", "cve", 9.8f, "10", "cve_cvss_31", "www.test.com", "critical",
-            "CVE-2022-1236");
-    matchingComponents.add(otherMethod.packageUrl);
-    componentReport.add(otherMethod);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@7", "cve", "f19ac613238ca6e4ae79",
+        9.8f, "10", "cve_cvss_31", "www.test.com", "critical", "CVE-2022-1236", "test3");
 
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
 
@@ -667,19 +678,13 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void test_getVulnerabilityInformation_cwe() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
-    List<String> matchingComponents = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
-    ApiReportComponentDTOV2 singleCwe =
-        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "120", "sonatype_cve_cvss_2", "www.test.com",
-            "critical", "CVE-2022-1234");
-    matchingComponents.add(singleCwe.packageUrl);
-    componentReport.add(singleCwe);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@5", "cve", "f19ac613238ca6e4ae77",
+        9.8f, "120", "sonatype_cve_cvss_2", "www.test.com", "critical", "CVE-2022-1234", "test");
 
-    ApiReportComponentDTOV2 multipleCwes =
-        createComponentReport("pkg:generic/test@6", "cve", 9.8f, "110,220", "sonatype_cve_cvss_2", "www.test.com",
-            "critical", "CVE-2022-1235");
-    matchingComponents.add(multipleCwes.packageUrl);
-    componentReport.add(multipleCwes);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@6", "cve", "f19ac613238ca6e4ae78",
+        9.8f, "110,220", "sonatype_cve_cvss_2", "www.test.com", "critical", "CVE-2022-1235", "test2");
 
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
 
@@ -690,25 +695,16 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void test_getVulnerabilityInformation_severity() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
-    List<String> matchingComponents = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
-    ApiReportComponentDTOV2 severityCritical =
-        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "120", "CVSSv3", "www.test.com",
-            "Critical", "CVE-2022-1234");
-    matchingComponents.add(severityCritical.packageUrl);
-    componentReport.add(severityCritical);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@5", "cve", "f19ac613238ca6e4ae78",
+        9.8f, "120", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1234", "test1");
 
-    ApiReportComponentDTOV2 severityModerate =
-        createComponentReport("pkg:generic/test@6", "cve", 9.8f, "120", "sonatype_cve_cvss_2", "www.test.com",
-            "Moderate", "CVE-2022-1235");
-    matchingComponents.add(severityModerate.packageUrl);
-    componentReport.add(severityModerate);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@6", "cve", "f19ac613238ca6e4ae79",
+        9.8f, "120", "sonatype_cve_cvss_2", "www.test.com", "Moderate", "CVE-2022-1235", "test1");
 
-    ApiReportComponentDTOV2 severityUnknown =
-        createComponentReport("pkg:generic/test@9", "cve", 9.8f, "120", "sonatype_cve_cvss_2", "www.test.com",
-            null, "CVE-2022-1236");
-    matchingComponents.add(severityUnknown.packageUrl);
-    componentReport.add(severityUnknown);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@9", "cve", "f19ac613238ca6e4ae77",
+        9.8f, "120", "sonatype_cve_cvss_2", "www.test.com", null, "CVE-2022-1236", "test1");
 
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
 
@@ -721,62 +717,40 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void test_getVulnerabilityInformation_multipleAffects() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
-    List<String> matchingComponents = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
-    ApiReportComponentDTOV2 vuln1 =
-        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "120", "CVSSv3", "www.test.com",
-            "Critical", "CVE-2022-1234");
-    matchingComponents.add(vuln1.packageUrl);
-    componentReport.add(vuln1);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@5", "f19ac613238ca6e4ae77", "cve",
+        9.8f, "120", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1234", "test1");
 
-    ApiReportComponentDTOV2 vuln2 =
-        createComponentReport("pkg:generic/test@6", "cve", 9.8f, "120", "CVSSv3", "www.test.com",
-            "Critical", "CVE-2022-1234");
-    matchingComponents.add(vuln2.packageUrl);
-    componentReport.add(vuln2);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@6", "f19ac613238ca6e4ae78", "cve",
+        9.8f, "120", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1234", "test2");
 
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
 
     assertThat(vulnerabilities).hasSize(1).extracting("affects")
         .flatExtracting(list -> (List<Rating>) list)
         .extracting("ref")
-        .containsExactlyInAnyOrder(vuln1.packageUrl, vuln2.packageUrl);
+        .containsExactlyInAnyOrder("test1", "test2");
   }
   
   @Test
   public void test_getVulnerabilityInformation_Cwes() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
-    List<String> matchingComponents = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
-    ApiReportComponentDTOV2 vuln1 =
-        createComponentReport("pkg:generic/test@1", "cve", 9.8f, "cwe-1", "CVSSv3", "www.test.com",
-            "Critical", "CVE-2022-1234");
-    matchingComponents.add(vuln1.packageUrl);
-    componentReport.add(vuln1);
-    
-    ApiReportComponentDTOV2 vuln2 =
-        createComponentReport("pkg:generic/test@2", "cve", 9.8f, "CWE-2", "CVSSv3", "www.test.com",
-            "Critical", "CVE-2022-1235");
-    matchingComponents.add(vuln2.packageUrl);
-    componentReport.add(vuln2);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@1", "cve", "f19ac613238ca6e4ae77",
+        9.8f, "cwe-1", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1234", "test1");
 
-    ApiReportComponentDTOV2 vuln3 =
-        createComponentReport("pkg:generic/test@3", "cve", 9.8f, "CwE-14", "CVSSv3", "www.test.com",
-            "Critical", "CVE-2022-1236");
-    matchingComponents.add(vuln3.packageUrl);
-    componentReport.add(vuln3);
-    
-    ApiReportComponentDTOV2 vuln4 =
-        createComponentReport("pkg:generic/test@4", "cve", 9.8f, "155", "CVSSv3", "www.test.com",
-            "Critical", "CVE-2022-1237");
-    matchingComponents.add(vuln4.packageUrl);
-    componentReport.add(vuln4);
-    
-    ApiReportComponentDTOV2 vuln5 =
-        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "other", "CVSSv3", "www.test.com",
-            "Critical", "CVE-2022-1238");
-    matchingComponents.add(vuln5.packageUrl);
-    componentReport.add(vuln5);
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@2", "cve", "f19ac613238ca6e4ae78",
+        9.8f, "CWE-2", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1235", "test2");
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@3", "cve", "f19ac613238ca6e4ae79",
+        9.8f, "CwE-14", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1236", "test3");
+
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@4", "f19ac613238ca6e4ae70", "cve",
+        9.8f, "155", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1237", "test4");
+
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@5", "f19ac613238ca6e4ae71", "cve",
+        9.8f, "other", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1238", "test5");
 
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
 
@@ -788,12 +762,12 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void test_getVulnerabilityInformation_error_noScore() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
-    List<String> matchingComponents = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
     ApiReportComponentDTOV2 noScore =
-        createComponentReport("pkg:generic/test@5", "cve", null, "120", "CVSSv3", "www.test.com",
+        createComponentReport("pkg:generic/test@5","f19ac613238ca6e4ae77", "cve", null, "120", "CVSSv3", "www.test.com",
             "Critical", "CVE-2022-1234");
-    matchingComponents.add(noScore.packageUrl);
+    matchingComponents.put(noScore.packageUrl, null);
     componentReport.add(noScore);
 
     assertThat(service.getVulnerabilityInformation(componentReport, matchingComponents)).isEmpty();
@@ -801,6 +775,7 @@ public class ApiCycloneDxServiceV2Test
 
   private ApiReportComponentDTOV2 createComponentReport(
       String purl,
+      String hash,
       String source,
       Float severity,
       String cwe,
@@ -811,6 +786,7 @@ public class ApiCycloneDxServiceV2Test
   {
     ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
     component.packageUrl = purl;
+    component.hash = hash;
     ApiSecurityDataDTO securityData = new ApiSecurityDataDTO();
     ApiSecurityIssueDTO issue = new ApiSecurityIssueDTO();
     issue.source = source;
@@ -826,5 +802,27 @@ public class ApiCycloneDxServiceV2Test
     securityData.securityIssues.add(issue);
     component.securityData = securityData;
     return component;
+  }
+
+  private void createComponentInformation(
+      List<ApiReportComponentDTOV2> componentReportList,
+      Map<String, Map<String, String>> matchingComponents,
+      String purl,
+      String hash,
+      String source,
+      Float severity,
+      String cwe,
+      String vectorSource,
+      String url,
+      String category,
+      String reference,
+      String bomRef)
+  {
+    ApiReportComponentDTOV2  componentReport =
+        createComponentReport(purl, hash, source, severity, cwe, vectorSource, url, category, reference);
+    Map<String, String> componentInfo = new HashMap<>();
+    componentInfo.put(componentReport.hash, bomRef);
+    matchingComponents.put(componentReport.packageUrl, componentInfo);
+    componentReportList.add(componentReport);
   }
 }

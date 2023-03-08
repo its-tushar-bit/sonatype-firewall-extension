@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -25,8 +26,8 @@ import javax.inject.Singleton;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.parsers.ParserConfigurationException;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -56,11 +57,13 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.GeneratorException;
+import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.generators.json.BomJsonGenerator;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
@@ -80,6 +83,9 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import org.cyclonedx.model.vulnerability.Vulnerability.Source;
+import org.cyclonedx.parsers.JsonParser;
+import org.cyclonedx.parsers.Parser;
+import org.cyclonedx.parsers.XmlParser;
 import org.cyclonedx.util.LicenseResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,7 +177,7 @@ public class ApiCycloneDxServiceV2
       }
       bom.addExternalReference(createExternalReference(url, "IQ Report", ExternalReference.Type.BOM));
 
-      List<String> components = createBomComponents(version, data.components, bom);
+      Map<String, Map<String, String>> components = createBomComponents(version, data.components, bom);
 
       //New vulnerability information is available from SBoM 1.4
       if (CollectionUtils.isNotEmpty(bom.getComponents()) &&  version.getVersion() >= 1.4) {
@@ -182,34 +188,60 @@ public class ApiCycloneDxServiceV2
         PolicyEvaluation policyEvaluation =
             policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
         ApiDependencyTreeNodeDTO dependenciesData = null;
-        if (CollectionUtils.isNotEmpty(components)) {
+        if (MapUtils.isNotEmpty(components)) {
           dependenciesData = apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
-          addDependencyTree(dependenciesData, bom, new HashSet<>(components));
+          addDependencyTree(dependenciesData, bom, components);
         }
         addMetadata(policyEvaluation, dependenciesData, bom, version);
       }
 
-      if (MediaType.APPLICATION_JSON.equals(acceptType)) {
-        BomJsonGenerator generator = BomGeneratorFactory.createJson(version, bom);
-        return Response.ok(generator.toJsonString(), MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.CONTENT_DISPOSITION,
-                HttpHeaderUtils.buildContentDispositionHeaderValue(application.getPublicId() + "-bom.json")).build();
-      }
-      BomXmlGenerator generator = BomGeneratorFactory.createXml(version, bom);
-      generator.generate();
-      return Response.ok(generator.toXmlString(), MediaType.APPLICATION_XML)
-          .header(HttpHeaders.CONTENT_DISPOSITION,
-              HttpHeaderUtils.buildContentDispositionHeaderValue(application.getPublicId() + "-bom.xml")).build();
+      return generateResponse(version, application, acceptType, bom);
     }
-    catch (IOException | ParserConfigurationException | GeneratorException e) {
+    catch (IOException | GeneratorException e) {
       throw new InternalServerException("An error occurred generating report", e);
     }
+  }
+
+  private Response generateResponse(
+      final Version version,
+      final Application application,
+      final String acceptType,
+      final Bom bom)
+      throws IOException, GeneratorException
+  {
+    Parser parser;
+    String content;
+    MediaType type;
+    if (MediaType.APPLICATION_JSON.equals(acceptType)) {
+      BomJsonGenerator generator = BomGeneratorFactory.createJson(version, bom);
+      content = generator.toJsonString();
+      type = MediaType.APPLICATION_JSON_TYPE;
+      parser = new JsonParser();
+    }
+    else {
+      BomXmlGenerator generator = BomGeneratorFactory.createXml(version, bom);
+      content = generator.toXmlString();
+      type = MediaType.APPLICATION_XML_TYPE;
+      parser = new XmlParser();
+    }
+
+    List<ParseException> exceptions = parser.validate(content.getBytes(), version);
+
+    if (!exceptions.isEmpty()) {
+      log.debug("The SBOM generated is not valid, list of errors [{}]",
+          StringUtils.join(exceptions.stream().map(Throwable::getMessage).toArray(), ","));
+    }
+    return Response.ok(content, type)
+        .header(HttpHeaders.CONTENT_DISPOSITION,
+            HttpHeaderUtils.buildContentDispositionHeaderValue(
+                application.getPublicId() + "-bom." + type.getSubtype()))
+        .build();
   }
 
   private void addDependencyTree(
       ApiDependencyTreeNodeDTO dependenciesData,
       Bom bom,
-      Set<String> components)
+      Map<String, Map<String, String>> components)
   {
     if (ObjectUtils.allNotNull(dependenciesData, dependenciesData.getPackageUrl())) {
       List<Dependency> dependencies = convert(dependenciesData, components);
@@ -239,7 +271,7 @@ public class ApiCycloneDxServiceV2
       if (dependenciesData != null && dependenciesData.getPackageUrl() != null) {
         ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
         component.packageUrl = dependenciesData.getPackageUrl();
-        Component parentComponent = createComponent(dependenciesData.getPackageUrl(), Type.APPLICATION);
+        Component parentComponent = createComponent(dependenciesData.getPackageUrl(), Type.APPLICATION, null);
         metadata.setComponent(parentComponent);
       }
       addToolVendorInfo(metadata);
@@ -255,19 +287,23 @@ public class ApiCycloneDxServiceV2
     metadata.addTool(tool);
   }
 
-  List<Dependency> convert(ApiDependencyTreeNodeDTO node, Set<String> components) {
+  List<Dependency> convert(ApiDependencyTreeNodeDTO node, Map<String, Map<String, String>> components) {
     Set<Dependency> dependencies = new LinkedHashSet<>();
     convert(dependencies, node, components);
     return new ArrayList<>(dependencies);
   }
 
-  Dependency convert(Set<Dependency> dependencies, ApiDependencyTreeNodeDTO node, Set<String> components) {
+  Dependency convert(
+      Set<Dependency> dependencies,
+      ApiDependencyTreeNodeDTO node,
+      Map<String, Map<String, String>> components)
+  {
     Dependency dependency = new Dependency(node.getPackageUrl());
     dependencies.add(dependency);
     if (node.getChildren() != null) {
       for (ApiDependencyTreeNodeDTO childNode : node.getChildren()) {
         Dependency childDependency = convert(dependencies, childNode, components);
-        if (components.contains(childNode.getPackageUrl())) {
+        if (components.containsKey(childNode.getPackageUrl())) {
           dependency.addDependency(new Dependency(childDependency.getRef()));
         }
       }
@@ -278,7 +314,7 @@ public class ApiCycloneDxServiceV2
   //Visible for testing
   List<Vulnerability> getVulnerabilityInformation(
       final List<ApiReportComponentDTOV2> componentInfo,
-      final List<String> componentPurls)
+      final Map<String, Map<String, String>> componentIdentity)
   {
     Map<String, Vulnerability> vulnerabilities = new HashMap<>();
     for (ApiReportComponentDTOV2 component : componentInfo) {
@@ -287,11 +323,13 @@ public class ApiCycloneDxServiceV2
           CollectionUtils.isNotEmpty(component.securityData.securityIssues)) {
 
         String purl = component.packageUrl;
-        if (componentPurls.contains(purl)) {
-          Affect affect = new Affect();
-          affect.setRef(purl);
 
+        Map<String, String> componentIdentityInfo = componentIdentity.get(purl);
+
+        if (MapUtils.isNotEmpty(componentIdentityInfo)) {
           for (ApiSecurityIssueDTO securityIssue : component.securityData.securityIssues) {
+            Affect affect = new Affect();
+            affect.setRef(componentIdentityInfo.get(component.hash));
             if (!vulnerabilities.containsKey(securityIssue.reference)) {
               createVulnerabilityForSecurityIssue(securityIssue, affect, purl, vulnerabilities);
             }
@@ -419,12 +457,13 @@ public class ApiCycloneDxServiceV2
     return scanId;
   }
 
-  private static List<String> createBomComponents(
+  private static Map<String, Map<String, String>> createBomComponents(
       final Version version,
       final List<ApiReportComponentDTOV2> reportComponents,
       final Bom bom)
   {
-    List<String> components = new ArrayList<>();
+    //Map that has the purls and hashes and bom ref for each component
+    Map<String, Map<String, String>> components = new HashMap<>();
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
       if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
         Component component = createComponent(version, reportComponent, components, Type.LIBRARY);
@@ -466,21 +505,46 @@ public class ApiCycloneDxServiceV2
   private static Component createComponent(
       final Version version,
       final ApiReportComponentDTOV2 reportComponent,
-      final List<String> components,
+      final Map<String, Map<String, String>> components,
       final Type type)
   {
+    ComponentIdentifier componentIdentifier;
     try {
       PackageUrlIdentifier purl;
       if (StringUtils.isNotBlank(reportComponent.packageUrl)) {
         purl = new PackageUrlIdentifier(reportComponent.packageUrl);
+        componentIdentifier = purl.toComponentIdentifier();
       }
       else {
+        componentIdentifier = reportComponent.componentIdentifier.toComponentIdentifier();
         purl =
             PackageUrlIdentifier.fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier());
       }
 
-      Component bomComponent = createComponent(purl.getPackageUrl(), type);
-      components.add(purl.getPackageUrl());
+      String bomRef = getBomRef(componentIdentifier, purl);
+
+      Map<String, String> componentInfo = components.get(purl.getPackageUrl());
+
+      if (MapUtils.isEmpty(componentInfo)) {
+        componentInfo = new HashMap<>();
+        componentInfo.put(reportComponent.hash, bomRef);
+        components.put(purl.getPackageUrl(), componentInfo);
+      }
+      else {
+        //A component with the same coordinates already exists
+        String componentHash = reportComponent.hash;
+
+        // If the component has a different hash, it's a different component
+        if (!componentInfo.containsKey(componentHash)) {
+          componentInfo.put(componentHash, bomRef);
+        }
+        else {
+          //Component has same hash and same coordinates, it's the same component
+          return null;
+        }
+      }
+
+      Component bomComponent = createComponent(purl.getPackageUrl(), type, bomRef);
 
       if (Objects.nonNull(bomComponent)) {
         bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
@@ -496,7 +560,16 @@ public class ApiCycloneDxServiceV2
     return null;
   }
 
-  private static Component createComponent(final String purl, final Type type) {
+  private static String getBomRef(final ComponentIdentifier componentIdentifier, final PackageUrlIdentifier purl) {
+    if (componentIdentifier.getFormat().equals(ComponentIdentifier.FORMAT_PECOFF)) {
+      return UUID.randomUUID().toString().replace("-", "");
+    }
+    else {
+      return purl.getPackageUrl();
+    }
+  }
+
+  private static Component createComponent(final String purl, final Type type, String bomRef) {
     try {
       Component bomComponent = new Component();
       bomComponent.setType(type);
@@ -507,7 +580,12 @@ public class ApiCycloneDxServiceV2
       bomComponent.setName(packageUrl.getName());
       bomComponent.setVersion(packageUrl.getVersion());
 
-      bomComponent.setBomRef(purl);
+      if (StringUtils.isNotBlank(bomRef)) {
+        bomComponent.setBomRef(bomRef);
+      }
+      else {
+        bomComponent.setBomRef(purl);
+      }
       return bomComponent;
     }
     catch (MalformedPackageURLException e) {
@@ -532,19 +610,20 @@ public class ApiCycloneDxServiceV2
   {
     if (reportComponent.licenseData != null) {
       Set<License> licenses = new HashSet<>();
-      if (reportComponent.licenseData.overriddenLicenses != null
-          && !reportComponent.licenseData.overriddenLicenses.isEmpty()) {
+      if (CollectionUtils.isNotEmpty(reportComponent.licenseData.overriddenLicenses)) {
         reportComponent.licenseData.overriddenLicenses.stream().map(ApiCycloneDxServiceV2::convert)
             .forEach(licenses::addAll);
       }
-      else if (reportComponent.licenseData.declaredLicenses != null) {
+      else if (CollectionUtils.isNotEmpty(reportComponent.licenseData.declaredLicenses)) {
         reportComponent.licenseData.declaredLicenses.stream().map(ApiCycloneDxServiceV2::convert)
             .forEach(licenses::addAll);
         reportComponent.licenseData.observedLicenses.stream().map(ApiCycloneDxServiceV2::convert)
             .forEach(licenses::addAll);
       }
-      bomComponent.setLicenseChoice(new LicenseChoice());
-      bomComponent.getLicenseChoice().setLicenses(new ArrayList<>(licenses));
+      if (!licenses.isEmpty()) {
+        bomComponent.setLicenseChoice(new LicenseChoice());
+        bomComponent.getLicenseChoice().setLicenses(new ArrayList<>(licenses));
+      }
     }
   }
 

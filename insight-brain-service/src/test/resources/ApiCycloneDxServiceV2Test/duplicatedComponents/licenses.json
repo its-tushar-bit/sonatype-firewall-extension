@@ -1,0 +1,47 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pecoff",
+      "coordinates" : {
+        "name" : "Apache.NMS.dll",
+        "namespace" : "Apache",
+        "version" : "2.0.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "367c5c858d5f3057d93b",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1614029087502,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Namespace",
+        "value" : "Apache"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Name",
+        "value" : "Apache.NMS.dll"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.0.0"
+      } ],
+      "name" : "Apache.NMS.dll"
+    }
+  } ]
+}

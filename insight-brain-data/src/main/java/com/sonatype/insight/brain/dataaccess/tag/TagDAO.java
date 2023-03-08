@@ -230,7 +230,7 @@ public class TagDAO
     }
     // Cascade to vulnerability custom detail
     VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
-    for (VulnerabilityCustomDetail vulnerabilityCustomDetail : vulnerabilityCustomDetailDAO.getByApplicationTagId(tx,
+    for (VulnerabilityCustomDetail vulnerabilityCustomDetail : vulnerabilityCustomDetailDAO.getByTagId(tx,
         tag.getId())) {
       vulnerabilityCustomDetailDAO.delete(tx, vulnerabilityCustomDetail);
     }

@@ -97,10 +97,10 @@ public class TagDAOTest
     tempEntity.newVulnerabilityCustomDetailWithApplicationTag(organization.getId(), "CVE-2022-4321", null, tag);
 
     VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
-    assertThat(vulnerabilityCustomDetailDAO.getByApplicationTagId(tag.getId())).extracting("refId")
+    assertThat(vulnerabilityCustomDetailDAO.getByTagId(tag.getId())).extracting("refId")
         .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
     dao.delete(tag);
-    assertThat(vulnerabilityCustomDetailDAO.getByApplicationTagId(tag.getId())).isEmpty();
+    assertThat(vulnerabilityCustomDetailDAO.getByTagId(tag.getId())).isEmpty();
   }
 
   @Test

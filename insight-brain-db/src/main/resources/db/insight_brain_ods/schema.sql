@@ -1282,7 +1282,7 @@ CREATE TABLE vulnerability_custom_detail
   refid VARCHAR(20) NOT NULL,
   component_id_format VARCHAR(10),
   component_id_coordinates_json VARCHAR(1000),
-  application_tag_id VARCHAR(50),
+  tag_id VARCHAR(50),
   severity FLOAT DEFAULT NULL,
   cvss_vector_string VARCHAR(50) DEFAULT NULL,
   cwe VARCHAR(50) DEFAULT NULL,
@@ -1291,7 +1291,7 @@ CREATE TABLE vulnerability_custom_detail
   last_updated_by_username VARCHAR(256) NOT NULL,
   last_updated_at TIMESTAMP NOT NULL,
   CONSTRAINT vulnerability_custom_detail_pk PRIMARY KEY (vulnerability_custom_detail_id),
-  CONSTRAINT vulnerability_custom_detail_fk FOREIGN KEY (application_tag_id) REFERENCES tag (tag_id),
+  CONSTRAINT vulnerability_custom_detail_fk FOREIGN KEY (tag_id) REFERENCES tag (tag_id),
   CONSTRAINT vulnerability_custom_detail_uk UNIQUE (owner_id, refid, component_id_format, component_id_coordinates_json)
 );
 CREATE INDEX vulnerability_custom_detail_owner_refid_component_idx ON vulnerability_custom_detail(owner_id, refid, component_id_format, component_id_coordinates_json);

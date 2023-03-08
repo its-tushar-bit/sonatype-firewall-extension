@@ -2921,11 +2921,11 @@ public class TemporaryEntity
       String ownerId,
       String refId,
       ComponentIdentifier componentIdentifier,
-      Tag applicationTag)
+      Tag tag)
   {
     VulnerabilityCustomDetail
         vulnerabilityCustomDetail = new VulnerabilityCustomDetail(ownerId, refId, componentIdentifier, "username");
-    vulnerabilityCustomDetail.setApplicationTagId(applicationTag.getId());
+    vulnerabilityCustomDetail.setTagId(tag.getId());
     vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
     vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
     return vulnerabilityCustomDetail;

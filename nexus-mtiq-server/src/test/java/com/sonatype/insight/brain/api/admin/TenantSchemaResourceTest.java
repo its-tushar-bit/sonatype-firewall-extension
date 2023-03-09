@@ -39,7 +39,7 @@ public class TenantSchemaResourceTest
   }
 
   @Test
-  public void shouldSend404_GetTenantSchemaVersions_whenTenantDoesNotExist() throws Exception {
+  public void shouldSend404_getTenantSchemaVersions_whenTenantDoesNotExist() throws Exception {
     HttpResponse response = callSchemaEndpoint("non-existent").get();
 
     assertResponseStatus(404, response);
@@ -47,7 +47,7 @@ public class TenantSchemaResourceTest
   }
 
   @Test
-  public void shouldSend400_getSchemaVersions_whenTenantIsGlobal() throws Exception {
+  public void shouldSend400_getTenantSchemaVersions_whenTenantIsGlobal() throws Exception {
     HttpResponse response = callSchemaEndpoint("global").get();
 
     assertResponseStatus(400, response);
@@ -55,10 +55,11 @@ public class TenantSchemaResourceTest
   }
 
   @Test
-  public void shouldMigrateSchema() throws Exception {
-    //Provisioning a tenant to execute the migration
+  public void shouldMigrateTenantSchema() throws Exception {
     String tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug).post();
+
+    //Provisioning a tenant to execute the migration
+    provisionTenant(tenantSlug);
 
     HttpResponse response = callSchemaEndpoint(tenantSlug).put();
 
@@ -74,7 +75,7 @@ public class TenantSchemaResourceTest
   }
 
   @Test
-  public void shouldSend400_migrateSchema_whenTenantIsGlobal() throws Exception {
+  public void shouldSend400_migrateTenantSchema_whenTenantIsGlobal() throws Exception {
     HttpResponse response = callSchemaEndpoint("global").put();
 
     assertResponseStatus(400, response);

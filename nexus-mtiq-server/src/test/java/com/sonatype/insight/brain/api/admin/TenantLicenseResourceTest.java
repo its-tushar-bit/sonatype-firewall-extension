@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_LICENSE_PATH;
@@ -22,16 +21,11 @@ public class TenantLicenseResourceTest
     return super.adminRequest().path("api/").path(path);
   }
 
-  private String tenantSlug;
-
-  @Before
-  public void setUp() throws Exception {
-    tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug);
-  }
-
   @Test
   public void shouldUpdateLicense() throws Exception {
+    String tenantSlug = generateTestTenantName();
+    provisionTenant(tenantSlug);
+
     HttpResponse response = updateLicense(tenantSlug).put();
 
     assertResponseStatus(204, response);

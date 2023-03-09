@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_SECURITY_CONFIG_PATH;
@@ -31,16 +30,11 @@ public class TenantSecurityConfigurationResourceTest
     return super.adminRequest().path("api/").path(path);
   }
 
-  private String tenantSlug;
-
-  @Before
-  public void setUp() throws Exception {
-    tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug);
-  }
-
   @Test
   public void shouldUpdateSecurityConfigurationForATenant() throws Exception {
+    String tenantSlug = generateTestTenantName();
+    provisionTenant(tenantSlug);
+
     HttpResponse response = updateSecurityConfiguration(tenantSlug).put();
 
     assertResponseStatus(204, response);

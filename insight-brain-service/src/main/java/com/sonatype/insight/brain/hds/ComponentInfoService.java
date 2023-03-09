@@ -30,7 +30,6 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentCategory;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
-import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
@@ -50,7 +49,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
@@ -63,7 +61,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
@@ -121,8 +118,6 @@ public class ComponentInfoService
 
   private final MultiLicenseDAO multiLicenseDAO;
 
-  private final RepositoryComponentDAO repositoryComponentDAO;
-
   private static final String OTHER_CATEGORY_ID = "113";
 
   private String toolName;
@@ -135,8 +130,7 @@ public class ComponentInfoService
       ComponentRemediationService componentRemediationService,
       ThirdPartyComponentDAO thirdPartyComponentDAO,
       RepositoryQueryService repositoryQueryService,
-      MultiLicenseDAO multiLicenseDAO,
-      RepositoryComponentDAO repositoryComponentDAO)
+      MultiLicenseDAO multiLicenseDAO)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -145,7 +139,6 @@ public class ComponentInfoService
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     this.repositoryQueryService = repositoryQueryService;
     this.multiLicenseDAO = multiLicenseDAO;
-    this.repositoryComponentDAO = repositoryComponentDAO;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -242,20 +235,6 @@ public class ComponentInfoService
     policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(policyAlerts, policiesById);
     componentDetails.setPolicyMaxThreatLevelsByCategory(maxPolicyThreatLevelToString(policyMaxThreatLevelsByCategory));
 
-    // Fill in the display name for unknown repository components using the data in the database.
-    if (MatchState.UNKNOWN.getId().equals(matchState) && componentDetails.getDisplayName() == null
-        && OwnerType.REPOSITORY.equals(owner.getType())) {
-      // Ideally, we should query by repository id and pathname and get a single result (not a list),
-      // but we don't have the pathname here.
-      List<RepositoryComponent> repositoryComponents =
-          repositoryComponentDAO.getByRepositoryIdAndHash(owner.getId(), hash);
-      if (!repositoryComponents.isEmpty()) {
-        ComponentDisplayName componentDisplayName = new ComponentDisplayName();
-        componentDisplayName.setName(repositoryComponents.get(0).getDisplayName());
-        componentDetails.setDisplayName(componentDisplayName);
-      }
-    }
-    
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
         - start);
 

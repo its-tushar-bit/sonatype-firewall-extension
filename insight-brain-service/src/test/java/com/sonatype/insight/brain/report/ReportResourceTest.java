@@ -27,7 +27,6 @@ import javax.ws.rs.core.HttpHeaders;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
@@ -42,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
@@ -522,9 +522,9 @@ public class ReportResourceTest
       assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
 
       assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
-      NamedComponentDetails details = JsonUtils.parse(
+      TestNamedComponentDetails details = JsonUtils.parse(
           zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")),
-          NamedComponentDetails.class);
+          TestNamedComponentDetails.class);
       assertThat(details.getMatchState()).isEqualTo("exact");
       assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
       assertThat(details.getDisplayName().toString())
@@ -547,7 +547,7 @@ public class ReportResourceTest
       assertThat(list.getList()).isEmpty();
 
       details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
-          NamedComponentDetails.class);
+          TestNamedComponentDetails.class);
       assertThat(details.getMatchState()).isEqualTo("exact");
       assertThat(details.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
       assertThat(details.getIdentificationSourceComment()).isNull();
@@ -615,9 +615,9 @@ public class ReportResourceTest
       assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
 
       assertThat(zip.getEntry("cip/details/9276b9bfccfcd3614dc2.json")).isNull();
-      NamedComponentDetails details = JsonUtils.parse(
+      TestNamedComponentDetails details = JsonUtils.parse(
           zip.getInputStream(zip.getEntry("data/cip/details/9276b9bfccfcd3614dc2.json")),
-          NamedComponentDetails.class);
+          TestNamedComponentDetails.class);
       assertThat(details.getMatchState()).isEqualTo("exact");
       assertComponentIdentifier(details, componentIdentifier);
       assertThat(details.getDisplayName().toString()).isEqualTo("org.webjars.npm : reactivex:rxjs : 5.0.0-alpha.7");

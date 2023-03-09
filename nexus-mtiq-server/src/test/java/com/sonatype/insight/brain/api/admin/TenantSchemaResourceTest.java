@@ -28,7 +28,7 @@ public class TenantSchemaResourceTest
     // Provisioning a tenant to get schema versions
     provisionTenant(tenantSlug);
 
-    HttpResponse response = getSchemaVersions(tenantSlug).get();
+    HttpResponse response = callSchemaEndpoint(tenantSlug).get();
     String data = response.getBodyText();
 
     assertResponseStatus(200, response);
@@ -39,22 +39,49 @@ public class TenantSchemaResourceTest
   }
 
   @Test
-  public void shouldSend404_whenTenantDoesNotExist() throws Exception {
-    HttpResponse response = getSchemaVersions("non-existent").get();
+  public void shouldSend404_GetTenantSchemaVersions_whenTenantDoesNotExist() throws Exception {
+    HttpResponse response = callSchemaEndpoint("non-existent").get();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
   @Test
-  public void shouldSend400_whenTenantIsGlobal() throws Exception {
-    HttpResponse response = getSchemaVersions("global").get();
+  public void shouldSend400_getSchemaVersions_whenTenantIsGlobal() throws Exception {
+    HttpResponse response = callSchemaEndpoint("global").get();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
-  private HttpRequest getSchemaVersions(String tenant) {
+  @Test
+  public void shouldMigrateSchema() throws Exception {
+    //Provisioning a tenant to execute the migration
+    String tenantSlug = generateTestTenantName();
+    provisionTenant(tenantSlug).post();
+
+    HttpResponse response = callSchemaEndpoint(tenantSlug).put();
+
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void shouldSend404_migrateSchema_whenTenantDoesNotExist() throws Exception {
+    HttpResponse response = callSchemaEndpoint("non-existent").put();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
+  }
+
+  @Test
+  public void shouldSend400_migrateSchema_whenTenantIsGlobal() throws Exception {
+    HttpResponse response = callSchemaEndpoint("global").put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
+  }
+
+  private HttpRequest callSchemaEndpoint(String tenant) {
     if (tenant != null) {
       return restRequest(ADMIN_TENANT_SCHEMA_PATH).parameter(tenant);
     }

@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_SUPPORT_INFO_PATH;
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantSupportInfoResourceTest
@@ -27,7 +26,7 @@ public class TenantSupportInfoResourceTest
     String tenantSlug = generateTestTenantName();
 
     // Provisioning a tenant to evaluate Support Info endpoint
-    provisionTenant(tenantSlug).post();
+    provisionTenant(tenantSlug);
 
     HttpResponse response = getSupportInfoZip(tenantSlug).get();
 
@@ -53,13 +52,6 @@ public class TenantSupportInfoResourceTest
   private HttpRequest getSupportInfoZip(String tenant) {
     if (tenant != null) {
       return restRequest(ADMIN_SUPPORT_INFO_PATH).parameter(tenant);
-    }
-    return restRequest();
-  }
-
-  private HttpRequest provisionTenant(String tenant) {
-    if (tenant != null) {
-      return restRequest(ADMIN_TENANT_PROVISIONING_PATH).parameter(tenant);
     }
     return restRequest();
   }

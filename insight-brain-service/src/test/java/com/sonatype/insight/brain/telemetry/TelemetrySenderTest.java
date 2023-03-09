@@ -108,6 +108,8 @@ public class TelemetrySenderTest
       assertThat(telemetryHeaderReceived.getTelemetryId()).isEqualTo(telemetryId.getId());
       assertThat(telemetryHeaderReceived.getProduct())
           .isEqualTo(TelemetrySender.PRODUCT_PREFIX + "/" + versionService.getVersion());
+      assertThat(telemetryHeaderReceived.getBuildNumber())
+          .isEqualTo(versionService.getBuild());
       assertThat(telemetryHeaderReceived.getFormat()).isEqualTo(TelemetrySender.FILE_FORMAT);
       assertThat(telemetryHeaderReceived.getClusterId()).isEqualTo(telemetryHeaderReceived.getTelemetryId());
 

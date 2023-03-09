@@ -288,10 +288,12 @@ public class InsightBrainService
   }
 
   private void printVersion() {
-    String version = new VersionService().getLogDisplayVersion();
+    VersionService versionService = new VersionService();
+    String version = versionService.getLogDisplayVersion();
+    String build = versionService.getBuild();
     log.info("|------------------------------------------");
     log.info("|");
-    log.info("| Initializing {} 1 release {}", PRODUCT_NAME, version);
+    log.info("| Initializing {} 1 release {} build {}", PRODUCT_NAME, version, build);
     log.info("|");
     log.info("|------------------------------------------");
   }
@@ -459,8 +461,12 @@ public class InsightBrainService
     addServletFilters(env, false);
   }
 
-  protected void addServletFilters(Environment env, boolean attachToAdminApi) {
+  protected void addServerHeaderFilter(Environment env) {
     addServletFilter(env, true, ServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
+  }
+
+  protected void addServletFilters(Environment env, boolean attachToAdminApi) {
+    addServerHeaderFilter(env);
     addServletFilter(env, attachToAdminApi, BaseUrlFilter.class, "/*");
     addServletFilter(env, attachToAdminApi, AuditFilter.class, AuditFilter.URL_PATTERNS);
     addServletFilter(env, attachToAdminApi, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
@@ -476,7 +482,7 @@ public class InsightBrainService
     addServletFilter(env, false, filterType, urlPatterns);
   }
 
-  private void addServletFilter(
+  protected void addServletFilter(
       Environment env,
       boolean includeAdmin,
       Class<? extends Filter> filterType,

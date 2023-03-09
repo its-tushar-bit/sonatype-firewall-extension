@@ -208,6 +208,11 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
+  protected void addServerHeaderFilter(final Environment env) {
+    addServletFilter(env, true, MultiTenantServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
+  }
+
+  @Override
   protected List<Module> modules(InsightConfig config) {
     Module bindings = new AbstractModule()
     {

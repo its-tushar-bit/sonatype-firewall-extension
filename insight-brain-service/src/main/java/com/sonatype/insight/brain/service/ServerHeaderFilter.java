@@ -30,7 +30,7 @@ public class ServerHeaderFilter
 {
   public static final String[] URL_PATTERNS = {"/*"};
 
-  private final String headerValue;
+  protected String headerValue;
 
   @Inject
   public ServerHeaderFilter(VersionService versionService) {

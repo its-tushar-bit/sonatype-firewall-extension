@@ -24,7 +24,7 @@ public class TenantProvisioningResourceTest
 
   @Test
   public void shouldProvisionTenant() throws Exception {
-    HttpResponse response = provisionTenant(generateTestTenantName()).post();
+    HttpResponse response = provisionTenant(generateTestTenantName());
 
     assertResponseStatus(204, response);
   }
@@ -32,26 +32,19 @@ public class TenantProvisioningResourceTest
   @Test
   public void shouldSend400_whenTenantAlreadyExists() throws Exception {
     String tenantSlug = generateTestTenantName();
-    HttpResponse response = provisionTenant(tenantSlug).post();
+    HttpResponse response = provisionTenant(tenantSlug);
     assertResponseStatus(204, response);
 
-    response = provisionTenant(tenantSlug).post();
+    response = provisionTenant(tenantSlug);
     assertResponseStatus(409, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant already exists");
   }
 
   @Test
   public void shouldSend400_whenTenantIsGlobal() throws Exception {
-    HttpResponse response = provisionTenant("global").post();
+    HttpResponse response = provisionTenant("global");
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
-  }
-
-  private HttpRequest provisionTenant(String tenant) {
-    if (tenant != null) {
-      return restRequest().parameter(tenant);
-    }
-    return restRequest();
   }
 }

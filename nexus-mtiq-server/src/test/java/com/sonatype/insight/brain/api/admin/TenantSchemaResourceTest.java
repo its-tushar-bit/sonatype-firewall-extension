@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_SCHEMA_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,7 +26,7 @@ public class TenantSchemaResourceTest
     String tenantSlug = generateTestTenantName();
 
     // Provisioning a tenant to get schema versions
-    provisionTenant(tenantSlug).post();
+    provisionTenant(tenantSlug);
 
     HttpResponse response = getSchemaVersions(tenantSlug).get();
     String data = response.getBodyText();
@@ -58,13 +57,6 @@ public class TenantSchemaResourceTest
   private HttpRequest getSchemaVersions(String tenant) {
     if (tenant != null) {
       return restRequest(ADMIN_TENANT_SCHEMA_PATH).parameter(tenant);
-    }
-    return restRequest();
-  }
-
-  private HttpRequest provisionTenant(String tenant) {
-    if (tenant != null) {
-      return restRequest(ADMIN_TENANT_PROVISIONING_PATH).parameter(tenant);
     }
     return restRequest();
   }

@@ -9,10 +9,10 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_LICENSE_PATH;
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantLicenseResourceTest
@@ -22,13 +22,16 @@ public class TenantLicenseResourceTest
     return super.adminRequest().path("api/").path(path);
   }
 
+  private String tenantSlug;
+
+  @Before
+  public void setUp() throws Exception {
+    tenantSlug = generateTestTenantName();
+    provisionTenant(tenantSlug);
+  }
+
   @Test
   public void shouldUpdateLicense() throws Exception {
-    String tenantSlug = generateTestTenantName();
-
-    // Provisioning a tenant to update license
-    provisionTenant(tenantSlug).post();
-
     HttpResponse response = updateLicense(tenantSlug).put();
 
     assertResponseStatus(204, response);
@@ -60,12 +63,5 @@ public class TenantLicenseResourceTest
     }
     request.part("file", "sonatype.lic", new byte[1]);
     return request;
-  }
-
-  private HttpRequest provisionTenant(String tenant) {
-    if (tenant != null) {
-      return restRequest(ADMIN_TENANT_PROVISIONING_PATH).parameter(tenant);
-    }
-    return restRequest();
   }
 }

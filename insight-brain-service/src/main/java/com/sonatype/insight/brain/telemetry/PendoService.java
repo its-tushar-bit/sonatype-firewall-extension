@@ -47,6 +47,8 @@ public class PendoService
 
   private static final String VERSION = "iq-server-version";
 
+  private static final String BUILD = "iq-server-build";
+
   private final TelemetryId telemetryId;
 
   private final PendoCache pendoCache;
@@ -84,6 +86,7 @@ public class PendoService
       pendoConfig.account.putAll(segmentInfo.segmentAttributes);
       pendoConfig.account.put(ID, getTelemetryId(segmentInfo));
       pendoConfig.account.put(VERSION, versionService.getVersion());
+      pendoConfig.account.put(BUILD, versionService.getBuild());
 
       // add user info only if user is logged in
       UserPrincipal userPrincipal = currentUser.getUserPrincipal();

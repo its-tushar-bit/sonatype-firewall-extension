@@ -134,6 +134,7 @@ public class DefaultApplicationLifecycle
           .setData("serverInstanceId", InsightBrainService.getInstanceId())
           .setData("serverConfigurationFile", InsightBrainService.getConfigFile())
           .setData("serverRelease", versionService.getLogDisplayVersion())
+          .setData("serverBuild", versionService.getBuild())
           .setData("processOwner", System.getProperty("user.name"));
     }
   }

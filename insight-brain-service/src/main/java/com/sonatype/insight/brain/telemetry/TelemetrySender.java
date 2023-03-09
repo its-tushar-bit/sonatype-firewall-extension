@@ -117,8 +117,10 @@ public class TelemetrySender
 
   private TelemetryHeader createHeader() {
     String product = PRODUCT_PREFIX + "/" + versionService.getVersion();
+    String build = versionService.getBuild();
     Date createTime = new Date();
-    return new TelemetryHeader(FILE_FORMAT, product, createTime, telemetryId.getId(), telemetryId.getClusterId());
+    return new TelemetryHeader(FILE_FORMAT, product, createTime, telemetryId.getId(),
+        telemetryId.getClusterId(), build);
   }
 
   private byte[] createZip(TelemetryHeader telemetryHeader, List<TelemetryData> telemetryData) throws IOException {

@@ -21,7 +21,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_SECURITY_CONFIG_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,7 +36,7 @@ public class TenantSecurityConfigurationResourceTest
   @Before
   public void setUp() throws Exception {
     tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug).post();
+    provisionTenant(tenantSlug);
   }
 
   @Test
@@ -80,13 +79,6 @@ public class TenantSecurityConfigurationResourceTest
     securityConfiguration.setAdminEmails(Arrays.asList("admin@local.com"));
 
     return request.body(securityConfiguration);
-  }
-
-  private HttpRequest provisionTenant(String tenant) {
-    if (tenant != null) {
-      return restRequest(ADMIN_TENANT_PROVISIONING_PATH).parameter(tenant);
-    }
-    return restRequest();
   }
 
   private String getEncodedIdPMetadataXml() throws Exception {

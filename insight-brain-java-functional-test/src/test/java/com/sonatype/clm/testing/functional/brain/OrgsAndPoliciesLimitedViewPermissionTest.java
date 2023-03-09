@@ -140,17 +140,18 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
 
   @Test
   public void testOrgsAndPoliciesSideNavbar_userHasAccessToSeveralOgrs() {
-    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 5, 1);
+    NameSupplierDictionary nameSupplierDictionary = new NameSupplierDictionary();
+    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 5, 1, nameSupplierDictionary);
     List<Organization> childOrgs = new LinkedList<>();
 
     Organization parentOrg1 = organizations.get(3);
     childOrgs.add(organizations.get(organizations.size() - 1));
-    tempEntity.newRelatedOrganizationsAsList(parentOrg1,3, 2, 1);
+    tempEntity.newRelatedOrganizationsAsList(parentOrg1,3, 2, 1, nameSupplierDictionary);
 
     organizations =  tempEntity.newRelatedOrganizationsAsList(1, 3, 1);
     Organization parentOrg2 = organizations.get(organizations.size() - 1);
     childOrgs.add(parentOrg2);
-    tempEntity.newRelatedOrganizationsAsList(parentOrg1,3, 2, 1);
+    tempEntity.newRelatedOrganizationsAsList(parentOrg1,3, 2, 1, nameSupplierDictionary);
 
     tempEntity.newMembershipMapping(
         parentOrg1.getId(),
@@ -169,8 +170,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
 
     login(developerUser.getUsername(), developerUser.getPassword());
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.ORGANIZATION, commonAncestorOwner.getId()));
-    // temporary disabled (see CLM-24470)
-    // eyesWatcher.eyesCheck("Orgs and policies user with limited view permission - CLA is synthetic and Root org");
+    eyesWatcher.eyesCheck("Orgs and policies user with limited view permission - CLA is synthetic and Root org");
     testSideNavbarContent(commonAncestorOwner, new ArrayList<>(childOrgs),  new ArrayList<>(childApps));
     testMainContent(commonAncestorOwner, true);
   }

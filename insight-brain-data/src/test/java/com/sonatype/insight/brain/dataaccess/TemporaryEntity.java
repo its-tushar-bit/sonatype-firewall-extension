@@ -970,6 +970,19 @@ public class TemporaryEntity
     return  orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
   }
 
+  public List<Organization> newRelatedOrganizationsAsList(
+      Organization parentOrg,
+      int orgsPerLevel,
+      int depth,
+      int appsPerOrg,
+      Function<String, String> nameSupplier
+  )
+  {
+    Map<Integer, List<Organization>> orgs =
+        newRelatedOrganizationsAsMap(parentOrg, orgsPerLevel, depth, appsPerOrg, nameSupplier);
+    return  orgs.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
+  }
+
   public List<Organization> newRelatedOrganizationsAsList(int orgsPerLevel, int depth, int appsPerOrg) {
     Map<Integer, List<Organization>> orgs =
         newRelatedOrganizationsAsMap(null, orgsPerLevel, depth, appsPerOrg);

@@ -18,6 +18,7 @@ import {
   NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import { faPlus, faPencilAlt, faTag, faUser } from '@fortawesome/free-solid-svg-icons';
+import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
@@ -83,10 +84,10 @@ export default function OwnerDetailSidebar() {
   const isAccess = useSelector(selectIsAccess);
   const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
-  const labelsSublings = useSelector(selectLabelsSiblings);
-  const rolesSublings = useSelector(selectRolesSiblings);
-  const categoriesSublings = useSelector(selectApplicationCategoriesSiblings);
-  const policiesSublings = useSelector(selectPolicySiblings);
+  const labelsSiblings = useSelector(selectLabelsSiblings);
+  const rolesSiblings = useSelector(selectRolesSiblings);
+  const categoriesSiblings = useSelector(selectApplicationCategoriesSiblings);
+  const policiesSiblings = useSelector(selectPolicySiblings);
   const licenseThreatGroupSiblings = useSelector(selectLicenseThreatGroupSiblings);
   const areAnyCategoriesDefined = useSelector(selectAreAnyCategoriesDefined);
 
@@ -124,7 +125,7 @@ export default function OwnerDetailSidebar() {
 
   useEffect(() => {
     doLoad();
-  }, [labelsSublings, rolesSublings, categoriesSublings, policiesSublings, licenseThreatGroupSiblings]);
+  }, [labelsSiblings, rolesSiblings, categoriesSiblings, policiesSiblings, licenseThreatGroupSiblings]);
 
   useEffect(() => {
     // remove this useEffect, when main sideBar will be same background-color as edit sideBar
@@ -175,10 +176,11 @@ export default function OwnerDetailSidebar() {
 
   return (
     <div id="owner-detail-sidebar">
-      <MenuBarBackButton
-        href={backButtonHref}
-        text={isRepositoriesRelated ? 'All Repositories' : `Back to ${owner.name}`}
-      />
+      {isRepositoriesRelated ? (
+        <MenuBarBackButton href={backButtonHref} text={'All Repositories'} />
+      ) : (
+        <MenuBarStatefulBreadcrumb />
+      )}
       <NxH3>{owner.name}</NxH3>
       <NxH4>Policy Management</NxH4>
 

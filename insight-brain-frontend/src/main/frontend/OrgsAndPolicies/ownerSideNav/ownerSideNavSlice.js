@@ -55,12 +55,39 @@ const loadOwnerListFulfilled = (state, { payload = {} }) => {
   state.topParentOrganizationId = topParentOrganizationId;
 };
 
+export const setDisplayedOrganizations = (state, { payload = {} }) => {
+  const { displayedOrganization } = payload;
+  if (displayedOrganization) {
+    state.displayedOrganization = displayedOrganization;
+  }
+};
+
 const loadIfNeeded = (forceReload) => (dispatch, getState) => {
   const state = getState();
   const ownersMap = selectOwnersMap(state);
   const ownersMapExistInMemory = !isNilOrEmpty(ownersMap);
   if (forceReload || !ownersMapExistInMemory) {
     return dispatch(load());
+  }
+
+  return Promise.resolve({});
+};
+
+const loadOwnerListIfNeeded = () => (dispatch, getState) => {
+  const state = getState();
+  const ownersMap = selectOwnersMap(state);
+  const ownersMapExistInMemory = !isNilOrEmpty(ownersMap);
+  if (!ownersMapExistInMemory) {
+    return dispatch(loadOwnerList()).then((result) => {
+      const { ownersMap, topParentOrganizationId } = unwrapResult(result) || {};
+      const routerParams = selectRouterCurrentParams(state);
+
+      const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
+
+      return {
+        displayedOrganization,
+      };
+    });
   }
 
   return Promise.resolve({});
@@ -416,6 +443,7 @@ const ownerSideNavSlice = createSlice({
     updateOwnersMapWithNewEntry,
     moveApplication,
     updateDisplayedOrganization,
+    setDisplayedOrganizations,
   },
   extraReducers: {
     [loadOwnerList.fulfilled]: loadOwnerListFulfilled,
@@ -431,6 +459,7 @@ export const actions = {
   load,
   loadOwnerList,
   loadIfNeeded,
+  loadOwnerListIfNeeded,
   filterSidebarEntries,
 };
 

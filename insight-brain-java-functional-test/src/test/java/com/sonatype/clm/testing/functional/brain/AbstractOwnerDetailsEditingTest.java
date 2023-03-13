@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar.OwnerDetailSidebarGroup;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
@@ -88,7 +89,13 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   @Test
   public void testOwnerTreeViewDetails() {
-    assertThat(OwnerDetailSidebar.headerHref()).contains(OwnerSummaryPage.url(currentOwner));
+    if (OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
+      assertThat(OwnerDetailSidebar.headerHref()).contains(OwnerSummaryPage.url(currentOwner));
+    }
+    else {
+      NxBreadcrumb breadcrumb = new NxBreadcrumb();
+      breadcrumb.currentOwnerForEditPage().shouldHave(text(currentOwner.getName()));
+    }
 
     if (!OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
       OwnerDetailSidebar.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
@@ -119,6 +126,8 @@ public abstract class AbstractOwnerDetailsEditingTest
   }
 
   private void testRouting_ApplicationCategories(OwnerDetailSidebarGroup detailGroup) {
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+
     detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
     detailGroup.title().click();
     detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
@@ -128,6 +137,8 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.item(0).shouldBe(visible).click();
       detailGroup.item(0).shouldBe(CLM.SELECTED);
       waitUntilUrl(CategoryEditorPage.urlToCreate(currentOwner.getPublicId()));
+
+      breadcrumb.current().shouldHave(text("Organization Category"));
 
       back();
 
@@ -155,6 +166,7 @@ public abstract class AbstractOwnerDetailsEditingTest
 
       waitUntilUrl(ApplicationCategoryEditorPage.urlToEdit(currentOwner));
 
+      breadcrumb.current().shouldHave(text("Application Categories"));
       back();
     }
 
@@ -178,6 +190,9 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.item(1).shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policies[1].getId()));
 
+      NxBreadcrumb breadcrumb = new NxBreadcrumb();
+      breadcrumb.current().shouldHave(text("Organization Policy"));
+
       back();
 
       detailGroup.item(2).shouldBe(visible).shouldHave(text(policies[0].getName())).click();
@@ -194,6 +209,15 @@ public abstract class AbstractOwnerDetailsEditingTest
     continuousMonitoringLink.shouldBe(visible).click();
     continuousMonitoringLink.shouldBe(CLM.SELECTED);
     waitUntilUrl(MonitoredStageEditorPage.url(currentOwner));
+
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
+      breadcrumb.current().shouldHave(text("Organization Continuous Monitoring"));
+    }
+    else {
+      breadcrumb.current().shouldHave(text("Application Continuous Monitoring"));
+    }
+
     back();
   }
 
@@ -213,8 +237,15 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.item(1).shouldBe(CLM.SELECTED);
     waitUntilUrl(LabelEditorPage.urlToEdit(currentOwner, label.getId()));
 
-    back();
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
+      breadcrumb.current().shouldHave(text("Organization Labels"));
+    }
+    else {
+      breadcrumb.current().shouldHave(text("Application Labels"));
+    }
 
+    back();
     detailGroup.title().click();
     detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
   }
@@ -235,6 +266,9 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.item(1).shouldBe(visible).shouldHave(text(ltgs[1].getName())).click();
       detailGroup.item(1).shouldBe(CLM.SELECTED);
       waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltgs[1].getId()));
+
+      NxBreadcrumb breadcrumb = new NxBreadcrumb();
+      breadcrumb.current().shouldHave(text("Organization License Threat Group"));
 
       back();
 
@@ -266,6 +300,15 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.item(1).shouldBe(visible).shouldHave(text(ROLES.get(0).getName())).click();
     detailGroup.item(1).shouldBe(CLM.SELECTED);
     waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, ROLES.get(0).getId()));
+
+    NxBreadcrumb breadcrumb = new NxBreadcrumb();
+    if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
+      breadcrumb.current().shouldHave(text("Organization Access"));
+    }
+
+    if (currentOwner.getType().equals(OwnerType.APPLICATION)) {
+      breadcrumb.current().shouldHave(text("Application Access"));
+    }
 
     for (int i = 1; i < ROLES.size(); i++) {
       tempEntity.newMembershipMapping(currentOwner.getId(), ROLES.get(i).getId(), "admin");

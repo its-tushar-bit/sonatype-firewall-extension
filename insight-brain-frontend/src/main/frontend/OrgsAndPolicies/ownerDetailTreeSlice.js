@@ -18,6 +18,7 @@ import { actions as ownerDetailTreeActions } from 'MainRoot/OrgsAndPolicies/owne
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 
 const REDUCER_NAME = 'ownerDetailTree';
 
@@ -52,9 +53,12 @@ const loadOwnerDetailsFailed = (state, { payload }) => {
   state.ownerDetails = {};
 };
 
-const loadSidebar = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { getState, rejectWithValue, dispatch }) => {
+const loadSidebar = createAsyncThunk(`${REDUCER_NAME}/loadSidebar`, (_, { getState, rejectWithValue, dispatch }) => {
   const state = getState();
-  const promises = [dispatch(ownerDetailTreeActions.loadOwnerDetails())];
+  const promises = [
+    dispatch(ownerDetailTreeActions.loadOwnerDetails()),
+    dispatch(ownerSideNavActions.loadOwnerListIfNeeded()),
+  ];
 
   const isApp = selectIsApplication(state);
   const isRepositories = selectIsRepositoriesRelated(state);
@@ -69,7 +73,9 @@ const loadSidebar = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { getS
   return Promise.all(promises)
     .then((results) => {
       if (!isRepositories) {
-        const siblings = unwrapResult(results[1]);
+        dispatch(ownerSideNavActions.setDisplayedOrganizations(results[1]));
+
+        const siblings = unwrapResult(results[2]);
         const entityId = selectEntityId(state);
         const owner = find(propEq(isApp ? 'publicId' : 'id', entityId))(siblings);
         if (!owner) {

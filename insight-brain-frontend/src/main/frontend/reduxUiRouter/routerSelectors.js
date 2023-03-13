@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { prop, propOr, propEq } from 'ramda';
+import { prop, path, propOr, propEq } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
 export const selectRouterSlice = prop('router');
@@ -13,6 +13,7 @@ export const selectRouterState = createSelector(selectRouterSlice, prop('current
 export const selectRouterStateUrl = createSelector(selectRouterState, prop('url'));
 
 export const selectCurrentRouteName = createSelector(selectRouterState, prop('name'));
+export const selectCurrentRouteTitle = createSelector(selectRouterState, path(['data', 'title']));
 
 export const selectRouterPrevState = createSelector(selectRouterSlice, prop('prevState'));
 

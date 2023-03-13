@@ -8,7 +8,13 @@ import * as ReactDOM from 'react-dom';
 import { NxStatefulBreadcrumb } from '@sonatype/react-shared-components';
 import { useSelector } from 'react-redux';
 
-import { selectIsApplication, selectApplicationId, selectIsRepositories } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsApplication,
+  selectApplicationId,
+  selectIsRepositories,
+  selectCurrentRouteTitle,
+  selectCurrentRouteName,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { useRouterState } from '../../react/RouterStateContext';
 import {
@@ -24,7 +30,9 @@ const getBreadcrumb = (
   displayedOrganization,
   isRepositories,
   isApplication,
-  applicationPublicId
+  applicationPublicId,
+  pageTitle,
+  currentRouteName
 ) => {
   const breadcrumb = [];
 
@@ -35,9 +43,18 @@ const getBreadcrumb = (
     });
   }
 
+  if (currentRouteName.includes('management.edit')) {
+    const id = isApplication ? ownersMap[applicationPublicId].publicId : displayedOrganization.id;
+    const href = uiRouterState.href(
+      currentRouteName,
+      isApplication ? { applicationPublicId: id } : { organizationId: id }
+    );
+    breadcrumb.unshift({ name: pageTitle, href });
+  }
+
   if (isApplication && ownersMap.hasOwnProperty(applicationPublicId)) {
     const displayedApplication = ownersMap[applicationPublicId];
-    breadcrumb.push({
+    breadcrumb.unshift({
       name: displayedApplication.name,
       href: uiRouterState.href(`management.view.application`, { applicationPublicId: displayedApplication.publicId }),
     });
@@ -79,6 +96,8 @@ const MenuBarStatefulBreadcrumb = () => {
   const isApplication = useSelector(selectIsApplication);
   const isRepositories = useSelector(selectIsRepositories);
   const applicationPublicId = useSelector(selectApplicationId);
+  const pageTitle = useSelector(selectCurrentRouteTitle);
+  const routeName = useSelector(selectCurrentRouteName);
 
   if (isNilOrEmpty(ownersMap) || isNilOrEmpty(displayedOrganization)) {
     return null;
@@ -90,7 +109,9 @@ const MenuBarStatefulBreadcrumb = () => {
     displayedOrganization,
     isRepositories,
     isApplication,
-    applicationPublicId
+    applicationPublicId,
+    pageTitle,
+    routeName
   );
 
   const renderComponentInsidePortal = (componentToRender) =>

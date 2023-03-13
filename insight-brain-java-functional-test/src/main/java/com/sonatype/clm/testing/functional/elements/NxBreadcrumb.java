@@ -24,4 +24,8 @@ public class NxBreadcrumb
   public SelenideElement current() {
     return child(".nx-breadcrumb__link--current");
   }
+
+  public SelenideElement currentOwnerForEditPage() {
+    return child(".nx-breadcrumb__list-item:nth-child(2)");
+  }
 }

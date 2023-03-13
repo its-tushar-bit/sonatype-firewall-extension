@@ -15,7 +15,7 @@ import { getComponentName, getComponentNameWithoutVersion } from '../util/compon
 /**
  * The React implementation of the component-display angular component
  */
-export default function ComponentDisplay({ component, truncate, matcherStrategy }) {
+export default function ComponentDisplay({ component, truncate, matcherStrategy, displayTextIfUnknown }) {
   const textTag = isFilenameOrUnknown(component) ? 'em' : 'span',
     divClass = classnames('iq-component-display', {
       'truncate-ellipsis': truncate,
@@ -29,7 +29,11 @@ export default function ComponentDisplay({ component, truncate, matcherStrategy 
   return (
     <NxOverflowTooltip>
       <div className={divClass}>
-        {React.createElement(textTag, { className: 'iq-component-display-text' }, componentName)}
+        {React.createElement(
+          textTag,
+          { className: 'iq-component-display-text' },
+          componentName === 'Unknown' && displayTextIfUnknown ? displayTextIfUnknown : componentName
+        )}
       </div>
     </NxOverflowTooltip>
   );
@@ -52,4 +56,5 @@ ComponentDisplay.propTypes = {
   truncate: PropTypes.bool,
   component: PropTypes.shape(componentPropTypes),
   matcherStrategy: PropTypes.string,
+  displayTextIfUnknown: PropTypes.string,
 };

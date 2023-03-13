@@ -53,16 +53,22 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
   const quarantineTime = (date) => formatDate(date, 'YYYY-MM-DD');
   const formatThreatLevel = (row) => (row.threatLevel === null ? 0 : row.threatLevel);
 
-  const goToFirewallComponentDetails = (repositoryId, componentIdentifier, hash, matchState, pathname) =>
-    dispatch(goToRepositoryComponentDetailsPage(repositoryId, componentIdentifier, hash, matchState, pathname));
-
   const componentsTableRows = repositoryComponents.map((row, idx) => (
     <NxTable.Row
       data-testid={row.policyName + row.componentDisplayText + idx}
       key={row.policyName + row.componentDisplayText + idx}
       isClickable
       onClick={() =>
-        goToFirewallComponentDetails(repositoryId, row.componentIdentifier, row.hash, row.matchStateId, row.pathname)
+        dispatch(
+          goToRepositoryComponentDetailsPage(
+            repositoryId,
+            row.componentIdentifier,
+            row.hash,
+            row.matchStateId,
+            row.pathname,
+            row.componentDisplayText
+          )
+        )
       }
     >
       <NxTable.Cell className="iq-repository-threat-cell">

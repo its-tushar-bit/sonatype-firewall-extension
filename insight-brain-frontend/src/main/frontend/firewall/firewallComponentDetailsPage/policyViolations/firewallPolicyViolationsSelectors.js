@@ -45,7 +45,10 @@ export const selectDisplayName = createSelector(
 );
 
 export const selectComponentName = createSelector(selectDisplayName, (componentName) => {
-  return componentName.parts.reduce((prev, part) => prev + part.value, '') || '';
+  return componentName?.parts?.reduce((prev, part) => prev + part.value, '') || '';
 });
 
-export const selectComponentNameWithoutVersion = createSelector(selectDisplayName, (name) => name.name);
+export const selectComponentNameWithoutVersion = createSelector(
+  selectDisplayName,
+  (displayName) => displayName?.name ?? ''
+);

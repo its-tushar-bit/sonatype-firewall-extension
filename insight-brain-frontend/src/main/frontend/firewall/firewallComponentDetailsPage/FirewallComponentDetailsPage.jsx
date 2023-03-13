@@ -15,8 +15,8 @@ import {
   Title,
 } from '../../componentDetails/ComponentDetailsHeader';
 import { NxButton, NxFontAwesomeIcon, NxLoadWrapper, NxTooltip } from '@sonatype/react-shared-components';
-import { createTabConfiguration } from '../../componentDetails/componentDetailsUtils';
-import FirewallOverview from './overview/FirewallOverview';
+import { createTabConfiguration, isUnknownComponent } from 'MainRoot/componentDetails/componentDetailsUtils';
+import FirewallOverview from 'MainRoot/firewall/firewallComponentDetailsPage/overview/FirewallOverview';
 import FirewallPolicyViolations from './policyViolations/FirewallPolicyViolations';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import FirewallSecurityTab from 'MainRoot/firewall/firewallComponentDetailsPage/security/FirewallSecurityTab';
@@ -25,13 +25,22 @@ import FirewallLabelsTab from 'MainRoot/firewall/firewallComponentDetailsPage/la
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
 
-export const tabsConfiguration = [
-  createTabConfiguration('overview', 'Overview', <FirewallOverview />),
-  createTabConfiguration('violations', 'Policy Violations', <FirewallPolicyViolations />),
-  createTabConfiguration('security', 'Security', <FirewallSecurityTab />),
-  createTabConfiguration('legal', 'Legal', <FirewallLegalTab />),
-  createTabConfiguration('labels', 'Labels', <FirewallLabelsTab />),
-];
+export const getEnabledTabs = (componentDetails) => {
+  const isUnknown = isUnknownComponent(componentDetails);
+  let tabsConfiguration = [
+    createTabConfiguration('overview', 'Overview', <FirewallOverview />),
+    createTabConfiguration('violations', 'Policy Violations', <FirewallPolicyViolations />),
+  ];
+  if (!isUnknown) {
+    tabsConfiguration = [
+      ...tabsConfiguration,
+      createTabConfiguration('security', 'Security', <FirewallSecurityTab />),
+      createTabConfiguration('legal', 'Legal', <FirewallLegalTab />),
+      createTabConfiguration('labels', 'Labels', <FirewallLabelsTab />),
+    ];
+  }
+  return tabsConfiguration;
+};
 
 export default function FirewallComponentDetailsPage(props) {
   const {
@@ -46,10 +55,10 @@ export default function FirewallComponentDetailsPage(props) {
     labels,
     isFirewall,
   } = props;
-  const { tabId } = routeParams;
+  const { tabId, componentDisplayName } = routeParams;
   const { componentDetails, isLoadingComponentDetails, componentDetailsError } = componentDetailsPageResponseState;
   const componentCoordinates =
-    componentDetails?.displayName?.parts?.reduce((prev, part) => prev + part.value, '') || '';
+    componentDetails?.displayName?.parts?.reduce((prev, part) => prev + part.value, '') || componentDisplayName;
   let backButtonParams = {};
   const uiRouterState = useRouterState();
 
@@ -84,33 +93,35 @@ export default function FirewallComponentDetailsPage(props) {
           retryHandler={() => loadComponentDetails(routeParams)}
         >
           {() => (
-            <ComponentDetailsHeader>
-              <Title id="component-details-title">{componentCoordinates}</Title>
-              <div className="nx-btn-bar">
-                <NxTooltip
-                  id="firewall-component-details-page--reevalaute-tooltip"
-                  title="Re-evaluating will check for policy violations. Quarantined components will be released from quarantine if no policy violations causing quarantine are found."
-                  placement="bottom"
-                >
-                  <NxButton
-                    id="firewall-component-details-page__reevaluate-button"
-                    name="re-evaluate"
-                    variant="tertiary"
-                    onClick={reevaluateComponent}
+            <>
+              <ComponentDetailsHeader>
+                <Title id="component-details-title">{componentCoordinates}</Title>
+                <div className="nx-btn-bar">
+                  <NxTooltip
+                    id="firewall-component-details-page--reevalaute-tooltip"
+                    title="Re-evaluating will check for policy violations. Quarantined components will be released from quarantine if no policy violations causing quarantine are found."
+                    placement="bottom"
                   >
-                    <NxFontAwesomeIcon icon={faSync} />
-                    <span>Re-evaluate Component</span>
-                  </NxButton>
-                </NxTooltip>
-              </div>
-              <ComponentDetailsReportInfo {...componentDetails?.metadata} />
-              <ComponentDetailsTags format={componentDetails?.componentIdentifier?.format} labels={labels} />
-            </ComponentDetailsHeader>
+                    <NxButton
+                      id="firewall-component-details-page__reevaluate-button"
+                      name="re-evaluate"
+                      variant="tertiary"
+                      onClick={reevaluateComponent}
+                    >
+                      <NxFontAwesomeIcon icon={faSync} />
+                      <span>Re-evaluate Component</span>
+                    </NxButton>
+                  </NxTooltip>
+                </div>
+                <ComponentDetailsReportInfo {...componentDetails?.metadata} />
+                <ComponentDetailsTags format={componentDetails?.componentIdentifier?.format} labels={labels} />
+              </ComponentDetailsHeader>
+            </>
           )}
         </NxLoadWrapper>
         {componentDetails && (
           <ComponentDetailsTabs
-            tabsConfiguration={tabsConfiguration}
+            tabsConfiguration={getEnabledTabs(componentDetails)}
             onTabChange={handleTabChange}
             activeTabId={tabId}
           />
@@ -132,6 +143,7 @@ FirewallComponentDetailsPage.propTypes = {
     tabId: PropTypes.string,
     componentIdentifier: PropTypes.string,
     pathname: PropTypes.string,
+    componentDisplayName: PropTypes.string,
   }).isRequired,
   componentDetailsPageResponseState: PropTypes.shape({
     componentDetails: PropTypes.object,

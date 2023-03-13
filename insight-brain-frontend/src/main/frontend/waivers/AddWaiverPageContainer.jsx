@@ -38,6 +38,7 @@ function mapStateToProps(state) {
     identificationSource,
     pathname,
     tabId,
+    componentDisplayName,
   } = selectFirewallComponentDetailsPageRouteParams(state);
   return {
     ...addWaiver,
@@ -56,6 +57,7 @@ function mapStateToProps(state) {
     identificationSource,
     pathname,
     tabId,
+    componentDisplayName,
   };
 }
 

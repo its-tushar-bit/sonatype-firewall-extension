@@ -30,7 +30,7 @@ export default function FirewallOverview() {
   // arrived the component takes old information from the redux store
   const routeParams = useSelector(selectFirewallComponentDetailsPageRouteParams);
   const componentIdentifier = JSON.parse(routeParams.componentIdentifier);
-  const currentVersion = componentIdentifier.coordinates.version;
+  const currentVersion = componentIdentifier?.coordinates?.version;
 
   return (
     <Fragment>

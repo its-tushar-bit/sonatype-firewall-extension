@@ -160,6 +160,7 @@ describe('ListWaiversBackButton', function () {
       componentHash: 'hash',
       matchState: 'matchState',
       pathname: 'pathname',
+      componentDisplayName: undefined,
     });
     expect(component).toMatchSelector(MenuBarBackButton);
     expect(component).toHaveProp('text', 'Back to Component Details');
@@ -185,6 +186,7 @@ describe('ListWaiversBackButton', function () {
       componentHash: 'hash',
       matchState: 'matchState',
       pathname: 'pathname',
+      componentDisplayName: undefined,
     });
     expect(component).toMatchSelector(MenuBarBackButton);
     expect(component).toHaveProp('text', 'Back to Component Details');

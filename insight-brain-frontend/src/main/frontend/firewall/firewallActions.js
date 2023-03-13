@@ -549,6 +549,7 @@ export function onGoToRepositoryComponentWaiversPage(violationId) {
       matchState,
       pathname,
       tabId,
+      componentDisplayName,
     } = selectFirewallComponentDetailsPageRouteParams(getState());
     dispatch(
       stateGo(`${selectIsFirewall(getState()) ? 'firewall' : 'repository'}.violationWaivers`, {
@@ -559,6 +560,7 @@ export function onGoToRepositoryComponentWaiversPage(violationId) {
         violationId,
         pathname,
         tabId,
+        componentDisplayName,
       })
     );
     dispatch(isShowManageWaiverPage(true));
@@ -623,7 +625,8 @@ export function goToRepositoryComponentDetailsPage(
   componentIdentifier,
   componentHash,
   matchState,
-  pathname
+  pathname,
+  componentDisplayName
 ) {
   return (dispatch, getState) => {
     dispatch(
@@ -633,6 +636,7 @@ export function goToRepositoryComponentDetailsPage(
         componentHash,
         matchState,
         pathname,
+        componentDisplayName,
       })
     );
   };

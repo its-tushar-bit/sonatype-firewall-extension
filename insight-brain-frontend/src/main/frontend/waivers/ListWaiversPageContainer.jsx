@@ -14,7 +14,7 @@ import { stringifyPathName, stringifyComponentIdentifier } from 'MainRoot/util/c
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 
 function mapStateToProps(state) {
-  let pathname, matchState, componentIdentifier, hash, tabId;
+  let pathname, matchState, componentIdentifier, hash, tabId, componentDisplayName;
   const { violation, manageWaivers, router, deleteWaiver, firewall } = state;
   const { showManageWaiverPage, componentDetails } = firewall.componentDetailsPage;
   const isFirewall = selectIsFirewall(state);
@@ -28,6 +28,7 @@ function mapStateToProps(state) {
     componentIdentifier = componentDetailsPageRouteParams.componentIdentifier;
     hash = componentDetailsPageRouteParams.componentHash;
     tabId = componentDetailsPageRouteParams.tabId;
+    componentDisplayName = componentDetailsPageRouteParams.componentDisplayName;
   } else {
     matchState = showManageWaiverPage ? componentDetails.matchState : null;
     pathname = showManageWaiverPage
@@ -57,6 +58,7 @@ function mapStateToProps(state) {
     isFirewall,
     isFirewallOrRepositoryComponent,
     tabId,
+    componentDisplayName,
   };
 }
 

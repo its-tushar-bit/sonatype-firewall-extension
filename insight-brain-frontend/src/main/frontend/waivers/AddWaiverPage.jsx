@@ -55,6 +55,7 @@ export default function AddWaiverPage(props) {
     identificationSource,
     pathname,
     tabId,
+    componentDisplayName,
   } = props;
 
   const backButtonProps = {
@@ -71,6 +72,7 @@ export default function AddWaiverPage(props) {
     identificationSource,
     pathname,
     tabId,
+    componentDisplayName,
   };
 
   function load() {
@@ -104,6 +106,7 @@ export default function AddWaiverPage(props) {
       saveWaiver,
       cancelAction,
       currentUser,
+      componentDisplayName,
       ...extractViolationDetails(violationDetails),
     };
   };
@@ -182,4 +185,5 @@ AddWaiverPage.propTypes = {
   identificationSource: PropTypes.string,
   pathname: PropTypes.string,
   tabId: PropTypes.string,
+  componentDisplayName: PropTypes.string,
 };

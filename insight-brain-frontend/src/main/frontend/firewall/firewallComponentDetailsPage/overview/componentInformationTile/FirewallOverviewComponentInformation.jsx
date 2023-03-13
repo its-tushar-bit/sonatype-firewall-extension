@@ -22,7 +22,7 @@ export default function FirewallOverviewComponentInformation() {
     displayName,
     matchState,
     identificationSource,
-    componentCategories = [],
+    componentCategories,
     website,
   } = componentDetails;
 
@@ -32,7 +32,7 @@ export default function FirewallOverviewComponentInformation() {
   const format = isUnknown ? '' : componentIdentifier.format;
   const joinedComponentCategories = join(
     ',',
-    componentCategories.map((category) => category.path)
+    (componentCategories ?? []).map((category) => category.path)
   );
 
   const repositorySourceAlert = !isNil(repositorySourceMessage) && isRepositorySourceAlertOpen && (

@@ -45,7 +45,8 @@ function routes($stateProvider) {
       },
     })
     .state('firewall.componentDetailsPage', {
-      url: '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?pathname',
+      url:
+        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?pathname&componentDisplayName',
       component: 'firewallComponentDetailsPage',
       data: {
         title: 'Firewall Component Details',
@@ -84,14 +85,20 @@ function routes($stateProvider) {
         tabId: 'labels',
       },
     })
+    .state('firewall.componentDetailsPage.claim', {
+      url: '/claim',
+      params: {
+        tabId: 'claim',
+      },
+    })
     .state('firewall.violationWaivers', {
       url:
-        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/waivers/{violationId}?pathname',
+        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/waivers/{violationId}?pathname&componentDisplayName',
       component: 'listWaiversPage',
     })
     .state('firewall.addWaiver', {
       url:
-        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/addWaiver/{violationId}?pathname',
+        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/addWaiver/{violationId}?pathname&componentDisplayName',
       component: 'addWaiverPage',
       data: {
         title: 'Add Waiver',
@@ -104,7 +111,8 @@ function routes($stateProvider) {
       abstract: true,
     })
     .state('repository.componentDetailsPage', {
-      url: '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?pathname',
+      url:
+        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?pathname&componentDisplayName',
       component: 'firewallComponentDetailsPage',
       data: {
         title: 'Repository Component Details',
@@ -143,14 +151,20 @@ function routes($stateProvider) {
         tabId: 'labels',
       },
     })
+    .state('repository.componentDetailsPage.claim', {
+      url: '/claim',
+      params: {
+        tabId: 'claim',
+      },
+    })
     .state('repository.violationWaivers', {
       url:
-        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/waivers/{violationId}?pathname',
+        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/waivers/{violationId}?pathname&componentDisplayName',
       component: 'listWaiversPage',
     })
     .state('repository.addWaiver', {
       url:
-        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/addWaiver/{violationId}?pathname',
+        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/addWaiver/{violationId}?pathname&componentDisplayName',
       component: 'addWaiverPage',
       data: {
         title: 'Add Waiver',

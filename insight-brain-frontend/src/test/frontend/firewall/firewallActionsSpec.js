@@ -1443,6 +1443,7 @@ describe('firewallActions', function () {
           matchState: 'matchState',
           pathname,
           tabId: undefined,
+          componentDisplayName: undefined,
         },
         options: undefined,
       });

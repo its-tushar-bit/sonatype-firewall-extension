@@ -25,6 +25,7 @@ export default function ListWaiversBackButton(props) {
     isFirewall,
     isFirewallOrRepositoryComponent,
     tabId,
+    componentDisplayName,
   } = props;
 
   const componentDetailsPropsPresent = hash && scanId && publicId && previousRouterStateNameForComponentDetails;
@@ -46,6 +47,7 @@ export default function ListWaiversBackButton(props) {
         componentHash: hash,
         matchState,
         pathname,
+        componentDisplayName,
       });
     } else {
       backButtonTitle = 'Back to Violation Details';
@@ -71,4 +73,5 @@ ListWaiversBackButton.propTypes = {
   isFirewall: PropTypes.bool,
   isFirewallOrRepositoryComponent: PropTypes.bool,
   tabId: PropTypes.string,
+  componentDisplayName: PropTypes.string,
 };

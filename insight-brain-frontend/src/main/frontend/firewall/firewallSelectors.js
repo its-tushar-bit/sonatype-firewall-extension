@@ -13,7 +13,15 @@ export const selectFirewallComponentDetailsPage = createSelector(selectFirewall,
 });
 export const selectFirewallComponentDetailsPageRouteParams = createSelector(
   selectRouterCurrentParams,
-  pickAll(['repositoryId', 'componentIdentifier', 'componentHash', 'matchState', 'tabId', 'pathname'])
+  pickAll([
+    'repositoryId',
+    'componentIdentifier',
+    'componentHash',
+    'matchState',
+    'tabId',
+    'pathname',
+    'componentDisplayName',
+  ])
 );
 export const currentFirewallComponentDetailsPageComponentVersion = createSelector(
   selectFirewallComponentDetailsPage,

@@ -36,6 +36,7 @@ export default function ListWaiversTable(props) {
     loadingApplicableWaivers,
     loadApplicableWaiversError,
     reloadApplicableWaivers,
+    unknownComponentName,
   } = props;
 
   const displayWaiverInTableRow = curry((isWaiverExpired, waiver) => {
@@ -49,7 +50,12 @@ export default function ListWaiversTable(props) {
         <NxTableCell className="iq-waivers-table--scope">{displayWaiverScope(waiver)}</NxTableCell>
         <NxTableCell className="iq-waivers-table--component-name">
           {isWaiverAllVersionsOrExact(waiver) ? (
-            <ComponentDisplay component={violationDetails} truncate={true} matcherStrategy={waiver.matcherStrategy} />
+            <ComponentDisplay
+              component={violationDetails}
+              truncate={true}
+              matcherStrategy={waiver.matcherStrategy}
+              displayTextIfUnknown={unknownComponentName}
+            />
           ) : (
             'All'
           )}
@@ -122,4 +128,5 @@ ListWaiversTable.propTypes = {
   }),
   loadApplicableWaiversError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
   loadingApplicableWaivers: PropTypes.bool,
+  unknownComponentName: PropTypes.string,
 };

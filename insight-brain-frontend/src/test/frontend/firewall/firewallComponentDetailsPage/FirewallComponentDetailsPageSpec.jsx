@@ -8,19 +8,24 @@ import React from 'react';
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import { NxLoadError, NxLoadWrapper } from '@sonatype/react-shared-components';
 
-import ComponentDetailsTabs from 'MainRoot/componentDetails/ComponentDetailsTabs';
-import * as ComponentDetailsTabsFile from 'MainRoot/componentDetails/ComponentDetailsTabs';
-import { tabsConfiguration } from 'MainRoot/firewall/firewallComponentDetailsPage/FirewallComponentDetailsPage';
-import FirewallComponentDetailsPage from 'MainRoot/firewall/firewallComponentDetailsPage/FirewallComponentDetailsPage';
+import ComponentDetailsTabs, * as ComponentDetailsTabsFile from 'MainRoot/componentDetails/ComponentDetailsTabs';
+import FirewallComponentDetailsPage, {
+  getEnabledTabs,
+} from 'MainRoot/firewall/firewallComponentDetailsPage/FirewallComponentDetailsPage';
 
-const assertTabs = (component, activeTabId) => {
+const assertTabs = (component, activeTabId, componentDetails) => {
   let tabs;
 
   tabs = component.find(ComponentDetailsTabs);
 
+  const tabsConfiguration = getEnabledTabs(componentDetails);
+
   expect(tabs).toHaveProp('activeTabId', activeTabId);
   expect(tabs).toHaveProp('onTabChange', jasmine.any(Function));
-  expect(tabs).toHaveProp('tabsConfiguration', tabsConfiguration);
+  expect(tabs.getElement().props.tabsConfiguration.length).toEqual(tabsConfiguration.length);
+  expect(tabs.getElement().props.tabsConfiguration.map((el) => el.tabId)).toEqual(
+    tabsConfiguration.map((el) => el.tabId)
+  );
 };
 
 describe('FirewallComponentDetailsPage', function () {
@@ -61,7 +66,10 @@ describe('FirewallComponentDetailsPage', function () {
         pathname: 'pathname',
       },
       componentDetailsPageResponseState: {
-        componentDetails: {},
+        componentDetails: {
+          matchState: 'exact',
+          identificationSource: null,
+        },
         isLoadingComponentDetails: false,
         componentDetailsError: null,
       },
@@ -84,12 +92,20 @@ describe('FirewallComponentDetailsPage', function () {
     let component = getMountedComponent(
       setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('isLoadingComponentDetails', false)
     );
-    assertTabs(component, minimalProps.routeParams.tabId);
+    assertTabs(
+      component,
+      minimalProps.routeParams.tabId,
+      minimalProps.componentDetailsPageResponseState.componentDetails
+    );
 
     component = getMountedComponent(
       setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('isLoadingComponentDetails', true)
     );
-    assertTabs(component, minimalProps.routeParams.tabId);
+    assertTabs(
+      component,
+      minimalProps.routeParams.tabId,
+      minimalProps.componentDetailsPageResponseState.componentDetails
+    );
   });
 
   it('calls loadComponentDetails only when mounted', () => {
@@ -188,7 +204,7 @@ describe('FirewallComponentDetailsPage', function () {
       const el = getShallowComponent(
         setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('componentDetailsError', 'Mock message')
       );
-      assertTabs(el, minimalProps.routeParams.tabId);
+      assertTabs(el, minimalProps.routeParams.tabId, minimalProps.componentDetailsPageResponseState.componentDetails);
     });
   });
 

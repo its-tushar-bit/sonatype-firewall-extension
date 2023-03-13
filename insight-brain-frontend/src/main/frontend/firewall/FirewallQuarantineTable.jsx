@@ -195,7 +195,8 @@ export default function FirewallQuarantineTable(props) {
                                 row.componentIdentifier,
                                 row.hash,
                                 row.matchState,
-                                row.pathname
+                                row.pathname,
+                                row.componentDisplayText
                               )
                             }
                           >

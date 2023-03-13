@@ -59,6 +59,7 @@ export default function ListWaiversPage(props) {
     isFirewall,
     isFirewallOrRepositoryComponent,
     tabId,
+    componentDisplayName,
   } = backButtonProps;
 
   function load() {
@@ -91,6 +92,7 @@ export default function ListWaiversPage(props) {
           identificationSource,
           pathname,
           tabId,
+          componentDisplayName,
         })
       );
     }
@@ -140,7 +142,9 @@ export default function ListWaiversPage(props) {
               {/* Component  */}
               <NxReadOnly className="list-waivers_component">
                 <NxReadOnly.Label>Component Name</NxReadOnly.Label>
-                <NxReadOnly.Data id="list-waivers-component-name">{componentName}</NxReadOnly.Data>
+                <NxReadOnly.Data id="list-waivers-component-name">
+                  {componentName === 'Unknown' ? componentDisplayName : componentName}
+                </NxReadOnly.Data>
               </NxReadOnly>
             </NxTile.Content>
           </NxTile>
@@ -188,6 +192,7 @@ export default function ListWaiversPage(props) {
                   loadingApplicableWaivers,
                   loadApplicableWaiversError,
                   reloadApplicableWaivers,
+                  unknownComponentName: componentDisplayName,
                 }}
               />
             </NxTile.Content>

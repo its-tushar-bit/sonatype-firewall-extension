@@ -60,6 +60,7 @@ export default function AddWaiverForm(props) {
     vulnerabilityId,
     cancelAction,
     currentUser,
+    componentDisplayName,
   } = props;
 
   useEffect(() => {
@@ -117,6 +118,9 @@ export default function AddWaiverForm(props) {
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
 
+  const replaceUnknownComponentNameByComponentDisplayName = (componentName) =>
+    componentName === 'Unknown' ? componentDisplayName : componentName;
+
   const getAllVersionsRadioButton = () => {
     if (componentIdentifier === null) {
       return (
@@ -129,7 +133,7 @@ export default function AddWaiverForm(props) {
             onChange={() => {}}
             disabled={true}
           >
-            {allVersionsComponentName} (all versions)
+            {allVersionsComponentName === 'Unknown' ? 'All Versions' : `${allVersionsComponentName} (all versions)`}
           </NxRadio>
         </NxTooltip>
       );
@@ -180,9 +184,11 @@ export default function AddWaiverForm(props) {
         {/* Component Info */}
         <div className="nx-read-only iq-add-waiver-form__component">
           <header className="nx-read-only__label">
-            <ArtifactNameDisplay {...{ artifactName }} />
+            <ArtifactNameDisplay
+              {...{ artifactName: replaceUnknownComponentNameByComponentDisplayName(artifactName) }}
+            />
           </header>
-          <div className="nx-read-only__data">{componentName}</div>
+          <div className="nx-read-only__data">{replaceUnknownComponentNameByComponentDisplayName(componentName)}</div>
         </div>
 
         {/* Policy Info */}
@@ -238,7 +244,7 @@ export default function AddWaiverForm(props) {
             isChecked={componentMatcherStrategy === waiverMatcherStrategy.EXACT_COMPONENT}
             onChange={handleComponentsChange}
           >
-            {componentName}
+            {replaceUnknownComponentNameByComponentDisplayName(componentName)}
           </NxRadio>
           {getAllVersionsRadioButton()}
           <NxRadio
@@ -332,4 +338,5 @@ AddWaiverForm.propTypes = {
   cancelAction: PropTypes.func.isRequired,
   componentIdentifier: PropTypes.object,
   currentUser: PropTypes.string,
+  componentDisplayName: PropTypes.string,
 };

@@ -54,6 +54,7 @@ describe('firewallSelectors', () => {
       'matchState',
       'tabId',
       'pathname',
+      'componentDisplayName',
     ]);
   });
 

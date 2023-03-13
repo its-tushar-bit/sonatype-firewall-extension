@@ -16,7 +16,7 @@ export default function UnknownComponentAlert({ onClaimClick, toggleShowMatchers
         <NxButton id="iq-component-details-unknown-component-claim" onClick={onClaimClick} variant="secondary">
           Claim Component
         </NxButton>
-        {!!pathnames.length && (
+        {!!pathnames?.length && toggleShowMatchersPopover && (
           <NxButton
             onClick={toggleShowMatchersPopover}
             variant="primary"
@@ -33,6 +33,6 @@ export default function UnknownComponentAlert({ onClaimClick, toggleShowMatchers
 
 UnknownComponentAlert.propTypes = {
   onClaimClick: PropTypes.func.isRequired,
-  toggleShowMatchersPopover: PropTypes.func.isRequired,
+  toggleShowMatchersPopover: PropTypes.func,
   pathnames: PropTypes.arrayOf(PropTypes.string),
 };

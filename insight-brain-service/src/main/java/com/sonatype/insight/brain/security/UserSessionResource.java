@@ -20,18 +20,23 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.DefaultBaseUrl;
 
 import com.codahale.metrics.annotation.Timed;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
+import org.keycloak.adapters.saml.SamlDeployment;
+import org.keycloak.adapters.saml.SamlDeployment.IDP;
+import org.keycloak.adapters.saml.SamlDeployment.IDP.SingleLogoutService;
 
 /**
  * Manages user account authentication sessions which provide access to the server.
- * 
+ *
  * @since 1.7
  */
 @Path(UserSessionResource.RESOURCE_PATH)
@@ -39,17 +44,29 @@ import org.apache.shiro.subject.Subject;
 @Named
 @Singleton
 @Timed
-public class UserSessionResource 
+public class UserSessionResource
 {
   public static final String RESOURCE_PATH = "rest/user/session";
 
   public static final String LOGOUT_PATH = "logout";
 
+  private static final String AUTH0_LOGOUT_URL_FORMAT = "https://%s/v2/logout?client_id=%s&returnTo=%s";
+
   private final Configuration configuration;
 
+  private final SamlDeploymentManager samlDeploymentManager;
+
+  private final DefaultBaseUrl baseUrl;
+
   @Inject
-  public UserSessionResource(Configuration configuration) {
+  public UserSessionResource(
+      Configuration configuration,
+      SamlDeploymentManager samlDeploymentManager,
+      DefaultBaseUrl baseUrl)
+  {
     this.configuration = configuration;
+    this.samlDeploymentManager = samlDeploymentManager;
+    this.baseUrl = baseUrl;
   }
 
   /**
@@ -62,7 +79,7 @@ public class UserSessionResource
 
   /**
    * Logout the currently logged in user.
-   * 
+   *
    * Consciously not doing this in a RESTful manner. The use of a separate resource path is because we want to allow
    * anonymous access but Shiro doesn't have the capability to apply different authc per HTTP method.
    * See https://issues.apache.org/jira/browse/SHIRO-200 .
@@ -79,7 +96,32 @@ public class UserSessionResource
       return Response.status(Status.NO_CONTENT)
           .location(URI.create(reverseProxyAuthenticationConfiguration.getLogoutUrl())).build();
     }
+
+    if (SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.isEnabled()) {
+      return Response.status(Status.NO_CONTENT).location(buildAuth0LogoutURi()).build();
+    }
+
     return Response.status(Status.NO_CONTENT).build();
+  }
+
+  private URI buildAuth0LogoutURi() {
+    SamlDeployment samlDeployment = samlDeploymentManager.get();
+    IDP idp = samlDeployment.getIDP();
+    String baseUri = idp.getEntityID().replaceAll("urn:", "");
+    String clientId = extractClientIdFromLogoutUrl(idp);
+    String returnToUrl = baseUrl.get();
+
+    return URI.create(String.format(AUTH0_LOGOUT_URL_FORMAT, baseUri, clientId, returnToUrl));
+  }
+
+  private String extractClientIdFromLogoutUrl(IDP idp) {
+    SingleLogoutService singleLogoutService = idp.getSingleLogoutService();
+    String logoutUrl = singleLogoutService.getRequestBindingUrl();
+
+    String samlToken = "/samlp/";
+    int clientIdPosition = logoutUrl.indexOf(samlToken) + samlToken.length();
+
+    return logoutUrl.substring(clientIdPosition).replaceAll("/logout", "");
   }
 
   /**
@@ -93,7 +135,7 @@ public class UserSessionResource
 
   /**
    * The authentication status of an account.
-   * 
+   *
    * @since 1.7
    */
   public static final class AuthenticationStatus
@@ -116,7 +158,7 @@ public class UserSessionResource
 
     /**
      * Create a status based on the {@link Subject}.
-     * 
+     *
      * If the user is not authenticated {@link #isAuthenticated()} will be false; {@link #getUsername()} may be null.
      */
     public static AuthenticationStatus fromSubject(Subject subject) {

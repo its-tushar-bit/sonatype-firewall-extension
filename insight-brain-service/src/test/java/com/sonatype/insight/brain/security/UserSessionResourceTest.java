@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.HttpCookie;
+import java.nio.charset.StandardCharsets;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -15,13 +18,18 @@ import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationSta
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
+import org.codehaus.plexus.util.IOUtil;
+import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.LOGOUT_AUTH0_ON_LOGOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserSessionResourceTest
     extends AbstractResourceTest
 {
+  public SamlDeploymentManager samlDeploymentManager;
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(UserSessionResource.RESOURCE_PATH);
@@ -45,6 +53,11 @@ public class UserSessionResourceTest
 
   private HttpResponse status(HttpCookie cookie) throws Exception {
     return restRequest().cookie(cookie).anon().get();
+  }
+
+  @Before
+  public void before() {
+    samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
   }
 
   @Test
@@ -147,5 +160,29 @@ public class UserSessionResourceTest
     HttpCookie sessionCookie = response.getSessionCookie();
     assertThat(sessionCookie).isNotNull();
     assertThat(sessionCookie.getSecure()).isTrue();
+  }
+
+  @Test
+  public void testBuildAuth0LogoutUrl() throws Exception {
+    tempEntity.newSamlConfiguration(auth0IdpXml(), null);
+    samlDeploymentManager.updateFromConfiguration();
+
+    tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
+
+    HttpResponse response = logout(null);
+
+    assertThat(response.getHeader("Location")).startsWith(
+        "https://idp-entity-id/v2/logout?client_id=rfCvE9qbgAu0ASBCCwe8QZugsAJzf1TK&returnTo=http://localhost");
+  }
+
+  private String auth0IdpXml() {
+    try {
+      return IOUtil.toString(
+          getClass().getResourceAsStream("/UserSessionResourceTest/identity-provider-metadata.xml"),
+          StandardCharsets.UTF_8.toString());
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 }

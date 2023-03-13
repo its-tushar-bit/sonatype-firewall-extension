@@ -174,6 +174,8 @@ public class SystemConfigurationProperty
   public static final String AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES =
       "automaticQuarantineReleaseTimeIntervalInMinutes";
 
+  public static final String LOGOUT_AUTH0_ON_LOGOUT = "logoutAuth0OnLogout";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

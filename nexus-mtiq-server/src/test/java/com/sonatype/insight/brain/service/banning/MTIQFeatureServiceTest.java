@@ -25,12 +25,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT;
+import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
-import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
 import static com.sonatype.insight.license.model.LicensedFeature.*;
 import static java.util.Arrays.stream;
@@ -154,9 +155,17 @@ public class MTIQFeatureServiceTest
     assertThat(features).doesNotContain(SINGLE_TENANT);
   }
 
+  @Test
+  public void testGetFeatures_containsAuth0Logout() {
+    underTest.register();
+
+    verify(service).enableFeatureNoAuthz(LOGOUT_AUTH0_ON_LOGOUT.getPropertyName());
+  }
+
   private List<SystemConfigurationPropertyFeature> getDisabledSystemConfigurationPropertyFeatures() {
     return Arrays.stream(SystemConfigurationPropertyFeature.values())
         .filter(f -> !f.equals(DASHBOARD_CAN_BE_ENABLED))
+        .filter(f -> !f.equals(LOGOUT_AUTH0_ON_LOGOUT))
         .collect(Collectors.toList());
   }
 

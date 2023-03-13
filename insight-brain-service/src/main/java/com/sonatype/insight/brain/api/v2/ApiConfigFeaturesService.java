@@ -135,7 +135,12 @@ public class ApiConfigFeaturesService
      */
     @Deprecated
     INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS(
-        SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, true);
+        SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, true),
+
+    /**
+     * If configured a logout request will be sent to Auth0 via a browser redirect when the application is logged out
+     */
+    LOGOUT_AUTH0_ON_LOGOUT(SystemConfigurationProperty.LOGOUT_AUTH0_ON_LOGOUT, false, false);
 
     private final String propertyName;
 

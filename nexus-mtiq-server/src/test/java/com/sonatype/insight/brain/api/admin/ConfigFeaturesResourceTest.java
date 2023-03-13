@@ -29,7 +29,8 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
-    assertThat(features).containsExactly(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
+    assertThat(features).containsExactlyInAnyOrder(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId());
   }
 
   @Test
@@ -38,6 +39,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
-    assertThat(features).containsExactly(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
+    assertThat(features).containsExactlyInAnyOrder(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId());
   }
 }

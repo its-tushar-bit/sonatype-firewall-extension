@@ -16,3 +16,14 @@ menu-bar {
 .menu-bar {
   gap: var(--nx-spacing-6x);
 }
+
+#menu-bar__bread-crumb-container {
+  .nx-breadcrumb__link--current {
+    cursor: default;
+
+    &:hover {
+      color: var(--nx-color-text-dark);
+      text-decoration: none;
+    }
+  }
+}

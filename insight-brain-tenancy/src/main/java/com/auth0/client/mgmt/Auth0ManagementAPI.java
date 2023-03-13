@@ -33,9 +33,12 @@ public class Auth0ManagementAPI
 
   private final String mtIQSamlEndpoint;
 
+  private final String mtIQTenantUrlTemplate;
+
   public Auth0ManagementAPI(final String domain, final String apiToken, final String mtIQTenantUrlTemplate) {
     super(domain, apiToken);
     this.apiToken = apiToken;
+    this.mtIQTenantUrlTemplate = mtIQTenantUrlTemplate;
     this.mtIQSamlEndpoint = mtIQTenantUrlTemplate + "/saml";
   }
 
@@ -65,12 +68,17 @@ public class Auth0ManagementAPI
     client.setDescription(tenantDescription);
     client.setCallbacks(Collections.singletonList(getTenantSamlEndpoint(tenantSubdomain)));
     client.setLogoUri(logoUrl);
+    client.setAllowedLogoutUrls(Collections.singletonList(getTenantEndpoint(tenantSubdomain)));
     client.setCrossOriginAuth(false);
     Addon samlpAddOn = new Addon();
     Addons addOns = new Addons(null, null, null, null);
     addOns.setAdditionalAddon("samlp", samlpAddOn);
     client.setAddons(addOns);
     return client;
+  }
+
+  private String getTenantEndpoint(final String tenantSubdomain) {
+    return StringUtils.replace(mtIQTenantUrlTemplate, "<tenant>", tenantSubdomain);
   }
 
   private String getTenantSamlEndpoint(final String tenantSubdomain) {

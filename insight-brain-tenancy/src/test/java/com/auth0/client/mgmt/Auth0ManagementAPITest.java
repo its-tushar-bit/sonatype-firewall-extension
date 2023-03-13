@@ -18,6 +18,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
@@ -41,11 +43,15 @@ public class Auth0ManagementAPITest
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+  @Captor
+  private ArgumentCaptor<Client> clientCaptor;
+
   public Auth0ManagementAPI auth0ManagementAPI;
 
   @Before
   public void before() {
-    auth0ManagementAPI = spy(new Auth0ManagementAPI("https://sonatype.auth0.com", "abcdefg", ""));
+    auth0ManagementAPI =
+        spy(new Auth0ManagementAPI("https://sonatype.auth0.com", "abcdefg", "http://<tenant>.sonatype.app"));
   }
 
   @Test
@@ -87,13 +93,20 @@ public class Auth0ManagementAPITest
     ClientsEntity mockClientsEntity = mock(ClientsEntity.class);
     when(auth0ManagementAPI.clients()).thenReturn(mockClientsEntity);
     Request<Client> mockRequest = mock(Request.class);
-    when(mockClientsEntity.create(any(Client.class))).thenReturn(mockRequest);
+    when(mockClientsEntity.create(clientCaptor.capture())).thenReturn(mockRequest);
     when(mockRequest.execute()).thenReturn(mockClient);
 
     Client tenant = auth0ManagementAPI.createTenant(name, description, logoUrl);
     Assertions.assertThat(tenant.getName()).isEqualTo(name);
     Assertions.assertThat(tenant.getDescription()).isEqualTo(description);
     Assertions.assertThat(tenant.getLogoUri()).isEqualTo(logoUrl);
+
+    Client clientParameter = clientCaptor.getValue();
+    Assertions.assertThat(clientParameter.getName()).isEqualTo(name);
+    Assertions.assertThat(clientParameter.getDescription()).isEqualTo(description);
+    Assertions.assertThat(clientParameter.getLogoUri()).isEqualTo(logoUrl);
+    Assertions.assertThat(clientParameter.getAllowedLogoutUrls()).contains("http://tenant1.sonatype.app");
+    Assertions.assertThat(clientParameter.getCallbacks()).contains("http://tenant1.sonatype.app/saml");
   }
 
   @Test

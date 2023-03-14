@@ -3,6 +3,7 @@
   "version": "1.149.0-SNAPSHOT",
   "scripts": {
     "start": "webpack-dev-server --env brainOnly",
+    "start-mtiq": "webpack-dev-server --env brainOnly --allowed-hosts all",
     "start-all": "webpack-dev-server",
     "start-version-graph": "webpack-dev-server --env versionGraphOnly",
     "start-gallery": "webpack-dev-server --config webpack.config.gallery.js",

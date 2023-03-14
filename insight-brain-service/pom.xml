@@ -660,7 +660,7 @@
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
           <forkCount>${test.forkCount}</forkCount>
-          <argLine>@{argLine} -Xmx768M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <argLine>@{argLine} -Xmx2048M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
           <systemPropertyVariables>
             <test.forkId>#${surefire.forkNumber}</test.forkId>
           </systemPropertyVariables>

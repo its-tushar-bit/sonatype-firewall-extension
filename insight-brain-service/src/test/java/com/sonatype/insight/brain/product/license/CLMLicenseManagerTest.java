@@ -46,9 +46,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Answers;
-import org.mockito.MockMakers;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
@@ -58,7 +56,9 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenan
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -95,30 +95,8 @@ public class CLMLicenseManagerTest
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
 
+  @Mock
   private TaskScheduler taskSchedulerMock;
-
-  // We need to use the subclass mock maker to avoid a memory leak, see CLM-24687
-  @Override
-  protected String getMockMaker() {
-    return MockMakers.SUBCLASS;
-  }
-
-  // We need to use the subclass mock maker to avoid a memory leak, see CLM-24687
-  private static <T> T mock(Class<T> clazz) {
-    return Mockito.mock(clazz, Mockito.withSettings().mockMaker(MockMakers.SUBCLASS));
-  }
-
-  // We need to use the subclass mock maker to avoid a memory leak, see CLM-24687
-  @SuppressWarnings("unchecked")
-  private static <T> T spy(T instance) {
-    return Mockito.mock(
-        (Class<T>) instance.getClass(),
-        Mockito.withSettings()
-            .mockMaker(MockMakers.SUBCLASS)
-            .spiedInstance(instance)
-            .defaultAnswer(Answers.CALLS_REAL_METHODS)
-    );
-  }
 
   @Before
   public void before() throws Exception {
@@ -134,7 +112,6 @@ public class CLMLicenseManagerTest
     productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
     productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
     binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
-    taskSchedulerMock = mock(TaskScheduler.class);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     super.configure(binder);
   }

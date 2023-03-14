@@ -148,7 +148,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
     childOrgs.add(organizations.get(organizations.size() - 1));
     tempEntity.newRelatedOrganizationsAsList(parentOrg1,3, 2, 1, nameSupplierDictionary);
 
-    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 3, 1);
+    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 3, 1, nameSupplierDictionary);
     Organization parentOrg2 = organizations.get(organizations.size() - 1);
     childOrgs.add(parentOrg2);
     tempEntity.newRelatedOrganizationsAsList(parentOrg1,3, 2, 1, nameSupplierDictionary);

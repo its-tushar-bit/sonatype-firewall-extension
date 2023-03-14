@@ -44,6 +44,10 @@ public class EvaluateApplicationModal
     return new NotifyRadioButtons(selector);
   }
 
+  public ProgressBar progressBar() {
+    return new ProgressBar("#evaluate-application-modal .nx-progress-bar");
+  }
+
   public SelenideElement uploadButton() {
     return $(" .nx-form__submit-btn");
   }
@@ -74,6 +78,21 @@ public class EvaluateApplicationModal
 
     public NxRadio no() {
       return new NxRadio($$(".nx-radio-checkbox").get(1));
+    }
+  }
+
+  public static class ProgressBar extends BasicElement<ProgressBar>
+  {
+    public ProgressBar(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement counter() {
+      return child(".nx-counter");
+    }
+
+    public SelenideElement label() {
+      return child(".nx-progress-bar__counter-and-label");
     }
   }
 }

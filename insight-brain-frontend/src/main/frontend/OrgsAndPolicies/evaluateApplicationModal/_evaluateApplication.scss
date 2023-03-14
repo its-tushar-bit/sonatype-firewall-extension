@@ -15,4 +15,15 @@ evaluate-application-modal {
       margin: 0;
     }
   }
+
+  #evaluate-application-modal {
+    .nx-progress-bar {
+      width: 100%;
+      .nx-progress-bar__progress,
+      .nx-progress-bar__progress::-webkit-progress-bar,
+      .nx-progress-bar__progress::-webkit-progress-value {
+        width: 100%;
+      }
+    }
+  }
 }

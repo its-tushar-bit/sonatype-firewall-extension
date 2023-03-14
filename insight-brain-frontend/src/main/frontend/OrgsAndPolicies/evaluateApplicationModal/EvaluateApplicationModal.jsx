@@ -15,6 +15,7 @@ import {
   NxH2,
   NxModal,
   NxRadio,
+  NxProgressBar,
 } from '@sonatype/react-shared-components';
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -37,6 +38,8 @@ const EvaluateApplicationModal = () => {
     submitError,
     isValid,
     evaluationStatus,
+    uploadFileProgress,
+    isUploadingFile,
   } = useSelector(selectEvaluateApplicationSlice);
   const isNotificationSupported = useSelector(selectIsNotificationsSupported);
 
@@ -69,49 +72,62 @@ const EvaluateApplicationModal = () => {
           <NxModal.Header>
             <NxH2>Evaluate a File</NxH2>
           </NxModal.Header>
-          <NxStatefulForm
-            doLoad={doLoad}
-            loading={loading}
-            loadError={loadError}
-            onSubmit={evaluate}
-            submitError={submitError}
-            submitBtnText="Upload"
-            onCancel={closeEvaluateAppModal}
-            validationErrors={!isValid ? GLOBAL_FORM_VALIDATION_ERROR : null}
-          >
-            <NxModal.Content>
-              <NxFormGroup label="Select the file you want evaluated" isRequired>
-                <NxFileUpload
-                  onChange={selectFile}
-                  {...file}
-                  isRequired
-                  data-testid="evaluate-application-upload-file"
-                />
-              </NxFormGroup>
-              <NxFieldset label="Which stage should this evaluation be associated with?" isRequired>
-                <NxFormSelect onChange={selectStage}>
-                  <option value="" key="title">
-                    Select Stage
-                  </option>
-                  {stages.map(({ stageName, stageTypeId }) => (
-                    <option key={stageTypeId} value={stageTypeId}>
-                      {stageName}
+          {!isUploadingFile && (
+            <NxStatefulForm
+              doLoad={doLoad}
+              loading={loading}
+              loadError={loadError}
+              onSubmit={evaluate}
+              submitError={submitError}
+              submitBtnText="Upload"
+              onCancel={closeEvaluateAppModal}
+              validationErrors={!isValid ? GLOBAL_FORM_VALIDATION_ERROR : null}
+            >
+              <NxModal.Content>
+                <NxFormGroup label="Select the file you want evaluated" isRequired>
+                  <NxFileUpload
+                    onChange={selectFile}
+                    {...file}
+                    isRequired
+                    disabled={isUploadingFile}
+                    data-testid="evaluate-application-upload-file"
+                  />
+                </NxFormGroup>
+                <NxFieldset label="Which stage should this evaluation be associated with?" isRequired>
+                  <NxFormSelect onChange={selectStage}>
+                    <option value="" key="title">
+                      Select Stage
                     </option>
-                  ))}
-                </NxFormSelect>
-              </NxFieldset>
-              {isNotificationSupported && (
-                <NxFieldset label="Should notifications be sent if this application violates any policies?" isRequired>
-                  <NxRadio name="notify" value="true" onChange={changeNotification} isChecked={notify === 'true'}>
-                    Yes
-                  </NxRadio>
-                  <NxRadio name="notify" value="false" onChange={changeNotification} isChecked={notify === 'false'}>
-                    No
-                  </NxRadio>
+                    {stages.map(({ stageName, stageTypeId }) => (
+                      <option key={stageTypeId} value={stageTypeId}>
+                        {stageName}
+                      </option>
+                    ))}
+                  </NxFormSelect>
                 </NxFieldset>
-              )}
-            </NxModal.Content>
-          </NxStatefulForm>
+                {isNotificationSupported && (
+                  <NxFieldset
+                    label="Should notifications be sent if this application violates any policies?"
+                    isRequired
+                  >
+                    <NxRadio name="notify" value="true" onChange={changeNotification} isChecked={notify === 'true'}>
+                      Yes
+                    </NxRadio>
+                    <NxRadio name="notify" value="false" onChange={changeNotification} isChecked={notify === 'false'}>
+                      No
+                    </NxRadio>
+                  </NxFieldset>
+                )}
+              </NxModal.Content>
+            </NxStatefulForm>
+          )}
+          {isUploadingFile && (
+            <NxProgressBar
+              value={uploadFileProgress}
+              label={`Uploading ${file.files?.[0]?.name} file`}
+              labelSuccess="File uploaded successfully"
+            />
+          )}
           {!!loadError && (
             <NxFooter>
               <NxButtonBar>

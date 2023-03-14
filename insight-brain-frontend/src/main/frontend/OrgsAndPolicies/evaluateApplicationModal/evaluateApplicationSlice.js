@@ -30,8 +30,10 @@ const initialState = {
   selectedStageId: null,
   notify: 'true',
   file: rscInitialFileUploadState(null),
+  uploadFileProgress: 0,
+  isUploadingFile: false,
   evaluationStatus: {
-    currentStep: 1,
+    currentStep: 0,
     totalSteps: 1,
     currentStepName: 'Uploading',
     scanId: '',
@@ -43,6 +45,8 @@ const resetState = (state) => {
   if (state.isEvaluationModalOpen || state.isStatusModalOpen) return;
   state.file = rscInitialFileUploadState(null);
   state.selectedStageId = null;
+  state.uploadFileProgress = 0;
+  state.isUploadingFile = false;
   state.notify = 'true';
   state.isValid = false;
   state.evaluationStatus = initialState.evaluationStatus;
@@ -135,23 +139,41 @@ const evaluate = createAsyncThunk(`${REDUCER_NAME}/evaluate`, (_, { dispatch, ge
   const url = getBundleUploadUrl(publicId, selectedStageId, isNotify);
   const formData = new FormData();
   formData.append('file', file.files?.[0]);
+  dispatch(actions.isUploadingFile(true));
   return axios
-    .post(url, formData)
+    .post(url, formData, {
+      onUploadProgress: function (progressEvent) {
+        let percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        dispatch(actions.updateUploadFileProgress(percentCompleted));
+      },
+    })
     .then(({ data: { applicationPublicId, ticketId } }) => {
       const pollingUrl = getEvaluationStatusUrl(applicationPublicId, ticketId);
       dispatch(actions.openEvalStatusModal());
       dispatch(actions.closeEvaluateAppModal());
       dispatch(doPoll(pollingUrl));
     })
-    .catch(rejectWithValue);
+    .catch(rejectWithValue)
+    .finally(() => {
+      dispatch(actions.isUploadingFile(false));
+    });
 });
 
 const evaluatePending = (state) => {
   state.submitError = null;
 };
 
+const isUploadingFile = (state, { payload }) => {
+  state.isUploadingFile = payload;
+};
+
 const evaluateFailed = (state, { payload }) => {
   state.submitError = Messages.getHttpErrorMessage(payload);
+  state.isUploadingFile = false;
+};
+
+const updateUploadFileProgress = (state, { payload }) => {
+  state.uploadFileProgress = payload;
 };
 
 const doPoll = createAsyncThunk(`${REDUCER_NAME}/doPoll`, (url, { getState, dispatch, rejectWithValue }) => {
@@ -189,6 +211,8 @@ const evaluateApplication = createSlice({
     openEvalStatusModal,
     closeEvalStatusModal,
     setEvaluationStatus,
+    updateUploadFileProgress,
+    isUploadingFile,
   },
   extraReducers: {
     [doLoad.pending]: doLoadPending,

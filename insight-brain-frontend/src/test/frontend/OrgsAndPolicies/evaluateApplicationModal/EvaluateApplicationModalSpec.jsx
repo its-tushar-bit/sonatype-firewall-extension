@@ -4,22 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter, fireEvent } from 'TestRoot/SpecUtil';
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
 import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
-import { getCliStageUrl } from 'MainRoot/util/CLMLocation';
+import { getCliStageUrl, getBundleUploadUrl } from 'MainRoot/util/CLMLocation';
 
 const { initialState: rscInitialFileUploadState } = nxFileUploadStateHelpers;
 
 describe('EvaluateApplicationModal', () => {
-  let renderComponent, axiosMock;
+  let renderComponent, axiosMock, defaultPreloadedState;
 
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
   });
 
   beforeEach(() => {
-    const defaultPreloadedState = {
+    defaultPreloadedState = {
       productFeatures: {
         productFeatures: {
           notifications: true,
@@ -42,6 +42,8 @@ describe('EvaluateApplicationModal', () => {
             stages: [],
             selectedStageId: null,
             notify: 'true',
+            uploadFileProgress: 0,
+            isUploadingFile: false,
             file: rscInitialFileUploadState(null),
             evaluationStatus: {
               currentStep: 1,
@@ -56,8 +58,9 @@ describe('EvaluateApplicationModal', () => {
     };
 
     renderComponent = (preloadedState) =>
-      render(<EvaluateApplicationModal />, { preloadedState: preloadedState || defaultPreloadedState });
+      render(<EvaluateApplicationModal />, { preloadedState: { ...defaultPreloadedState, ...preloadedState } });
   });
+
   it('doesn"t show modal without being open', () => {
     renderComponent({
       productFeatures: {
@@ -83,6 +86,8 @@ describe('EvaluateApplicationModal', () => {
             selectedStageId: null,
             notify: 'true',
             file: rscInitialFileUploadState(null),
+            uploadFileProgress: 0,
+            isUploadingFile: false,
             evaluationStatus: {
               currentStep: 1,
               totalSteps: 1,
@@ -163,6 +168,8 @@ describe('EvaluateApplicationModal', () => {
               selectedStageId: null,
               notify: 'true',
               file: rscInitialFileUploadState(null),
+              uploadFileProgress: 0,
+              isUploadingFile: false,
               evaluationStatus: {
                 currentStep: 1,
                 totalSteps: 1,
@@ -178,6 +185,76 @@ describe('EvaluateApplicationModal', () => {
         'Should notifications be sent if this application violates any policies?'
       );
       expect(notificationsLabel).not.toBeInTheDocument();
+    });
+  });
+
+  describe('upload file', () => {
+    const someFile = [{ name: 'test file' }];
+    const str = JSON.stringify(someFile);
+    const blob = new Blob([str]);
+    const file = new File([blob], 'testFile.json', {
+      type: 'application/JSON',
+    });
+
+    const fakeFileList = (...files) => {
+      const retval = {
+        ...files,
+        item(i) {
+          return files[i];
+        },
+        length: files.length,
+      };
+
+      Object.setPrototypeOf(retval, FileList.prototype);
+
+      return retval;
+    };
+
+    const setFileUploadValue = (fileUpload, ...files) => {
+      fireEvent.change(fileUpload, {
+        target: {
+          files: fakeFileList(...files),
+        },
+      });
+    };
+
+    beforeEach(() => {
+      axiosMock.onGet(getCliStageUrl()).reply(200, [
+        { stageTypeId: 'develop', stageName: 'Develop' },
+        { stageTypeId: 'source', stageName: 'Source' },
+        { stageTypeId: 'build', stageName: 'Build' },
+        { stageTypeId: 'stage-release', stageName: 'Stage Release' },
+        { stageTypeId: 'release', stageName: 'Release' },
+        { stageTypeId: 'operate', stageName: 'Operate' },
+      ]);
+      axiosMock.onPost(getBundleUploadUrl('testApplicationPublicID', 'build', true)).reply((config) => {
+        const total = 1024; // mocked file size
+        const progress = 0.5;
+        if (config.onUploadProgress) {
+          config.onUploadProgress({ loaded: total * progress, total });
+        }
+        return new Promise(() => {});
+      });
+    });
+
+    it('renders uploaded file porcentage and file name', async () => {
+      renderComponent();
+
+      const fileUpload = await screen.findByTestId('evaluate-application-upload-file');
+      setFileUploadValue(fileUpload, file);
+      expect(screen.getByText('testFile.json')).toBeInTheDocument();
+
+      const select = await screen.findByRole('combobox');
+      await fireEvent.change(select, { target: { value: 'build' } });
+
+      const submitButton = await screen.findByRole('button', { name: 'Upload' });
+      expect(submitButton).toHaveTextContent('Upload');
+      await fireEvent.click(submitButton);
+
+      expect(await screen.getByRole('progressbar')).toBeVisible();
+      expect(screen.getByRole('dialog')).toHaveTextContent('Evaluate a File');
+      expect(screen.getByText('50%')).toBeVisible();
+      expect(screen.getByText('Uploading testFile.json file')).toBeVisible();
     });
   });
 

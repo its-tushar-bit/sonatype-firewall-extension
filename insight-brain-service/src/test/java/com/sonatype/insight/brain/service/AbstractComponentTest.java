@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import com.sonatype.insight.brain.MockCleaner;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
@@ -86,6 +87,9 @@ public class AbstractComponentTest
     extends BrainInjectedTest
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
+
+  @Rule
+  public MockCleaner mockCleaner = new MockCleaner();
 
   @Rule
   public DatamartUpdaterState datamartUpdaterState = new DatamartUpdaterState();

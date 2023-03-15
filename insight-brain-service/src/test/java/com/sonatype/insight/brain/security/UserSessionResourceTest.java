@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.HttpCookie;
 import java.nio.charset.StandardCharsets;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -173,6 +174,19 @@ public class UserSessionResourceTest
 
     assertThat(response.getHeader("Location")).startsWith(
         "https://idp-entity-id/v2/logout?client_id=rfCvE9qbgAu0ASBCCwe8QZugsAJzf1TK&returnTo=http://localhost");
+  }
+
+  @Test
+  public void testUrlDefaultsWhenAuth0LogoutSetButNoSamlConfig() throws Exception {
+    // Ensure the config is re-read
+    samlDeploymentManager.register();
+
+    tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
+
+    HttpResponse response = logout(null);
+
+    assertThat(response.getHeader("Location")).isNull();
+    assertThat(response.getStatusCode()).isEqualTo(Status.NO_CONTENT.getStatusCode());
   }
 
   private String auth0IdpXml() {

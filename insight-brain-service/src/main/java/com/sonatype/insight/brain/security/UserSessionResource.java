@@ -98,14 +98,17 @@ public class UserSessionResource
     }
 
     if (SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.isEnabled()) {
-      return Response.status(Status.NO_CONTENT).location(buildAuth0LogoutURi()).build();
+      SamlDeployment samlDeployment = samlDeploymentManager.get();
+
+      if (samlDeployment != null) {
+        return Response.status(Status.NO_CONTENT).location(buildAuth0LogoutURi(samlDeployment)).build();
+      }
     }
 
     return Response.status(Status.NO_CONTENT).build();
   }
 
-  private URI buildAuth0LogoutURi() {
-    SamlDeployment samlDeployment = samlDeploymentManager.get();
+  private URI buildAuth0LogoutURi(SamlDeployment samlDeployment) {
     IDP idp = samlDeployment.getIDP();
     String baseUri = idp.getEntityID().replaceAll("urn:", "");
     String clientId = extractClientIdFromLogoutUrl(idp);

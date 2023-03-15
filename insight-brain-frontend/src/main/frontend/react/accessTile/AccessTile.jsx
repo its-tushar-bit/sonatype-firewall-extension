@@ -106,7 +106,7 @@ export default function AccessTile() {
   };
 
   return (
-    <NxTile id="repositories-pill-access" data-testid="repositories_access">
+    <NxTile id="access-tile-pill-access" data-testid="repositories_access">
       <NxLoadWrapper retryHandler={() => accessActions.loadRoles()} loading={loading}>
         <NxTile.Header>
           <NxTile.Headings>

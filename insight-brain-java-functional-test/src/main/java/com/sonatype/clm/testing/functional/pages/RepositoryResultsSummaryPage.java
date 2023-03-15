@@ -33,7 +33,7 @@ public class RepositoryResultsSummaryPage
   }
 
   public static AccessTile accessTile() {
-    return new AccessTile("#repositories-pill-access");
+    return new AccessTile("#access-tile-pill-access");
   }
 
   public static NamespaceConfusionProtectionTile namespaceConfusionProtectionTile() {

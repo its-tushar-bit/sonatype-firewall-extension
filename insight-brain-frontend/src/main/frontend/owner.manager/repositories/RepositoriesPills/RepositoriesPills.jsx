@@ -14,7 +14,7 @@ const navList = [
   },
   {
     label: 'Access',
-    target: 'repositories-pill-access',
+    target: 'access-tile-pill-access',
     isDisplayed: true,
   },
 ];

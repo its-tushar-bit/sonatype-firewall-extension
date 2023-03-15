@@ -93,7 +93,7 @@ function routes($stateProvider) {
       },
     })
     .state('legal.componentOverviewByComponentIdentifier', {
-      url: '/legal/component/componentIdentifier/{componentIdentifier}',
+      url: '/legal/component/componentIdentifier/{componentIdentifier}/repository/{repositoryId}',
       component: 'componentLegalOverview',
       data: {
         title: 'Component - Legal Overview',

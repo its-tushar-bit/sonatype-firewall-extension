@@ -5,8 +5,11 @@
  */
 import axios from 'axios';
 import {
+  getComponentMultiLicensesUrl,
   getLicenseLegalComponentByComponentIdentifierUrl,
   getLicenseLegalComponentUrl,
+  getLicenseOverrideUrl,
+  getLicensesWithSyntheticFilterUrl,
   getOwnerHierarchyUrl,
 } from '../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
@@ -20,6 +23,16 @@ export const ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED = 'ADVANCED_LEGAL_LO
 export const ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED = 'ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED';
 export const ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED = 'ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED';
 
+export const ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED = 'ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED';
+export const ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED = 'ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED';
+export const ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FAILED = 'ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FAILED';
+
+export const ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT = 'ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT';
+export const ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS = 'ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS';
+export const ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE = 'ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE';
+export const ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS = 'ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS';
+export const ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS = 'ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS';
+
 const loadComponentRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
 const loadComponentFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
 const loadComponentFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_FAILED);
@@ -28,6 +41,16 @@ const loadAvailableScopesRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_
 const loadAvailableScopesFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
 const loadAvailableScopesFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED);
 
+const loadMultiLicensesRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED);
+const loadMultiLicensesFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED);
+const loadMultiLicensesFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FAILED);
+
+export const setLicenseFormComment = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT);
+export const setLicenseFormStatus = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS);
+export const setLicenseFormScope = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE);
+export const setLicenseFormLicenseIds = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS);
+export const setLicenseFormResetFormFields = noPayloadActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS);
+
 export function loadComponent(orgOrApp, ownerId, hash) {
   return (dispatch) => {
     dispatch(loadComponentRequested());
@@ -35,6 +58,8 @@ export function loadComponent(orgOrApp, ownerId, hash) {
     return axios
       .get(getLicenseLegalComponentUrl(orgOrApp, ownerId, hash))
       .then(({ data }) => {
+        const componentIdentifier = JSON.stringify(data.component.componentIdentifier);
+        dispatch(loadMultiLicenses(orgOrApp, ownerId, hash, componentIdentifier));
         dispatch(loadComponentFulfilled(data));
       })
       .catch((error) => {
@@ -42,13 +67,15 @@ export function loadComponent(orgOrApp, ownerId, hash) {
       });
   };
 }
-export function loadComponentByComponentIdentifier(componentIdentifier) {
+export function loadComponentByComponentIdentifier(componentIdentifier, repositoryId) {
   return (dispatch) => {
     dispatch(loadComponentRequested());
 
     return axios
       .get(getLicenseLegalComponentByComponentIdentifierUrl(componentIdentifier))
       .then(({ data }) => {
+        const componentIdentifier = JSON.stringify(data.component.componentIdentifier);
+        dispatch(loadMultiLicensesByRepositoryId(componentIdentifier, repositoryId));
         dispatch(loadComponentFulfilled(data));
       })
       .catch((error) => {
@@ -71,6 +98,58 @@ export function loadAvailableScopes(ownerType, ownerId) {
       })
       .catch((error) => {
         dispatch(loadAvailableScopesFailed(error));
+      });
+  };
+}
+
+export function loadMultiLicenses(orgOrApp, ownerId, hash, componentIdentifier) {
+  return (dispatch) => {
+    dispatch(loadMultiLicensesRequested());
+    const promises = [
+      axios.get(getLicensesWithSyntheticFilterUrl()),
+      axios.get(
+        getComponentMultiLicensesUrl({
+          clientType: 'ci',
+          ownerType: orgOrApp,
+          ownerId,
+          componentIdentifier,
+        })
+      ),
+      axios.get(getLicenseOverrideUrl(orgOrApp, ownerId, componentIdentifier)),
+    ];
+
+    return Promise.all(promises)
+      .then((results) => {
+        dispatch(loadMultiLicensesFulfilled(results));
+      })
+      .catch((error) => {
+        dispatch(loadMultiLicensesFailed(error));
+      });
+  };
+}
+
+export function loadMultiLicensesByRepositoryId(componentIdentifier, repositoryId) {
+  return (dispatch) => {
+    dispatch(loadMultiLicensesRequested());
+    const promises = [
+      axios.get(getLicensesWithSyntheticFilterUrl()),
+      axios.get(
+        getComponentMultiLicensesUrl({
+          clientType: 'ci',
+          ownerType: 'repository',
+          ownerId: repositoryId,
+          componentIdentifier,
+        })
+      ),
+      axios.get(getLicenseOverrideUrl('repository', repositoryId, componentIdentifier)),
+    ];
+
+    return Promise.all(promises)
+      .then((results) => {
+        dispatch(loadMultiLicensesFulfilled(results));
+      })
+      .catch((error) => {
+        dispatch(loadMultiLicensesFailed(error));
       });
   };
 }

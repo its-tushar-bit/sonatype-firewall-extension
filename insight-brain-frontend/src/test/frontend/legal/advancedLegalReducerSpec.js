@@ -12,6 +12,14 @@ import {
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FAILED,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS,
 } from '../../../main/frontend/legal/advancedLegalActions.js';
 import { pick } from 'ramda';
 import { TEXT_BASED_OBLIGATIONS } from '../../../main/frontend/legal/advancedLegalConstants';
@@ -33,6 +41,23 @@ describe('advancedLegalReducer', function () {
 
       expect(newState.availableScopes.loading).toBeFalsy();
       expect(newState.availableScopes.error).toBeNull();
+
+      expect(newState.multiLicenses.loading).toBeFalsy();
+      expect(newState.multiLicenses.error).toBeNull();
+
+      expect(newState.editLicensesForm.comment).toEqual({
+        isPristine: true,
+        value: '',
+        trimmedValue: '',
+        validationErrors: null,
+      });
+      expect(newState.editLicensesForm.licenseIds).toEqual([]);
+      expect(newState.editLicensesForm.status).toBeNull();
+      expect(newState.editLicensesForm.isDirty).toBeFalsy();
+      expect(newState.editLicensesForm.submitError).toBeNull();
+      expect(newState.editLicensesForm.submitMaskState).toBeNull();
+      expect(newState.editLicensesForm.fieldsPristineState).toBeNull();
+      expect(newState.editLicensesForm.showUnsavedChangesModal).toBeFalsy();
     });
   });
 
@@ -404,6 +429,226 @@ describe('advancedLegalReducer', function () {
     });
   });
 
+  describe('ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED action', function () {
+    it('sets in multiLicenses loading to true and error to null', function () {
+      const newState = reduce(undefined, {
+        type: ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED,
+      });
+
+      const { multiLicenses } = newState;
+      expect(multiLicenses.loading).toBeTruthy();
+      expect(multiLicenses.error).toBeNull();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED action', function () {
+    it('sets multiLicenses loading to false, error to null, and merges the payload with multiLicenses', function () {
+      const state = {
+        multiLicenses: {
+          loading: true,
+          error: null,
+        },
+      };
+      const allLicensesPayload = {
+        data: [
+          { id: 'id1', shortDisplayName: 'displayName1' },
+          { id: 'id2', shortDisplayName: 'displayName2' },
+        ],
+      };
+      const multiLicensesPayload = {
+        data: {
+          multiLicense: 'multiLicense',
+        },
+      };
+      const licenseOverridesByOwnerPayload = [
+        {
+          licenseOverride: {
+            status: 'status',
+            comment: 'comment',
+            licenseIds: 'licenseIds',
+          },
+        },
+      ];
+      const licenseOverridePayload = {
+        data: {
+          licenseOverridesByOwner: licenseOverridesByOwnerPayload,
+        },
+      };
+      const payload = [allLicensesPayload, multiLicensesPayload, licenseOverridePayload];
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED,
+        payload,
+      });
+
+      const { multiLicenses } = newState;
+      expect(multiLicenses.loading).toBeFalsy();
+      expect(multiLicenses.error).toBeNull();
+      expect(newState.multiLicenses).toEqual({
+        ...pick(['loading', 'error'], newState.multiLicenses),
+        multiLicense: 'multiLicense',
+        licenseOverride: licenseOverridesByOwnerPayload,
+        allLicenses: [
+          { id: 'id1', displayName: 'displayName1' },
+          { id: 'id2', displayName: 'displayName2' },
+        ],
+      });
+      expect(newState.editLicensesForm).toEqual({
+        licenseIds: [],
+        isDirty: false,
+        scope: licenseOverridesByOwnerPayload[0],
+        status: 'status',
+        comment: { isPristine: true, value: 'comment', trimmedValue: 'comment', validationErrors: null },
+        fieldsPristineState: {
+          comment: '',
+          scope: licenseOverridesByOwnerPayload[0],
+          status: 'status',
+          licenseIds: [],
+        },
+      });
+    });
+
+    it('sets licenseIds correctly if the status is SELECTED', function () {
+      const state = {
+        multiLicenses: {
+          loading: true,
+          error: null,
+        },
+      };
+      const allLicensesPayload = {
+        data: [
+          { id: 'id1', shortDisplayName: 'displayName1' },
+          { id: 'id2', shortDisplayName: 'displayName2' },
+        ],
+      };
+      const multiLicensesPayload = {
+        data: {
+          multiLicense: 'multiLicense',
+        },
+      };
+      const licenseOverridesByOwnerPayload = [
+        {
+          licenseOverride: {
+            status: 'SELECTED',
+            comment: 'comment',
+            licenseIds: 'licenseIds',
+          },
+        },
+      ];
+      const licenseOverridePayload = {
+        data: {
+          licenseOverridesByOwner: licenseOverridesByOwnerPayload,
+        },
+      };
+      const payload = [allLicensesPayload, multiLicensesPayload, licenseOverridePayload];
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED,
+        payload,
+      });
+
+      const { multiLicenses } = newState;
+      expect(multiLicenses.loading).toBeFalsy();
+      expect(multiLicenses.error).toBeNull();
+      expect(newState.multiLicenses).toEqual({
+        ...pick(['loading', 'error'], newState.multiLicenses),
+        multiLicense: 'multiLicense',
+        licenseOverride: licenseOverridesByOwnerPayload,
+        allLicenses: [
+          { id: 'id1', displayName: 'displayName1' },
+          { id: 'id2', displayName: 'displayName2' },
+        ],
+      });
+      expect(newState.editLicensesForm).toEqual({
+        licenseIds: 'licenseIds',
+        isDirty: false,
+        scope: licenseOverridesByOwnerPayload[0],
+        status: 'SELECTED',
+        comment: { isPristine: true, value: 'comment', trimmedValue: 'comment', validationErrors: null },
+        fieldsPristineState: {
+          comment: '',
+          scope: licenseOverridesByOwnerPayload[0],
+          status: 'SELECTED',
+          licenseIds: 'licenseIds',
+        },
+      });
+    });
+
+    it('sets data correctly if licenseOverride is null', function () {
+      const state = {
+        multiLicenses: {
+          loading: true,
+          error: null,
+        },
+      };
+      const allLicensesPayload = {
+        data: [
+          { id: 'id1', shortDisplayName: 'displayName1' },
+          { id: 'id2', shortDisplayName: 'displayName2' },
+        ],
+      };
+      const multiLicensesPayload = {
+        data: {
+          multiLicense: 'multiLicense',
+        },
+      };
+      const licenseOverridePayload = {
+        data: {
+          licenseOverridesByOwner: null,
+        },
+      };
+      const payload = [allLicensesPayload, multiLicensesPayload, licenseOverridePayload];
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED,
+        payload,
+      });
+
+      const { multiLicenses } = newState;
+      expect(multiLicenses.loading).toBeFalsy();
+      expect(multiLicenses.error).toBeNull();
+      expect(newState.multiLicenses).toEqual({
+        ...pick(['loading', 'error'], newState.multiLicenses),
+        multiLicense: 'multiLicense',
+        licenseOverride: null,
+        allLicenses: [
+          { id: 'id1', displayName: 'displayName1' },
+          { id: 'id2', displayName: 'displayName2' },
+        ],
+      });
+      expect(newState.editLicensesForm).toEqual({
+        licenseIds: [],
+        isDirty: false,
+        scope: null,
+        status: null,
+        comment: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+        fieldsPristineState: {
+          comment: '',
+          scope: null,
+          status: null,
+          licenseIds: [],
+        },
+      });
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FAILED action', function () {
+    it('sets in multiLicenses loading to false and error to payload', function () {
+      const state = {
+        multiLicenses: {
+          loading: true,
+          error: null,
+        },
+      };
+      const errorTest = 'Error test';
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FAILED,
+        payload: errorTest,
+      });
+
+      const { multiLicenses } = newState;
+      expect(multiLicenses.loading).toBeFalsy();
+      expect(multiLicenses.error).toBe(errorTest);
+    });
+  });
+
   describe('ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED action', function () {
     it('sets in availableScopes loading to true and error to null', function () {
       const newState = reduce(undefined, {
@@ -513,6 +758,126 @@ describe('advancedLegalReducer', function () {
       expect(newState.component.component.licenseLegalData.componentCopyrightId).toBe('componentCopyrightId');
       expect(newState.component.component.licenseLegalData.componentCopyrightScopeOwnerId).toBe('owner');
       expect(newState.component.component.licenseLegalData.copyrights).toBe(copyrightOverrides);
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE action', function () {
+    it('sets scope to passed in payload', function () {
+      const state = {
+        editLicensesForm: {
+          comment: 'comment',
+          status: 'status',
+          scope: 'scope',
+          licenseIds: 'licenseIds',
+          fieldsPristineState: {
+            foo: 'bar',
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE,
+        payload: 'payload',
+      });
+
+      const { editLicensesForm } = newState;
+      expect(editLicensesForm.scope).toEqual('payload');
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS action', function () {
+    it('sets status to passed in payload', function () {
+      const state = {
+        editLicensesForm: {
+          comment: 'comment',
+          status: 'status',
+          scope: 'scope',
+          licenseIds: 'licenseIds',
+          fieldsPristineState: {
+            foo: 'bar',
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS,
+        payload: 'payload',
+      });
+
+      const { editLicensesForm } = newState;
+      expect(editLicensesForm.status).toEqual('payload');
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT action', function () {
+    it('sets comment to passed in payload', function () {
+      const state = {
+        editLicensesForm: {
+          comment: 'comment',
+          status: 'status',
+          scope: 'scope',
+          licenseIds: 'licenseIds',
+          fieldsPristineState: {
+            foo: 'bar',
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT,
+        payload: 'payload',
+      });
+
+      const { editLicensesForm } = newState;
+      expect(editLicensesForm.comment).toEqual({
+        isPristine: false,
+        value: 'payload',
+        trimmedValue: 'payload',
+        validationErrors: null,
+      });
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS action', function () {
+    it('sets licenseIds to passed in payload', function () {
+      const state = {
+        editLicensesForm: {
+          comment: 'comment',
+          status: 'status',
+          scope: 'scope',
+          licenseIds: 'licenseIds',
+          fieldsPristineState: {
+            foo: 'bar',
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS,
+        payload: 'payload',
+      });
+
+      const { editLicensesForm } = newState;
+      expect(editLicensesForm.licenseIds).toEqual('payload');
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS action', function () {
+    it('resets form fields', function () {
+      const newState = reduce(undefined, {
+        type: ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS,
+      });
+
+      const resetState = {
+        scope: null,
+        comment: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+        licenseIds: [],
+        status: null,
+        isDirty: false,
+        submitError: null,
+        submitMaskState: null,
+        fieldsPristineState: null,
+        showUnsavedChangesModal: false,
+      };
+
+      const { editLicensesForm } = newState;
+      expect(editLicensesForm).toEqual(resetState);
     });
   });
 });

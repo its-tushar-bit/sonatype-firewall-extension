@@ -52,6 +52,10 @@ public class EditLicensesPopover
     return new Button(".nx-form__submit-btn");
   }
 
+  public Button cancelButton() {
+    return new Button(".nx-form__cancel-btn");
+  }
+
   public SelenideElement popoverTitle() {
     return child("#edit-licenses-popover-header");
   }

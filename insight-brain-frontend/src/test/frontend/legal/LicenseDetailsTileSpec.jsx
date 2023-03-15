@@ -5,8 +5,8 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
-import LicensesModalContainer from '../../../main/frontend/legal/license/LicensesModalContainer';
 import { NxAccordion } from '@sonatype/react-shared-components';
+import EditLicensesPopoverContainer from 'MainRoot/legal/license/EditLicensesPopover/EditLicensesPopoverContainer';
 
 describe('LicenseDetailsTile component', function () {
   let getShallowComponent, getMountedComponent, $state, minimalProps, setShowLicensesModalMock;
@@ -78,12 +78,12 @@ describe('LicenseDetailsTile component', function () {
 
   it('does not show the modal if showLicensesModal is false', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find(LicensesModalContainer)).not.toExist();
+    expect(wrapper.find(EditLicensesPopoverContainer)).not.toExist();
   });
 
   it('does not show the modal if showLicensesModal is true', function () {
     const wrapper = getShallowComponent({ showLicensesModal: true });
-    expect(wrapper.find(LicensesModalContainer)).toExist();
+    expect(wrapper.find(EditLicensesPopoverContainer)).toExist();
   });
 
   it('renders the given licenses', function () {

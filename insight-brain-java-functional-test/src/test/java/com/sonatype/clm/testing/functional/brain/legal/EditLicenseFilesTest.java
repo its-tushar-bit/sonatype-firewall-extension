@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
@@ -108,7 +109,8 @@ public class EditLicenseFilesTest
 
   @Test
   public void testLicensesTile_InitialStateByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier, repository.getId()));
     doTestLicensesTile_InitialState();
   }
 
@@ -131,7 +133,8 @@ public class EditLicenseFilesTest
 
   @Test
   public void doTestLicensesModal_InitialStateByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier, repository.getId()));
     doTestLicensesModal_InitialState(1);
   }
 
@@ -167,7 +170,8 @@ public class EditLicenseFilesTest
 
   @Test
   public void testAddLicenseByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier, repository.getId()));
     doTestAddLicense("custom license by component identifier");
   }
 
@@ -193,7 +197,8 @@ public class EditLicenseFilesTest
 
   @Test
   public void testChangeLicenseTextByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier, repository.getId()));
     doTestChangeLicenseText("value by component identifier");
   }
 
@@ -224,7 +229,8 @@ public class EditLicenseFilesTest
 
   @Test
   public void testChangeLicenseStatusByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier, repository.getId()));
     doTestChangeLicenseStatus();
   }
 
@@ -261,7 +267,8 @@ public class EditLicenseFilesTest
 
   @Test
   public void testCancelByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier, repository.getId()));
     doTestCancel();
   }
 

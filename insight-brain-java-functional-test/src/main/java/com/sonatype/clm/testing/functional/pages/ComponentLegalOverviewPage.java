@@ -34,11 +34,12 @@ public class ComponentLegalOverviewPage
   }
 
   public static String urlByComponentIdentifier(
-      ComponentIdentifier componentIdentifier) throws UnsupportedEncodingException
+      ComponentIdentifier componentIdentifier, String repositoryId) throws UnsupportedEncodingException
   {
     String componentIdentifierString =
         URLEncoder.encode(ComponentIdentifierAdapter.toJson(componentIdentifier), StandardCharsets.UTF_8.name());
-    return BaseUrl.resolvePageUrl(String.format("/legal/component/componentIdentifier/%s", componentIdentifierString));
+    return BaseUrl.resolvePageUrl(String.format("/legal/component/componentIdentifier/%s/repository/%s",
+        componentIdentifierString, repositoryId));
   }
 
   public static String url(Owner owner, String componentHash) {

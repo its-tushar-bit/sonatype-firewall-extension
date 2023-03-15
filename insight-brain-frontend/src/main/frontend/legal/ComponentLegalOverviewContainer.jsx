@@ -24,12 +24,12 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides, originalSo
     obligations: component.component ? component.component.licenseLegalData.obligations : null,
     showNoticesModal: component.component ? component.component.licenseLegalData.showNoticesModal : false,
     showLicenseFilesModal: component.component ? component.component.licenseLegalData.showLicenseFilesModal : false,
-    showLicensesModal: component.component ? component.component.licenseLegalData.showLicensesModal : false,
+    showLicensesModal: component?.component?.licenseLegalData?.showLicensesModal || false,
     noticeFiles: component.component ? component.component.licenseLegalData.noticeFiles : null,
     licenseFiles: component.component ? component.component.licenseLegalData.licenseFiles : null,
     sourceLinks: component.component ? component.component.licenseLegalData.sourceLinks : null,
     ...pick(
-      ['hash', 'organizationId', 'applicationPublicId', 'stageTypeId', 'componentIdentifier'],
+      ['hash', 'organizationId', 'applicationPublicId', 'stageTypeId', 'componentIdentifier', 'repositoryId'],
       router.currentParams
     ),
     ...pick(['prevState', 'prevParams'], router),

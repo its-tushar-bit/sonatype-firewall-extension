@@ -33,6 +33,7 @@ export default function ComponentDetailsLegalTab() {
     dispatch(
       stateGo('legal.componentOverviewByComponentIdentifier', {
         componentIdentifier,
+        repositoryId,
       })
     );
   };

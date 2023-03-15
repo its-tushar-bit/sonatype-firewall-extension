@@ -42,7 +42,8 @@ public class ComponentInfoResource
 
   public static final String LICENSES_PATH = COMPONENT_DETAILS_PATH + "/licenses";
 
-  public static final String MULTI_LICENSES_PATH = COMPONENT_DETAILS_PATH + "/multiLicenses";
+  public static final String MULTI_LICENSES_PATH =
+      "{ownerType: application|repository|organization}/{ownerId}/multiLicenses";
 
   public static final String VULNERABILITIES_PATH = COMPONENT_DETAILS_PATH + "/vulnerabilities";
 

@@ -17,7 +17,7 @@ import {
   useToggle,
 } from '@sonatype/react-shared-components';
 import { statusTagPropsMap } from './advancedLegalConstants';
-import LicensesModalContainer from './license/LicensesModalContainer';
+import EditLicensesPopoverContainer from 'MainRoot/legal/license/EditLicensesPopover/EditLicensesPopoverContainer';
 
 export default function LicenseDetailsTile(props) {
   const {
@@ -110,7 +110,7 @@ export default function LicenseDetailsTile(props) {
 
   return (
     <Fragment>
-      {showLicensesModal && <LicensesModalContainer />}
+      {showLicensesModal && <EditLicensesPopoverContainer />}
       <NxAccordion open={open} onToggle={toggleOpen} id="license-details-tile">
         <NxAccordion.Header>
           <NxAccordion.Title>Licenses</NxAccordion.Title>

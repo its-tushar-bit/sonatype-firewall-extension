@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
@@ -109,8 +110,8 @@ public class EditNoticesTest
   }
 
   private void loadByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(
-            ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier, repository.getId()));
   }
 
   private void doTestNoticesTile_InitialState() {

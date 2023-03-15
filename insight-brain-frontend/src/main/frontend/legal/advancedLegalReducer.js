@@ -11,12 +11,25 @@ import {
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FAILED,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS,
+  ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS,
 } from './advancedLegalActions';
 import { ACTIONABLE_OBLIGATIONS, TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
 import { COPYRIGHT_OVERRIDE_SAVE_FULFILLED } from './copyright/copyrightOverrideFormActions';
-import { lensPath, over } from 'ramda';
+import { equals, lensPath, map, over } from 'ramda';
 import { advancedLegalObligationReducerActionMap } from './obligation/advancedLegalObligationReducer';
 import { advancedLegalFileReducerActionMap } from './files/advancedLegalFileReducer';
+import {
+  initialState as initialStateHelper,
+  userInput,
+} from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import { isOverriddenOrSelected } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LegalTabUtils';
 
 const initialState = {
   component: {
@@ -26,6 +39,21 @@ const initialState = {
   availableScopes: {
     loading: false,
     error: null,
+  },
+  multiLicenses: {
+    loading: false,
+    error: null,
+  },
+  editLicensesForm: {
+    scope: null,
+    comment: Object.freeze(initialStateHelper('')),
+    licenseIds: [],
+    status: null,
+    isDirty: false,
+    submitError: null,
+    submitMaskState: null,
+    fieldsPristineState: null,
+    showUnsavedChangesModal: false,
   },
 };
 
@@ -202,6 +230,67 @@ function loadAvailableScopesFailed(payload, state) {
   };
 }
 
+function loadMultiLicensesRequested(_, state) {
+  return {
+    ...state,
+    multiLicenses: {
+      ...state.multiLicenses,
+      loading: true,
+      error: null,
+    },
+  };
+}
+
+function loadMultiLicensesFulfilled(payload, state) {
+  const allLicenses = map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName }), payload[0].data);
+  const multiLicenses = payload[1].data;
+  const licenseOverride = payload[2].data.licenseOverridesByOwner;
+  const { scope, licenseIds, status, comment } = getInitialFormFieldsFromLicenseOverride(licenseOverride);
+  return {
+    ...state,
+    multiLicenses: {
+      loading: false,
+      error: null,
+      ...multiLicenses,
+      licenseOverride,
+      allLicenses,
+    },
+    editLicensesForm: {
+      licenseIds,
+      isDirty: false,
+      scope,
+      status,
+      comment,
+      fieldsPristineState: {
+        comment: '',
+        scope,
+        status,
+        licenseIds,
+      },
+    },
+  };
+}
+
+function loadMultiLicensesFailed(payload, state) {
+  return {
+    ...state,
+    multiLicenses: {
+      loading: false,
+      error: payload,
+    },
+  };
+}
+
+const getInitialFormFieldsFromLicenseOverride = (licenseOverride) => {
+  const scope = licenseOverride ? licenseOverride[0] : null;
+  return {
+    scope,
+    status: scope?.licenseOverride?.status ?? null,
+    licenseIds: isOverriddenOrSelected(scope?.licenseOverride?.status) ? scope?.licenseOverride?.licenseIds : [],
+    comment: initialStateHelper(scope?.licenseOverride?.comment ?? ''),
+  };
+};
+
 function saveCopyrightOverrideFulfilled(payload, state) {
   return over(
     lensPath(['component', 'component', 'licenseLegalData']),
@@ -217,6 +306,78 @@ function saveCopyrightOverrideFulfilled(payload, state) {
   );
 }
 
+/**
+ * Checks if a form is dirty by comparing its current values with the pristine fields
+ * @param {State} state the state to check if it's dirty
+ */
+const isFormDirty = (editLicensesFormState) => {
+  const { comment, status, scope, licenseIds, fieldsPristineState } = editLicensesFormState;
+
+  const currentFields = {
+    status,
+    scope,
+    comment: comment.value,
+    licenseIds,
+  };
+
+  return !equals(fieldsPristineState, currentFields);
+};
+
+const setIsDirtyFlag = (state) => ({
+  ...state,
+  editLicensesForm: {
+    ...state.editLicensesForm,
+    isDirty: isFormDirty(state.editLicensesForm),
+  },
+});
+
+const setLicenseFormScope = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    editLicensesForm: {
+      ...state.editLicensesForm,
+      scope: payload,
+    },
+  });
+
+const setLicenseFormStatus = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    editLicensesForm: {
+      ...state.editLicensesForm,
+      status: payload,
+    },
+  });
+
+const setLicenseFormComment = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    editLicensesForm: {
+      ...state.editLicensesForm,
+      comment: userInput(null, payload),
+    },
+  });
+
+const setLicenseFormLicenseIds = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    editLicensesForm: {
+      ...state.editLicensesForm,
+      licenseIds: payload,
+    },
+  });
+
+const resetEditLicensesFormFields = (_, state) => ({
+  ...state,
+  editLicensesForm: {
+    ...state.editLicensesForm,
+    ...getInitialFormFieldsFromLicenseOverride(state.multiLicenses.licenseOverride),
+    isDirty: false,
+    submitError: null,
+    showUnsavedChangesModal: false,
+  },
+});
+
 const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED]: loadComponentRequested,
   [ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED]: loadComponentFulfilled,
@@ -224,6 +385,14 @@ const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED]: loadAvailableScopesRequested,
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED]: loadAvailableScopesFulfilled,
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED]: loadAvailableScopesFailed,
+  [ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED]: loadMultiLicensesRequested,
+  [ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED]: loadMultiLicensesFulfilled,
+  [ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FAILED]: loadMultiLicensesFailed,
+  [ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE]: setLicenseFormScope,
+  [ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS]: setLicenseFormStatus,
+  [ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT]: setLicenseFormComment,
+  [ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS]: setLicenseFormLicenseIds,
+  [ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS]: resetEditLicensesFormFields,
   [COPYRIGHT_OVERRIDE_SAVE_FULFILLED]: saveCopyrightOverrideFulfilled,
   ...advancedLegalObligationReducerActionMap,
   ...advancedLegalFileReducerActionMap,

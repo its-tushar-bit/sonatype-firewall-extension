@@ -5,8 +5,11 @@
  */
 import axios from 'axios';
 import {
+  getComponentMultiLicensesUrl,
   getLicenseLegalComponentByComponentIdentifierUrl,
   getLicenseLegalComponentUrl,
+  getLicenseOverrideUrl,
+  getLicensesWithSyntheticFilterUrl,
   getOwnerHierarchyUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import {
@@ -19,6 +22,7 @@ import {
   loadAvailableScopes,
   loadComponent,
   loadComponentByComponentIdentifier,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED,
 } from '../../../main/frontend/legal/advancedLegalActions';
 import { pick } from 'ramda';
 
@@ -43,19 +47,44 @@ describe('advancedLegalActions', function () {
 
     it('dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED action with applications', function (done) {
       const componentInfo = {
+        component: {
+          componentIdentifier: 'componentIdentifier',
+        },
+      };
+      const multiLicenseInfo = {
         foo: 'bar',
+      };
+      const licenseInfo = {
+        foo2: 'bar2',
+      };
+      const overrideInfo = {
+        foo3: 'bar3',
       };
       mockAxiosCalls({
         get: {
-          [getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')]: Promise.resolve({ data: componentInfo }),
+          [getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')]: Promise.resolve({
+            data: componentInfo,
+          }),
+          [getLicensesWithSyntheticFilterUrl()]: Promise.resolve(licenseInfo),
+          [getComponentMultiLicensesUrl({
+            clientType: 'ci',
+            ownerType: 'orgOrApp',
+            ownerId: 'ownerId',
+            componentIdentifier: JSON.stringify('componentIdentifier'),
+          })]: Promise.resolve(multiLicenseInfo),
+          [getLicenseOverrideUrl('orgOrApp', 'ownerId', JSON.stringify('componentIdentifier'))]: Promise.resolve(
+            overrideInfo
+          ),
         },
       });
 
       store.dispatch(loadComponent('orgOrApp', 'ownerId', 'hash')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-        expect(actions[1].payload).toBe(componentInfo);
+        expect(actions.length).toBe(4);
+        expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+        expect(actions[2].payload).toBe(componentInfo);
+        expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED);
+        expect(actions[3].payload).toEqual([licenseInfo, multiLicenseInfo, overrideInfo]);
         done();
       });
     });
@@ -95,21 +124,44 @@ describe('advancedLegalActions', function () {
 
     it('dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED action with applications', function (done) {
       const componentInfo = {
+        component: {
+          componentIdentifier: 'componentIdentifier',
+        },
+      };
+      const multiLicenseInfo = {
         foo: 'bar',
+      };
+      const licenseInfo = {
+        foo2: 'bar2',
+      };
+      const overrideInfo = {
+        foo3: 'bar3',
       };
       mockAxiosCalls({
         get: {
           [getLicenseLegalComponentByComponentIdentifierUrl('componentIdentifier')]: Promise.resolve({
             data: componentInfo,
           }),
+          [getLicensesWithSyntheticFilterUrl()]: Promise.resolve(licenseInfo),
+          [getComponentMultiLicensesUrl({
+            clientType: 'ci',
+            ownerType: 'repository',
+            ownerId: 'repositoryId',
+            componentIdentifier: JSON.stringify('componentIdentifier'),
+          })]: Promise.resolve(multiLicenseInfo),
+          [getLicenseOverrideUrl('repository', 'repositoryId', JSON.stringify('componentIdentifier'))]: Promise.resolve(
+            overrideInfo
+          ),
         },
       });
 
-      store.dispatch(loadComponentByComponentIdentifier('componentIdentifier')).then(() => {
+      store.dispatch(loadComponentByComponentIdentifier('componentIdentifier', 'repositoryId')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-        expect(actions[1].payload).toBe(componentInfo);
+        expect(actions.length).toBe(4);
+        expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+        expect(actions[2].payload).toBe(componentInfo);
+        expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED);
+        expect(actions[3].payload).toEqual([licenseInfo, multiLicenseInfo, overrideInfo]);
         done();
       });
     });

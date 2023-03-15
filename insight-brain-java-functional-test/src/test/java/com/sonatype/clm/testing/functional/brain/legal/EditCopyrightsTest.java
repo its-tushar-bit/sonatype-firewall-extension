@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
@@ -101,7 +102,8 @@ public class EditCopyrightsTest
   @Test
   public void testCopyrightsValueByComponentIdentifier() throws UnsupportedEncodingException {
     init("02744a3ac66344569f0b", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar"), "2");
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId, repository.getId()));
     doTestCopyrightsValue();
   }
 
@@ -130,7 +132,8 @@ public class EditCopyrightsTest
   @Test
   public void modifyCopyrightsValueByComponentIdentifier() throws UnsupportedEncodingException {
     init("02744a3ac66344569f0b", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar"), "2");
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId, repository.getId()));
     doModifyCopyrightsValue();
   }
 
@@ -168,7 +171,8 @@ public class EditCopyrightsTest
   @Test
   public void modifyCopyrightStateByComponentIdentifier() throws UnsupportedEncodingException {
     init("02744a3ac66344569f0b", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar"), "2");
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId, repository.getId()));
     doModifyCopyrightState();
   }
 
@@ -205,7 +209,8 @@ public class EditCopyrightsTest
   @Test
   public void addCopyrightByComponentIdentifier() throws UnsupportedEncodingException {
     init("02744a3ac66344569f0b", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar"), "2");
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId, repository.getId()));
     doAddCopyright();
   }
 
@@ -246,7 +251,8 @@ public class EditCopyrightsTest
   @Test
   public void modifyCopyrightAndCancelByComponentIdentifier() throws UnsupportedEncodingException {
     init("02744a3ac66344569f0b", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar"), "2");
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId, repository.getId()));
     doModifyCopyrightAndCancel();
   }
 
@@ -285,7 +291,8 @@ public class EditCopyrightsTest
   @Test
   public void modifyObligationStatusByComponentIdentifier() throws UnsupportedEncodingException {
     init("02744a3ac66344569f0b", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar"), "2");
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId));
+    Repository repository = tempEntity.newRepository();
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId, repository.getId()));
     doModifyObligationStatus();
   }
 

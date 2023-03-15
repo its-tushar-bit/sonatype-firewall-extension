@@ -28,6 +28,8 @@ import {
 import {
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED,
 } from 'MainRoot/legal/advancedLegalActions';
 
 describe('originalSourcesFormActions', function () {
@@ -169,14 +171,7 @@ describe('originalSourcesFormActions', function () {
               },
             }),
             [getLicenseLegalComponentUrl('organization', 'org', 'componentHash')]: Promise.resolve({
-              data: {
-                componentCopyrightDTO: {
-                  data: 'dataGET',
-                  lastUpdatedByUsername: 'admin',
-                  lastUpdatedAt: 1618873200000,
-                },
-                ownerId: 'realOwner',
-              },
+              data: { component: { componentIdentifier: 'componentIdentifier' } },
             }),
             [getComponentObligationUrl(
               'organization',
@@ -222,11 +217,12 @@ describe('originalSourcesFormActions', function () {
             expect(axios.get).toHaveBeenCalledWith(
               '/api/v2/licenseLegalMetadata/organization/org/component?hash=componentHash'
             );
-            expect(actions.length).toBe(5);
+            expect(actions.length).toBe(6);
             expect(actions[1].type).toBe(ORIGINAL_SOURCES_OVERRIDE_SAVE_FULFILLED);
             expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
-            expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-            expect(actions[4].type).toBe(ORIGINAL_SOURCES_OVERRIDE_SUBMIT_MASK_DONE);
+            expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED);
+            expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+            expect(actions[5].type).toBe(ORIGINAL_SOURCES_OVERRIDE_SUBMIT_MASK_DONE);
             done();
           });
 
@@ -276,14 +272,7 @@ describe('originalSourcesFormActions', function () {
             },
           }),
           [getLicenseLegalComponentUrl('organization', 'org', 'componentHash')]: Promise.resolve({
-            data: {
-              componentCopyrightDTO: {
-                data: 'dataGET',
-                lastUpdatedByUsername: 'admin',
-                lastUpdatedAt: 1618873200000,
-              },
-              ownerId: 'realOwner',
-            },
+            data: { component: { componentIdentifier: 'componentIdentifier' } },
           }),
         },
       });
@@ -310,11 +299,12 @@ describe('originalSourcesFormActions', function () {
           expect(axios.get).toHaveBeenCalledWith(
             '/api/v2/licenseLegalMetadata/organization/org/component?hash=componentHash'
           );
-          expect(actions.length).toBe(5);
+          expect(actions.length).toBe(6);
           expect(actions[1].type).toBe(ORIGINAL_SOURCES_OVERRIDE_SAVE_FULFILLED);
           expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
-          expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-          expect(actions[4].type).toBe(ORIGINAL_SOURCES_OVERRIDE_SUBMIT_MASK_DONE);
+          expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED);
+          expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+          expect(actions[5].type).toBe(ORIGINAL_SOURCES_OVERRIDE_SUBMIT_MASK_DONE);
           done();
         });
 
@@ -472,14 +462,7 @@ describe('originalSourcesFormActions', function () {
         },
         get: {
           [getLicenseLegalComponentUrl(orgOrApp, persistedAtScope, 'componentHash')]: Promise.resolve({
-            data: {
-              componentCopyrightDTO: {
-                data: 'dataGET',
-                lastUpdatedByUsername: 'admin',
-                lastUpdatedAt: 1618873200000,
-              },
-              ownerId: 'realOwner',
-            },
+            data: { component: { componentIdentifier: 'componentIdentifier' } },
           }),
           [getComponentObligationUrl(
             orgOrApp,
@@ -520,12 +503,13 @@ describe('originalSourcesFormActions', function () {
           expect(axios.get).toHaveBeenCalledWith(
             '/api/v2/licenseLegalMetadata/' + orgOrApp + '/' + persistedAtScope + '/component?hash=componentHash'
           );
-          expect(actions.length).toBe(6);
+          expect(actions.length).toBe(7);
           expect(actions[1].type).toBe(ORIGINAL_SOURCES_OVERRIDE_SAVE_FULFILLED);
           expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
           expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
-          expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-          expect(actions[5].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+          expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED);
+          expect(actions[5].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+          expect(actions[6].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
           done();
         });
 
@@ -624,14 +608,7 @@ describe('originalSourcesFormActions', function () {
             },
           }),
           [getLicenseLegalComponentUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentHash')]: Promise.resolve({
-            data: {
-              componentCopyrightDTO: {
-                data: 'dataGET',
-                lastUpdatedByUsername: 'admin',
-                lastUpdatedAt: 1618873200000,
-              },
-              ownerId: 'realOwner',
-            },
+            data: { component: { componentIdentifier: 'componentIdentifier' } },
           }),
           [getComponentObligationUrl(
             'organization',
@@ -689,14 +666,15 @@ describe('originalSourcesFormActions', function () {
                 '/component/obligation?componentIdentifier=%22componentIdentifier%22' +
                 '&obligationName=Required%20Disclosure%20of%20Original%20Source%20Code%20with%20Distribution'
             );
-            expect(actions.length).toBe(7);
+            expect(actions.length).toBe(9);
             expect(actions[0].type).toBe(ORIGINAL_SOURCES_OVERRIDE_SAVE_REQUESTED);
             expect(actions[1].type).toBe(ORIGINAL_SOURCES_OVERRIDE_SAVE_FULFILLED);
             expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
             expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
-            expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-            expect(actions[5].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-            expect(actions[5].payload).toEqual({
+            expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED);
+            expect(actions[5].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+            expect(actions[6].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+            expect(actions[6].payload).toEqual({
               name: 'Required Disclosure of Original Source Code with Distribution',
               value: {
                 id: 'd387da0b87a9428fbc352f437c8294cf',
@@ -707,7 +685,8 @@ describe('originalSourcesFormActions', function () {
                 lastUpdatedAt: 1618873200000,
               },
             });
-            expect(actions[6].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
+            expect(actions[7].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED);
+            expect(actions[8].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS * 2);
         });

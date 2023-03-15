@@ -7,6 +7,7 @@ import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/re
 import { find, propEq } from 'ramda';
 import axios from 'axios';
 import {
+  getBaseLicenseOverrideUrl,
   getLegalFileUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
@@ -18,7 +19,12 @@ import { isScopeOverride } from '../legalUtility';
 import { saveObligation } from '../obligation/advancedLegalObligationActions';
 import { refreshNoticeFilesDetails } from './notices/componentNoticeDetailsActions';
 import { refreshLicenseFilesDetails } from './licenses/componentLicenseFilesDetailsActions';
-import { loadAvailableScopes, loadComponent, loadComponentByComponentIdentifier } from '../advancedLegalActions';
+import { isOverriddenOrSelected } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LegalTabUtils';
+import {
+  loadAvailableScopes,
+  loadComponent,
+  loadComponentByComponentIdentifier,
+} from 'MainRoot/legal/advancedLegalActions';
 
 export const ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL';
 export const ADVANCED_LEGAL_CANCEL_NOTICES_MODAL = 'ADVANCED_LEGAL_CANCEL_NOTICES_MODAL';
@@ -87,17 +93,31 @@ export function loadLicenseModalInformation({ ownerType, ownerId, componentIdent
   };
 }
 
-export function saveLicenses({ ownerType, ownerId, postBody, hash, componentIdentifier }) {
+export function saveLicenses() {
   return (dispatch, getState) => {
     dispatch(saveLicensesRequested());
     const advancedLegalState = getState().advancedLegal;
+    const { status, comment, scope, licenseIds } = advancedLegalState.editLicensesForm;
     const { availableScopes } = advancedLegalState;
     const visitedScope = availableScopes.values[0];
+    const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
+    const { hash } = getState().router.currentParams;
     const componentPromise = hash
       ? loadComponent(visitedScope.type, visitedScope.publicId, hash)
-      : loadComponentByComponentIdentifier(componentIdentifier);
+      : loadComponentByComponentIdentifier(JSON.stringify(componentIdentifier));
+    const { ownerType, ownerId } = scope;
+    const payloadLicenseIds = isOverriddenOrSelected(status) ? licenseIds : [];
+    const url = getBaseLicenseOverrideUrl(ownerType, ownerId),
+      payload = {
+        id: null,
+        licenseIds: payloadLicenseIds,
+        componentIdentifier,
+        status,
+        comment: comment.value || '',
+        ownerId,
+      };
     return axios
-      .post(getLicenseOverrideUrl(ownerType, ownerId), postBody)
+      .post(url, payload)
       .then(() => {
         dispatch(loadAvailableScopes(visitedScope.type, visitedScope.publicId));
         dispatch(componentPromise);

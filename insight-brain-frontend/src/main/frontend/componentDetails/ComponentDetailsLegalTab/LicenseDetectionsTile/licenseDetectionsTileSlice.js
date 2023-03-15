@@ -25,7 +25,7 @@ import { selectComponentDetailsRequestData } from 'MainRoot/componentDetails/ove
 import { selectEditLicensesForm } from './licenseDetectionsTileSelectors';
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
-import { isOverriddenOrSelected } from '../LegalTabUtils';
+import { isOverriddenOrSelected } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LegalTabUtils';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 import { selectIsFirewallOrRepository } from 'MainRoot/reduxUiRouter/routerSelectors';

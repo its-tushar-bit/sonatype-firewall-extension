@@ -38,6 +38,7 @@ import {
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED,
 } from '../../../../main/frontend/legal/advancedLegalActions';
 
 describe('advancedLegalFileActions', function () {
@@ -127,6 +128,12 @@ describe('advancedLegalFileActions', function () {
               licenseLegalData: {},
             },
           },
+          editLicensesForm: {
+            comment: { value: 'comment' },
+            status: 'status',
+            scope: { ownerType: 'application', ownerId: 'ownerId' },
+            licenseIds: [],
+          },
           availableScopes: {
             values: [
               { id: 'appId', publicId: 'app', type: 'application' },
@@ -137,6 +144,11 @@ describe('advancedLegalFileActions', function () {
                 type: 'organization',
               },
             ],
+          },
+        },
+        router: {
+          currentParams: {
+            hash,
           },
         },
       };
@@ -154,22 +166,35 @@ describe('advancedLegalFileActions', function () {
         },
         get: {
           [getOwnerHierarchyUrl('application', 'app')]: Promise.resolve({ data: 'getData' }),
-          [getLicenseLegalComponentUrl('application', 'app', hash)]: Promise.resolve({ data: 'getData2' }),
+          [getLicenseLegalComponentUrl('application', 'app', hash)]: Promise.resolve({
+            data: { component: { componentIdentifier: 'componentIdentifier' } },
+          }),
+          [getLicensesWithSyntheticFilterUrl()]: Promise.resolve({ data: 'getData3' }),
+          [getLicenseOverrideUrl(ownerType, ownerId, 'componentIdentifier')]: Promise.resolve({ data: 'getData4' }),
         },
       });
       store.dispatch(saveLicenses({ ownerType, ownerId, postBody, hash, closeModalFn })).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
-        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', postBody);
+        const expectedPostBody = {
+          id: null,
+          licenseIds: [],
+          componentIdentifier: 'componentIdentifier',
+          status: 'status',
+          comment: 'comment',
+          ownerId,
+        };
+        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', expectedPostBody);
         expect(axios.get).toHaveBeenCalledWith('/api/v2/licenseLegalMetadata/application/app/component?hash=hash123');
         expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy');
-        expect(actions.length).toBe(6);
+        expect(actions.length).toBe(7);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
         expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
         expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
         expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
-        expect(actions[5].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+        expect(actions[5].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED);
+        expect(actions[6].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
         done();
       });
 
@@ -179,7 +204,7 @@ describe('advancedLegalFileActions', function () {
     });
 
     it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED actions on success for ComponentIdentifier', function (done) {
-      const componentIdentifier = 'componentIdentifier-123';
+      const componentIdentifier = 'componentIdentifier';
       initialState.advancedLegal.availableScopes = {
         values: [
           {
@@ -189,15 +214,20 @@ describe('advancedLegalFileActions', function () {
           },
         ],
       };
-      store = SpecUtil.mockReduxStore(initialState);
+      initialState.router.currentParams = {};
+      (initialState.advancedLegal.editLicensesForm.scope = {
+        ownerType: 'organization',
+        ownerId: 'ROOT_ORGANIZATION_ID',
+      }),
+        (store = SpecUtil.mockReduxStore(initialState));
       mockAxiosCalls({
         post: {
           [getLicenseOverrideUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({ data: 'postData' }),
         },
         get: {
           [getOwnerHierarchyUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({ data: 'getData' }),
-          [getLicenseLegalComponentByComponentIdentifierUrl(componentIdentifier)]: Promise.resolve({
-            data: 'getData2',
+          [getLicenseLegalComponentByComponentIdentifierUrl('"componentIdentifier"')]: Promise.resolve({
+            data: { component: { componentIdentifier: 'componentIdentifier' } },
           }),
         },
       });
@@ -215,17 +245,29 @@ describe('advancedLegalFileActions', function () {
           jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
           const actions = store.getActions();
-          expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/organization/ROOT_ORGANIZATION_ID', postBody);
+          const expectedPostBody = {
+            id: null,
+            licenseIds: [],
+            componentIdentifier: 'componentIdentifier',
+            status: 'status',
+            comment: 'comment',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+          };
+          expect(axios.post).toHaveBeenCalledWith(
+            '/rest/licenseOverride/organization/ROOT_ORGANIZATION_ID',
+            expectedPostBody
+          );
           expect(axios.get).toHaveBeenCalledWith(
-            '/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?componentIdentifier=componentIdentifier-123'
+            '/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?componentIdentifier=%22componentIdentifier%22'
           );
           expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/ROOT_ORGANIZATION_ID/hierarchy');
-          expect(actions.length).toBe(6);
+          expect(actions.length).toBe(7);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
           expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
           expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
           expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
-          expect(actions[5].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+          expect(actions[5].type).toBe(ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED);
+          expect(actions[6].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
           done();
         });
 
@@ -243,7 +285,15 @@ describe('advancedLegalFileActions', function () {
       });
       store.dispatch(saveLicenses({ ownerType, ownerId, postBody, hash })).catch(() => {
         const actions = store.getActions();
-        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', postBody);
+        const expectedPostBody = {
+          id: null,
+          licenseIds: [],
+          componentIdentifier: 'componentIdentifier',
+          status: 'status',
+          comment: 'comment',
+          ownerId: 'ownerId',
+        };
+        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', expectedPostBody);
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
         expect(actions[1].payload).toEqual('error');

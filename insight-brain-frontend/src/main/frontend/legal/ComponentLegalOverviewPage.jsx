@@ -41,6 +41,7 @@ export default function ComponentLegalOverviewPage(props) {
     stageTypeId,
     hash,
     componentIdentifier,
+    repositoryId,
     availableScopes,
     showEditCopyrightOverrideModal,
     showNoticesModal,
@@ -77,7 +78,7 @@ export default function ComponentLegalOverviewPage(props) {
         loadAvailableScopes('organization', 'ROOT_ORGANIZATION_ID');
       }
     } else if (componentIdentifier) {
-      loadComponentByComponentIdentifier(componentIdentifier);
+      loadComponentByComponentIdentifier(componentIdentifier, repositoryId);
       loadAvailableScopes('organization', 'ROOT_ORGANIZATION_ID');
     }
   }
@@ -230,6 +231,7 @@ ComponentLegalOverviewPage.propTypes = {
   loadComponent: PropTypes.func,
   loadComponentByComponentIdentifier: PropTypes.func,
   loadAvailableScopes: PropTypes.func,
+  repositoryId: PropTypes.string,
   availableScopes: availableScopesPropType,
   showEditCopyrightOverrideModal: PropTypes.bool.isRequired,
   setDisplayCopyrightOverrideModal: PropTypes.func.isRequired,

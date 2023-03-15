@@ -93,8 +93,8 @@ public class TagDAOTest
   @Test
   public void testDelete_CascadeVulnerabilityCustomDetail() {
     Tag tag = new Tag(organization.getId(), "testCRUD Name", "testCRUD description", Color.yellow);
-    tempEntity.newVulnerabilityCustomDetailWithApplicationTag(organization.getId(), "CVE-2022-1234", null, tag);
-    tempEntity.newVulnerabilityCustomDetailWithApplicationTag(organization.getId(), "CVE-2022-4321", null, tag);
+    tempEntity.newVulnerabilityCustomDetailWithTag(organization.getId(), "CVE-2022-1234", null, tag);
+    tempEntity.newVulnerabilityCustomDetailWithTag(organization.getId(), "CVE-2022-4321", null, tag);
 
     VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
     assertThat(vulnerabilityCustomDetailDAO.getByTagId(tag.getId())).extracting("refId")

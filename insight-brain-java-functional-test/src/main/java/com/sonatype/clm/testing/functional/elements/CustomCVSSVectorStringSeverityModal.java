@@ -27,7 +27,7 @@ public class CustomCVSSVectorStringSeverityModal extends BasicElement<Remediatio
     return $$(ROOT + " " + SCOPE_SELECT + " .nx-form-select__select option");
   }
 
-  public  SelenideElement scopeSelect() {
+  public SelenideElement scopeSelect() {
     return child(SCOPE_SELECT + " .nx-form-select__select");
   }
 
@@ -37,5 +37,25 @@ public class CustomCVSSVectorStringSeverityModal extends BasicElement<Remediatio
 
   public static SelenideElement modalTitle() {
     return $("dialog header h2");
+  }
+
+  public static SelenideElement customCvssVectorString() {
+    return $(ROOT + " #cvss-vector-string input");
+  }
+
+  public static SelenideElement customCvssSeverity() {
+    return $(ROOT + " #cvss-severity input");
+  }
+
+  public static SelenideElement comment() {
+    return $(ROOT + " #cvss-audit-comment textarea");
+  }
+
+  public static Button cancelButton() {
+    return new Button("dialog .nx-form__cancel-btn");
+  }
+
+  public static Button saveButton() {
+    return new Button("dialog .nx-form__submit-btn");
   }
 }

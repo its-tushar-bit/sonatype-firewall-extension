@@ -2896,6 +2896,19 @@ public class TemporaryEntity
       String remediation,
       String comment)
   {
+    return newVulnerabilityCustomDetail(ownerId, refId, severity, cvssVector, cwe, remediation, comment, null);
+  }
+
+  public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
+      String ownerId,
+      String refId,
+      Float severity,
+      String cvssVector,
+      String cwe,
+      String remediation,
+      String comment,
+      Tag tag)
+  {
     VulnerabilityCustomDetail vulnerabilityCustomDetail =
         new VulnerabilityCustomDetail(ownerId, refId, null, "username");
     vulnerabilityCustomDetail.setSeverity(severity);
@@ -2903,6 +2916,9 @@ public class TemporaryEntity
     vulnerabilityCustomDetail.setCwe(cwe);
     vulnerabilityCustomDetail.setRemediation(remediation);
     vulnerabilityCustomDetail.setComment(comment);
+    if (tag != null) {
+      vulnerabilityCustomDetail.setTagId(tag.getId());
+    }
     vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
     vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
     return vulnerabilityCustomDetail;
@@ -2912,7 +2928,7 @@ public class TemporaryEntity
       String ownerId,
       String refId,
       ComponentIdentifier componentIdentifier,
-      float severity,
+      Float severity,
       String cvssVector,
       String cwe,
       String remediation,
@@ -2930,7 +2946,7 @@ public class TemporaryEntity
     return vulnerabilityCustomDetail;
   }
 
-  public VulnerabilityCustomDetail newVulnerabilityCustomDetailWithApplicationTag(
+  public VulnerabilityCustomDetail newVulnerabilityCustomDetailWithTag(
       String ownerId,
       String refId,
       ComponentIdentifier componentIdentifier,

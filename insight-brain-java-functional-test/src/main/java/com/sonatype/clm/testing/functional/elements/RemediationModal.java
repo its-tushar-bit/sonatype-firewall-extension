@@ -34,4 +34,20 @@ public class RemediationModal extends BasicElement<RemediationModal>
   public static SelenideElement modalTitle() {
     return $("dialog header h2");
   }
+
+  public static SelenideElement remediationMessage() {
+    return $(ROOT + " #remediation-message textarea");
+  }
+
+  public static SelenideElement comment() {
+    return $(ROOT + " #remediation-audit-comment textarea");
+  }
+
+  public static Button cancelButton() {
+    return new Button("dialog .nx-form__cancel-btn");
+  }
+
+  public static Button saveButton() {
+    return new Button("dialog .nx-form__submit-btn");
+  }
 }

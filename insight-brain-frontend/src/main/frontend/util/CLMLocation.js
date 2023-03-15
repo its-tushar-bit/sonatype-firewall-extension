@@ -555,6 +555,10 @@ export function getOwnerDetailsUrl(ownerType, ownerId, isRepositories) {
     : uriTemplate`/rest/sidebar/${ownerType}/${ownerId}/details`;
 }
 
+export function getComponentDisplayNameByIdentifierUrl(componentIdentifier) {
+  return uriTemplate`/rest/componentDetails/nameByIdentifier?componentIdentifier=${componentIdentifier}`;
+}
+
 export function getSaveComponentObligationAttributionUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution`;
 }
@@ -611,6 +615,19 @@ export function getSaveLegalFileUrl(orgOrApp, ownerId) {
 export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier, legalFileType) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile
     ?componentIdentifier=${JSON.stringify(componentIdentifier)}&legalFileType=${legalFileType}`;
+}
+
+export function getVulnerabilityCustomizeUrl(ownerType, ownerId) {
+  return uriTemplate`/api/experimental/vulnerability/customDetail/${ownerType}/${ownerId}`;
+}
+
+export function getVulnerabilityCustomizeIdUrl(ownerType, ownerId, vulnerabilityId) {
+  return `${getVulnerabilityCustomizeUrl(ownerType, ownerId)}/${vulnerabilityId}`;
+}
+
+export function getApplicableVulnerabilityCustomizeUrl(ownerType, ownerId, refId, componentIdentifier) {
+  const componentIdentifierParam = componentIdentifier ? `?componentIdentifier=${componentIdentifier}` : '';
+  return `${getVulnerabilityCustomizeUrl(ownerType, ownerId)}/refId/${refId}${componentIdentifierParam}`;
 }
 
 export function getPoliciesUrl() {

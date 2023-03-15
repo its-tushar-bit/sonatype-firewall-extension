@@ -1052,4 +1052,47 @@ describe('CLMLocation.js', function () {
       expect(CLMLocation.getRepositoryEvaluateUrl('repositoryId')).toBe('/rest/repositories/repositoryId/evaluate');
     });
   });
+
+  describe('getComponentDisplayNameByIdentifierUrl', () => {
+    it('should return a URL to get the Display Name based on a component identifier string', () => {
+      const componentIdentifier = '{"coordinates": "name"}';
+      expect(CLMLocation.getComponentDisplayNameByIdentifierUrl(componentIdentifier)).toBe(
+        '/rest/componentDetails/nameByIdentifier?componentIdentifier=%7B%22coordinates%22%3A%20%22name%22%7D'
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomizeUrl', () => {
+    it('should return a URL to customize a vulnerability', () => {
+      expect(CLMLocation.getVulnerabilityCustomizeUrl('application', 'testId')).toBe(
+        '/api/experimental/vulnerability/customDetail/application/testId'
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomizeIdUrl', () => {
+    it('should return a URL get a customized vulnerability by ID', () => {
+      expect(CLMLocation.getVulnerabilityCustomizeIdUrl('application', 'testId', 'someId')).toBe(
+        '/api/experimental/vulnerability/customDetail/application/testId/someId'
+      );
+    });
+  });
+
+  describe('getApplicableVulnerabilityCustomizeUrl', () => {
+    it('should return a URL get the applicable customized vulnerability by owner without component identifier', () => {
+      expect(CLMLocation.getApplicableVulnerabilityCustomizeUrl('application', 'testId', 'CVE-123')).toBe(
+        '/api/experimental/vulnerability/customDetail/application/testId/refId/CVE-123'
+      );
+    });
+
+    it('should return a URL get the applicable customized vulnerability by owner with component identifier', () => {
+      const componentIdentifier = '{"coordinates": "name"}';
+      expect(
+        CLMLocation.getApplicableVulnerabilityCustomizeUrl('application', 'testId', 'CVE-123', componentIdentifier)
+      ).toBe(
+        '/api/experimental/vulnerability/customDetail/application/testId/refId/CVE-123?componentIdentifier=' +
+          componentIdentifier
+      );
+    });
+  });
 });

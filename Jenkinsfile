@@ -155,6 +155,12 @@ void pushDockerImageIfDeployBranch() {
         runSafely "docker push ${latest}"
       }
     }
+
+    // Trigger the MTIQ job to bump the helm chart
+    build('job': '/insight/MTIQ/bump-mtiq-helm-chart',
+        parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value: env.GIT_COMMIT) ],
+        wait: false,
+        propagate: false)
 }
 
 /*

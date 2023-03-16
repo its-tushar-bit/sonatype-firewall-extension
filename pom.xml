@@ -65,8 +65,8 @@
     <nexus-dependency-management.version>1.23.4-01</nexus-dependency-management.version>
     <swagger.version>2.2.2</swagger.version>
     <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file -->
-    <mockito-core.version>4.9.0</mockito-core.version>
-    <byte-buddy.version>1.12.16</byte-buddy.version>
+    <mockito-core.version>4.11.0</mockito-core.version>
+    <byte-buddy.version>1.12.19</byte-buddy.version>
     <testcontainers.version>1.17.6</testcontainers.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
 

@@ -25,7 +25,7 @@ FROM gcr.io/distroless/java11-debian11
 
 LABEL vendor=Sonatype \
   maintainer="MTIQ Team <mtiq-dev@sonatype.com>" \
-  com.sonatype.name="Nexus MTIQ Server Docker Image"
+  com.sonatype.name="MTIQ Server Docker Image"
 
 # Copy JAR
 COPY target/nexus-mtiq-server.jar /opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar
@@ -42,5 +42,13 @@ EXPOSE 8071
 
 WORKDIR /opt/sonatype/nexus-iq-server
 
-ENTRYPOINT ["/usr/bin/java", "-Djava.util.prefs.userRoot=/sonatype-work/javaprefs", "-javaagent:/opt/datadog/dd-java-agent.jar", "-jar"]
-CMD ["/opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar", "server", "/etc/nexus-iq-server/config.yaml"]
+ENTRYPOINT ["/usr/bin/java", \
+             "-Djava.util.prefs.userRoot=/sonatype-work/javaprefs", \
+             "-javaagent:/opt/datadog/dd-java-agent.jar", \
+             "-XX:InitialRAMPercentage=75.0", \
+             "-XX:MaxRAMPercentage=75.0", \
+             "-XX:+CrashOnOutOfMemoryError", \
+             "-XshowSettings:vm", \
+             "-jar"]
+
+CMD ["/opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar", "server", "/etc/mtiq-server/config.yaml"]

@@ -146,14 +146,14 @@ public class TaskSchedulerTest
 
   @Test
   public void testNormalizeJobClass_NormalClass() {
-    assertThat(taskScheduler.normalizeJobClass(TestJob.class)).isEqualTo(TestJob.class);
+    assertThat(TaskScheduler.normalizeJobClass(TestJob.class)).isEqualTo(TestJob.class);
   }
 
   @Test
   public void testNormalizeJobClass_GuiceEnhancedClass() {
     Class<? extends Job> jobClass = getTestJobClass();
     assertThat(jobClass).hasSuperclass(TestJob.class);
-    assertThat(taskScheduler.normalizeJobClass(jobClass)).isEqualTo(TestJob.class);
+    assertThat(TaskScheduler.normalizeJobClass(jobClass)).isEqualTo(TestJob.class);
   }
 
   private Class<? extends Job> getTestJobClass() {

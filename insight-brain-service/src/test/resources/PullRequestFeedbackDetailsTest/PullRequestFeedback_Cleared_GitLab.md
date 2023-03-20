@@ -5,7 +5,8 @@ Well done. The committed code does not violate any of your organization's Nexus 
 ### :sunglasses: Nexus IQ determined that you fixed outstanding policy violations:
 
 <details>
-<summary title="Threat Level: 10 of 10">:white_check_mark: <b>&nbsp; com.h2database : h2 : 1.4.190</b></summary>
+<summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="16"> 
+<b>10&nbsp;com.h2database : h2 : 1.4.190</b>&nbsp;&nbsp;:white_check_mark:</summary>
 <p></p>
   
 Threat (of 10) | Policy | Violation Details
@@ -16,7 +17,8 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
-<summary title="Threat Level: 10 of 10">:white_check_mark: <b>&nbsp; org.springframework.security : spring-security-web : 4.2.3.RELEASE</b></summary>
+<summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="16"> 
+<b>10&nbsp;org.springframework.security : spring-security-web : 4.2.3.RELEASE</b>&nbsp;&nbsp;:white_check_mark:</summary>
 <p></p>
   
 Threat (of 10) | Policy | Violation Details

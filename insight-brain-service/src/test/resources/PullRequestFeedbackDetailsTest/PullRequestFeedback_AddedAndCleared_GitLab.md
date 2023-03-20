@@ -69,7 +69,8 @@ Threat (of 10) | Policy | Violation Details
 ### :sunglasses: Nexus IQ determined that you fixed an outstanding policy violation:
 
 <details>
-<summary title="Threat Level: 0 of 10">:white_check_mark: <b>&nbsp; org.group.fixed : fixed-artifact : 1.0</b></summary>
+<summary title="Threat Level: 0 of 10"><img alt="T0" src="https://cdn.sonatype.com/iq-for-scm/1.0/light-blue-bar.png" width="4" height="16"> 
+<b>0&nbsp;&nbsp;&nbsp;org.group.fixed : fixed-artifact : 1.0</b>&nbsp;&nbsp;:white_check_mark:</summary>
 <p></p>
   
 Threat (of 10) | Policy | Violation Details

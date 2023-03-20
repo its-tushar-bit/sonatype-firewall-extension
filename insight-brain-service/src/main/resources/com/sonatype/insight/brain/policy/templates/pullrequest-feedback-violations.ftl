@@ -48,9 +48,11 @@ ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint
   ### :sunglasses: Nexus IQ determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:<#lt>
 
 <#list fixedComponentList as component>
+<#assign threatImage="${threatImageArray[component.highestThreatLevel]}">
 <details>
-  <summary title="Threat Level: ${component.highestThreatLevel} of 10">:white_check_mark: <#t>
-    <b>&nbsp; ${component.componentNameAndVersion}</b></summary><#lt>
+  <summary title="Threat Level: ${component.highestThreatLevel} of 10"><#t>
+    <img alt="T${component.highestThreatLevel}" src="https://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}" width="4" <#if provider.name() == "GITLAB">height="16"<#else>height="14"</#if>> <#lt>
+    <b>${component.highestThreatLevel}<#if ( component.highestThreatLevel < 10 )>&nbsp;&nbsp;</#if>&nbsp;${component.componentNameAndVersion}</b>&nbsp;&nbsp;:white_check_mark:</summary><#lt>
   <p></p><#lt>
   
 Threat (of 10) | Policy | Violation Details

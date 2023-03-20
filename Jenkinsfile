@@ -156,8 +156,8 @@ void pushDockerImageIfDeployBranch() {
       }
     }
 
-    // Trigger the MTIQ job to bump the helm chart
-    build('job': '/insight/MTIQ/bump-mtiq-helm-chart',
+    // Trigger the MTIQ job to bump the image version in the K8S deployment
+    build('job': '/insight/MTIQ/bump-mtiq-version',
         parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value: env.GIT_COMMIT) ],
         wait: false,
         propagate: false)

@@ -6,4 +6,11 @@
 
 owners-tree-page {
   display: contents;
+
+}
+
+.iq-owner-tree {
+  .iq-owner-tree-page__search-match {
+    background-color: var(--nx-swatch-orange-95);
+  }
 }

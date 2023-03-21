@@ -6,20 +6,13 @@
 import React, { Fragment } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import { equals, intersperse } from 'ramda';
+import { equals } from 'ramda';
 import { faTerminal } from '@fortawesome/pro-solid-svg-icons';
 import { NxFontAwesomeIcon, NxTree, NxThreatIndicator, NxTextLink } from '@sonatype/react-shared-components';
 
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import DependencyIndicator from './DependencyIndicator';
-
-const renderDisplayName = (displayName, searchTerm) =>
-  searchTerm
-    ? intersperse(
-        <mark className="iq-dependency-tree-page__search-match">{searchTerm}</mark>,
-        displayName.split(searchTerm)
-      )
-    : displayName;
+import { renderDisplayName } from './dependencyTreeUtil';
 
 const MemoizedTreeNode = React.memo(TreeNode);
 
@@ -53,7 +46,7 @@ function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm }) {
               <span className="iq-matched-hash-tree-label">{item.displayName}</span>
             ) : (
               <NxTextLink onClick={() => goToCDP(item.hash)}>
-                {renderDisplayName(item.displayName, searchTerm)}
+                {renderDisplayName(item.displayName, searchTerm, 'iq-dependency-tree-page__search-match')}
               </NxTextLink>
             )}
           </NxTree.ItemLabel>

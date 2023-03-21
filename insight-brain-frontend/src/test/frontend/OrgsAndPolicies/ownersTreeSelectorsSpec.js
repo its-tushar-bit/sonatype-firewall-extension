@@ -8,9 +8,11 @@ import {
   selectOwnersTreeNodesStatus,
   selectOwnersTreeNodesInitialStatus,
   selectIsOwnerNodeExpanded,
+  selectShouldRenderNode,
 } from 'MainRoot/OrgsAndPolicies/ownersTreeSelectors';
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { TREE_NODE_STATUS as STATUS } from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
+import { selectFilteredOwners, selectSearchTerm } from '../../../main/frontend/OrgsAndPolicies/ownersTreeSelectors';
 
 describe('ownersTreeSelectors', () => {
   describe('selectOwnersTreeSlice', () => {
@@ -32,12 +34,20 @@ describe('ownersTreeSelectors', () => {
       expect(selectOwnersTreeNodesStatus.dependencies).toEqual([selectOwnersTreeSlice]);
     });
 
-    it('selects ownersTreeNodesStatus', () => {
-      const slice = { nodesStatus: { sonatype: false } };
+    it('selects ownersTreeNodesStatus without searchTerm', () => {
+      const slice = { nodesStatus: { sonatype: false }, filteredNodesStatus: { sonatype: true }, searchTerm: '' };
 
       const actualSelection = selectOwnersTreeNodesStatus.resultFunc(slice);
 
       expect(actualSelection).toEqual({ sonatype: false });
+    });
+
+    it('selects ownersTreeNodesStatus without searchTerm', () => {
+      const slice = { nodesStatus: { sonatype: false }, filteredNodesStatus: { sonatype: true }, searchTerm: 'some' };
+
+      const actualSelection = selectOwnersTreeNodesStatus.resultFunc(slice);
+
+      expect(actualSelection).toEqual({ sonatype: true });
     });
   });
 
@@ -46,12 +56,24 @@ describe('ownersTreeSelectors', () => {
       expect(selectOwnersTreeNodesInitialStatus.dependencies).toEqual([selectOwnersTreeSlice]);
     });
 
-    it('selects initialStatus', () => {
-      const slice = { initialStatus: STATUS.collapsed };
+    it('selects initialStatus without searchTerm', () => {
+      const slice = { initialStatus: STATUS.collapsed, initialFilteredStatus: STATUS.expanded, searchTerm: '' };
 
       const actualSelection = selectOwnersTreeNodesInitialStatus.resultFunc(slice);
 
       expect(actualSelection).toEqual(STATUS.collapsed);
+    });
+
+    it('selects initialStatus with searchTerm', () => {
+      const slice = {
+        initialStatus: STATUS.collapsed,
+        initialFilteredStatus: STATUS.expanded,
+        searchTerm: 'some term',
+      };
+
+      const actualSelection = selectOwnersTreeNodesInitialStatus.resultFunc(slice);
+
+      expect(actualSelection).toEqual(STATUS.expanded);
     });
   });
 
@@ -81,6 +103,29 @@ describe('ownersTreeSelectors', () => {
 
       expect(selectIsOwnerNodeExpanded.resultFunc(status, STATUS.expanded, 'nexus')).toBe(STATUS.expanded);
       expect(selectIsOwnerNodeExpanded.resultFunc(status, STATUS.collapsed, 'sonatype')).toBe(STATUS.collapsed);
+    });
+  });
+
+  describe('selectShouldRenderNode', () => {
+    it('is composed from the following selector', () => {
+      expect(selectShouldRenderNode.dependencies).toEqual([
+        selectSearchTerm,
+        selectFilteredOwners,
+        jasmine.any(Function),
+      ]);
+    });
+    const filteredOwners = ['owner1', 'owner2', 'owner3'];
+
+    it('empty searchTerm should be true', () => {
+      expect(selectShouldRenderNode.resultFunc('', filteredOwners, '')).toBe(true);
+    });
+
+    it('includes owner should be true', () => {
+      expect(selectShouldRenderNode.resultFunc('term', filteredOwners, 'owner1')).toBe(true);
+    });
+
+    it('does not includes owner should be false', () => {
+      expect(selectShouldRenderNode.resultFunc('term', filteredOwners, 'owner4')).toBe(false);
     });
   });
 });

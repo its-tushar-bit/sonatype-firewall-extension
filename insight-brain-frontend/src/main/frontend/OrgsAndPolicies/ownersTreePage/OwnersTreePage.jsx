@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { includes } from 'ramda';
-import { NxPageMain, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxPageMain, NxLoadWrapper, NxH1 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
@@ -60,6 +60,9 @@ export default function OwnersTreePage() {
   return (
     <NxPageMain className="ownersTreeView">
       <MenuBarBackButton href={backButtonHref} text={backButtonText ? `Back to ${backButtonText}` : 'Back'} />
+      <header className="nx-page-title">
+        <NxH1>Inheritance Hierarchy</NxH1>
+      </header>
       <NxLoadWrapper loading={loading} retryHandler={load} error={loadError}>
         <OwnersTreeTile
           topParentOrganizationId={topParentOrganizationId}

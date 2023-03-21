@@ -31,6 +31,14 @@ public class OwnerTreeViewPage
     return new NxTree(".iq-owner-tree");
   }
 
+  public static SelenideElement ownerFilterInput() {
+    return $("#iq-owner-tree-filter-input");
+  }
+
+  public static SelenideElement emptyTreeMessage() {
+    return $("#iq-owner-tree-empty");
+  }
+
   public static SelenideElement treeViewButton() {
     return $(".iq-tree-view-button");
   }

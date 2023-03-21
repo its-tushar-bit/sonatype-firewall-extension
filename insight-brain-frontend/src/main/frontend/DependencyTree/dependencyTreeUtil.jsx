@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
-import { propEq, sort, prop, pipe, descend, curry, contains, toLower } from 'ramda';
+import React from 'react';
+import { propEq, sort, prop, pipe, descend, curry, contains, toLower, split, match } from 'ramda';
 
 import { mapIndexed, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
@@ -153,4 +153,22 @@ export const isFlatDependencyTree = (dependencyTree) => {
   const hasNoChildren = pipe(prop('children'), isNilOrEmpty);
 
   return dependencyTree.every(hasNoChildren);
+};
+
+/**
+ * used to highlight text when searching in a filter, returns the displayName styled as a react component, it is case insensitive
+ * @param {string} displayName - The original text to display
+ * @param {string} searchTerm - The text to highlight
+ * @param {string} className - Optional classname to style
+ * @returns object
+ */
+export const renderDisplayName = (displayName, searchTerm, className = '') => {
+  if (!searchTerm) return displayName;
+  const searchRegex = new RegExp(searchTerm, 'gi');
+  const textArr = split(searchRegex, displayName);
+  const matchArr = match(searchRegex, displayName);
+  matchArr.forEach((matchedText, index) => {
+    textArr.splice(index * 2 + 1, 0, <mark className={className}>{matchedText}</mark>);
+  });
+  return textArr;
 };

@@ -4,26 +4,32 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useCallback } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { NxTile, NxH2, NxButton } from '@sonatype/react-shared-components';
+import { NxTile, NxButton } from '@sonatype/react-shared-components';
+import IqStatefulFilterInput from 'MainRoot/react/IqStatefulFilterInput';
 
 import OwnerTree from './OwnerTree';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { debounce } from 'debounce';
+import { selectSearchTerm } from 'MainRoot/OrgsAndPolicies/ownersTreeSelectors';
+import { selectOwnersMap } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
 export default function OwnersTreeTile({
   id,
   topParentOrganizationId,
-  onExpandAllClick,
-  onCollapseAllClick,
   onToggleTreeNode,
   isNodeOpenSelector,
   ...otherProps
 }) {
+  const INPUT_DEBOUNCE_TIME = 500;
   const dispatch = useDispatch();
   const expandAll = () => dispatch(actions.expandAllTreeNodes());
   const collapseAll = () => dispatch(actions.collapseAllTreeNodes());
+  const searchTerm = useSelector(selectSearchTerm);
+  const ownersMap = useSelector(selectOwnersMap);
+
   const isNodeOpen = useCallback(
     (state, ownerId) => {
       if (!isNodeOpenSelector) return true;
@@ -34,24 +40,38 @@ export default function OwnersTreeTile({
     [topParentOrganizationId, isNodeOpenSelector]
   );
 
+  const debouncedSetOwnersTreeSearchTerm = useCallback(
+    debounce(
+      (value) =>
+        dispatch(
+          actions.setOwnersTreeSearchTerm({
+            searchTerm: value,
+            topParentOrganizationId,
+            ownersMap,
+          })
+        ),
+      INPUT_DEBOUNCE_TIME
+    ),
+    []
+  );
+
   const tileTitleId = id ? `${id}-title` : undefined;
-  const label = tileTitleId ? undefined : 'Inheritance Hierarchy';
+  const label = tileTitleId ? tileTitleId : 'Inheritance Hierarchy';
 
   return (
     <NxTile id={id} aria-label={label} aria-labelledby={tileTitleId} {...otherProps}>
       <NxTile.Header>
-        <NxTile.HeaderTitle>
-          <NxH2 id={tileTitleId}>Inheritance Hierarchy</NxH2>
-        </NxTile.HeaderTitle>
+        <IqStatefulFilterInput
+          id="iq-owner-tree-filter-input"
+          placeholder="Org or App Name"
+          onChange={debouncedSetOwnersTreeSearchTerm}
+          defaultValue={searchTerm}
+        />
         <NxTile.HeaderActions>
-          <NxButton id="iq-owner-tree__expand-all-button" variant="tertiary" onClick={onExpandAllClick || expandAll}>
+          <NxButton id="iq-owner-tree__expand-all-button" variant="tertiary" onClick={expandAll}>
             Expand All
           </NxButton>
-          <NxButton
-            id="iq-owner-tree__collapse-all-button"
-            variant="tertiary"
-            onClick={onCollapseAllClick || collapseAll}
-          >
+          <NxButton id="iq-owner-tree__collapse-all-button" variant="tertiary" onClick={collapseAll}>
             Collapse All
           </NxButton>
         </NxTile.HeaderActions>
@@ -74,6 +94,4 @@ OwnersTreeTile.propTypes = {
   topParentOrganizationId: PropTypes.string,
   isNodeOpenSelector: PropTypes.func,
   onToggleTreeNode: PropTypes.func,
-  onExpandAllClick: PropTypes.func,
-  onCollapseAllClick: PropTypes.func,
 };

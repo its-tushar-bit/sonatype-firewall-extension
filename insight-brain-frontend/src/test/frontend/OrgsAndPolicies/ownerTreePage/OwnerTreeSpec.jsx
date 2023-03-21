@@ -32,6 +32,9 @@ describe('OwnerTree', () => {
         ownerSideNav: {
           ownersMap: ownersMap,
         },
+        ownersTree: {
+          searchTerm: '',
+        },
       },
     };
 
@@ -71,6 +74,27 @@ describe('OwnerTree', () => {
         ? expect(ownerIcon).toHaveAttribute('data-icon', 'terminal')
         : expect(ownerIcon).toHaveAttribute('data-icon', 'sitemap');
     });
+  });
+
+  it('renders correct amount of filtered tree nodes', () => {
+    const preloadedState = { ...state };
+    preloadedState.orgsAndPolicies.ownersTree.searchTerm = 'organization name 1';
+    preloadedState.orgsAndPolicies.ownersTree.filteredOwners = ['ROOT_ORGANIZATION_ID', 'organization id 1'];
+
+    renderComponent(preloadedState);
+
+    expect(screen.getAllByRole('treeitem').length).toBe(2);
+  });
+
+  it('renders empty message when the filter has no results', () => {
+    const preloadedState = { ...state };
+    preloadedState.orgsAndPolicies.ownersTree.searchTerm = 'asdasd';
+    preloadedState.orgsAndPolicies.ownersTree.filteredOwners = [];
+
+    renderComponent(preloadedState);
+
+    expect(screen.queryByRole('treeitem')).toBeNull();
+    expect(screen.getByText('No matching results')).toBeVisible();
   });
 
   it('renders correct amount of clickable tree nodes', () => {

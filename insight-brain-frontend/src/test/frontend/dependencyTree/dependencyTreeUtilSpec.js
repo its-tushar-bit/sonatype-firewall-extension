@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
 import {
   deepReduce,
   extendDependencyTreeData,
@@ -10,6 +11,7 @@ import {
   flattenModuleDirectDependencies,
   getDependencyTreeSubset,
   isFlatDependencyTree,
+  renderDisplayName,
 } from 'MainRoot/DependencyTree/dependencyTreeUtil';
 import {
   dependencyTreeData,
@@ -195,6 +197,25 @@ describe('dependencyTreeUtil', () => {
 
     it('returns false if its a tree with more than one level of depth', () => {
       expect(isFlatDependencyTree(dependencyTreeData)).toBe(false);
+    });
+  });
+
+  describe('renderDisplayName', () => {
+    it('returns displayName when there is no searchTerm', () => {
+      expect(renderDisplayName('some name')).toBe('some name');
+    });
+
+    it('returns displayName when there is no match in the searchTerm', () => {
+      expect(renderDisplayName('some name', 'no match')).toEqual(['some name']);
+    });
+
+    it('returns formatted displayName when there is a match in the searchTerm', () => {
+      expect(renderDisplayName('some name', 'me na', 'classn')).toEqual([
+        'so',
+        // eslint-disable-next-line react/jsx-key
+        <mark className="classn">me na</mark>,
+        'me',
+      ]);
     });
   });
 });

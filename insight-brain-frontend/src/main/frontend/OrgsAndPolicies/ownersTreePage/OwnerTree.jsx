@@ -10,13 +10,21 @@ import { NxTextLink, NxTree, NxFontAwesomeIcon } from '@sonatype/react-shared-co
 import { faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
 
 import { selectOwnerById } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import { selectSearchTerm } from 'MainRoot/OrgsAndPolicies/ownersTreeSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+
+import { selectShouldRenderNode } from '../ownersTreeSelectors';
+import { renderDisplayName } from 'MainRoot/DependencyTree/dependencyTreeUtil';
+
+const shouldRenderNode = (ownerId) => useSelector((state) => selectShouldRenderNode(state, ownerId));
 
 const OwnerTreeNode = ({ ownerId, onToggleTreeNode = () => {}, isNodeOpenSelector = () => true }) => {
   const uiRouterState = useRouterState();
   const { name, organizationIds, applicationIds, publicId: applicationPublicId, id: organizationId, type, synthetic } =
     useSelector((state) => selectOwnerById(state, ownerId)) || {};
   const isOpen = useSelector((state) => isNodeOpenSelector(state, ownerId));
+
+  const searchTerm = useSelector(selectSearchTerm);
 
   const hasChildEntities = !!organizationIds?.length || !!applicationIds?.length;
   const items = [...(organizationIds || []), ...(applicationIds || [])];
@@ -28,6 +36,7 @@ const OwnerTreeNode = ({ ownerId, onToggleTreeNode = () => {}, isNodeOpenSelecto
   const nodeId = applicationPublicId || organizationId;
   const clickDOMElement = (id) => document.getElementById(id)?.click();
   const toggleTreeNode = useCallback(() => onToggleTreeNode({ ownerId }), [ownerId, onToggleTreeNode]);
+  const displayName = renderDisplayName(name, searchTerm, 'iq-owner-tree-page__search-match');
 
   return (
     <NxTree.Item
@@ -39,7 +48,7 @@ const OwnerTreeNode = ({ ownerId, onToggleTreeNode = () => {}, isNodeOpenSelecto
       <NxTree.ItemLabel data-testid="owners-tree-item-label">
         <NxFontAwesomeIcon fixedWidth icon={isApplication ? faTerminal : faSitemap} />
         {synthetic ? (
-          <span>{name}</span>
+          <span>{displayName}</span>
         ) : (
           <NxTextLink
             href={href}
@@ -49,20 +58,25 @@ const OwnerTreeNode = ({ ownerId, onToggleTreeNode = () => {}, isNodeOpenSelecto
             }}
             tabIndex={-1}
           >
-            {name}
+            {displayName}
           </NxTextLink>
         )}
       </NxTree.ItemLabel>
       {hasChildEntities && (
         <NxTree>
-          {items.map((id) => (
-            <MemoizedOwnerTreeNode
-              key={id}
-              ownerId={id}
-              isNodeOpenSelector={isNodeOpenSelector}
-              onToggleTreeNode={onToggleTreeNode}
-            />
-          ))}
+          {items.map((id) =>
+            shouldRenderNode(id) ? (
+              <MemoizedOwnerTreeNode
+                key={id}
+                ownerId={id}
+                isNodeOpenSelector={isNodeOpenSelector}
+                onToggleTreeNode={onToggleTreeNode}
+                searchTerm={searchTerm}
+              />
+            ) : (
+              <></>
+            )
+          )}
         </NxTree>
       )}
     </NxTree.Item>
@@ -82,7 +96,7 @@ export default function OwnerTree({ ownerId, onToggleTreeNode, isNodeOpenSelecto
     return null;
   }
 
-  return (
+  return shouldRenderNode(ownerId) ? (
     <NxTree className="nx-tree--no-gutter iq-owner-tree">
       <MemoizedOwnerTreeNode
         ownerId={ownerId}
@@ -90,6 +104,10 @@ export default function OwnerTree({ ownerId, onToggleTreeNode, isNodeOpenSelecto
         isNodeOpenSelector={isNodeOpenSelector}
       />
     </NxTree>
+  ) : (
+    <p className="iq-dependency-tree__empty" id="iq-owner-tree-empty">
+      No matching results
+    </p>
   );
 }
 

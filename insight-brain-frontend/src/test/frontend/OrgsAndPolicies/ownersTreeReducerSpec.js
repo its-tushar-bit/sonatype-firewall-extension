@@ -40,4 +40,90 @@ describe('ownersTreeSlice reducers', () => {
       expect(initialStatus).toEqual(TREE_NODE_STATUS.collapsed);
     });
   });
+
+  describe('setOwnersTreeSearchTerm', () => {
+    const ownersMap = {
+      '6thlevelapp': {
+        type: 'application',
+        id: '6thlevelapp',
+        name: '6th level app',
+        publicId: '6thlevelapp',
+        organizationId: '6thlevelchild',
+      },
+      '5thlevelapp': {
+        type: 'application',
+        id: '5thlevelapp',
+        name: '4th level app',
+        publicId: '5thlevelapp',
+        organizationId: '4thlevelchild',
+      },
+      '5thlevelchild': {
+        type: 'organization',
+        id: '5thlevelchild',
+        name: '5th-level child',
+        synthetic: true,
+        parentOrganizationId: '4thlevelchild',
+        applicationIds: [],
+        subOrgs: 1,
+        totalApps: 1,
+        organizationIds: ['6thlevelchild'],
+      },
+      '6thlevelchild': {
+        type: 'organization',
+        id: '6thlevelchild',
+        name: '6th level child',
+        synthetic: true,
+        parentOrganizationId: '5thlevelchild',
+        applicationIds: ['6thlevelapp'],
+        subOrgs: 0,
+        totalApps: 1,
+        organizationIds: [],
+      },
+      '4thlevelchild': {
+        type: 'organization',
+        id: '4thlevelchild',
+        name: '4th-level child',
+        synthetic: true,
+        parentOrganizationId: 'AboveLevelId',
+        applicationIds: ['5thlevelapp'],
+        subOrgs: 2,
+        totalApps: 2,
+        organizationIds: ['5thlevelchild'],
+      },
+    };
+
+    it('there are no matches', () => {
+      const state = Object.freeze({
+        searchTerm: '',
+        filteredOwners: ['owner1', 'owner2'],
+        filteredNodesStatus: { some: true },
+        initialFilteredStatus: false,
+      });
+      const { searchTerm, filteredOwners, filteredNodesStatus, initialFilteredStatus } = reducer(state, {
+        type: 'ownersTree/setOwnersTreeSearchTerm',
+        payload: { ownersMap, topParentOrganizationId: '4thlevelchild', searchTerm: 'asddsa' },
+      });
+      expect(searchTerm).toBe('asddsa');
+      expect(filteredOwners).toEqual([]);
+      expect(filteredNodesStatus).toEqual({});
+      expect(initialFilteredStatus).toBe(true);
+    });
+
+    it('there are matches', () => {
+      const state = Object.freeze({
+        searchTerm: '',
+        filteredOwners: ['owner1', 'owner2'],
+        filteredNodesStatus: { some: true },
+        initialFilteredStatus: false,
+      });
+      const { searchTerm, filteredOwners, filteredNodesStatus, initialFilteredStatus } = reducer(state, {
+        type: 'ownersTree/setOwnersTreeSearchTerm',
+        payload: { ownersMap, topParentOrganizationId: '4thlevelchild', searchTerm: '5th' },
+      });
+      expect(searchTerm).toBe('5th');
+      expect(filteredOwners).toEqual(['6thlevelapp', '6thlevelchild', '5thlevelchild', '4thlevelchild']);
+      expect(filteredNodesStatus).toEqual({});
+      expect(initialFilteredStatus).toBe(true);
+    });
+  });
 });

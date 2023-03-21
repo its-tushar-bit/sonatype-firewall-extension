@@ -8,8 +8,23 @@ import { prop } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 
 export const selectOwnersTreeSlice = createSelector(selectOrgsAndPoliciesSlice, prop('ownersTree'));
-export const selectOwnersTreeNodesStatus = createSelector(selectOwnersTreeSlice, prop('nodesStatus'));
-export const selectOwnersTreeNodesInitialStatus = createSelector(selectOwnersTreeSlice, prop('initialStatus'));
+export const selectSearchTerm = createSelector(selectOwnersTreeSlice, prop('searchTerm'));
+export const selectFilteredOwners = createSelector(selectOwnersTreeSlice, prop('filteredOwners'));
+
+export const selectOwnersTreeNodesStatus = createSelector(
+  selectOwnersTreeSlice,
+  ({ nodesStatus, filteredNodesStatus, searchTerm }) => {
+    return searchTerm ? filteredNodesStatus : nodesStatus;
+  }
+);
+
+export const selectOwnersTreeNodesInitialStatus = createSelector(
+  selectOwnersTreeSlice,
+  ({ initialFilteredStatus, initialStatus, searchTerm }) => {
+    return searchTerm ? initialFilteredStatus : initialStatus;
+  }
+);
+
 export const selectIsOwnerNodeExpanded = createSelector(
   selectOwnersTreeNodesStatus,
   selectOwnersTreeNodesInitialStatus,
@@ -18,4 +33,11 @@ export const selectIsOwnerNodeExpanded = createSelector(
     if (!ownersStatus || !ownerId) return undefined;
     return ownersStatus[ownerId] ?? initialStatus;
   }
+);
+
+export const selectShouldRenderNode = createSelector(
+  selectSearchTerm,
+  selectFilteredOwners,
+  (_, nodeId) => nodeId,
+  (searchTerm, filteredOwners, nodeId) => !searchTerm || (searchTerm && filteredOwners.includes(nodeId))
 );

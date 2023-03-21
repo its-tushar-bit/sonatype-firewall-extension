@@ -86,4 +86,19 @@ public class OrgsAndPoliciesTreeViewTest
     refresh();
     OwnerTreeViewPage.backButton().shouldHave(text("Back to Root Organization"));
   }
+
+  @Test
+  public void testOwnerTreeFilter() {
+    ElementsCollection treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
+    treeItems.shouldHaveSize(57);
+
+    OwnerTreeViewPage.ownerFilterInput().setValue("12");
+    treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
+    treeItems.shouldHaveSize(10);
+
+    OwnerTreeViewPage.ownerFilterInput().setValue("asdfg");
+    treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
+    treeItems.shouldHaveSize(0);
+    OwnerTreeViewPage.emptyTreeMessage().shouldHave(text("No matching results"));
+  }
 }

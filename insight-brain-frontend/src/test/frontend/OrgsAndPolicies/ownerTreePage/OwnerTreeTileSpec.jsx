@@ -20,7 +20,7 @@ describe('OwnersTreeTile', () => {
     };
 
     renderComponent = (props = {}, preloadedState = state) =>
-      render(<OwnersTreeTile id="sonatype" topParentOrganizationId="sonatype" {...props} />, { preloadedState });
+      render(<OwnersTreeTile topParentOrganizationId="sonatype" {...props} />, { preloadedState });
   });
 
   it('renders owners tree tile', () => {
@@ -29,7 +29,6 @@ describe('OwnersTreeTile', () => {
     const ownersTreeTile = screen.getByLabelText('Inheritance Hierarchy');
 
     expect(ownersTreeTile).toBeVisible();
-    expect(within(ownersTreeTile).getByText('Inheritance Hierarchy')).toBeVisible();
     expect(within(ownersTreeTile).getByRole('tree')).toBeVisible();
   });
 });

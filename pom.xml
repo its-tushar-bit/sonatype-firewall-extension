@@ -1106,7 +1106,7 @@
         <artifactId>insight-license-dto-model</artifactId>
         <version>${hds.version}</version>
       </dependency>
-      <!-- We cannot change this version without checking more than just the build see CLM-24899 -->
+      <!-- Note that versions 4.10+ are not backwards compatible https://github.com/antlr/antlr4/releases/tag/4.10 -->
       <dependency>
         <groupId>org.antlr</groupId>
         <artifactId>antlr4-runtime</artifactId>

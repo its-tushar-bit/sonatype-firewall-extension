@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.api.v2.ApiEvaluationResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiJiraConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiLegalAttributionReportTemplateResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiMailConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiMetricsReportingResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiOrganizationResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
@@ -30,7 +29,6 @@ import com.sonatype.insight.brain.configuration.AutomaticApplicationsConfigurati
 import com.sonatype.insight.brain.configuration.AutomaticSourceControlConfigurationResource;
 import com.sonatype.insight.brain.configuration.SystemNoticeResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
-import com.sonatype.insight.brain.configuration.webhook.WebhookResource;
 import com.sonatype.insight.brain.search.AdvancedSearchResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsResource;
@@ -63,15 +61,13 @@ public class MilestoneOneBannedRestResources
       ApiSourceControlMetricsResource.class,
       ApiSourceControlResource.class,
       LdapResource.class,
-      ApiMailConfigurationResource.class,
       ApiProxyServerConfigurationResource.class,
       SystemNoticeResource.class,
       SuccessMetricsResource.class,
       AutomaticApplicationsConfigurationResource.class,
       AdvancedSearchResource.class,
       AutomaticSourceControlConfigurationResource.class,
-      ApiCrowdConfigurationResourceV2.class,
-      WebhookResource.class
+      ApiCrowdConfigurationResourceV2.class
   );
 
   @Override

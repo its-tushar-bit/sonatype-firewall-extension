@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 
 import javax.mail.internet.InternetAddress;
 
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlWithFallbackDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -18,9 +18,12 @@ import org.apache.commons.lang3.StringUtils;
  * @since 1.83
  */
 public class MailConfigurationDAO
-    extends AbstractOperationalSqlDAO<MailConfiguration>
+    extends AbstractOperationalSqlWithFallbackDAO<MailConfiguration>
 {
   public static final String SINGLETON_ENTITY_ID = "mail-configuration";
+
+  public static final String QUERY = "SELECT entity FROM MailConfiguration entity" + //
+      " WHERE entity.id=?1";
 
   /**
    * @return The mail server configuration or {@code null} if none.
@@ -29,11 +32,24 @@ public class MailConfigurationDAO
     return getById(SINGLETON_ENTITY_ID);
   }
 
+  /**
+   * The REST endpoints used by the frontend should not fallback to using the default (global tenant) configuration
+   * when running as multi-tenant. This allows the ui to only show the mail configuration configured for the tenant and
+   * if no configuration will appear un-configured.
+   */
+  public MailConfiguration getWithoutFallback() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getWithoutFallback(tx);
+    }
+  }
+
+  private MailConfiguration getWithoutFallback(TransactionContext tx) {
+    return getWithGlobalFallback(tx, QUERY, true, SINGLETON_ENTITY_ID);
+  }
+
   @Override
   protected MailConfiguration getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM MailConfiguration entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, SINGLETON_ENTITY_ID);
+    return get(tx, QUERY, SINGLETON_ENTITY_ID);
   }
 
   public void set(MailConfiguration mailConfiguration) {

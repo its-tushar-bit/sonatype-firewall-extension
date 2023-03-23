@@ -11,6 +11,14 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * This class is responsible for enabling write protection of identified tables for the global tenant schema.
+ * To ensure a correct deployment whereby some tables may have previously been protected but now require removal of that
+ * protection, firstly, write protection is removed from all tables and then the protection is re-applied to those still
+ * requiring it.
+ * This alternative approach would be to consider the tables individually and potentially having a rolling migration
+ * similar to the other tenants migration requirements. This is not necessary at this point.
+ */
 public class MultiTenantGlobalSchemaProtection
 {
   /* These tables have been identified as the only tables that should be writeable under the global schema
@@ -27,7 +35,8 @@ public class MultiTenantGlobalSchemaProtection
       "component_category",
       "license",
       "multi_license",
-      "multi_license_license"
+      "multi_license_license",
+      "mail_configuration"
   );
 
   private static final String GLOBAL_SCHEMA_NAME = OperationalDataStoreProvider.getDatabaseSchema();
@@ -51,7 +60,20 @@ public class MultiTenantGlobalSchemaProtection
     return stringBuilder.toString();
   }
 
-  private static String SQL_QUERY =
+  private static String SQL_DISABLE_PROTECTION_QUERY =
+      "DO " +
+          "$loop$ " +
+          "DECLARE " +
+          "    r RECORD; " +
+          "BEGIN " +
+          "FOR r IN (SELECT tablename FROM pg_tables) " +
+          "    LOOP " +
+          "    EXECUTE 'drop trigger if exists write_protect_trigger on ' || " +
+          "quote_ident(r.tablename) || ';';" +
+          "    END LOOP; " +
+          "END $loop$;";
+
+  private static String SQL_ENABLE_PROTECTION_QUERY =
       "DO " +
           "$loop$ " +
           "DECLARE " +
@@ -73,7 +95,8 @@ public class MultiTenantGlobalSchemaProtection
       connection.setAutoCommit(true);
       statement.executeUpdate("SET SCHEMA '" + GLOBAL_SCHEMA_NAME + "';");
       statement.executeUpdate(CREATE_TRIGGER_FUNCTION);
-      statement.executeUpdate(SQL_QUERY);
+      statement.executeUpdate(SQL_DISABLE_PROTECTION_QUERY);
+      statement.executeUpdate(SQL_ENABLE_PROTECTION_QUERY);
     }
     catch (SQLException e) {
       throw new RuntimeException(e);

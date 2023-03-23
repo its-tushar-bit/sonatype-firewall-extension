@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
@@ -90,6 +91,7 @@ public class MTIQFeatureServiceTest
     assertThat(features).containsExactlyInAnyOrder(
         DASHBOARD,
         DASHBOARD_CAN_BE_ENABLED,
+        WEBHOOKS_FOR_REPOSITORIES,
         HYGIENE,
         FIREWALL,
         BREAKING_CHANGE,
@@ -165,6 +167,7 @@ public class MTIQFeatureServiceTest
   private List<SystemConfigurationPropertyFeature> getDisabledSystemConfigurationPropertyFeatures() {
     return Arrays.stream(SystemConfigurationPropertyFeature.values())
         .filter(f -> !f.equals(DASHBOARD_CAN_BE_ENABLED))
+        .filter(f -> !f.equals(EMAIL_CONFIGURATION))
         .filter(f -> !f.equals(LOGOUT_AUTH0_ON_LOGOUT))
         .collect(Collectors.toList());
   }

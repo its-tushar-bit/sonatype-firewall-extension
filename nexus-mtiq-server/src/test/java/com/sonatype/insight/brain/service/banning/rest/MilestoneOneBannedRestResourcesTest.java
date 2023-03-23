@@ -85,10 +85,10 @@ public class MilestoneOneBannedRestResourcesTest
     assertThat(underTest.isBanned(DefaultApiSourceControlMetricsResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiSourceControlResource.class)).isTrue();
     assertThat(underTest.isBanned(DefaultApiSourceControlResource.class)).isTrue();
-    assertThat(underTest.isBanned(ApiMailConfigurationResource.class)).isTrue();
-    assertThat(underTest.isBanned(DefaultApiMailConfigurationResource.class)).isTrue();
+    assertThat(underTest.isBanned(ApiMailConfigurationResource.class)).isFalse();
+    assertThat(underTest.isBanned(DefaultApiMailConfigurationResource.class)).isFalse();
     assertThat(underTest.isBanned(LdapResource.class)).isTrue();
-    assertThat(underTest.isBanned(ApiMailConfigurationResource.class)).isTrue();
+    assertThat(underTest.isBanned(ApiMailConfigurationResource.class)).isFalse();
     assertThat(underTest.isBanned(ApiProxyServerConfigurationResource.class)).isTrue();
     assertThat(underTest.isBanned(SystemNoticeResource.class)).isTrue();
     assertThat(underTest.isBanned(SuccessMetricsResource.class)).isTrue();
@@ -96,6 +96,6 @@ public class MilestoneOneBannedRestResourcesTest
     assertThat(underTest.isBanned(AdvancedSearchResource.class)).isTrue();
     assertThat(underTest.isBanned(AutomaticSourceControlConfigurationResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiCrowdConfigurationResourceV2.class)).isTrue();
-    assertThat(underTest.isBanned(WebhookResource.class)).isTrue();
+    assertThat(underTest.isBanned(WebhookResource.class)).isFalse();
   }
 }

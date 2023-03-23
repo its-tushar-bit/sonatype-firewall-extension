@@ -7,19 +7,16 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlWithFallbackDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
 /**
  * @since 1.33
  */
 public class SystemConfigurationPropertyDAO
-    extends AbstractOperationalSqlDAO<SystemConfigurationProperty>
+    extends AbstractOperationalSqlWithFallbackDAO<SystemConfigurationProperty>
 {
   @Override
   public SystemConfigurationProperty getById(final TransactionContext tx, final String id) {
@@ -108,48 +105,6 @@ public class SystemConfigurationPropertyDAO
         property.setValue(value);
         update(tx, property);
       }
-    }
-  }
-
-  @Override
-  protected SystemConfigurationProperty get(
-      TransactionContext tx,
-      String sQuery,
-      Object... parameters)
-  {
-    return getWithGlobalFallback(tx, sQuery, false, parameters);
-  }
-
-  /**
-   * MTIQ: First attempt to get the configuration from the current tenant. If the configuration does not exist in the
-   * per-tenant schema then fall back and get the config from the global tenant. This allows us to provide configuration
-   * defaults for all tenants.
-   * <p>
-   * IQ: Get the configuration as normal.
-   *
-   * @param tx
-   * @param sQuery
-   * @param parameters
-   * @param fetchForUpdate - If fetching config to then update the config, should NOT fall back and use global
-   * @return
-   */
-  private SystemConfigurationProperty getWithGlobalFallback(
-      TransactionContext tx,
-      String sQuery,
-      boolean fetchForUpdate,
-      Object... parameters)
-  {
-    SystemConfigurationProperty result = super.get(tx, sQuery, null, parameters);
-
-    if (fetchForUpdate || result != null || new TenantUtil().isSingleTenant() || new TenantUtil().isGlobalTenant()) {
-      return result;
-    }
-    else {
-      return runAsGlobal(() -> {
-        try (TransactionContext globalTx = createTransactionContext()) {
-          return super.get(globalTx, sQuery, null, parameters);
-        }
-      });
     }
   }
 }

@@ -56,7 +56,7 @@ public class ApiMailConfigurationService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ApiMailConfigurationDTO getConfiguration() {
-    MailConfiguration mailConfiguration = mailConfigurationDAO.get();
+    MailConfiguration mailConfiguration = mailConfigurationDAO.getWithoutFallback();
     if (mailConfiguration == null) {
       throw newNotFoundException();
     }
@@ -87,7 +87,7 @@ public class ApiMailConfigurationService
   private MailConfiguration importMailConfigurationFromDto(
       ApiMailConfigurationDTO configurationDTO)
   {
-    MailConfiguration mailConfiguration = mailConfigurationDAO.get();
+    MailConfiguration mailConfiguration = mailConfigurationDAO.getWithoutFallback();
     if (mailConfiguration == null) {
       mailConfiguration = new MailConfiguration();
     }

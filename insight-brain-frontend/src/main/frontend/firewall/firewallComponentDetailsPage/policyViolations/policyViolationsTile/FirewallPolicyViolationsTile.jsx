@@ -26,7 +26,7 @@ export default function FirewallPolicyViolationsTile({ title, violations }) {
   const [showPolicyWaiversPopover, setShowComponentWaiversPopover] = useState(false);
   const { isLoadingPolicyViolations, policyViolationsError } = useSelector(selectFirewallComponentDetailsPage);
   const dispatch = useDispatch();
-  const { pathname, repositoryId } = useSelector(selectFirewallComponentDetailsPageRouteParams);
+  const { pathname, repositoryId, componentDisplayName } = useSelector(selectFirewallComponentDetailsPageRouteParams);
   const componentName = useSelector(selectComponentName);
   const componentNameWithoutVersion = useSelector(selectComponentNameWithoutVersion);
   const waivers = useSelector(selectWaivers);
@@ -53,7 +53,7 @@ export default function FirewallPolicyViolationsTile({ title, violations }) {
             showPolicyWaiversPopover={showPolicyWaiversPopover}
             {...{ violations }}
             showProxyState
-            componentName={componentName}
+            componentName={componentName || componentDisplayName}
             componentNameWithoutVersion={componentNameWithoutVersion}
             waivers={waivers}
             waiverToDelete={waiverToDelete}

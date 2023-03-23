@@ -144,6 +144,8 @@ public class FirewallComponentDetailsPageTest
 
   private Policy coordinatesPolicy;
 
+  private Policy unknownComponentPolicy;
+
   private Date date;
 
   // declared and observed licenses are not the same
@@ -354,6 +356,11 @@ public class FirewallComponentDetailsPageTest
         CoordinatesConditionType.ID, "do not match", "maven:javancss*");
   }
 
+  private void createUnknownComponentPolicy() {
+    unknownComponentPolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 2, "Component-Unknown", 
+    MatchStateConditionType.ID, "is", MatchState.UNKNOWN.toString());
+  }
+
   private ComponentIdentifier createComponentIdentifier(String version) {
     return ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", version, "", "jar");
   }
@@ -546,6 +553,43 @@ public class FirewallComponentDetailsPageTest
     return mainRepositoryComponent;
   }
 
+  private RepositoryComponent setupUnknownComponentTestData() {
+    RepositoryComponent unknownRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId(),
+        MatchState.UNKNOWN, "unknownComponent", null /* componentIdentifier */, true);
+
+    ConstraintFact unknownComponentConstraintFact =
+        createConstraintFact("constraint10", "Unknown 3rd party component", "summary", "Match State is unknown");
+
+    createRepositoryPolicyViolation(repository.getId(), 2, unknownRepositoryComponent.getPathname(),
+        unknownRepositoryComponent.getHash(), Collections.singletonList(unknownComponentConstraintFact),
+        false /* isWaived */, "fail", unknownComponentPolicy.getId(), unknownComponentPolicy.getName(),
+        unknownRepositoryComponent.getComponentIdentifier(), date, null/* PolicyWaiverId */,
+        null/* PolicyWaiverComment */, null/* PolicyWaiverCreateTime */, PolicyThreatCategory.OTHER);
+
+    return unknownRepositoryComponent;
+  }
+
+  private RepositoryComponent setupUnknownComponentTestDataWithWaivedViolation() {
+    RepositoryComponent unknownRepositoryComponent = tempEntity.newRepositoryComponent(repository.getId(),
+        MatchState.UNKNOWN, "unknownComponent", null /* componentIdentifier */, true);
+    unknownRepositoryComponent.setDisplayName("unknownComponent");
+
+    ConstraintFact unknownComponentConstraintFact =
+        createConstraintFact("constraint10", "Unknown 3rd party component", "summary", "Match State is unknown");
+
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(unknownRepositoryComponent.getHash(),
+        unknownComponentPolicy.getId(), Organization.ROOT_ORGANIZATION_ID,
+        Collections.singletonList(unknownComponentConstraintFact), "Test comment for waiver");
+
+    createRepositoryPolicyViolation(repository.getId(), 2, unknownRepositoryComponent.getPathname(),
+        unknownRepositoryComponent.getHash(), Collections.singletonList(unknownComponentConstraintFact),
+        false /* isWaived */, "fail", unknownComponentPolicy.getId(), unknownComponentPolicy.getName(),
+        unknownRepositoryComponent.getComponentIdentifier(), date, policyWaiver.getId(), policyWaiver.getComment(),
+        policyWaiver.getCreateTime(), PolicyThreatCategory.OTHER);
+
+    return unknownRepositoryComponent;
+  }
+
   private ConstraintFact createConstraintFact(
       String constraintId,
       String constraintName,
@@ -574,6 +618,53 @@ public class FirewallComponentDetailsPageTest
     firewallComponentDetailsPage.title().should(exist).shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
   }
 
+  private RepositoryComponent openUnknownComponentDetailsPageFromFirewallDashboard() {
+    createUnknownComponentPolicy();
+    RepositoryComponent component = setupUnknownComponentTestData();
+    FirewallPage firewallPage = new FirewallPage();
+    refreshOrOpen(FirewallPage.url());
+    waitUntilSpinnersGone();
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0).get(0).shouldBe(text("2"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0).get(1).shouldBe(text("Component-Unknown"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0).get(3)
+        .shouldBe(text("unknownComponent (unknownComponent)"));
+    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0).get(4).shouldBe(text("repositoryPublicId"));
+
+    firewallPage.firewallQuarantineTable().getComponentDetailsPageLinkFromRow(0).click();
+    waitUntilSpinnersGone();
+
+    return component;
+  }
+
+  private RepositoryComponent openUnknownComponentDetailsPageFromRepositoryResults() {
+    createUnknownComponentPolicy();
+    RepositoryComponent component = setupUnknownComponentTestData();
+    refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    waitUntilSpinnersGone();
+    String quarantinedDate = getDateString(component.getQuarantineTime(), "yyyy-MM-dd");
+    RepositoryResultDetailPage.table().row(0).threat().shouldBe(text("2"));
+    RepositoryResultDetailPage.table().row(0).policy().shouldBe(text("Component-Unknown"));
+    RepositoryResultDetailPage.table().row(0).quarantined().shouldBe(text(quarantinedDate));
+    RepositoryResultDetailPage.table().row(0).component().shouldBe(text("unknownComponent (unknownComponent)"));
+    
+    RepositoryResultDetailPage.table().row(0).component().click();
+    waitUntilSpinnersGone();
+
+    return component;
+  }
+
+  @Test
+  public void testTitleForUnknownComponentFromFirewallDashboard() {
+    openUnknownComponentDetailsPageFromFirewallDashboard();
+    firewallComponentDetailsPage.title().should(exist).shouldHave(text("unknownComponent (unknownComponent)"));
+  }
+
+  @Test
+  public void testTitleForUnknownComponentFromRepositoryResults() {
+    openUnknownComponentDetailsPageFromRepositoryResults();
+    firewallComponentDetailsPage.title().should(exist).shouldHave(text("unknownComponent (unknownComponent)"));
+  }
+
   @Test
   public void testFormatTag() {
     createAllTypePolicies();
@@ -590,30 +681,50 @@ public class FirewallComponentDetailsPageTest
     testTabs(FirewallComponentDetailsPage.defaultUrl(component), component);
   }
 
+  @Test
+  public void testTabsFromFirewallDashboardWithUnknownComponentFromFirewallDashboard() {
+    RepositoryComponent component = openUnknownComponentDetailsPageFromFirewallDashboard();
+    String url = getWebDriver().getCurrentUrl();
+    testTabs(url, component);
+  }
+
+  @Test
+  public void testTabsFromFirewallDashboardWithUnknownComponentFromRepositoryResults() {
+    RepositoryComponent component = openUnknownComponentDetailsPageFromRepositoryResults();
+    String url = getWebDriver().getCurrentUrl();
+    testTabs(url, component);
+  }
+
   public void testTabs(String url, RepositoryComponent component) {
     refreshOrOpen(url);
     waitUntilSpinnersGone();
     ElementsCollection tabs = firewallComponentDetailsPage.tabs();
-    tabs.shouldHaveSize(5);
     tabs.first().shouldHave(cssClass("active"));
-
+    
     assertThat(getWebDriver().getCurrentUrl()).contains("/" + component.getMatchStateId() + "?");
 
     tabs.get(1).click();
     tabs.get(1).shouldHave(cssClass("active"));
     assertThat(getWebDriver().getCurrentUrl()).contains("/violations?");
 
-    tabs.get(2).click();
-    tabs.get(2).shouldHave(cssClass("active"));
-    assertThat(getWebDriver().getCurrentUrl()).contains("/security?");
+    if (component.getMatchStateId() != MatchState.UNKNOWN.toString()) {
+      tabs.get(2).click();
+      tabs.get(2).shouldHave(cssClass("active"));
+      assertThat(getWebDriver().getCurrentUrl()).contains("/security?");
 
-    tabs.get(3).click();
-    tabs.get(3).shouldHave(cssClass("active"));
-    assertThat(getWebDriver().getCurrentUrl()).contains("/legal?");
+      tabs.get(3).click();
+      tabs.get(3).shouldHave(cssClass("active"));
+      assertThat(getWebDriver().getCurrentUrl()).contains("/legal?");
 
-    tabs.get(4).click();
-    tabs.get(4).shouldHave(cssClass("active"));
-    assertThat(getWebDriver().getCurrentUrl()).contains("/labels?");
+      tabs.get(4).click();
+      tabs.get(4).shouldHave(cssClass("active"));
+      assertThat(getWebDriver().getCurrentUrl()).contains("/labels?");
+
+      tabs.shouldHaveSize(5);
+    }
+    else {
+      tabs.shouldHaveSize(2);
+    }
 
     tabs.get(0).click();
     tabs.get(0).shouldHave(cssClass("active"));
@@ -889,6 +1000,27 @@ public class FirewallComponentDetailsPageTest
     testComponentOverviewTile(FirewallComponentDetailsPage.defaultUrl(component));
   }
 
+  @Test
+  public void testUnknownComponentOverviewTileFromFirewallDashboard() {
+    openUnknownComponentDetailsPageFromFirewallDashboard();
+    testUnknownComponentOverviewTile();
+  }
+
+  @Test
+  public void testUnknownComponentOverviewTileFromRepositoryResults() {
+    openUnknownComponentDetailsPageFromRepositoryResults();
+    testUnknownComponentOverviewTile();
+  }
+
+  private void testUnknownComponentOverviewTile() {
+    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(0).shouldHave(text("Unknown"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(text(""));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(text(""));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(text(""));
+    firewallComponentDetailsPage.getViewCoordinatesButton().shouldNotBe(visible);
+  }
+
   public void testComponentOverviewTile(String url) {
     refreshOrOpen(url);
     waitUntilSpinnersGone();
@@ -930,6 +1062,41 @@ public class FirewallComponentDetailsPageTest
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     testComponentPolicyViolationsTile(FirewallComponentDetailsPage.urlViolationsTab(component));
+  }
+
+  @Test
+  public void testUnknownComponentPolicyViolationsTileFromFirewallDashboard() {
+    openUnknownComponentDetailsPageFromFirewallDashboard();
+    testUnknownComponentPolicyViolationsTile();
+  }
+
+  @Test
+  public void testUnknownComponentPolicyViolationsTileFromRepositoryResults() {
+    openUnknownComponentDetailsPageFromRepositoryResults();
+    testUnknownComponentPolicyViolationsTile();
+  }
+
+  private void testUnknownComponentPolicyViolationsTile() {
+    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
+    tabs.get(1).click();
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentPolicyViolationsTitle().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentPolicyViolationsTable().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentPolicyViolationsTableCols().first().findAll(By.tagName("td"));
+    testComponentPolicyViolationsRowHeaders();
+    
+    FirewallPolicyViolationsTable policyViolationsTable =
+        FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+
+    ElementsCollection violationCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    violationCells.shouldHaveSize(6);
+    violationCells.get(0).shouldHave(text("2"));
+    violationCells.get(1).shouldHave(text("Component-Unknown"));
+    violationCells.get(2).shouldHave(text("Unknown 3rd party component"));
+    violationCells.get(3).shouldHave(text("Match State is unknown"));
+    violationCells.get(4).shouldBe(empty);
   }
 
   public void testComponentPolicyViolationsTile(String url) {
@@ -1048,6 +1215,35 @@ public class FirewallComponentDetailsPageTest
 
     PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
 
+    violationRow1Cells.get(3).click();
+    violationRow1Cells.get(0).shouldHave(text(policyViolationDetailPopover.popoverThreatLevel().getText()));
+    violationRow1Cells.get(1).shouldHave(text(policyViolationDetailPopover.popoverHeaderTitle().getText()));
+    violationRow1Cells.get(2).shouldHave(text(policyViolationDetailPopover.policyViolationText().getText()));
+    violationRow1Cells.get(3).shouldHave(text(policyViolationDetailPopover.popoverList().getText()));
+    policyViolationDetailPopover.getCloseButton().click();
+  }
+
+  @Test
+  public void testPolicyViolationTabViolationRowsClickForUnknownComponentFromFirewallDashboard() {
+    openUnknownComponentDetailsPageFromFirewallDashboard();
+    testPolicyViolationTabViolationRowsClickForUnknownComponent();
+  }
+
+  @Test
+  public void testPolicyViolationTabViolationRowsClickForUnknownComponentFromRepositoryResults() {
+    openUnknownComponentDetailsPageFromRepositoryResults();
+    testPolicyViolationTabViolationRowsClickForUnknownComponent();
+  }
+
+  private void testPolicyViolationTabViolationRowsClickForUnknownComponent() {
+    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
+    tabs.get(1).click();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
     violationRow1Cells.get(3).click();
     violationRow1Cells.get(0).shouldHave(text(policyViolationDetailPopover.popoverThreatLevel().getText()));
     violationRow1Cells.get(1).shouldHave(text(policyViolationDetailPopover.popoverHeaderTitle().getText()));
@@ -1220,6 +1416,59 @@ public class FirewallComponentDetailsPageTest
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     testViolationTabWaiverTable(FirewallComponentDetailsPage.urlViolationsTab(component));
+  }
+
+  @Test
+  public void testViolationTabWaiverTableFromFirewallDashboardForUnknownComponentFromFirewallDashboard() {
+    createUnknownComponentPolicy();
+    setupUnknownComponentTestDataWithWaivedViolation();
+    FirewallPage firewallPage = new FirewallPage();
+    refreshOrOpen(FirewallPage.url());
+    waitUntilSpinnersGone();
+    firewallPage.firewallQuarantineTable().getComponentDetailsPageLinkFromRow(0).click();
+    waitUntilSpinnersGone();
+
+    testViolationTabWaiverTableFromFirewallDashboardForUnknownComponent();
+  }
+
+  @Test
+  public void testViolationTabWaiverTableFromFirewallDashboardForUnknownComponentFromRepositoryResults() {
+    createUnknownComponentPolicy();
+    RepositoryComponent component = setupUnknownComponentTestDataWithWaivedViolation();
+    refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    waitUntilSpinnersGone();
+    RepositoryResultDetailPage.table().row(0).component().click();
+    waitUntilSpinnersGone();
+
+    testViolationTabWaiverTableFromFirewallDashboardForUnknownComponent();
+  }
+
+  private void testViolationTabWaiverTableFromFirewallDashboardForUnknownComponent() {
+    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
+    tabs.get(1).click();
+    Date waiverCreateDate = date;
+    String waiverCreateDateString = getDateString(waiverCreateDate, dateFormatMask);
+
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
+    firewallComponentDetailsPage.firewallWaiversButton().click();
+
+    componentWaiversPopover.shouldBe(visible);
+    componentWaiversPopover.title().shouldHave(text("Component Waivers"));
+    componentWaiversTable.shouldBe(visible);
+    componentWaiversTable.getRows().shouldHaveSize(1);
+
+    ElementsCollection waiversTableCells = componentWaiversTable.getCellsByNthRow(1);
+
+    waiversTableCells.shouldHaveSize(7);
+    waiversTableCells.get(0).shouldHave(text("Component-Unknown Unknown 3rd party component"));
+    waiversTableCells.get(1).shouldHave(text(waiverCreateDateString));
+    waiversTableCells.get(2).shouldHave(text("Organization - Root Organization"));
+    waiversTableCells.get(3).shouldBe(text("unknownComponent (unknownComponent)"));
+    waiversTableCells.get(4).shouldBe(text("Test User"));
+    waiversTableCells.get(5).shouldBe(text("Test comment for waiver"));
   }
 
   public void testViolationTabWaiverTable(String url) {
@@ -1629,6 +1878,57 @@ public class FirewallComponentDetailsPageTest
     waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
   }
 
+  @Test
+  public void testPolicyViolationTabManageWaiversButtonClickForUnknownComponentFromFirewallDashboard() {
+    createUnknownComponentPolicy();
+    setupUnknownComponentTestDataWithWaivedViolation();
+    FirewallPage firewallPage = new FirewallPage();
+    refreshOrOpen(FirewallPage.url());
+    waitUntilSpinnersGone();
+    firewallPage.firewallQuarantineTable().getComponentDetailsPageLinkFromRow(0).click();
+    waitUntilSpinnersGone();
+    
+    testPolicyViolationTabManageWaiversButtonClickForUnknownComponent();
+  }
+
+  @Test
+  public void testPolicyViolationTabManageWaiversButtonClickForUnknownComponentFromRepositoryResults() {
+    createUnknownComponentPolicy();
+    RepositoryComponent component = setupUnknownComponentTestDataWithWaivedViolation();
+    refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    RepositoryResultDetailPage.table().row(0).component().click();
+    waitUntilSpinnersGone();
+        
+    testPolicyViolationTabManageWaiversButtonClickForUnknownComponent();
+  }
+
+  private void testPolicyViolationTabManageWaiversButtonClickForUnknownComponent() {
+    
+    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
+    tabs.get(1).click();
+    
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
+    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
+    waiversForViolationPage.componentName().shouldHave(text("unknownComponent (unknownComponent)"));
+    waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
+  }
+
   public void testComponentReEvaluation() throws Exception {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
@@ -1765,6 +2065,59 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
     addWaiverPage.component(1).label().shouldHave(text("com.lingocoder : abi.cli"));
+    addWaiverPage.component(2).label().shouldHave(text("All Components"));
+    addWaiverPage.currentUserName().scrollIntoView(true).shouldHave(text("Admin BuiltIn"));
+  }
+
+  @Test
+  public void testOpenAddWaiverPageForUnknownComponentFromFirewallDashboard() {
+    openUnknownComponentDetailsPageFromFirewallDashboard();
+    testOpenAddWaiverPageForUnknownComponent();
+  }
+
+  @Test
+  public void testOpenAddWaiverPageForUnknownComponentFromRepositoryResults() {
+    openUnknownComponentDetailsPageFromRepositoryResults();
+    testOpenAddWaiverPageForUnknownComponent();
+  }
+
+  private void testOpenAddWaiverPageForUnknownComponent() {
+    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
+    tabs.get(1).click();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.artifactName().shouldHave(text("unknownComponent (unknownComponent)"));
+    addWaiverPage.componentName().shouldHave(text("unknownComponent (unknownComponent)"));
+    addWaiverPage.policyName().shouldHave(text("Component-Unknown"));
+    addWaiverPage.constraintName().shouldHave(text("Unknown 3rd party component"));
+    addWaiverPage.conditions().shouldHaveSize(1);
+    addWaiverPage.condition(1).shouldHave(text("Match State is unknown"));
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.scope(0).shouldHave(text("Repository - repositoryPublicId"));
+    addWaiverPage.scope(1).shouldHave(text("All Repositories"));
+    addWaiverPage.scope(2).shouldHave(text("Organization - Root Organization"));
+    addWaiverPage.availableComponents().shouldHaveSize(3);
+    addWaiverPage.component(0).label().shouldHave(text("unknownComponent (unknownComponent)"));
+    addWaiverPage.component(1).label().shouldHave(text("All Versions"));
     addWaiverPage.component(2).label().shouldHave(text("All Components"));
     addWaiverPage.currentUserName().scrollIntoView(true).shouldHave(text("Admin BuiltIn"));
   }

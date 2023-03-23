@@ -126,6 +126,10 @@ public class FirewallPageComponents
       return tableBody().findAll("tr");
     }
 
+    public ElementsCollection tableBodyCellsFromRow(int rowIndex) {
+      return tableBody().findAll("tr:nth-child(" + (rowIndex + 1) + ") td");
+    }
+
     public SelenideElement getComponentDetailsPageLinkFromRow(int rowIndex) {
       return tableBody().find("tr:nth-child(" + (rowIndex + 1) + ") td:nth-child(4) .nx-text-link");
     }

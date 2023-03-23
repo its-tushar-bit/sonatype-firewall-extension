@@ -152,7 +152,7 @@ public class ConfigurationProperty
           (p, o) -> ConfigurationUtils.integerValueToString(o,
               SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
               30, Integer.MAX_VALUE)),
-  };
+      };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(
       Collectors.toMap(ConfigurationProperty::getName, Function.identity()));
@@ -191,5 +191,9 @@ public class ConfigurationProperty
 
   public BiFunction<Object[], Object, String> getValueToString() {
     return valueToString;
+  }
+
+  public static Map<String, ConfigurationProperty> getConfigurationPropertiesByName() {
+    return PROPERTY_BY_NAME;
   }
 }

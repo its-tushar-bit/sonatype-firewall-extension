@@ -19,13 +19,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Provides means to inspect the available features of the tenant.
- *
  */
 public class ConfigFeaturesService
 {
   private static final Logger log = LoggerFactory.getLogger(ConfigFeaturesService.class);
 
-  MTIQFeatureService mtiqFeatureService;
+  private final MTIQFeatureService mtiqFeatureService;
 
   @Inject
   public ConfigFeaturesService(MTIQFeatureService mtiqFeatureService) {
@@ -37,7 +36,7 @@ public class ConfigFeaturesService
    */
   public Set<Feature> getAllFeatures() {
     Set<Feature> features = Arrays.stream(SystemConfigurationPropertyFeature.values())
-        .filter(feature -> mtiqFeatureService.isEnabled(feature))
+        .filter(mtiqFeatureService::isEnabled)
         .collect(Collectors.toSet());
 
     log.debug("Found all features: {}", features);
@@ -50,7 +49,7 @@ public class ConfigFeaturesService
   public Set<Feature> getFeatures() {
     Set<Feature> features = Arrays.stream(SystemConfigurationPropertyFeature.values())
         .filter(SystemConfigurationPropertyFeature::isEnabled)
-        .filter(feature -> mtiqFeatureService.isEnabled(feature))
+        .filter(mtiqFeatureService::isEnabled)
         .collect(Collectors.toSet());
 
     log.debug("Found features: {}", features);

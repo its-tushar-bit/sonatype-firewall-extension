@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import com.sonatype.insight.brain.support.SupportInfoUtil;
 import com.sonatype.insight.brain.support.SupportInformation;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
-import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -33,15 +32,11 @@ import static org.mockito.Mockito.when;
 public class TenantSupportInfoServiceTest
     extends MultiTenantTestSupport
 {
-  protected Tenant tenant;
-
   @Mock
   private TenantUtil tenantUtil;
 
   @Mock
   private TenantValidator tenantValidator;
-
-  private TenantSupportInfoService tenantSupportInfoService;
 
   @Mock
   private SupportInformation supportInformation;
@@ -49,10 +44,12 @@ public class TenantSupportInfoServiceTest
   @Mock
   private SupportInfoUtil supportInfoUtil;
 
+  private TenantSupportInfoService underTest;
+
   @Before
   @Override
   public void setup() {
-    tenantSupportInfoService = new TenantSupportInfoService(tenantUtil, tenantValidator,
+    underTest = new TenantSupportInfoService(tenantUtil, tenantValidator,
         supportInformation, supportInfoUtil);
   }
 
@@ -74,7 +71,7 @@ public class TenantSupportInfoServiceTest
         when(supportInformation.withWaivers()).thenReturn(supportInformation);
         when(supportInformation.build()).thenReturn(new ArrayList<>());
         when(supportInfoUtil.generateZip(any(), any())).thenReturn(new File("mtiq-support.zip"));
-        File supportZip = tenantSupportInfoService.getSupportZip();
+        File supportZip = underTest.getSupportZip();
 
         assertThat(supportZip).hasName("mtiq-support.zip");
       }
@@ -90,7 +87,7 @@ public class TenantSupportInfoServiceTest
 
     testAsGlobalTenant(global -> {
       when(tenantUtil.isGlobalTenant()).thenReturn(true);
-      assertThatThrownBy(() -> tenantSupportInfoService.getSupportZip())
+      assertThatThrownBy(() -> underTest.getSupportZip())
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
@@ -102,7 +99,7 @@ public class TenantSupportInfoServiceTest
 
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant)).thenReturn(false);
-      assertThatThrownBy(() -> tenantSupportInfoService.getSupportZip())
+      assertThatThrownBy(() -> underTest.getSupportZip())
           .withFailMessage(errorMessage)
           .isInstanceOf(NotFoundException.class);
     });

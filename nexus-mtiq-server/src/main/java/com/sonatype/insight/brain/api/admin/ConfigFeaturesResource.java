@@ -59,7 +59,7 @@ public class ConfigFeaturesResource
   @POST
   @Audited(AuditEvent.SET_FEATURES)
   @Path(FEATURE)
-  public void enabledFeature(@PathParam("feature") String feature) {
+  public void enableFeature(@PathParam("feature") String feature) {
     mtiqFeatureService.enableFeature(feature);
   }
 

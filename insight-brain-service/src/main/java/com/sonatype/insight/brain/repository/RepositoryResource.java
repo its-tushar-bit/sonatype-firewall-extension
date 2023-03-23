@@ -59,6 +59,8 @@ public class RepositoryResource
   static final String PROPRIETARY_COMPONENT_NAME_PATTERN_UPDATE_PATH =
       PROPRIETARY_COMPONENT_NAME_PATTERN_PATH + "/update";
 
+  static final String FIREWALL_ONBOARDING_PATH = "firewallOnboarding/{repositoryManagerInstanceId}";
+
   private RepositoryService repositoryService;
 
   @Inject
@@ -191,5 +193,18 @@ public class RepositoryResource
       ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO)
   {
     repositoryService.updateProprietaryComponentNamePattern(proprietaryComponentNamePatternDTO);
+  }
+
+  /**
+   * @since 1.159
+   */
+  @GET
+  @Path(FIREWALL_ONBOARDING_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  public FirewallOnboardingDTO getFirewallOnboarding(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId)
+  {
+    return repositoryService.getFirewallOnboarding(repositoryManagerInstanceId);
   }
 }

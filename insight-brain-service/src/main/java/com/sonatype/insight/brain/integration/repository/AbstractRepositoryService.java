@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -26,6 +27,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRepositoryDTO;
+import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -35,15 +38,21 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.onboarding.FirewallOnboardingRepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.onboarding.FirewallOnboardingRepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepository;
+import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
@@ -56,6 +65,7 @@ import com.sonatype.insight.brain.repository.component.QuarantinedComponentAcces
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -68,6 +78,7 @@ import com.sonatype.insight.telemetry.SonatypeUserAgentUtil;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +99,12 @@ public abstract class AbstractRepositoryService
 
   private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
+  private static final FirewallOnboardingRepositoryManagerDAO firewallOnboardingRepositoryManagerDAO =
+      new FirewallOnboardingRepositoryManagerDAO();
+
+  private static final FirewallOnboardingRepositoryDAO firewallOnboardingRepositoryDAO =
+      new FirewallOnboardingRepositoryDAO();
+
   protected final ProductLicense productLicense;
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
@@ -103,6 +120,8 @@ public abstract class AbstractRepositoryService
   private final FirewallQuarantineHdsClient quarantineHdsClient;
 
   private final TelemetrySender telemetrySender;
+
+  private final CurrentUser currentUser;
 
   static final String REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT = "repository_component_requested_version_count";
 
@@ -124,7 +143,8 @@ public abstract class AbstractRepositoryService
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      CurrentUser currentUser)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
@@ -135,6 +155,7 @@ public abstract class AbstractRepositoryService
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.quarantineHdsClient = quarantineHdsClient;
     this.telemetrySender = telemetrySender;
+    this.currentUser = currentUser;
   }
 
   protected void checkLicenseFeature() {
@@ -866,5 +887,50 @@ public abstract class AbstractRepositoryService
     attributes.put(REPOSITORY_COMPONENT_METADATA_EVALUATION_TIME, evaluationTime);
 
     telemetrySender.send(telemetryData);
+  }
+
+  protected void firewallOnboarding(FirewallOnboardingRequest firewallOnboardingRequest, String clientUserAgent) {
+    checkFirewallOnboardingPermission(RepositoryContainer.SINGLETON);
+
+    if (firewallOnboardingRequest == null) {
+      throw new BadRequestException("The request data is required.");
+    }
+    if (firewallOnboardingRequest.repositoryManager == null) {
+      throw new BadRequestException("The repository manager is required.");
+    }
+    if (CollectionUtils.isEmpty(firewallOnboardingRequest.repositories)) {
+      throw new BadRequestException("At least one repository is required.");
+    }
+
+    try (TransactionContext tx = firewallOnboardingRepositoryManagerDAO.createTransactionContext()) {
+      tx.begin();
+
+      FirewallOnboardingRepositoryManager repositoryManager = new FirewallOnboardingRepositoryManager(
+          firewallOnboardingRequest.repositoryManager.instanceId, currentUser.getUsername(), clientUserAgent);
+      firewallOnboardingRepositoryManagerDAO.insert(tx, repositoryManager);
+
+      List<FirewallOnboardingRepository> repositories = firewallOnboardingRequest.repositories.stream()
+          .map(repositoryDTO -> fromFirewallOnboardingRepositoryDTO(repositoryManager.getId(), repositoryDTO))
+          .collect(Collectors.toList());
+      repositories.forEach(repository -> firewallOnboardingRepositoryDAO.insert(tx, repository));
+
+      tx.commit();
+    }
+  }
+
+  private FirewallOnboardingRepository fromFirewallOnboardingRepositoryDTO(
+      String repositoryManagerId,
+      FirewallOnboardingRepositoryDTO repositoryDTO)
+  {
+    return new FirewallOnboardingRepository(repositoryManagerId, repositoryDTO.name, repositoryDTO.format,
+        repositoryDTO.type);
+  }
+
+  // Must have at least package visibility for the authz annotations to take effect.
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void checkFirewallOnboardingPermission(
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner)
+  {
+    // The permission check is handled by the authz annotations
   }
 }

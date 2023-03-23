@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepositoryManager;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -431,5 +432,25 @@ public class RepositoryServiceAuthzTest
   public void testCheckReadPermissionRepositoryContainer_Authorized() {
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     assertThat(repositoryService.checkReadPermissionRepositoryContainer()).isTrue();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetFirewallOnboarding_Unauthenticated() {
+    repositoryService.getFirewallOnboarding(null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetFirewallOnboarding_Unauthorized() {
+    login();
+    repositoryService.getFirewallOnboarding(null);
+  }
+
+  @Test
+  public void testGetFirewallOnboarding_Authorized() {
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    FirewallOnboardingRepositoryManager repoManager = tempEntity.newFirewallOnboardingRepositoryManager();
+
+    repositoryService.getFirewallOnboarding(repoManager.getInstanceId());
   }
 }

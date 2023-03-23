@@ -30,6 +30,8 @@ import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePatte
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepository;
+import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -274,5 +276,22 @@ public class RepositoryResourceTest
 
     assertResponseStatus(204, response);
     assertThat(new ProprietaryComponentNamePatternDAO().getById(pattern.getId()).isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testGetFirewallOnboarding() throws Exception {
+    FirewallOnboardingRepositoryManager repoManager = tempEntity.newFirewallOnboardingRepositoryManager();
+    FirewallOnboardingRepository repo1 = tempEntity.newFirewallOnboardingRepository(repoManager, "testRepoName1");
+    FirewallOnboardingRepository repo2 = tempEntity.newFirewallOnboardingRepository(repoManager, "testRepoName2");
+
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.FIREWALL_ONBOARDING_PATH)
+            .parameter(repoManager.getInstanceId()).get();
+    assertResponseStatus(200, response);
+    FirewallOnboardingDTO firewallOnboardingDTO = response.getBody(FirewallOnboardingDTO.class);
+
+    assertThat(firewallOnboardingDTO.repositoryManager.getId()).isEqualTo(repoManager.getId());
+    assertThat(firewallOnboardingDTO.repositories).extracting(FirewallOnboardingRepository::getId)
+        .containsExactlyInAnyOrder(repo1.getId(), repo2.getId());
   }
 }

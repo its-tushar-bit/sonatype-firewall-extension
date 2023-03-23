@@ -52,6 +52,8 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepository;
+import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepositoryManager;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
@@ -857,6 +859,26 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryService.updateProprietaryComponentNamePattern(proprietaryComponentNamePatternDTO))
         .withMessage("Cannot find a proprietary component name pattern with ID=does-not-exist");
+  }
+
+  @Test
+  public void testGetFirewallOnboarding() {
+    FirewallOnboardingRepositoryManager repoManager = tempEntity.newFirewallOnboardingRepositoryManager();
+    FirewallOnboardingRepository repo1 = tempEntity.newFirewallOnboardingRepository(repoManager, "testRepoName1");
+    FirewallOnboardingRepository repo2 = tempEntity.newFirewallOnboardingRepository(repoManager, "testRepoName2");
+    
+    FirewallOnboardingDTO firewallOnboardingDTO = repositoryService.getFirewallOnboarding(repoManager.getInstanceId());
+    
+    assertThat(firewallOnboardingDTO.repositoryManager.getId()).isEqualTo(repoManager.getId());
+    assertThat(firewallOnboardingDTO.repositories).extracting(FirewallOnboardingRepository::getId)
+        .containsExactlyInAnyOrder(repo1.getId(), repo2.getId());
+  }
+
+  @Test
+  public void testGetFirewallOnboarding_RepositoryManagerNotFound() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      repositoryService.getFirewallOnboarding("doesNotExist");
+    }).withMessage("Cannot find a repository manager with instance ID 'doesNotExist'");
   }
 
   private void assertProprietaryComponentNamePattern(

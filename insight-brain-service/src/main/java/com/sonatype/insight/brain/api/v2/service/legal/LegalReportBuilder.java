@@ -297,6 +297,7 @@ public class LegalReportBuilder
               legalFileDTO.getContentHash(),
               ComponentLegalPartStatus.ENABLED))
           .sorted(Comparator.comparing(lc -> lc.content))
+          .distinct()
           .collect(Collectors.toList());
     }
 
@@ -318,6 +319,7 @@ public class LegalReportBuilder
               legalFileOverride.getOriginalContentHash(),
               legalFileOverride.getStatus());
         })
+        .distinct()
         .collect(Collectors.toList());
   }
 

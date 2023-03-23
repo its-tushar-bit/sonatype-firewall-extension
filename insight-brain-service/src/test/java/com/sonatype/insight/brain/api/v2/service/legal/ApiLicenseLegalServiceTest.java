@@ -2410,6 +2410,141 @@ public class ApiLicenseLegalServiceTest
   }
 
   @Test
+  public void testGetLicenseLegalComponentReport_SingleComponentMatchingRequestedOne() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+    LegalFileDTO legalFile1 = new LegalFileDTO();
+    legalFile1.setType("NOTICE");
+    legalFile1.setContent("a");
+    LegalFileDTO legalFile2 = new LegalFileDTO();
+    legalFile2.setType("LICENSE");
+    legalFile2.setContent("b");
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
+    componentLegalFileDTO
+        .setLegalFiles(Sets.newLinkedHashSet(Arrays.asList(legalFile1, legalFile2)));
+    doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalFileDTO)))
+        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(c -> c.content)
+        .containsExactly("a");
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.licenseFiles).extracting(c -> c.content)
+        .containsExactly("b");
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_DuplicateLegalFilesSameRelPathContentHash() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifierBinary = ComponentIdentifier.createMavenCoordinates("test",
+        "some-artifact", "1.0.0", "", ".jar");
+    ComponentIdentifier componentIdentifierSources = ComponentIdentifier.createMavenCoordinates("test",
+        "some-artifact", "1.0.0", "source", ".jar");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifierBinary);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+    LegalFileDTO legalFile1 = new LegalFileDTO();
+    legalFile1.setRelPath("/a");
+    legalFile1.setContentHash("aaa");
+    legalFile1.setContent("a");
+    legalFile1.setType("NOTICE");
+    LegalFileDTO legalFile2 = new LegalFileDTO();
+    legalFile2.setRelPath("/a");
+    legalFile2.setContentHash("aaa");
+    legalFile2.setContent("a");
+    legalFile2.setType("NOTICE");
+    LegalFileDTO legalFile3 = new LegalFileDTO();
+    legalFile3.setRelPath("/b");
+    legalFile3.setContentHash("bbb");
+    legalFile3.setContent("b");
+    legalFile3.setType("LICENSE");
+    LegalFileDTO legalFile4 = new LegalFileDTO();
+    legalFile4.setRelPath("/b");
+    legalFile4.setContentHash("bbb");
+    legalFile4.setType("LICENSE");
+    legalFile4.setContent("b");
+    ComponentLegalFileDTO componentLegalFileDTOBinary = new ComponentLegalFileDTO();
+    componentLegalFileDTOBinary.setHash("1");
+    componentLegalFileDTOBinary.setComponentIdentifier(componentIdentifierBinary);
+    componentLegalFileDTOBinary
+        .setLegalFiles(Sets.newLinkedHashSet(Arrays.asList(legalFile1, legalFile3)));
+
+    ComponentLegalFileDTO componentLegalFileDTOSources = new ComponentLegalFileDTO();
+    componentLegalFileDTOSources.setHash("2");
+    componentLegalFileDTOSources.setComponentIdentifier(componentIdentifierSources);
+    componentLegalFileDTOSources.setLegalFiles(Sets.newLinkedHashSet(Arrays.asList(legalFile2, legalFile4)));
+
+    doReturn(new LinkedHashSet<>(Arrays.asList( componentLegalFileDTOBinary, componentLegalFileDTOSources )))
+        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(),
+            componentIdentifierBinary,null, null, null,
+            IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(c -> c.content)
+        .containsExactly("a");
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.licenseFiles).extracting(c -> c.content)
+        .containsExactly("b");
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_SingleComponentIdentifierDifferentClassifier() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "sources", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+    LegalFileDTO legalFile1 = new LegalFileDTO();
+    legalFile1.setType("NOTICE");
+    legalFile1.setRelPath("/1");
+    legalFile1.setContent("content");
+    LegalFileDTO legalFile2 = new LegalFileDTO();
+    legalFile2.setType("NOTICE");
+    legalFile2.setRelPath("/2");
+    legalFile2.setContent("content");
+    LegalFileDTO legalFile3 = new LegalFileDTO();
+    legalFile3.setType("NOTICE");
+    legalFile3.setRelPath("/3");
+    legalFile3.setContent("content");
+
+    LegalFileDTO legalFile4 = new LegalFileDTO();
+    legalFile4.setType("LICENSE");
+    legalFile4.setContent("b");
+    legalFile4.setRelPath("/a");
+    LegalFileDTO legalFile5 = new LegalFileDTO();
+    legalFile5.setType("LICENSE");
+    legalFile5.setContent("b");
+    legalFile5.setRelPath("/b");
+
+    ComponentLegalFileDTO componentLegalFileDTO = new ComponentLegalFileDTO();
+    componentLegalFileDTO
+        .setLegalFiles(Sets.newLinkedHashSet(Arrays.asList(legalFile1, legalFile2, legalFile3, legalFile4,
+            legalFile5)));
+    doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalFileDTO)))
+        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(),
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"),
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(c -> c.relPath)
+        .containsExactlyElementsOf(Arrays.asList("/1","/2","/3"));
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.licenseFiles).extracting(c -> c.relPath)
+        .containsExactlyElementsOf(Arrays.asList("/a","/b"));
+  }
+
+  @Test
   public void testGetLicenseLegalComponentReport_HasHighestEffectiveLicenseThreatGroup() throws Exception {
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");

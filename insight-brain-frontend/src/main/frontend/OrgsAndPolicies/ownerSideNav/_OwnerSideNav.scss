@@ -292,4 +292,7 @@ owner-side-nav.nx-viewport-sized__container {
     gap: var(--nx-spacing-2x);
     min-width: 154px;
   }
+  > .iq-application-tooltip-parent {
+    @include nx-text-helpers.regular;
+  }
 }

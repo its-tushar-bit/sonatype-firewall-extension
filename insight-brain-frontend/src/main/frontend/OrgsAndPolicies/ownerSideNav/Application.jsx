@@ -7,30 +7,39 @@ import React, { memo } from 'react';
 import { useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 
-import { NxOverflowTooltip, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxOverflowTooltip, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import { faTerminal } from '@fortawesome/pro-solid-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectOwnerById } from './ownerSideNavSelectors';
 
-const Application = memo(({ applicationPublicId, ...otherProps }) => {
+const Application = memo(({ applicationPublicId, isFilteredResult, ...otherProps }) => {
   const uiRouterState = useRouterState();
   const application = useSelector((state) => selectOwnerById(state, applicationPublicId));
+  const parentOrg = useSelector((state) => selectOwnerById(state, application?.organizationId));
   const applicationUrl = uiRouterState.href('management.view.application', { applicationPublicId });
+  const applicationTooltip = (
+    <>
+      <span>{application?.name}</span>
+      {isFilteredResult && <div className="iq-application-tooltip-parent">Parent: {parentOrg?.name}</div>}
+    </>
+  );
 
+  const TooltipToUse = isFilteredResult ? NxTooltip : NxOverflowTooltip;
   return (
     <a href={applicationUrl} {...otherProps}>
-      <NxOverflowTooltip>
+      <TooltipToUse title={applicationTooltip}>
         <div className="iq-owner-name">
           <NxFontAwesomeIcon icon={faTerminal} />
           <span>{application?.name}</span>
         </div>
-      </NxOverflowTooltip>
+      </TooltipToUse>
     </a>
   );
 });
 
 Application.propTypes = {
   applicationPublicId: PropTypes.string,
+  isFilteredResult: PropTypes.bool,
 };
 
 export default Application;

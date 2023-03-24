@@ -189,7 +189,7 @@ export default function OwnerSideNav() {
       >
         {applications.map(({ publicId }) => (
           <NxCollapsibleItems.Child role="menuitem" key={publicId}>
-            <Application applicationPublicId={publicId} />
+            <Application applicationPublicId={publicId} isFilteredResult />
           </NxCollapsibleItems.Child>
         ))}
       </NxCollapsibleItems>

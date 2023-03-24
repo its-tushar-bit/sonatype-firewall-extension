@@ -210,6 +210,21 @@ public class OrgsAndPoliciesSidebarTest
     );
   }
 
+  @Test
+  public void testOrgsAndPoliciesSideNavbar_filteringOwners() {
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+
+    orgsAndPoliciesSidebar.getOrganizationLink(0).click();
+    orgsAndPoliciesSidebar.getApplicationLink(0).hover();
+    NxTooltip tooltip = new NxTooltip();
+    tooltip.shouldNotBe(visible);
+
+    orgsAndPoliciesSidebar.filterInput().val("app");
+    orgsAndPoliciesSidebar.getApplicationLink(0).hover();
+    tooltip.shouldBe(visible);
+    tooltip.shouldHave(text("TestApp_0\nParent: TestOrg_0"));
+  }
+
   private Organization findFirstOrgChild(String parentOrgId, List<Organization> organizations) {
     organizations.sort(Comparator.comparing(organization -> organization.getName().toUpperCase()));
     return organizations.stream()

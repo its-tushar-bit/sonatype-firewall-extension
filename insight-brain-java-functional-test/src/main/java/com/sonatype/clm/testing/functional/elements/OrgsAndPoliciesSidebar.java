@@ -31,6 +31,10 @@ public class OrgsAndPoliciesSidebar
     return child(".iq-repositories-link");
   }
 
+  public SelenideElement filterInput() {
+    return child("#owner-sidebar-filter");
+  }
+
   public NxCollapsible getOrganizationList() {
     return organizationList;
   }

@@ -35,6 +35,7 @@ const REDUCER_NAME = 'labels';
 
 export const initialState = {
   applicableLabels: null,
+  inheritedLabelsOpen: null,
   loadError: null,
   submitError: null,
   deleteError: null,
@@ -64,6 +65,11 @@ const loadApplicableLabelsFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
   state.applicableLabels = payload;
+  const newInheritedLabelsOpen = {};
+  payload.forEach((labels) => {
+    newInheritedLabelsOpen[labels.ownerId] = false;
+  });
+  state.inheritedLabelsOpen = newInheritedLabelsOpen;
 };
 
 const loadApplicableLabelsFailed = (state, { payload }) => {
@@ -201,6 +207,10 @@ const loadApplicableLabels = createAsyncThunk(
       .catch(rejectWithValue);
   }
 );
+
+const toggleInheritedLabelsOpen = (state, { payload }) => {
+  state.inheritedLabelsOpen[payload] = !state.inheritedLabelsOpen[payload];
+};
 
 const loadApplicableLabelsByOwnerIfNeeded = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicableLabelsByOwnerIfNeeded`,
@@ -359,6 +369,7 @@ const labelsSlice = createSlice({
     deleteMaskTimerDone: propSet('deleteMaskState', null),
     resetDeleteModalState,
     clearDeleteError,
+    toggleInheritedLabelsOpen,
   },
   extraReducers: {
     [loadApplicableLabels.pending]: loadApplicableLabelsRequested,

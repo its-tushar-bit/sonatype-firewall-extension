@@ -691,4 +691,28 @@ public class ApplicationSummaryViewTest
     OwnerSummaryPage.repositoryUrlAnchor().shouldNotBe(visible);
     OwnerSummaryPage.repositoryUrlIcon().shouldNotBe(visible);
   }
+
+  @Test
+  public void testLabelTile_Inherited_Truncation() {
+    Organization organization = tempEntity.newOrganization("An Org With A Very Very Very Very Very Very Very Very " +
+        "Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very V Very Very Very Very " +
+        "Very Very Very Very Very Very Long Name");
+
+    for (int i = 0; i < 20; i++) {
+      tempEntity.newLabel(organization.getId());
+    }
+
+    String id = "bfc6c69a39b94e81a777edf9727e01ce";
+    Application application = tempEntity.newApplication("Test App " + id, id, organization.getId());
+
+    refreshOrOpen(OwnerSummaryPage.url(application));
+    LabelTile labelTile = OwnerSummaryPage.labelTile();
+    labelTile.labelLists().shouldHaveSize(1);
+    labelTile.inheritedLabelsLists().shouldHaveSize(1);
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
+
+    labelTile.labelListSubheader(1).shouldBe(visible).shouldHave(LabelTile.inheritedText(organization.getName()));
+    eyesWatcher.eyesCheck("Inherited Component Labels Header Truncation");
+  }
 }

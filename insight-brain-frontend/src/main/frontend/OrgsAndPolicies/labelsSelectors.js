@@ -11,6 +11,7 @@ import { hasValidationErrors, GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util
 
 export const selectLabelsSlice = createSelector(selectOrgsAndPoliciesSlice, prop('labels'));
 export const selectApplicableLabels = createSelector(selectLabelsSlice, prop('applicableLabels'));
+export const selectInheritedLabelsOpen = createSelector(selectLabelsSlice, prop('inheritedLabelsOpen'));
 export const selectLabelsLoading = createSelector(selectLabelsSlice, prop('loading'));
 export const selectLabelsLoadError = createSelector(selectLabelsSlice, prop('loadError'));
 export const selectLabelsSubmitError = createSelector(selectLabelsSlice, prop('submitError'));

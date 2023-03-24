@@ -13,6 +13,7 @@ import {
   selectLabelsIsEditMode,
   selectLabelsSiblings,
   selectLabelsCurrentLabel,
+  selectInheritedLabelsOpen,
 } from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 
 describe('labelsSelectors', () => {
@@ -52,6 +53,9 @@ describe('labelsSelectors', () => {
               ownerType: 'application',
             },
           ],
+          inheritedLabelsOpen: {
+            '6b365e8a8000449aa924f194a7ed0d27': false,
+          },
           loadError: 'loadError',
           submitError: 'submitError',
           errorState: 'deleteError',
@@ -160,6 +164,15 @@ describe('labelsSelectors', () => {
       ];
 
       expect(selectApplicableLabels(mockState)).toEqual(expected);
+    });
+  });
+
+  describe('selectInheritedLabelsOpen', () => {
+    it('returns inheritedLabelsOpen map', () => {
+      const expected = {
+        '6b365e8a8000449aa924f194a7ed0d27': false,
+      };
+      expect(selectInheritedLabelsOpen(mockState)).toEqual(expected);
     });
   });
 

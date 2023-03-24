@@ -10,3 +10,4 @@ import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 export const selectOwnerSummarySlice = createSelector(selectOrgsAndPoliciesSlice, prop('ownerSummary'));
 export const selectLoading = createSelector(selectOwnerSummarySlice, prop('loading'));
 export const selectLoadError = createSelector(selectOwnerSummarySlice, prop('loadError'));
+export const selectHasEditIqPermission = createSelector(selectOwnerSummarySlice, prop('hasEditIqPermission'));

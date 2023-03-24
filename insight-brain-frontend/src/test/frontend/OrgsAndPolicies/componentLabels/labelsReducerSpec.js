@@ -423,10 +423,25 @@ describe('labels reducer', () => {
             labels: [
               {
                 color: 'light-green',
-                description: '',
+                description: null,
                 id: 'ae63051b2e304c3bbabf94c2443b03fb',
-                label: rscInitialState('n3'),
+                label: 'n3',
                 ownerId: '6b365e8a8000449aa924f194a7ed0d21',
+                ownerType: 'APPLICATION',
+              },
+            ],
+          },
+          {
+            ownerId: '6b365e8a8000449aa924f194a7ed0d22',
+            ownerType: 'APPLICATION',
+            ownerName: 'appname2',
+            labels: [
+              {
+                color: 'dark-green',
+                description: null,
+                id: 'ae63051b2e304c3bbabf94c2443b03fa',
+                label: 'n4',
+                ownerId: '6b365e8a8000449aa924f194a7ed0d22',
                 ownerType: 'APPLICATION',
               },
             ],
@@ -444,15 +459,34 @@ describe('labels reducer', () => {
           labels: [
             {
               color: 'light-green',
-              description: '',
+              description: null,
               id: 'ae63051b2e304c3bbabf94c2443b03fb',
-              label: rscInitialState('n3'),
+              label: 'n3',
               ownerId: '6b365e8a8000449aa924f194a7ed0d21',
               ownerType: 'APPLICATION',
             },
           ],
         },
+        {
+          ownerId: '6b365e8a8000449aa924f194a7ed0d22',
+          ownerType: 'APPLICATION',
+          ownerName: 'appname2',
+          labels: [
+            {
+              color: 'dark-green',
+              description: null,
+              id: 'ae63051b2e304c3bbabf94c2443b03fa',
+              label: 'n4',
+              ownerId: '6b365e8a8000449aa924f194a7ed0d22',
+              ownerType: 'APPLICATION',
+            },
+          ],
+        },
       ]);
+      expect(newStore.inheritedLabelsOpen).toEqual({
+        '6b365e8a8000449aa924f194a7ed0d21': false,
+        '6b365e8a8000449aa924f194a7ed0d22': false,
+      });
     });
   });
 
@@ -613,6 +647,50 @@ describe('labels reducer', () => {
 
       expect(loading).toBeFalse();
       expect(loadError).toBe('error');
+    });
+  });
+
+  describe('labels/toggleInheritedLabelsOpen', () => {
+    it('toggles inheritedLabelsOpen to true for the given ownerId', () => {
+      const state = Object.freeze({
+        inheritedLabelsOpen: {
+          ownerId: false,
+          otherOwnerId1: false,
+          otherOwnerId2: true,
+        },
+      });
+
+      const { inheritedLabelsOpen } = reducer(state, {
+        type: 'labels/toggleInheritedLabelsOpen',
+        payload: 'ownerId',
+      });
+
+      expect(inheritedLabelsOpen).toEqual({
+        ownerId: true,
+        otherOwnerId1: false,
+        otherOwnerId2: true,
+      });
+    });
+
+    it('toggles inheritedLabelsOpen to false for the given ownerId', () => {
+      const state = Object.freeze({
+        inheritedLabelsOpen: {
+          ownerId: true,
+          otherOwnerId1: false,
+          otherOwnerId2: true,
+        },
+      });
+
+      const { inheritedLabelsOpen } = reducer(state, {
+        type: 'labels/toggleInheritedLabelsOpen',
+        payload: 'ownerId',
+      });
+
+      expect(inheritedLabelsOpen).toEqual({
+        ownerId: false,
+        otherOwnerId1: false,
+        otherOwnerId2: true,
+      });
     });
   });
 });

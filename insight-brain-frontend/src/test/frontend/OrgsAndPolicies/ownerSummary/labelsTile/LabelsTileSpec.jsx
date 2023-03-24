@@ -9,16 +9,25 @@ import LabelsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/labelsTile/LabelsT
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as ownerSummarySelectors from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 
 describe('LabelsTile', () => {
-  let renderComponent, goToCreateLabelSpy, selectLabelsLoadingSpy, selectLabelsLoadErrorSpy, selectApplicableLabelsSpy;
+  let renderComponent,
+    goToCreateLabelSpy,
+    selectLabelsLoadingSpy,
+    selectLabelsLoadErrorSpy,
+    selectApplicableLabelsSpy,
+    selectInheritedLabelsOpenSpy,
+    selectHasEditIqPermissionSpy;
 
   beforeEach(() => {
     selectLabelsLoadingSpy = spyOn(labelsSelectors, 'selectLabelsLoading').and.returnValue(false);
     selectLabelsLoadErrorSpy = spyOn(labelsSelectors, 'selectLabelsLoadError').and.returnValue(null);
     selectApplicableLabelsSpy = spyOn(labelsSelectors, 'selectApplicableLabels').and.returnValue([]);
+    selectInheritedLabelsOpenSpy = spyOn(labelsSelectors, 'selectInheritedLabelsOpen').and.returnValue({});
+    selectHasEditIqPermissionSpy = spyOn(ownerSummarySelectors, 'selectHasEditIqPermission').and.returnValue(false);
     spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwnerName').and.returnValue('Owner Name');
 
     spyOn(routerSelectors, 'selectRouterSlice').and.returnValue(() => ({
@@ -35,7 +44,7 @@ describe('LabelsTile', () => {
 
     spyOn(actions, 'loadApplicableLabels').and.returnValue({
       type: 'labels/loadApplicableLabels/fulfilled',
-      payload: {},
+      payload: [],
     });
 
     goToCreateLabelSpy = spyOn(actions, 'goToCreateLabel').and.callThrough();
@@ -104,16 +113,32 @@ describe('LabelsTile', () => {
       ]);
     });
 
-    it('rendered correctly', () => {
+    it('rendered correctly with links', () => {
+      selectHasEditIqPermissionSpy.and.returnValue(true);
+
       renderComponent();
 
       const listItems = screen.getAllByRole('listitem');
 
-      expect(screen.getByText('Local')).toBeVisible();
+      expect(screen.getByText('Local to Owner Name')).toBeVisible();
       expect(listItems[0]).toBeVisible();
       expect(listItems[0]).toHaveTextContent('label title');
 
       expect(listItems[0].firstChild).toHaveAttribute('href', 'editLabelHref');
+    });
+
+    it('rendered correctly without links', () => {
+      selectHasEditIqPermissionSpy.and.returnValue(false);
+
+      renderComponent();
+
+      const listItems = screen.getAllByRole('listitem');
+
+      expect(screen.getByText('Local to Owner Name')).toBeVisible();
+      expect(listItems[0]).toBeVisible();
+      expect(listItems[0]).toHaveTextContent('label title');
+
+      expect(listItems[0].firstChild).not.toHaveAttribute('href');
     });
   });
 
@@ -136,6 +161,10 @@ describe('LabelsTile', () => {
           ],
         },
       ]);
+
+      selectInheritedLabelsOpenSpy.and.returnValue({
+        203: true,
+      });
     });
 
     it('are rendered correctly', () => {

@@ -69,6 +69,7 @@ export default function OwnerSummaryController(
     loadOrganization: organizationsActions.loadOrganizationById,
     loadApplicationSummary: applicationsActions.loadApplicationSummary,
     loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
+    checkEditIqPermission: ownerSummaryActions.checkEditIqPermission,
     setLoading: ownerSummaryActions.setLoading,
     setLoadError: ownerSummaryActions.setLoadError,
   })(vm);
@@ -152,7 +153,9 @@ export default function OwnerSummaryController(
           vm.setSelectedOwnerContact(vm.applicationSummary.contact);
         }
 
-        vm.setLoading(false);
+        return $q.all([vm.checkEditIqPermission()]).then(() => {
+          vm.setLoading(false);
+        });
       })
       .catch((error) => {
         if (error.name !== 'AbortError') {

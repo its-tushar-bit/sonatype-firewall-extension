@@ -7,6 +7,7 @@ import {
   selectOwnerSummarySlice,
   selectLoading,
   selectLoadError,
+  selectHasEditIqPermission,
 } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
@@ -56,6 +57,22 @@ describe('ownerSummarySelectors', () => {
       const actualSelection = selectLoadError.resultFunc(ownerSummarySlice);
 
       expect(actualSelection).toBe('error');
+    });
+  });
+
+  describe('selectHasEditIqPermission', () => {
+    it('is composed from the following selector', () => {
+      expect(selectHasEditIqPermission.dependencies).toEqual([selectOwnerSummarySlice]);
+    });
+
+    it('selects hasEditIqPermission', () => {
+      const ownerSummarySlice = {
+        hasEditIqPermission: false,
+      };
+
+      const actualSelection = selectHasEditIqPermission.resultFunc(ownerSummarySlice);
+
+      expect(actualSelection).toBeFalse();
     });
   });
 });

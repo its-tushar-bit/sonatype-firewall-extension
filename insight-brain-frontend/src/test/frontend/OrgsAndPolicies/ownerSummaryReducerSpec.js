@@ -35,4 +35,28 @@ describe('ownerSummarySlice reducers', () => {
       expect(loadError).toBe('error');
     });
   });
+
+  describe('ownerSummary/checkEditIqPermission/fulfilled', () => {
+    it('sets hasEditIqPermission', () => {
+      const state = Object.freeze({ hasEditIqPermission: null });
+
+      const { hasEditIqPermission } = reducer(state, {
+        type: 'ownerSummary/checkEditIqPermission/fulfilled',
+      });
+
+      expect(hasEditIqPermission).toBeTrue();
+    });
+  });
+
+  describe('ownerSummary/checkEditIqPermission/rejected', () => {
+    it('clears hasEditIqPermission', () => {
+      const state = Object.freeze({ hasEditIqPermission: null });
+
+      const { hasEditIqPermission } = reducer(state, {
+        type: 'ownerSummary/checkEditIqPermission/rejected',
+      });
+
+      expect(hasEditIqPermission).toBeFalse();
+    });
+  });
 });

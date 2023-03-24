@@ -22,6 +22,8 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
 import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.LabelTile.InheritedLabel;
+import com.sonatype.clm.testing.functional.elements.LabelTile.InheritedLabelsList;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.LicenseThreatGroupElement;
@@ -743,47 +745,46 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testLabelTile_Inherited(List<List<Label>> inheritedLabels, List<Owner> parentOwners) {
-    final int hierarchySize = parentOwners.size() + 1;
     LabelTile labelTile = OwnerSummaryPage.labelTile();
     assertThat(inheritedLabels).hasSameSizeAs(parentOwners);
-    labelTile.labelLists().shouldHaveSize(hierarchySize);
+    labelTile.labelLists().shouldHaveSize(1);
+    labelTile.inheritedLabelsLists().shouldHaveSize(parentOwners.size());
 
     // scroll to the labels tile
     OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
     ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
 
-    for (int i = 0; i < hierarchySize; i++) {
-      NxList list = labelTile.labelList(i);
+    NxList list = labelTile.labelList(0);
+    labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
+    list.emptyDescriptor().shouldBe(visible);
+    list.elements().shouldBe(empty);
 
-      if (i == 0) {
-        labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
+    for (int i = 0; i < parentOwners.size(); i++) {
+      String ownerId = parentOwners.get(i).getId();
+      InheritedLabelsList inheritedLabelList = labelTile.inheritedLabelsList(ownerId);
+      inheritedLabelList.should(exist).shouldNotBe(visible);
+      labelTile.labelListSubheader(i + 1).shouldBe(visible)
+          .shouldHave(LabelTile.inheritedText(parentOwners.get(i).getName())).click();
+      inheritedLabelList.should(exist).shouldBe(visible);
+      int expectedLabelCount = inheritedLabels.get(i).size();
+      inheritedLabelList.elements().shouldHaveSize(expectedLabelCount);
 
-        list.emptyDescriptor().shouldBe(visible);
-        list.elements().shouldBe(empty);
-      }
-      else {
-        final int expectedLabelCount = inheritedLabels.get(i - 1).size();
-        list.elements().shouldHaveSize(expectedLabelCount);
-        labelTile.labelListSubheader(i).shouldBe(visible)
-            .shouldHave(LabelTile.inheritedText(parentOwners.get(i - 1).getName()));
+      for (int j = 0; j < expectedLabelCount; j++) {
+        InheritedLabel actualLabel = inheritedLabelList.element(j);
+        Label expectedLabel = inheritedLabels.get(i).get(j);
 
-        for (int j = 0; j < expectedLabelCount; j++) {
-          NxList.NxListItem actualLabel = list.element(j);
-          Label expectedLabel = inheritedLabels.get(i - 1).get(j);
-
-          if (expectedLabel.getDescription() == null) {
-            actualLabel.description().shouldNot(exist);
-          }
-          else {
-            actualLabel.description().shouldBe(visible).shouldHave(text(expectedLabel.getDescription()));
-          }
-
-          String nxColorClass = NxColor.getNxColorFromColor(expectedLabel.getColor()).toNxClass();
-
-          actualLabel.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
-          actualLabel.name().shouldBe(visible).shouldHave(text(expectedLabel.getLabel()));
-          actualLabel.chevron().shouldNot(exist);
+        if (expectedLabel.getDescription() == null) {
+          actualLabel.description().shouldBe(visible).shouldHave(text(""));
         }
+        else {
+          actualLabel.description().shouldBe(visible).shouldHave(text(expectedLabel.getDescription()));
+        }
+
+        String nxColorClass = NxColor.getNxColorFromColor(expectedLabel.getColor()).toNxClass();
+
+        actualLabel.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
+        actualLabel.label().shouldBe(visible).shouldHave(text(expectedLabel.getLabel()));
+        actualLabel.getElement().$(".nx-chevron.nx-icon").shouldNot(exist);
       }
     }
   }

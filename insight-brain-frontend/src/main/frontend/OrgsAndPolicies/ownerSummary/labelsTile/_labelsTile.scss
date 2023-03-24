@@ -3,8 +3,65 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 #owner-pill-comp-labels {
-  .nx-list__item .nx-icon {
-    color: var(--nx-selectable-color-dark);
+  .nx-collapsible-items {
+    max-width: 100%;
+  }
+
+  .component-labels-element {
+    display: contents;
+    overflow: unset;
+  }
+
+  .component-labels-description {
+    white-space: pre-wrap;
+  }
+
+  .nx-h3.component-labels-header {
+    padding-right: 28px;
+  }
+
+  .component-labels-header {
+    @include nx-text-helpers.truncate-ellipsis;
+    max-width: 100%;
+    margin: 0;
+
+    .nx-icon {
+      margin-right: var(--nx-spacing-4x);
+    }
+  }
+
+  dl,
+  .component-labels-header,
+  .nx-list__item {
+    .nx-icon {
+      color: var(--nx-selectable-color-dark);
+    }
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: max-content auto;
+
+    .component-labels-label {
+      font-weight: 600;
+    }
+  }
+
+  dt,
+  dd {
+    border-top: var(--nx-border-default);
+    padding: var(--nx-spacing-4x) var(--nx-spacing-4x) var(--nx-spacing-4x) var(--nx-spacing-4x);
+  }
+
+  dt {
+    grid-column-start: 1;
+  }
+
+  dd {
+    grid-column-start: 2;
+    margin-left: 0;
   }
 }

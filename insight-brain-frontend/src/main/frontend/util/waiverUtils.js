@@ -6,6 +6,7 @@
 import { map, prop, equals } from 'ramda';
 import { getFutureDate } from './jsUtil';
 import { STANDARD_DATE_FORMAT, formatDate } from './dateUtils';
+import { isUnknownComponent } from 'MainRoot/util/componentNameUtils';
 import * as PropTypes from 'prop-types';
 
 export const waiverMatcherStrategy = {
@@ -90,6 +91,13 @@ export const isWaiverAllVersionsOrExact = (waiver) =>
   [waiver?.componentMatchStrategy, waiver?.matcherStrategy].some(
     (field) => field === waiverMatcherStrategy.ALL_VERSIONS || field === waiverMatcherStrategy.EXACT_COMPONENT
   );
+export const isWaiverExact = (waiver) =>
+  [waiver?.componentMatchStrategy, waiver?.matcherStrategy].some(
+    (field) => field === waiverMatcherStrategy.EXACT_COMPONENT
+  );
+
+export const shouldShowUpgradeIndicator = (upgradeAvailable, waiver) =>
+  upgradeAvailable && isWaiverExact(waiver) && !isUnknownComponent(waiver);
 
 export const convertToWaiverViolationFormat = (data) => {
   const {
@@ -157,6 +165,7 @@ export const formatWaiverDetails = (waiver) => {
     componentIdentifier,
     displayName,
     matcherStrategy,
+    componentUpgradeAvailable,
   } = waiver;
 
   const { constraintName, conditionFacts } = constraintFacts[0],
@@ -180,6 +189,7 @@ export const formatWaiverDetails = (waiver) => {
     dateCreated,
     vulnerabilityId,
     component,
+    componentUpgradeAvailable,
   };
 };
 

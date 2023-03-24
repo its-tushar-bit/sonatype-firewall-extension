@@ -74,6 +74,8 @@ public class ConfigurationInfo
         configuration.getBaseUrlConfiguration() != null ? configuration.getBaseUrlConfiguration()
             .isForceBaseUrl() : null);
     entries.put(SystemConfigurationProperty.ACCESS_ALLOWLIST, configuration.getAccessAllowlist());
+    entries.put(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+        configuration.getWaivedComponentUpgradeInspectionHour());
 
     List<String> frameAncestorsAllowList = configuration.getFrameAncestorsAllowList();
     if (frameAncestorsAllowList != null) {

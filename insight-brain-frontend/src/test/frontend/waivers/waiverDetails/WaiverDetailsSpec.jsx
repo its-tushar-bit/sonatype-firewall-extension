@@ -49,6 +49,7 @@ describe('When the WaiverDetailsPage', function () {
       vulnerabilityId: 'CVE-2013-7285',
       associatedPackageUrl: 'a/package/url',
       matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
+      componentUpgradeAvailable: true,
       displayName: {
         parts: [
           {
@@ -81,6 +82,7 @@ describe('When the WaiverDetailsPage', function () {
       displayName: {
         parts: [],
       },
+      componentUpgradeAvailable: true,
     };
 
     allComponentsWaiverDetails = {
@@ -91,6 +93,7 @@ describe('When the WaiverDetailsPage', function () {
       displayName: {
         parts: [],
       },
+      componentUpgradeAvailable: true,
     };
 
     unknownComponentWaiverDetails = {
@@ -160,6 +163,7 @@ describe('When the WaiverDetailsPage', function () {
       expect(await screen.findByText('test creator')).toBeVisible();
       expect(await screen.findByText('*Indicates the component name when the waiver was created')).toBeVisible();
       expect(await screen.findByText('test-group:test-artifact:1.2.3')).toBeVisible();
+      expect(await screen.findByText('Upgrade Available')).toBeVisible();
     });
 
     it('it opens vulnerability details modal upon clicking vulnerability link', async function () {
@@ -173,21 +177,23 @@ describe('When the WaiverDetailsPage', function () {
       expect(await screen.findByText('Vulnerability Information')).toBeVisible();
     });
 
-    it('shows disclaimer text if waiver was scoped to all versions of a component', async function () {
+    it('shows disclaimer text and does not show upgrade indicator if waiver was scoped to all versions of a component', async function () {
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, allVersionsWaiverDetails);
       renderComponent();
 
       expect(await screen.findByText('*Indicates the component name when the waiver was created')).toBeVisible();
+      expect(await screen.queryByText('Upgrade Available')).not.toBeInTheDocument();
     });
 
-    it('does not show disclaimer text if waiver was scoped to all components', async function () {
+    it('does not show disclaimer text or upgrade indicator if waiver was scoped to all components', async function () {
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, allComponentsWaiverDetails);
       renderComponent();
 
       expect(await screen.findByText('All components')).toBeVisible();
-      // findByText can only be used to query for presence of an element
       await waitFor(() => {
+        // findByText can only be used to query for presence of an element
         expect(screen.queryByText('*Indicates the component name when the waiver was created')).not.toBeInTheDocument();
+        expect(screen.queryByText('Upgrade Available')).not.toBeInTheDocument();
       });
     });
 

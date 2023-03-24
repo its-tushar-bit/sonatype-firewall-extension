@@ -70,6 +70,12 @@ public class Organization
   @Column(name = "allow_artifactory_connection_override")
   private boolean allowArtifactoryConnectionOverride = true;
 
+  /**
+   * @since 1.159
+   */
+  @Column(name = "waived_component_upgrade_stage_type_id")
+  private String waivedComponentUpgradeStageTypeId;
+
   public Organization() {
   }
 
@@ -192,6 +198,14 @@ public class Organization
 
   public void setAllowArtifactoryConnectionOverride(boolean allowArtifactoryConnectionOverride) {
     this.allowArtifactoryConnectionOverride = allowArtifactoryConnectionOverride;
+  }
+
+  public String getWaivedComponentUpgradeStageTypeId() {
+    return waivedComponentUpgradeStageTypeId;
+  }
+
+  public void setWaivedComponentUpgradeStageTypeId(String waivedComponentUpgradeStageTypeId) {
+    this.waivedComponentUpgradeStageTypeId = waivedComponentUpgradeStageTypeId;
   }
 
   @Override

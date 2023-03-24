@@ -21,4 +21,15 @@
   .iq-policy-cell {
     @include nx-text-helpers.bold;
   }
+  .iq-upgrade-header {
+    width: 110px;
+  }
+  .iq-upgrade-cell {
+    text-align: center;
+
+    & > .iq-upgrade-available-indicator {
+      margin-right: auto;
+      margin-left: auto;
+    }
+  }
 }

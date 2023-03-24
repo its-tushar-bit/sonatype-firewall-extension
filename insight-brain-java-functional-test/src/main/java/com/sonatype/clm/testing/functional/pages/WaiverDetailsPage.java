@@ -67,7 +67,7 @@ public class WaiverDetailsPage
   }
 
   public SelenideElement vulnerabilityDetailsLink() {
-    return child(".iq-waiver-details__vulnerability_details_link a");
+    return child(".iq-waiver-details__vulnerability-details-link a");
   }
 
   public IqVulnerabilityModal detailsModal() {
@@ -104,6 +104,10 @@ public class WaiverDetailsPage
 
   public NxBackButton backButton() {
     return new NxBackButton("#menu-bar__back-button-container");
+  }
+
+  public SelenideElement detailsComponentUpgradeAvailable() {
+    return child(".iq-upgrade-available-indicator");
   }
 
   public SidebarNav sidebarNav() {

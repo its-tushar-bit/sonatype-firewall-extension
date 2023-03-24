@@ -85,6 +85,8 @@ public class JobClassNameTest
         "ReverseProxyAuthenticationConfiguration");
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService", "SourceControlConfiguration");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeTask", "WaivedComponentUpgradeTask");
   }
 
   @Inject

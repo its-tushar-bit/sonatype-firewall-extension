@@ -14,16 +14,20 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.WaivedComponentUpgradeNotificationDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
+import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -32,9 +36,16 @@ import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.google.inject.Binder;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
@@ -43,6 +54,9 @@ import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OrganizationServiceTest
@@ -65,6 +79,40 @@ public class OrganizationServiceTest
 
   @Mock
   private CurrentUser currentUser;
+
+  @Mock
+  private WaivedComponentUpgradeScheduler waivedComponentUpgradeScheduler;
+
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+
+  private String waivedComponentUpgradeStageTypeId;
+
+  private ListAppender<ILoggingEvent> loggingEventListAppender;
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(WaivedComponentUpgradeScheduler.class).toInstance(waivedComponentUpgradeScheduler);
+  }
+
+  @Before
+  public void before() {
+    // Capture the original root org waived component upgrade stage id, so we can restore it after the tests.
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    waivedComponentUpgradeStageTypeId = rootOrg.getWaivedComponentUpgradeStageTypeId();
+
+    Logger organizationServiceLogger = (Logger) LoggerFactory.getLogger(OrganizationService.class);
+    loggingEventListAppender = new ListAppender<>();
+    loggingEventListAppender.start();
+    organizationServiceLogger.addAppender(loggingEventListAppender);
+  }
+
+  @After
+  public void restoreRootOrganizationState() {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg.setWaivedComponentUpgradeStageTypeId(waivedComponentUpgradeStageTypeId);
+    organizationDAO.update(rootOrg);
+  }
 
   /**
    * There's a similar protection at the DAO layer but given the order of operations, the service layer needs to prevent
@@ -294,5 +342,99 @@ public class OrganizationServiceTest
       .containsKey(parentOrganization4.getId())
       .containsKey(parentOrganization5.getId())
       .containsKey(ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testUpdateWaivedComponentUpgradeNotification_InvalidStage() {
+    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
+        new WaivedComponentUpgradeNotificationDTO();
+    waivedComponentUpgradeNotificationDTO.setStage("not-a-valid-stage");
+
+    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
+      organizationService.updateWaivedComponentUpgradeNotification(
+          waivedComponentUpgradeNotificationDTO);
+    }).withMessage("Invalid stage id=not-a-valid-stage");
+  }
+
+  @Test
+  public void testUpdateWaivedComponentUpgradeNotification() {
+    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
+        new WaivedComponentUpgradeNotificationDTO();
+    waivedComponentUpgradeNotificationDTO.setStage(Stage.ID_DEVELOP);
+
+    // assert default notification stage
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(rootOrg.getWaivedComponentUpgradeStageTypeId())
+        .as("By default, the policy waiver upgrade path available notification stage should not be set.")
+        .isNull();
+
+    Organization updatedOrganization =
+        organizationService.updateWaivedComponentUpgradeNotification(
+            waivedComponentUpgradeNotificationDTO);
+    assertThat(updatedOrganization.getWaivedComponentUpgradeStageTypeId()).isEqualTo(Stage.ID_DEVELOP);
+
+    Organization updatedRootOrgFromDB = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(updatedRootOrgFromDB.getWaivedComponentUpgradeStageTypeId()).isEqualTo(Stage.ID_DEVELOP);
+  }
+
+  @Test
+  public void testUpdateWaivedComponentUpgradeNotification_NotifyListener() {
+    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
+        new WaivedComponentUpgradeNotificationDTO();
+    waivedComponentUpgradeNotificationDTO.setStage(Stage.ID_DEVELOP);
+
+    organizationService.addListener(waivedComponentUpgradeScheduler);
+
+    organizationService.updateWaivedComponentUpgradeNotification(waivedComponentUpgradeNotificationDTO);
+    verify(waivedComponentUpgradeScheduler, atLeastOnce()).waivedComponentUpgradeNotificationStageUpdated(
+        Stage.ID_DEVELOP);
+  }
+
+  /*
+   * Verify that an error occurring in the listener
+   * while updating the waived component upgrade path available notification stage
+   * does not stop the normal service layer execution and just logs the warning.
+   * */
+  @Test
+  public void testUpdateWaivedComponentUpgradeNotification_ListenerNotificationErrorDoesNotStopExecution() {
+    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
+        new WaivedComponentUpgradeNotificationDTO();
+    waivedComponentUpgradeNotificationDTO.setStage(Stage.ID_DEVELOP);
+
+    organizationService.addListener(waivedComponentUpgradeScheduler);
+
+    doThrow(RuntimeException.class).when(waivedComponentUpgradeScheduler)
+        .waivedComponentUpgradeNotificationStageUpdated(Stage.ID_DEVELOP);
+
+    Organization updatedOrg =
+        organizationService.updateWaivedComponentUpgradeNotification(waivedComponentUpgradeNotificationDTO);
+
+    verify(waivedComponentUpgradeScheduler, atLeastOnce()).waivedComponentUpgradeNotificationStageUpdated(
+        Stage.ID_DEVELOP);
+    assertThat(updatedOrg).isNotNull();
+    assertThat(updatedOrg.getWaivedComponentUpgradeStageTypeId()).isEqualTo(Stage.ID_DEVELOP);
+    assertThat(loggingEventListAppender.list.get(loggingEventListAppender.list.size() - 1).getFormattedMessage())
+        .isEqualTo("Failed to notify waivedComponentUpgradeScheduler of waived component upgrade stage update");
+  }
+
+  @Test
+  public void testGetWaivedComponentUpgradeNotification() {
+    // default value
+    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
+        organizationService.getWaivedComponentUpgradeNotification();
+    assertThat(waivedComponentUpgradeNotificationDTO).isNotNull();
+    assertThat(waivedComponentUpgradeNotificationDTO.getStage())
+        .as("By default, the waiver upgrade path available notification stage is not set")
+        .isNull();
+
+    // test a non null stage value
+    Organization rootOrg = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg.setWaivedComponentUpgradeStageTypeId(Stage.ID_STAGE_RELEASE);
+    organizationDAO.update(rootOrg);
+
+    waivedComponentUpgradeNotificationDTO =
+        organizationService.getWaivedComponentUpgradeNotification();
+    assertThat(waivedComponentUpgradeNotificationDTO).isNotNull();
+    assertThat(waivedComponentUpgradeNotificationDTO.getStage()).isEqualTo(Stage.ID_STAGE_RELEASE);
   }
 }

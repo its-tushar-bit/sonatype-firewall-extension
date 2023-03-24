@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
+import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -1556,6 +1557,21 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
+  public void testGetPolicyWaiver_ComponentUpgradeAvailable() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
+        .withHash("hash").withPolicyId(policy.getId()).withOwnerId(application.getId())
+        .withComponentUpgradeAvailable(true).build();
+    tempEntity.newWaiver(policyWaiver);
+
+    ApiPolicyWaiverDTO savedWaiver =
+        apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), policyWaiver.getId());
+
+    assertWaivers(savedWaiver, policyWaiver, policy, application);
+  }
+
+  @Test
   public void testGetPolicyWaiver_Repository() {
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy();
@@ -1617,6 +1633,7 @@ public class ApiPolicyWaiverServiceTest
     assertThat(savedWaiver.policyId).isEqualTo(policyWaiver.getPolicyId());
     assertThat(savedWaiver.constraintFactsJson).isEqualTo(policyWaiver.getConstraintFactsJson());
     assertThat(savedWaiver.creatorName).isEqualTo(policyWaiver.getCreatorName());
+    assertThat(savedWaiver.componentUpgradeAvailable).isEqualTo(policyWaiver.isComponentUpgradeAvailable());
     if (owner != null) {
       assertThat(savedWaiver.scopeOwnerId).isEqualTo(owner.getId());
       assertThat(savedWaiver.scopeOwnerName).isEqualTo(owner.getName());

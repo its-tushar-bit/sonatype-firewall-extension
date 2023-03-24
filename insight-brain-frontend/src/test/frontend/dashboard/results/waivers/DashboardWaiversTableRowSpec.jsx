@@ -13,6 +13,10 @@ describe('DashboardWaiversTableRow', function () {
   const createTime = 1661485533772;
   const expiryTime = 1662094799999;
   let renderComponent, stateGoSpy, minimalProps;
+  function getUpgradeCell() {
+    const row = screen.getByRole('row');
+    return row.children[6];
+  }
 
   beforeEach(function () {
     stateGoSpy = jasmine.createSpy('stateGo');
@@ -54,7 +58,10 @@ describe('DashboardWaiversTableRow', function () {
         },
       },
     };
-    renderComponent = (additionalProps = {}) => render(<DashboardWaiversTableRow {...additionalProps} />);
+    renderComponent = (additionalWaiverProps = {}) => {
+      const additionalProps = { waiver: { ...minimalProps.waiver, ...additionalWaiverProps } };
+      return render(<DashboardWaiversTableRow {...minimalProps} {...additionalProps} />);
+    };
   });
 
   it('renders all the waiver info', () => {
@@ -84,48 +91,90 @@ describe('DashboardWaiversTableRow', function () {
   });
 
   it('renders waiver scope', () => {
-    minimalProps.waiver.scope = 'my scope';
-    renderComponent(minimalProps);
+    renderComponent({ scope: 'my scope' });
 
     expect(screen.getByText('my scope')).toBeVisible();
   });
 
   it('renders a row with expiration time set to never', () => {
-    minimalProps.waiver.expiryTime = null;
-    renderComponent(minimalProps);
+    renderComponent({ expiryTime: null });
 
     expect(screen.getByText('Never')).toBeVisible();
   });
 
   it('renders a row with threat level severe', () => {
-    minimalProps.waiver.threatLevel = 5;
-    renderComponent(minimalProps);
+    renderComponent({ threatLevel: 5 });
 
     expect(screen.getByLabelText('threat level severe')).toBeVisible();
     expect(screen.getByText('5')).toBeVisible();
   });
 
   it('renders a row with threat level moderate', () => {
-    minimalProps.waiver.threatLevel = 3;
-    renderComponent(minimalProps);
+    renderComponent({ threatLevel: 3 });
 
     expect(screen.getByLabelText('threat level moderate')).toBeVisible();
     expect(screen.getByText('3')).toBeVisible();
   });
 
   it('renders a row with threat level low', () => {
-    minimalProps.waiver.threatLevel = 1;
-    renderComponent(minimalProps);
+    renderComponent({ threatLevel: 1 });
 
     expect(screen.getByLabelText('threat level low')).toBeVisible();
     expect(screen.getByText('1')).toBeVisible();
   });
 
   it('renders a row with threat level none', () => {
-    minimalProps.waiver.threatLevel = 0;
-    renderComponent(minimalProps);
+    renderComponent({ threatLevel: 0 });
 
     expect(screen.getByLabelText('threat level none')).toBeVisible();
     expect(screen.getByText('0')).toBeVisible();
+  });
+
+  it('renders a row with upgrade available empty', () => {
+    renderComponent();
+
+    const upgradeCell = getUpgradeCell();
+
+    expect(upgradeCell).toHaveTextContent('—');
+  });
+
+  it('renders a row with upgrade available tag', () => {
+    renderComponent({ componentUpgradeAvailable: true });
+
+    const upgradeCell = getUpgradeCell();
+
+    expect(upgradeCell).toHaveTextContent('Available');
+  });
+
+  it('renders a row with upgrade available empty when the component is unknown', () => {
+    renderComponent({
+      componentUpgradeAvailable: true,
+      displayName: null,
+    });
+
+    const upgradeCell = getUpgradeCell();
+
+    expect(upgradeCell).toHaveTextContent('—');
+  });
+
+  it('renders a row with upgrade available empty when match strategy is different than exact', () => {
+    const { unmount } = renderComponent({
+      componentUpgradeAvailable: true,
+      matcherStrategy: waiverMatcherStrategy.ALL_COMPONENTS,
+    });
+
+    let upgradeCell = getUpgradeCell();
+
+    expect(upgradeCell).toHaveTextContent('—');
+    unmount();
+
+    renderComponent({
+      componentUpgradeAvailable: true,
+      matcherStrategy: waiverMatcherStrategy.ALL_VERSIONS,
+    });
+
+    upgradeCell = getUpgradeCell();
+
+    expect(upgradeCell).toHaveTextContent('—');
   });
 });

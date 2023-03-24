@@ -5,6 +5,8 @@
  */
 import { dropRepeatsWith, dropLastWhile, reject, pipe, prop, propEq, map, join } from 'ramda';
 
+const COMPONENT_UNKNOWN_LABEL = 'Unknown';
+
 const deriveComponentNameFromDisplayName = pipe(prop('parts'), map(prop('value')), join(''));
 const deriveComponentNameFromFilenames = join(', ');
 const isPathname = (displayName) =>
@@ -28,9 +30,10 @@ export const getComponentName = ({ displayName, filename, filenames }) =>
   (displayName && deriveComponentNameFromDisplayName(displayName)) ||
   filename ||
   (filenames && deriveComponentNameFromFilenames(filenames)) ||
-  'Unknown';
+  COMPONENT_UNKNOWN_LABEL;
 
-export const getArtifactName = ({ displayName, filename }) => prop('name', displayName) || filename || 'Unknown';
+export const getArtifactName = ({ displayName, filename }) =>
+  prop('name', displayName) || filename || COMPONENT_UNKNOWN_LABEL;
 
 /**
  * Returns the name of the file from a path.
@@ -53,4 +56,6 @@ export const getComponentNameWithoutVersion = ({ displayName, filename, filename
   (displayName && deriveComponentNameFromDisplayNameWithoutVersion(displayName)) ||
   filename ||
   (filenames && deriveComponentNameFromFilenames(filenames)) ||
-  'Unknown';
+  COMPONENT_UNKNOWN_LABEL;
+
+export const isUnknownComponent = (component) => getComponentName(component) === COMPONENT_UNKNOWN_LABEL;

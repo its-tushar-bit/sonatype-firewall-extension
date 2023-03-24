@@ -18,3 +18,14 @@ policies-header-tile {
     padding-bottom: var(--nx-spacing-4x);
   }
 }
+
+#waived-component-upgrades {
+  .waived-component-upgrades {
+    &__list-line {
+      margin-bottom: var(--nx-spacing-2x);
+    }
+    &__stage-name {
+      text-transform: capitalize;
+    }
+  }
+}

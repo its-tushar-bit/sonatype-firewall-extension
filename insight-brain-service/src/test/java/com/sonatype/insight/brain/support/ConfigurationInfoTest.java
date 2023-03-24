@@ -80,6 +80,8 @@ public class ConfigurationInfoTest
         "[{\"ipAddress\": \"192.168.33.10\", \"description\": \"Test IPv4 address\"}," +
             "{\"ipAddress\": \"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\", \"description\": \"Test IPv6 address\"}]");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, "newScan");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+        "14");
 
     configuration.configurationChanged(Sets.newHashSet(
         SystemConfigurationProperty.PURGE_SCAN_FILES,
@@ -111,7 +113,8 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
-        SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST
+        SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR
     ));
 
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
@@ -154,6 +157,8 @@ public class ConfigurationInfoTest
         "[{\"ipAddress\":\"192.168.33.10\",\"description\":\"Test IPv4 address\"}," +
             "{\"ipAddress\":\"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\",\"description\":\"Test IPv6 address\"}]");
     assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("newScan");
+    assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR).asText()).isEqualTo(
+        "14");
   }
 
   @Test
@@ -194,5 +199,7 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST).asText()).isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.ACCESS_ALLOWLIST).isEmpty()).isTrue();
     assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("null");
+    assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR).asText()).isEqualTo(
+        "null");
   }
 }

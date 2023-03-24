@@ -29,7 +29,7 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.RisksFilterDTOBuilder;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.builders.TestPolicyBuilder;
-import com.sonatype.insight.brain.builders.TestPolicyWaiverBuilder;
+import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.dashboard.DashboardPolicyWaiverDTOComparator.DashboardPolicyWaiverOrderByEnum;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -1028,8 +1028,21 @@ public class DashboardPolicyWaiverServiceTest
       }};
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
-    return tempEntity.newWaiver("hash", highThreatPolicy.getId(), application.getId(),
-        singletonList(constraintFact), purl, EXACT_COMPONENT, "a comment", today, aWeekFromNow);
+
+    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
+        .withHash("hash")
+        .withPolicyId(highThreatPolicy.getId())
+        .withOwnerId(application.getId())
+        .withConstraintFacts(singletonList(constraintFact))
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("a comment")
+        .withCreateTime(today)
+        .withExpiryTime(aWeekFromNow)
+        .withComponentUpgradeAvailable(true)
+        .build();
+
+    return tempEntity.newWaiver(policyWaiver);
   }
 
   private void assertPolicyWaiverWithoutDetails(
@@ -1070,6 +1083,8 @@ public class DashboardPolicyWaiverServiceTest
     assertThat(dashboardPolicyWaiverDTO.ownerId).isEqualTo(owner.getId());
     assertThat(dashboardPolicyWaiverDTO.ownerName).isEqualTo(owner.getName());
     assertThat(dashboardPolicyWaiverDTO.componentMatchStrategy).isEqualTo(policyWaiver.getComponentMatchStrategy());
+    assertThat(dashboardPolicyWaiverDTO.componentUpgradeAvailable).isEqualTo(
+        policyWaiver.isComponentUpgradeAvailable());
 
     if (policyWaiver.getComponentIdentifier() != null) {
       assertThat(dashboardPolicyWaiverDTO.componentIdentifier.toComponentIdentifier())

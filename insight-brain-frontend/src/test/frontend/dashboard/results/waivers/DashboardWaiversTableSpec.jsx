@@ -111,6 +111,7 @@ describe('DashboardWaiversTable', function () {
     expect(screen.getByText('Policy')).toBeVisible();
     expect(screen.getByText('Scope')).toBeVisible();
     expect(screen.getByText('Components')).toBeVisible();
+    expect(screen.getByText('Upgrade')).toBeVisible();
     expect(tableEntries).toBeVisible();
   });
 

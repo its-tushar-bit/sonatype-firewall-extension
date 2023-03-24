@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
+import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -94,6 +95,8 @@ public class Configuration
   private final Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
 
   private final Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
+  
+  private final Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider;
 
   @Inject
   public Configuration(
@@ -109,7 +112,8 @@ public class Configuration
       Provider<PullRequestMonitor> pullRequestMonitorProvider,
       Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider,
       Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider,
-      Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider)
+      Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider,
+      Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider)
   {
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
@@ -124,6 +128,7 @@ public class Configuration
     this.releaseGraphCacheProviderProvider = releaseGraphCacheProviderProvider;
     this.policyMonitorSchedulerProvider = policyMonitorSchedulerProvider;
     this.automaticQuarantineReleaseSchedulerProvider = automaticQuarantineReleaseSchedulerProvider;
+    this.waivedComponentUpgradeSchedulerProvider = waivedComponentUpgradeSchedulerProvider;
     initializeValues();
   }
 
@@ -168,7 +173,8 @@ public class Configuration
         SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX,
         SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT,
         SystemConfigurationProperty.BFS_REPOSITORIES,
-        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES)
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR)
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
@@ -207,6 +213,7 @@ public class Configuration
     Integer currentPolicyMonitoringHour = getPolicyMonitoringHour();
     Integer currentAutomaticQuarantineReleaseTimeIntervalInMinutes =
         getAutomaticQuarantineReleaseTimeIntervalInMinutes();
+    Integer currentWaivedComponentUpgradeInspectionHour = getWaivedComponentUpgradeInspectionHour();
     updateValueByPropertyNames(propertyNamesCopy);
     if (propertyNamesCopy.contains(SystemConfigurationProperty.HDS_URL) ||
         propertyNamesCopy.contains(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS) ||
@@ -219,21 +226,24 @@ public class Configuration
     if (propertyNamesCopy.contains(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE)) {
       releaseGraphCacheProviderProvider.get().initializeCache();
     }
-    if (propertyNamesCopy.contains(SystemConfigurationProperty.POLICY_MONITORING_HOUR) &&
-        !Objects.equals(currentPolicyMonitoringHour, getPolicyMonitoringHour())) {
-      if (!taskScheduler.isSchedulerInitialized()) {
-        return;
-      }
-      policyMonitorSchedulerProvider.get().schedulePolicyMonitoring();
+
+    // Following prop changes deal with task scheduling so they are ignored if the scheduler is not initialized
+    if (!taskScheduler.isSchedulerInitialized()) {
+      return;
     }
 
+    if (propertyNamesCopy.contains(SystemConfigurationProperty.POLICY_MONITORING_HOUR) &&
+        !Objects.equals(currentPolicyMonitoringHour, getPolicyMonitoringHour())) {
+      policyMonitorSchedulerProvider.get().schedulePolicyMonitoring();
+    }
     if (propertyNamesCopy.contains(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES) &&
         !Objects.equals(currentAutomaticQuarantineReleaseTimeIntervalInMinutes,
             getAutomaticQuarantineReleaseTimeIntervalInMinutes())) {
-      if (!taskScheduler.isSchedulerInitialized()) {
-        return;
-      }
       automaticQuarantineReleaseSchedulerProvider.get().scheduleAutomaticQuarantineRelease();
+    }
+    if (propertyNamesCopy.contains(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR) &&
+        !Objects.equals(currentWaivedComponentUpgradeInspectionHour, getWaivedComponentUpgradeInspectionHour())) {
+      waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection();
     }
   }
 
@@ -477,6 +487,10 @@ public class Configuration
 
   public String getBfsQueryRepositoriesList() {
     return configCache.get(SystemConfigurationProperty.BFS_REPOSITORIES);
+  }
+
+  public Integer getWaivedComponentUpgradeInspectionHour() {
+    return configCache.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR);
   }
 
   public Map<String, String> getMatcherConfiguration() {

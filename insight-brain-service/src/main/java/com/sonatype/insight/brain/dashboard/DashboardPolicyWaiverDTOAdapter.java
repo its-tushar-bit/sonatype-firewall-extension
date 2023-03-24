@@ -44,6 +44,7 @@ public class DashboardPolicyWaiverDTOAdapter
     dto.ownerType = ScopeOwnerUtils.getScopeOwnerType(ownersById.get(policyWaiver.getOwnerId()).getType(), dto.ownerId);
     dto.componentMatchStrategy = policyWaiver.getComponentMatchStrategy();
     dto.hash = policyWaiver.getHash();
+    dto.componentUpgradeAvailable = policyWaiver.isComponentUpgradeAvailable();
 
     if (policyWaiver.getComponentIdentifier() != null) {
       dto.componentIdentifier = ApiComponentIdentifierDTOV2

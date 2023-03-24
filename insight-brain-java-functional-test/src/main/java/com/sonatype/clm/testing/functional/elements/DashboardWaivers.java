@@ -147,5 +147,9 @@ public class DashboardWaivers
     public SelenideElement componentEllipsis() {
       return component().$(".truncate-ellipsis");
     }
+
+    public SelenideElement upgradeAvailable() {
+      return child(createSelector(".iq-upgrade-cell"));
+    }
   }
 }

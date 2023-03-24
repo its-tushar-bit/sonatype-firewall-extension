@@ -35,6 +35,7 @@
 @use '../react/iqViolationExclamation';
 @use '../react/ThreatDropdownSelector';
 @use '../user/LoginModal/loginModal';
+@use '../react/upgradeAvailableIndicator/upgradeAvailableIndicator';
 
 // Directives
 @use '../directives/directives';
@@ -152,6 +153,7 @@
 @use '../toastContainer/toastContainer';
 @use '../OrgsAndPolicies/actionDropdown/actionDropdown';
 @use '../../frontend/owner.manager/navigation/ownerDetailSidebar';
+@use '../OrgsAndPolicies/waivedComponentUpgrades/waivedComponentUpgrades';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

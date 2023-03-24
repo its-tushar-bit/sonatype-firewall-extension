@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
+import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -83,6 +84,9 @@ public class MultiTenantConfigurationTest
   @Mock
   Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
 
+  @Mock
+  Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider;
+
   private Configuration underTest;
 
   @Override
@@ -96,7 +100,8 @@ public class MultiTenantConfigurationTest
     underTest = new Configuration(proxyServerConfigurationDAO, reverseProxyAuthenticationConfigurationDAO,
         jiraConfigurationDAO, sourceControlConfigurationDAO, configurationService, hdsClientsProvider,
         asyncEventBusProvider, taskScheduler, defaultBranchMonitorProvider, pullRequestMonitorProvider,
-        releaseGraphCacheProviderProvider, policyMonitorSchedulerProvider, automaticQuarantineReleaseSchedulerProvider);
+        releaseGraphCacheProviderProvider, policyMonitorSchedulerProvider, automaticQuarantineReleaseSchedulerProvider,
+        waivedComponentUpgradeSchedulerProvider);
   }
 
   @Test

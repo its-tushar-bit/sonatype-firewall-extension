@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -111,6 +113,14 @@ public class OrganizationDAO
       organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
     }
 
+    /*
+     * Check that the stage id is valid or null
+     */
+    if (organization.getWaivedComponentUpgradeStageTypeId() != null
+        && !Stage.isValidStageTypeId(organization.getWaivedComponentUpgradeStageTypeId())) {
+      throw new InvalidStageException(organization.getWaivedComponentUpgradeStageTypeId());
+    }
+
     super.insert(tx, organization);
   }
 
@@ -133,6 +143,14 @@ public class OrganizationDAO
     Organization existingOrganization = getByName(tx, organization.getName());
     if (existingOrganization != null && !existingOrganization.getId().equals(organization.getId())) {
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
+    }
+
+    /*
+     * Check that the stage id is valid or null
+     */
+    if (organization.getWaivedComponentUpgradeStageTypeId() != null
+        && !Stage.isValidStageTypeId(organization.getWaivedComponentUpgradeStageTypeId())) {
+      throw new InvalidStageException(organization.getWaivedComponentUpgradeStageTypeId());
     }
 
     super.update(tx, organization);

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -96,17 +97,48 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
 
-    // Default sorting: closer to expire at the top
+    PolicyWaiver policyWaiver1 = staticTempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash1")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(application.getId())
+        .withAssociatedPackageUrl(purl)
+            .withConstraintFacts(policyViolations.get(0).getConstraintFacts())
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment")
+        .withCreateTime(Date.from(twoDaysAgo))
+        .withExpiryTime(Date.from(threeDaysFromNow))
+        .withCreatorName("Test User")
+        .withComponentUpgradeAvailable(true)
+        .build());
+
+    PolicyWaiver policyWaiver2 = staticTempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash2")
+        .withPolicyId(securityPolicies.get(1).getId())
+        .withOwnerId(application.getId())
+        .withAssociatedPackageUrl(purl)
+        .withConstraintFacts(policyViolations.get(1).getConstraintFacts())
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment")
+        .withCreateTime(Date.from(threeDaysAgo))
+        .withExpiryTime(Date.from(fiveDaysFromNow))
+        .build());
+
+    PolicyWaiver policyWaiver3 = staticTempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash3")
+        .withPolicyId(securityPolicies.get(2).getId())
+        .withOwnerId(application.getId())
+        .withAssociatedPackageUrl(purl)
+        .withConstraintFacts(policyViolations.get(2).getConstraintFacts())
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment")
+        .withCreateTime(Date.from(fiveDaysAgo))
+        .withExpiryTime(null)
+        .build());
+
     policyWaivers = new ArrayList<PolicyWaiver>() {{
-        this.add(staticTempEntity.newWaiver("hash1", securityPolicies.get(0).getId(), application.getId(),
-            policyViolations.get(0).getConstraintFacts(), purl, EXACT_COMPONENT, "comment",
-            Date.from(twoDaysAgo), Date.from(threeDaysFromNow)));
-        this.add(staticTempEntity.newWaiver("hash2", securityPolicies.get(1).getId(), application.getId(),
-            policyViolations.get(1).getConstraintFacts(), purl, EXACT_COMPONENT, "comment",
-            Date.from(threeDaysAgo), Date.from(fiveDaysFromNow)));
-        this.add(staticTempEntity.newWaiver("hash3", securityPolicies.get(2).getId(), application.getId(),
-            policyViolations.get(2).getConstraintFacts(), purl, EXACT_COMPONENT, "comment",
-            Date.from(fiveDaysAgo), null));
+        add(policyWaiver1);
+        add(policyWaiver2);
+        add(policyWaiver3);
       }};
 
     refreshOrOpen(WaiverDetailsPage.url("ownerTypeId", "ownerId", "waiverId"));

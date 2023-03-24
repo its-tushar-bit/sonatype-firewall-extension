@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NxTile, NxH2, NxLoadWrapper, NxTextLink, NxReadOnly, NxButton, NxP } from '@sonatype/react-shared-components';
-import { formatWaiverDetails, isWaiverAllVersionsOrExact } from 'MainRoot/util/waiverUtils';
+import { formatWaiverDetails, isWaiverAllVersionsOrExact, shouldShowUpgradeIndicator } from 'MainRoot/util/waiverUtils';
 import {
   selectWaiverDetails,
   selectWaiverDetailsLoading,
@@ -20,8 +20,9 @@ import {
 } from 'MainRoot/vulnerabilityDetails/vulnerabilityDetailsModalActions';
 import VulnerabilityDetailsModalContainer from 'MainRoot/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
-import DeleteWaiverModalContainer from '../deleteWaiverModal/DeleteWaiverModalContainer';
-import { setWaiverToDelete } from '../waiverActions';
+import UpgradeAvailableIndicator from 'MainRoot/react/upgradeAvailableIndicator/UpgradeAvailableIndicator';
+import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
+import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 
 export default function waiverDetails() {
   const isLoading = useSelector(selectWaiverDetailsLoading);
@@ -39,6 +40,7 @@ export default function waiverDetails() {
     dateCreated,
     vulnerabilityId,
     component,
+    componentUpgradeAvailable,
   } = formatWaiverDetails(details);
 
   const waiver = useSelector(selectWaiverDetails);
@@ -81,6 +83,14 @@ export default function waiverDetails() {
     }
   };
 
+  // Only show upgrade indicator if component is exact version. It should never
+  // be displayed for ALL_COMPONENTS or ALL_VERSIONS matches, or unknown components.
+  const renderUpgradeAvailableIndicator = () => {
+    if (shouldShowUpgradeIndicator(componentUpgradeAvailable, component)) {
+      return <UpgradeAvailableIndicator isAbbreviated={false} />;
+    }
+  };
+
   useEffect(() => {
     getDetails();
     return () => dispatch(closeVulnerabilityDetailsModal());
@@ -112,7 +122,7 @@ export default function waiverDetails() {
           </NxReadOnly>
           {/* Vulnerability Details */}
           {vulnerabilityId && (
-            <div className="iq-waiver-details__vulnerability_details_link">
+            <div className="iq-waiver-details__vulnerability-details-link">
               <NxTextLink onClick={onVulnerabilityDetailsClick}>See Security Vulnerability Details</NxTextLink>
               <VulnerabilityDetailsModalContainer />
             </div>
@@ -129,7 +139,14 @@ export default function waiverDetails() {
               {component && isWaiverAllVersionsOrExact(component) ? (
                 <>
                   {renderDisclaimer()}
-                  <ComponentDisplay component={component} truncate={true} matcherStrategy={componentMatchStrategy()} />
+                  <div className="component-name-and-upgrade-indicator">
+                    <ComponentDisplay
+                      component={component}
+                      truncate={true}
+                      matcherStrategy={componentMatchStrategy()}
+                    />
+                    {renderUpgradeAvailableIndicator()}
+                  </div>
                 </>
               ) : (
                 'All components'

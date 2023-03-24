@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTil
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.WaivedComponentUpgradeConfigurationPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -38,6 +40,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,6 +51,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactTextCaseSensitive;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
@@ -66,12 +70,22 @@ public class OrganizationSummaryViewTest
 
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
+  private String waivedComponentUpgradeStageTypeId;
+
   @Before
   public void init() {
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
     rootOrganization = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
+    waivedComponentUpgradeStageTypeId = rootOrganization.getWaivedComponentUpgradeStageTypeId();
     super.init(organization);
     SidebarNavigation.closeNavigationSidebar();
+  }
+
+  @After
+  public void restoreRootOrganizationState() {
+    Organization rootOrganization = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
+    rootOrganization.setWaivedComponentUpgradeStageTypeId(waivedComponentUpgradeStageTypeId);
+    organizationDAO.update(rootOrganization);
   }
 
   @Test
@@ -582,5 +596,48 @@ public class OrganizationSummaryViewTest
     tile.content().shouldBe(visible);
 
     tile.itemText().shouldBe(visible);
+  }
+
+  @Test
+  public void testWaivedComponentUpgradesTile_Routing() {
+    // Config org stages
+    rootOrganization.setWaivedComponentUpgradeStageTypeId(OperateStageType.ID);
+    organizationDAO.update(rootOrganization);
+    String operateStageConfiguredText = WaivedComponentUpgradeConfigurationPage.rootOrgMonitoredStageText("Operate");
+    String buildStageConfiguredText = WaivedComponentUpgradeConfigurationPage.rootOrgMonitoredStageText("Build");
+
+    // Configure elements
+    WaivedComponentUpgradeConfigurationPage configPage = new WaivedComponentUpgradeConfigurationPage();
+    SelenideElement tileListLink = OwnerSummaryPage.waivedComponentUpgradesConfiguredStage();
+    SelenideElement configForm = configPage.configurationForm();
+
+    // Nav to root org summary view
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
+    OwnerSummaryPage.summaryTile().waivedComponentUpgradesButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tileListLink);
+    tileListLink.shouldBe(visible);
+    tileListLink.shouldHave(text(operateStageConfiguredText));
+    configForm.shouldNot(exist);
+
+    // Nav to config page and set monitored stage to Build
+    tileListLink.click();
+
+    tileListLink.shouldNot(exist);
+    configForm.shouldBe(visible);
+
+    NxRadio stageBuildRadio = configPage.stagesByLabel().get("Build");
+    configPage.stagesByLabel().get("Operate").shouldBe(selected);
+    stageBuildRadio.click();
+    configPage.updateButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    // Nav to summary view and assert stage change is reflected in tile
+    back();
+
+    OwnerSummaryPage.summaryTile().waivedComponentUpgradesButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tileListLink);
+    tileListLink.shouldBe(visible);
+    tileListLink.shouldHave(text(buildStageConfiguredText));
+    configForm.shouldNot(exist);
   }
 }

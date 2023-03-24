@@ -560,6 +560,13 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_waivedComponentUpgradeInspectionHour_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR))).containsEntry(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, null);
+  }
+
+  @Test
   public void testExecute() throws Exception {
     Set<String> propertyNames =
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
@@ -1408,6 +1415,18 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_REPOSITORIES)))
         .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, repos);
+  }
+
+  @Test
+  public void testSetConfiguration_waivedComponentUpgradeInspectionHour() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 14));
+
+    assertThat(dao.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR)).isEqualTo("14");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR))).containsEntry(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 14);
+    assertMinAndMax(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 0, 23);
   }
 
   private void assertMinAndMax(String name, int min, int max) {

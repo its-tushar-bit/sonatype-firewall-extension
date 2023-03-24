@@ -150,6 +150,12 @@ public class ApiPolicyWaiverDTO
         ? null : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
   }
 
+  /**
+   * @since 1.159
+   */
+  @JsonInclude(Include.NON_NULL)
+  public Boolean componentUpgradeAvailable;
+
   public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner) {
     ApiPolicyWaiverDTO dto = new ApiPolicyWaiverDTO();
 
@@ -161,6 +167,7 @@ public class ApiPolicyWaiverDTO
     dto.policyId = policyWaiver.getPolicyId();
     dto.creatorId = policyWaiver.getCreatorId();
     dto.creatorName = policyWaiver.getCreatorName();
+    dto.componentUpgradeAvailable = policyWaiver.isComponentUpgradeAvailable();
 
     if (policyWaiver.getComponentIdentifier() != null) {
       dto.componentIdentifier = ApiComponentIdentifierDTOV2

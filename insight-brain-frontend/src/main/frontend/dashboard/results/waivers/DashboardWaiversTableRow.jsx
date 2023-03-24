@@ -7,8 +7,9 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import moment from 'moment';
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
+import UpgradeAvailableIndicator from 'MainRoot/react/upgradeAvailableIndicator/UpgradeAvailableIndicator';
 import { NxTable, NxThreatIndicator, NxOverflowTooltip } from '@sonatype/react-shared-components';
-import { isWaiverAllVersionsOrExact } from 'MainRoot/util/waiverUtils';
+import { isWaiverAllVersionsOrExact, shouldShowUpgradeIndicator } from 'MainRoot/util/waiverUtils';
 
 export default function DashboardWaiversTableRow({ stateGo, waiver }) {
   const {
@@ -21,6 +22,7 @@ export default function DashboardWaiversTableRow({ stateGo, waiver }) {
     ownerType,
     scope,
     componentMatchStrategy,
+    componentUpgradeAvailable,
   } = waiver;
 
   const goToWaiverDetails = () => {
@@ -69,6 +71,15 @@ export default function DashboardWaiversTableRow({ stateGo, waiver }) {
           'All Components'
         )}
       </NxTable.Cell>
+      <NxTable.Cell className="iq-upgrade-cell">
+        <NxOverflowTooltip>
+          {shouldShowUpgradeIndicator(componentUpgradeAvailable, waiver) ? (
+            <UpgradeAvailableIndicator isAbbreviated={true} />
+          ) : (
+            <span>{'—'}</span>
+          )}
+        </NxOverflowTooltip>
+      </NxTable.Cell>
       <NxTable.Cell chevron />
     </NxTable.Row>
   );
@@ -85,6 +96,7 @@ export const waiverPropTypes = PropTypes.shape({
   ownerType: PropTypes.string.isRequired,
   scope: PropTypes.string.isRequired,
   componentMatchStrategy: PropTypes.string.isRequired,
+  componentUpgradeAvailable: PropTypes.bool,
 });
 
 DashboardWaiversTableRow.propTypes = {

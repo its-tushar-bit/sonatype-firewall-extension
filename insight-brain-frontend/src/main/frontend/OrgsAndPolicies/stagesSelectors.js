@@ -34,3 +34,8 @@ export const selectCliStagesWithInheritOrNoMonitorOption = createSelector(
     return [createInheritOrNoMonitorOption(policyMonitoringByOwner, cliStages), ...cliStages];
   }
 );
+
+export const selectCliStagesWithNoneOption = createSelector(selectCliStages, (cliStages) => {
+  if (!cliStages.stageTypes) return undefined;
+  return [{ stageName: 'None', stageTypeId: null }, ...cliStages.stageTypes];
+});

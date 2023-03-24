@@ -152,6 +152,11 @@ public class ConfigurationProperty
           (p, o) -> ConfigurationUtils.integerValueToString(o,
               SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
               30, Integer.MAX_VALUE)),
+      new ConfigurationProperty(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+          Integer.class,
+          (p, s) -> NumberUtils.createInteger(s),
+          (p, o) -> ConfigurationUtils.integerValueToString(o,
+              SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 0, 23)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

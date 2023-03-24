@@ -173,6 +173,8 @@ public class SystemConfigurationProperty
 
   public static final String AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES =
       "automaticQuarantineReleaseTimeIntervalInMinutes";
+      
+  public static final String WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR = "waivedComponentUpgradeInspectionHour";
 
   public static final String LOGOUT_AUTH0_ON_LOGOUT = "logoutAuth0OnLogout";
 

@@ -242,6 +242,7 @@
                 <include>**/LicenseThreatGroupDataHelper*</include>
                 <include>**/TestLicenseThreatGroups.json</include>
                 <include>**/DisplayFieldValueAssertionUtil*</include>
+                <include>**/TestPolicyWaiverBuilder*</include>
               </includes>
             </configuration>
           </execution>

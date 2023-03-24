@@ -25,6 +25,8 @@ import com.sonatype.clm.testing.functional.elements.DashboardWaivers.WaiversResu
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.WaiverDetailsPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
+import com.sonatype.insight.brain.dashboard.DashboardPolicyWaiverDTO;
+import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -71,7 +73,7 @@ public class DashboardWaiversTest
 
   private static final String CSV_HEADERS = "Waiver Id, Threat level, Created Date, Expiration Date," +
           " Policy Id, Policy Name, Policy Constraints, Scope Type, Scope Id, Scope Name," +
-          " Component Match Strategy, Component Hash, Component Name, Created by Id, Created by Name,Comment";
+          " Component Match Strategy, Component Hash, Component Name, Upgrade, Created by Id, Created by Name,Comment";
 
   private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -165,6 +167,7 @@ public class DashboardWaiversTest
     waiver1.policy().shouldHave(text("Policy 1"));
     waiver1.scope().shouldHave(text("Organization - Org 1"));
     waiver1.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    waiver1.upgradeAvailable().shouldHave(text("Available"));
 
     WaiverTile waiver2 = table.waiver(1);
     waiver2.threatIndicator().shouldHave(MODERATE);
@@ -174,6 +177,7 @@ public class DashboardWaiversTest
     waiver2.policy().shouldHave(text("Policy 3"));
     waiver2.scope().shouldHave(text("Application - App 2"));
     waiver2.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    waiver2.upgradeAvailable().shouldHave(text("Available"));
 
     WaiverTile waiver3 = table.waiver(2);
     waiver3.threatIndicator().shouldHave(CRITICAL);
@@ -183,6 +187,7 @@ public class DashboardWaiversTest
     waiver3.policy().shouldHave(text("Policy 2"));
     waiver3.scope().shouldHave(text("Organization - Org 1"));
     waiver3.component().shouldHave(text("All Components"));
+    waiver3.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile waiver4 = table.waiver(3);
     waiver4.threatIndicator().shouldHave(CRITICAL);
@@ -192,6 +197,7 @@ public class DashboardWaiversTest
     waiver4.policy().shouldHave(text("Policy 2"));
     waiver4.scope().shouldHave(text("Application - App 1"));
     waiver4.component().shouldHave(text("Group1 : Artifact1 (all versions)"));
+    waiver4.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile waiver6 = table.waiver(4);
     waiver6.threatIndicator().shouldHave(SEVERE);
@@ -201,6 +207,7 @@ public class DashboardWaiversTest
     waiver6.policy().shouldHave(text("Policy 4"));
     waiver6.scope().shouldHave(text(rootOrg.getName()));
     waiver6.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    waiver6.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile repositoryWaiver = table.waiver(5);
     repositoryWaiver.threatIndicator().shouldHave(SEVERE);
@@ -210,6 +217,7 @@ public class DashboardWaiversTest
     repositoryWaiver.policy().shouldHave(text("Policy 1"));
     repositoryWaiver.scope().shouldHave(text(repository1.getType().toString() + " - " + "repository"));
     repositoryWaiver.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    repositoryWaiver.upgradeAvailable().shouldHave(text("Available"));
 
     WaiverTile repositoryContainerWaiver = table.waiver(6);
     repositoryContainerWaiver.threatIndicator().shouldHave(CRITICAL);
@@ -219,6 +227,7 @@ public class DashboardWaiversTest
     repositoryContainerWaiver.policy().shouldHave(text("Policy 2"));
     repositoryContainerWaiver.scope().shouldHave(text("All Repositories"));
     repositoryContainerWaiver.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    repositoryContainerWaiver.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile waiverParentOrg = table.waiver(7);
     waiverParentOrg.threatIndicator().shouldHave(CRITICAL);
@@ -237,6 +246,7 @@ public class DashboardWaiversTest
     waiver5.policy().shouldHave(text("Policy 3"));
     waiver5.scope().shouldHave(text("Application - App 1"));
     waiver5.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    waiver5.upgradeAvailable().shouldHave(text("—"));
   }
 
   @Test
@@ -799,37 +809,129 @@ public class DashboardWaiversTest
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
 
     // Default sorting: closer to expire at the top
-    return new ArrayList<PolicyWaiver>() {{
-        this.add(tempEntity.newWaiver("hash1", securityPolicies.get(0).getId(), organization.getId(),
-            null, purl, EXACT_COMPONENT, "comment org",
-            Date.from(twoDaysAgo), Date.from(threeDaysFromNow)));
-        this.add(tempEntity.newWaiver("hash2", securityPolicies.get(2).getId(), application2.getId(),
-            null, purl, EXACT_COMPONENT, "comment app 2",
-            Date.from(threeDaysAgo), Date.from(fiveDaysFromNow)));
-        this.add(tempEntity.newWaiver("hash3", securityPolicies.get(2).getId(), application.getId(),
-            null, purl, EXACT_COMPONENT, "comment app 1",
-            Date.from(fiveDaysAgo), null));
-        this.add(tempEntity.newWaiver("hash4", securityPolicies.get(1).getId(), organization.getId(),
-            null, purl, ALL_COMPONENTS, "org all components",
-            Date.from(sixDaysAgo), Date.from(sixDaysFromNow)));
-        this.add(tempEntity.newWaiver("hash5", securityPolicies.get(1).getId(), application.getId(),
-            null, purl, ALL_VERSIONS, "app all versions",
-            Date.from(sevenDaysAgo), Date.from(sevenDaysFromNow)));
-        this.add(tempEntity.newWaiver("hash6", securityPolicies.get(3).getId(), rootOrg.getId(),
-            null, purl, EXACT_COMPONENT, "comment root org",
-            Date.from(eightDaysAgo), Date.from(eightDaysFromNow)));
-        this.add(tempEntity.newWaiver("hash7", securityPolicies.get(0).getId(), repository1.getId(),
-            null, purl, EXACT_COMPONENT, "comment repo",
-            Date.from(nineDaysAgo), Date.from(nineDaysFromNow)));
-        this.add(tempEntity.newWaiver("hash8", securityPolicies.get(1).getId(),
-              RepositoryContainer.REPOSITORY_CONTAINER_ID,
-            null, purl, EXACT_COMPONENT, "comment repo container",
-            Date.from(fourteenDaysAgo), Date.from(fourteenDaysFromNow)));
-        this.add(tempEntity.newWaiver("hash9", securityPolicies.get(1).getId(),
-              parentOrganization.getId(),
-            null, purl, EXACT_COMPONENT, "comment parent org",
-            Date.from(thirtyDaysAgo), Date.from(thirtyDaysFromNow)));
-      }};
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash1")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(organization.getId())
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment org")
+        .withCreateTime(Date.from(twoDaysAgo))
+        .withExpiryTime(Date.from(threeDaysFromNow))
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .withComponentUpgradeAvailable(true)
+        .build());
+
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash2")
+        .withPolicyId(securityPolicies.get(2).getId())
+        .withOwnerId(application2.getId())
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment app 2")
+        .withCreateTime(Date.from(threeDaysAgo))
+        .withExpiryTime(Date.from(fiveDaysFromNow))
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .withComponentUpgradeAvailable(true)
+        .build());
+
+    PolicyWaiver policyWaiver3 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash3")
+        .withPolicyId(securityPolicies.get(2).getId())
+        .withOwnerId(application.getId())
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment app 1")
+        .withCreateTime(Date.from(fiveDaysAgo))
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .build());
+
+    PolicyWaiver policyWaiver4 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash4")
+        .withPolicyId(securityPolicies.get(1).getId())
+        .withOwnerId(organization.getId())
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(ALL_COMPONENTS)
+        .withComment("org all components")
+        .withCreateTime(Date.from(sixDaysAgo))
+        .withExpiryTime(Date.from(sixDaysFromNow))
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .build());
+
+    PolicyWaiver policyWaiver5 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash5")
+        .withPolicyId(securityPolicies.get(1).getId())
+        .withOwnerId(application.getId())
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(ALL_VERSIONS)
+        .withComment("app all versions")
+        .withCreateTime(Date.from(sevenDaysAgo))
+        .withExpiryTime(Date.from(sevenDaysFromNow))
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .withComponentUpgradeAvailable(true)
+        .build());
+
+    PolicyWaiver policyWaiver6 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash6")
+        .withPolicyId(securityPolicies.get(3).getId())
+        .withOwnerId(rootOrg.getId())
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment root org")
+        .withCreateTime(Date.from(eightDaysAgo))
+        .withExpiryTime(Date.from(eightDaysFromNow))
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .build());
+
+    PolicyWaiver policyWaiver7 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash7")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(repository1.getId())
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment repo")
+        .withCreateTime(Date.from(nineDaysAgo))
+        .withExpiryTime(Date.from(nineDaysFromNow))
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .withComponentUpgradeAvailable(true)
+        .build());
+
+    PolicyWaiver policyWaiver8 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash8")
+        .withPolicyId(securityPolicies.get(1).getId())
+        .withOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment repo container")
+        .withCreateTime(Date.from(fourteenDaysAgo))
+        .withExpiryTime(Date.from(fourteenDaysFromNow))
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .build());
+
+    PolicyWaiver policyWaiver9 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash9")
+        .withPolicyId(securityPolicies.get(1).getId())
+        .withOwnerId(parentOrganization.getId())
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment parent org")
+        .withCreateTime(Date.from(thirtyDaysAgo))
+        .withExpiryTime(Date.from(thirtyDaysFromNow))
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .build());
+
+    return new ArrayList<>(
+        Arrays.asList(policyWaiver1, policyWaiver2, policyWaiver3, policyWaiver4, policyWaiver5, policyWaiver6,
+            policyWaiver7, policyWaiver8, policyWaiver9));
   }
 
   private void showAllWaivers() {
@@ -865,50 +967,75 @@ public class DashboardWaiversTest
     String waiver1String = policyWaiver.getId() + ",7," + dateFormatCsv.format(Date.from(twoDaysAgo)) +
         "," + dateFormatCsv.format(Date.from(threeDaysFromNow)) + "," + policyWaiver.getPolicyId() +
         ",Policy 1,,organization," + policyWaiver.getOwnerId() + "," + "Org 1,EXACT_COMPONENT,hash1," +
-        "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment org";
+        "Group1 : Artifact1 : 1.2.3," +
+        DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
+            policyWaiver.isComponentUpgradeAvailable()) +
+        ",testuser,Test User,comment org";
 
     String waiver2String = policyWaiver1.getId() + ",3," + dateFormatCsv.format(Date.from(threeDaysAgo)) + "," +
         dateFormatCsv.format(Date.from(fiveDaysFromNow)) + "," + policyWaiver1.getPolicyId() +
         ",Policy 3,,application," + policyWaiver1.getOwnerId() + ",App 2,EXACT_COMPONENT,hash2," +
-        "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment app 2";
+        "Group1 : Artifact1 : 1.2.3," +
+        DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
+            policyWaiver1.isComponentUpgradeAvailable()) +
+        ",testuser,Test User,comment app 2";
 
     String waiver3String = policyWaiver3.getId() + ",9," + dateFormatCsv.format(Date.from(sixDaysAgo)) +
         "," + dateFormatCsv.format(Date.from(sixDaysFromNow)) + "," + policyWaiver3.getPolicyId() +
         ",Policy 2,,organization," + policyWaiver3.getOwnerId() + ",Org 1,ALL_COMPONENTS,hash4," +
-        "Group1 : Artifact1 : 1.2.3,testuser,Test User,org all components";
+        "Group1 : Artifact1 : 1.2.3," +
+        DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
+            policyWaiver3.isComponentUpgradeAvailable()) +
+        ",testuser,Test User,org all components";
 
     String waiver4String = policyWaiver4.getId() + ",9," + dateFormatCsv.format(Date.from(sevenDaysAgo)) + "," +
         dateFormatCsv.format(Date.from(sevenDaysFromNow)) + "," + policyWaiver4.getPolicyId() +
         ",Policy 2,,application," + policyWaiver4.getOwnerId() + ",App 1,ALL_VERSIONS,hash5," +
-        "Group1 : Artifact1 : 1.2.3,testuser,Test User,app all versions";
+        "Group1 : Artifact1 : 1.2.3," +
+        DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
+            policyWaiver4.isComponentUpgradeAvailable()) +
+        ",testuser,Test User,app all versions";
 
     String waiverRepoString =
         policyWaiver6.getId() + ",7," + dateFormatCsv.format(Date.from(nineDaysAgo)) + "," +
             dateFormatCsv.format(Date.from(nineDaysFromNow)) + "," + policyWaiver6.getPolicyId() +
             ",Policy 1,,repository," + policyWaiver6.getOwnerId() + ",Repository 1,EXACT_COMPONENT,hash7," +
-            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment repo";
+            "Group1 : Artifact1 : 1.2.3," +
+            DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
+                policyWaiver6.isComponentUpgradeAvailable()) +
+            ",testuser,Test User,comment repo";
 
     String waiverRepoContainerString =
         policyWaiver7.getId() + ",9," + dateFormatCsv.format(Date.from(fourteenDaysAgo)) + "," +
             dateFormatCsv.format(Date.from(fourteenDaysFromNow)) + "," + policyWaiver7.getPolicyId() +
             ",Policy 2,,all_repositories," + policyWaiver7.getOwnerId() +
             ",All Repositories,EXACT_COMPONENT,hash8," +
-            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment repo container";
+            "Group1 : Artifact1 : 1.2.3," +
+            DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
+                policyWaiver7.isComponentUpgradeAvailable()) +
+            ",testuser,Test User,comment repo container";
 
     String waiver5String = policyWaiver5.getId() + ",4," + dateFormatCsv.format(Date.from(eightDaysAgo)) + "," +
         dateFormatCsv.format(Date.from(eightDaysFromNow)) + "," + policyWaiver5.getPolicyId() +
         ",Policy 4,,root_organization," + policyWaiver5.getOwnerId() +
-        "," + rootOrg.getName() +
-        ",EXACT_COMPONENT,hash6,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment root org";
+        "," + rootOrg.getName() + ",EXACT_COMPONENT,hash6,Group1 : Artifact1 : 1.2.3," +
+        DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
+            policyWaiver5.isComponentUpgradeAvailable()) +
+        ",testuser,Test User,comment root org";
 
     String waiver6String = policyWaiver2.getId() + ",3," + dateFormatCsv.format(Date.from(fiveDaysAgo)) + ",," +
         policyWaiver2.getPolicyId() + ",Policy 3,,application," + policyWaiver2.getOwnerId() +
-        ",App 1,EXACT_COMPONENT,hash3,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment app 1";
+        ",App 1,EXACT_COMPONENT,hash3,Group1 : Artifact1 : 1.2.3," +
+        DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
+            policyWaiver2.isComponentUpgradeAvailable()) +
+        ",testuser,Test User,comment app 1";
 
     String waiverParentOrgString = policyWaiver8.getId() + ",9," + dateFormatCsv.format(Date.from(thirtyDaysAgo)) +
         "," + dateFormatCsv.format(Date.from(thirtyDaysFromNow)) + "," + policyWaiver8.getPolicyId() +
         ",Policy 2,,organization," + policyWaiver8.getOwnerId() +
-        ",Parent Org 1,EXACT_COMPONENT,hash9,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment parent org";
+        ",Parent Org 1,EXACT_COMPONENT,hash9,Group1 : Artifact1 : 1.2.3," +
+        DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(
+            policyWaiver8.isComponentUpgradeAvailable()) + ",testuser,Test User,comment parent org";
 
     switch (sortByColumn) {
       case "threat":

@@ -25,14 +25,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardPolicyWaiverDTOTest
 {
-  final DateTimeFormatter csvDateFormatter =
+  private final DateTimeFormatter csvDateFormatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(TimeZone.getTimeZone("UTC").toZoneId());
+
+  private final Instant testNormalizedTime = Instant.now();
 
   @Test
   public void testGetCSVHeaders() {
     final String expectedHeaders = "Waiver Id, Threat level, Created Date, Expiration Date, Policy Id, Policy Name, " +
         "Policy Constraints, Scope Type, Scope Id, Scope Name, Component Match Strategy, Component Hash, " +
-        "Component Name, Created by Id, Created by Name,Comment";
+        "Component Name, Upgrade, Created by Id, Created by Name,Comment";
     String actualHeaders = DashboardPolicyWaiverDTO.getCsvHeader();
     assertThat(actualHeaders).isEqualTo(expectedHeaders);
   }
@@ -45,7 +47,7 @@ public class DashboardPolicyWaiverDTOTest
     addJoiner(expectedLine);
     expectedLine.append("7");
     addJoiner(expectedLine);
-    expectedLine.append(csvDateFormatter.format(Instant.now()));
+    expectedLine.append(csvDateFormatter.format(testNormalizedTime));
     addJoiner(expectedLine);
     expectedLine.append(""); /* expiry time */
     addJoiner(expectedLine);
@@ -65,6 +67,8 @@ public class DashboardPolicyWaiverDTOTest
     expectedLine.append("hash");
     addJoiner(expectedLine);
     addJoiner(expectedLine);
+    expectedLine.append("Available");
+    addJoiner(expectedLine);
     expectedLine.append("admin");
     addJoiner(expectedLine);
     expectedLine.append("Admin User");
@@ -79,6 +83,7 @@ public class DashboardPolicyWaiverDTOTest
     DashboardPolicyWaiverDTO testDto = getTestDto();
     testDto.creatorId = null;
     testDto.creatorName = null;
+    testDto.componentUpgradeAvailable = null;
 
     String dtoAsCSV = testDto.toCsvLine();
     StringBuilder expectedLine = new StringBuilder();
@@ -86,7 +91,7 @@ public class DashboardPolicyWaiverDTOTest
     addJoiner(expectedLine);
     expectedLine.append("7");
     addJoiner(expectedLine);
-    expectedLine.append(csvDateFormatter.format(Instant.now()));
+    expectedLine.append(csvDateFormatter.format(testNormalizedTime));
     addJoiner(expectedLine);
     expectedLine.append(""); /* expiry time */
     addJoiner(expectedLine);
@@ -107,7 +112,9 @@ public class DashboardPolicyWaiverDTOTest
     addJoiner(expectedLine);
     expectedLine.append(""); /* component name */
     addJoiner(expectedLine);
-    expectedLine.append(""); /* creador Id */
+    expectedLine.append("");
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* creator Id */
     addJoiner(expectedLine);
     expectedLine.append(""); /* creator name */
     addJoiner(expectedLine);
@@ -144,7 +151,7 @@ public class DashboardPolicyWaiverDTOTest
     DashboardPolicyWaiverDTO testDto = getTestDto();
     testDto.creatorName = "Juan Camilo de la Rosa, e Ibanez";
 
-    final int creatorNameColumnIndex = 14;
+    final int creatorNameColumnIndex = 15;
     final String[] splittedCsv = testDto.toCsvLine().split(",");
     final String creatorNameFullField =
         splittedCsv[creatorNameColumnIndex] + "," + splittedCsv[creatorNameColumnIndex + 1];
@@ -155,8 +162,7 @@ public class DashboardPolicyWaiverDTOTest
   public void testToCsvLine_EscapesCommaInComments() {
     DashboardPolicyWaiverDTO testDto = getTestDto();
     testDto.comment = "comment that includes, comma, and comma";
-
-    final int commentColumnIndex = 15;
+    final int commentColumnIndex = 16;
     final String[] splittedCsv = testDto.toCsvLine().split(",");
     final String fullCommentsWithCommas =
         splittedCsv[commentColumnIndex] + "," + splittedCsv[commentColumnIndex + 1] + "," +
@@ -169,7 +175,7 @@ public class DashboardPolicyWaiverDTOTest
     DashboardPolicyWaiverDTO testDto = getTestDto();
     testDto.comment = "comment that includes new line \n and return \r\n";
 
-    final int commentColumnIndex = 15;
+    final int commentColumnIndex = 16;
     assertThat(testDto.toCsvLine().split(",")[commentColumnIndex]).isEqualTo(
         "\"comment that includes new line \n and return \r\n\"");
   }
@@ -179,7 +185,7 @@ public class DashboardPolicyWaiverDTOTest
     DashboardPolicyWaiverDTO testDto = getTestDto();
     testDto.comment = "comment that includes \"Quotes\"";
 
-    final int commentColumnIndex = 15;
+    final int commentColumnIndex = 16;
     assertThat(testDto.toCsvLine().split(",")[commentColumnIndex]).isEqualTo(
         "\"comment that includes \"\"Quotes\"\"\"");
   }
@@ -187,7 +193,7 @@ public class DashboardPolicyWaiverDTOTest
   @Test
   public void testToCsvLine_FormatsCreatedTime() {
     DashboardPolicyWaiverDTO testDto = getTestDto();
-    Date createdDate = Date.from(Instant.now().minus(Duration.ofDays(4)));
+    Date createdDate = Date.from(testNormalizedTime.minus(Duration.ofDays(4)));
     testDto.createTime = createdDate;
 
     final int createdTimeColumnIndex = 2;
@@ -198,7 +204,7 @@ public class DashboardPolicyWaiverDTOTest
   @Test
   public void testToCsvLine_FormatsExpiryTime() {
     DashboardPolicyWaiverDTO testDto = getTestDto();
-    Date expirationDate = Date.from(Instant.now().plus(Duration.ofDays(15)));
+    Date expirationDate = Date.from(testNormalizedTime.plus(Duration.ofDays(15)));
     testDto.expiryTime = expirationDate;
 
     final int expirationTimeColumnIndex = 3;
@@ -206,11 +212,25 @@ public class DashboardPolicyWaiverDTOTest
     assertThat(testDto.toCsvLine().split(",")[expirationTimeColumnIndex]).isEqualTo(expectedDate);
   }
 
+  @Test
+  public void testGetComponentUpgradeAvailableValueCSVExport() {
+    String componentUpgradeAvailableValueCSVExport =
+        DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(true);
+    assertThat(componentUpgradeAvailableValueCSVExport).isEqualTo("Available");
+  }
+
+  @Test
+  public void testGetComponentUpgradeAvailableValueCSVExport_upgradePathNotAvailable() {
+    String componentUpgradeAvailableValueCSVExport =
+        DashboardPolicyWaiverDTO.getComponentUpgradeAvailableValueCSVExport(null);
+    assertThat(componentUpgradeAvailableValueCSVExport).isEmpty();
+  }
+
   private DashboardPolicyWaiverDTO getTestDto() {
     DashboardPolicyWaiverDTO dto = new DashboardPolicyWaiverDTO();
     dto.id = "waiverId";
     dto.threatLevel = 7;
-    dto.createTime = Date.from(Instant.now());
+    dto.createTime = Date.from(testNormalizedTime);
     dto.expiryTime = null;
     dto.policyId = "policyId";
     dto.policyName = "test policy";
@@ -224,6 +244,7 @@ public class DashboardPolicyWaiverDTOTest
     dto.creatorId = "admin";
     dto.creatorName = "Admin User";
     dto.componentIdentifier = null;
+    dto.componentUpgradeAvailable = true;
     return dto;
   }
 

@@ -673,13 +673,13 @@ public class DashboardResourceTest
     final ComponentDisplayName expectedComponentName =
         ComponentDisplayNameUtil.fromIdentifier(policyWaiver.getComponentIdentifier());
     String[] lines = response.getBodyText().split("\r\n");
-    String expectedFirstLine = format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,comment",
+    String expectedFirstLine = format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment",
         policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
         policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
-        policyWaiver.getCreatorId(), policyWaiver.getCreatorName());
-    String expectedSecondLine = format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s",
+        "",policyWaiver.getCreatorId(), policyWaiver.getCreatorName());
+    String expectedSecondLine = format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s",
         secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/"",
-        policy.getId(), policy.getName(), "", org.getId(), org.getName(), "",
+        policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
         secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment());
 
     assertThat(lines).containsExactly(DashboardPolicyWaiverDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine);

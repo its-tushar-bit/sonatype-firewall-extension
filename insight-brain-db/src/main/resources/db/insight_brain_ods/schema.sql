@@ -15,6 +15,7 @@ CREATE TABLE organization (
   allow_repository_connection_override boolean DEFAULT true NOT NULL,
   artifactory_connection_enabled boolean,
   allow_artifactory_connection_override boolean DEFAULT true NOT NULL,
+  waived_component_upgrade_stage_type_id varchar(30) NULL,
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)
@@ -123,6 +124,7 @@ CREATE TABLE policy_waiver (
   expiry_time timestamp default NULL,
   creator_id varchar(60) default NULL,
   creator_name varchar(210) default NULL,
+  component_upgrade_available boolean,
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
   CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );
@@ -639,6 +641,9 @@ INSERT INTO system_configuration_property (system_configuration_property_id, nam
 -- Since 1.136
 -- Anonymous access to the Quarantined Component View is enabled by default
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('9f5c3b813bd9488293447c54bff4d660', 'QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS', 'true');
+-- Since 1.159
+-- Waived component upgrade inspection runs at midnight by default
+INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('dc866d71378a41ce9da2526904bd88e9', 'waivedComponentUpgradeInspectionHour', '1');
 
 CREATE TABLE data_retention_policy (
   data_retention_policy_id varchar(50) NOT NULL,

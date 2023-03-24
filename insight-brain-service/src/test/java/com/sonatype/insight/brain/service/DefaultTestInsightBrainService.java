@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
+import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
@@ -349,6 +350,7 @@ public class DefaultTestInsightBrainService
     getInstance(SourceControlEventOrchestrator.class).disableForTesting = true;
     getInstance(PullRequestCommentPurger.class).disableForTesting = true;
     getInstance(AutomaticQuarantineReleaseScheduler.class).disableForTesting = true;
+    getInstance(WaivedComponentUpgradeScheduler.class).disableForTesting = true;
   }
 
   @Override

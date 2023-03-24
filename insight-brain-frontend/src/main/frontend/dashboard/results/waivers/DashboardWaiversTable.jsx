@@ -109,6 +109,7 @@ export default function DashboardWaiversTable(props) {
             <NxTable.Cell onClick={() => doSort(5)} sortDir={getColumnDirection(5)} isSortable>
               Components
             </NxTable.Cell>
+            <NxTable.Cell className="iq-upgrade-header">Upgrade</NxTable.Cell>
             <NxTable.Cell chevron />
           </NxTable.Row>
         </NxTable.Head>

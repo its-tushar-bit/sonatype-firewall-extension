@@ -10,14 +10,13 @@ import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import javax.persistence.Enumerated;
-import javax.persistence.EnumType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -85,6 +84,12 @@ public class PolicyWaiver
   @Column(name = "component_match_strategy")
   @Enumerated(EnumType.STRING)
   private ComponentMatcherStrategyForWaiver componentMatchStrategy;
+
+  /**
+   * @since 1.159
+   */
+  @Column(name = "component_upgrade_available")
+  private Boolean componentUpgradeAvailable;
 
   /**
    * @since 1.140
@@ -263,6 +268,14 @@ public class PolicyWaiver
 
   public void setComponentMatchStrategy(ComponentMatcherStrategyForWaiver componentMatchStrategy) {
     this.componentMatchStrategy = componentMatchStrategy;
+  }
+
+  public Boolean isComponentUpgradeAvailable() {
+    return componentUpgradeAvailable;
+  }
+
+  public void setComponentUpgradeAvailable(Boolean componentUpgradeAvailable) {
+    this.componentUpgradeAvailable = componentUpgradeAvailable;
   }
 
   public ComponentIdentifier getComponentIdentifier() {

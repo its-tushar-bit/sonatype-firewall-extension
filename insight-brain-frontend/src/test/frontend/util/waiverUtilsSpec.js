@@ -120,6 +120,7 @@ describe('waiverUtils', function () {
         componentIdentifier: null,
         matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         displayName: componentDisplayName,
+        componentUpgradeAvailable: null,
       };
 
       expect(formatWaiverDetails(waiverDetails)).toEqual({
@@ -138,6 +139,7 @@ describe('waiverUtils', function () {
           displayName: componentDisplayName,
           matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         },
+        componentUpgradeAvailable: null,
       });
     });
 
@@ -159,6 +161,7 @@ describe('waiverUtils', function () {
         componentIdentifier: null,
         matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         displayName: componentDisplayName,
+        componentUpgradeAvailable: null,
       };
 
       expect(formatWaiverDetails(waiverDetails)).toEqual({
@@ -177,6 +180,7 @@ describe('waiverUtils', function () {
           displayName: componentDisplayName,
           matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         },
+        componentUpgradeAvailable: null,
       });
     });
   });

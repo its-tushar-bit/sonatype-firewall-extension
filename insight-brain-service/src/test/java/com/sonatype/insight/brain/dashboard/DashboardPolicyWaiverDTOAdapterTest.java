@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -64,21 +65,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
     dtoAdapter = new DashboardPolicyWaiverDTOAdapter(policiesById, ownersById, false);
     DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(testPolicyWaiver);
 
-    assertThat(dto.id).isEqualTo(testPolicyWaiver.getId());
-    assertThat(dto.threatLevel).isEqualTo(policiesById.get(testPolicyWaiver.getPolicyId()).getThreatLevel());
-    assertThat(dto.createTime).isEqualTo(testPolicyWaiver.getCreateTime());
-    assertThat(dto.expiryTime).isEqualTo(testPolicyWaiver.getExpiryTime());
-    assertThat(dto.policyId).isEqualTo(testPolicyWaiver.getPolicyId());
-    assertThat(dto.policyName).isEqualTo(policiesById.get(testPolicyWaiver.getPolicyId()).getName());
-    assertThat(dto.ownerId).isEqualTo(testPolicyWaiver.getOwnerId());
-    assertThat(dto.ownerName).isEqualTo(ownersById.get(testPolicyWaiver.getOwnerId()).getName());
-    assertThat(dto.ownerType).isEqualTo(ownersById.get(testPolicyWaiver.getOwnerId()).getType().toString());
-    assertThat(dto.componentMatchStrategy).isEqualTo(testPolicyWaiver.getComponentMatchStrategy());
-    assertThat(dto.hash).isEqualTo(testPolicyWaiver.getHash());
-    assertThat(dto.componentIdentifier.toComponentIdentifier()).isEqualTo(testPolicyWaiver.getComponentIdentifier());
-    assertThat(dto.getDisplayName().toString())
-        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(testPolicyWaiver.getComponentIdentifier()).toString());
-
+    assertPolicyWaiverWithoutDetails(dto,testPolicyWaiver);
     assertThat(dto.comment).isNull();
     assertThat(dto.constraintFacts).isNull();
     assertThat(dto.creatorId).isNull();
@@ -90,6 +77,14 @@ public class DashboardPolicyWaiverDTOAdapterTest
     dtoAdapter = new DashboardPolicyWaiverDTOAdapter(policiesById, ownersById, true);
     DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(testPolicyWaiver);
 
+    assertPolicyWaiverWithoutDetails(dto,testPolicyWaiver);
+    assertThat(dto.comment).isEqualTo(testPolicyWaiver.getComment());
+    assertThat(dto.constraintFacts).isEqualTo(testPolicyWaiver.getConstraintFacts());
+    assertThat(dto.creatorId).isEqualTo(testPolicyWaiver.getCreatorId());
+    assertThat(dto.creatorName).isEqualTo(testPolicyWaiver.getCreatorName());
+  }
+
+  private void assertPolicyWaiverWithoutDetails(DashboardPolicyWaiverDTO dto, PolicyWaiver testPolicyWaiver) {
     assertThat(dto.id).isEqualTo(testPolicyWaiver.getId());
     assertThat(dto.threatLevel).isEqualTo(policiesById.get(testPolicyWaiver.getPolicyId()).getThreatLevel());
     assertThat(dto.createTime).isEqualTo(testPolicyWaiver.getCreateTime());
@@ -104,11 +99,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
     assertThat(dto.componentIdentifier.toComponentIdentifier()).isEqualTo(testPolicyWaiver.getComponentIdentifier());
     assertThat(dto.getDisplayName().toString())
         .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(testPolicyWaiver.getComponentIdentifier()).toString());
-
-    assertThat(dto.comment).isEqualTo(testPolicyWaiver.getComment());
-    assertThat(dto.constraintFacts).isEqualTo(testPolicyWaiver.getConstraintFacts());
-    assertThat(dto.creatorId).isEqualTo(testPolicyWaiver.getCreatorId());
-    assertThat(dto.creatorName).isEqualTo(testPolicyWaiver.getCreatorName());
+    assertThat(dto.componentUpgradeAvailable).isEqualTo(testPolicyWaiver.isComponentUpgradeAvailable());
   }
 
   private PolicyWaiver createPolicyWaiverWithFullDetails() {
@@ -132,7 +123,20 @@ public class DashboardPolicyWaiverDTOAdapterTest
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     ConstraintFact constraintFact = new ConstraintFact("constraint id", "constraint name", "operator", conditionFact);
-    return tempEntity.newWaiver("hash", testPolicy.getId(), app.getId(),
-        singletonList(constraintFact), purl, EXACT_COMPONENT, "a comment", today, aWeekFromNow);
+
+    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
+        .withHash("hash")
+        .withPolicyId(testPolicy.getId())
+        .withOwnerId(app.getId())
+        .withConstraintFacts(singletonList(constraintFact))
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("a comment")
+        .withCreateTime(today)
+        .withExpiryTime(aWeekFromNow)
+        .withComponentUpgradeAvailable(true)
+        .build();
+
+    return tempEntity.newWaiver(policyWaiver);
   }
 }

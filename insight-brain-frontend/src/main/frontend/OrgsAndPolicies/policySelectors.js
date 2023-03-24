@@ -23,7 +23,7 @@ import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
   selectIsNotificationsSupported,
-  selectIsWebhooksSupported,
+  selectIsPolicyWebhooksSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { RECIPIENT_TYPES } from './policySlice';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
@@ -446,7 +446,7 @@ export const selectJiraIssueTypeNames = createSelector(selectJiraProjects, (jira
 
 export const selectNotificationRecipientTypeOptions = createSelector(
   selectIsJiraEnabled,
-  selectIsWebhooksSupported,
+  selectIsPolicyWebhooksSupported,
   (isJiraEnabled, isWebhooksSupported) => {
     const recipientTypeOptions = [RECIPIENT_TYPES.EMAIL, RECIPIENT_TYPES.ROLE];
     if (isWebhooksSupported) {

@@ -86,7 +86,7 @@ import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
   selectIsNotificationsSupported,
-  selectIsWebhooksSupported,
+  selectIsPolicyWebhooksSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectIsRepositoriesRelated,
@@ -1941,7 +1941,7 @@ describe('policySelectors', () => {
     it('is composed from the following selectors', () => {
       expect(selectNotificationRecipientTypeOptions.dependencies).toEqual([
         selectIsJiraEnabled,
-        selectIsWebhooksSupported,
+        selectIsPolicyWebhooksSupported,
       ]);
     });
 

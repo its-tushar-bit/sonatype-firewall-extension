@@ -402,7 +402,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES,
         LicensedFeature.RM_STAGING_INTEGRATION,
-        LicensedFeature.IP_ALLOWLIST);
+        LicensedFeature.IP_ALLOWLIST,
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
   @Test

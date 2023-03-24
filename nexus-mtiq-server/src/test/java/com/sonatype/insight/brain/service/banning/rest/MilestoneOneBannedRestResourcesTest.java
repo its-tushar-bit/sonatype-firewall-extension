@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.configuration.AutomaticApplicationsConfigurati
 import com.sonatype.insight.brain.configuration.AutomaticSourceControlConfigurationResource;
 import com.sonatype.insight.brain.configuration.SystemNoticeResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
-import com.sonatype.insight.brain.configuration.webhook.WebhookResource;
 import com.sonatype.insight.brain.search.AdvancedSearchResource;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsResource;
 
@@ -96,6 +95,5 @@ public class MilestoneOneBannedRestResourcesTest
     assertThat(underTest.isBanned(AdvancedSearchResource.class)).isTrue();
     assertThat(underTest.isBanned(AutomaticSourceControlConfigurationResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiCrowdConfigurationResourceV2.class)).isTrue();
-    assertThat(underTest.isBanned(WebhookResource.class)).isFalse();
   }
 }

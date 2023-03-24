@@ -34,6 +34,7 @@ import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemC
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
@@ -76,6 +77,7 @@ public class MTIQFeatureService
       SAML_USER_TOKENS,
       MULTI_TENANT,
       LOGOUT_AUTH0_ON_LOGOUT,
+      WEBHOOK_CONFIGURATION,
       WEBHOOKS_FOR_REPOSITORIES,
       EMAIL_CONFIGURATION
   );

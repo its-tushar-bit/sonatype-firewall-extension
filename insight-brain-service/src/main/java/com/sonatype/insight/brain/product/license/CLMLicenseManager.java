@@ -647,6 +647,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.IP_ALLOWLIST);
+      features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }

@@ -18,6 +18,11 @@ export const selectIsNotificationsSupported = createSelector(selectProductFeatur
 import { selectIsRepositories, selectIsRepositoryContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 export const selectIsWebhooksSupported = createSelector(
   selectProductFeatures,
+  (features) => features['webhooks-for-applications'] || features['webhooks-for-repositories']
+);
+
+export const selectIsPolicyWebhooksSupported = createSelector(
+  selectProductFeatures,
   selectIsRepositories,
   selectIsRepositoryContainer,
   (features, isRepositories, isRepositoryContainer) =>

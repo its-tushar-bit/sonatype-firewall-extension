@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
-import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -34,10 +33,6 @@ public class RepositoryResultsSummaryPage
 
   public static AccessTile accessTile() {
     return new AccessTile("#access-tile-pill-access");
-  }
-
-  public static NamespaceConfusionProtectionTile namespaceConfusionProtectionTile() {
-    return new NamespaceConfusionProtectionTile();
   }
 
   public static AccessTile configurationTile() {

@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter.SortField.SortableField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -826,6 +827,25 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
     assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern1);
     assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern2);
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatterns_sortByEnabled() {
+    ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern("repoManagerInstanceId",
+        "repoPublicId", "maven", "testNamespacePattern1", "testNamePattern1", true);
+    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern("repoManagerInstanceId",
+        "repoPublicId", "maven", "testNamespacePattern2", "testNamePattern2", false /* enabled */);
+
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 2;
+    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+        SortableField.ENABLED, true /* asc */, 1 /* sortPriority */));
+
+    ProprietaryComponentNamePatternsPage result = repositoryService.getProprietaryComponentNamePatterns(request);
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern2);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern1);
   }
 
   @Test

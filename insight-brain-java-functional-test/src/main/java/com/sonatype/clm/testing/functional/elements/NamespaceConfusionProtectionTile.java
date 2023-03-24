@@ -71,6 +71,10 @@ public class NamespaceConfusionProtectionTile
     return child(".iq-repository-column--repository .nx-cell__sort-btn");
   }
 
+  public SelenideElement enabledHeaderSortBtn() {
+    return child(".iq-repository-column--enabled .nx-cell__sort-btn");
+  }
+
   public ElementsCollection componentNamespaceColumnCells() {
     return children(".iq-repository-cell--name-space");
   }
@@ -81,6 +85,10 @@ public class NamespaceConfusionProtectionTile
 
   public ElementsCollection hostedRepositoryNameColumnCells() {
     return children(".iq-repository-cell-repository");
+  }
+
+  public ElementsCollection enabledToggleIndicators() {
+    return children("#iq-repository-component-enabled-toggle > input");
   }
 
   public static class ResultRow

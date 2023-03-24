@@ -28,6 +28,8 @@ import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -45,14 +47,20 @@ import com.sonatype.insight.brain.model.security.User;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
@@ -68,15 +76,26 @@ public class RepositoriesSummaryViewTest
 
   private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
+  private static final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
+      new ProprietaryComponentNamePatternDAO();
+
+  private static Dimension originalSize;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(RepositoriesSummaryPage.url());
     loginAsAdmin();
+    originalSize = WebDriverRunner.getWebDriver().manage().window().getSize();
   }
 
   @Before
   public void init() {
     refreshOrOpen(RepositoriesSummaryPage.url());
+  }
+
+  @After
+  public void cleanup() {
+    WebDriverRunner.getWebDriver().manage().window().setSize(originalSize);
   }
 
   @Test
@@ -229,7 +248,7 @@ public class RepositoriesSummaryViewTest
   @Test
   public void testNamespaceConfusionProtection_EmptyTable() {
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
-        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
 
     namespaceConfusionProtectionTile.shouldBe(visible).shouldHave(text("Namespace Confusion Protection"));
     namespaceConfusionProtectionTile.emptyDescriptor().shouldBe(visible).shouldHave(text("No results"));
@@ -252,7 +271,7 @@ public class RepositoriesSummaryViewTest
     refresh();
 
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
-        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(4);
 
@@ -281,7 +300,7 @@ public class RepositoriesSummaryViewTest
     refresh();
 
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
-        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
 
@@ -321,7 +340,7 @@ public class RepositoriesSummaryViewTest
 
     refreshOrOpen(RepositoryResultsSummaryPage.url());
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
-        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
 
@@ -369,7 +388,7 @@ public class RepositoriesSummaryViewTest
 
     refresh();
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
-        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
 
@@ -399,6 +418,76 @@ public class RepositoriesSummaryViewTest
         .shouldHave(text(repositoryManagerInstanceIds[0]));
     namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
+  }
+
+  @Test
+  public void testNamespaceConfusionProtection_sortTableByEnabled() {
+    String repositoryManagerInstanceId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
+    tempEntity.newRepositoryManager(repositoryManagerInstanceId);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "hosted-npm", "npm", null,
+        "a", true);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "custom-hosted-maven", "maven",
+        "b", null, false);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "my-hosted-maven", "maven",
+        "c", null, true);
+
+    refresh();
+
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
+
+    namespaceConfusionProtectionTile.enabledHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Enabled unsorted"));
+
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled, selected);
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled).shouldNotBe(selected);
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(2).shouldBe(enabled, selected);
+
+    namespaceConfusionProtectionTile.enabledHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.enabledHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Enabled ascending"));
+
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled).shouldNotBe(selected);
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled, selected);
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(2).shouldBe(enabled, selected);
+
+    namespaceConfusionProtectionTile.enabledHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.enabledHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Enabled descending"));
+
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled, selected);
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled, selected);
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(2).shouldBe(enabled).shouldNotBe(selected);
+
+    namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
+    namespaceConfusionProtectionTile.nextPageBtn().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testNamespaceConfusionProtection_ToggleEnabled() {
+    String repositoryManagerInstanceId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
+    tempEntity.newRepositoryManager(repositoryManagerInstanceId);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "hosted-npm", "npm", null,
+        "a", true);
+
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1500, 1000));
+
+    refresh();
+
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+
+    SelenideElement toggle = namespaceConfusionProtectionTile.enabledToggleIndicators().get(0);
+    ScrollUtil.scrollIntoView(toggle, false);
+    
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(selected);
+    assertThat(proprietaryComponentNamePatternDAO.getByFormat("npm").get(0).isEnabled()).isTrue();
+
+    new Actions(WebDriverRunner.getWebDriver()).moveToElement(toggle).click().perform();
+    namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldNotBe(selected);
+    assertThat(proprietaryComponentNamePatternDAO.getByFormat("npm").get(0).isEnabled()).isFalse();
   }
 
   @Test
@@ -442,7 +531,7 @@ public class RepositoriesSummaryViewTest
     refresh();
 
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
-        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
 
@@ -532,7 +621,7 @@ public class RepositoriesSummaryViewTest
     refresh();
 
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
-        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
 

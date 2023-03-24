@@ -45,6 +45,7 @@ describe('namespaceConfusionProtectionTileSlice', () => {
             namePattern: 'intellij-dependencies',
             repositoryManagerInstanceId: '2fbfdad21dd94de69b17ab8c4565e99d',
             repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+            enabled: true,
           },
           {
             id: '0bb3dc7f90cf4deaa63bc524c3114c9b',
@@ -53,6 +54,7 @@ describe('namespaceConfusionProtectionTileSlice', () => {
             namePattern: 'maven-central',
             repositoryManagerInstanceId: 'c8d574691e664d908829fb72f04de655',
             repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+            enabled: true,
           },
         ],
       };
@@ -65,6 +67,7 @@ describe('namespaceConfusionProtectionTileSlice', () => {
           namePattern: 'intellij-dependencies',
           repositoryManagerInstanceId: '2fbfdad21dd94de69b17ab8c4565e99d',
           repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+          enabled: true,
         },
         {
           id: '0bb3dc7f90cf4deaa63bc524c3114c9b',
@@ -73,6 +76,7 @@ describe('namespaceConfusionProtectionTileSlice', () => {
           namePattern: 'maven-central',
           repositoryManagerInstanceId: 'c8d574691e664d908829fb72f04de655',
           repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+          enabled: true,
         },
       ];
 
@@ -305,5 +309,67 @@ describe('namespaceConfusionProtectionTileSlice', () => {
     });
 
     expect(searchFilters).toEqual(expectedFilters);
+  });
+
+  describe('NamespaceConfusionProtectionTile/updateComponentNamePattern/pending action', () => {
+    it('sets the loading flag to true, unsets loading error', () => {
+      const state = Object.freeze({
+        updatingComponentNamePattern: false,
+        errorUpdatingComponentNamePattern: 'Loading error',
+      });
+
+      const { updatingComponentNamePattern, errorUpdatingComponentNamePattern } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/updateComponentNamePattern/pending',
+      });
+
+      expect(updatingComponentNamePattern).toBe(true);
+      expect(errorUpdatingComponentNamePattern).toBeNull();
+    });
+  });
+
+  describe('namespaceConfusionProtectionTile/updateComponentNamePattern/fulfilled action', () => {
+    it('sets loading flag to false, unsets the error', () => {
+      const state = Object.freeze({
+        updatingComponentNamePattern: true,
+        errorUpdatingComponentNamePattern: 'Loading error',
+      });
+
+      const payload = {
+        component: {
+          id: 'ea481e4a1eb347b5b1ee5dbecce663df',
+          format: 'maven',
+          namespacePattern: 'test-org-names',
+          namePattern: 'intellij-dependencies',
+          repositoryManagerInstanceId: '2fbfdad21dd94de69b17ab8c4565e99d',
+          repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+          enabled: true,
+        },
+      };
+
+      const { updatingComponentNamePattern, errorUpdatingComponentNamePattern } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/updateComponentNamePattern/fulfilled',
+        payload,
+      });
+
+      expect(updatingComponentNamePattern).toBe(false);
+      expect(errorUpdatingComponentNamePattern).toBeNull();
+    });
+  });
+
+  describe('namespaceConfusionProtectionTile/updateComponentNamePattern/rejected action', () => {
+    it('sets the error to the payload and the loading flag to false', () => {
+      const state = Object.freeze({
+        updatingComponentNamePattern: true,
+        errorUpdatingComponentNamePattern: null,
+      });
+
+      const { updatingComponentNamePattern, errorUpdatingComponentNamePattern } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/updateComponentNamePattern/rejected',
+        payload: 'Loading error',
+      });
+
+      expect(updatingComponentNamePattern).toBe(false);
+      expect(errorUpdatingComponentNamePattern).toBe('Loading error');
+    });
   });
 });

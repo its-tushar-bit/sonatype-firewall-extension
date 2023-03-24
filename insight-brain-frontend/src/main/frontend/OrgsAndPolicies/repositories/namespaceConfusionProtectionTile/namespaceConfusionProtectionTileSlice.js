@@ -7,9 +7,13 @@
 import axios from 'axios';
 import { debounce } from 'debounce';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getRepositoryComponentNameUrl } from 'MainRoot/util/CLMLocation';
+import { getRepositoryComponentNamePatternUpdateUrl, getRepositoryComponentNameUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { selectComponentsRequestBody, selectCurrentPage } from './namespaceConfusionProtectionTileSelectors';
+import {
+  selectComponentNamePatterns,
+  selectComponentsRequestBody,
+  selectCurrentPage,
+} from './namespaceConfusionProtectionTileSelectors';
 import { changeMultiColumnSortCriteria } from 'MainRoot/util/jsUtil';
 
 const REDUCER_NAME = 'namespaceConfusionProtectionTile';
@@ -37,6 +41,8 @@ const initialState = {
   searchFiltersValues: {
     PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
   },
+  updatingComponentNamePattern: false,
+  errorUpdatingComponentNamePattern: null,
 };
 
 const sortComponents = (sortData) => (dispatch) => {
@@ -132,6 +138,37 @@ const searchComponents = (searchData) => (dispatch) => {
   filterComponentsDebounce(dispatch);
 };
 
+const updateComponentNamePatternPending = (state) => {
+  state.updatingComponentNamePattern = true;
+  state.errorUpdatingComponentNamePattern = null;
+};
+
+const updateComponentNamePatternFulfilled = (state) => {
+  state.updatingComponentNamePattern = false;
+  state.errorUpdatingComponentNamePattern = null;
+};
+
+const updateComponentNamePatternRejected = (state, { payload }) => {
+  state.updatingComponentNamePattern = false;
+  state.errorUpdatingComponentNamePattern = Messages.getHttpErrorMessage(payload);
+};
+
+const setEnabledStatus = (selectedComponentId) => (dispatch) => {
+  dispatch(actions.updateComponentNamePattern(selectedComponentId));
+};
+
+const updateComponentNamePattern = createAsyncThunk(
+  `${REDUCER_NAME}/updateComponentNamePattern`,
+  (selectedComponentId, { getState, dispatch, rejectWithValue }) => {
+    const components = selectComponentNamePatterns(getState());
+    const component = components.find((component) => component.id === selectedComponentId);
+    return axios
+      .post(getRepositoryComponentNamePatternUpdateUrl(), { ...component, enabled: !component.enabled })
+      .then(() => dispatch(actions.getComponentNamePatterns()))
+      .catch(rejectWithValue);
+  }
+);
+
 export const namespaceConfusionProtectionTileSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -146,6 +183,9 @@ export const namespaceConfusionProtectionTileSlice = createSlice({
     [getComponentNamePatterns.pending]: getComponentNamePatternsPending,
     [getComponentNamePatterns.fulfilled]: getComponentNamePatternsFulfilled,
     [getComponentNamePatterns.rejected]: getComponentNamePatternsRejected,
+    [updateComponentNamePattern.pending]: updateComponentNamePatternPending,
+    [updateComponentNamePattern.rejected]: updateComponentNamePatternRejected,
+    [updateComponentNamePattern.fulfilled]: updateComponentNamePatternFulfilled,
   },
 });
 
@@ -156,5 +196,7 @@ export const actions = {
   searchComponents,
   loadPreviousPage,
   loadNextPage,
+  setEnabledStatus,
+  updateComponentNamePattern,
 };
 export default namespaceConfusionProtectionTileSlice.reducer;

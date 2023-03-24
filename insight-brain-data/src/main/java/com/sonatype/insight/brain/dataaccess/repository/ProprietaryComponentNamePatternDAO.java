@@ -135,6 +135,9 @@ public class ProprietaryComponentNamePatternDAO
           case REPOSITORY_PUBLIC_ID:
             sQuery += "repository_public_id";
             break;
+          case ENABLED:
+            sQuery += "enabled";
+            break;
           default:
             throw new BadRequestException("Unknown sortable field: " + sortField.sortableField);
         }

@@ -7,7 +7,8 @@ import React from 'react';
 import { render, screen, axiosMockAdapter, queryByTextWithin } from 'TestRoot/SpecUtil';
 import { fireEvent, waitFor } from '@testing-library/react';
 import NamespaceConfusionProtectionTile from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/NamespaceConfusionProtectionTile';
-import { getRepositoryComponentNameUrl } from 'MainRoot/util/CLMLocation';
+import { getRepositoryComponentNamePatternUpdateUrl, getRepositoryComponentNameUrl } from 'MainRoot/util/CLMLocation';
+import { actions } from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/namespaceConfusionProtectionTileSlice';
 
 describe('NamespaceConfusionProtectionTile', () => {
   let renderComponent, mock;
@@ -20,7 +21,7 @@ describe('NamespaceConfusionProtectionTile', () => {
     sortFields: [{ sortableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME', asc: true, sortPriority: 1 }],
   };
 
-  let sucessfullRepositoryComponentNameUrlResponse = {
+  let successfulRepositoryComponentNameUrlResponse = {
     proprietaryComponentNamePatterns: [
       {
         id: 'eb23d7dab5004c7496ba9195e5a4b862',
@@ -29,6 +30,7 @@ describe('NamespaceConfusionProtectionTile', () => {
         namePattern: null,
         repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA',
         repositoryPublicId: 'maven-releases',
+        enabled: true,
       },
       {
         id: '555fdab424144e7ebb2cf21428d8cc77',
@@ -37,6 +39,7 @@ describe('NamespaceConfusionProtectionTile', () => {
         namePattern: null,
         repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFB',
         repositoryPublicId: 'luis-maven-hosted',
+        enabled: false,
       },
       {
         id: '8cdad19f87ef44d99915bada6bc59ec3',
@@ -45,13 +48,14 @@ describe('NamespaceConfusionProtectionTile', () => {
         namePattern: 'express',
         repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFC',
         repositoryPublicId: 'luis-npm',
+        enabled: true,
       },
     ],
     hasNextPage: false,
   };
 
   let repositoryComponentsDetails = {
-    componentNamePatterns: [...sucessfullRepositoryComponentNameUrlResponse.proprietaryComponentNamePatterns],
+    componentNamePatterns: [...successfulRepositoryComponentNameUrlResponse.proprietaryComponentNamePatterns],
     loadingComponentNamePatterns: false,
     errorComponentsTable: null,
     namePatternsTableConfig: {
@@ -77,7 +81,7 @@ describe('NamespaceConfusionProtectionTile', () => {
   beforeEach(() => {
     mock
       .onPost(getRepositoryComponentNameUrl(), repositoryComponentNameUrlRequestBody)
-      .reply(200, sucessfullRepositoryComponentNameUrlResponse);
+      .reply(200, successfulRepositoryComponentNameUrlResponse);
 
     renderComponent = () => render(<NamespaceConfusionProtectionTile />);
   });
@@ -118,16 +122,19 @@ describe('NamespaceConfusionProtectionTile', () => {
       ).toBeVisible();
       expect(screen.getByText(componentNamePatterns[0].repositoryManagerInstanceId)).toBeVisible();
       expect(screen.getByText(componentNamePatterns[0].repositoryPublicId)).toBeVisible();
+      expect(screen.getAllByRole('switch')[0]).toBeChecked();
       expect(
         screen.getByText(componentNamePatterns[1].namespacePattern || componentNamePatterns[1].namePattern)
       ).toBeVisible();
       expect(screen.getByText(componentNamePatterns[1].repositoryManagerInstanceId)).toBeVisible();
       expect(screen.getByText(componentNamePatterns[1].repositoryPublicId)).toBeVisible();
+      expect(screen.getAllByRole('switch')[1]).not.toBeChecked();
       expect(
         screen.getByText(componentNamePatterns[2].namespacePattern || componentNamePatterns[2].namePattern)
       ).toBeVisible();
       expect(screen.getByText(componentNamePatterns[2].repositoryManagerInstanceId)).toBeVisible();
       expect(screen.getByText(componentNamePatterns[2].repositoryPublicId)).toBeVisible();
+      expect(screen.getAllByRole('switch')[2]).toBeChecked();
     });
 
     it('filters components by the name or policy', async () => {
@@ -147,6 +154,7 @@ describe('NamespaceConfusionProtectionTile', () => {
               namePattern: null,
               repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFB',
               repositoryPublicId: 'luis-maven-hosted',
+              enabled: false,
             },
           ],
           hasNextPage: false,
@@ -157,20 +165,21 @@ describe('NamespaceConfusionProtectionTile', () => {
       const searchByNameInput = screen.getByPlaceholderText('Filter');
 
       fireEvent.change(searchByNameInput, { target: { value: 'su' } });
-
+      expect(searchByNameInput).toBeVisible();
       const { componentNamePatterns } = repositoryComponentsDetails;
       await waitFor(() => {
-        expect(screen.getByText(componentNamePatterns[0].repositoryManagerInstanceId)).toBeVisible();
+        expect(screen.getByText(componentNamePatterns[1].repositoryManagerInstanceId)).toBeVisible();
+        expect(
+          screen.getByText(componentNamePatterns[1].namespacePattern || componentNamePatterns[0].namePattern)
+        ).toBeVisible();
+        expect(screen.getByText(componentNamePatterns[1].repositoryManagerInstanceId)).toBeVisible();
+        expect(screen.getByText(componentNamePatterns[1].repositoryPublicId)).toBeVisible();
+        expect(screen.getByRole('switch')).not.toBeChecked();
       });
-      expect(
-        screen.getByText(componentNamePatterns[0].namespacePattern || componentNamePatterns[0].namePattern)
-      ).toBeVisible();
-      expect(screen.getByText(componentNamePatterns[0].repositoryManagerInstanceId)).toBeVisible();
-      expect(screen.getByText(componentNamePatterns[0].repositoryPublicId)).toBeVisible();
     });
 
     it('sorts components by the selected field', async () => {
-      const { proprietaryComponentNamePatterns } = sucessfullRepositoryComponentNameUrlResponse;
+      const { proprietaryComponentNamePatterns } = successfulRepositoryComponentNameUrlResponse;
 
       mock
         .onPost(getRepositoryComponentNameUrl(), {
@@ -227,6 +236,27 @@ describe('NamespaceConfusionProtectionTile', () => {
           hasNextPage: false,
         });
 
+      mock
+        .onPost(getRepositoryComponentNameUrl(), {
+          page: 1,
+          pageSize: 6,
+          searchFilters: [],
+          sortFields: [
+            { sortableField: 'ENABLED', asc: true, sortPriority: 1 },
+            { sortableField: 'REPOSITORY_PUBLIC_ID', asc: true, sortPriority: 2 },
+            { sortableField: 'REPOSITORY_MANAGER_INSTANCE_ID', asc: true, sortPriority: 3 },
+            { sortableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME', asc: false, sortPriority: 4 },
+          ],
+        })
+        .reply(200, {
+          proprietaryComponentNamePatterns: [
+            proprietaryComponentNamePatterns[1],
+            proprietaryComponentNamePatterns[2],
+            proprietaryComponentNamePatterns[0],
+          ],
+          hasNextPage: false,
+        });
+
       renderComponent();
 
       const assertFirstRowColsValues = (proprietaryComponentNamePatternsIndex) => {
@@ -243,6 +273,9 @@ describe('NamespaceConfusionProtectionTile', () => {
             firstTableRowSelector
           ).first
         ).toBeVisible();
+        proprietaryComponentNamePatterns[proprietaryComponentNamePatternsIndex].enabled
+          ? expect(screen.queryAllByRole('switch')[0]).toBeChecked()
+          : expect(screen.queryAllByRole('switch')[0]).not.toBeChecked();
         return expect(
           queryByTextWithin(
             proprietaryComponentNamePatterns[proprietaryComponentNamePatternsIndex].repositoryPublicId,
@@ -254,6 +287,7 @@ describe('NamespaceConfusionProtectionTile', () => {
       const sortByNamespacesButton = screen.getByRole('button', { name: /Component Namespace ascending/i });
       const sortByManagerButton = screen.getByRole('button', { name: /Repository Manager unsorted/i });
       const sortByRepositoryButton = screen.getByRole('button', { name: /Repository unsorted/i });
+      const sortByEnabledButton = screen.getByRole('button', { name: /Enabled unsorted/i });
       await waitFor(() => assertFirstRowColsValues(0));
 
       fireEvent.click(sortByNamespacesButton);
@@ -267,11 +301,15 @@ describe('NamespaceConfusionProtectionTile', () => {
       fireEvent.click(sortByRepositoryButton);
       expect(screen.getByRole('button', { name: /Repository ascending/i })).toBeVisible();
       await waitFor(() => assertFirstRowColsValues(1));
+
+      fireEvent.click(sortByEnabledButton);
+      expect(screen.getByRole('button', { name: /Enabled ascending/i })).toBeVisible();
+      await waitFor(() => assertFirstRowColsValues(1));
     });
 
     it('renders indeterminate pagination controls if there is more than one page of results', async () => {
       const customProprietaryComponentNamePatterns = [
-        ...sucessfullRepositoryComponentNameUrlResponse.proprietaryComponentNamePatterns,
+        ...successfulRepositoryComponentNameUrlResponse.proprietaryComponentNamePatterns,
         {
           id: 'eb23d7dab5004c7496ba9195e5a4b863',
           format: 'maven',
@@ -279,6 +317,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: null,
           repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFD',
           repositoryPublicId: 'maven-releases',
+          enabled: true,
         },
         {
           id: '555fdab424142e7ebb2cf21428d8cc79',
@@ -287,6 +326,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: null,
           repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFE',
           repositoryPublicId: 'luis-maven-hosted',
+          enabled: true,
         },
         {
           id: '8cdad19f87ef44d99915bada6bc59ec7',
@@ -295,6 +335,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: 'moment',
           repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFF',
           repositoryPublicId: 'luis-npm',
+          enabled: false,
         },
         {
           id: 'eb23d7dab5004c7496ba9195e5a4b864',
@@ -303,6 +344,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: null,
           repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-9C354DFD',
           repositoryPublicId: 'maven-releases',
+          enabled: false,
         },
         {
           id: '555fdab424144e7ebb2cf21428d8cc78',
@@ -311,6 +353,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: null,
           repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-9C354DFE',
           repositoryPublicId: 'luis-maven-hosted',
+          enabled: true,
         },
         {
           id: '8cdad19f87ef44d99915bada6bc59ec5',
@@ -319,6 +362,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: 'polka',
           repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-9C354DFF',
           repositoryPublicId: 'luis-npm',
+          enabled: false,
         },
         {
           id: '8cdad19f87ef44d99915bada6bc59ec6',
@@ -327,6 +371,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: 'lodash',
           repositoryManagerInstanceId: '9E111622-6B9EDCBA-B5989887-132718F9-9C354DFF',
           repositoryPublicId: 'luis-npm',
+          enabled: true,
         },
         {
           id: '8cdad19f87ef44d99915bada6bc59ec7',
@@ -335,6 +380,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: 'react',
           repositoryManagerInstanceId: '9E121622-6B9EDCBA-B5989887-132718F9-9C354DFF',
           repositoryPublicId: 'luis-npm',
+          enabled: true,
         },
         {
           id: '8cdad19f87ef44d99915bada6bc59ec9',
@@ -343,6 +389,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: 'react-testing-library',
           repositoryManagerInstanceId: '9E321622-6B9EDCBA-B5989887-132718F9-9C354DFF',
           repositoryPublicId: 'luis-npm',
+          enabled: true,
         },
         {
           id: '8cdad19f87ef44d99915bada6bc59ec4',
@@ -351,6 +398,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           namePattern: 'solid',
           repositoryManagerInstanceId: '9E321721-6B9EDCBA-B5989887-132718F9-9C354DFF',
           repositoryPublicId: 'luis-npm',
+          enabled: true,
         },
       ].sort((a, b) => {
         const aName = a.namespacePattern || a.namePattern;
@@ -449,6 +497,79 @@ describe('NamespaceConfusionProtectionTile', () => {
       prevButton = document.querySelector('[aria-label="previous page"]');
       expect(nextButton.classList.contains('hidden')).toBeTrue();
       expect(prevButton.classList.contains('hidden')).toBeFalse();
+    });
+  });
+
+  describe('when enabled toggle click is successful', () => {
+    let spySetEnabledStatusAction, spyUpdateComponentNamePatternAction, spyGetComponentNamePatternsAction;
+    beforeEach(() => {
+      spySetEnabledStatusAction = spyOn(actions, 'setEnabledStatus').and.callThrough();
+      spyUpdateComponentNamePatternAction = spyOn(actions, 'updateComponentNamePattern').and.callThrough();
+      spyGetComponentNamePatternsAction = spyOn(actions, 'getComponentNamePatterns').and.callThrough();
+      mock
+        .onPost(getRepositoryComponentNamePatternUpdateUrl(), {
+          component: {
+            id: 'eb23d7dab5004c7496ba9195e5a4b862',
+            format: 'maven',
+            namespacePattern: 'Test',
+            namePattern: null,
+            repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA',
+            repositoryPublicId: 'maven-releases',
+            enabled: false,
+          },
+        })
+        .reply(200);
+
+      mock.onPost(getRepositoryComponentNameUrl(), repositoryComponentNameUrlRequestBody).reply(200, {
+        proprietaryComponentNamePatterns: [
+          {
+            id: 'eb23d7dab5004c7496ba9195e5a4b862',
+            format: 'maven',
+            namespacePattern: 'Test',
+            namePattern: null,
+            repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA',
+            repositoryPublicId: 'maven-releases',
+            enabled: false,
+          },
+        ],
+        hasNextPage: false,
+      });
+    });
+
+    it('dispatches actions on enabled toggle click', async () => {
+      renderComponent();
+      await waitFor(() => expect(screen.getByRole('switch')).toBeVisible());
+      fireEvent.click(screen.getByRole('switch'));
+      await waitFor(() =>
+        expect(spySetEnabledStatusAction).toHaveBeenCalledOnceWith('eb23d7dab5004c7496ba9195e5a4b862')
+      );
+      expect(spyUpdateComponentNamePatternAction).toHaveBeenCalledOnceWith('eb23d7dab5004c7496ba9195e5a4b862');
+      expect(spyGetComponentNamePatternsAction).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('when enabled toggle click is failed', () => {
+    beforeEach(() => {
+      mock
+        .onPost(getRepositoryComponentNamePatternUpdateUrl(), {
+          component: {
+            id: 'eb23d7dab5004c7496ba9195e5a4b862',
+            format: 'maven',
+            namespacePattern: 'Test',
+            namePattern: null,
+            repositoryManagerInstanceId: '9E111629-6B9EDCBA-B5989887-132718F9-8C354DFA',
+            repositoryPublicId: 'maven-releases',
+            enabled: false,
+          },
+        })
+        .reply(500);
+
+      it('renders error message', async () => {
+        renderComponent();
+        await waitFor(() => expect(screen.getByRole('switch')).toBeVisible());
+        fireEvent.click(screen.getByRole('switch'));
+        await waitFor(() => expect(screen.getByText(/An error occurred loading data/)).toBeVisible());
+      });
     });
   });
 });

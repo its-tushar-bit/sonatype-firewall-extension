@@ -1167,6 +1167,9 @@ export const getRepositoryPolicyViolationUrl = (repositoryId, repositoryPolicyId
 
 export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositories/proprietaryComponentNamePatterns`;
 
+export const getRepositoryComponentNamePatternUpdateUrl = () =>
+  uriTemplate`/rest/repositories/proprietaryComponentNamePatterns/update`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

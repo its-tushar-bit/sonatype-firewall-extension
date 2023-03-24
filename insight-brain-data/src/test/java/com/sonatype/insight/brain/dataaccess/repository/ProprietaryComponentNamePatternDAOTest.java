@@ -13,6 +13,7 @@ import javax.persistence.EntityExistsException;
 import javax.persistence.PersistenceException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter.SortField.SortableField;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
@@ -375,6 +376,37 @@ public class ProprietaryComponentNamePatternDAOTest
     assertPattern(result.get(0), pattern3);
     assertPattern(result.get(1), pattern2);
     assertPattern(result.get(2), pattern1);
+  }
+
+  @Test
+  public void testGetByFilter_SortOnEnabled() {
+    // Create patterns in reverse order so the creation order doesn't match the sorting
+    ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId, "maven",
+        "testNamespacePattern1", null, true);
+    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId, "maven",
+        "testNamespacePattern2", null, false);
+
+    ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
+    filter.page = 1;
+    filter.pageSize = 2;
+
+    // Sort on enabled ASC
+    filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+        SortableField.ENABLED,
+        true /* asc */, 1 /* sortPriority */));
+    List<ProprietaryComponentNamePattern> result = dao.getByFilter(filter);
+    assertThat(result).hasSize(2);
+    assertPattern(result.get(0), pattern2);
+    assertPattern(result.get(1), pattern1);
+
+    // Sort on enabled DESC
+    filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+        SortableField.ENABLED,
+        false /* asc */, 1 /* sortPriority */));
+    result = dao.getByFilter(filter);
+    assertThat(result).hasSize(2);
+    assertPattern(result.get(0), pattern1);
+    assertPattern(result.get(1), pattern2);
   }
 
   @Test

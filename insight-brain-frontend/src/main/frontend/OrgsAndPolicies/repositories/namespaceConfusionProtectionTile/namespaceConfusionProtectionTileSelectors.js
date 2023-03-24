@@ -48,3 +48,13 @@ export const selectErrorComponentsTable = createSelector(
 );
 
 export const selectHasNextPage = createSelector(selectNamespaceConfusionProtectionTileSlice, prop('hasNextPage'));
+
+export const selectErrorUpdatingComponentNamePattern = createSelector(
+  selectNamespaceConfusionProtectionTileSlice,
+  prop('errorUpdatingComponentNamePattern')
+);
+
+export const selectUpdatingComponentNamePattern = createSelector(
+  selectNamespaceConfusionProtectionTileSlice,
+  prop('updatingComponentNamePattern')
+);

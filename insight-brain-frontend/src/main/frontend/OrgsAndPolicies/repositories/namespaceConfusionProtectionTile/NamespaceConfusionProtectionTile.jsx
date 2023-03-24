@@ -6,23 +6,27 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  NxFilterInput,
   NxH2,
+  NxIndeterminatePagination,
+  NxLoadWrapper,
+  NxOverflowTooltip,
   NxTable,
+  NxTableContainer,
   NxTextLink,
   NxTile,
-  NxTableContainer,
-  NxFilterInput,
-  NxOverflowTooltip,
-  NxIndeterminatePagination,
+  NxToggle,
 } from '@sonatype/react-shared-components';
 import { actions } from './namespaceConfusionProtectionTileSlice';
 import {
-  selectSortFields,
-  selectSearchFiltersValues,
   selectComponentNamePatterns,
-  selectErrorComponentsTable,
   selectCurrentPage,
+  selectErrorComponentsTable,
+  selectErrorUpdatingComponentNamePattern,
   selectHasNextPage,
+  selectSearchFiltersValues,
+  selectSortFields,
+  selectUpdatingComponentNamePattern,
 } from './namespaceConfusionProtectionTileSelectors';
 
 const NamespaceConfusionProtectionTile = () => {
@@ -34,12 +38,15 @@ const NamespaceConfusionProtectionTile = () => {
   const errorComponentsTable = useSelector(selectErrorComponentsTable);
   const currentPage = useSelector(selectCurrentPage);
   const hasNextPage = useSelector(selectHasNextPage);
+  const updatingComponentNamePattern = useSelector(selectUpdatingComponentNamePattern);
+  const errorUpdatingComponentNamePattern = useSelector(selectErrorUpdatingComponentNamePattern);
 
   const loadRepositories = () => dispatch(actions.getComponentNamePatterns());
   const searchComponents = (policyName) => dispatch(actions.searchComponents(policyName));
   const loadPreviousPage = () => dispatch(actions.loadPreviousPage());
   const loadNextPage = () => dispatch(actions.loadNextPage());
   const sortComponents = (columnName) => dispatch(actions.sortComponents(columnName));
+  const setEnabledStatus = (componentId) => dispatch(actions.setEnabledStatus(componentId));
 
   React.useEffect(() => {
     loadRepositories();
@@ -61,6 +68,16 @@ const NamespaceConfusionProtectionTile = () => {
         <NxOverflowTooltip title={row.repositoryPublicId}>
           <div className="iq-repository-cell-repository--text">{row.repositoryPublicId}</div>
         </NxOverflowTooltip>
+      </NxTable.Cell>
+      <NxTable.Cell className="iq-repository-cell-enabled">
+        <NxLoadWrapper retryHandler={setEnabledStatus} error={errorUpdatingComponentNamePattern}>
+          <NxToggle
+            id="iq-repository-component-enabled-toggle"
+            isChecked={row.enabled}
+            onChange={() => setEnabledStatus(row.id)}
+            disabled={updatingComponentNamePattern}
+          />
+        </NxLoadWrapper>
       </NxTable.Cell>
     </NxTable.Row>
   ));
@@ -112,6 +129,14 @@ const NamespaceConfusionProtectionTile = () => {
                 >
                   Repository
                 </NxTable.Cell>
+                <NxTable.Cell
+                  isSortable
+                  sortDir={getHighlightedArrowState('ENABLED')}
+                  onClick={() => sortComponents('ENABLED')}
+                  className="iq-repository-column--enabled"
+                >
+                  Enabled
+                </NxTable.Cell>
               </NxTable.Row>
               <NxTable.Row isFilterHeader>
                 <NxTable.Cell className="iq-repository-filter--name-space">
@@ -125,6 +150,7 @@ const NamespaceConfusionProtectionTile = () => {
                     value={searchFiltersValues['PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME']}
                   />
                 </NxTable.Cell>
+                <NxTable.Cell />
                 <NxTable.Cell />
                 <NxTable.Cell />
               </NxTable.Row>

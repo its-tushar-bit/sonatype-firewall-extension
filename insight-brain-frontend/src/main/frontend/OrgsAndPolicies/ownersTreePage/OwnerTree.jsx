@@ -64,18 +64,17 @@ const OwnerTreeNode = ({ ownerId, onToggleTreeNode = () => {}, isNodeOpenSelecto
       </NxTree.ItemLabel>
       {hasChildEntities && (
         <NxTree>
-          {items.map((id) =>
-            shouldRenderNode(id) ? (
-              <MemoizedOwnerTreeNode
-                key={id}
-                ownerId={id}
-                isNodeOpenSelector={isNodeOpenSelector}
-                onToggleTreeNode={onToggleTreeNode}
-                searchTerm={searchTerm}
-              />
-            ) : (
-              <></>
-            )
+          {items.map(
+            (id) =>
+              shouldRenderNode(id) && (
+                <MemoizedOwnerTreeNode
+                  key={id}
+                  ownerId={id}
+                  isNodeOpenSelector={isNodeOpenSelector}
+                  onToggleTreeNode={onToggleTreeNode}
+                  searchTerm={searchTerm}
+                />
+              )
           )}
         </NxTree>
       )}

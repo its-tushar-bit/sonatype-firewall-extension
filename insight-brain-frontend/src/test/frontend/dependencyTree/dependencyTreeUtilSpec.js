@@ -213,7 +213,9 @@ describe('dependencyTreeUtil', () => {
       expect(renderDisplayName('some name', 'me na', 'classn')).toEqual([
         'so',
         // eslint-disable-next-line react/jsx-key
-        <mark className="classn">me na</mark>,
+        <mark key="renderDisplayNameme na0" className="classn">
+          me na
+        </mark>,
         'me',
       ]);
     });

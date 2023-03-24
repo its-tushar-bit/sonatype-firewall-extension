@@ -168,7 +168,13 @@ export const renderDisplayName = (displayName, searchTerm, className = '') => {
   const textArr = split(searchRegex, displayName);
   const matchArr = match(searchRegex, displayName);
   matchArr.forEach((matchedText, index) => {
-    textArr.splice(index * 2 + 1, 0, <mark className={className}>{matchedText}</mark>);
+    textArr.splice(
+      index * 2 + 1,
+      0,
+      <mark key={`renderDisplayName${matchedText}${index}`} className={className}>
+        {matchedText}
+      </mark>
+    );
   });
   return textArr;
 };

@@ -39,7 +39,7 @@ export default function OtherVersionsTile() {
     <section className="nx-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Other Versions</h2>
+          <h2 className="nx-h2">Other Allowed Versions</h2>
         </div>
       </header>
       <div className="nx-tile-content">

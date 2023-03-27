@@ -23,7 +23,7 @@ export const initialState = {
   pageCount: 0,
   pageSize: 5,
   currentPage: null,
-  sortAsc: true,
+  sortAsc: false,
 };
 
 const loadOtherVersionsRequested = (state) => {

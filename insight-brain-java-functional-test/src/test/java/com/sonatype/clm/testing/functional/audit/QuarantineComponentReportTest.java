@@ -13,6 +13,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
@@ -644,6 +645,37 @@ public class QuarantineComponentReportTest
     OtherVersionsTable otherVersionsTable = quarantineReportPage.getOtherVersionsTable();
     otherVersionsTable.getRows().shouldHaveSize(1);
     otherVersionsTable.getRow(1).findAll(By.tagName("td")).get(0)
+        .shouldHave(text("com.lingocoder : abi.cli : 0.5.3"));
+  }
+
+  @Test
+  public void testOtherVersionsTable_DefaultSorting() {
+    ComponentDetails componentDetails1 = createComponentDetail("hash1", createComponentIdentifier("0.5.2"));
+    ComponentDetails componentDetails2 = createComponentDetail("hash2", createComponentIdentifier("0.5.3"));
+    ComponentDetails componentDetails3 = createComponentDetail("hash3", createComponentIdentifier("0.5.4"));
+    ComponentDetails componentDetails4 = createComponentDetail("hash4", createComponentIdentifier("0.5.5"));
+
+    componentDetailsArrayList.addAll(
+        Arrays.asList(componentDetails1, componentDetails2, componentDetails3, componentDetails4));
+
+    RepositoryComponent repositoryComponent =
+        createRepositoryComponent(componentDetails1.getHash(), componentDetails1.getComponentIdentifier(), date);
+    createRepositoryComponent(componentDetails2.getHash(), componentDetails2.getComponentIdentifier(), null);
+    createRepositoryComponent(componentDetails3.getHash(), componentDetails3.getComponentIdentifier(), null);
+    createRepositoryComponent(componentDetails4.getHash(), componentDetails4.getComponentIdentifier(), null);
+
+    encodedToken = getQuarantinedComponentToken(repositoryComponent, VALID_TOKEN_CONDITION);
+
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    OtherVersionsTable otherVersionsTable = quarantineReportPage.getOtherVersionsTable();
+    otherVersionsTable.getRows().shouldHaveSize(3);
+    otherVersionsTable.getRow(1).findAll(By.tagName("td")).get(0)
+        .shouldHave(text("com.lingocoder : abi.cli : 0.5.5"));
+    otherVersionsTable.getRow(2).findAll(By.tagName("td")).get(0)
+        .shouldHave(text("com.lingocoder : abi.cli : 0.5.4"));
+    otherVersionsTable.getRow(3).findAll(By.tagName("td")).get(0)
         .shouldHave(text("com.lingocoder : abi.cli : 0.5.3"));
   }
 

@@ -227,7 +227,7 @@ public class OrganizationSummaryViewTest
 
     labelTile.labelList(0);
     NxList list = labelTile.labelList(0);
-    labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
+    labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local to " + organization.getName()));
     list.elements().shouldHaveSize(1);
     NxList.NxListItem actualLabel = list.element(0);
     actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
@@ -280,7 +280,7 @@ public class OrganizationSummaryViewTest
     SelenideElement subsectionHeader = categoryTile.categoryListSubheader(0);
     list.elements().shouldBe(empty);
 
-    subsectionHeader.shouldBe(visible).shouldHave(text("Local"));
+    subsectionHeader.shouldBe(visible).shouldHave(text("Local to " + organization.getName()));
     list.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
   }
 

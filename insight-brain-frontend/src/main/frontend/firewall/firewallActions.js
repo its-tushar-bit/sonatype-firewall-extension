@@ -28,7 +28,7 @@ import {
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
-import { selectHash, selectRepositoryId, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRepositoryId, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 
@@ -384,14 +384,15 @@ export function loadQuarantineList() {
 
 export function reevaluateComponent() {
   return function (dispatch, getState) {
-    const repositoryId = selectRepositoryId(getState());
-    const hash = selectHash(getState());
+    const { repositoryId, componentHash, pathname } = selectFirewallComponentDetailsPageRouteParams(getState());
 
     dispatch(reevaluateComponentRequested());
     return axios
-      .post(getReevaluateComponentUrl(repositoryId, hash))
+      .post(getReevaluateComponentUrl(repositoryId, componentHash))
       .then(() => {
         dispatch(reevaluateComponentFulfilled());
+        dispatch(loadComponentPolicyViolations(pathname, repositoryId));
+        dispatch(loadExistingWaiversData('repository', repositoryId, componentHash));
         return dispatch(loadComponentDetails(selectFirewallComponentDetailsPageRouteParams(getState())));
       })
       .catch((error) => {

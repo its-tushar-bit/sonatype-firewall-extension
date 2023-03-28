@@ -3186,4 +3186,41 @@ public class FirewallComponentDetailsPageTest
 
     testLegalTab_overridenLicensesStatus(FirewallComponentDetailsPage.urlLegalTabFromRepositoryResultsView(component));
   }
+
+  @Test
+  public void testComponentReEvaluationDoesNotCauseBlankPage() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    // Mock HDS response for firewall component policy evaluation
+    ComponentDetails componentDetails = componentDetailsArrayList.get(0);
+    ComponentEvaluationDataList hdsResponse = new ComponentEvaluationDataList();
+    hdsResponse.components.add(toComponentEvaluationData(componentDetails));
+    testCLMServer.getHdsServer().respondWith(hdsResponse).atUri("/rest/component/details/firewall");
+
+    firewallComponentDetailsPage.reevaluateButton().click();
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(1).click();
+
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+    manageWaiversButton.click();
+
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
+    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
+    waiversForViolationPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+  }
 }

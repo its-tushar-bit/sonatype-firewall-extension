@@ -60,10 +60,12 @@ make(
     releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS,
     onSuccess: {
         pushDockerImageIfDeployBranch()
+        pushMTIQDockerImage()
         saveGitCommitHashIfMainSnapshotBuild()
     },
     onUnstable: {
         pushDockerImageIfDeployBranch()
+        pushMTIQDockerImage()
     }
 )
 
@@ -71,9 +73,15 @@ void configureBranchJob() {
   // Use the project name to determine the branch
   String projName = currentBuild.fullProjectName
   boolean applitoolsEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_ui'))
-  List params = [booleanParam(defaultValue: applitoolsEnabledByDefault,
-      description: 'If checked will enable Applitools EyesCheck.',
-      name: 'applitoolsEnabled')]
+  boolean mtiqImagePushEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_mtiq'))
+  List params = [
+      booleanParam(defaultValue: applitoolsEnabledByDefault,
+          description: 'If checked will enable Applitools EyesCheck.',
+          name: 'applitoolsEnabled'),
+      booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
+          description: 'If checked will push the MTIQ Docker image to RSC for this branch',
+          name: 'mtiqImagePushEnabled')
+      ]
 
   // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach for
   // applitools. Therefore in order to support this workflow we need to mirror folder defined parameters here otherwise
@@ -139,28 +147,60 @@ void pushDockerImageIfDeployBranch() {
             string(name:'imageUrl', value: targetImage)
           ],
           propagate: false)
+}
 
-    // Build MTIQ
+void pushMTIQDockerImage() {
+    // MTIQ image push rules:
+    // - any build on the `main` branch
+    // - any branch ending with `_mtiq`
+    // - any branch run manually with the parameter to push selected
+    // Note: there is a cleanup policy on RSC to purge old MTIQ feature branches images.
+
+    boolean isMainBuild = isDeployBranch(env, 'main')
+
+    String iqVersion = getMavenProjectVersion('.')
+
+    // Default version for the MTIQ image off the `main` branch is in the format 1.123.0-1234
+    // - The 1.123.0 is the exact version from the pom.xml, minus any build suffix after the '-' such as '-SNAPSHOT'
+    // - The 1234 is the current Jenkins build number
+    String imageVersion = "${iqVersion.split("-")[0]}-${env.BUILD_NUMBER}"
+
+    // If we are on a feature branch (i.e. not `main`), then we use the branch name in the build as well,
+    // as well as prefixing it with `branch-` to allow for easy identification
+    if (!isMainBuild) {
+      // get branch name, max 20 characters
+      String branch = gitBranch(env).replace('/', '_').take(30) // on PR builds, the branch is like "PR-<number>"
+      imageVersion = "branch-${iqVersion.split("-")[0]}-${branch}-${env.BUILD_NUMBER}"
+    }
+
+    echo "MTIQ image version: ${imageVersion}"
+
     dir("nexus-mtiq-server") {
       withSonatypeDockerRegistry() {
-        imageName = 'mtiq/server'
-        fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
+        String imageName = 'mtiq/server'
+        String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
 
         sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --tag ${imageName}:${imageVersion} ."
-        String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
         runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
-        runSafely "docker push ${fullImage}"
-        // Also tag as latest
-        runSafely "docker tag ${imageName}:${imageVersion} ${latest}"
-        runSafely "docker push ${latest}"
+
+        // Push for all `main` builds as well as any enabled branches by name or build parameter
+        def pushMtiqImage = params.mtiqImagePushEnabled == null 
+          ? (isMainBuild || projName.endsWith('_mtiq')) : params.mtiqImagePushEnabled
+        echo "pushMtiqImage: $pushMtiqImage"
+
+        if (pushMtiqImage) {
+          runSafely "docker push ${fullImage}"
+        }
       }
     }
 
-    // Trigger the MTIQ job to bump the image version in the K8S deployment
-    build('job': '/insight/MTIQ/bump-mtiq-version',
-        parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value: env.GIT_COMMIT) ],
-        wait: false,
-        propagate: false)
+    // On `main` branch builds trigger the MTIQ job to bump the image version in the K8S deployment
+    if (isMainBuild) {
+      build('job': '/insight/MTIQ/bump-mtiq-version',
+          parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value: env.GIT_COMMIT) ],
+          wait: false,
+          propagate: false)
+    }
 }
 
 /*

@@ -8,8 +8,10 @@ import { pick } from 'ramda';
 
 import { actions } from './mailConfigSlice';
 import MailConfig from './MailConfig';
+import { selectIsShowEmailStoppedEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-function mapStateToProps({ mailConfig }) {
+function mapStateToProps(state) {
+  const mailConfig = state.mailConfig;
   return {
     ...pick(
       [
@@ -38,6 +40,7 @@ function mapStateToProps({ mailConfig }) {
     startTlsEnabledState: mailConfig.formState.startTlsEnabled,
     systemEmailState: mailConfig.formState.systemEmail,
     testEmailState: mailConfig.formState.testEmail,
+    isEmailStopped: selectIsShowEmailStoppedEnabled(state),
   };
 }
 

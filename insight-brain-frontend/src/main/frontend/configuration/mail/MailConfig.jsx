@@ -77,6 +77,7 @@ export default function MailConfig(props) {
       testEmailState,
       testEmailSent,
       isAuthorized,
+      isEmailStopped,
     } = props,
     loadError = isAuthorized ? loadErrorProp : authErrorMessage;
 
@@ -84,6 +85,13 @@ export default function MailConfig(props) {
   useEffect(() => {
     load();
   }, []);
+
+  function warningMessage() {
+    if (isEmailStopped) {
+      return 'This will disable all email notifications.';
+    }
+    return "This will fall back to using Sonatype's mail service";
+  }
 
   function field(fieldState, onChange, placeholder, id, label, optional = false, validatable = true) {
     // The autoComplete setting is a hack to stop chrome autofilling the user's username and password
@@ -133,7 +141,7 @@ export default function MailConfig(props) {
         </NxModal.Header>
         <NxModal.Content>
           <NxWarningAlert>
-            <span>This will disable all email notifications.</span>
+            <span>{warningMessage()}</span>
           </NxWarningAlert>
         </NxModal.Content>
       </NxStatefulForm>
@@ -332,4 +340,5 @@ MailConfig.propTypes = {
   setTestEmail: PropTypes.func.isRequired,
   testEmailSent: PropTypes.bool,
   isAuthorized: PropTypes.bool.isRequired,
+  isEmailStopped: PropTypes.bool.isRequired,
 };

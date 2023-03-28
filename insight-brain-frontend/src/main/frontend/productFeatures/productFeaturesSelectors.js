@@ -118,3 +118,7 @@ export const selectIsShowVersionEnabled = createSelector(selectTenantMode, (mode
 export const selectIsShowNotificationMenuEnabled = createSelector(selectTenantMode, (mode) => {
   return mode === SINGLE_TENANT;
 });
+
+export const selectIsShowEmailStoppedEnabled = createSelector(selectTenantMode, (mode) => {
+  return mode === SINGLE_TENANT;
+});

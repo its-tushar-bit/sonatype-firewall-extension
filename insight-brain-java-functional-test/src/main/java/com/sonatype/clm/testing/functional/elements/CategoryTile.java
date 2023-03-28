@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
@@ -76,5 +78,49 @@ public class CategoryTile
 
   public SelenideElement localCategoryLink(String categoryName) {
     return children("ul .nx-list__link").findBy(text(categoryName));
+  }
+
+  public ElementsCollection inheritedCategoriesLists() {
+    return children(".nx-collapsible-items__children dl");
+  }
+
+  public InheritedCategoriesList inheritedCategoriesList(String ownerId) {
+    return new InheritedCategoriesList("#application-categories-for-" + ownerId);
+  }
+
+  public static class InheritedCategoriesList
+      extends BasicElement<InheritedCategoriesList>
+  {
+    public InheritedCategoriesList(String... selectors) {
+      super(selectors);
+    }
+
+    public ElementsCollection elements() {
+      return children(".categories-element");
+    }
+
+    public InheritedCategory element(int num) {
+      return new InheritedCategory(selector, ".categories-element", SelectorUtils.nthChild(num + 1));
+    }
+  }
+
+  public static class InheritedCategory
+      extends BasicElement<InheritedCategory>
+  {
+    public InheritedCategory(String... selectors) {
+      super(selectors);
+    }
+
+    public SelenideElement icon() {
+      return child(".nx-icon");
+    }
+
+    public SelenideElement label() {
+      return child(".categories-label");
+    }
+
+    public SelenideElement description() {
+      return child(".categories-description");
+    }
   }
 }

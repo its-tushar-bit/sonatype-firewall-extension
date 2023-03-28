@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.CategoryTile.InheritedCategoriesList;
+import com.sonatype.clm.testing.functional.elements.CategoryTile.InheritedCategory;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
@@ -303,47 +305,68 @@ public class OrganizationSummaryViewTest
     final int hierarchySize = owners.size();
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
     assertThat(ownerTags).hasSameSizeAs(owners);
-    categoryTile.categoryLists().shouldHaveSize(hierarchySize);
 
     eyesWatcher.eyesCheck("Organization's Category Tile with applied category");
 
     for (int i = 0; i < hierarchySize; i++) {
-      NxList list = categoryTile.categoryList(i);
-
       if (i == 0) {
-        categoryTile.categoryListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
+        assertCategoryTile(i, ownerTags, categoryTile, organization);
       }
       else {
-        categoryTile.categoryListSubheader(1).shouldBe(visible)
-            .shouldHave(CategoryTile.inheritedText(owners.get(i).getName()));
-      }
-
-      list.elements().shouldHaveSize(ownerTags.get(i).size());
-
-      for (int j = 0; j < ownerTags.get(i).size(); j++) {
-        NxList.NxListItem actualCategory = list.element(j);
-        Tag expectedCategory = ownerTags.get(i).get(j);
-
-        if (i == 0) {
-          actualCategory.chevron().shouldBe(visible);
-        }
-        else {
-          actualCategory.chevron().shouldNot(exist);
-        }
-
-        if (expectedCategory.getDescription() == null) {
-          actualCategory.description().shouldNot(exist);
-        }
-        else {
-          actualCategory.description().shouldBe(visible).shouldHave(text(expectedCategory.getDescription()));
-        }
-
-        String nxColorClass = NxColor.getNxColorFromColor(expectedCategory.getColor()).toNxClass();
-
-        actualCategory.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
-        actualCategory.name().shouldBe(visible).shouldHave(text(expectedCategory.getName()));
+        assertInheritedCategory(i, ownerTags, categoryTile, owners);
       }
     }
+  }
+
+  private void assertCategoryTile(
+      int i,
+      List<List<Tag>> ownerTags,
+      CategoryTile categoryTile,
+      Organization organization)
+  {
+    NxList list = categoryTile.categoryList(i);
+    list.elements().shouldHaveSize(ownerTags.get(i).size());
+    categoryTile.categoryListSubheader(i).shouldBe(visible).shouldHave(text("Local to " + organization.getName()));
+    for (int j = 0; j < ownerTags.get(i).size(); j++) {
+      NxList.NxListItem actualCategory = list.element(j);
+      Tag expectedCategory = ownerTags.get(i).get(j);
+      actualCategory.chevron().shouldBe(visible);
+      if (expectedCategory.getDescription() == null) {
+        actualCategory.description().shouldNot(exist);
+      }
+      else {
+        actualCategory.description().shouldBe(visible).shouldHave(text(expectedCategory.getDescription()));
+      }
+      String nxColorClass = NxColor.getNxColorFromColor(expectedCategory.getColor()).toNxClass();
+      actualCategory.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
+      actualCategory.name().shouldBe(visible).shouldHave(text(expectedCategory.getName()));
+    }
+  }
+
+  private void assertInheritedCategory(
+      int i,
+      List<List<Tag>> ownerTags,
+      CategoryTile categoryTile,
+      List<Owner> owners)
+  {
+    InheritedCategoriesList categoriesList = categoryTile.inheritedCategoriesList(owners.get(i).getId());
+    categoriesList.should(exist).shouldBe(visible);
+
+    int expectedCategoriesCount = ownerTags.get(i).size();
+    categoriesList.elements().shouldHaveSize(expectedCategoriesCount);
+    categoryTile.categoryLists().shouldHaveSize(i);
+    categoryTile.inheritedCategoriesLists().shouldHaveSize(i);
+    for (int j = 0; j < ownerTags.get(i).size(); j++) {
+      InheritedCategory actualCategory = categoriesList.element(j);
+      Tag expectedCategory = ownerTags.get(i).get(j);
+      actualCategory.label().shouldBe(visible).shouldHave(text(expectedCategory.getName()));
+      actualCategory.description().shouldBe(visible).shouldHave(text(expectedCategory.getDescription()));
+      String nxColorClass = NxColor.getNxColorFromColor(expectedCategory.getColor()).toNxClass();
+      actualCategory.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
+    }
+    categoryTile.categoryListSubheader(i).shouldBe(visible)
+        .shouldHave(CategoryTile.inheritedText(owners.get(i).getName())).click();
+    categoriesList.should(exist).shouldNotBe(visible);
   }
 
   @Test

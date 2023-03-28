@@ -204,7 +204,7 @@ describe('ApplicationCategoriesTile', () => {
       renderComponent();
       const subtitle = screen.getByText('assigned to Owner Name');
       const assignedListHeader = screen.getByText('Assigned');
-      const localListHeader = screen.queryByText('Local');
+      const localListHeader = screen.queryByText(`Local to ${appCategoryOwners[0].ownerName}`);
       const inheritListHeader = screen.queryByText(/Inherited from/);
       const listItems = screen.getAllByRole('listitem');
 
@@ -271,7 +271,7 @@ describe('ApplicationCategoriesTile', () => {
       renderComponent();
       const subtitle = screen.getByText('available to apps in Owner Name');
       const assignedListHeader = screen.queryByText('Assigned');
-      const localListHeader = screen.getByText('Local');
+      const localListHeader = screen.getByText(`Local to ${appCategoryOwners[0].ownerName}`);
       const inheritListHeader = screen.getByText(/Inherited from/);
       const categoryLists = screen.getAllByRole('list');
 
@@ -304,16 +304,14 @@ describe('ApplicationCategoriesTile', () => {
       expect(inheritListItems[2]).toHaveTextContent('Internal');
       expect(inheritListItems[2]).toHaveTextContent('Applications that are used only by your employees');
 
-      expect(localListItems[0]).toHaveClassName('nx-list__item--clickable');
-      expect(inheritListItems[0]).not.toHaveClassName('nx-list__item--clickable');
-      expect(inheritListItems[1]).not.toHaveClassName('nx-list__item--clickable');
-      expect(inheritListItems[2]).not.toHaveClassName('nx-list__item--clickable');
+      expect(localListItems[0]).toHaveClassName('nx-list__item');
+      expect(inheritListItems[0]).not.toHaveClassName('nx-list__item');
+      expect(inheritListItems[1]).not.toHaveClassName('nx-list__item');
+      expect(inheritListItems[2]).not.toHaveClassName('nx-list__item');
 
       fireEvent.click(addCategoryButton);
 
       expect(goToCreateCategorySpy).toHaveBeenCalledTimes(1);
-
-      expect(localListItems[0].firstChild).toHaveAttribute('href', 'editCategoryHref');
     });
 
     it('renders empty message when there are no categories assigned', () => {
@@ -331,7 +329,7 @@ describe('ApplicationCategoriesTile', () => {
       renderComponent();
       const subtitle = screen.getByText('available to apps in Owner Name');
       const assignedListHeader = screen.queryByText('Assigned');
-      const localListHeader = screen.getByText('Local');
+      const localListHeader = screen.getByText(`Local to ${appCategoryOwners[1].ownerName}`);
       const inheritListHeader = screen.queryByText(/Inherited from/);
       const categoryList = screen.getByRole('list');
 
@@ -356,17 +354,58 @@ describe('ApplicationCategoriesTile', () => {
       expect(localListItems[2]).toHaveTextContent('Internal');
       expect(localListItems[2]).toHaveTextContent('Applications that are used only by your employees');
 
-      expect(localListItems[0]).toHaveClassName('nx-list__item--clickable');
-      expect(localListItems[1]).toHaveClassName('nx-list__item--clickable');
-      expect(localListItems[2]).toHaveClassName('nx-list__item--clickable');
+      expect(localListItems[0]).toHaveClassName('nx-list__item');
+      expect(localListItems[1]).toHaveClassName('nx-list__item');
+      expect(localListItems[2]).toHaveClassName('nx-list__item');
 
       fireEvent.click(addCategoryButton);
 
       expect(goToCreateCategorySpy).toHaveBeenCalledTimes(1);
+    });
 
-      expect(localListItems[0].firstChild).toHaveAttribute('href', 'editCategoryHref');
-      expect(localListItems[1].firstChild).toHaveAttribute('href', 'editCategoryHref');
-      expect(localListItems[2].firstChild).toHaveAttribute('href', 'editCategoryHref');
+    it('renders a collapsible button with the correct structure', () => {
+      selectAppCategoryOwnersSpy.and.returnValue(appCategoryOwners);
+      renderComponent();
+      const button = screen.getByRole('button', { name: /Inherited from Root Organization/i });
+
+      // Verify that the button is initially expanded, so the set of icons is hidden.
+      const hiddenIconSet = button.querySelectorAll('.nx-icon.hexagon');
+      expect(hiddenIconSet.length).toBe(0);
+
+      // Verify that the button collapsed has an icon.
+      fireEvent.click(button);
+      const icon = button.querySelector('.svg-inline--fa');
+      expect(icon).toBeInTheDocument();
+
+      // Verify that the button has a text.
+      const text = button.querySelector('.nx-collapsible-items__text');
+      expect(text).toBeInTheDocument();
+      expect(text.textContent).toContain('Inherited from Root Organization');
+
+      // Verify that the button collapsed has a set of 3 icons.
+      const iconSet = button.querySelectorAll('.nx-icon.hexagon');
+      expect(iconSet.length).toBe(3);
+    });
+
+    it('renders a collapsible button when has inherited categories, and expand and collapse content', () => {
+      selectAppCategoryOwnersSpy.and.returnValue(appCategoryOwners);
+      renderComponent();
+      const button = screen.getByRole('button', { name: /Inherited from Root Organization/i });
+      const content = screen.getByRole('group');
+      const collapsibleContent = content.parentElement.querySelector('.nx-collapsible-items');
+
+      // Verify that the content is initially expanded.
+      expect(collapsibleContent).toHaveClass('nx-collapsible-items--expanded');
+
+      // Verify that after a click the content is collapsed.
+      fireEvent.click(button);
+      expect(collapsibleContent).toHaveClass('nx-collapsible-items--collapsed');
+
+      // Verify that the expanded content is visible.
+      fireEvent.click(button);
+      const expandedContent = content.parentElement.querySelector('.nx-collapsible-items__children');
+      expect(expandedContent).toBeInTheDocument();
+      expect(expandedContent).toHaveAttribute('role', 'list');
     });
   });
 });

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 .iq-tile-scroll-container .nx-tile {
   margin-right: var(--nx-spacing-3x);
@@ -16,6 +17,94 @@
 policies-header-tile {
   .nx-tile-header {
     padding-bottom: var(--nx-spacing-4x);
+  }
+}
+
+@mixin margin-header {
+  margin-top: 1px;
+  margin-bottom: 1px;
+}
+
+#owner-pill-app-categories {
+  .nx-collapsible-items__trigger {
+    & > svg {
+      @include margin-header;
+    }
+  }
+
+  .nx-collapsible-items__text {
+    .nx-h3 {
+      @include nx-text-helpers.truncate-ellipsis;
+      @include margin-header;
+      padding-right: 28px;
+    }
+
+    & > span {
+      @include margin-header;
+    }
+  }
+
+  .nx-collapsible-items__children {
+    margin-top: -18px;
+  }
+
+  .nx-collapsible-items {
+    max-width: 100%;
+  }
+
+  .categories-element {
+    display: contents;
+    overflow: unset;
+
+    &:first-child {
+      dt,
+      dd {
+        border-top: var(--nx-border-default);
+        margin-top: 15px;
+      }
+    }
+  }
+
+  .categories-description {
+    white-space: pre-wrap;
+  }
+
+  .categories-icons {
+    @include nx-text-helpers.truncate-ellipsis;
+    max-width: 100%;
+  }
+
+  dl,
+  .categories-icons,
+  .nx-list__item {
+    .nx-icon {
+      color: var(--nx-selectable-color-dark);
+    }
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: max-content auto;
+
+    .categories-label {
+      font-weight: 600;
+    }
+  }
+
+  dt,
+  dd {
+    border-top: var(--nx-border-secondary);
+    padding: var(--nx-spacing-4x) var(--nx-spacing-4x) var(--nx-spacing-4x) var(--nx-spacing-4x);
+    margin-left: 13px;
+  }
+
+  dt {
+    grid-column-start: 1;
+  }
+
+  dd {
+    grid-column-start: 2;
+    margin-left: 0;
   }
 }
 

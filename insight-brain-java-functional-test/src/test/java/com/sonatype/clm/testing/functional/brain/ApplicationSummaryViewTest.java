@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
 import com.sonatype.clm.testing.functional.elements.EvaluationStatusModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.LabelTile.InheritedLabelsList;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
@@ -712,7 +713,12 @@ public class ApplicationSummaryViewTest
     OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
     ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
 
-    labelTile.labelListSubheader(1).shouldBe(visible).shouldHave(LabelTile.inheritedText(organization.getName()));
+    InheritedLabelsList inheritedLabelList = labelTile.inheritedLabelsList(organization.getId());
+    inheritedLabelList.should(exist).shouldBe(visible);
+    labelTile.labelListSubheader(1).shouldBe(visible).click();
+    inheritedLabelList.should(exist).shouldNotBe(visible);
+    labelTile.labelListSubheader(1).shouldHave(LabelTile.inheritedText(organization.getName()));
+    ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
     eyesWatcher.eyesCheck("Inherited Component Labels Header Truncation");
   }
 }

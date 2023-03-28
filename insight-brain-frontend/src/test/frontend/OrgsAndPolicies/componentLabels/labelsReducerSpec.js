@@ -484,8 +484,8 @@ describe('labels reducer', () => {
         },
       ]);
       expect(newStore.inheritedLabelsOpen).toEqual({
-        '6b365e8a8000449aa924f194a7ed0d21': false,
-        '6b365e8a8000449aa924f194a7ed0d22': false,
+        '6b365e8a8000449aa924f194a7ed0d21': true,
+        '6b365e8a8000449aa924f194a7ed0d22': true,
       });
     });
   });

@@ -761,10 +761,13 @@ public abstract class AbstractSummaryViewTest
 
     for (int i = 0; i < parentOwners.size(); i++) {
       String ownerId = parentOwners.get(i).getId();
-      InheritedLabelsList inheritedLabelList = labelTile.inheritedLabelsList(ownerId);
-      inheritedLabelList.should(exist).shouldNotBe(visible);
       labelTile.labelListSubheader(i + 1).shouldBe(visible)
-          .shouldHave(LabelTile.inheritedText(parentOwners.get(i).getName())).click();
+          .shouldHave(LabelTile.inheritedText(parentOwners.get(i).getName()));
+      InheritedLabelsList inheritedLabelList = labelTile.inheritedLabelsList(ownerId);
+      inheritedLabelList.should(exist).shouldBe(visible);
+      labelTile.labelListSubheader(i + 1).shouldBe(visible).click();
+      inheritedLabelList.should(exist).shouldNotBe(visible);
+      labelTile.labelListSubheader(i + 1).shouldBe(visible).click();
       inheritedLabelList.should(exist).shouldBe(visible);
       int expectedLabelCount = inheritedLabels.get(i).size();
       inheritedLabelList.elements().shouldHaveSize(expectedLabelCount);

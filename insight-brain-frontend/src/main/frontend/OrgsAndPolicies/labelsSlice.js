@@ -67,7 +67,7 @@ const loadApplicableLabelsFulfilled = (state, { payload }) => {
   state.applicableLabels = payload;
   const newInheritedLabelsOpen = {};
   payload.forEach((labels) => {
-    newInheritedLabelsOpen[labels.ownerId] = false;
+    newInheritedLabelsOpen[labels.ownerId] = true;
   });
   state.inheritedLabelsOpen = newInheritedLabelsOpen;
 };

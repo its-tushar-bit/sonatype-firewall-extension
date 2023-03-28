@@ -13,6 +13,13 @@
   .component-labels-element {
     display: contents;
     overflow: unset;
+
+    &:first-child {
+      dt,
+      dd {
+        border-top: var(--nx-border-default);
+      }
+    }
   }
 
   .component-labels-description {
@@ -41,9 +48,15 @@
     }
   }
 
+  .nx-collapsible-items__trigger {
+    padding: 0 0 12px 0;
+    border: 0;
+  }
+
   dl {
     display: grid;
     grid-template-columns: max-content auto;
+    margin-block-start: 0;
 
     .component-labels-label {
       font-weight: 600;
@@ -52,8 +65,9 @@
 
   dt,
   dd {
-    border-top: var(--nx-border-default);
+    border-top: var(--nx-border-secondary);
     padding: var(--nx-spacing-4x) var(--nx-spacing-4x) var(--nx-spacing-4x) var(--nx-spacing-4x);
+    margin-left: 6px;
   }
 
   dt {

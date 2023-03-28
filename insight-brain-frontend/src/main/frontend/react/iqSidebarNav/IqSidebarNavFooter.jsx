@@ -40,5 +40,5 @@ export default function IqSidebarNavFooter({ productName, releaseNumber, isShowV
 IqSidebarNavFooter.propTypes = {
   productName: PropTypes.string,
   releaseNumber: PropTypes.string,
-  isShowVersionEnabled: PropTypes.string,
+  isShowVersionEnabled: PropTypes.bool,
 };

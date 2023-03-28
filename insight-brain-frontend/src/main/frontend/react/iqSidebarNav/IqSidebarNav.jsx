@@ -215,6 +215,6 @@ IqSidebarNav.propTypes = {
   isLegalEnabled: PropTypes.bool,
   isApiPageEnabled: PropTypes.bool,
   isDataInsightsEnabled: PropTypes.bool,
-  isShowVersionEnabled: PropTypes.string,
+  isShowVersionEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

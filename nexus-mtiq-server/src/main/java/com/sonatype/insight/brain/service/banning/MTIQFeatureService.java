@@ -79,7 +79,9 @@ public class MTIQFeatureService
       LOGOUT_AUTH0_ON_LOGOUT,
       WEBHOOK_CONFIGURATION,
       WEBHOOKS_FOR_REPOSITORIES,
-      EMAIL_CONFIGURATION
+      EMAIL_CONFIGURATION,
+      /* Lifecycle Features */
+      WEBHOOKS_FOR_APPLICATIONS
   );
 
   private final ApiConfigFeaturesService service;

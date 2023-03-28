@@ -104,7 +104,8 @@ public class MTIQFeatureServiceTest
         QUALITY,
         RELEASE_INTEGRITY,
         RM_STAGING_INTEGRATION,
-        SAML_USER_TOKENS);
+        SAML_USER_TOKENS,
+        WEBHOOKS_FOR_APPLICATIONS);
   }
 
   @Test

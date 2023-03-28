@@ -315,7 +315,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.NOTIFICATIONS,
         LicensedFeature.POLICY_GRANDFATHERING,
         LicensedFeature.AUTOMATION,
-        LicensedFeature.IP_ALLOWLIST);
+        LicensedFeature.IP_ALLOWLIST,
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
   }
 
   @Test

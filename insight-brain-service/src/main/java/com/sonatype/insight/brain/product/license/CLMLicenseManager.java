@@ -625,6 +625,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.AUTOMATION);
       features.add(LicensedFeature.IP_ALLOWLIST);
+      features.add(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD)) {

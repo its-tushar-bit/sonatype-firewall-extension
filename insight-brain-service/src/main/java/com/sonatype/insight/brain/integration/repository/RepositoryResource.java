@@ -27,7 +27,6 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -309,19 +308,5 @@ public class RepositoryResource
   {
     repositoryService.removeExtraComponents(repositoryManagerInstanceId, repositoryPublicId,
         repositoryComponentPathnames);
-  }
-
-  /**
-   * @since 1.159
-   */
-  @POST
-  @Path(FIREWALL_ONBOARDING_PATH)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
-  public void firewallOnboarding(
-      FirewallOnboardingRequest firewallOnboardingRequest,
-      @Context HttpServletRequest request)
-  {
-    repositoryService.firewallOnboarding(firewallOnboardingRequest, DefaultHdsClient.getClientUserAgent(request));
   }
 }

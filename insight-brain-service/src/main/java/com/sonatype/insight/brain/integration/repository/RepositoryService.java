@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAcc
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -61,12 +60,11 @@ public class RepositoryService extends AbstractRepositoryService
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
       RepositoryComponentDeleteService repositoryComponentDeleteService,
-      TelemetrySender telemetrySender,
-      CurrentUser currentUser)
+      TelemetrySender telemetrySender)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
-        quarantineHdsClient, telemetrySender, currentUser);
+        quarantineHdsClient, telemetrySender);
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
   }
 

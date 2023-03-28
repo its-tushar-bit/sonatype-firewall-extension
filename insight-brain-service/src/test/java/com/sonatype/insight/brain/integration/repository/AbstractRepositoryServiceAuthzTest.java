@@ -5,18 +5,11 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRepositoryDTO;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRepositoryManagerDTO;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRepositoryType;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRequest;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.dataaccess.repository.onboarding.FirewallOnboardingRepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -289,41 +282,5 @@ public abstract class AbstractRepositoryServiceAuthzTest
     grantWritePermission();
     getRepositoryService().evaluateComponentMetadata(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
         null /* componentEvaluationDataRequestList */, null);
-  }
-
-  @Test
-  public void testFirewallOnboarding_Authorized() {
-    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-
-    FirewallOnboardingRequest firewallOnboardingRequest = new FirewallOnboardingRequest();
-    FirewallOnboardingRepositoryManagerDTO firewallOnboardingRepositoryManagerDTO =
-        new FirewallOnboardingRepositoryManagerDTO();
-    firewallOnboardingRepositoryManagerDTO.instanceId = "testInstanceId";
-    firewallOnboardingRequest.repositoryManager = firewallOnboardingRepositoryManagerDTO;
-    FirewallOnboardingRepositoryDTO firewallOnboardingRepositoryDTO = new FirewallOnboardingRepositoryDTO();
-    firewallOnboardingRepositoryDTO.name = "testName";
-    firewallOnboardingRepositoryDTO.format = ComponentIdentifier.FORMAT_MAVEN;
-    firewallOnboardingRepositoryDTO.type = FirewallOnboardingRepositoryType.hosted;
-    firewallOnboardingRequest.repositories.add(firewallOnboardingRepositoryDTO);
-
-    try {
-      getRepositoryService().firewallOnboarding(firewallOnboardingRequest, "clientUserAgent");
-    }
-    finally {
-      FirewallOnboardingRepositoryManagerDAO dao = new FirewallOnboardingRepositoryManagerDAO();
-      FirewallOnboardingRepositoryManager repoManager = dao.getByInstanceId("testInstanceId");
-      dao.delete(repoManager);
-    }
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testFirewallOnboarding_Unauthenticated() {
-    getRepositoryService().firewallOnboarding(null /* firewallOnboardingRequest */, "clientUserAgent");
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testFirewallOnboarding_Unauthorized() {
-    login();
-    getRepositoryService().firewallOnboarding(null /* firewallOnboardingRequest */, "clientUserAgent");
   }
 }

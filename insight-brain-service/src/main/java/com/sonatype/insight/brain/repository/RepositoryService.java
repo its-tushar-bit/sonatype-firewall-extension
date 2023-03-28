@@ -35,8 +35,6 @@ import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentName
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.dataaccess.repository.onboarding.FirewallOnboardingRepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.onboarding.FirewallOnboardingRepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.Owner;
@@ -90,12 +88,6 @@ public class RepositoryService
   private static final PolicyDAO policyDAO = new PolicyDAO();
 
   private static final OwnerDAO ownerDAO = new OwnerDAO();
-
-  private static final FirewallOnboardingRepositoryManagerDAO firewallOnboardingRepositoryManagerDAO =
-      new FirewallOnboardingRepositoryManagerDAO();
-
-  private static final FirewallOnboardingRepositoryDAO firewallOnboardingRepositoryDAO =
-      new FirewallOnboardingRepositoryDAO();
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
@@ -480,22 +472,5 @@ public class RepositoryService
     filter.sortFields = request.sortFields;
 
     return filter;
-  }
-
-  FirewallOnboardingDTO getFirewallOnboarding(String repositoryManagerInstanceId) {
-    checkWritePermission(RepositoryContainer.SINGLETON);
-
-    FirewallOnboardingDTO firewallOnboardingDTO = new FirewallOnboardingDTO();
-    firewallOnboardingDTO.repositoryManager =
-        firewallOnboardingRepositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
-    if (firewallOnboardingDTO.repositoryManager == null) {
-      throw new NotFoundException(
-          "Cannot find a repository manager with instance ID '" + repositoryManagerInstanceId + "'");
-    }
-
-    firewallOnboardingDTO.repositories =
-        firewallOnboardingRepositoryDAO.getByRepositoryManagerId(firewallOnboardingDTO.repositoryManager.getId());
-
-    return firewallOnboardingDTO;
   }
 }

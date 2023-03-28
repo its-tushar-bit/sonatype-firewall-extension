@@ -33,10 +33,6 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRepositoryDTO;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRepositoryManagerDTO;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRepositoryType;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRequest;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
@@ -46,8 +42,6 @@ import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentName
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.dataaccess.repository.onboarding.FirewallOnboardingRepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.onboarding.FirewallOnboardingRepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -72,8 +66,6 @@ import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePatte
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepository;
-import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
@@ -2544,95 +2536,6 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
     assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
-  }
-
-  @Test
-  public void testFirewallOnboarding() {
-    FirewallOnboardingRequest firewallOnboardingRequest = new FirewallOnboardingRequest();
-    FirewallOnboardingRepositoryManagerDTO firewallOnboardingRepositoryManagerDTO =
-        new FirewallOnboardingRepositoryManagerDTO();
-    firewallOnboardingRepositoryManagerDTO.instanceId = "testInstanceId";
-    firewallOnboardingRequest.repositoryManager = firewallOnboardingRepositoryManagerDTO;
-    FirewallOnboardingRepositoryDTO firewallOnboardingRepositoryDTO1 = new FirewallOnboardingRepositoryDTO();
-    firewallOnboardingRepositoryDTO1.name = "testName1";
-    firewallOnboardingRepositoryDTO1.format = ComponentIdentifier.FORMAT_MAVEN;
-    firewallOnboardingRepositoryDTO1.type = FirewallOnboardingRepositoryType.hosted;
-    firewallOnboardingRequest.repositories.add(firewallOnboardingRepositoryDTO1);
-    FirewallOnboardingRepositoryDTO firewallOnboardingRepositoryDTO2 = new FirewallOnboardingRepositoryDTO();
-    firewallOnboardingRepositoryDTO2.name = "testName2";
-    firewallOnboardingRepositoryDTO2.format = ComponentIdentifier.FORMAT_NPM;
-    firewallOnboardingRepositoryDTO2.type = FirewallOnboardingRepositoryType.proxy;
-    firewallOnboardingRequest.repositories.add(firewallOnboardingRepositoryDTO2);
-
-    try {
-      Date before = new Date();
-      getRepositoryService().firewallOnboarding(firewallOnboardingRequest, "testUserAgent");
-      Date after = new Date();
-
-      FirewallOnboardingRepositoryManager repoManager =
-          new FirewallOnboardingRepositoryManagerDAO().getByInstanceId("testInstanceId");
-      assertThat(repoManager.getRequestTime()).isBetween(before, after, true, true);
-      assertThat(repoManager.getRequestUsername()).isEqualTo("testuser");
-      assertThat(repoManager.getRequestUserAgent()).isEqualTo("testUserAgent");
-      assertThat(repoManager.getConfigureTime()).isNull();
-      assertThat(repoManager.getConfigureUsername()).isNull();
-
-      FirewallOnboardingRepositoryDAO firewallOnboardingRepositoryDAO = new FirewallOnboardingRepositoryDAO();
-      assertThat(firewallOnboardingRepositoryDAO.getByRepositoryManagerId(repoManager.getId())).hasSize(2);
-      FirewallOnboardingRepository repository1 =
-          firewallOnboardingRepositoryDAO.getByRepositoryManagerIdAndName(repoManager.getId(), "testName1");
-      assertThat(repository1.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_MAVEN);
-      assertThat(repository1.getType()).isEqualTo(FirewallOnboardingRepositoryType.hosted);
-      assertThat(repository1.isAuditEnabled()).isFalse();
-      assertThat(repository1.isQuarantineEnabled()).isFalse();
-      assertThat(repository1.isNamespaceConfusionProtectionEnabled()).isFalse();
-      FirewallOnboardingRepository repository2 =
-          firewallOnboardingRepositoryDAO.getByRepositoryManagerIdAndName(repoManager.getId(), "testName2");
-      assertThat(repository2.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_NPM);
-      assertThat(repository2.getType()).isEqualTo(FirewallOnboardingRepositoryType.proxy);
-      assertThat(repository2.isAuditEnabled()).isFalse();
-      assertThat(repository2.isQuarantineEnabled()).isFalse();
-      assertThat(repository2.isNamespaceConfusionProtectionEnabled()).isFalse();
-    }
-    finally {
-      FirewallOnboardingRepositoryManagerDAO dao = new FirewallOnboardingRepositoryManagerDAO();
-      FirewallOnboardingRepositoryManager repoManager = dao.getByInstanceId("testInstanceId");
-      dao.delete(repoManager);
-    }
-  }
-
-  @Test
-  public void testFirewallOnboarding_NoRequest() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().firewallOnboarding(null /* firewallOnboardingRequest */, "testUserAgent");
-    }).withMessage("The request data is required.");
-  }
-
-  @Test
-  public void testFirewallOnboarding_NoRepositoryManager() {
-    FirewallOnboardingRequest firewallOnboardingRequest = new FirewallOnboardingRequest();
-    FirewallOnboardingRepositoryDTO firewallOnboardingRepositoryDTO = new FirewallOnboardingRepositoryDTO();
-    firewallOnboardingRepositoryDTO.name = "testName";
-    firewallOnboardingRepositoryDTO.format = ComponentIdentifier.FORMAT_MAVEN;
-    firewallOnboardingRepositoryDTO.type = FirewallOnboardingRepositoryType.hosted;
-    firewallOnboardingRequest.repositories.add(firewallOnboardingRepositoryDTO);
-
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().firewallOnboarding(firewallOnboardingRequest, "testUserAgent");
-    }).withMessage("The repository manager is required.");
-  }
-
-  @Test
-  public void testFirewallOnboarding_NoRepositories() {
-    FirewallOnboardingRequest firewallOnboardingRequest = new FirewallOnboardingRequest();
-    FirewallOnboardingRepositoryManagerDTO firewallOnboardingRepositoryManagerDTO =
-        new FirewallOnboardingRepositoryManagerDTO();
-    firewallOnboardingRepositoryManagerDTO.instanceId = "testInstanceId";
-    firewallOnboardingRequest.repositoryManager = firewallOnboardingRepositoryManagerDTO;
-
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().firewallOnboarding(firewallOnboardingRequest, "testUserAgent");
-    }).withMessage("At least one repository is required.");
   }
 
   private void testAddProprietaryComponentNames_FormatTranslation(String repoFormat, String componentFormat) {

@@ -40,7 +40,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
-import com.sonatype.clm.dto.model.repository.onboarding.FirewallOnboardingRepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
@@ -95,8 +94,6 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.onboarding.FirewallOnboardingRepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.onboarding.FirewallOnboardingRepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
@@ -211,8 +208,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
-import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepository;
-import com.sonatype.insight.brain.model.repository.onboarding.FirewallOnboardingRepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -369,11 +364,6 @@ public class TemporaryEntity
   private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
-
-  private final FirewallOnboardingRepositoryManagerDAO firewallOnboardingRepositoryManagerDAO =
-      new FirewallOnboardingRepositoryManagerDAO();
-
-  private final FirewallOnboardingRepositoryDAO firewallOnboardingRepositoryDAO = new FirewallOnboardingRepositoryDAO();
 
   private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO =
       new SecurityVulnerabilityOverrideDAO();
@@ -538,10 +528,6 @@ public class TemporaryEntity
 
   private Collection<Repository> repositories;
 
-  private Collection<FirewallOnboardingRepositoryManager> firewallOnboardingRepositoryManagers;
-
-  private Collection<FirewallOnboardingRepository> firewallOnboardingRepositories;
-
   private Collection<SecurityVulnerabilityOverride> securityVulnerabilityOverrides;
 
   private Collection<VulnerabilityGroup> vulnerabilityGroups;
@@ -616,8 +602,6 @@ public class TemporaryEntity
     policyMonitorings = new ArrayList<>();
     repositoryManagers = new ArrayList<>();
     repositories = new ArrayList<>();
-    firewallOnboardingRepositoryManagers = new ArrayList<>();
-    firewallOnboardingRepositories = new ArrayList<>();
     securityVulnerabilityOverrides = new ArrayList<>();
     vulnerabilityGroups = new ArrayList<>();
     vulnerabilityGroupsVulnerability = new ArrayList<>();
@@ -696,8 +680,6 @@ public class TemporaryEntity
     repositoryManagers
         .forEach(repoMan -> proprietaryComponentNamePatternDAO.deleteByRepositoryManager(repoMan.getInstanceId()));
     delete(repositoryManagers, repositoryManagerDAO);
-    delete(firewallOnboardingRepositories, firewallOnboardingRepositoryDAO);
-    delete(firewallOnboardingRepositoryManagers, firewallOnboardingRepositoryManagerDAO);
     delete(webhooks, webhookDAO);
     delete(policyViolationAggregations, policyViolationAggregationDAO);
     delete(successMetricsReportDatas, successMetricsReportDataDAO);
@@ -4118,27 +4100,5 @@ public class TemporaryEntity
     proprietaryComponentNamePatterns.add(proprietaryComponentNamePattern);
     return proprietaryComponentNamePattern;
   }
-
-  public FirewallOnboardingRepositoryManager newFirewallOnboardingRepositoryManager() {
-    return newFirewallOnboardingRepositoryManager(uuid());
-  }
-
-  public FirewallOnboardingRepositoryManager newFirewallOnboardingRepositoryManager(String repoManagerInstanceId) {
-    FirewallOnboardingRepositoryManager repositoryManager =
-        new FirewallOnboardingRepositoryManager(repoManagerInstanceId, "testUsername", "testUserAgent");
-    firewallOnboardingRepositoryManagerDAO.insert(repositoryManager);
-    firewallOnboardingRepositoryManagers.add(repositoryManager);
-    return repositoryManager;
-  }
-
-  public FirewallOnboardingRepository newFirewallOnboardingRepository(
-      FirewallOnboardingRepositoryManager repositoryManager,
-      String repoName)
-  {
-    FirewallOnboardingRepository repository = new FirewallOnboardingRepository(repositoryManager.getId(), repoName,
-        ComponentIdentifier.FORMAT_NPM, FirewallOnboardingRepositoryType.proxy);
-    firewallOnboardingRepositoryDAO.insert(repository);
-    firewallOnboardingRepositories.add(repository);
-    return repository;
-  }
 }
+

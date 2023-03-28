@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.io.PrintWriter;
 import javax.servlet.FilterChain;
-import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.entity.ContentType;
@@ -38,7 +38,7 @@ public class TenantUrlFilterTest
   TenantManager tenantManager;
 
   @Mock
-  ServletRequest request;
+  HttpServletRequest request;
 
   @Mock
   HttpServletResponse response;
@@ -80,6 +80,18 @@ public class TenantUrlFilterTest
   @Test
   public void shouldSetGlobalTenant_whenApplicationHealthCheck() throws Exception {
     when(request.getServerName()).thenReturn("192.168.0.1");
+
+    testAs(new Tenant(TENANT_NAME), t -> {
+      underTestDoFilter();
+
+      assertTenantSet(GLOBAL_TENANT);
+    });
+  }
+
+  @Test
+  public void shouldSetGlobalTenant_whenAdminRequest() throws Exception {
+    when(request.getRequestURI()).thenReturn("/api/admin/tenants");
+    when(request.getPathInfo()).thenReturn("/admin/tenants");
 
     testAs(new Tenant(TENANT_NAME), t -> {
       underTestDoFilter();

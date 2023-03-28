@@ -23,7 +23,8 @@ public class MultiTenantServerHeaderFilterTest
 
   @Test
   public void testServerHeaderPresent() throws Exception {
-    assertThat(adminRequest().get().getHeader(HttpHeaders.SERVER)).matches("NexusIQ/1\\.[0-9]+.*-build-number$");
+    assertThat(adminRequest().path("api", "admin").get().getHeader(HttpHeaders.SERVER))
+        .matches("NexusIQ/1\\.[0-9]+.*-build-number$");
     provisionTenant(tenantName);
     assertThat(restRequest().get().getHeader(HttpHeaders.SERVER)).matches("NexusIQ/1\\.[0-9]+.*-build-number$");
   }

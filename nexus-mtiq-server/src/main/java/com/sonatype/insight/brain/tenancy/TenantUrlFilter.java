@@ -14,6 +14,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.net.InetAddresses;
@@ -47,8 +48,14 @@ public class TenantUrlFilter
     final String serverName = request.getServerName();
 
     try {
-      if (InetAddresses.isInetAddress(serverName)) {
-        // the application health check comes in as an IP Address
+      /*
+       * Tenants for admin requests are set using a path param in AdminTenantFilter. We set the tenant here to global
+       * as a catch-all to ensure there is always a tenant set. This is important because Jetty reuses threads so a
+       * tenant must always be set on every request. AdminTenantFilter can't do this because it only deals with requests
+       * on the /api/admin path but there are other admin requests such as /healthcheck. Note that the application
+       * healthcheck comes in as an IP Address
+       */
+      if (isAdminApiRequest(request) || InetAddresses.isInetAddress(serverName)) {
         tenantUtil.setGlobalTenant();
       }
       else {
@@ -68,6 +75,18 @@ public class TenantUrlFilter
     finally {
       TenantThreadLocal.invalidateTenant();
     }
+  }
+
+  private static boolean isAdminApiRequest(ServletRequest request) {
+    if (request instanceof HttpServletRequest) {
+      HttpServletRequest httpRequest = (HttpServletRequest) request;
+      String path = httpRequest.getPathInfo();
+      String pathWithContext = httpRequest.getRequestURI();
+
+      return path != null && pathWithContext != null && pathWithContext.startsWith("/api") && path.startsWith("/admin");
+    }
+
+    return false;
   }
 
   private void createTenantNotFoundResponse(final ServletResponse response) throws IOException {

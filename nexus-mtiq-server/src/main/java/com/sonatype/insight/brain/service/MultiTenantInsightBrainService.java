@@ -202,7 +202,7 @@ public class MultiTenantInsightBrainService
 
   @Override
   protected void addServletFilters(Environment env) {
-    addServletFilter(env, TenantUrlFilter.class, "/*");
+    addServletFilter(env, true, TenantUrlFilter.class, "/*");
 
     super.addServletFilters(env, true);
   }

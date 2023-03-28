@@ -75,7 +75,7 @@ public class ApplicationRiskService
       final String orderBy,
       final int maxResults)
   {
-    dashboardUtils.validateDashboardLicensedAndEnabled();
+    dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
 
     long start = System.currentTimeMillis();
 

@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents;
 import com.sonatype.clm.testing.functional.elements.DashboardTab;
@@ -13,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardWaivers;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -20,7 +22,7 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class DashboardPage
+public class DashboardPage extends BasicElement<DashboardPage>
 {
   public static final Condition ACTIVE = cssClass("active");
 
@@ -55,6 +57,10 @@ public class DashboardPage
 
   public static SelenideElement dashboardContainer() {
     return $(ROOT);
+  }
+
+  public ElementsCollection tabs() {
+    return children(".nx-tab-list");
   }
 
   public static DashboardTab violationsTab() {

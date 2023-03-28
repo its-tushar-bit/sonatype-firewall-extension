@@ -74,7 +74,7 @@ public class ComponentRiskService
                                                                  String orderBy,
                                                                  int maxResults)
   {
-    dashboardUtils.validateDashboardLicensedAndEnabled();
+    dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
 
     long start = System.currentTimeMillis();
 

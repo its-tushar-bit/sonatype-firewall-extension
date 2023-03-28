@@ -20,7 +20,10 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -202,6 +205,21 @@ public class DashboardTabNavigationTest
     Selenide.back();
     waitUntilUrl(DashboardPage.urlToViolations());
     DashboardPage.violationsTab().shouldBe(ACTIVE);
+  }
+
+  @Test
+  public void testTabNavigation_FirewallOnyLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+
+    refreshOrOpen(DashboardPage.urlToWaivers());
+
+    ElementsCollection tabs = new DashboardPage().tabs();
+    tabs.shouldHaveSize(1);
+    tabs.get(0).shouldHave(Condition.text("Waivers"));
   }
 
   private void clearFilters() {

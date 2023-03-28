@@ -7,6 +7,8 @@ import { path } from 'ramda';
 import template from './navigationContainer.html';
 import { load as loadAdvancedSearchConfig } from '../configuration/advancedSearch/advancedSearchConfigActions';
 import { loadConfiguration as loadSuccessMetricsConfig } from '../configuration/successMetricsConfiguration/successMetricsConfigurationActions';
+import { load as loadProductLicense } from '../configuration/license/productLicenseActions';
+
 import {
   selectIsAdvancedLegalPackSupported,
   selectIsFirewallSupportedForNavigationContainer,
@@ -16,6 +18,7 @@ import {
   selectIsDataInsightsSupported,
   selectIsShowVersionEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 /* global clmServerVersion */
 function NavigationContainerController($rootScope, $state, $scope, CurrentUser, $ngRedux) {
@@ -60,6 +63,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
     CurrentUser.waitForLogin().then(function () {
       $ngRedux.dispatch(loadAdvancedSearchConfig());
       $ngRedux.dispatch(loadSuccessMetricsConfig());
+      $ngRedux.dispatch(loadProductLicense());
     });
   }
 
@@ -91,6 +95,7 @@ function mapStateToThis(state) {
     isApiPageEnabled: selectIsApiPageSupported(state),
     isDataInsightsEnabled: selectIsDataInsightsSupported(state),
     isShowVersionEnabled: selectIsShowVersionEnabled(state),
+    isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
   };
 }
 

@@ -241,6 +241,7 @@ public class CLMLicenseManagerTest
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.DASHBOARD, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.POLICY_MONITORING, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
         LicensedFeature.CLI_INTEGRATION, //
@@ -260,6 +261,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.CI_INTEGRATION, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.DASHBOARD, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.POLICY_MONITORING, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
         LicensedFeature.CLI_INTEGRATION, //
@@ -285,6 +287,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.CI_INTEGRATION, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.DASHBOARD, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.POLICY_MONITORING, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
         LicensedFeature.CLI_INTEGRATION, //
@@ -307,6 +310,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.CI_INTEGRATION,
         LicensedFeature.RM_STAGING_INTEGRATION,
         LicensedFeature.DASHBOARD,
+        LicensedFeature.WAIVERS_DASHBOARD,
         LicensedFeature.POLICY_MONITORING,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
         LicensedFeature.CLI_INTEGRATION,
@@ -329,6 +333,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
@@ -342,6 +347,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.RM_STAGING_INTEGRATION);
   }
 
@@ -356,7 +362,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL,
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
-        LicensedFeature.RM_STAGING_INTEGRATION,
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
@@ -372,6 +379,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
@@ -387,7 +395,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.IP_ALLOWLIST);
   }
 
@@ -403,8 +412,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES,
         LicensedFeature.RM_STAGING_INTEGRATION,
-        LicensedFeature.IP_ALLOWLIST,
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+        LicensedFeature.WAIVERS_DASHBOARD,
+        LicensedFeature.IP_ALLOWLIST);
   }
 
   @Test
@@ -414,6 +423,7 @@ public class CLMLicenseManagerTest
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.DASHBOARD, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
         LicensedFeature.CI_INTEGRATION, //
         LicensedFeature.CLI_INTEGRATION, //
         LicensedFeature.RM_STAGING_INTEGRATION, //

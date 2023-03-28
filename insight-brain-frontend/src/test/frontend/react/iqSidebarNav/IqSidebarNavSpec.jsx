@@ -159,6 +159,7 @@ describe('IqSidebarNav', function () {
       const component = getShallowComponent({
         isLoggedIn: true,
         isDashboardAvailable: true,
+        isFirewallOnlyLicense: true,
       });
       const navLink = component.find('#dashboard-navigation-button');
 
@@ -267,6 +268,26 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
+    it('does not render dashboard when dashboard is not allowed', function () {
+      expect(
+        getShallowComponent({
+          isLoggedIn: true,
+          isLicensed: true,
+          isDashboardAvailable: false,
+          isFirewallOnlyLicense: false,
+        }).find('#dashboard-navigation-button')
+      ).not.toExist();
+    });
+
+    it('does not render dashboard when is not firewall only license', function () {
+      expect(
+        getShallowComponent({
+          isLoggedIn: true,
+          isFirewallOnlyLicense: false,
+        }).find('#dashboard-navigation-button')
+      ).not.toExist();
+    });
+
     it('renders an NxGlobalSidebarNavigationLink for legal if allowed', function () {
       expect(getShallowComponent({ isLoggedIn: true }).find('#advanced-legal-navigation-button')).not.toExist();
 
@@ -318,6 +339,7 @@ describe('IqSidebarNav', function () {
           isLoggedIn: true,
           isLicensed: true,
           isDashboardAvailable: true,
+          isFirewallOnlyLicense: true,
           isReportsListAvailable: true,
           isSuccessMetricsEnabled: true,
           isAdvancedSearchEnabled: true,
@@ -344,11 +366,37 @@ describe('IqSidebarNav', function () {
       });
 
       it('renders Reports link as selected when state matches', function () {
+        renderAllLinks = enzymeUtils.getShallowComponent(IqSidebarNav, {
+          isLoggedIn: true,
+          isLicensed: true,
+          isDashboardAvailable: true,
+          isFirewallOnlyLicense: false,
+          isReportsListAvailable: true,
+          isSuccessMetricsEnabled: true,
+          isAdvancedSearchEnabled: true,
+          isFirewallEnabled: true,
+          isLegalEnabled: true,
+          isApiPageEnabled: true,
+          isDataInsightsEnabled: true,
+        });
         includesSpy.and.callFake((state) => state === 'violations');
         expect(renderAllLinks().find('#reporting-navigation-button')).toHaveProp('isSelected', true);
       });
 
       it('renders Success Metrics link as selected when state matches', function () {
+        renderAllLinks = enzymeUtils.getShallowComponent(IqSidebarNav, {
+          isLoggedIn: true,
+          isLicensed: true,
+          isDashboardAvailable: true,
+          isFirewallOnlyLicense: false,
+          isReportsListAvailable: true,
+          isSuccessMetricsEnabled: true,
+          isAdvancedSearchEnabled: true,
+          isFirewallEnabled: true,
+          isLegalEnabled: true,
+          isApiPageEnabled: true,
+          isDataInsightsEnabled: true,
+        });
         includesSpy.and.callFake((state) => state === 'labs');
         expect(renderAllLinks().find('#labs-navigation-button')).toHaveProp('isSelected', true);
       });
@@ -379,6 +427,19 @@ describe('IqSidebarNav', function () {
       });
 
       it('renders Legal link as selected when the state matches', function () {
+        renderAllLinks = enzymeUtils.getShallowComponent(IqSidebarNav, {
+          isLoggedIn: true,
+          isLicensed: true,
+          isDashboardAvailable: true,
+          isFirewallOnlyLicense: false,
+          isReportsListAvailable: true,
+          isSuccessMetricsEnabled: true,
+          isAdvancedSearchEnabled: true,
+          isFirewallEnabled: true,
+          isLegalEnabled: true,
+          isApiPageEnabled: true,
+          isDataInsightsEnabled: true,
+        });
         includesSpy.and.callFake((state) => state === 'legal');
         expect(renderAllLinks().find('#advanced-legal-navigation-button')).toHaveProp('isSelected', true);
       });

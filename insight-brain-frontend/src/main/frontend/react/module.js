@@ -57,6 +57,7 @@ export default angular
         'isApiPageEnabled',
         'isDataInsightsEnabled',
         'isShowVersionEnabled',
+        'isFirewallOnlyLicense',
       ],
       ['$state']
     )

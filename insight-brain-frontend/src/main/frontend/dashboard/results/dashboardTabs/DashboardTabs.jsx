@@ -7,7 +7,7 @@
 import { NxTab, NxTabList, NxTabs } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { isNil, path, toUpper, replace } from 'ramda';
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   APPLICATIONS_RESULTS_TYPE,
   COMPONENTS_RESULTS_TYPE,
@@ -18,28 +18,44 @@ import {
 const capitalizeFirstLetter = replace(/^./, toUpper);
 
 const tabs = [VIOLATIONS_RESULTS_TYPE, COMPONENTS_RESULTS_TYPE, APPLICATIONS_RESULTS_TYPE, WAIVERS_RESULTS_TYPE];
+const firewallOnlyTabs = [WAIVERS_RESULTS_TYPE];
 
 export default function DashboardTabs(props) {
-  const { currentTab, stateGo } = props;
+  const { currentTab, stateGo, isFirewallOnlyLicense } = props;
+
+  useEffect(() => {
+    if (isFirewallOnlyLicense) {
+      stateGo('dashboard.overview.waivers');
+    }
+  });
 
   const handleTabClick = (index) => {
     stateGo(`dashboard.overview.${tabs[index]}`);
   };
 
+  const defaultTabs = tabs.map((tab) => (
+    <NxTab key={tab}>
+      {capitalizeFirstLetter(tab)}
+      {!isNil(path([tab, 'numResults'], props)) && (
+        <span className={`nx-counter ${currentTab === tab && 'nx-counter--active'}`}>
+          {path([tab, 'numResults'], props)}
+        </span>
+      )}
+    </NxTab>
+  ));
+
+  const firewallOnlyLicenseTabs = firewallOnlyTabs.map((tab) => (
+    <NxTab key={tab}>
+      {capitalizeFirstLetter(tab)}
+      {!isNil(path([tab, 'numResults'], props)) && (
+        <span className={`nx-counter nx-counter--active`}>{path([tab, 'numResults'], props)}</span>
+      )}
+    </NxTab>
+  ));
+
   return (
     <NxTabs activeTab={tabs.indexOf(currentTab)} onTabSelect={handleTabClick}>
-      <NxTabList>
-        {tabs.map((tab) => (
-          <NxTab key={tab}>
-            {capitalizeFirstLetter(tab)}
-            {!isNil(path([tab, 'numResults'], props)) && (
-              <span className={`nx-counter ${currentTab === tab && 'nx-counter--active'}`}>
-                {path([tab, 'numResults'], props)}
-              </span>
-            )}
-          </NxTab>
-        ))}
-      </NxTabList>
+      <NxTabList>{isFirewallOnlyLicense ? firewallOnlyLicenseTabs : defaultTabs}</NxTabList>
     </NxTabs>
   );
 }

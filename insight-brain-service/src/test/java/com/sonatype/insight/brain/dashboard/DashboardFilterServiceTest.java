@@ -123,30 +123,72 @@ public class DashboardFilterServiceTest
 
   @Test
   public void testCreateOrUpdateDashboardFilterForCurrentUser_Unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.WAIVERS_DASHBOARD);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(null));
   }
 
   @Test
   public void testDeleteDashboardFiltersForCurrentUserByFilterName_Unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.WAIVERS_DASHBOARD);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> dashboardFilterService.deleteDashboardFilterForCurrentUserByFilterName(null));
   }
 
   @Test
   public void testGetNamedDashboardFiltersForCurrentUser_Unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.WAIVERS_DASHBOARD);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> dashboardFilterService.getNamedDashboardFiltersForCurrentUser());
   }
 
   @Test
   public void testGetActiveDashboardFilterForCurrentUser_Unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.WAIVERS_DASHBOARD);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> dashboardFilterService.getActiveDashboardFilterForCurrentUser());
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUserWorksWhenMissingDashboardFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+
+    NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertThat(actual).isNotNull();
+    assertThat(actual.filter.minPolicyThreatLevel).isEqualTo(2);
+    assertThat(actual.filter.maxPolicyThreatLevel).isEqualTo(10);
+    assertThat(actual.filter.applicationFilters).isEmpty();
+    assertThat(actual.filter.repositoryFilters).isEmpty();
+    assertThat(actual.filter.tagFilters).isEmpty();
+    assertThat(actual.filter.policyThreatCategoryFilters).isEmpty();
+    assertThat(actual.filter.stageTypeFilters).isEmpty();
+    assertThat(actual.filter.maxDaysOld).isEqualTo(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD);
+    assertThat(actual.filter.policyViolationStates).hasSize(1);
+    assertThat(actual.filter.policyViolationStates.get(0))
+        .isEqualTo(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name());
+    assertThat(actual.name).isEqualTo(ACTIVE_FILTER_NAME);
+    assertThat(actual.basedOnFilterName).isNull();
+  }
+
+  @Test
+  public void testGetActiveDashboardFilterForCurrentUserWorksWhenMissingWaiversDashboardFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.WAIVERS_DASHBOARD);
+
+    NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertThat(actual).isNotNull();
+    assertThat(actual.filter.minPolicyThreatLevel).isEqualTo(2);
+    assertThat(actual.filter.maxPolicyThreatLevel).isEqualTo(10);
+    assertThat(actual.filter.applicationFilters).isEmpty();
+    assertThat(actual.filter.repositoryFilters).isEmpty();
+    assertThat(actual.filter.tagFilters).isEmpty();
+    assertThat(actual.filter.policyThreatCategoryFilters).isEmpty();
+    assertThat(actual.filter.stageTypeFilters).isEmpty();
+    assertThat(actual.filter.maxDaysOld).isEqualTo(DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD);
+    assertThat(actual.filter.policyViolationStates).hasSize(1);
+    assertThat(actual.filter.policyViolationStates.get(0))
+        .isEqualTo(DashboardFilterDTO.DEFAULT_POLICY_VIOLATION_STATE.name());
+    assertThat(actual.name).isEqualTo(ACTIVE_FILTER_NAME);
+    assertThat(actual.basedOnFilterName).isNull();
   }
 
   @Test

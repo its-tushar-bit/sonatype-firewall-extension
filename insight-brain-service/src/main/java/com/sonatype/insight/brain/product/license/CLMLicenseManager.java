@@ -524,6 +524,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_MONITORING);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
       features.add(LicensedFeature.DASHBOARD);
+      features.add(LicensedFeature.WAIVERS_DASHBOARD);
       features.add(LicensedFeature.CLI_INTEGRATION);
       features.add(LicensedFeature.ENFORCEMENT);
       features.add(LicensedFeature.NOTIFICATIONS);
@@ -537,6 +538,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_MONITORING);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
       features.add(LicensedFeature.DASHBOARD);
+      features.add(LicensedFeature.WAIVERS_DASHBOARD);
       features.add(LicensedFeature.CLI_INTEGRATION);
       features.add(LicensedFeature.ENFORCEMENT);
       features.add(LicensedFeature.NOTIFICATIONS);
@@ -563,6 +565,7 @@ public class CLMLicenseManager
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
       features.add(LicensedFeature.DASHBOARD);
+      features.add(LicensedFeature.WAIVERS_DASHBOARD);
       features.add(LicensedFeature.CLI_INTEGRATION);
       features.add(LicensedFeature.CI_INTEGRATION);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
@@ -576,6 +579,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+      features.add(LicensedFeature.WAIVERS_DASHBOARD);
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }
@@ -588,6 +592,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+      features.add(LicensedFeature.WAIVERS_DASHBOARD);
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }
@@ -599,6 +604,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_MONITORING);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
       features.add(LicensedFeature.DASHBOARD);
+      features.add(LicensedFeature.WAIVERS_DASHBOARD);
       features.add(LicensedFeature.CLI_INTEGRATION);
       features.add(LicensedFeature.ENFORCEMENT);
       features.add(LicensedFeature.NOTIFICATIONS);
@@ -616,6 +622,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_MONITORING);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
       features.add(LicensedFeature.DASHBOARD);
+      features.add(LicensedFeature.WAIVERS_DASHBOARD);
       features.add(LicensedFeature.CLI_INTEGRATION);
       features.add(LicensedFeature.ENFORCEMENT);
       features.add(LicensedFeature.NOTIFICATIONS);
@@ -637,6 +644,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
       features.add(LicensedFeature.IP_ALLOWLIST);
+      features.add(LicensedFeature.WAIVERS_DASHBOARD);
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }
@@ -648,7 +656,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.IP_ALLOWLIST);
-      features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+      features.add(LicensedFeature.WAIVERS_DASHBOARD);
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }

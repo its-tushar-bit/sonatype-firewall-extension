@@ -182,6 +182,16 @@ public class DefaultProductLicense
   }
 
   @Override
+  public void validateFeatures(final LicensedFeature... features) {
+    for (LicensedFeature feature : features) {
+      if (hasFeature(feature)) {
+        return;
+      }
+    }
+    throw new InvalidLicenseException();
+  }
+
+  @Override
   public Set<StageType> getStageTypes() {
     return getProductLicenseData().stageTypes;
   }

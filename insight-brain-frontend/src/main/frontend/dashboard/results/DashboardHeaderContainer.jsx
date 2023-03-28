@@ -10,6 +10,7 @@ import * as manageFiltersActions from '../filter/manageFiltersActions';
 import * as dashboardFilterActions from '../filter/dashboardFilterActions';
 import { selectExportTitle, selectExportRequestData, selectExportUrl } from '../dashboardSelectors';
 import { stateGo } from '../../reduxUiRouter/routerActions';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 const mapStateToProps = (state) => {
   const { manageFilters, dashboardFilter, dashboard } = state;
@@ -23,6 +24,7 @@ const mapStateToProps = (state) => {
     filters: dashboardFilter.appliedFilter,
     filterLoading: dashboardFilter.loading,
     loadFilterError: dashboardFilter.loadError,
+    isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
   };
 };
 

@@ -48,6 +48,7 @@ function IqSidebarNav(props) {
     isApiPageEnabled,
     isDataInsightsEnabled,
     isShowVersionEnabled,
+    isFirewallOnlyLicense,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -87,7 +88,7 @@ function IqSidebarNav(props) {
     >
       {isLoggedIn && (
         <NxGlobalSidebarNavigation id="global-sidebar-buttons">
-          {isDashboardAvailable && (
+          {(isDashboardAvailable || isFirewallOnlyLicense) && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('dashboard')}
               id="dashboard-navigation-button"
@@ -105,7 +106,7 @@ function IqSidebarNav(props) {
               href={orgsPoliciesHref}
             />
           )}
-          {isReportsListAvailable && (
+          {isReportsListAvailable && !isFirewallOnlyLicense && (
             <NxGlobalSidebarNavigationLink
               isSelected={isReportsSelected}
               id="reporting-navigation-button"
@@ -114,7 +115,7 @@ function IqSidebarNav(props) {
               href={reportsHref}
             />
           )}
-          {isSuccessMetricsEnabled && (
+          {isSuccessMetricsEnabled && !isFirewallOnlyLicense && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('labs')}
               id="labs-navigation-button"
@@ -141,7 +142,7 @@ function IqSidebarNav(props) {
               href={advSearchHref}
             />
           )}
-          {isLicensed && isFirewallEnabled && (
+          {((isLicensed && isFirewallEnabled) || isFirewallOnlyLicense) && (
             <NxGlobalSidebarNavigationLink
               isSelected={isFirewallSelected}
               id="firewall-navigation-button"
@@ -150,7 +151,7 @@ function IqSidebarNav(props) {
               href={firewallHref}
             />
           )}
-          {isLicensed && isLegalEnabled && (
+          {isLicensed && isLegalEnabled && !isFirewallOnlyLicense && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('legal')}
               id="advanced-legal-navigation-button"
@@ -216,5 +217,6 @@ IqSidebarNav.propTypes = {
   isApiPageEnabled: PropTypes.bool,
   isDataInsightsEnabled: PropTypes.bool,
   isShowVersionEnabled: PropTypes.bool,
+  isFirewallOnlyLicense: PropTypes.bool,
 };
 export default IqSidebarNav;

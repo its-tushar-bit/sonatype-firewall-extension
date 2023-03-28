@@ -59,6 +59,8 @@ public interface ProductLicense
 
   void validateFeature(LicensedFeature feature);
 
+  void validateFeatures(LicensedFeature ...features);
+
   Set<StageType> getStageTypes();
 
   ProductLicensingModel getLicensingModel();

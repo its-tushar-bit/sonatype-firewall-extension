@@ -45,8 +45,16 @@ public class DashboardUtils
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
-  void validateDashboardLicensedAndEnabled() {
+  void validateDashboardLicensedAndEnabledForApplications() {
     productLicense.validateFeature(LicensedFeature.DASHBOARD);
+
+    if (systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED) != null) {
+      throw new ConflictException("The dashboard feature has been disabled.");
+    }
+  }
+
+  void validateDashboardLicensedAndEnabled() {
+    productLicense.validateFeatures(LicensedFeature.DASHBOARD, LicensedFeature.WAIVERS_DASHBOARD);
 
     if (systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED) != null) {
       throw new ConflictException("The dashboard feature has been disabled.");

@@ -92,7 +92,7 @@ public class NewestRiskService
                                                            Integer maxDaysOld,
                                                            int maxResults)
   {
-    dashboardUtils.validateDashboardLicensedAndEnabled();
+    dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
 
     validateMaxDaysOld(maxDaysOld);
 

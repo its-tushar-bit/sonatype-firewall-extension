@@ -40,6 +40,8 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 public class SidebarNavigationTest
         extends AbstractFunctionalTest
 {
+  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+
   @Before
   public void before() {
     refreshOrOpen(ReportListPage.url());
@@ -195,6 +197,7 @@ public class SidebarNavigationTest
   @Test
   public void testLegalNavigationButton_HiddenByDefault() {
     setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
+
     refresh();
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
   }
@@ -267,5 +270,258 @@ public class SidebarNavigationTest
     refresh();
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();
     waitUntilUrl(BaseUrl.resolvePageUrl("/dataInsights"));
+  }
+
+  @Test
+  public void testNavigation_FirewallLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    enableAdvancedSearch();
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    setFeatures(LicensedFeature.DATA_INSIGHTS);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
+    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testNavigation_FirewallV2License() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    enableAdvancedSearch();
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    setFeatures(LicensedFeature.DATA_INSIGHTS);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
+    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testNavigation_FoundationLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(visible);
+    SidebarNavigation.labsNavigationButton().shouldBe(visible);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
+    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
+    SidebarNavigation.legalNavigationButton().shouldBe(visible);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_FirewallForArtifactoryLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
+    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_FirewallForArtifactoryV2License() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
+    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_ComponentAnalysisServiceLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_COMPONENT_ANALYSIS_SERVICE);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
+    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_ProductRiskLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(visible);
+    SidebarNavigation.labsNavigationButton().shouldBe(visible);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
+    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
+    SidebarNavigation.legalNavigationButton().shouldBe(visible);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_ProductRiskAndRemediationLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(visible);
+    SidebarNavigation.labsNavigationButton().shouldBe(visible);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
+    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
+    SidebarNavigation.legalNavigationButton().shouldBe(visible);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_AdvancedDevelopmentPackLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_ADVANCED_DEVELOPMENT_PACK);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(hidden);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(visible);
+    SidebarNavigation.labsNavigationButton().shouldBe(visible);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
+    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
+    SidebarNavigation.legalNavigationButton().shouldBe(visible);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_AdvancedLegalPackLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(hidden);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(visible);
+    SidebarNavigation.labsNavigationButton().shouldBe(visible);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
+    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
+    SidebarNavigation.legalNavigationButton().shouldBe(visible);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testNavigation_FirewallV1V2_FirewallForArtifactory() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    enableAdvancedSearch();
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_V2,
+        ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    setFeatures(LicensedFeature.DATA_INSIGHTS);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
+    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+  }
+
+  private void enableAdvancedSearch() {
+    dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
   }
 }

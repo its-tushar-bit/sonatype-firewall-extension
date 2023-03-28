@@ -111,10 +111,82 @@ public class DashboardPolicyWaiverServiceTest
 
   @Test
   public void getDashboardPolicyWaivers_Unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.WAIVERS_DASHBOARD);
     ThrowingCallable functionCall =
         () -> dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(functionCall);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_worksWhenMissingWaiversDashboardFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.WAIVERS_DASHBOARD);
+
+    IntConsumer intConsumer = value -> {
+      Policy testPolicy = tempEntity.newPolicy(org);
+      tempEntity.newWaiver(testPolicy.getId(), app1.getId());
+    };
+    IntStream.range(0, 10).forEach(intConsumer);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withMaxResults(2);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_worksWhenMissingDashboardFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+
+    IntConsumer intConsumer = value -> {
+      Policy testPolicy = tempEntity.newPolicy(org);
+      tempEntity.newWaiver(testPolicy.getId(), app1.getId());
+    };
+    IntStream.range(0, 10).forEach(intConsumer);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withMaxResults(2);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaiversForExport_worksWhenMissingWaiversDashboardFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.WAIVERS_DASHBOARD);
+
+    IntConsumer intConsumer = value -> {
+      Policy testPolicy = tempEntity.newPolicy(org);
+      tempEntity.newWaiver(testPolicy.getId(), app1.getId());
+    };
+    IntStream.range(0, 10).forEach(intConsumer);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withMaxResults(2);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaiversForExport_worksWhenMissingDashboardFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+
+    IntConsumer intConsumer = value -> {
+      Policy testPolicy = tempEntity.newPolicy(org);
+      tempEntity.newWaiver(testPolicy.getId(), app1.getId());
+    };
+    IntStream.range(0, 10).forEach(intConsumer);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withMaxResults(2);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
   }
 
   @Test
@@ -677,7 +749,7 @@ public class DashboardPolicyWaiverServiceTest
 
   @Test
   public void getDashboardPolicyWaiversForExport_Unlicensed() {
-    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
+    testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.WAIVERS_DASHBOARD);
 
     risksFilterDTOBuilder.withMaxResults(Integer.MAX_VALUE);
     ThrowingCallable functionCall =

@@ -88,4 +88,55 @@ public class TenantContextJobListenerTest
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(GLOBAL_TENANT);
     });
   }
+
+  /**
+   * https://issues.sonatype.org/browse/CLM-25106 If an exception is thrown before a job is executed (i.e. by a
+   * listener) then jobWasExecuted or jobExecutionVetoed are not called. These methods are used to invalidate a tenant.
+   * Without these being called a tenant is left against the thread in a "valid" state, meaning the thread cannot be
+   * reused.
+   */
+  @Test
+  public void shouldInvalidateTenant_beforeSettingUpJobExecution() throws Exception {
+    String tenantForJob = "tenant-for-job";
+    when(detail.getKey()).thenReturn(new JobKey("name", tenantForJob));
+
+    testAsNewTenant(tenant -> {
+
+      underTest.jobToBeExecuted(context);
+
+      assertThat(tenant.isInvalid()).isTrue();
+      assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(GLOBAL_TENANT);
+
+      verify(tenantManager).setTenant(new Tenant(tenantForJob));
+    });
+  }
+
+  /**
+   * The tenant currently against the thread "tenant" will be invalidated immediately by jobToBeExecuted (see:
+   * shouldInvalidateTenant_beforeSettingUpJobExecution). jobTenant is the tenant retrieved from the Quartz job
+   * table. If it has been set by the test and an exception is thrown AFTER it has been set then it also should be
+   * invalidated.
+   */
+  @Test
+  public void shouldInvalidateTenant_whenExceptionThrown() throws Exception {
+    Tenant jobTenant = TenantTestHelper.createTenant(testName);
+
+    when(detail.getKey()).thenAnswer(i -> {
+      TenantTestHelper.setTenant(jobTenant);
+
+      throw new RuntimeException("Intentional failure thrown after tenant has been set");
+    });
+
+    testAsNewTenant(tenant -> {
+      try {
+        underTest.jobToBeExecuted(context);
+      }
+      catch (Exception e) {
+        //no-op
+      }
+
+      assertThat(jobTenant.isInvalid()).isTrue();
+      assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(GLOBAL_TENANT);
+    });
+  }
 }

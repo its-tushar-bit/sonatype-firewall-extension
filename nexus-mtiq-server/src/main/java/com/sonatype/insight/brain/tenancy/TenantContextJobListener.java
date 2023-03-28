@@ -33,19 +33,28 @@ public class TenantContextJobListener
 
   @Override
   public void jobToBeExecuted(JobExecutionContext context) {
-    String group = context.getJobDetail().getKey().getGroup();
+    try {
+      tidyUp();
 
-    Tenant tenant;
-    if (tenantUtil.isGlobalTenant(group)) {
-      tenant = Tenant.GLOBAL_TENANT;
+      String group = context.getJobDetail().getKey().getGroup();
+
+      Tenant tenant;
+      if (tenantUtil.isGlobalTenant(group)) {
+        tenant = Tenant.GLOBAL_TENANT;
+      }
+      else {
+        tenant = new Tenant(group);
+      }
+
+      tenantUtil.validateTenantForType(context.getJobInstance().getClass(), tenant);
+
+      tenantManager.setTenant(tenant);
     }
-    else {
-      tenant = new Tenant(group);
+    catch (Exception e) {
+      tidyUp();
+
+      throw new RuntimeException(e);
     }
-
-    tenantUtil.validateTenantForType(context.getJobInstance().getClass(), tenant);
-
-    tenantManager.setTenant(tenant);
   }
 
   @Override

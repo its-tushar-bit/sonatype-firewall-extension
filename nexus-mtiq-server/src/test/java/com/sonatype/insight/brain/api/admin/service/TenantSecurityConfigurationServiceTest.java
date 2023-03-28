@@ -100,7 +100,7 @@ public class TenantSecurityConfigurationServiceTest
       verify(apiSamlConfigurationService).insertOrUpdateSamlConfigurationNoAuthz(IDENTITY_PROVIDER_XML,
           securityConfiguration.getSamlConfiguration());
       verify(roleDAO).getGlobalRoles();
-      verify(membershipMappingService).setMembershipMappingsForGlobalContextNoAuthz(roleToMembersCaptor.capture());
+      verify(membershipMappingService).grantMembershipMappingsForGlobalContextNoAuthz(roleToMembersCaptor.capture());
 
       assertRolesToMembersMappingIsTheExpected();
     });

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -567,6 +568,44 @@ public class MembershipMappingServiceTest
     assertThatExceptionOfType(UnsupportedOperationException.class)
         .isThrownBy(() -> membershipMappingService.getIdGlobalOrRepositoryContainer(OwnerType.APPLICATION))
         .withMessage("Only for global and repository_container");
+  }
+
+  @Test
+  public void testGrantMembershipMappingsForGlobalContextNoAuthz_PostsEvent() throws Exception {
+    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    eventBus.register(handler);
+
+    String username = "username";
+    Role role = tempEntity.newRole(true, Permission.READ);
+    Member member = new Member(MemberType.USER, username, username);
+
+    Map<String, List<Member>> roleToMembers = new HashMap<>();
+    roleToMembers.put(role.getId(), Collections.singletonList(member));
+    roleToMembers.put(SYSTEM_ADMIN_ROLE_ID, Collections.singletonList(member));
+    roleToMembers.put(POLICY_ADMIN_ROLE_ID, Collections.singletonList(member));
+
+    membershipMappingService.grantMembershipMappingsForGlobalContextNoAuthz(roleToMembers);
+
+    ApiRoleMemberMappingListDTO listDTO = membershipMappingService
+        .getRoleMembershipsOmitEmpty(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
+
+    List<ApiRoleMemberMappingDTO> memberMappings = listDTO.memberMappings;
+    assertThat(memberMappings).hasSize(3);
+
+    ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
+    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(POLICY_ADMIN_ROLE_ID);
+    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).contains(username);
+
+    apiRoleMemberMappingDTO = memberMappings.get(1);
+    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(role.getId());
+    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).contains(username);
+
+    apiRoleMemberMappingDTO = memberMappings.get(2);
+    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(SYSTEM_ADMIN_ROLE_ID);
+    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).contains(username);
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(UPDATED);
   }
 
   private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {

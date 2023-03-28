@@ -289,10 +289,6 @@ public class MembershipMappingService
     setMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
   }
 
-  public void setMembershipMappingsForGlobalContextNoAuthz(Map<String, List<Member>> roleToMembers) {
-    setMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
-  }
-
   @Authorize(permission = Permission.EDIT_ACCESS_CONTROL)
   void grantRoleMembershipForNonGlobalContext(
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
@@ -467,5 +463,53 @@ public class MembershipMappingService
     auditData.setData("roleId", role.getId());
     auditData.setData("roleName", role.getName());
     auditData.setData("roleMember", MemberDTO.transcribe(member));
+  }
+
+  public void grantMembershipMappingsForGlobalContextNoAuthz(Map<String, List<Member>> roleToMembers) {
+    grantMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
+  }
+
+  private void grantMembershipMappingsForRoles(
+      OwnerType ownerType,
+      String internalOwnerId,
+      Map<String, List<Member>> roleToMembers)
+  {
+    try (TransactionContext tx = membershipMappingDAO.createTransactionContext()) {
+      tx.begin();
+
+      for (Entry<String, List<Member>> entry : roleToMembers.entrySet()) {
+        String roleId = entry.getKey();
+        List<Member> members = entry.getValue();
+        grantMembershipMappingsForRole(tx, ownerType, internalOwnerId, roleId, members);
+      }
+
+      tx.commit();
+      AuditData.get().commitSubEvents();
+    }
+
+    managementEventService.postEvent(EventAction.UPDATED, roleToMembers, internalOwnerId);
+  }
+
+  private void grantMembershipMappingsForRole(
+      final TransactionContext tx,
+      final OwnerType ownerType,
+      final String internalOwnerId,
+      final String roleId,
+      final List<Member> members)
+  {
+    log.debug("Granting membership mappings for {} id {} and role id {}", ownerType, internalOwnerId, roleId);
+
+    final Role role = validateRole(ownerType, roleId);
+
+    validateContextId(ownerType, internalOwnerId);
+
+    for (final Member member : members) {
+      validateMember(member);
+      final MembershipMapping membershipMapping =
+          new MembershipMapping(internalOwnerId, roleId, member.getInternalName(), member.getType());
+      membershipMappingDAO.insert(tx, membershipMapping);
+    }
+
+    auditConfigureRoleMembership(role, members);
   }
 }

@@ -105,6 +105,6 @@ public class TenantSecurityConfigurationService
       roleToMembers.put(role.getId(), adminMembers);
     }
 
-    membershipMappingService.setMembershipMappingsForGlobalContextNoAuthz(roleToMembers);
+    membershipMappingService.grantMembershipMappingsForGlobalContextNoAuthz(roleToMembers);
   }
 }

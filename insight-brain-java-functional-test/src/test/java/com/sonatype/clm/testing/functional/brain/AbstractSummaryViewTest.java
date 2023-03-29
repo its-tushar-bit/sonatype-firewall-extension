@@ -13,6 +13,8 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
+import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccess;
+import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
@@ -470,7 +472,7 @@ public abstract class AbstractSummaryViewTest
       AccessTileList list = accessTile.accessList(i);
 
       if (i == 0) {
-        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
+        list.ownerName().shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
         list.emptyDescriptor().should(exist);
 
       }
@@ -622,7 +624,7 @@ public abstract class AbstractSummaryViewTest
 
       if (i == 0) {
         list.elements().shouldHaveSize(2);
-        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
+        list.ownerName().shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
 
         AccessTileListElement readOnly = list.element(0);
         readOnly.chevron().shouldBe(visible);
@@ -902,39 +904,50 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testAccessTile_Inherited(User testUser, List<Owner> parentOwners) {
-
-    int hierarchySize = getHierarchySize(currentOwner);
     AccessTile accessTile = OwnerSummaryPage.accessTile();
+    int hierarchySize = getHierarchySize(currentOwner);
     accessTile.accessLists().shouldHaveSize(hierarchySize);
+    accessTile.inheritedAccessLists().shouldHaveSize(parentOwners.size());
 
     // scroll to the access tile
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
     ScrollUtil.scrollIntoViewInstantly(accessTile.getElement());
 
-    for (int i = 0; i < hierarchySize; i++) {
-      AccessTileList list = accessTile.accessList(i);
+    AccessTileList list = accessTile.accessList(0);
+    list.ownerName().shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
+    list.emptyDescriptor().shouldBe(exist);
 
-      if (i == 0) {
-        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
-        list.emptyDescriptor().should(exist);
-      }
-      else {
-        list.emptyDescriptor().shouldBe(hidden);
-        list.ownerName().shouldBe(visible).shouldHave(AccessTile.inheritedText(parentOwners.get(i - 1).getName()));
-        list.elements().shouldHaveSize(2);
+    for (int i = 0; i < parentOwners.size(); i++) {
+      Owner parent = parentOwners.get(i);
+      InheritedAccessList inheritedAccessList = accessTile.inheritedAccessList(parent.getId());
 
-        AccessTileListElement readOnly = list.element(0);
-        readOnly.chevron().shouldBe(hidden);
-        readOnly.role().shouldBe(visible).shouldHave(text("Read Only"));
-        readOnly.groupIcon().shouldBe(visible);
-        readOnly.members().shouldBe(visible).shouldHave(text("Group"));
+      //Expanded by default
+      accessTile.accessListSubheader(i).shouldBe(visible)
+          .shouldHave(AccessTile.inheritedText(parentOwners.get(i).getName()));
+      inheritedAccessList.should(exist).shouldBe(visible);
+      //Collapse
+      accessTile.accessListSubheader(i).shouldBe(visible).click();
+      inheritedAccessList.should(exist).shouldNotBe(visible);
+      //Expanded again
+      accessTile.accessListSubheader(i).shouldBe(visible).click();
 
-        AccessTileListElement writeOnly = list.element(1);
-        writeOnly.chevron().shouldBe(hidden);
-        writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
-        writeOnly.userIcon().shouldBe(visible);
-        writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
-      }
+      inheritedAccessList.elements().shouldHaveSize(2);
+
+      InheritedAccess readOnly = inheritedAccessList.element(0);
+      readOnly.label().shouldBe(visible).shouldHave(text("Read Only"));
+
+      AccessTileListElement descriptionRead = readOnly.description();
+      descriptionRead.chevron().shouldBe(hidden);
+      descriptionRead.groupIcon().shouldBe(visible);
+      descriptionRead.members().shouldBe(visible).shouldHave(text("Group"));
+
+      InheritedAccess writeOnly = inheritedAccessList.element(1);
+      writeOnly.label().shouldBe(visible).shouldHave(text("Write Only"));
+
+      AccessTileListElement descriptionWrite = writeOnly.description();
+      descriptionWrite.chevron().shouldBe(hidden);
+      descriptionWrite.userIcon().shouldBe(visible);
+      descriptionWrite.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
     }
   }
 

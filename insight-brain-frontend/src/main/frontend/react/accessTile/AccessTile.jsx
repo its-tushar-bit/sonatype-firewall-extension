@@ -9,11 +9,11 @@ import { faPlus, faUser, faUsers } from '@fortawesome/pro-solid-svg-icons';
 import {
   NxFontAwesomeIcon,
   NxTile,
-  NxList,
   NxDescriptionList,
   NxH2,
   NxH3,
   NxLoadWrapper,
+  NxCollapsibleItems,
 } from '@sonatype/react-shared-components';
 import {
   selectIsRepositoriesRelated,
@@ -27,10 +27,12 @@ import {
   selectLoading,
   selectExtendedMembersByRole,
   selectRolesWithoutLocalMembersExist,
+  selectInheritedAccessOpen,
 } from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
 
 import { actions as accessActions } from 'MainRoot/OrgsAndPolicies/access/accessSlice';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { isEmpty } from 'ramda';
 
 export default function AccessTile() {
@@ -44,6 +46,8 @@ export default function AccessTile() {
   const rolesWithoutLocalMembersExist = useSelector(selectRolesWithoutLocalMembersExist);
   const ownerName = useSelector(selectSelectedOwnerName);
   const localRoles = extMembersRoles?.filter((role) => role.isInherited !== true)[0]?.roles || [];
+  const inheritedAccessOpen = useSelector(selectInheritedAccessOpen);
+  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
 
   const inheritedRoles =
     extMembersRoles
@@ -75,33 +79,85 @@ export default function AccessTile() {
     });
   };
 
-  const mapLocalAccessDataRow = (accessDataRow) => (
-    <NxDescriptionList.LinkItem
-      key={accessDataRow.roleId}
-      term={accessDataRow.roleName}
-      description={accessDataRow?.members?.map(mapMembersData)}
-      href={editRoleUrl(accessDataRow.roleId)}
-    />
-  );
+  const mapLocalAccessDataRow = (accessDataRow) => {
+    return hasEditIqPermission ? (
+      <NxDescriptionList.LinkItem
+        key={accessDataRow.roleId}
+        term={accessDataRow.roleName}
+        description={accessDataRow?.members?.map(mapMembersData)}
+        href={editRoleUrl(accessDataRow.roleId)}
+      />
+    ) : (
+      <NxDescriptionList.Item key={accessDataRow.roleId}>
+        <NxDescriptionList.Term>{accessDataRow.roleName}</NxDescriptionList.Term>
+        <NxDescriptionList.Description>{accessDataRow?.members?.map(mapMembersData)}</NxDescriptionList.Description>
+      </NxDescriptionList.Item>
+    );
+  };
 
-  const mapInheritedAccessRoles = (accessDataRow) => (
-    <NxDescriptionList.Item key={accessDataRow.roleId}>
-      <NxDescriptionList.Term>
-        <NxList.Text>{accessDataRow.roleName}</NxList.Text>
-      </NxDescriptionList.Term>
-      <NxDescriptionList.Description>{accessDataRow?.members?.map(mapMembersData)}</NxDescriptionList.Description>
-    </NxDescriptionList.Item>
-  );
+  const toggleInheritedAccessOpen = (ownerId) => dispatch(accessActions.toggleInheritedAccessOpen(ownerId));
 
   const mapInheritedAccessDataRow = (inheritedOwner) => {
     return (
       inheritedOwner.roles &&
       !isEmpty(inheritedOwner.roles) && (
-        <section key={inheritedOwner.ownerId}>
-          <NxH3>Inherited from {inheritedOwner.ownerName}</NxH3>
-          <NxDescriptionList>{inheritedOwner.roles?.map(mapInheritedAccessRoles)}</NxDescriptionList>
-        </section>
+        <NxTile.Subsection key={inheritedOwner.ownerId}>
+          <NxCollapsibleItems
+            onToggleCollapse={() => toggleInheritedAccessOpen(inheritedOwner.ownerId)}
+            isOpen={inheritedAccessOpen && inheritedAccessOpen[inheritedOwner.ownerId]}
+            triggerContent={
+              <>
+                <h3 className="nx-h3 access-header">Inherited from {inheritedOwner.ownerName}</h3>
+                {inheritedAccessOpen && !inheritedAccessOpen[inheritedOwner.ownerId]
+                  ? getToggleInfo(inheritedOwner.roles)
+                  : null}
+              </>
+            }
+          >
+            <dl id={'access-for-' + inheritedOwner.ownerId}>{inheritedOwner.roles?.map(mapInheritedAccessRoles)}</dl>
+          </NxCollapsibleItems>
+        </NxTile.Subsection>
       )
+    );
+  };
+
+  const getToggleInfo = (membersByOwner) => {
+    let totalUsers = 0;
+    let totalGroups = 0;
+    membersByOwner?.forEach((owner) => {
+      if (owner) {
+        const { users, groups } = countElements(owner.members);
+        totalUsers += users;
+        totalGroups += groups;
+      }
+    });
+    return <div className="access-header-text">{totalUsers + ' Users and ' + totalGroups + ' User Groups'}</div>;
+  };
+
+  const countElements = (members) => {
+    return members?.reduce(
+      (accumulator, member) => {
+        if (member.type === 'USER') {
+          accumulator.users++;
+        } else if (member.type === 'GROUP') {
+          accumulator.groups++;
+        }
+        return accumulator;
+      },
+      { users: 0, groups: 0 }
+    );
+  };
+
+  const mapInheritedAccessRoles = (accessDataRow) => {
+    return (
+      <NxCollapsibleItems.Child key={accessDataRow.roleId}>
+        <div className="access-element">
+          <dt className="access-label">
+            <span>{accessDataRow.roleName}</span>
+          </dt>
+          <dd className="access-description">{accessDataRow?.members?.map(mapMembersData)}</dd>
+        </div>
+      </NxCollapsibleItems.Child>
     );
   };
 
@@ -131,12 +187,11 @@ export default function AccessTile() {
         </NxTile.Header>
         <NxTile.Content>
           <section key="iq-access-tile-local-access-section">
-            <NxH3>Local</NxH3>
+            <NxH3> {isRepositoriesRelated ? 'Local' : 'Local to ' + ownerName}</NxH3>
             <NxDescriptionList emptyMessage={'No local access configured.'} id="iq-access-tile-local-access-list">
               {localRoles?.map(mapLocalAccessDataRow)}
             </NxDescriptionList>
           </section>
-
           {inheritedRoles.map(mapInheritedAccessDataRow)}
         </NxTile.Content>
       </NxLoadWrapper>

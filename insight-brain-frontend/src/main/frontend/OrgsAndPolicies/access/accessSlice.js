@@ -41,6 +41,7 @@ const REDUCER_NAME = 'access';
 
 export const initialState = {
   addedUsers: [],
+  inheritedAccessOpen: null,
   serverAddedUsers: [],
   siblings: [],
   fetchUsers: { data: [], loading: false, loadError: null, partialError: null, mostRecentUserQuery: null },
@@ -59,6 +60,10 @@ export const initialState = {
   groupName: rscInitialState(''),
   noRolesAvailableError: null,
   fetchUsersData: [],
+};
+
+const toggleInheritedAccessOpen = (state, { payload }) => {
+  state.inheritedAccessOpen[payload] = !state.inheritedAccessOpen[payload];
 };
 
 export const loadRolesIfNeeded = () => (dispatch, getState) => {
@@ -120,6 +125,14 @@ const loadRolesFulfilled = (state, { payload }) => {
   const { withoutLocalMembers = [], withLocalMembers = [] } = groupRolesByMembership(payload.data.membersByRole);
   state.availableRoles = withoutLocalMembers;
   state.siblings = withLocalMembers;
+
+  const newInheritedAccessOpen = {};
+  payload.data.membersByRole?.forEach((role) => {
+    role?.membersByOwner?.forEach((member) => {
+      newInheritedAccessOpen[member.ownerId] = true;
+    });
+  });
+  state.inheritedAccessOpen = newInheritedAccessOpen;
 };
 
 const loadRolesFailed = (state, { payload }) => {
@@ -331,6 +344,7 @@ const accessEditPageSlice = createSlice({
     saveMaskTimerDone: propSet('submitMaskState', null),
     deleteMaskTimerDone: propSet('deleteMaskState', null),
     clearDeleteError,
+    toggleInheritedAccessOpen,
   },
   extraReducers: {
     [loadRoles.pending]: loadRolesRequested,

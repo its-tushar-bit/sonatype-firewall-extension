@@ -21,6 +21,7 @@ export const selectRolesSiblings = createSelector(selectAccessSlice, prop('sibli
 export const selectFetchUsers = createSelector(selectAccessSlice, prop('fetchUsers'));
 export const selectServerData = createSelector(selectAccessSlice, prop('serverData'));
 export const selectMembersByRole = createSelector(selectServerData, propOr([], 'membersByRole'));
+export const selectInheritedAccessOpen = createSelector(selectAccessSlice, prop('inheritedAccessOpen'));
 export const selectExtendedMembersByRole = createSelector(selectMembersByRole, (membersByRole) => {
   const owners = membersByRole[0]?.membersByOwner.map((owner, index) => {
     const roles = membersByRole

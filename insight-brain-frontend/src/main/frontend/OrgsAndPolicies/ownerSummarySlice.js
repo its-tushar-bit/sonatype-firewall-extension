@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { propSet } from '../util/reduxToolkitUtil';
-import { selectOwnerInfo } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRepositoriesRelated, selectOwnerInfo } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
@@ -21,8 +21,11 @@ const checkEditIqPermission = createAsyncThunk(
   `${REDUCER_NAME}/checkEditIqPermission`,
   (_, { rejectWithValue, getState }) => {
     const state = getState();
-    const { ownerType } = selectOwnerInfo(state);
-    const { id: ownerId } = selectSelectedOwner(state);
+    const isRepositoriesRelated = selectIsRepositoriesRelated(state);
+    const ownerInfo = selectOwnerInfo(state);
+    const selectedOwner = selectSelectedOwner(state);
+    const ownerType = isRepositoriesRelated ? 'repository_container' : ownerInfo.ownerType;
+    const ownerId = selectedOwner.id;
     return checkPermissions(['WRITE'], ownerType, ownerId).catch(rejectWithValue);
   }
 );

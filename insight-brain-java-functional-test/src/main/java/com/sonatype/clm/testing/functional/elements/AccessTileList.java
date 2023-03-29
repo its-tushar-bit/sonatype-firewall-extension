@@ -53,6 +53,10 @@ public class AccessTileList
       return child(".nx-list__text");
     }
 
+    public SelenideElement roleNoPermission() {
+      return child(".nx-list__term");
+    }
+
     public SelenideElement members() {
       return child(".iq-access-tile-member-container");
     }
@@ -63,6 +67,10 @@ public class AccessTileList
 
     public SelenideElement groupIcon() {
       return child(".fa-users");
+    }
+
+    public AccessTileListElement description() {
+      return new AccessTileListElement(selector, ".nx-list__description");
     }
   }
 }

@@ -68,5 +68,28 @@ describe('ownerSummarySlice actions', () => {
         done();
       });
     });
+
+    fit('dispatches fulfilled action if the permission check passes for repository', (done) => {
+      spyOn(routerSelectors, 'selectIsRepositoriesRelated').and.returnValue(true);
+
+      mockAxiosCalls({
+        put: {
+          [getPermissionContextTestUrl('repository_container', mockOwnerId)]: Promise.resolve({ data: ['WRITE'] }),
+        },
+      });
+
+      store.dispatch(actions.checkEditIqPermission()).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'ownerSummary/checkEditIqPermission/pending',
+          'ownerSummary/checkEditIqPermission/fulfilled',
+        ]);
+        done();
+      });
+    });
   });
 });

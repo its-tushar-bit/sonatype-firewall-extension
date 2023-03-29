@@ -251,6 +251,9 @@ describe('access reducer', () => {
           ],
         }),
       ]);
+      expect(newState.inheritedAccessOpen).toEqual({
+        ROOT_ORGANIZATION_ID: true,
+      });
     });
   });
 
@@ -902,6 +905,50 @@ describe('access reducer', () => {
         value: 'test123',
         trimmedValue: 'test123',
         validationErrors: null,
+      });
+    });
+  });
+
+  describe('access/toggleInheritedAccessOpen', () => {
+    it('toggles inheritedAccessOpen to true for the given ownerId', () => {
+      const state = Object.freeze({
+        inheritedAccessOpen: {
+          ownerId: false,
+          otherOwnerId1: false,
+          otherOwnerId2: true,
+        },
+      });
+
+      const { inheritedAccessOpen } = reducer(state, {
+        type: 'access/toggleInheritedAccessOpen',
+        payload: 'ownerId',
+      });
+
+      expect(inheritedAccessOpen).toEqual({
+        ownerId: true,
+        otherOwnerId1: false,
+        otherOwnerId2: true,
+      });
+    });
+
+    it('toggles inheritedAccessOpen to false for the given ownerId', () => {
+      const state = Object.freeze({
+        inheritedAccessOpen: {
+          ownerId: true,
+          otherOwnerId1: false,
+          otherOwnerId2: true,
+        },
+      });
+
+      const { inheritedAccessOpen } = reducer(state, {
+        type: 'access/toggleInheritedAccessOpen',
+        payload: 'ownerId',
+      });
+
+      expect(inheritedAccessOpen).toEqual({
+        ownerId: false,
+        otherOwnerId1: false,
+        otherOwnerId2: true,
       });
     });
   });

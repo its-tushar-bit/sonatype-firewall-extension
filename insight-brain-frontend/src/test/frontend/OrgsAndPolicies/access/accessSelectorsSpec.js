@@ -22,6 +22,7 @@ import {
   selectAccessSlice,
   selectExtendedMembersByRole,
   selectRolesWithoutLocalMembersExist,
+  selectInheritedAccessOpen,
 } from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
@@ -305,6 +306,9 @@ describe('accessSelectors', () => {
             value: 'groupName',
             trimmedValue: 'groupName',
             validationErrors: null,
+          },
+          inheritedAccessOpen: {
+            '6b365e8a8000449aa924f194a7ed0d27': false,
           },
         },
       },
@@ -773,6 +777,15 @@ describe('accessSelectors', () => {
       );
       const actual = selectRolesWithoutLocalMembersExist(newMockState);
       expect(actual).toBeFalse();
+    });
+  });
+
+  describe('selectInheritedAccessOpen', () => {
+    it('returns inheritedAccessOpen map', () => {
+      const expected = {
+        '6b365e8a8000449aa924f194a7ed0d27': false,
+      };
+      expect(selectInheritedAccessOpen(mockState)).toEqual(expected);
     });
   });
 });

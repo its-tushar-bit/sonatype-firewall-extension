@@ -12,6 +12,8 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
+import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccess;
+import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
@@ -228,16 +230,20 @@ public class RepositoriesSummaryViewTest
     localList.ownerName().shouldBe(visible).shouldHave(text("Local"));
 
     AccessTileListElement readOnly = localList.element(0);
-    readOnly.chevron().shouldBe(visible);
-    readOnly.role().shouldBe(visible).shouldHave(text("Read Only"));
-    readOnly.groupIcon().shouldBe(visible);
-    readOnly.members().shouldBe(visible).shouldHave(text("Group"));
+    readOnly.roleNoPermission().shouldBe(visible).shouldHave(text("Read Only"));
+
+    AccessTileListElement descriptionRead = readOnly.description();
+    descriptionRead.chevron().shouldBe(visible);
+    descriptionRead.groupIcon().shouldBe(visible);
+    descriptionRead.members().shouldBe(visible).shouldHave(text("Group"));
 
     AccessTileListElement writeOnly = localList.element(1);
-    writeOnly.chevron().shouldBe(visible);
-    writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
-    writeOnly.userIcon().shouldBe(visible);
-    writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
+    writeOnly.roleNoPermission().shouldBe(visible).shouldHave(text("Write Only"));
+
+    AccessTileListElement descriptionWrite = writeOnly.description();
+    descriptionWrite.chevron().shouldBe(visible);
+    descriptionWrite.userIcon().shouldBe(visible);
+    descriptionWrite.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
 
     AccessTileList inheritedList = accessTile.accessList(1);
 
@@ -782,23 +788,26 @@ public class RepositoriesSummaryViewTest
     localList.ownerName().shouldBe(visible).shouldHave(text("Local"));
     localList.emptyDescriptor().should(exist);
 
-    AccessTileList inheritedList = accessTile.accessList(1);
+    InheritedAccessList inheritedAccessList = accessTile.inheritedAccessList("ROOT_ORGANIZATION_ID");
 
-    inheritedList.emptyDescriptor().shouldBe(hidden);
-    inheritedList.ownerName().shouldBe(visible).shouldHave(AccessTile.inheritedText("Root Organization"));
-    inheritedList.elements().shouldHaveSize(2);
+    accessTile.accessListSubheader(0).shouldBe(visible).shouldHave(AccessTile.inheritedText("Root Organization"));
+    inheritedAccessList.elements().shouldHaveSize(2);
 
-    AccessTileListElement readOnly = inheritedList.element(0);
-    readOnly.chevron().shouldBe(hidden);
-    readOnly.role().shouldBe(visible).shouldHave(text("Read Only"));
-    readOnly.groupIcon().shouldBe(visible);
-    readOnly.members().shouldBe(visible).shouldHave(text("Group"));
+    InheritedAccess readOnly = inheritedAccessList.element(0);
+    readOnly.label().shouldBe(visible).shouldHave(text("Read Only"));
 
-    AccessTileListElement writeOnly = inheritedList.element(1);
-    writeOnly.chevron().shouldBe(hidden);
-    writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
-    writeOnly.userIcon().shouldBe(visible);
-    writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
+    AccessTileListElement descriptionRead = readOnly.description();
+    descriptionRead.chevron().shouldBe(hidden);
+    descriptionRead.groupIcon().shouldBe(visible);
+    descriptionRead.members().shouldBe(visible).shouldHave(text("Group"));
+
+    InheritedAccess writeOnly = inheritedAccessList.element(1);
+    writeOnly.label().shouldBe(visible).shouldHave(text("Write Only"));
+
+    AccessTileListElement descriptionWrite = writeOnly.description();
+    descriptionWrite.chevron().shouldBe(hidden);
+    descriptionWrite.userIcon().shouldBe(visible);
+    descriptionWrite.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
   }
 
   private void setupDataForSorting() {

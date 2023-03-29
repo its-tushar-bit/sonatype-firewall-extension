@@ -12,11 +12,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.support.SupportInformation;
 import com.sonatype.insight.brain.support.SupportInfoUtil;
+import com.sonatype.insight.brain.support.SupportInformation;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -52,15 +50,13 @@ public class TenantSupportInfoService
     this.supportInfoUtil = supportInfoUtil;
   }
 
-  public File getSupportZip() throws IOException {
-    final Tenant tenant = TenantThreadLocal.getTenant();
-
+  public File getSupportZip(final String tenantSlug) throws IOException {
     if (tenantUtil.isGlobalTenant()) {
-      log.error("Cannot generate Support Info, invalid Tenant: {}", tenant);
+      log.error("Cannot generate Support Info, invalid Tenant: {}", tenantSlug);
       throw new BadRequestException("Invalid tenant");
     }
 
-    if (!tenantValidator.validateTenantExists(tenant)) {
+    if (!tenantValidator.validateTenantExists(tenantSlug)) {
       log.error("Cannot generate Support Info, Tenant does not exist");
       throw new NotFoundException("Tenant doesn't exist");
     }

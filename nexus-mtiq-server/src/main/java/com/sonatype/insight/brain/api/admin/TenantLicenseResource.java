@@ -18,6 +18,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.service.TenantLicenseService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -37,6 +39,7 @@ public class TenantLicenseResource
   @PUT
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.TEXT_PLAIN)
+  @Audited(AuditEvent.INSTALL_TENANT_LICENSE)
   public void updateLicense(
       @FormDataParam("file") InputStream inputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail,

@@ -14,6 +14,7 @@ import javax.servlet.Filter;
 import javax.ws.rs.Path;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
+import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.MultiTenantAuditRecorder;
 import com.sonatype.insight.brain.component.MultiTenantRepositoryIdentifiedComponentCache;
@@ -74,7 +75,7 @@ public class MultiTenantInsightBrainService
 {
   public static final String ADMIN_BASE_PATH = "/api/*";
 
-  private BannedImplementationService bannedImplementationService = new BannedImplementationService();
+  private final BannedImplementationService bannedImplementationService = new BannedImplementationService();
 
   /**
    * Instance of the admin resources bundle needed to register Admin APIs
@@ -160,14 +161,12 @@ public class MultiTenantInsightBrainService
     // Ensuring we have the same jersey configuration we have for the application context
     adminResourceBundle.jersey().register(new InsightJacksonMessageBodyProvider(environment.getObjectMapper()));
     adminResourceBundle.jersey().register(new ComponentIdentifierParamConverterProvider(environment.getObjectMapper()));
+    adminResourceBundle.jersey().register(AdminAuditContainerRequestFilter.class);
     JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
     adminResourceBundle.jersey().register(jaxRsExceptionMapper);
 
     BeanLocator locator = getInjector().getInstance(BeanLocator.class);
     addAdminApiEndpoints(locator);
-
-    // Add tenant filter for Admin resources
-    addAdminServletFilter(environment, AdminTenantFilter.class, ADMIN_BASE_PATH);
   }
 
   private void addAdminApiEndpoints(BeanLocator locator) {
@@ -204,12 +203,18 @@ public class MultiTenantInsightBrainService
   protected void addServletFilters(Environment env) {
     addServletFilter(env, true, TenantUrlFilter.class, "/*");
 
+    // We need to add the Header filter for the Admin endpoints before Admin Resources filter
+    addAdminServletFilter(env, MultiTenantServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
+
+    // Add tenant filter for Admin resources. We need to ensure this filter is configured before the AuditFilter.
+    addAdminServletFilter(env, AdminTenantFilter.class, ADMIN_BASE_PATH);
+
     super.addServletFilters(env, true);
   }
 
   @Override
   protected void addServerHeaderFilter(final Environment env) {
-    addServletFilter(env, true, MultiTenantServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
+    addServletFilter(env, false, MultiTenantServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
   }
 
   @Override

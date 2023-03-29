@@ -56,7 +56,7 @@ public class TenantSupportInfoServiceTest
   @Test
   public void shouldGetSupportZip() {
     testAsNewTenant(tenant -> {
-      when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
       try {
         when(supportInformation.aNewListOfSupportFiles()).thenReturn(supportInformation);
@@ -71,7 +71,7 @@ public class TenantSupportInfoServiceTest
         when(supportInformation.withWaivers()).thenReturn(supportInformation);
         when(supportInformation.build()).thenReturn(new ArrayList<>());
         when(supportInfoUtil.generateZip(any(), any())).thenReturn(new File("mtiq-support.zip"));
-        File supportZip = underTest.getSupportZip();
+        File supportZip = underTest.getSupportZip(tenant.tenantSlug);
 
         assertThat(supportZip).hasName("mtiq-support.zip");
       }
@@ -87,7 +87,7 @@ public class TenantSupportInfoServiceTest
 
     testAsGlobalTenant(global -> {
       when(tenantUtil.isGlobalTenant()).thenReturn(true);
-      assertThatThrownBy(() -> underTest.getSupportZip())
+      assertThatThrownBy(() -> underTest.getSupportZip(global.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
@@ -98,8 +98,8 @@ public class TenantSupportInfoServiceTest
     final String errorMessage = "Tenant doesn't exist";
 
     testAsNewTenant(tenant -> {
-      when(tenantValidator.validateTenantExists(tenant)).thenReturn(false);
-      assertThatThrownBy(() -> underTest.getSupportZip())
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+      assertThatThrownBy(() -> underTest.getSupportZip(tenant.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(NotFoundException.class);
     });

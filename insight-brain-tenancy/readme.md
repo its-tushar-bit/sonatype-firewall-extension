@@ -291,10 +291,8 @@ To check the existing Admin Endpoints, you can check the resources
 
 For MTIQ the initial step for on-boarding any new customer, will be to ensure the DB is set up for them.
 This includes the schema creation and the proper creation and population of the tables, this is what
-we call the tenant provisioning process.
-
-For tenant provisioning we have created a new admin endpoint. You can run the next commands to provision a
-new tenant:
+we call the tenant provisioning process. For tenant provisioning we have created a new admin endpoint. You can 
+run the next command to provision a new tenant:
 
 #### For Local Development
 ```bash
@@ -307,17 +305,6 @@ curl -X POST http://127.0.0.1:8071/api/admin/tenants/cubs
 # This will provision tenant with name "cubs"
 ```
 
-#### For AWS Dev Environment 
-```bash
-curl -X POST https://admin.<env>.mtiq.cloudy.sonatype.dev/api/admin/tenants/{tenant-slug}
- 
-# Here is an example for dev Env
-
-curl -X POST https://admin.dev-1.mtiq.cloudy.sonatype.dev/api/admin/tenants/cubs
-
-# This will provision tenant with name "cubs"
-```
-
 ### Install/Update Tenant License
 
 For MTIQ we also need a proper way to manage the license needed for a tenant. For that purpose we have created a new
@@ -325,26 +312,15 @@ admin endpoint to install or update a license for a tenant. This new endpoint wi
 the license for a tenant after it is provisioned, so the customer will not need to execute this step manually. 
 
 The final goal is to not depend on a license file, but for now the endpoint expects this file. You can run the next 
-commands to install/update a license for a tenant:
+command to install/update a license for a tenant:
 
 #### For Local Development
 ```bash
-curl -F file="@/path/to/license.lic" -X PUT http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/license
+curl -X PUT -F file="@/path/to/license.lic" http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/license
 
 # Here is an example
 
-curl -F file="@sonatype.lic" -X PUT http://127.0.0.1:8071/api/admin/tenants/cubs/license
-
-# This will install/update the license for the tenant "cubs"
-```
-
-#### For AWS Dev Environment
-```bash
-curl -X PUT https://admin.<env>.mtiq.cloudy.sonatype.dev/api/admin/tenants/{tenant-slug}/license
- 
-# Here is an example for dev Env
-
-curl -X PUT https://admin.dev-1.mtiq.cloudy.sonatype.dev/api/admin/tenants/cubs/license
+curl -X PUT -F file="@sonatype.lic" http://127.0.0.1:8071/api/admin/tenants/cubs/license
 
 # This will install/update the license for the tenant "cubs"
 ```
@@ -355,27 +331,16 @@ this we need to configure SAML for MTIQ considering the Auth0 SAML metadata and 
 the customers can login and have access to MTIQ. 
 
 As the plan for tenant onboarding for MTIQ is to automate as much configuration steps as possible, we are created an
-admin endpoint to assist with SAML configuration for a tenant. You can run the next commands to insert/update the SAML 
+admin endpoint to assist with SAML configuration for a tenant. You can run the next command to insert/update the SAML 
 configuration for a tenant:
 
 #### For Local Development
 ```bash
-curl -d "@request.json" -X PUT http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/security
+curl -X PUT -H 'Content-Type: application/json' -d "@request.json" http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/security
 
 # Here is an example
 
-curl -d "@request.json" -X PUT http://127.0.0.1:8071/api/admin/tenants/cubs/security
-
-# This will update security configuration for the tenant "cubs"
-```
-
-#### For AWS Dev Environment
-```bash
-curl -d "@request.json" -X PUT https://admin.<env>.mtiq.cloudy.sonatype.dev/api/admin/tenants/{tenant-slug}/security
- 
-# Here is an example for dev Env
-
-curl -d "@request.json" -X PUT https://admin.dev-1.mtiq.cloudy.sonatype.dev/api/admin/tenants/cubs/security
+curl -X PUT -H 'Content-Type: application/json' -d "@request.json" http://127.0.0.1:8071/api/admin/tenants/cubs/security
 
 # This will update security configuration for the tenant "cubs"
 ```
@@ -427,28 +392,17 @@ can find more details in
 For MTIQ we also need a proper way to know what are the different database schema versions a tenant has to be able to 
 diagnose/troubleshoot issues related to database and to ensure our tenants are in the right schema versions. For that 
 reason we are adding and admin endpoint that will let us get the schema versions for all the different data stores.
-You can run the next commands to get the tenant schema versions:
+You can run the next command to get the tenant schema versions:
 
 #### For Local Development
 ```bash
-curl http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/schema
+curl -X GET http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/schema
 
 # Here is an example
 
-curl http://127.0.0.1:8071/api/admin/tenants/cubs/schema
+curl -X GET http://127.0.0.1:8071/api/admin/tenants/cubs/schema
 
 # This will ge the schema versions for the tenant "cubs"
-```
-
-#### For AWS Dev Environment
-```bash
-curl https://admin.<env>.mtiq.cloudy.sonatype.dev/api/admin/tenants/{tenant-slug}/schema
- 
-# Here is an example for dev Env
-
-curl https://admin.dev-1.mtiq.cloudy.sonatype.dev/api/admin/tenants/cubs/schema
-
-# This will update security configuration for the tenant "cubs"
 ```
 
 #### Response Details
@@ -470,4 +424,53 @@ Here is an example:
   "insight_brain_aggregation": 12,
   "insight_brain_dm": 11
 }
+```
+
+### Migrate Tenant To The Latest Schema Versions
+For MTIQ we need a proper way to migrate a tenant to the latest schema versions for the different data stores to
+ensure our tenants are in the right schema versions. For that reason we are adding and admin endpoint that will let us 
+migrate a tenant to the latest schema versions for all the different data stores. You can run the next command to 
+migrate the tenant to the latest schema versions:
+
+#### For Local Development
+```bash
+curl -X PUT http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/schema
+
+# Here is an example
+
+curl -X PUT http://127.0.0.1:8071/api/admin/tenants/cubs/schema
+
+# This will migrate the "cubs" tenant to the latest schema versions
+```
+
+### Update Tenant Configuration
+For MTIQ we need a way to set/update some general configurations that apply to a tenant. To be more specific we need 
+the ability to set/update some properties in SystemConfigurationProperty, like the base URL. That is why we also have
+an admin endpoint for that purpose. You can run the next command to update the configuration for a tenant:
+
+#### For Local Development
+```bash
+curl -X PUT -H 'Content-Type: application/json' -d '{"baseUrl":"<The base URL for the tenant>"}' http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/config
+
+# Here is an example
+
+curl -X PUT -H 'Content-Type: application/json' -d '{"baseUrl":"https://cubs.sonatype.app/iq"}' http://127.0.0.1:8071/api/admin/tenants/cubs/config
+
+# This will update the base URL configuration for the tenant "cubs"
+```
+
+### Get Support Info For A Tenant
+For MTIQ we need a proper way to get the support information for a tenant, so we are adding an admin endpoint that will
+help to generate a `zip` file with all the needed support information. You can run the next command to get a zip file
+with most relevant support information about a Tenant:
+
+#### For Local Development
+```bash
+curl -X GET http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/supportInfo --output support.zip
+
+# Here is an example
+
+curl -X GET http://127.0.0.1:8071/api/admin/tenants/cubs/supportInfo --output support.zip
+
+# This will ge the support information zip for the tenant "cubs"
 ```

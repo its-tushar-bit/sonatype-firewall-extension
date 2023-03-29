@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.dto.SecurityConfigurationDTO;
 import com.sonatype.insight.brain.api.admin.service.TenantSecurityConfigurationService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 @Named
 @MtiqAdminEndpoint
@@ -32,6 +34,7 @@ public class TenantSecurityConfigurationResource
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_TENANT_SECURITY)
   public void updateSecurityConfiguration(
       SecurityConfigurationDTO securityConfiguration,
       @PathParam("tenantSlug") String tenantSlug)

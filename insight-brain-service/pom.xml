@@ -805,6 +805,7 @@
                 <include>**/AbstractComponentTest*</include>
                 <include>**/BrainInjectedTest*</include>
                 <include>**/AuditTestSupport*</include>
+                <include>**/TestAuditSession*</include>
               </includes>
             </configuration>
           </execution>

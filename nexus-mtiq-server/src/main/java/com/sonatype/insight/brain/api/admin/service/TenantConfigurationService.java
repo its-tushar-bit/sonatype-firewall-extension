@@ -12,8 +12,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -54,8 +52,8 @@ public class TenantConfigurationService
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
-  public void setPropertiesConfiguration(Map<String, Object> propertiesConfiguration) {
-    validateCurrentTenant();
+  public void setPropertiesConfiguration(Map<String, Object> propertiesConfiguration, String tenantSlug) {
+    validateCurrentTenant(tenantSlug);
 
     if (CollectionUtils.isEmpty(propertiesConfiguration)) {
       throw new BadRequestException("No configuration was specified.");
@@ -74,15 +72,13 @@ public class TenantConfigurationService
     }
   }
 
-  private void validateCurrentTenant() {
-    final Tenant tenant = TenantThreadLocal.getTenant();
-
+  private void validateCurrentTenant(String tenantSlug) {
     if (tenantUtil.isGlobalTenant()) {
       throw new BadRequestException("Invalid tenant");
     }
 
-    if (!tenantValidator.validateTenantExists(tenant)) {
-      log.debug("Tenant {} doesn't exist", tenant.tenantSlug);
+    if (!tenantValidator.validateTenantExists(tenantSlug)) {
+      log.debug("Tenant {} doesn't exist", tenantSlug);
       throw new NotFoundException("Tenant doesn't exist");
     }
   }

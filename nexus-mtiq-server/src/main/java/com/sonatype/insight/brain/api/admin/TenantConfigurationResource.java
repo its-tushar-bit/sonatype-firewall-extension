@@ -11,11 +11,14 @@ import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.service.TenantConfigurationService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 @Named
 @MtiqAdminEndpoint
@@ -31,7 +34,11 @@ public class TenantConfigurationResource
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
-  public void setPropertiesConfiguration(Map<String, Object> propertiesConfiguration) {
-    tenantConfigurationService.setPropertiesConfiguration(propertiesConfiguration);
+  @Audited(AuditEvent.UPDATE_TENANT_CONFIGURATION)
+  public void setPropertiesConfiguration(
+      Map<String, Object> propertiesConfiguration,
+      @PathParam("tenantSlug") String tenantSlug)
+  {
+    tenantConfigurationService.setPropertiesConfiguration(propertiesConfiguration, tenantSlug);
   }
 }

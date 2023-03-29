@@ -18,6 +18,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.service.TenantSchemaService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 @Named
 @MtiqAdminEndpoint
@@ -38,6 +40,7 @@ public class TenantSchemaResource
   }
 
   @PUT
+  @Audited(AuditEvent.MIGRATE_TENANT)
   public void migrateSchema(@PathParam("tenantSlug") String tenantSlug) {
     tenantSchemaService.migrateSchema(tenantSlug);
   }

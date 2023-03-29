@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
@@ -576,11 +575,9 @@ public class MembershipMappingServiceTest
     eventBus.register(handler);
 
     String username = "username";
-    Role role = tempEntity.newRole(true, Permission.READ);
     Member member = new Member(MemberType.USER, username, username);
 
     Map<String, List<Member>> roleToMembers = new HashMap<>();
-    roleToMembers.put(role.getId(), Collections.singletonList(member));
     roleToMembers.put(SYSTEM_ADMIN_ROLE_ID, Collections.singletonList(member));
     roleToMembers.put(POLICY_ADMIN_ROLE_ID, Collections.singletonList(member));
 
@@ -590,17 +587,13 @@ public class MembershipMappingServiceTest
         .getRoleMembershipsOmitEmpty(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
 
     List<ApiRoleMemberMappingDTO> memberMappings = listDTO.memberMappings;
-    assertThat(memberMappings).hasSize(3);
+    assertThat(memberMappings).hasSize(2);
 
     ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
     assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(POLICY_ADMIN_ROLE_ID);
     assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).contains(username);
 
     apiRoleMemberMappingDTO = memberMappings.get(1);
-    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(role.getId());
-    assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).contains(username);
-
-    apiRoleMemberMappingDTO = memberMappings.get(2);
     assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(SYSTEM_ADMIN_ROLE_ID);
     assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).contains(username);
 

@@ -49,13 +49,13 @@ public class TenantConfigurationServiceTest
   @Test
   public void shouldSetSinglePropertyConfiguration() {
     testAsNewTenant(tenant -> {
-      when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
       String expectedProperty = "baseUrl";
       String expectedValue = "http://127.0.0.1:8070";
       Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
 
-      underTest.setPropertiesConfiguration(propertyConfiguration);
+      underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug);
 
       verify(systemConfigurationPropertyDAO).set(expectedProperty, expectedValue + "/");
     });
@@ -72,7 +72,7 @@ public class TenantConfigurationServiceTest
       String expectedValue = "http://127.0.0.1:8070";
       Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration))
+      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, global.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
@@ -83,13 +83,13 @@ public class TenantConfigurationServiceTest
     final String errorMessage = "Tenant doesn't exist";
 
     testAsNewTenant(tenant -> {
-      when(tenantValidator.validateTenantExists(tenant)).thenReturn(false);
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
 
       String expectedProperty = "baseUrl";
       String expectedValue = "http://127.0.0.1:8070";
       Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration))
+      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(NotFoundException.class);
     });
@@ -100,11 +100,11 @@ public class TenantConfigurationServiceTest
     final String errorMessage = "No configuration was specified.";
 
     testAsNewTenant(tenant -> {
-      when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
       Map<String, Object> propertyConfiguration = Collections.emptyMap();
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration))
+      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
@@ -115,13 +115,13 @@ public class TenantConfigurationServiceTest
     final String errorMessage = "Property forceBaseUrl is not configurable.";
 
     testAsNewTenant(tenant -> {
-      when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
       String expectedProperty = "forceBaseUrl";
       boolean expectedValue = true;
       Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration))
+      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
@@ -133,13 +133,13 @@ public class TenantConfigurationServiceTest
         "Invalid value for baseUrl, expected class java.lang.String, but got class java.lang.Boolean.";
 
     testAsNewTenant(tenant -> {
-      when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
       String expectedProperty = "baseUrl";
       boolean expectedValue = true;
       Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration))
+      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });

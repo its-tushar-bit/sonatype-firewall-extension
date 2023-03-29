@@ -250,7 +250,15 @@ public enum AuditEvent
   UNSET_FEATURES(Domain.SERVER_FEATURES, Type.UNSET),
 
   SAVE_VULNERABILITY_GROUP(Domain.GOVERNANCE_VULNERABILITY_GROUP, Type.SAVE),
-  DELETE_VULNERABILITY_GROUP(Domain.GOVERNANCE_VULNERABILITY_GROUP, Type.DELETE);
+  DELETE_VULNERABILITY_GROUP(Domain.GOVERNANCE_VULNERABILITY_GROUP, Type.DELETE),
+
+  // Events for MTIQ Admin endpoints
+  PROVISION_TENANT(Domain.MTIQ_TENANT, Type.CREATE),
+  MIGRATE_TENANT(Domain.MTIQ_TENANT, Type.MIGRATE),
+  INSTALL_TENANT_LICENSE(Domain.MTIQ_TENANT_LICENSE, Type.INSTALL),
+  UPDATE_TENANT_SECURITY(Domain.MTIQ_TENANT_SECURITY, Type.UPDATE),
+  UPDATE_TENANT_CONFIGURATION(Domain.MTIQ_TENANT_CONFIGURATION, Type.UPDATE),
+  GENERATE_TENANT_SUPPORT_INFO(Domain.MTIQ_TENANT_SUPPORT, Type.EXPORT);
 
   private final String domain;
 
@@ -342,6 +350,7 @@ public enum AuditEvent
     String GOVERNANCE_POLICY_INHERITANCE = join(GOVERNANCE_POLICY, "inheritance");
 
     String GOVERNANCE_POLICY_OVERRIDES = join(GOVERNANCE_POLICY, "overrides");
+
     String GOVERNANCE_REPOSITORY = join(GOVERNANCE, "repository");
 
     String GOVERNANCE_REPOSITORY_QUARANTINE = join(GOVERNANCE_REPOSITORY, "quarantine");
@@ -435,7 +444,7 @@ public enum AuditEvent
     String REPORTING_REPOSITORY_RESULTS = join(REPORTING, "repository-results");
 
     String REPORTING_COMPONENT_INFORMATION = join(REPORTING, "component-information");
-    
+
     String REPORTING_SUCCESS_METRICS_REPORT = join(REPORTING_SUCCESS_METRICS, "report");
 
     String REPORTING_DASHBOARD_VIOLATION_LIST = join(REPORTING_DASHBOARD, "violation-list");
@@ -475,6 +484,22 @@ public enum AuditEvent
     String NOTIFICATION_PULL_REQUEST = join(NOTIFICATION, "pull-request");
 
     String NOTIFICATION_PULL_REQUEST_COMMENT = join(NOTIFICATION_PULL_REQUEST, "comment");
+
+    // Domains for MTIQ admin endpoints
+
+    String MTIQ = "mtiq";
+
+    String TENANT = "tenant";
+
+    String MTIQ_TENANT = join(MTIQ, TENANT);
+
+    String MTIQ_TENANT_LICENSE = join(MTIQ, join(TENANT, "license"));
+
+    String MTIQ_TENANT_SECURITY = join(MTIQ, join(TENANT, "security"));
+
+    String MTIQ_TENANT_CONFIGURATION = join(MTIQ, join(TENANT, "configuration"));
+
+    String MTIQ_TENANT_SUPPORT = join(MTIQ, join(TENANT, "support"));
 
     static String join(String parent, String child) {
       return parent + "." + child;

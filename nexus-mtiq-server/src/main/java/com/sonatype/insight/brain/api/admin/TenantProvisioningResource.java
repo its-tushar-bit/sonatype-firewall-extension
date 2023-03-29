@@ -14,6 +14,8 @@ import javax.ws.rs.PathParam;
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.service.TenantProvisioningService;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 
 @Named
 @MtiqAdminEndpoint
@@ -28,6 +30,7 @@ public class TenantProvisioningResource
   }
 
   @POST
+  @Audited(AuditEvent.PROVISION_TENANT)
   public void provisionTenant(@PathParam("tenantSlug") String tenantSlug) {
     tenantProvisioningService.provisionTenant(tenantSlug);
   }

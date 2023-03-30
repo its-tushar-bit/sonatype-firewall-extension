@@ -1787,10 +1787,6 @@ public class SourceControlDAOTest
       assertThat(depth).isEqualTo(hierarchyDepth);
     }
 
-    private SourceControl getAppSourceControl(String appId) {
-      return sourceControlMap.get(appId);
-    }
-
     private SourceControl getExpectedCompositeSourceControl(String appId) {
       SourceControl composite = new SourceControl();
       SourceControl sc = sourceControlMap.get(appId);

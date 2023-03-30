@@ -69,7 +69,7 @@ describe('ownerSummarySlice actions', () => {
       });
     });
 
-    fit('dispatches fulfilled action if the permission check passes for repository', (done) => {
+    it('dispatches fulfilled action if the permission check passes for repository', (done) => {
       spyOn(routerSelectors, 'selectIsRepositoriesRelated').and.returnValue(true);
 
       mockAxiosCalls({

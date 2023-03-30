@@ -49,7 +49,23 @@ public class Auth0ManagementAPI
 
   public Client createTenant(String tenantSubdomain, String tenantDescription, String logoUrl) {
     validate(tenantSubdomain, tenantDescription, logoUrl);
-    Client client = newClient(tenantSubdomain, tenantDescription, logoUrl);
+    Client client = newClient(tenantSubdomain, tenantSubdomain, tenantDescription, logoUrl);
+    try {
+      return clients().create(client).execute();
+    }
+    catch (Auth0Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public Client createTenant(
+      final String name,
+      final String tenantSubdomain,
+      final String tenantDescription,
+      final String logoUrl)
+  {
+    validate(name, tenantDescription, logoUrl);
+    Client client = newClient(name, tenantSubdomain, tenantDescription, logoUrl);
     try {
       return clients().create(client).execute();
     }
@@ -59,11 +75,12 @@ public class Auth0ManagementAPI
   }
 
   private Client newClient(
+      final String name,
       final String tenantSubdomain,
       final String tenantDescription,
       final String logoUrl)
   {
-    Client client = new Client(tenantSubdomain);
+    Client client = new Client(name);
     client.setAppType(AUTH0_APP_TYPE);
     client.setDescription(tenantDescription);
     client.setCallbacks(Collections.singletonList(getTenantSamlEndpoint(tenantSubdomain)));

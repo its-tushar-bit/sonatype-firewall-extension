@@ -110,6 +110,32 @@ public class Auth0ManagementAPITest
   }
 
   @Test
+  public void testCreate_withCustomApplicationName() throws Exception {
+    String subDomain = "tenant1";
+    String description = "blah";
+    String logoUrl = "http://tenanat1.com/logo.gif";
+    String name = "tenant1-mtiq";
+    Client mockClient = mockClient(subDomain, description, logoUrl);
+
+    ClientsEntity mockClientsEntity = mock(ClientsEntity.class);
+    when(auth0ManagementAPI.clients()).thenReturn(mockClientsEntity);
+    Request<Client> mockRequest = mock(Request.class);
+    when(mockClientsEntity.create(clientCaptor.capture())).thenReturn(mockRequest);
+    when(mockRequest.execute()).thenReturn(mockClient);
+
+    Client tenant = auth0ManagementAPI.createTenant(name, subDomain, description, logoUrl);
+    Assertions.assertThat(tenant.getDescription()).isEqualTo(description);
+    Assertions.assertThat(tenant.getLogoUri()).isEqualTo(logoUrl);
+
+    Client clientParameter = clientCaptor.getValue();
+    Assertions.assertThat(clientParameter.getName()).isEqualTo(name);
+    Assertions.assertThat(clientParameter.getDescription()).isEqualTo(description);
+    Assertions.assertThat(clientParameter.getLogoUri()).isEqualTo(logoUrl);
+    Assertions.assertThat(clientParameter.getAllowedLogoutUrls()).contains("http://tenant1.sonatype.app");
+    Assertions.assertThat(clientParameter.getCallbacks()).contains("http://tenant1.sonatype.app/saml");
+  }
+
+  @Test
   public void testCreate_Auth0Error() throws Exception {
     String name = "tenant1";
     String description = "blah";

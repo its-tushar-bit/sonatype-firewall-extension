@@ -21,8 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -34,8 +34,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
@@ -3120,8 +3120,7 @@ public class FirewallComponentDetailsPageTest
     RepositoryResultDetailPage.table().quarantinedHeaderSortButton().shouldHave(
         attribute("aria-label", "QUARANTINED ascending"));
 
-    String repositoryResultsViewCDPUrl =
-        firewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component);
+    String repositoryResultsViewCDPUrl = FirewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component);
 
     testTabs(repositoryResultsViewCDPUrl, component);
 
@@ -3164,7 +3163,7 @@ public class FirewallComponentDetailsPageTest
     MainHeader.backButton().click();
     waitUntilSpinnersGone();
 
-    testRiskRemediationTile_CompareButtons(firewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component));
+    testRiskRemediationTile_CompareButtons(FirewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component));
   }
 
   @Test

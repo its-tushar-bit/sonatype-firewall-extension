@@ -111,7 +111,7 @@ Time to cross your t's and dot the i's - let's get your code in product:
 * We prefer a title format that looks like "Brief description - Jira issue id".
 * In the description, remind us of the problem, and HOW you've solved it. 
 * Run a CI build in jenkins: Go to the 
- [Feature Snapshot Builds job](https://jenkins.zion.aws.s/job/insight/job/insight-brain/job/feature-snapshots/), find
+ [Feature Snapshot Builds job](https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/feature-snapshots/), find
  your branch from the list, and run it.
 * Does your change include new User Interface components? Show us in the description with a screenshot, or maybe a 
  before/after.
@@ -123,7 +123,7 @@ Our visual testing tool (Applitools) has a caveat that the pull request must exi
 results with the changes. As a result, here's a recommended workflow for changes that include UI components:
 
 1. Open your pull request as a Draft first.
-2. Run our [CI build](https://jenkins.zion.aws.s/job/insight/job/insight-brain/job/feature-snapshots/).
+2. Run our [CI build](https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/feature-snapshots/).
 3. Take a gander at 
  [our documentation](https://docs.sonatype.com/pages/viewpage.action?spaceKey=INSIGHT&title=Automated+Visual+Testing+with+Applitools)
  on how to work with Applitools. Reach out in Slack at `#iq-laurel` for help.

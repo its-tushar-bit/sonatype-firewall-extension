@@ -48,8 +48,4 @@ public class PolicyViolationsTable
   public SelenideElement requestWaiverDropdownButton(int rowIndex) {
     return waiversDropdownButton(rowIndex).find("button.nx-dropdown-button");
   }
-
-  public SelenideElement addWaiverButton(int rowIndex) {
-    return child("#policy-violations-add-waiver-button");
-  }
 }

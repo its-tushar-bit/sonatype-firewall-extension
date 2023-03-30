@@ -141,7 +141,7 @@ public class WaivedComponentUpgradeInspector
     String stageId = getProxyStageIdForRepositoryOrDefault(waiverOwnerType, configuredStage);
 
     ApiComponentRemediationDTO suggestedRemediationForComponent =
-        apiComponentRemediationService.getSuggestedRemediationForComponent(componentDTOV2, waiverOwnerType,
+        apiComponentRemediationService.getSuggestedRemediationForComponentNoAuthz(componentDTOV2, waiverOwnerType,
             waiver.getOwnerId(), stageId, null, null);
 
     return isRemediationAvailable(suggestedRemediationForComponent, waiver);

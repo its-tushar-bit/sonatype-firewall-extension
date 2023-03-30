@@ -79,6 +79,23 @@ public class ApiComponentRemediationService
       final String identificationSource,
       final String scanId)
   {
+    return getSuggestedRemediationForComponentNoAuthz(componentDTO, ownerType, ownerId, stageId, identificationSource,
+        scanId);
+  }
+
+  /**
+   * Prefer {@link #getSuggestedRemediationForComponent}
+   * Use only when doing operations that have already checked authorization or running in a task
+   * which does not have session/user attached
+   */
+  public ApiComponentRemediationDTO getSuggestedRemediationForComponentNoAuthz(
+      ApiComponentDTOV2 componentDTO,
+      final OwnerType ownerType,
+      final String ownerId,
+      String stageId,
+      final String identificationSource,
+      final String scanId)
+  {
     if (OwnerType.REPOSITORY.equals(ownerType)) {
       if (stageId == null) {
         stageId = ProxyStageType.ID;

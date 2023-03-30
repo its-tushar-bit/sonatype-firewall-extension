@@ -147,7 +147,7 @@ public class WaivedComponentUpgradeInspectorTest
 
     waivedComponentUpgradeInspector.run();
 
-    verify(apiComponentRemediationService, Mockito.times(0)).getSuggestedRemediationForComponent(
+    verify(apiComponentRemediationService, Mockito.times(0)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
         anyString(), eq(null), eq(null));
   }
@@ -174,7 +174,7 @@ public class WaivedComponentUpgradeInspectorTest
     tempEntity.newWaiver(waiverExactComponent);
 
     doReturn(getSimpleRemediationResponseWithSuggestion()).when(apiComponentRemediationService)
-        .getSuggestedRemediationForComponent(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
+        .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
             anyString(), eq(null), eq(null));
 
     waivedComponentUpgradeInspector.run();
@@ -199,7 +199,7 @@ public class WaivedComponentUpgradeInspectorTest
 
     waivedComponentUpgradeInspector.run();
 
-    verify(apiComponentRemediationService, Mockito.times(0)).getSuggestedRemediationForComponent(
+    verify(apiComponentRemediationService, Mockito.times(0)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
         anyString(), eq(null), eq(null));
   }
@@ -220,12 +220,12 @@ public class WaivedComponentUpgradeInspectorTest
     simpleRemediationResponseWithSuggestion.remediation.versionChanges.clear();
 
     doReturn(simpleRemediationResponseWithSuggestion).when(apiComponentRemediationService)
-        .getSuggestedRemediationForComponent(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
+        .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
             anyString(), eq(null), eq(null));
 
     waivedComponentUpgradeInspector.run();
 
-    verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponent(
+    verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
         anyString(), eq(null), eq(null));
     waiver = policyWaiverDAO.getActiveByPolicyId(policy.getId()).get(0);
@@ -245,12 +245,12 @@ public class WaivedComponentUpgradeInspectorTest
     tempEntity.newWaiver(waiver);
 
     doReturn(null).when(apiComponentRemediationService)
-        .getSuggestedRemediationForComponent(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
+        .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
             anyString(), eq(null), eq(null));
 
     waivedComponentUpgradeInspector.run();
 
-    verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponent(
+    verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
         anyString(), eq(null), eq(null));
     waiver = policyWaiverDAO.getActiveByPolicyId(policy.getId()).get(0);
@@ -275,12 +275,12 @@ public class WaivedComponentUpgradeInspectorTest
     versionChangeOptionDTO.getData().getComponent().packageUrl = DUMMY_PURL;
 
     doReturn(simpleRemediationResponseWithSuggestion).when(apiComponentRemediationService)
-        .getSuggestedRemediationForComponent(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
+        .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
             anyString(), eq(null), eq(null));
 
     waivedComponentUpgradeInspector.run();
 
-    verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponent(
+    verify(apiComponentRemediationService, Mockito.times(1)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
         anyString(), eq(null), eq(null));
     waiver = policyWaiverDAO.getActiveByPolicyId(policy.getId()).get(0);
@@ -306,12 +306,12 @@ public class WaivedComponentUpgradeInspectorTest
             .build();
     tempEntity.newWaiver(waiverRepositoryContainer);
     doReturn(getSimpleRemediationResponseWithSuggestion()).when(apiComponentRemediationService)
-        .getSuggestedRemediationForComponent(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
+        .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
             eq(ProxyStageType.ID), eq(null), eq(null));
 
     waivedComponentUpgradeInspector.run();
 
-    verify(apiComponentRemediationService, Mockito.times(2)).getSuggestedRemediationForComponent(
+    verify(apiComponentRemediationService, Mockito.times(2)).getSuggestedRemediationForComponentNoAuthz(
         any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
         eq(ProxyStageType.ID), eq(null), eq(null));
   }
@@ -334,7 +334,7 @@ public class WaivedComponentUpgradeInspectorTest
             .build();
     tempEntity.newWaiver(waiver2);
     doThrow(new BadRequestException("Something happened while processing waiver")).when(apiComponentRemediationService)
-        .getSuggestedRemediationForComponent(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
+        .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), any(OwnerType.class), anyString(),
             anyString(), eq(null), eq(null));
 
     waivedComponentUpgradeInspector.run();

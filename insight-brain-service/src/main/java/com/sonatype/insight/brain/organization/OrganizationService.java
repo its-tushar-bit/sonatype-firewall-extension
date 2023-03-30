@@ -12,9 +12,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.PathParam;
@@ -216,7 +217,7 @@ public class OrganizationService
   }
 
   @Authorize(permission = Permission.READ)
-  void checkReadPermission(@AuthzContext(Key.ORGANIZATION_ID) String organizationId) {
+  void checkReadPermission(@SuppressWarnings("unused") @AuthzContext(Key.ORGANIZATION_ID) String organizationId) {
     // Do nothing as this method is only used to perform authz check for the caller
   }
 

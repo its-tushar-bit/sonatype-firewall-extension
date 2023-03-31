@@ -6,12 +6,16 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.ApiPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.LabsDataInsightsPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
@@ -519,6 +523,99 @@ public class SidebarNavigationTest
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testNavigation_showsPageCorrectlyAfterClickWithFirewallOnlyLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    enableAdvancedSearch();
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    setFeatures(LicensedFeature.DATA_INSIGHTS);
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(DashboardPage.urlToWaivers());
+
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(OwnerSummaryPage.url());
+
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(VulnerabilitySearchPage.url());
+
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(FirewallPage.url());
+
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(LabsDataInsightsPage.url());
+  }
+
+  @Test
+  public void testLoginFirewallOnlyLicense_redirectFirewallPage() {
+    uninstallLicense();
+    testProductLicense.reset();
+
+    logout();
+
+    enableAdvancedSearch();
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.DATA_INSIGHTS);
+
+    loginAsAdmin();
+
+    refresh();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(hidden);
+    SidebarNavigation.labsNavigationButton().shouldBe(hidden);
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
+    SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
+    SidebarNavigation.legalNavigationButton().shouldBe(hidden);
+    SidebarNavigation.apiNavigationButton().shouldBe(hidden);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    waitUntilUrl(FirewallPage.url());
+  }
+
+  @Test
+  public void testNavigation_showsPageCorrectlyAfterClickCogMenuWithFirewallOnlyLicense() {
+    uninstallLicense();
+    testProductLicense.reset();
+    refresh();
+
+    logout();
+
+    enableAdvancedSearch();
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    setFeatures(LicensedFeature.DATA_INSIGHTS);
+
+    loginAsAdmin();
+
+    // This is the cog menu
+    SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
+
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(DashboardPage.urlToWaivers());
+
+    systemConfigMenu.dropdownToggle().click();
+    systemConfigMenu.productLicense().shouldBe(visible).click();
+    waitUntilUrl(ProductLicensePage.url());
+
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(OwnerSummaryPage.url());
+
+    SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(VulnerabilitySearchPage.url());
+
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(FirewallPage.url());
+
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(LabsDataInsightsPage.url());
   }
 
   private void enableAdvancedSearch() {

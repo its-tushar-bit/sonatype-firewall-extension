@@ -54,7 +54,9 @@ function IqSidebarNav(props) {
   const logo = getProductLogo(productEdition);
 
   const apiHref = uiRouterState.href('api');
-  const dashboardHref = uiRouterState.href('dashboard.overview.violations');
+  const dashboardHref = isFirewallOnlyLicense
+    ? uiRouterState.href('dashboard.overview.waivers')
+    : uiRouterState.href('dashboard.overview.violations');
   const orgsPoliciesHref = uiRouterState.href('management.view');
   const reportsHref = uiRouterState.href('violations');
   const successMetricsHref = uiRouterState.href('labs.successMetrics');

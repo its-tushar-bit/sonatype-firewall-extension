@@ -27,10 +27,14 @@ export default function DashboardTabs(props) {
     if (isFirewallOnlyLicense) {
       stateGo('dashboard.overview.waivers');
     }
-  });
+  }, [isFirewallOnlyLicense]);
 
   const handleTabClick = (index) => {
-    stateGo(`dashboard.overview.${tabs[index]}`);
+    if (isFirewallOnlyLicense) {
+      stateGo('dashboard.overview.waivers');
+    } else {
+      stateGo(`dashboard.overview.${tabs[index]}`);
+    }
   };
 
   const defaultTabs = tabs.map((tab) => (

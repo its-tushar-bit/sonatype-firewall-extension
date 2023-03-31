@@ -37,6 +37,7 @@ import { selectIsAllowExternalHyperlinksSupported } from 'MainRoot/productFeatur
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions as toastSliceActions } from 'MainRoot/toastContainer/toastSlice';
 import { selectToastSlice } from 'MainRoot/toastContainer/toastSelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -113,6 +114,8 @@ export const InitModule = angular
 
                   if (isDashboardAvailable) {
                     return 'dashboard.overview.violations';
+                  } else if ($rootScope.isFirewallOnlyLicense) {
+                    return 'firewall.firewallPage';
                   } else if (isReportsListAvailable) {
                     return 'violations';
                   }
@@ -516,6 +519,7 @@ export const InitModule = angular
 export const mapStateToThis = (state) => ({
   isAllowExternalHyperlinks: selectIsAllowExternalHyperlinksSupported(state),
   toast: selectToastSlice(state),
+  isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
 });
 
 export const MainModule = angular.module('MainModule', [InitModule.name]).run([

@@ -153,13 +153,30 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for the dashboard if allowed', function () {
+    it('renders an NxGlobalSidebarNavigationLink for the dashboard if allowed when is firewall only license', function () {
       expect(getShallowComponent({ isLoggedIn: true }).find('#dashboard-navigation-button')).not.toExist();
 
       const component = getShallowComponent({
         isLoggedIn: true,
         isDashboardAvailable: true,
         isFirewallOnlyLicense: true,
+      });
+      const navLink = component.find('#dashboard-navigation-button');
+
+      expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
+      expect(navLink).toHaveProp('icon', faHome);
+      expect(navLink).toHaveProp('text', 'Dashboard');
+      expect(navLink).toHaveProp('href', 'href-dashboard.overview.waivers');
+      expect(navLink).toHaveProp('isSelected', false);
+    });
+
+    it('renders an NxGlobalSidebarNavigationLink for the dashboard if allowed when is not firewall only license', function () {
+      expect(getShallowComponent({ isLoggedIn: true }).find('#dashboard-navigation-button')).not.toExist();
+
+      const component = getShallowComponent({
+        isLoggedIn: true,
+        isDashboardAvailable: true,
+        isFirewallOnlyLicense: false,
       });
       const navLink = component.find('#dashboard-navigation-button');
 

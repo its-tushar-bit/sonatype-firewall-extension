@@ -64,7 +64,7 @@ public class TenantUrlFilter
         tenantManager.setTenant(tenantName);
       }
 
-      log.debug("Tenant context set to: {}", tenantManager.getTenant().tenantSlug);
+      log.trace("Tenant context set to: {}", tenantManager.getTenant().tenantSlug);
 
       chain.doFilter(request, response);
     }

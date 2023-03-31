@@ -434,6 +434,8 @@ public class MembershipMappingResourceTest
   }
 
   private void assertMembers(final List<Member> members, final List<Member> expectedMembers) {
+    assertThat(members).hasSize(expectedMembers.size());
+
     members.sort(new MemberComparator());
     expectedMembers.sort(new MemberComparator());
 

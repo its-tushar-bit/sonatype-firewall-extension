@@ -777,6 +777,11 @@ public class TemporaryEntity
     jiraConfigurationDAO.delete();
     sourceControlConfigurationDAO.delete();
     delete(proprietaryComponentNamePatterns, proprietaryComponentNamePatternDAO);
+    membershipMappingDAO.getAll().forEach(membershipMapping -> {
+      if (!membershipMapping.getMemberName().contains(User.ADMIN_USERNAME)) {
+        membershipMappingDAO.delete(membershipMapping);
+      }
+    });
   }
 
   private <E> void detachEntity(E entity) {

@@ -570,7 +570,7 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGrantMembershipMappingsForGlobalContextNoAuthz_PostsEvent() throws Exception {
+  public void testGrantMembershipMappingsForGlobalContextNoAuthz_Success() throws Exception {
     TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
     eventBus.register(handler);
 
@@ -583,6 +583,30 @@ public class MembershipMappingServiceTest
 
     membershipMappingService.grantMembershipMappingsForGlobalContextNoAuthz(roleToMembers);
 
+    assertGlobalPermisionsAreGranted(handler, username);
+  }
+
+  @Test
+  public void testGrantMembershipMappingsForGlobalContextNoAuthz_SkipIfAlreadyExists() throws Exception {
+    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    eventBus.register(handler);
+
+    String username = "username";
+    Member member = new Member(MemberType.USER, username, username);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, SYSTEM_ADMIN_ROLE_ID, username);
+
+    Map<String, List<Member>> roleToMembers = new HashMap<>();
+    roleToMembers.put(SYSTEM_ADMIN_ROLE_ID, Collections.singletonList(member));
+    roleToMembers.put(POLICY_ADMIN_ROLE_ID, Collections.singletonList(member));
+
+    membershipMappingService.grantMembershipMappingsForGlobalContextNoAuthz(roleToMembers);
+
+    assertGlobalPermisionsAreGranted(handler, username);
+  }
+
+  private void assertGlobalPermisionsAreGranted(final TestEventHandler<RoleEvent> handler, final String username)
+      throws InterruptedException
+  {
     ApiRoleMemberMappingListDTO listDTO = membershipMappingService
         .getRoleMembershipsOmitEmpty(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
 

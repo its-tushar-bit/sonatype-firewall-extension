@@ -505,6 +505,15 @@ public class MembershipMappingService
 
     for (final Member member : members) {
       validateMember(member);
+
+      MembershipMapping existing =
+          membershipMappingDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId,
+              roleId, member.getInternalName(), member.getType());
+
+      if (existing != null) {
+        return;  // Already granted
+      }
+
       final MembershipMapping membershipMapping =
           new MembershipMapping(internalOwnerId, roleId, member.getInternalName(), member.getType());
       membershipMappingDAO.insert(tx, membershipMapping);

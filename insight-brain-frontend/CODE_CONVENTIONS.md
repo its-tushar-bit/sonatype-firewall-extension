@@ -6,7 +6,7 @@
 
 -->
 
-# Insight Brain Frontend - Convetions & Patterns
+# Insight Brain Frontend - Conventions & Patterns
 
 A live document containing our _current_ best practices, approaches, patterns and conventions for developing UI in `insight-brain`.
 
@@ -22,7 +22,7 @@ A live document containing our _current_ best practices, approaches, patterns an
   - [ Directory Structure ](#directory-structure)
   - [ React Sample component ](#react-sample-component)
   - [ Using Redux-Toolkit ](#using-redux-toolkit)
-  - [ Miscelaneous ](#miscelaneous)
+  - [ Miscellaneous ](#miscellaneous)
     - [How to add an Unsaved Changes modal warning to your page](#how-to-add-an-unsaved-changes-modal-warning-to-your-page)
 - [ Notes on Styling ](#notes-on-styling)
 - [ Testing ](#testing)
@@ -82,7 +82,7 @@ The following section details the common etiquette for dealing with both providi
 - Prefer `default` exports for Components.
 - Before building a visual component check if the [React Shared Components Library](https://gallery.sonatype.dev/) already has it.
 - When building modals or popovers consider if it’s at all possible to make the component self-managed in terms of its display.
-  - that is, the component itself should read the relevant state slice/prop and decide wether or not it should render or return null.
+  - that is, the component itself should read the relevant state slice/prop and decide whether it should render or return null.
   - Consider creating a Slice dedicated only to the modal/popover.
   - See as example `insight-brain-frontend/src/main/frontend/componentDetails/overview/ComponentCoordinatesPopover/ComponentCoordinatesPopover.jsx`
   - The main benefit of this is that the consumer code doesn't need to pass around the prop that controls the rendering of the modal.
@@ -135,7 +135,7 @@ One example or template that you can use when creating new React components is t
 ⚠️ Note, we no longer use `connect` HOC to create components connected to Redux store. Use redux hooks instead: `import { useSelector, useDispatch } from 'react-redux';`
 Also, there is no need to provide a "container" wrapper for each connected component.
 
-In `DependencyTree/module.js`, an Angular module is created pointing to the `DependencyTreePage` component using `iqReact2Angular`, our wrapper around the third-party [react2angular](https:/)www.npmjs.com/package/react2angular) library. This is what converts the React component into something that the rest of IQ (AngularJS) can interact with. `iqReact2Angular` takes two arrays expressing what props the React component expects and how the angular environment should provide them.The first array lists the names of props that should come from angular component bindings. The second specifies props that should come from angular injectables. Note that there are two injectables that are especially common and which are treated specially: `$ngRedux` and `$state`. If the `$ngRedux` injectable is specified, in addition to being passed to the React component as a prop is will also be provided through redux `Provider` context so that redux hooks within the child React tree may access it. If `$state` is specified, then in addition to being passed down as a prop it will be set in a `RouterStateContext` allowing the use of the `useRouterState` hook within the child React tree. Example:
+In `DependencyTree/module.js`, an Angular module is created pointing to the `DependencyTreePage` component using `iqReact2Angular`, our wrapper around the third-party [react2angular](https://www.npmjs.com/package/react2angular) library. This is what converts the React component into something that the rest of IQ (AngularJS) can interact with. `iqReact2Angular` takes two arrays expressing what props the React component expects and how the angular environment should provide them.The first array lists the names of props that should come from angular component bindings. The second specifies props that should come from angular injectables. Note that there are two injectables that are especially common and which are treated specially: `$ngRedux` and `$state`. If the `$ngRedux` injectable is specified, in addition to being passed to the React component as a prop is will also be provided through redux `Provider` context so that redux hooks within the child React tree may access it. If `$state` is specified, then in addition to being passed down as a prop it will be set in a `RouterStateContext` allowing the use of the `useRouterState` hook within the child React tree. Example:
 `iqReact2Angular(DependencyTreePage, [], ['$ngRedux', '$state'])`
 
 We implement runtime type-safety in React components using the [prop-types](https://www.npmjs.com/package/prop-types) library and all properties should be appropriately typed. This is usually done at the bottom of each component, by specifying various `PropTypes` from the `prop-types` project.
@@ -147,7 +147,7 @@ We implement runtime type-safety in React components using the [prop-types](http
 - Slice files must have individual exports for both the reducer part and the actions.
 - Before creating a utility function check if it already exists in `insight-brain-frontend/src/main/frontend/util/reduxToolkitUtil.js`.
 
-### Miscelaneous
+### Miscellaneous
 
 #### How to add an Unsaved Changes modal warning to your page
 
@@ -156,7 +156,7 @@ It is an established pattern to have a warning show up when the user is navigati
 - Track the _"isDirty"_ state of your page as a boolean flag in the related redux state and keep it up to date.
 - Configure the path to your _"isDirty"_ redux state in the router config for the related page: inside the `data` object add an `isDirty` property whose value is a string array representing the path to your _"isDirty"_ state flag, starting from the reducer name.
 
-For example, if you store your the "isDirty" flag in the `addWaiver` reducer in a variable called `isAddWaiverPageDirty`, the router config should look like this:
+For example, if you store the "isDirty" flag in the `addWaiver` reducer in a variable called `isAddWaiverPageDirty`, the router config should look like this:
 
 ```
 .state('addWaiver', {
@@ -193,7 +193,7 @@ For en example of a test with React Testing Library see `insight-brain-frontend/
 There are several helper functions in `insight-brain-frontend/src/test/frontend/SpecUtil.js` to help you with writing unit tests for React components. Here are some of the most common:
 
 - `render` wrapper for React Testing Library API that configures Redux Store and Jasmine matchers.
-- `axiosMockerGenerator` can be used to mock Axios HTTP requests (get / post / put / delete)
+- `axiosMockAdapter` can be used to mock Axios HTTP requests (get / post / put / delete)
 
 ### Mocking Rejected Promises
 
@@ -230,6 +230,12 @@ mockAxiosCalls({
     [url]: () => Promise.reject('some error'),
   },
 });
+```
+
+⚠️ Note, `axiosMockerGenerator` is deprecated. Use `axiosMockAdapter` instead:
+
+```
+axiosMock.onGet(url).reply(() => Promise.reject('some error'));
 ```
 
 In a nutshell: don't create the rejected promise until you need it.

@@ -72,8 +72,7 @@ So you've done some discovery, and it turns out you've got a novel idea. Now it'
 
 * Clone this repo and create a branch locally for your contribution. You can push that branch to this repository 
  (check with Nick/Tim/Brandon to get access if you don't already). 
-* If your change set includes visual changes, make sure the branch name includes the suffix “\_ui” - this enables our 
- visual testing tool, Applitools.
+* If your change set includes visual changes, enable our visual testing in your Jenkins feature branch build.
 * Use the [Sonatype codestyle](https://github.com/sonatype/codestyle) in your IDE. We have a test in our
  CI process that will fail if it doesn't match. You can test locally with `mvn checkstyle:check`.
 * Make sure license headers are applied; this is the first test in our CI build.
@@ -126,7 +125,7 @@ results with the changes. As a result, here's a recommended workflow for changes
 2. Run our [CI build](https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/feature-snapshots/).
 3. Take a gander at 
  [our documentation](https://docs.sonatype.com/pages/viewpage.action?spaceKey=INSIGHT&title=Automated+Visual+Testing+with+Applitools)
- on how to work with Applitools. Reach out in Slack at `#iq-laurel` for help.
+ on how to work with Applitools. Reach out in Slack at `#iq-lorage` for help.
 4. Once you see all 3 github checks passing (jenkins, applitools, and applitools mergeability), convert the draft to an
  open pull request.
 
@@ -144,7 +143,7 @@ You are at the final stages. Your change works, it's polished, and it's ready to
 ### UI changes
 
 If your change introduces new or modifies any HTML, SCSS, or JavaScript; please request a review from 
-[@iq-laurel](https://github.com/orgs/sonatype/teams/iq-laurel) in Github.  A +1 from our team is not needed to proceed with front end development.
+[@iq-lorage](https://github.com/orgs/sonatype/teams/iq-lorage) in Github.  A +1 from our team is not needed to proceed with front end development.
 
 ### All other changes
 

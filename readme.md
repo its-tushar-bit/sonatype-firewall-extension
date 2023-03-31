@@ -40,13 +40,6 @@ Team Insight is the primary maintainer for this application but welcomes contrib
 
 Please read our [contribution rules and guidelines](contributing.md).
 
-Need help? Reach out to our [Rotating On-Call Engineers](https://docs.sonatype.com/display/INSIGHT/The+On-Call+Engineer+Role) at:
-
-* the Slack channel `#iq-on-call`, or
-* the Slack user group `@iq-on-call-devs`
-
-The members of `@iq-on-call-devs` are rotated weekly on Sundays, see [the membership list here](https://github.com/sonatype/iq-albion-slack-alert/blob/master/iq-oncall/oncall-rotation.json).
-
 # Working with insight-brain #
 
 ## Requirements ##

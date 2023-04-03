@@ -89,7 +89,7 @@ public class MilestoneOneBannedRestResourcesTest
     assertThat(underTest.isBanned(LdapResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiMailConfigurationResource.class)).isFalse();
     assertThat(underTest.isBanned(ApiProxyServerConfigurationResource.class)).isTrue();
-    assertThat(underTest.isBanned(SystemNoticeResource.class)).isTrue();
+    assertThat(underTest.isBanned(SystemNoticeResource.class)).isFalse();
     assertThat(underTest.isBanned(SuccessMetricsResource.class)).isTrue();
     assertThat(underTest.isBanned(AutomaticApplicationsConfigurationResource.class)).isTrue();
     assertThat(underTest.isBanned(AdvancedSearchResource.class)).isTrue();

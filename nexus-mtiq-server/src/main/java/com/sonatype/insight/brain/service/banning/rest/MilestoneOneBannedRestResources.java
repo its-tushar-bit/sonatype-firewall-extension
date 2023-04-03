@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.api.v2.ApiSourceControlResource;
 import com.sonatype.insight.brain.api.v2.ApiThirdPartyScanResource;
 import com.sonatype.insight.brain.configuration.AutomaticApplicationsConfigurationResource;
 import com.sonatype.insight.brain.configuration.AutomaticSourceControlConfigurationResource;
-import com.sonatype.insight.brain.configuration.SystemNoticeResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
 import com.sonatype.insight.brain.search.AdvancedSearchResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
@@ -62,7 +61,6 @@ public class MilestoneOneBannedRestResources
       ApiSourceControlResource.class,
       LdapResource.class,
       ApiProxyServerConfigurationResource.class,
-      SystemNoticeResource.class,
       SuccessMetricsResource.class,
       AutomaticApplicationsConfigurationResource.class,
       AdvancedSearchResource.class,

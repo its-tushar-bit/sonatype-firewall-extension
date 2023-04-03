@@ -239,6 +239,9 @@ public class PullRequestMonitor
           }
 
           for (SourceControlPullRequest pullRequest : pullRequestsForBranch) {
+            log.debug("Processing PR# {} for SCM repository URL '{}'", pullRequest.getPullRequestId(),
+                pullRequest.getRepositoryUrl());
+
             closedPullRequests.remove(pullRequest);
 
             if (!pullRequest.getHeadCommitHash().equals(headCommit)) {
@@ -278,6 +281,9 @@ public class PullRequestMonitor
               pullRequest.setLastCheckTime(updateTime);
               sourceControlPullRequestDAO.update(pullRequest);
             }
+
+            log.debug("Processed PR# {} for SCM repository URL '{}'", pullRequest.getPullRequestId(),
+                pullRequest.getRepositoryUrl());
           }
         }
 

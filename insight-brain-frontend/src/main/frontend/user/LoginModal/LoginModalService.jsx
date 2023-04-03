@@ -6,6 +6,7 @@
 import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { getSamlSsoLoginUrl } from 'MainRoot/util/CLMLocation';
+import { assign } from 'MainRoot/util/CLMLocation';
 
 export default function LoginModalService(rootScope, ngRedux) {
   let modalPromise = null;
@@ -17,7 +18,7 @@ export default function LoginModalService(rootScope, ngRedux) {
   }
 
   function redirect(destination) {
-    window.location.assign(destination);
+    assign(destination);
   }
 
   const onSubmit = (loginUsername, loginPassword) => {
@@ -36,6 +37,11 @@ export default function LoginModalService(rootScope, ngRedux) {
   };
 
   function open(showSamlSso) {
+    if (showSamlSso && ngRedux.getState() && ngRedux.getState().userLogin.loginModalState.isSsoOnlyEnabled) {
+      onClickSSO();
+      return;
+    }
+
     if (modalPromise) {
       return modalPromise;
     }

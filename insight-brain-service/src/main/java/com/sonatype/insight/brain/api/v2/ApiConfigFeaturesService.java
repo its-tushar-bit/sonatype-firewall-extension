@@ -53,11 +53,15 @@ public class ApiConfigFeaturesService
 
   static final String FEATURE_ENABLE_UNAUTHENTICATED_PAGES = "enableUnauthenticatedPages";
 
+  static final String FEATURE_ENABLE_SSO_ONLY = "enableSsoOnly";
+
   static final String FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS = "internalSourceControlPolicyEvaluations";
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
+
+  public static final String NXIQ_ENABLE_SSO_ONLY_ENV_VAR = "NXIQ_ENABLE_SSO_ONLY";
 
   /**
    * This enumeration contains features that can be enabled/disabled by the {@link ApiConfigFeaturesResource}.
@@ -122,6 +126,14 @@ public class ApiConfigFeaturesService
       @Override
       public boolean isEnabled() {
         String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR);
+        return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
+      }
+    },
+    ENABLE_SSO_ONLY(SystemConfigurationProperty.ENABLE_SSO_ONLY, false)
+    {
+      @Override
+      public boolean isEnabled() {
+        String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_SSO_ONLY_ENV_VAR);
         return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
       }
     },
@@ -324,6 +336,8 @@ public class ApiConfigFeaturesService
         return SystemConfigurationProperty.PR_LINE_COMMENTING;
       case FEATURE_ENABLE_UNAUTHENTICATED_PAGES:
         return SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES;
+      case FEATURE_ENABLE_SSO_ONLY:
+        return SystemConfigurationProperty.ENABLE_SSO_ONLY;
       case FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS:
         return SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
       default:

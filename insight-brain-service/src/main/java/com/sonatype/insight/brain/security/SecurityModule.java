@@ -93,6 +93,7 @@ public class SecurityModule
     manager.createChain("/rest/product/license/validate", anonFilters); // product license info
     // endpoint used to decide whether we have unauthenticated pages or not
     manager.createChain("/rest/product/features/enableUnauthenticatedPages", anonFilters);
+    manager.createChain("/rest/product/features/enableSsoOnly", anonFilters);
     manager.createChain("/rest/version", anonFilters); // product version info
     manager.createChain("/tasks/**", anonFilters); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", anonFilters); // only redirects

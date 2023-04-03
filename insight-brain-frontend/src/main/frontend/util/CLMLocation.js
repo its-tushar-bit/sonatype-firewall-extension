@@ -426,6 +426,10 @@ export function getEnableUnauthenticatedPages() {
   return uriTemplate`/rest/product/features/enableUnauthenticatedPages`;
 }
 
+export function getEnableSsoOnly() {
+  return uriTemplate`/rest/product/features/enableSsoOnly`;
+}
+
 export function getQuarantinedComponentViewAnonymousAccessEnabledState() {
   return uriTemplate`/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess/`;
 }
@@ -473,6 +477,10 @@ export function deleteWaiverUrl(waiverScope, ownerId, waiverId) {
 
 export function redirectTo(url) {
   window.location = url;
+}
+
+export function assign(url) {
+  window.location.assign(url);
 }
 
 export function getDownloadPdfUrl(applicationPublicId, scanId) {
@@ -1304,6 +1312,8 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getProductFeaturesUrl,
 
       getEnableUnauthenticatedPages,
+
+      getEnableSsoOnly,
 
       getQuarantinedComponentViewAnonymousAccessEnabledState,
 

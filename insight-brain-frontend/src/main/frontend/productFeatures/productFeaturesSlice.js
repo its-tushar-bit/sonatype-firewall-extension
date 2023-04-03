@@ -9,6 +9,7 @@ import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import {
   getProductFeaturesUrl,
   getEnableUnauthenticatedPages,
+  getEnableSsoOnly,
   getQuarantinedComponentViewAnonymousAccessEnabledState,
 } from 'MainRoot/util/CLMLocation';
 import { selectProductFeatures } from './productFeaturesSelectors';
@@ -80,6 +81,13 @@ const loadIsUnauthenticatedPagesEnabled = createAsyncThunk(`${REDUCER_NAME}/load
   axios.get(getEnableUnauthenticatedPages()).then(pipe(prop('data'), includes('enable-unauthenticated-pages')))
 );
 
+/**
+ * Separate REST call because it must be accessible before login
+ */
+const loadIsSsoOnlyEnabled = createAsyncThunk(`${REDUCER_NAME}/loadIsSsoOnlyEnabled`, () =>
+  axios.get(getEnableSsoOnly()).then(pipe(prop('data'), includes('enable-sso-only')))
+);
+
 const productFeaturesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -96,4 +104,5 @@ export const actions = {
   fetchProductFeaturesIfNeeded,
   loadIsQuarantinedComponentViewAnonymousAccessEnabled,
   loadIsUnauthenticatedPagesEnabled,
+  loadIsSsoOnlyEnabled,
 };

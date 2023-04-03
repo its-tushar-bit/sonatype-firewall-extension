@@ -87,6 +87,8 @@ public class SystemConfigurationProperty
 
   public static final String ENABLE_UNAUTHENTICATED_PAGES = "ENABLE_UNAUTHENTICATED_PAGES";
 
+  public static final String ENABLE_SSO_ONLY = "ENABLE_SSO_ONLY";
+
   public static final String INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS = "INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS";
 
   public static final String ACCESS_ALLOWLIST = "accessAllowlist";

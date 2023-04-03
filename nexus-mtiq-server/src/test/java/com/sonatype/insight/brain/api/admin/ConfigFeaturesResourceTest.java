@@ -47,7 +47,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
         SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
         SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId()
+        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
+        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
     );
   }
 }

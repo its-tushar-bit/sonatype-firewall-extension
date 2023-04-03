@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.features;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.features.FeaturesResource.ENABLE_SSO_ONLY;
 import static com.sonatype.insight.brain.features.FeaturesResource.ENABLE_UNAUTHENTICATED_PAGES;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,5 +49,14 @@ public class FeaturesResourceTest
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
     assertThat(features).hasSize(1).containsOnly("enable-unauthenticated-pages");
+  }
+
+  @Test
+  public void testGetEnableSsoOnly() throws Exception {
+    SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.setEnabled(true);
+    HttpResponse response = restRequest().path(ENABLE_SSO_ONLY).anon().get();
+    assertResponseStatus(200, response);
+    String[] features = response.getBody(String[].class);
+    assertThat(features).hasSize(1).containsOnly("enable-sso-only");
   }
 }

@@ -5,7 +5,7 @@
  */
 import loginModalModule from 'MainRoot/user/LoginModal/module';
 import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
-
+import * as Locations from 'MainRoot/util/CLMLocation';
 describe('LoginModalService', function () {
   let LoginModalService, $ngRedux, $rootScope;
 
@@ -32,6 +32,29 @@ describe('LoginModalService', function () {
     expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setIsLicensed($rootScope.licensed));
     expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowLoginModal(true));
     expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowSamlSso(false));
+  });
+
+  it('does not open the login modal when open() is called with showSamlSso and isSsoOnlyEnabled', () => {
+    $ngRedux.getState = jasmine
+      .createSpy('getState')
+      .and.returnValue({ userLogin: { loginModalState: { isSsoOnlyEnabled: true } } });
+
+    spyOn(Locations, 'assign').and.stub();
+
+    LoginModalService.open(true);
+    expect(Locations.assign).toHaveBeenCalledTimes(1);
+    expect($ngRedux.dispatch).toHaveBeenCalledTimes(0);
+  });
+
+  it('does open the login modal when open() is called with showSamlSso and not isSsoOnlyEnabled', () => {
+    spyOn(Locations, 'assign').and.stub();
+
+    LoginModalService.open(true);
+    expect(Locations.assign).toHaveBeenCalledTimes(0);
+    expect($ngRedux.dispatch).toHaveBeenCalledTimes(3);
+    expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setIsLicensed($rootScope.licensed));
+    expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowLoginModal(true));
+    expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowSamlSso(true));
   });
 
   it('does not open multiple copies of the modal', () => {

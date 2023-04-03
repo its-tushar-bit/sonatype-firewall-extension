@@ -30,6 +30,8 @@ public class FeaturesResource
 
   public static final String ENABLE_UNAUTHENTICATED_PAGES = "/enableUnauthenticatedPages";
 
+  public static final String ENABLE_SSO_ONLY = "/enableSsoOnly";
+
   private final FeaturesService featuresService;
 
   @Inject
@@ -62,6 +64,15 @@ public class FeaturesResource
   public Set<Feature> getEnableUnauthenticatedPages() {
     Set<Feature> features = featuresService.getFeatures();
     features.removeIf(feature -> feature != SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES);
+    return features;
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(ENABLE_SSO_ONLY)
+  public Set<Feature> getEnableSsoOnly() {
+    Set<Feature> features = featuresService.getFeatures();
+    features.removeIf(feature -> feature != SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY);
     return features;
   }
 }

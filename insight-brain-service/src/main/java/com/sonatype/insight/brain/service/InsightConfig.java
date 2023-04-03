@@ -901,6 +901,7 @@ public class InsightConfig
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting"),
     ENABLE_UNAUTHENTICATED_PAGES("enableUnauthenticatedPages"),
+    ENABLE_SSO_ONLY("enableSsoOnly"),
 
     /**
      * @deprecated Use {@link SourceControl#getSourceControlEvaluationsEnabled() instead}

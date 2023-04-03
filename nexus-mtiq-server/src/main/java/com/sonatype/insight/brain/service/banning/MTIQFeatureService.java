@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
@@ -80,6 +81,7 @@ public class MTIQFeatureService
       WEBHOOK_CONFIGURATION,
       WEBHOOKS_FOR_REPOSITORIES,
       EMAIL_CONFIGURATION,
+      ENABLE_SSO_ONLY,
       /* Lifecycle Features */
       WEBHOOKS_FOR_APPLICATIONS
   );

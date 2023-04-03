@@ -239,8 +239,8 @@ public class PullRequestMonitor
           }
 
           for (SourceControlPullRequest pullRequest : pullRequestsForBranch) {
-            log.debug("Processing PR# {} for SCM repository URL '{}'", pullRequest.getPullRequestId(),
-                pullRequest.getRepositoryUrl());
+            log.debug("Processing PR# {} (id={}) for SCM repository URL '{}'", pullRequest.getPullRequestId(),
+                pullRequest.getId(), pullRequest.getRepositoryUrl());
 
             closedPullRequests.remove(pullRequest);
 
@@ -282,8 +282,8 @@ public class PullRequestMonitor
               sourceControlPullRequestDAO.update(pullRequest);
             }
 
-            log.debug("Processed PR# {} for SCM repository URL '{}'", pullRequest.getPullRequestId(),
-                pullRequest.getRepositoryUrl());
+            log.debug("Processing PR# {} (id={}) for SCM repository URL '{}'", pullRequest.getPullRequestId(),
+                pullRequest.getId(), pullRequest.getRepositoryUrl());
           }
         }
 

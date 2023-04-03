@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.testing.functional.elements.AccessTile;
+import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessList;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
@@ -39,6 +41,7 @@ import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
@@ -47,7 +50,9 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -720,5 +725,38 @@ public class ApplicationSummaryViewTest
     labelTile.labelListSubheader(1).shouldHave(LabelTile.inheritedText(organization.getName()));
     ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
     eyesWatcher.eyesCheck("Inherited Component Labels Header Truncation");
+  }
+
+  @Test
+  public void testAccessTile_Inherited_Truncation() {
+
+    Organization organization = tempEntity.newOrganization("An Org With A Very Very Very Very Very Very Very Very " +
+        "Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very V Very Very Very Very " +
+        "Very Very Very Very Very Very Long Name");
+
+    Role readRole = tempEntity.newRole("Read Only", false, Permission.READ);
+    RoleDAO roleDAO = new RoleDAO();
+    List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
+    tempEntity
+        .newMembershipMapping(organization.getId(), readRole.getId(), "Group", MemberType.GROUP);
+    roleList.add(readRole);
+
+    String id = "bfc6c69a39b94e81a777edf9727e01ce";
+    Application application = tempEntity.newApplication("Test App " + id, id, organization.getId());
+
+    refreshOrOpen(OwnerSummaryPage.url(application));
+    AccessTile accessTile = OwnerSummaryPage.accessTile();
+    accessTile.accessLists().shouldHaveSize(2);
+    accessTile.inheritedAccessLists().shouldHaveSize(1);
+    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(accessTile.getElement());
+
+    InheritedAccessList inheritedAccessList = accessTile.inheritedAccessList(organization.getId());
+    inheritedAccessList.should(exist).shouldBe(visible);
+    accessTile.accessListSubheader(0).shouldBe(visible).click();
+    inheritedAccessList.should(exist).shouldNotBe(visible);
+    accessTile.accessListSubheader(0).shouldHave(LabelTile.inheritedText(organization.getName()));
+    ScrollUtil.scrollIntoViewInstantly(accessTile.getElement());
+    eyesWatcher.eyesCheck("Inherited Access Header Truncation");
   }
 }

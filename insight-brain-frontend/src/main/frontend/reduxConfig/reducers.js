@@ -88,6 +88,7 @@ import waiverDetailsSlice from 'MainRoot/waivers/waiverDetails/waiverDetailsSlic
 import toastSlice from '../toastContainer/toastSlice';
 import waivedComponentUpgradesSlice from 'MainRoot/OrgsAndPolicies/waivedComponentUpgradesSlice';
 import vulnerabilityCustomizeSlice from 'MainRoot/vulnerabilityCustomize/vulnerabilityCustomizeSlice';
+import baseUrlConfigurationSlice from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -173,5 +174,6 @@ export default combineReducers({
   apiPage: apiPageSlice,
   waiverDetails: waiverDetailsSlice,
   toast: toastSlice,
+  baseUrlConfiguration: baseUrlConfigurationSlice,
   waivedComponentUpgrades: waivedComponentUpgradesSlice,
 });

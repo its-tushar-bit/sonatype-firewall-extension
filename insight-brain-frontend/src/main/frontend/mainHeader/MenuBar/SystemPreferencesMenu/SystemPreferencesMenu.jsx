@@ -119,6 +119,9 @@ export const SystemPreferencesMenu = ({
       >
         Automatic SCM Configuration
       </NavLink>
+      <NavLink stateName="baseUrlConfiguration" showIf={CONFIGURE_SYSTEM}>
+        Base URL
+      </NavLink>
       <NavLink
         stateName="advancedSearchConfig"
         id="system-configuration-advanced-search"

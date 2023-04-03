@@ -1182,6 +1182,10 @@ export const getRepositoryPolicyViolationUrl = (repositoryId, repositoryPolicyId
 
 export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositories/proprietaryComponentNamePatterns`;
 
+export const getConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config`;
+};
+
 export const getRepositoryComponentNamePatternUpdateUrl = () =>
   uriTemplate`/rest/repositories/proprietaryComponentNamePatterns/update`;
 

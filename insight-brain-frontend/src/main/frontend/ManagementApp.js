@@ -33,6 +33,7 @@ import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
 import innerSourceRepositoryConfigurationModule from './innerSourceRepositoryConfiguration/module';
 import artifactoryRepositoryConfigurationModule from './artifactoryRepositoryConfiguration/module';
 import apiModule from './api/module';
+import baseUrlConfigurationModule from './configuration/baseUrl/module';
 
 export default angular
   .module('managementApp', [
@@ -63,6 +64,7 @@ export default angular
     artifactoryRepositoryConfigurationModule.name,
     atlassianCrowdConfigurationModule.name,
     apiModule.name,
+    baseUrlConfigurationModule.name,
   ])
   .component('advancedSearch', iqReact2Angular(AdvancedSearchContainer, [], ['$ngRedux', '$state']))
   .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']))

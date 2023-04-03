@@ -13,9 +13,14 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SourceControlPullRequestDAO
     extends AbstractOperationalSqlDAO<SourceControlPullRequest>
 {
+  private static final Logger log = LoggerFactory.getLogger(SourceControlPullRequestDAO.class);
+
   @Override
   public SourceControlPullRequest getById(TransactionContext tx, String id) {
     return get(tx, "SELECT entity FROM SourceControlPullRequest entity WHERE entity.id=?1", id);
@@ -68,5 +73,23 @@ public class SourceControlPullRequestDAO
         return getSingle(Long.class, sQuery, startDate, endDate).intValue();
       }
     }
+  }
+
+  @Override
+  public void insert(TransactionContext tx, SourceControlPullRequest entity) {
+    super.insert(tx, entity);
+    log.trace("Inserted SourceControlPullRequest: " + entity);
+  }
+
+  @Override
+  public void update(TransactionContext tx, SourceControlPullRequest entity) {
+    super.update(tx, entity);
+    log.trace("Updated SourceControlPullRequest: " + entity);
+  }
+
+  @Override
+  public void delete(TransactionContext tx, SourceControlPullRequest entity) {
+    super.delete(tx, entity);
+    log.trace("Deleted SourceControlPullRequest: " + entity);
   }
 }

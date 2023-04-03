@@ -169,4 +169,12 @@ public class SourceControlPullRequest
   public void setLastDetectedUpdateTime(Date lastDetectedUpdateTime) {
     this.lastDetectedUpdateTime = lastDetectedUpdateTime;
   }
+
+  @Override
+  public String toString() {
+    return "SourceControlPullRequest [id=" + id + ", repositoryUrl=" + repositoryUrl + ", pullRequestId="
+        + pullRequestId + ", headCommitHash=" + headCommitHash + ", baseCommitHash=" + baseCommitHash + ", branchName="
+        + branchName + ", baseBranchName=" + baseBranchName + ", createTime=" + createTime + ", lastCheckTime="
+        + lastCheckTime + ", lastDetectedUpdateTime=" + lastDetectedUpdateTime + "]";
+  }
 }

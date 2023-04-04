@@ -131,7 +131,7 @@ function IqSidebarNav(props) {
               isSelected={isVulnerabilitySearchSelected}
               id="vulnerability-navigation-button"
               icon={faMicroscope}
-              text="Vulnerability Search"
+              text="Vulnerability Lookup"
               href={vulnSearchHref}
             />
           )}

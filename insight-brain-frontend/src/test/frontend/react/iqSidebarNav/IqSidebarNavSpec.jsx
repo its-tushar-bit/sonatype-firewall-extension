@@ -235,7 +235,7 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for vulnerability search if allowed', function () {
+    it('renders an NxGlobalSidebarNavigationLink for vulnerability lookup if allowed', function () {
       expect(getShallowComponent({ isLoggedIn: true }).find('#vulnerability-navigation-button')).not.toExist();
 
       const component = getShallowComponent({
@@ -246,7 +246,7 @@ describe('IqSidebarNav', function () {
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
       expect(navLink).toHaveProp('icon', faMicroscope);
-      expect(navLink).toHaveProp('text', 'Vulnerability Search');
+      expect(navLink).toHaveProp('text', 'Vulnerability Lookup');
       expect(navLink).toHaveProp('href', 'href-vulnerabilitySearch');
       expect(navLink).toHaveProp('isSelected', false);
     });
@@ -418,12 +418,12 @@ describe('IqSidebarNav', function () {
         expect(renderAllLinks().find('#labs-navigation-button')).toHaveProp('isSelected', true);
       });
 
-      it('renders Vulnerability Search link as selected when the state matches vulnerabilitySearch', function () {
+      it('renders Vulnerability Lookup link as selected when the state matches vulnerabilitySearch', function () {
         includesSpy.and.callFake((state) => state === 'vulnerabilitySearch');
         expect(renderAllLinks().find('#vulnerability-navigation-button')).toHaveProp('isSelected', true);
       });
 
-      it('renders Vulnerability Search link as selected when the state matches vulnerabilitySearchDetail', function () {
+      it('renders Vulnerability Lookup link as selected when the state matches vulnerabilitySearchDetail', function () {
         includesSpy.and.callFake((state) => state === 'vulnerabilitySearchDetail');
         expect(renderAllLinks().find('#vulnerability-navigation-button')).toHaveProp('isSelected', true);
       });

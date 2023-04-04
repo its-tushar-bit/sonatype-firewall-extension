@@ -30,6 +30,7 @@ import org.keycloak.adapters.spi.HttpFacade;
 import org.keycloak.adapters.spi.HttpFacade.Request;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.LOGOUT_AUTH0_ON_LOGOUT;
 import static com.sonatype.insight.brain.security.SamlFilter.MSG_SAML_INTERNAL_ERROR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -72,6 +73,7 @@ public class SamlFilterTest
 
   @Before
   public void before() {
+    setBaseUrl("http://localhost:8070");
     spyServletHttpFacade = spy(new ServletHttpFacade(mockHttpServletRequest, mockHttpServletResponse));
   }
 
@@ -134,6 +136,26 @@ public class SamlFilterTest
     verify(mockSamlSessionStore).logoutAccount();
     verify(subject).logout();
     verify(mockHttpServletResponse).sendRedirect("/context/");
+  }
+
+  @Test
+  public void testOnPrehandle_Failed_RedirectsToIdPLogoutUrl_ReturnsFalse() throws Exception {
+    tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
+
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/context/saml", "/context/", AuthOutcome.FAILED,
+        false);
+
+    verify(mockHttpServletResponse).sendRedirect(
+        "https://http://idp-entity-id/v2/logout?client_id=/localhost&returnTo=http://localhost:8070/");
+  }
+
+  @Test
+  public void testOnPrehandle_Failed_ShowErrorMessage_ReturnsFalse() throws Exception {
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/context/saml", "/context/", AuthOutcome.FAILED,
+        false);
+
+    verify(mockHttpServletResponse).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    verify(mockHttpServletResponse).setContentType(ErrorResponse.CONTENT_TYPE);
   }
 
   @Test

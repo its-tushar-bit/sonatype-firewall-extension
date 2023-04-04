@@ -59,15 +59,19 @@ class SamlFilter
 
   private final SamlSessionIdMapper samlSessionIdMapper;
 
+  private final SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder;
+
   @Inject
   public SamlFilter(
       SamlDeploymentManager samlDeploymentManager,
       LandingService landingService,
-      SamlSessionIdMapper samlSessionIdMapper)
+      SamlSessionIdMapper samlSessionIdMapper,
+      SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder)
   {
     this.samlDeploymentManager = samlDeploymentManager;
     this.landingService = landingService;
     this.samlSessionIdMapper = samlSessionIdMapper;
+    this.samlIdPLogoutUrlBuilder = samlIdPLogoutUrlBuilder;
   }
 
   // Visible for testing
@@ -119,8 +123,15 @@ class SamlFilter
       return false;
     }
     if (outcome == AuthOutcome.FAILED) {
-      LoginErrorResponseHandler.sendError(httpResponse,
-          new ErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MSG_SAML_FAILURE));
+      URI idpLogoutURI = samlIdPLogoutUrlBuilder.buildIdPLogoutUrl();
+
+      if (idpLogoutURI != null) {
+        ((HttpServletResponse) response).sendRedirect(idpLogoutURI.toString());
+      }
+      else {
+        LoginErrorResponseHandler.sendError(httpResponse,
+            new ErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MSG_SAML_FAILURE));
+      }
       return false;
     }
 

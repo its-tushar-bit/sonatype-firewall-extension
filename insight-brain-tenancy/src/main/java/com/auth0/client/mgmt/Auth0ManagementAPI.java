@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 
+import com.auth0.client.mgmt.filter.ClientFilter;
 import com.auth0.exception.Auth0Exception;
 import com.auth0.json.mgmt.client.Addon;
 import com.auth0.json.mgmt.client.Addons;
@@ -50,12 +51,7 @@ public class Auth0ManagementAPI
   public Client createTenant(String tenantSubdomain, String tenantDescription, String logoUrl) {
     validate(tenantSubdomain, tenantDescription, logoUrl);
     Client client = newClient(tenantSubdomain, tenantSubdomain, tenantDescription, logoUrl);
-    try {
-      return clients().create(client).execute();
-    }
-    catch (Auth0Exception e) {
-      throw new RuntimeException(e);
-    }
+    return updateOrCreateClient(client);
   }
 
   public Client createTenant(
@@ -66,12 +62,7 @@ public class Auth0ManagementAPI
   {
     validate(name, tenantDescription, logoUrl);
     Client client = newClient(name, tenantSubdomain, tenantDescription, logoUrl);
-    try {
-      return clients().create(client).execute();
-    }
-    catch (Auth0Exception e) {
-      throw new RuntimeException(e);
-    }
+    return updateOrCreateClient(client);
   }
 
   private Client newClient(
@@ -80,7 +71,7 @@ public class Auth0ManagementAPI
       final String tenantDescription,
       final String logoUrl)
   {
-    Client client = new Client(name);
+    Client client = new Client(name.toLowerCase());
     client.setAppType(AUTH0_APP_TYPE);
     client.setDescription(tenantDescription);
     client.setCallbacks(Collections.singletonList(getTenantSamlEndpoint(tenantSubdomain)));
@@ -92,6 +83,27 @@ public class Auth0ManagementAPI
     addOns.setAdditionalAddon("samlp", samlpAddOn);
     client.setAddons(addOns);
     return client;
+  }
+
+  private Client updateOrCreateClient(Client client) {
+    try {
+      Client existing = findClientByName(client.getName());
+
+      if (existing != null) {
+        return clients().update(existing.getClientId(), client).execute();
+      }
+
+      return clients().create(client).execute();
+    }
+    catch (Auth0Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private Client findClientByName(String name) throws Auth0Exception {
+    ClientFilter filter = new ClientFilter().withFields("name", true);
+    return clients().list(filter).execute().getItems().stream()
+        .filter(client -> name.equalsIgnoreCase(client.getName())).findFirst().orElse(null);
   }
 
   private String getTenantEndpoint(final String tenantSubdomain) {

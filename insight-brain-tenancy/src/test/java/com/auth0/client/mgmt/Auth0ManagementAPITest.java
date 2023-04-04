@@ -7,12 +7,15 @@ package com.auth0.client.mgmt;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
 
+import com.auth0.client.mgmt.filter.ClientFilter;
 import com.auth0.exception.Auth0Exception;
 import com.auth0.json.mgmt.client.Client;
+import com.auth0.json.mgmt.client.ClientsPage;
 import com.auth0.net.Request;
 import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,6 +33,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class Auth0ManagementAPITest
@@ -46,7 +51,18 @@ public class Auth0ManagementAPITest
   @Captor
   private ArgumentCaptor<Client> clientCaptor;
 
+  @Captor
+  private ArgumentCaptor<String> clientIdCaptor;
+
   public Auth0ManagementAPI auth0ManagementAPI;
+
+  private ClientsEntity mockClientsEntity;
+
+  private Request<Client> createMockRequest;
+
+  private Request<Client> updateMockRequest;
+
+  private Request<ClientsPage> listsMockRequest;
 
   @Before
   public void before() {
@@ -88,25 +104,18 @@ public class Auth0ManagementAPITest
     String name = "tenant1";
     String description = "blah";
     String logoUrl = "http://tenanat1.com/logo.gif";
-    Client mockClient = mockClient(name, description, logoUrl);
 
-    ClientsEntity mockClientsEntity = mock(ClientsEntity.class);
-    when(auth0ManagementAPI.clients()).thenReturn(mockClientsEntity);
-    Request<Client> mockRequest = mock(Request.class);
-    when(mockClientsEntity.create(clientCaptor.capture())).thenReturn(mockRequest);
-    when(mockRequest.execute()).thenReturn(mockClient);
+    mockAuth0ClientsEntity();
+    mockAuth0ListClientsRequest();
+    mockAuth0CreateClientRequest();
+    Client mockClient = mockClient(name, description, logoUrl);
+    when(createMockRequest.execute()).thenReturn(mockClient);
 
     Client tenant = auth0ManagementAPI.createTenant(name, description, logoUrl);
-    Assertions.assertThat(tenant.getName()).isEqualTo(name);
-    Assertions.assertThat(tenant.getDescription()).isEqualTo(description);
-    Assertions.assertThat(tenant.getLogoUri()).isEqualTo(logoUrl);
+    assertReturnedClientIsTheExpected(name, description, logoUrl, tenant);
 
-    Client clientParameter = clientCaptor.getValue();
-    Assertions.assertThat(clientParameter.getName()).isEqualTo(name);
-    Assertions.assertThat(clientParameter.getDescription()).isEqualTo(description);
-    Assertions.assertThat(clientParameter.getLogoUri()).isEqualTo(logoUrl);
-    Assertions.assertThat(clientParameter.getAllowedLogoutUrls()).contains("http://tenant1.sonatype.app");
-    Assertions.assertThat(clientParameter.getCallbacks()).contains("http://tenant1.sonatype.app/saml");
+    assertCapturedClientIsTheExpected(description, logoUrl, name);
+    verifyCreateRequestWasSent();
   }
 
   @Test
@@ -115,24 +124,43 @@ public class Auth0ManagementAPITest
     String description = "blah";
     String logoUrl = "http://tenanat1.com/logo.gif";
     String name = "tenant1-mtiq";
-    Client mockClient = mockClient(subDomain, description, logoUrl);
 
-    ClientsEntity mockClientsEntity = mock(ClientsEntity.class);
-    when(auth0ManagementAPI.clients()).thenReturn(mockClientsEntity);
-    Request<Client> mockRequest = mock(Request.class);
-    when(mockClientsEntity.create(clientCaptor.capture())).thenReturn(mockRequest);
-    when(mockRequest.execute()).thenReturn(mockClient);
+    mockAuth0ClientsEntity();
+    mockAuth0ListClientsRequest();
+    mockAuth0CreateClientRequest();
+    Client mockClient = mockClient(name, description, logoUrl);
+    when(createMockRequest.execute()).thenReturn(mockClient);
 
     Client tenant = auth0ManagementAPI.createTenant(name, subDomain, description, logoUrl);
-    Assertions.assertThat(tenant.getDescription()).isEqualTo(description);
-    Assertions.assertThat(tenant.getLogoUri()).isEqualTo(logoUrl);
+    assertReturnedClientIsTheExpected(name, description, logoUrl, tenant);
 
-    Client clientParameter = clientCaptor.getValue();
-    Assertions.assertThat(clientParameter.getName()).isEqualTo(name);
-    Assertions.assertThat(clientParameter.getDescription()).isEqualTo(description);
-    Assertions.assertThat(clientParameter.getLogoUri()).isEqualTo(logoUrl);
-    Assertions.assertThat(clientParameter.getAllowedLogoutUrls()).contains("http://tenant1.sonatype.app");
-    Assertions.assertThat(clientParameter.getCallbacks()).contains("http://tenant1.sonatype.app/saml");
+    assertCapturedClientIsTheExpected(description, logoUrl, name);
+    verifyCreateRequestWasSent();
+  }
+
+  @Test
+  public void testCreate_applicationAlreadyExists() throws Exception {
+    String name = "tenant1";
+    String description = "blah";
+    String logoUrl = "http://tenanat1.com/logo.gif";
+    String clientId = "client-id";
+    Client mockClient = mockClient(name, description, logoUrl, clientId);
+    ClientsPage mockPage = new ClientsPage(Arrays.asList(mockClient));
+
+    mockAuth0ClientsEntity();
+    mockAuth0ListClientsRequest();
+    mockAuth0UpdateClientRequest();
+    when(listsMockRequest.execute()).thenReturn(mockPage);
+    when(updateMockRequest.execute()).thenReturn(mockClient);
+
+    Client tenant = auth0ManagementAPI.createTenant(name, description, logoUrl);
+    assertReturnedClientIsTheExpected(name, description, logoUrl, tenant);
+
+    String clientIdParameter = clientIdCaptor.getValue();
+    assertThat(clientIdParameter).isEqualTo(clientId);
+
+    assertCapturedClientIsTheExpected(description, logoUrl, name);
+    verifyUpdateRequestWasSent();
   }
 
   @Test
@@ -141,11 +169,10 @@ public class Auth0ManagementAPITest
     String description = "blah";
     String logoUrl = "http://tenanat1.com/logo.gif";
 
-    ClientsEntity mockClientsEntity = mock(ClientsEntity.class);
-    when(auth0ManagementAPI.clients()).thenReturn(mockClientsEntity);
-    Request<Client> mockRequest = mock(Request.class);
-    when(mockClientsEntity.create(any(Client.class))).thenReturn(mockRequest);
-    when(mockRequest.execute()).thenThrow(new Auth0Exception("remote error"));
+    mockAuth0ClientsEntity();
+    mockAuth0ListClientsRequest();
+    mockAuth0CreateClientRequest();
+    when(createMockRequest.execute()).thenThrow(new Auth0Exception("remote error"));
 
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> auth0ManagementAPI.createTenant(name, description, logoUrl))
@@ -185,10 +212,71 @@ public class Auth0ManagementAPITest
     assertThat(samlMetaDataFile).isNull();
   }
 
+  private void assertCapturedClientIsTheExpected(final String description, final String logoUrl, final String name) {
+    Client clientParameter = clientCaptor.getValue();
+    assertReturnedClientIsTheExpected(name, description, logoUrl, clientParameter);
+    assertThat(clientParameter.getAllowedLogoutUrls()).contains("http://tenant1.sonatype.app");
+    assertThat(clientParameter.getCallbacks()).contains("http://tenant1.sonatype.app/saml");
+  }
+
+  private static void assertReturnedClientIsTheExpected(
+      final String name,
+      final String description,
+      final String logoUrl,
+      final Client tenant)
+  {
+    assertThat(tenant.getName()).isEqualTo(name);
+    assertThat(tenant.getDescription()).isEqualTo(description);
+    assertThat(tenant.getLogoUri()).isEqualTo(logoUrl);
+  }
+
+  private void verifyCreateRequestWasSent() throws Auth0Exception {
+    verify(auth0ManagementAPI, times(2)).clients();
+    verify(mockClientsEntity).list(any(ClientFilter.class));
+    verify(mockClientsEntity).create(any(Client.class));
+    verify(createMockRequest).execute();
+  }
+
+  private void verifyUpdateRequestWasSent() throws Auth0Exception {
+    verify(auth0ManagementAPI, times(2)).clients();
+    verify(mockClientsEntity).list(any(ClientFilter.class));
+    verify(listsMockRequest).execute();
+    verify(updateMockRequest).execute();
+  }
+
+  private void mockAuth0ClientsEntity() {
+    mockClientsEntity = mock(ClientsEntity.class);
+    when(auth0ManagementAPI.clients()).thenReturn(mockClientsEntity);
+  }
+
+  private void mockAuth0CreateClientRequest() {
+    createMockRequest = mock(Request.class);
+    when(mockClientsEntity.create(clientCaptor.capture())).thenReturn(createMockRequest);
+  }
+
+  private void mockAuth0ListClientsRequest() throws Exception {
+    listsMockRequest = mock(Request.class);
+    when(mockClientsEntity.list(any(ClientFilter.class))).thenReturn(listsMockRequest);
+    when(listsMockRequest.execute()).thenReturn(new ClientsPage(Collections.emptyList()));
+  }
+
+  private void mockAuth0UpdateClientRequest() {
+    updateMockRequest = mock(Request.class);
+    when(mockClientsEntity.update(clientIdCaptor.capture(), clientCaptor.capture())).thenReturn(updateMockRequest);
+  }
+
   private Client mockClient(String name, String description, String logoUrl) {
     Client client = new Client(name);
     client.setDescription(description);
     client.setLogoUri(logoUrl);
+    return client;
+  }
+
+  private Client mockClient(String name, String description, String logoUrl, String clientId) {
+    Client client = spy(new Client(name));
+    client.setDescription(description);
+    client.setLogoUri(logoUrl);
+    when(client.getClientId()).thenReturn(clientId);
     return client;
   }
 }

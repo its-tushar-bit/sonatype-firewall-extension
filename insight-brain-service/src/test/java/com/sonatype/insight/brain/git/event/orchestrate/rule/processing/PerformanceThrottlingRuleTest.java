@@ -28,7 +28,8 @@ public class PerformanceThrottlingRuleTest
 
     // current time for create time will result in minimal event duration, which should not cause the status timing
     // to update
-    SourceControlEvent event = new SourceControlEvent().forStatusUpdate().setCreateTime(new Date());
+    Date now = new Date();
+    SourceControlEvent event = new SourceControlEvent().forStatusUpdate().setCreateTime(now).setCompleteTime(now);
 
     final long statusTimingBefore = rule.getMinCommitStatusTimingMs();
     rule.onEventProcessed(event);
@@ -96,7 +97,7 @@ public class PerformanceThrottlingRuleTest
     assertThat(rule.canPushEvents()).isFalse();
 
     // when: another event is processed with an acceptable duration
-    event.setCreateTime(new Date());
+    event.setCreateTime(new Date()).setCompleteTime(new Date());
     rule.onEventProcessed(event);
 
     assertThat(rule.canPushEvents()).isTrue();
@@ -128,8 +129,8 @@ public class PerformanceThrottlingRuleTest
   }
 
   private void ageEventInSeconds(SourceControlEvent event, long secondsToAge) {
-    Date createTime = new Date();
-    createTime.setTime(System.currentTimeMillis() - secondsToAge * 1_000);
-    event.setCreateTime(createTime);
+    Date now = new Date();
+    event.setCreateTime(new Date(System.currentTimeMillis() - secondsToAge * 1_000));
+    event.setCompleteTime(now);
   }
 }

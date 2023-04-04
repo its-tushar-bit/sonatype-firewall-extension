@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git.event.orchestrate.rule.processing;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
@@ -90,7 +91,11 @@ public class PerformanceThrottlingRule
   }
 
   private long getEventDurationMs(SourceControlEvent event) {
-    return System.currentTimeMillis() - event.getCreateTime().getTime();
+    Date eventCompleteTime = event.getCompleteTime();
+    if (eventCompleteTime == null) {
+      eventCompleteTime = new Date();
+    }
+    return eventCompleteTime.getTime() - event.getCreateTime().getTime();
   }
 
   private String durationToTimeStr(long durationInMs) {

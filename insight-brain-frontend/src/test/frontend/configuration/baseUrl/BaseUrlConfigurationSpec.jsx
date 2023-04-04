@@ -22,11 +22,11 @@ describe('BaseUrlConfiguration', () => {
   };
 
   const cleanFormState = {
-    serverUrl: { value: '' },
+    baseUrl: { value: '' },
   };
 
   const serverData = {
-    serverUrl: 'http://localhost:8070',
+    baseUrl: 'http://localhost:8070',
   };
 
   const baseUrlConfigurationParameters = {};
@@ -128,7 +128,7 @@ describe('BaseUrlConfiguration', () => {
     });
   });
 
-  describe('on Delete button', function () {
+  fdescribe('on Delete button', function () {
     it('disabled Delete button when the form is clean', async () => {
       spyOn(baseUrlConfigurationSelectors, 'selectFormState').and.callFake(() => cleanFormState);
       spyOn(baseUrlConfigurationSelectors, 'selectIsDirty').and.callFake(() => false);

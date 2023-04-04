@@ -142,9 +142,9 @@ export default function BaseUrlConfiguration() {
             <NxTile.HeaderTitle>
               <NxH2>Configure Base URL</NxH2>
             </NxTile.HeaderTitle>
-            <NxH3>
+            <NxTile.HeaderSubtitle>
               This setting is required for features such as email, SCM, and Jira integration
-            </NxH3>
+            </NxTile.HeaderSubtitle>
           </NxTile.Header>
           <NxTile.Content>
             <NxFormGroup label="Base URL" sublabel="Example http://nexus-iq-server.example.com/" isRequired>

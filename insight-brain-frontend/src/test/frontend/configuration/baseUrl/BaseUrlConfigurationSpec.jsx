@@ -128,7 +128,7 @@ describe('BaseUrlConfiguration', () => {
     });
   });
 
-  fdescribe('on Delete button', function () {
+  describe('on Delete button', function () {
     it('disabled Delete button when the form is clean', async () => {
       spyOn(baseUrlConfigurationSelectors, 'selectFormState').and.callFake(() => cleanFormState);
       spyOn(baseUrlConfigurationSelectors, 'selectIsDirty').and.callFake(() => false);

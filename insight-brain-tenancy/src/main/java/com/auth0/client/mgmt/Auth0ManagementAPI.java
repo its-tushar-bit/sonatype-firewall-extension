@@ -101,7 +101,7 @@ public class Auth0ManagementAPI
   }
 
   private Client findClientByName(String name) throws Auth0Exception {
-    ClientFilter filter = new ClientFilter().withFields("name", true);
+    ClientFilter filter = new ClientFilter().withFields("name", true).withFields("client_id", true);
     return clients().list(filter).execute().getItems().stream()
         .filter(client -> name.equalsIgnoreCase(client.getName())).findFirst().orElse(null);
   }

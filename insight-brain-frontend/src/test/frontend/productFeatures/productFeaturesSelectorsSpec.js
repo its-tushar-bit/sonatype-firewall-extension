@@ -28,6 +28,7 @@ import {
   selectLoadingFeatures,
   selectProductFeaturesSlice,
   selectProductFeatures,
+  selectIsBaseUrlConfigurationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -221,6 +222,18 @@ describe('productFeaturesSelectors', () => {
   describe('selectIsAllowExternalHyperlinksSupported', () => {
     it('returns true if allow-external-hyperlinks enabled', () => {
       expect(selectIsAllowExternalHyperlinksSupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsBaseUrlConfigurationEnabled', () => {
+    it('returns false in multi-tenant mode', () => {
+      mockState.productFeatures.productFeatures['single-tenant'] = false;
+      expect(selectIsBaseUrlConfigurationEnabled(mockState)).toBeFalse();
+    });
+
+    it('returns true in single-tenant mode', () => {
+      mockState.productFeatures.productFeatures['single-tenant'] = true;
+      expect(selectIsBaseUrlConfigurationEnabled(mockState)).toBeTrue();
     });
   });
 });

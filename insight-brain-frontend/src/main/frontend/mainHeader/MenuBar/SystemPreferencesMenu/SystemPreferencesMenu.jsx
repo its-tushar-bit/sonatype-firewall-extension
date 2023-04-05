@@ -24,6 +24,7 @@ export const SystemPreferencesMenu = ({
   isAutomaticApplicationConfigurationEnabled = false,
   isAutomaticScmConfigurationEnabled = false,
   isAdvancedSearchConfigurationEnabled = false,
+  isBaseUrlConfigurationEnabled = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -119,7 +120,11 @@ export const SystemPreferencesMenu = ({
       >
         Automatic SCM Configuration
       </NavLink>
-      <NavLink stateName="baseUrlConfiguration" showIf={CONFIGURE_SYSTEM}>
+      <NavLink
+          stateName="baseUrlConfiguration"
+          id="system-configuration-base-url"
+          showIf={CONFIGURE_SYSTEM && isBaseUrlConfigurationEnabled}
+      >
         Base URL
       </NavLink>
       <NavLink
@@ -155,6 +160,7 @@ SystemPreferencesMenu.propTypes = {
   isAutomaticApplicationConfigurationEnabled: PropTypes.bool,
   isAutomaticScmConfigurationEnabled: PropTypes.bool,
   isAdvancedSearchConfigurationEnabled: PropTypes.bool,
+  isBaseUrlConfigurationEnabled: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

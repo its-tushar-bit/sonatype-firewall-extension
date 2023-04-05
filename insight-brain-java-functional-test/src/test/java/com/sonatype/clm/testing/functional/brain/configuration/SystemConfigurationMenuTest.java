@@ -27,6 +27,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 
 public class SystemConfigurationMenuTest
     extends AbstractFunctionalTest
@@ -77,6 +78,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
+    systemConfigMenu.baseUrlConfiguration().shouldBe(visible);
   }
 
   @Test
@@ -101,6 +103,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
+    systemConfigMenu.baseUrlConfiguration().shouldBe(visible);
     eyesWatcher.eyesCheck();
   }
 
@@ -173,11 +176,23 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.systemNotice().shouldBe(visible);
     systemConfigMenu.successMetrics().shouldBe(visible);
     systemConfigMenu.automaticApplications().shouldBe(visible);
+    systemConfigMenu.baseUrlConfiguration().shouldBe(visible);
 
     systemConfigMenu.webhooks().click();
     WebhookConfigurationPage webhookConfigurationPage = new WebhookConfigurationPage();
     webhookConfigurationPage.shouldNotBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
+  }
+
+  @Test
+  public void testProductFeatureAwareness_NoBaseUrlConfigurationForMultiTenant() {
+    testAsNewTenant(testName, t1 -> {
+      refreshOrOpen(ReportListPage.url());
+      loginAsAdmin();
+
+      systemConfigMenu.shouldBe(visible);
+      systemConfigMenu.baseUrlConfiguration().shouldBe(hidden);
+    });
   }
 }

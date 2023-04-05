@@ -70,6 +70,10 @@ public class SystemConfigMenu
     return child("#system-configuration-advanced-search");
   }
 
+  public SelenideElement baseUrlConfiguration() {
+    return child("#system-configuration-base-url");
+  }
+
   public SelenideElement dataInsights() {
     return child("#system-labs-data-insights");
   }

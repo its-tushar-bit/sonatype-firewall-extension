@@ -32,6 +32,7 @@ export const MenuBar = ({
   isAutomaticScmConfigurationEnabled,
   isAdvancedSearchConfigurationEnabled,
   isShowNotificationMenuEnabled,
+  isBaseUrlConfigurationEnabled,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
@@ -73,6 +74,7 @@ export const MenuBar = ({
             isAutomaticApplicationConfigurationEnabled={isAutomaticApplicationConfigurationEnabled}
             isAutomaticScmConfigurationEnabled={isAutomaticScmConfigurationEnabled}
             isAdvancedSearchConfigurationEnabled={isAdvancedSearchConfigurationEnabled}
+            isBaseUrlConfigurationEnabled={isBaseUrlConfigurationEnabled}
           />
         )}
         <UserMenu userActions={userActions} />
@@ -106,6 +108,7 @@ MenuBar.propTypes = {
   isAutomaticScmConfigurationEnabled: PropTypes.bool,
   isAdvancedSearchConfigurationEnabled: PropTypes.bool,
   isNotificationMenuEnabled: PropTypes.bool,
+  isBaseUrlConfigurationEnabled: PropTypes.bool,
 };
 
 export default MenuBar;

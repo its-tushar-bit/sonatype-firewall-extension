@@ -122,3 +122,7 @@ export const selectIsShowNotificationMenuEnabled = createSelector(selectTenantMo
 export const selectIsShowEmailStoppedEnabled = createSelector(selectTenantMode, (mode) => {
   return mode === SINGLE_TENANT;
 });
+
+export const selectIsBaseUrlConfigurationEnabled = createSelector(selectTenantMode, (mode) => {
+  return mode === SINGLE_TENANT;
+});

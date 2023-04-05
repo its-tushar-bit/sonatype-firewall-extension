@@ -20,6 +20,7 @@ import {
   selectIsAutomaticScmConfigurationEnabled,
   selectIsAdvancedSearchConfigurationEnabled,
   selectIsShowNotificationMenuEnabled,
+  selectIsBaseUrlConfigurationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
@@ -98,6 +99,7 @@ export const mapStateToThis = (state) => ({
   isAutomaticScmConfigurationEnabled: selectIsAutomaticScmConfigurationEnabled(state),
   isAdvancedSearchConfigurationEnabled: selectIsAdvancedSearchConfigurationEnabled(state),
   isShowNotificationMenuEnabled: selectIsShowNotificationMenuEnabled(state),
+  isBaseUrlConfigurationEnabled: selectIsBaseUrlConfigurationEnabled(state),
 });
 
 MainHeaderController.$inject = [

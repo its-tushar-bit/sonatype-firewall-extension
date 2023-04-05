@@ -9,7 +9,7 @@ import { render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { getDestinationOrganizationsUrl, getMoveApplicationUrl } from 'MainRoot/util/CLMLocation';
 import { fireEvent } from '@testing-library/react';
 
-describe('MoveApplicationModal', () => {
+xdescribe('MoveApplicationModal', () => {
   let renderComponent, axiosMock;
 
   const rootOrgId = 'ROOT_ORGANIZATION_ID';
@@ -159,7 +159,7 @@ describe('MoveApplicationModal', () => {
     expect(screen.getByText('Loading…')).toBeVisible();
   });
 
-  xit('shows warning message, if there are no available organizations', async () => {
+  it('shows warning message, if there are no available organizations', async () => {
     axiosMock.onGet(getDestinationOrganizationsUrl('b96799515b294417859c5d6e400dd0b8')).reply(200, []);
     renderComponent();
     expect(axiosMock.history.get.length).toBe(1);

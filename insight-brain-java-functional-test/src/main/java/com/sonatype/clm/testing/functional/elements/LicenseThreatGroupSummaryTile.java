@@ -5,10 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
@@ -26,21 +22,19 @@ public class LicenseThreatGroupSummaryTile
 
   private static final String TILE_ADD_LTG_BUTTON_ID_SELECTOR = "#add-ltg-button";
 
-  private static final String TILE_CONTENT_SELECTOR = ".nx-tile-content";
-
-  private static final String TILE_CONTENT_SUBSECTION_SELECTOR = ".nx-tile-subsection";
-
   private static final String TILE_ACTIONS_SELECTOR = ".nx-tile-header__actions";
 
-  private static final String TILE_SUBSECTION_HEADER = ".nx-tile-subsection__header";
+  private static final String TILE_SUBSECTION_HEADER = ".iq-collapsible-row__title-row";
+
+  private static final String TILE_SUBSECTION_HEADER_ICON = ".iq-collapsible-row__header-icon";
 
   private static final String TABLE_SELECTOR = ".nx-table";
 
-  private static final String TABLE_HEADERS_ROW_SELECTOR = ".nx-table-row--header";
+  private static final String TABLE_SUBSECTION_SELECTOR = ".iq-ltg-table-subsection";
 
-  private static final String TABLE_CONTENT_ROW_SELECTOR = ".nx-table-row";
+  private static final String TABLE_SUBSECTION_ROW_SELECTOR = ".iq-ltg-summary-table-row";
 
-  private static final String TABLE_CONTENT_EMPTY_DESCRIPTOR_SELECTOR = ".nx-cell--meta-info";
+  private static final String TABLE_EMPTY_ROW_SELECTOR = ".iq-collapsible-row__empty-message";
 
   private static final String TABLE_CELL_SELECTOR = ".nx-cell";
 
@@ -58,22 +52,25 @@ public class LicenseThreatGroupSummaryTile
     return child(TILE_ADD_LTG_BUTTON_ID_SELECTOR);
   }
 
+  public SelenideElement licenseThreatGroupsTable() {
+    return child(TABLE_SELECTOR);
+  }
+
   public static Condition inheritedText(String parent) {
     return Condition.text("inherited from " + parent);
   }
 
   public ElementsCollection getAllApplicableLicenseThreatGroupSection() {
-
-    SelenideElement child = getElement().find(TILE_CONTENT_SELECTOR);
-    return child.findAll(TILE_CONTENT_SUBSECTION_SELECTOR);
+    SelenideElement child = getElement().find(TABLE_SELECTOR);
+    return child.findAll(TABLE_SUBSECTION_SELECTOR);
   }
 
   public ApplicableLicenseThreatGroupSection getApplicableLicenseThreatGroupSection(int index) {
-    SelenideElement child = child(TILE_CONTENT_SELECTOR);
-    ElementsCollection contentSubsections = child.findAll(TILE_CONTENT_SUBSECTION_SELECTOR);
+    SelenideElement child = child(TABLE_SELECTOR);
+    ElementsCollection contentSubsections = child.findAll(TABLE_SUBSECTION_SELECTOR);
     assert contentSubsections.size() > 0;
 
-    return new ApplicableLicenseThreatGroupSection(contentSubsections.get(index), TILE_CONTENT_SUBSECTION_SELECTOR);
+    return new ApplicableLicenseThreatGroupSection(contentSubsections.get(index), TABLE_SUBSECTION_SELECTOR);
   }
 
   public ApplicableLicenseThreatGroupSection getLocalLTGSection() {
@@ -94,52 +91,35 @@ public class LicenseThreatGroupSummaryTile
       return element.find(TILE_SUBSECTION_HEADER);
     }
 
+    public SelenideElement getCollapsibleIcon() {
+      return element.find(TILE_SUBSECTION_HEADER_ICON);
+    }
+
     public SelenideElement getEmptyDescriptor() {
-      return element.find(TABLE_CONTENT_EMPTY_DESCRIPTOR_SELECTOR);
+      return element.find(TABLE_EMPTY_ROW_SELECTOR);
     }
 
-    public ElementsCollection getTableHeader() {
-      SelenideElement child = element.find(TABLE_SELECTOR);
-      return child.findAll(SelectorUtils.createSelector("thead", TABLE_HEADERS_ROW_SELECTOR));
+    public ElementsCollection getEmptyRows() {
+      return element.findAll(TABLE_EMPTY_ROW_SELECTOR);
     }
 
-    public ElementsCollection getTableContent() {
-      SelenideElement child = element.find(TABLE_SELECTOR);
-      return child.findAll(SelectorUtils.createSelector("tbody", TABLE_CONTENT_ROW_SELECTOR));
+    public ElementsCollection getSectionContentRows() {
+      return element.findAll(TABLE_SUBSECTION_ROW_SELECTOR);
     }
 
     public SelenideElement getLTG(String ltgName) {
-      ElementsCollection elements = getTableContent();
+      ElementsCollection elements = getSectionContentRows();
       return elements.findBy(text(ltgName));
     }
 
     public SelenideElement getLTG(int index) {
-      ElementsCollection elements = getTableContent();
+      ElementsCollection elements = getSectionContentRows();
       return elements.get(index);
-    }
-
-    public List<LicenseThreatGroupElement> getLicenseThreatGroupElements() {
-      ElementsCollection elements = getTableContent();
-      return getLicenseThreatGroupElements(elements);
-    }
-
-    public List<LicenseThreatGroupElement> getLicenseThreatGroupElements(ElementsCollection elements) {
-      assert elements != null;
-      return elements.stream()
-        .map(e -> new LicenseThreatGroupElement(e,"tbody", TABLE_CONTENT_ROW_SELECTOR)).collect(Collectors.toList());
     }
 
     public LicenseThreatGroupElement getLicenseThreatGroupElement(SelenideElement element) {
       assert element != null;
-      return new LicenseThreatGroupElement(element, TABLE_CONTENT_ROW_SELECTOR);
-    }
-
-    public Optional<LicenseThreatGroupElement> getLicenseThreatGroupElement(String ltgName) {
-      return Optional.of(getLicenseThreatGroupElement(getLTG(ltgName)));
-    }
-
-    public Optional<LicenseThreatGroupElement> getLicenseThreatGroupElement(int index) {
-      return Optional.of(getLicenseThreatGroupElement(getLTG(index)));
+      return new LicenseThreatGroupElement(element, TABLE_SUBSECTION_ROW_SELECTOR);
     }
   }
 

@@ -118,7 +118,6 @@ public class OrganizationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(ltgTile.nxHeader());
 
     ltgTile.nxHeader().shouldBe(visible).shouldHave(text("License Threat Groups"));
-    ltgTile.nxSubHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(organization.getName()));
     ltgTile.addLTGButton().shouldBe(visible, enabled);
 
     ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(hierarchySize);
@@ -128,13 +127,14 @@ public class OrganizationSummaryViewTest
       ScrollUtil.scrollIntoViewInstantly(section.getTitle());
 
       if (i == 0) {
-        section.getTitle().shouldBe(visible).shouldHave(text("Local"));
-        section.getEmptyDescriptor().shouldBe(visible).shouldHave(text("No local threat groups defined"));
+        section.getTitle().shouldBe(visible).shouldHave(text("Local to " + organization.getName()));
+        section.getEmptyDescriptor().shouldBe(visible).shouldHave(text("No " + organization.getName()
+            + " threat groups defined"));
       }
       else {
         section.getTitle().shouldBe(visible);
         section.getEmptyDescriptor().shouldBe(hidden);
-        section.getTableContent().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
+        section.getSectionContentRows().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
       }
     }
   }
@@ -232,7 +232,6 @@ public class OrganizationSummaryViewTest
     NxList.NxListItem actualLabel = list.element(0);
     actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
 
-    // scroll to the ltgs
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible);
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
     ScrollUtil.scrollIntoViewInstantly(ltgTile.getElement());
@@ -240,7 +239,7 @@ public class OrganizationSummaryViewTest
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
     section.getEmptyDescriptor().shouldNot(exist);
     section.getLTG(0).shouldHave(text("Test LTG"));
-    section.getTableContent().shouldHaveSize(1);
+    section.getSectionContentRows().shouldHaveSize(1);
 
     eyesWatcher.eyesCheck("license threat group tile after policy import");
 

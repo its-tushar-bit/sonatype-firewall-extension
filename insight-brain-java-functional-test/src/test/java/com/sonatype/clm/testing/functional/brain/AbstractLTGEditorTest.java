@@ -71,7 +71,7 @@ public abstract class AbstractLTGEditorTest
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId(), "original name", 1);
     refresh();
 
-    OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getTableContent().shouldHaveSize(1);
+    OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getSectionContentRows().shouldHaveSize(1);
     OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getLTG(ltg.getName()).click();
 
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg.getId()));
@@ -130,7 +130,7 @@ public abstract class AbstractLTGEditorTest
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId(), "original name", 1);
     refresh();
 
-    OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getTableContent().shouldHaveSize(1);
+    OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getSectionContentRows().shouldHaveSize(1);
     OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getLTG(ltg.getName()).click();
 
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg.getId()));

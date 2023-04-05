@@ -267,21 +267,24 @@ public class ApplicationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(ltgTile.nxHeader());
 
     ltgTile.nxHeader().shouldBe(visible).shouldHave(text("License Threat Groups"));
-    ltgTile.nxSubHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));
     ltgTile.newButton().shouldBe(hidden);
 
     ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(2);
 
+    // Scroll table into view
+    ScrollUtil.scrollIntoViewInstantly(ltgTile.licenseThreatGroupsTable());
+
+    // Test local section content
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
-    ScrollUtil.scrollIntoViewInstantly(section.getTitle());
-    section.getTitle().shouldBe(visible).shouldHave(text("LOCAL"));
+    section.getTitle().shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
     section.getEmptyDescriptor().shouldBe(visible);
 
+    // Test inherited section content
     section = ltgTile.getApplicableLicenseThreatGroupSection(1);
     ScrollUtil.scrollIntoViewInstantly(section.getTitle());
-    section.getTitle().shouldBe(visible).shouldHave(text("INHERITED FROM ROOT ORGANIZATION"));
+    section.getTitle().shouldBe(visible).shouldHave(text("Inherited from Root Organization"));
     section.getEmptyDescriptor().shouldBe(hidden);
-    section.getTableContent().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
+    section.getSectionContentRows().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
   }
 
   @Override

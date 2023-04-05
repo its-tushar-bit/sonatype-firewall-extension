@@ -37,7 +37,6 @@ public class OrganizationLTGEditorTest
     String ltgName = "Test LTG";
 
     OwnerSummaryPage.licenseThreatGroupSummaryTile().addLTGButton().click();
-    //OwnerSummaryPage.licenseThreatGroupTile().addLTGButton().click();
     assertNewLTGStateIsCorrect();
     eyesWatcher.eyesCheck();
     LTGEditorPage.ltgName().val("$$$"); // invalid characters

@@ -3,64 +3,67 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { fireEvent, screen, within } from 'TestRoot/SpecUtil';
+import { fireEvent, within } from 'TestRoot/SpecUtil';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { verifyThreatLevelIndicator, verifyHeaderCell } from '../utils/tileAndTableTestingUtils';
+import { sortByThreatLevel } from 'MainRoot/OrgsAndPolicies/utility/util';
 
-export const verifyLicenseThreatGroupsTable = (table, ownerName, licenseThreatGroups, inherited, goToEditLTGSpy) => {
-  const groups = within(table).getAllByRole('rowgroup');
-  expect(groups).toHaveSize(2);
-
-  verifyTableHead(groups[0], inherited);
-  verifyTableBody(groups[1], ownerName, licenseThreatGroups, inherited, goToEditLTGSpy);
-};
-
-const getNumberOfColumns = (inherited) => {
-  return inherited ? 2 : 3; // threatLevel, ltg name and one clickable arrow if ltg is not inherited
-};
-
-const verifyTableHead = (thead, inherited) => {
+export const verifyTableHead = (thead) => {
   let rows, headers;
-  const totalOfColumns = getNumberOfColumns(inherited);
 
   rows = within(thead).getAllByRole('row');
   expect(rows).toHaveSize(1);
 
   headers = within(rows[0]).getAllByRole('columnheader');
-  expect(headers.length).toBe(totalOfColumns);
+  expect(headers.length).toBe(3);
   verifyHeaderCell(headers[0], false, 'THREAT');
   verifyHeaderCell(headers[1], false, 'NAME');
-  if (!inherited) {
-    expect(within(rows[0]).getByRole('columnheader', { name: 'Select Row' })).toBeVisible();
-  }
+  expect(within(rows[0]).getByRole('columnheader', { name: 'view threat group' })).toBeVisible();
 };
 
-const verifyTableBody = (tbody, ownerName, licenseThreatGroups, inherited, goToEditLTGSpy) => {
-  let rows, editButton;
-  const totalOfColumns = getNumberOfColumns(inherited);
+export const nLevelVerifyTableContent = (tableSections, owners, goToEditLTGSpy) => {
+  expect(tableSections.length).toBe(owners.length);
 
-  rows = within(tbody).getAllByRole('row');
+  for (const section of tableSections) {
+    let allRows, contentRows, ltg, editButton;
+    const index = tableSections.indexOf(section);
+    const owner = owners[index];
+    const licenseThreatGroups = sortByThreatLevel(owner.licenseThreatGroups);
+    const cellsPerLTGRow = isNilOrEmpty(licenseThreatGroups) ? 1 : 3;
+    const firstContentRow = within(section).getAllByRole('row')[1];
 
-  if (isNilOrEmpty(licenseThreatGroups)) {
-    const name = inherited ? ownerName : 'local';
-    const emptyMessage = `No ${name} threat groups defined.`;
-    expect(rows).toHaveSize(1);
-    expect(screen.getByRole('cell', { name: emptyMessage })).toBeVisible();
-  } else {
-    expect(rows).toHaveSize(licenseThreatGroups.length);
+    expect(within(firstContentRow).getAllByRole('cell')).toHaveSize(cellsPerLTGRow);
 
-    rows.forEach((row, index) => {
-      let ltg = licenseThreatGroups[index];
+    // render correct title
+    if (owner.inherited) {
+      expect(within(section).getByText(`Inherited from ${owner.ownerName}`)).toBeVisible();
+    } else {
+      expect(within(section).getByText(`Local to ${owner.ownerName}`)).toBeVisible();
+    }
 
-      expect(within(row).getAllByRole('cell')).toHaveSize(totalOfColumns);
-      verifyThreatLevelIndicator(row, ltg.threatLevel);
-      expect(within(row).getByRole('cell', { name: ltg.name })).toBeVisible();
-      if (!inherited) {
-        editButton = within(row).getByRole('button', { name: `Edit ${ltg.name} License Threat Group` });
-        expect(editButton).toBeVisible();
-        fireEvent.click(editButton);
-        expect(goToEditLTGSpy).toHaveBeenCalledWith(ltg.id);
-      }
-    });
+    // if ltg count is 0, there should always be two rows and the empty message
+    if (licenseThreatGroups.length === 0) {
+      expect(within(section).getByText(`No ${owner.ownerName} threat groups defined`)).toBeVisible();
+      expect(within(section).getAllByRole('row')).toHaveSize(2);
+    } else {
+      allRows = within(section).getAllByRole('row');
+      contentRows = allRows.slice(1);
+      expect(allRows).toHaveSize(licenseThreatGroups.length + 1);
+      expect(contentRows).toHaveSize(licenseThreatGroups.length);
+
+      contentRows.forEach((row, index) => {
+        ltg = licenseThreatGroups[index];
+
+        verifyThreatLevelIndicator(row, ltg.threatLevel);
+        expect(within(row).getByRole('cell', { name: ltg.name })).toBeVisible();
+
+        if (!owner.inherited) {
+          editButton = within(row).getByRole('button', { name: `Edit ${ltg.name} License Threat Group` });
+          expect(editButton).toBeVisible();
+          fireEvent.click(editButton);
+          expect(goToEditLTGSpy).toHaveBeenCalledWith(ltg.id);
+        }
+      });
+    }
   }
 };

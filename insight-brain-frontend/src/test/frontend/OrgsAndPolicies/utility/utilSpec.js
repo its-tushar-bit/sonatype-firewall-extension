@@ -13,8 +13,9 @@ import {
   policiesComparator,
   getRolesWithLocalMembers,
   getNotificationsOverride,
+  getRolesWithoutLocalMembers,
+  formatCollapsibleThreatGroups,
 } from 'MainRoot/OrgsAndPolicies/utility/util';
-import { getRolesWithoutLocalMembers } from '../../../../main/frontend/OrgsAndPolicies/utility/util';
 
 describe('OrgsAndPolicies util', () => {
   describe('route derivation util', () => {
@@ -539,6 +540,61 @@ describe('OrgsAndPolicies util', () => {
         'Root custom',
         'Security-Namespace Conflict',
       ]);
+    });
+  });
+
+  describe('formatCollapsibleThreatGroups', () => {
+    describe('when licenseThreatGroups array is empty', () => {
+      it('returns an object with the structure expected by IqCollapsibleRow with empty threat groups array', () => {
+        const threatGroupsByOwner = {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+          inherited: true,
+          licenseThreatGroups: [],
+        };
+        const formattedPayload = formatCollapsibleThreatGroups(threatGroupsByOwner);
+        expect(formattedPayload).toEqual({
+          emptyMessage: 'No Root Organization threat groups defined',
+          headerTitle: 'Inherited from Root Organization',
+          inherited: true,
+          sortedThreatGroups: [],
+        });
+      });
+    });
+
+    describe('when licenseThreatGroups has items', () => {
+      it('returns an object with the structure expected by IqCollapsibleRow and propagates "inherited" property to each LTG item', () => {
+        const threatGroupsByOwner = {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+          inherited: true,
+          licenseThreatGroups: [
+            {
+              id: 'e4183d8c1c6b4a52a2dba8cf9137cc82',
+              name: 'New LTG',
+              threatLevel: 7,
+              licenses: [],
+            },
+          ],
+        };
+        const formattedPayload = formatCollapsibleThreatGroups(threatGroupsByOwner);
+        expect(formattedPayload).toEqual({
+          emptyMessage: 'No Root Organization threat groups defined',
+          headerTitle: 'Inherited from Root Organization',
+          inherited: true,
+          sortedThreatGroups: [
+            {
+              id: 'e4183d8c1c6b4a52a2dba8cf9137cc82',
+              name: 'New LTG',
+              threatLevel: 7,
+              licenses: [],
+              inherited: true,
+            },
+          ],
+        });
+      });
     });
   });
 });

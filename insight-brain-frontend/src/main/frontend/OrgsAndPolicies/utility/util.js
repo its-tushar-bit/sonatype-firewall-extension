@@ -18,6 +18,7 @@ import {
   prop,
   isNil,
 } from 'ramda';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 export function deriveEditRoute(routerState, to, params = {}) {
   return deriveRouteFromStateParams('edit', routerState, to, params);
@@ -132,6 +133,7 @@ export const getNotificationsOverride = (ownerHierarchyIds, policy) => {
 };
 
 export const sortByThreatLevel = sortWith([descend(prop('threatLevel')), descend(prop('name'))]);
+export const sortByThreatGroupName = sortWith([descend(prop('name')), descend(prop('threatLevel'))]);
 
 export const rscToAngularColorMap = {
   purple: 'light-purple',
@@ -175,3 +177,30 @@ export const getRolesWithoutLocalMembers = (membersByRoles) => {
     return [];
   }
 };
+
+export const isEmptyNonLocal = (owner) =>
+  isNilOrEmpty(owner.licenseThreatGroups) && owner.inherited && owner.ownerType === 'organization';
+
+/**
+ * Converts applicable license threat groups response into array of objects
+ * usable by IqCollapsibleRow component
+ * @param threatGroups array of threat group objects
+ */
+export function formatCollapsibleThreatGroups(threatGroup) {
+  const sortedByThreatLevel = sortByThreatLevel(threatGroup.licenseThreatGroups);
+  const groupsWithInheritanceValue = sortedByThreatLevel.map((ltg) => {
+    return {
+      ...ltg,
+      inherited: threatGroup.inherited,
+    };
+  });
+
+  return {
+    headerTitle: threatGroup.inherited
+      ? `Inherited from ${threatGroup.ownerName}`
+      : `Local to ${threatGroup.ownerName}`,
+    emptyMessage: `No ${threatGroup.ownerName} threat groups defined`,
+    sortedThreatGroups: groupsWithInheritanceValue,
+    inherited: threatGroup.inherited,
+  };
+}

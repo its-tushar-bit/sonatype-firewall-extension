@@ -5,61 +5,86 @@
  */
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
+import { map, pipe, reject } from 'ramda';
 import { useDispatch } from 'react-redux';
 import { NxThreatIndicator, NxTable } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSlice';
-import { sortByThreatLevel } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { isEmptyNonLocal, formatCollapsibleThreatGroups } from 'MainRoot/OrgsAndPolicies/utility/util';
+import IqCollapsibleRow from 'MainRoot/react/IqCollapsibleRow/IqCollapsibleRow';
 
-export default function ApplicableLicenseThreatGroupTable({ ownerName, licenseThreatGroups, inherited }) {
+export default function ApplicableLicenseThreatGroupTable({ applicableLTGs }) {
+  const formattedThreatGroups = pipe(reject(isEmptyNonLocal), map(formatCollapsibleThreatGroups))(applicableLTGs);
   const dispatch = useDispatch();
 
-  const renderRow = (ltg) => {
+  const renderRow = (licenseThreatGroup) => {
     return (
       <Fragment>
         <NxTable.Cell>
-          <NxThreatIndicator policyThreatLevel={ltg.threatLevel} />
-          <span className="nx-threat-number">{ltg.threatLevel}</span>
+          <NxThreatIndicator policyThreatLevel={licenseThreatGroup.threatLevel} />
+          <span className="nx-threat-number">{licenseThreatGroup.threatLevel}</span>
         </NxTable.Cell>
-        <NxTable.Cell>{ltg.name}</NxTable.Cell>
-        {!inherited ? <NxTable.Cell chevron /> : null}
+        <NxTable.Cell>{licenseThreatGroup.name}</NxTable.Cell>
+        {!licenseThreatGroup.inherited ? <NxTable.Cell chevron /> : <NxTable.Cell />}
       </Fragment>
     );
   };
 
-  const renderRows = () => {
-    const sortedLTGs = sortByThreatLevel(licenseThreatGroups);
-    return sortedLTGs.map((ltg) => {
-      if (inherited) {
-        return <NxTable.Row key={ltg.id}>{renderRow(ltg)}</NxTable.Row>;
+  const getRows = (licenseThreatGroups) => {
+    if (!licenseThreatGroups?.length) return null;
+
+    return licenseThreatGroups.map((threatGroup) => {
+      if (threatGroup.inherited) {
+        return (
+          <NxTable.Row className="iq-ltg-summary-table-row" key={threatGroup.id}>
+            {renderRow(threatGroup)}
+          </NxTable.Row>
+        );
       }
-      const goToEditLTG = () => dispatch(actions.goToEditLTG(ltg.id));
-      const accessibleLabel = `Edit ${ltg.name} License Threat Group`;
+      const goToEditLTG = () => dispatch(actions.goToEditLTG(threatGroup.id));
+      const accessibleLabel = `Edit ${threatGroup.name} License Threat Group`;
       return (
-        <NxTable.Row isClickable key={ltg.id} onClick={goToEditLTG} clickAccessibleLabel={accessibleLabel}>
-          {renderRow(ltg)}
+        <NxTable.Row
+          className="iq-ltg-summary-table-row"
+          isClickable
+          key={threatGroup.id}
+          onClick={goToEditLTG}
+          clickAccessibleLabel={accessibleLabel}
+        >
+          {renderRow(threatGroup)}
         </NxTable.Row>
       );
     });
   };
 
-  const name = inherited ? ownerName : 'local';
-  const emptyMessage = `No ${name} threat groups defined.`;
   return (
     <NxTable className="iq-ltg-summary-table">
       <NxTable.Head>
         <NxTable.Row>
           <NxTable.Cell>THREAT</NxTable.Cell>
           <NxTable.Cell>NAME</NxTable.Cell>
-          {!inherited ? <NxTable.Cell chevron /> : null}
+          <NxTable.Cell aria-label="view threat group" />
         </NxTable.Row>
       </NxTable.Head>
-      <NxTable.Body emptyMessage={emptyMessage}>{renderRows()}</NxTable.Body>
+      {formattedThreatGroups.map((group) => (
+        <NxTable.Body
+          key={group.headerTitle}
+          className={`iq-ltg-table-subsection ${
+            group.inherited ? 'iq-ltg-table-inherited-section' : 'iq-ltg-table-local-section'
+          }`}
+        >
+          <IqCollapsibleRow
+            headerTitle={group.headerTitle}
+            noItemsMessage={group.emptyMessage}
+            isCollapsible={group.inherited}
+          >
+            {getRows(group.sortedThreatGroups)}
+          </IqCollapsibleRow>
+        </NxTable.Body>
+      ))}
     </NxTable>
   );
 }
 
 ApplicableLicenseThreatGroupTable.propTypes = {
-  ownerName: PropTypes.string,
-  licenseThreatGroups: PropTypes.arrayOf(PropTypes.object),
-  inherited: PropTypes.bool,
+  applicableLTGs: PropTypes.arrayOf(PropTypes.object),
 };

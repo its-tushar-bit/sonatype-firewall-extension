@@ -5,10 +5,19 @@
  */
 import React from 'react';
 import { render, screen } from 'TestRoot/SpecUtil';
-import { verifyLicenseThreatGroupsTable } from './licenseThreatGroupTileTestingUtils';
-
+import { nLevelVerifyTableContent, verifyTableHead } from './licenseThreatGroupTileTestingUtils';
+import { reject } from 'ramda';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { isEmptyNonLocal } from 'MainRoot/OrgsAndPolicies/utility/util';
 import ApplicableLicenseThreatGroupTable from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/ApplicableLicenseThreatGroupTable';
 import { actions } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSlice';
+import {
+  organizationWithoutLtgsByOwnerPayload,
+  rootOrganizationLtgsByOwnerPayload,
+  nLevelOrgWithInheritedLTGs,
+  nLevelAppWithNoLTGs,
+  nLevelAppWithLTGs,
+} from './licenseThreatGroupSummaryTileMockData';
 
 describe('ApplicableLicenseThreatGroupTable', () => {
   let renderComponent, licenseThreatGroups, testData, goToEditLTGSpy;
@@ -35,67 +44,138 @@ describe('ApplicableLicenseThreatGroupTable', () => {
         licenses: [],
       },
     ];
-    renderComponent = (information) =>
-      render(
-        <ApplicableLicenseThreatGroupTable
-          licenseThreatGroups={information.licenseThreatGroups}
-          inherited={information.inherited}
-          key={'ltg-group-' + information.ownerId}
-        />
-      );
+    renderComponent = (information) => render(<ApplicableLicenseThreatGroupTable applicableLTGs={information} />);
+  });
+
+  it('renders expected table headers', async () => {
+    testData = [
+      {
+        inherited: false,
+        licenseThreatGroups: [],
+        ownerName: 'Root Organization',
+      },
+    ];
+
+    renderComponent(testData);
+
+    const tableSections = await screen.findAllByRole('rowgroup');
+    const tableHeaders = tableSections[0];
+
+    verifyTableHead(tableHeaders);
   });
 
   it('renders table with empty message if owner has no ltgs', () => {
-    testData = {
-      ownerName: 'Root Organization',
-      licenseThreatGroups: [],
-      inherited: false,
-    };
-    renderComponent({ ...testData });
+    testData = [
+      {
+        inherited: false,
+        licenseThreatGroups: [],
+        ownerName: 'Root Organization',
+      },
+    ];
+
+    renderComponent(testData);
+
     const table = screen.getByRole('table');
     expect(table).toBeVisible();
-    verifyLicenseThreatGroupsTable(
-      table,
-      testData.ownerName,
-      testData.licenseThreatGroups,
-      testData.inherited,
-      goToEditLTGSpy
-    );
+    // get tbody elemnts
+    const tableSections = screen.getAllByRole('rowgroup');
+    const contentSections = tableSections.slice(1);
+
+    nLevelVerifyTableContent(contentSections, testData, goToEditLTGSpy);
   });
 
   it('renders table with three clickable rows', () => {
-    testData = {
-      ownerName: 'Root Organization',
-      licenseThreatGroups,
-      inherited: false,
-    };
-    renderComponent({ ...testData });
+    testData = [
+      {
+        ownerName: 'Root Organization',
+        licenseThreatGroups,
+        inherited: true,
+      },
+    ];
+
+    renderComponent(testData);
     const table = screen.getByRole('table');
     expect(table).toBeVisible();
-    verifyLicenseThreatGroupsTable(
-      table,
-      testData.ownerName,
-      testData.licenseThreatGroups,
-      testData.inherited,
-      goToEditLTGSpy
-    );
+    // get tbody elemnts
+    const tableSections = screen.getAllByRole('rowgroup');
+    const contentSections = tableSections.slice(1);
+
+    nLevelVerifyTableContent(contentSections, testData, goToEditLTGSpy);
   });
 
-  it('renders table with three non clickable rows', () => {
-    testData = {
-      ownerName: 'Root Organization',
-      licenseThreatGroups,
-      inherited: true,
-    };
-    renderComponent({ ...testData });
+  it('renders table with three non-clickable rows', () => {
+    testData = [
+      {
+        ownerName: 'Root Organization',
+        licenseThreatGroups,
+        inherited: false,
+      },
+    ];
+    renderComponent(testData);
     const table = screen.getByRole('table');
     expect(table).toBeVisible();
-    verifyLicenseThreatGroupsTable(
-      table,
-      testData.ownerName,
-      testData.licenseThreatGroups,
-      testData.inherited,
-      goToEditLTGSpy
+    // get tbody elemnts
+    const tableSections = screen.getAllByRole('rowgroup');
+    const contentSections = tableSections.slice(1);
+
+    nLevelVerifyTableContent(contentSections, testData, goToEditLTGSpy);
+  });
+
+  it('renders all correct subsection content when owner is root org', async () => {
+    const ownersWithPolicies = rootOrganizationLtgsByOwnerPayload.ltgs.licenseThreatGroupsByOwner.filter(
+      (owner) => !isNilOrEmpty(owner.licenseThreatGroups)
     );
+
+    renderComponent(ownersWithPolicies);
+
+    // get tbody elemnts
+    const tableSections = await screen.findAllByRole('rowgroup');
+    const contentSections = tableSections.slice(1);
+
+    nLevelVerifyTableContent(contentSections, ownersWithPolicies, goToEditLTGSpy);
+  });
+
+  it('renders all correct subsection content when owner is org with no license threat groups', async () => {
+    const ownersWithPolicies = organizationWithoutLtgsByOwnerPayload.ltgs.licenseThreatGroupsByOwner;
+    renderComponent(ownersWithPolicies);
+
+    // get tbody elemnts
+    const tableSections = await screen.findAllByRole('rowgroup');
+    const contentSections = tableSections.slice(1);
+
+    nLevelVerifyTableContent(contentSections, ownersWithPolicies, goToEditLTGSpy);
+  });
+
+  it('renders all correct subsection content when owner is org with many inherited license threat groups', async () => {
+    const ownersWithPolicies = reject(isEmptyNonLocal, nLevelOrgWithInheritedLTGs);
+    renderComponent(ownersWithPolicies);
+
+    // get tbody elemnts
+    const tableSections = await screen.findAllByRole('rowgroup');
+    const contentSections = tableSections.slice(1);
+
+    nLevelVerifyTableContent(contentSections, ownersWithPolicies, goToEditLTGSpy);
+  });
+
+  it('renders all correct subsection titles when owner is app with no license threat groups', async () => {
+    const ownersWithPolicies = reject(isEmptyNonLocal, nLevelAppWithNoLTGs);
+    renderComponent(ownersWithPolicies);
+
+    // get tbody elemnts
+    const tableSections = await screen.findAllByRole('rowgroup');
+    const contentSections = tableSections.slice(1);
+
+    nLevelVerifyTableContent(contentSections, ownersWithPolicies, goToEditLTGSpy);
+  });
+
+  it('renders all correct subsection titles when owner is app with many license threat groups', async () => {
+    const ownersWithPolicies = reject(isEmptyNonLocal, nLevelAppWithLTGs);
+    renderComponent(ownersWithPolicies);
+
+    // get tbody elemnts
+    const tableSections = await screen.findAllByRole('rowgroup');
+    const contentSections = tableSections.slice(1);
+
+    nLevelVerifyTableContent(contentSections, ownersWithPolicies, goToEditLTGSpy);
   });
 });

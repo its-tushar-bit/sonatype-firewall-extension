@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .nx-table.iq-ltg-summary-table {
+  font-size: var(--nx-font-size-s);
+
   thead > .nx-table-row {
     > .nx-cell:first-child {
       width: 1px;
@@ -15,9 +19,10 @@
       //put it like this so that first cell containing threat indicator will take just the right amount of space
       width: 1px;
     }
+  }
 
-    > .nx-cell:nth-child(2) {
-      font-weight: bold;
-    }
+  .iq-collapsible-row__header-title.nx-h3,
+  .nx-threat-number {
+    font-size: var(--nx-font-size-s);
   }
 }

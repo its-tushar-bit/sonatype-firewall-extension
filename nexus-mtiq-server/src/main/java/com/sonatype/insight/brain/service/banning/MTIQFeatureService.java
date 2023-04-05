@@ -5,8 +5,9 @@
  */
 package com.sonatype.insight.brain.service.banning;
 
+import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -24,25 +25,30 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION;
+import static com.sonatype.insight.brain.features.NonLicensedFeature.REPORTS_LIST;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SCM_CONFIGURATION;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.getTenant;
-import static com.sonatype.insight.license.model.LicensedFeature.*;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Configures which features are available to an MTIQ deployment.
@@ -61,30 +67,24 @@ public class MTIQFeatureService
    * filter that is applied on top of the license. We decided to go with a list of "enabled" rather than "disabled"
    * features so that any new features don't automatically get released in MTIQ.
    */
-  public static final Set<Feature> ENABLED_FEATURES = ImmutableSet.of(
-      DASHBOARD,
-      DASHBOARD_CAN_BE_ENABLED,
-      HYGIENE,
-      FIREWALL,
-      BREAKING_CHANGE,
-      EXTERNAL_DATABASE,
-      FIREWALL_AUTO_UNQUARANTINE,
-      ADVANCED_RECOMMENDATION_STRATEGIES,
-      NODE_CLUSTERING,
-      POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES,
-      QUALITY,
-      RELEASE_INTEGRITY,
-      RM_STAGING_INTEGRATION,
-      SAML_USER_TOKENS,
-      MULTI_TENANT,
-      LOGOUT_AUTH0_ON_LOGOUT,
-      WEBHOOK_CONFIGURATION,
-      WEBHOOKS_FOR_REPOSITORIES,
-      EMAIL_CONFIGURATION,
-      ENABLE_SSO_ONLY,
-      /* Lifecycle Features */
-      WEBHOOKS_FOR_APPLICATIONS
-  );
+  public static final Set<Feature> ENABLED_FEATURES = Stream.concat(ImmutableSet.of(
+          DASHBOARD_CAN_BE_ENABLED,
+          MULTI_TENANT,
+          LOGOUT_AUTH0_ON_LOGOUT,
+          WEBHOOK_CONFIGURATION,
+          AUTOMATIC_APPLICATION_CONFIGURATION,
+          EMAIL_CONFIGURATION,
+          REPORTS_LIST_CAN_BE_ENABLED,
+          REPORTS_LIST,
+          ENABLE_SSO_ONLY).stream(),
+
+      // Add all LicensedFeatures. This is an allow list, whether they are enabled or not depends on the License used.
+      // Excluding DATA_INSIGHTS for now
+      Arrays.stream(LicensedFeature.values())
+          .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS))
+          .filter(f -> !f.equals(LicensedFeature.AUTOMATION)))
+
+      .collect(toSet());
 
   private final ApiConfigFeaturesService service;
 
@@ -104,7 +104,7 @@ public class MTIQFeatureService
   public Set<Feature> getFeatures() {
     Set<Feature> baseFeatures = getBaseFeatures();
 
-    return baseFeatures.stream().filter(this::isEnabled).collect(Collectors.toSet());
+    return baseFeatures.stream().filter(this::isEnabled).collect(toSet());
   }
 
   //Visible for testing
@@ -175,8 +175,9 @@ public class MTIQFeatureService
 
     set(PROPERTY_ENABLED, false);
     set(ADVANCED_SEARCH_ENABLED, false);
-    set(AUTOMATIC_APPLICATION_CREATION_ENABLED, false);
+    set(AUTOMATIC_APPLICATION_CREATION_ENABLED, true);
     set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, false);
+    set(AUTOMATIC_SCM_CONFIGURATION, false);
     set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, false);
   }
 

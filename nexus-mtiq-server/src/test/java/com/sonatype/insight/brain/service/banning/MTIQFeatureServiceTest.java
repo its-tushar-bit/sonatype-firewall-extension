@@ -17,30 +17,39 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
+import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SCM_CONFIGURATION;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
 import static com.sonatype.insight.license.model.LicensedFeature.*;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -61,6 +70,9 @@ public class MTIQFeatureServiceTest
   @Mock
   MTIQFeatureService underTest;
 
+  @Captor
+  ArgumentCaptor<String> propertyKeyCaptor;
+
   @Before
   public void setup() {
     underTest = new TestableMTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service);
@@ -70,9 +82,11 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    for (SystemConfigurationPropertyFeature feature : getDisabledSystemConfigurationPropertyFeatures()) {
-      verify(service).disableFeatureNoAuthz(feature.getPropertyName());
-    }
+    verify(service, times(24)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+
+    List<String> flagsSet = propertyKeyCaptor.getAllValues();
+
+    assertThat(flagsSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
 
   @Test
@@ -81,8 +95,9 @@ public class MTIQFeatureServiceTest
 
     verify(systemConfigurationPropertyDAO).set(PROPERTY_ENABLED, "false");
     verify(systemConfigurationPropertyDAO).set(ADVANCED_SEARCH_ENABLED, "false");
-    verify(systemConfigurationPropertyDAO).set(AUTOMATIC_APPLICATION_CREATION_ENABLED, "false");
+    verify(systemConfigurationPropertyDAO).set(AUTOMATIC_APPLICATION_CREATION_ENABLED, "true");
     verify(systemConfigurationPropertyDAO).set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, "false");
+    verify(systemConfigurationPropertyDAO).set(AUTOMATIC_SCM_CONFIGURATION, "false");
     verify(systemConfigurationPropertyDAO).set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, "false");
   }
 
@@ -90,23 +105,30 @@ public class MTIQFeatureServiceTest
   public void testGetFeatures_onlyIncludesAllowedLicenseFeatures() {
     Set<Feature> features = underTest.getFeatures();
 
-    assertThat(features).containsExactlyInAnyOrder(
-        DASHBOARD,
-        DASHBOARD_CAN_BE_ENABLED,
-        HYGIENE,
-        WEBHOOKS_FOR_REPOSITORIES,
-        FIREWALL,
-        BREAKING_CHANGE,
-        EXTERNAL_DATABASE,
-        FIREWALL_AUTO_UNQUARANTINE,
-        ADVANCED_RECOMMENDATION_STRATEGIES,
-        NODE_CLUSTERING,
-        POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES,
-        QUALITY,
-        RELEASE_INTEGRITY,
-        RM_STAGING_INTEGRATION,
-        SAML_USER_TOKENS,
-        WEBHOOKS_FOR_APPLICATIONS);
+    Feature[] expectedFeatures = concat(ImmutableSet.of(DASHBOARD,
+            DASHBOARD_CAN_BE_ENABLED,
+            HYGIENE,
+            WEBHOOKS_FOR_REPOSITORIES,
+            FIREWALL,
+            BREAKING_CHANGE,
+            EXTERNAL_DATABASE,
+            FIREWALL_AUTO_UNQUARANTINE,
+            ADVANCED_RECOMMENDATION_STRATEGIES,
+            NODE_CLUSTERING,
+            POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES,
+            QUALITY,
+            RELEASE_INTEGRITY,
+            RM_STAGING_INTEGRATION,
+            SAML_USER_TOKENS,
+            WEBHOOKS_FOR_APPLICATIONS).stream(),
+
+        //Add all licensed Features
+        stream(LicensedFeature.values())
+            .filter(f -> !f.equals(DATA_INSIGHTS))
+            .filter(f -> !f.equals(AUTOMATION)))
+        .collect(toSet()).toArray(new Feature[]{});
+
+    assertThat(features).containsExactlyInAnyOrder(expectedFeatures);
   }
 
   @Test
@@ -167,14 +189,17 @@ public class MTIQFeatureServiceTest
     verify(service).enableFeatureNoAuthz(LOGOUT_AUTH0_ON_LOGOUT.getPropertyName());
   }
 
-  private List<SystemConfigurationPropertyFeature> getDisabledSystemConfigurationPropertyFeatures() {
+  private String[] getDisabledSystemConfigurationPropertyFeatures() {
     return Arrays.stream(SystemConfigurationPropertyFeature.values())
         .filter(f -> !f.equals(DASHBOARD_CAN_BE_ENABLED))
+        .filter(f -> !f.equals(REPORTS_LIST_CAN_BE_ENABLED))
         .filter(f -> !f.equals(EMAIL_CONFIGURATION))
         .filter(f -> !f.equals(LOGOUT_AUTH0_ON_LOGOUT))
         .filter(f -> !f.equals(WEBHOOK_CONFIGURATION))
         .filter(f -> !f.equals(ENABLE_SSO_ONLY))
-        .collect(Collectors.toList());
+        .filter(f -> !f.equals(AUTOMATIC_APPLICATION_CONFIGURATION))
+        .map(SystemConfigurationPropertyFeature::getPropertyName)
+        .collect(Collectors.toList()).toArray(new String[]{});
   }
 
   /**

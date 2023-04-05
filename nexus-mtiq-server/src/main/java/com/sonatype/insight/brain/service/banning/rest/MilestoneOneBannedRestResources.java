@@ -8,24 +8,12 @@ package com.sonatype.insight.brain.service.banning.rest;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiCycloneDxResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiEvaluationResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiJiraConfigurationResource;
-import com.sonatype.insight.brain.api.v2.ApiLegalAttributionReportTemplateResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiMetricsReportingResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiOrganizationResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
-import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiReportResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiRepositoryConnectionResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiRepositoryIdentifiedComponentResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiSearchResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiSourceControlConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiSourceControlMetricsResource;
 import com.sonatype.insight.brain.api.v2.ApiSourceControlResource;
-import com.sonatype.insight.brain.api.v2.ApiThirdPartyScanResource;
-import com.sonatype.insight.brain.configuration.AutomaticApplicationsConfigurationResource;
 import com.sonatype.insight.brain.configuration.AutomaticSourceControlConfigurationResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
 import com.sonatype.insight.brain.search.AdvancedSearchResource;
@@ -43,18 +31,7 @@ public class MilestoneOneBannedRestResources
     implements BannedImplementation
 {
   private static final List<Class> BANNED_REST_RESOURCES = ImmutableList.of(
-      ApiEvaluationResourceV2.class,
       ApiJiraConfigurationResource.class,
-      ApiLegalAttributionReportTemplateResourceV2.class,
-      ApiLegalReportResourceV2.class,
-      ApiCycloneDxResourceV2.class,
-      ApiMetricsReportingResourceV2.class,
-      ApiThirdPartyScanResource.class,
-      ApiOrganizationResourceV2.class,
-      ApiReportDataResourceV2.class,
-      ApiReportResourceV2.class,
-      ApiRepositoryConnectionResourceV2.class,
-      ApiRepositoryIdentifiedComponentResourceV2.class,
       ApiSearchResourceV2.class,
       ApiSourceControlConfigurationResource.class,
       ApiSourceControlMetricsResource.class,
@@ -62,7 +39,6 @@ public class MilestoneOneBannedRestResources
       LdapResource.class,
       ApiProxyServerConfigurationResource.class,
       SuccessMetricsResource.class,
-      AutomaticApplicationsConfigurationResource.class,
       AdvancedSearchResource.class,
       AutomaticSourceControlConfigurationResource.class,
       ApiCrowdConfigurationResourceV2.class

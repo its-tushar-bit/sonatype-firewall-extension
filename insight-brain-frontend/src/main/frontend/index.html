@@ -27,7 +27,7 @@
       </div>
       <toast-container></toast-container>
       <navigation-container
-        ng-if="!$state.params.embeddable"
+        ng-if="!($state.params.embeddable || $state.params.noLeftNavLayout)"
         product-edition="{{productEdition}}"
       ></navigation-container>
       <div class="nx-global-header">

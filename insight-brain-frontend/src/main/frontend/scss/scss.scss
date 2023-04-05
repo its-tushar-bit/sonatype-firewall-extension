@@ -155,6 +155,7 @@
 @use '../OrgsAndPolicies/actionDropdown/actionDropdown';
 @use '../../frontend/owner.manager/navigation/ownerDetailSidebar';
 @use '../OrgsAndPolicies/waivedComponentUpgrades/waivedComponentUpgrades';
+@use '../firewallOnboarding/firewallOnboarding';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

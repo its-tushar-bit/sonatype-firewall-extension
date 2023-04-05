@@ -27,6 +27,7 @@ import violationPageModule from './violation/module';
 import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
 import waiversModule from './waivers/module';
 import firewallModule from './firewall/module';
+import firewallOnboardingModule from './firewallOnboarding/module';
 import quarantinedComponentReportModule from './quarantinedComponentReport/module';
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
 import innerSourceRepositoryConfigurationModule from './innerSourceRepositoryConfiguration/module';
@@ -54,6 +55,7 @@ export default angular
     violationPageModule.name,
     waiversModule.name,
     firewallModule.name,
+    firewallOnboardingModule.name,
     componentDetailsModule.name,
     dependencyTreeModule.name,
     quarantinedComponentReportModule.name,

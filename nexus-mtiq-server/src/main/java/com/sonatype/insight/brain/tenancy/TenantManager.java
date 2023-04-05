@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +96,11 @@ public class TenantManager
     }
 
     TenantThreadLocal.setTenant(tenant);
+
+    final Span span = GlobalTracer.get().activeSpan();
+    if (span != null) {
+      span.setTag("tenant", tenant.tenantSlug);
+    }
 
     registerTenant(tenant);
   }

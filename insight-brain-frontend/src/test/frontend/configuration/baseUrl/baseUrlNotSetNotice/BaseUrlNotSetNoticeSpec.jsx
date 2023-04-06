@@ -5,21 +5,18 @@
  */
 
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
 import * as baseUrlConfigurationSelectors from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
 import { render, screen } from 'TestRoot/SpecUtil';
 import BaseUrlNotSetNotice from 'MainRoot/configuration/baseUrl/baseUrlNotSetNotice/BaseUrlNotSetNotice';
+import { actions } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('BaseUrlNotSetNotice component', () => {
-  const mockStore = configureStore([]);
-  const store = mockStore({});
-  const renderComponent = () =>
-    render(
-      <Provider store={store}>
-        <BaseUrlNotSetNotice />
-      </Provider>
-    );
+  const renderComponent = () => render(<BaseUrlNotSetNotice />);
+  let loadSpy;
+  beforeEach(() => {
+    loadSpy = spyOn(actions, 'load').and.callThrough();
+  });
 
   describe('Component load', () => {
     it('should render when shouldDisplayNotice is true', () => {
@@ -32,6 +29,34 @@ describe('BaseUrlNotSetNotice component', () => {
       spyOn(baseUrlConfigurationSelectors, 'selectShouldDisplayNotice').and.callFake(() => false);
       renderComponent();
       expect(screen.queryByText('The Base URL is not configured.')).not.toBeInTheDocument();
+    });
+
+    it('should dispatch a load if it is an admin user and single tenant', () => {
+      spyOn(baseUrlConfigurationSelectors, 'selectCurrentUser').and.returnValue({ authenticated: true });
+      spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').and.returnValue(true);
+      renderComponent();
+      expect(loadSpy).toHaveBeenCalled();
+    });
+
+    it('should not dispatch a load if it is multi tenant', () => {
+      spyOn(baseUrlConfigurationSelectors, 'selectCurrentUser').and.returnValue({ authenticated: true });
+      spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').and.returnValue(false);
+      renderComponent();
+      expect(loadSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not dispatch a load if it is not authenticated', () => {
+      spyOn(baseUrlConfigurationSelectors, 'selectCurrentUser').and.returnValue({ authenticated: false });
+      spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').and.returnValue(true);
+      renderComponent();
+      expect(loadSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not dispatch a load if there is no current user', () => {
+      spyOn(baseUrlConfigurationSelectors, 'selectCurrentUser').and.returnValue(null);
+      spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').and.returnValue(true);
+      renderComponent();
+      expect(loadSpy).not.toHaveBeenCalled();
     });
   });
 });

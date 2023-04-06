@@ -10,18 +10,20 @@ import {
   selectShouldDisplayNotice,
   selectCurrentUser,
 } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
+import { selectIsBaseUrlConfigurationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function BaseUrlNotSetNotice() {
   const dispatch = useDispatch();
   const currentUser = useSelector(selectCurrentUser);
+  const isBaseUrlConfigurationEnabled = useSelector(selectIsBaseUrlConfigurationEnabled);
   const shouldDisplayNotice = useSelector(selectShouldDisplayNotice);
   const loadConf = () => dispatch(actions.load());
 
   useEffect(() => {
-    if (currentUser && currentUser.authenticated) {
+    if (currentUser && currentUser.authenticated && isBaseUrlConfigurationEnabled) {
       loadConf();
     }
-  }, [currentUser]);
+  }, [currentUser, isBaseUrlConfigurationEnabled]);
 
   return shouldDisplayNotice ? (
     <>

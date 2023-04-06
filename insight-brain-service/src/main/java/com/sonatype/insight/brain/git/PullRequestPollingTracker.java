@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,20 +61,20 @@ class PullRequestPollingTracker
   }
 
   /**
-   * In the event of an error processing pull requests we need to:
+   * In the event of an error processing PRs we need to do the following for all records with the same repository URL:
    *   1 - update the error count
    *   2 - update the poll time based on the error count
    *   3 - NOT update the cutoff time
    *
-   * @param sourceControlId ID of source control entry for which the error occurred
+   * @param sourceControl source control entry for which the error occurred
    * @return String representing the delay being applied to the next poll time
    */
-  String onErrorProcessingPullRequests(String sourceControlId) {
+  String onErrorProcessingPullRequests(SourceControl sourceControl) {
     String result = "";
-    SourceControl sourceControl = sourceControlDAO.getById(sourceControlId);
-    if (null != sourceControl) {
+    List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryUrl(sourceControl.getRepositoryUrl());
+    for (SourceControl sourceControlRecord : sourceControlList) {
       Date pollTime;
-      int errorCount = sourceControl.getPullRequestErrorCount();
+      int errorCount = sourceControlRecord.getPullRequestErrorCount();
       if (errorCount < Integer.MAX_VALUE) {
         errorCount++;
       }
@@ -111,22 +112,23 @@ class PullRequestPollingTracker
           result = "24 hours";
           break;
       }
-      updateSourceControl(sourceControl, pollTime, errorCount);
+      updateSourceControl(sourceControlRecord, pollTime, errorCount);
     }
     return result;
   }
 
   /**
-   * @param sourceControlId the internal ID of the sourceControl we are processing PRs for
+   * All records with the same repository URL have to be updated; otherwise the PR polling cycle finishes prematurely.
+   * @param sourceControl the sourceControl we are processing PRs for
    * @param org   organization processing PRs
    * @param repo  repo processing PRs, may be null if polling can take place organization wide
    * @param token token used for processing PRs
    * @param cutoffTime next time to use for polling cutoff  
    */
-  void onPullRequestProcessed(String sourceControlId, String org, String repo, String token, Date cutoffTime) {
-    SourceControl sourceControl = sourceControlDAO.getById(sourceControlId);
-    if (sourceControl != null) {
-      updateSourceControl(sourceControl, cutoffTime, 0);
+  void onPullRequestProcessed(SourceControl sourceControl, String org, String repo, String token, Date cutoffTime) {
+    List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryUrl(sourceControl.getRepositoryUrl());
+    for (SourceControl sourceControlRecord : sourceControlList) {
+      updateSourceControl(sourceControlRecord, cutoffTime, 0);
     }
     setCachedCutoffTime(org, repo, token, cutoffTime);
   }

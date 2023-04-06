@@ -124,6 +124,18 @@ public class GitClientFactory
   }
 
   @VisibleForTesting
+  void addApiUrlMapping(String repositoryUrl, String apiUrl) {
+    String cacheKey = computeKey(repositoryUrl);
+    apiClientUrlCache.put(cacheKey, apiUrl);
+  }
+
+  @VisibleForTesting
+  void addPullRequestInfoClientUrlMapping(String repositoryUrl, String apiUrl) {
+    String cacheKey = computeKey(repositoryUrl);
+    prInfoClientUrlCache.put(cacheKey, apiUrl);
+  }
+
+  @VisibleForTesting
   void clearUrlCaches() {
     apiClientUrlCache.invalidateAll();
     prInfoClientUrlCache.invalidateAll();

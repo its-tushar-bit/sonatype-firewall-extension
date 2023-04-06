@@ -86,7 +86,7 @@ public class PullRequestPollingScheduler
 
   private ScheduledExecutorService newExecutor() {
     ThreadFactory threadFactory =
-        new ThreadFactoryBuilder().setNameFormat("PullRequestMonitor-%d").setDaemon(true).build();
+        new ThreadFactoryBuilder().setNameFormat("PullRequestPolling-%d").setDaemon(true).build();
     return new TenantScheduledThreadPoolExecutor(1, threadFactory);
   }
 

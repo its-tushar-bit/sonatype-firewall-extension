@@ -79,7 +79,7 @@ public class PullRequestPollingTrackerTest
     sourceControlDAO.update(sourceControl);
 
     // when: update poll times called
-    pollingTracker.onPullRequestProcessed(sourceControl.getId(), "org", "repo", "token", date);
+    pollingTracker.onPullRequestProcessed(sourceControl, "org", "repo", "token", date);
 
     // then: verify dates and error count
     sourceControl = sourceControlDAO.getById(sourceControl.getId());
@@ -93,6 +93,21 @@ public class PullRequestPollingTrackerTest
   }
 
   @Test
+  public void testOnPullRequestProcessed_2IQAppsSameRepoUrl() {
+    // given: source control entries with initial values
+    Date date = new Date();
+    SourceControl sourceControl1 = createSourceControl("http://localhost/test/repo");
+    SourceControl sourceControl2 = createSourceControl("http://localhost/test/repo");
+
+    // when: update poll times called
+    pollingTracker.onPullRequestProcessed(sourceControl1, "org", "repo", "token", date);
+
+    // then: verify pullRequestPollTime is updated for both records
+    assertThat(sourceControlDAO.getById(sourceControl1.getId()).getPullRequestPollTime()).isEqualTo(date);
+    assertThat(sourceControlDAO.getById(sourceControl2.getId()).getPullRequestPollTime()).isEqualTo(date);
+  }
+
+  @Test
   public void testOnPullRequestProcessed_withNullRepo() {
     // given: source control entry with initial values
     Date date = new Date();
@@ -101,7 +116,7 @@ public class PullRequestPollingTrackerTest
     sourceControlDAO.update(sourceControl);
 
     // when: update poll times called
-    pollingTracker.onPullRequestProcessed(sourceControl.getId(), "org", null, "token", date);
+    pollingTracker.onPullRequestProcessed(sourceControl, "org", null, "token", date);
 
     // then: verify dates and error count
     sourceControl = sourceControlDAO.getById(sourceControl.getId());
@@ -144,7 +159,7 @@ public class PullRequestPollingTrackerTest
 
     for (int i = 0; i < expectedErrorOffsetsInMinutes.size(); i++) {
       // when: report error
-      String offsetMessage = pollingTracker.onErrorProcessingPullRequests(sourceControl.getId());
+      String offsetMessage = pollingTracker.onErrorProcessingPullRequests(sourceControl);
 
       // then: error count incremented, cutoff unchanged, poll time updated per sequence
       long exactOffset = currentTimeMillis() + (MS_PER_MINUTE * expectedErrorOffsetsInMinutes.get(i));
@@ -156,6 +171,37 @@ public class PullRequestPollingTrackerTest
       assertThat(sourceControl.getPullRequestPollTime()).isBetween(minPollTime, maxPollTime);
       assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(i + 1);
     }
+  }
+
+  @Test
+  public void testOnErrorProcessingPullRequests_2IQAppsSameRepoUrl() {
+    // given: initialized source control entries
+    SourceControl sourceControl1 = createSourceControl("http://localhost/test/repo");
+    sourceControl1.setPullRequestErrorCount(2);
+    sourceControlDAO.update(sourceControl1);
+    SourceControl sourceControl2 = createSourceControl("http://localhost/test/repo");
+    sourceControl2.setPullRequestErrorCount(2);
+    sourceControlDAO.update(sourceControl2);
+
+    // when: report error
+    String offsetMessage = pollingTracker.onErrorProcessingPullRequests(sourceControl1);
+
+    // then: error count incremented, cutoff unchanged, poll time updated per sequence
+    long exactOffset = currentTimeMillis() + (MS_PER_MINUTE * 15);
+
+    // bound the expected poll time by +/- 100ms
+    Date minPollTime = new Date(exactOffset - 100);
+    Date maxPollTime = new Date(exactOffset + 100);
+    assertThat(offsetMessage).isEqualTo("15 minutes");
+
+    // both source control records were updated
+    SourceControl sourceControl = sourceControlDAO.getById(sourceControl1.getId());
+    assertThat(sourceControl.getPullRequestPollTime()).isBetween(minPollTime, maxPollTime);
+    assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(3);
+
+    sourceControl = sourceControlDAO.getById(sourceControl2.getId());
+    assertThat(sourceControl.getPullRequestPollTime()).isBetween(minPollTime, maxPollTime);
+    assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(3);
   }
 
   @Test
@@ -192,5 +238,10 @@ public class PullRequestPollingTrackerTest
     Application app = tempEntity.newApplicationWithParent();
     return tempEntity.newSourceControl(app.getId(), "http://localhost/test/" + app.getId(), "testToken",
         SourceControlProvider.GITHUB);
+  }
+
+  private SourceControl createSourceControl(String repoUrl) {
+    Application app = tempEntity.newApplicationWithParent();
+    return tempEntity.newSourceControl(app.getId(), repoUrl, "testToken", SourceControlProvider.GITLAB);
   }
 }

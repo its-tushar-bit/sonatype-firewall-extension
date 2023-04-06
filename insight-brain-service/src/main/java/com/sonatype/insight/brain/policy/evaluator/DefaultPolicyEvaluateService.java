@@ -120,11 +120,13 @@ public class DefaultPolicyEvaluateService
       Stage stage,
       ScanTriggerType scanTriggerType,
       String clientUserAgent,
-      String clientInstanceId)
+      String clientInstanceId,
+      ClientScanType clientScanType)
       throws IOException
   {
     ScanPolicyEvaluatorResults results =
-        evaluateAndSendNotifications(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId);
+        evaluateAndSendNotifications(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+            clientScanType);
 
     return scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);
@@ -137,7 +139,7 @@ public class DefaultPolicyEvaluateService
       ScanTriggerType scanTriggerType)
       throws IOException
   {
-    return evaluate(application, scanId, stage, scanTriggerType, null, null);
+    return evaluate(application, scanId, stage, scanTriggerType, null, null, null);
   }
 
   private ScanPolicyEvaluatorResults evaluateAndSendNotifications(
@@ -146,10 +148,12 @@ public class DefaultPolicyEvaluateService
       Stage stage,
       ScanTriggerType scanTriggerType,
       String clientUserAgent,
-      String clientInstanceId) throws IOException
+      String clientInstanceId,
+      ClientScanType clientScanType) throws IOException
   {
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+            clientScanType);
 
     if (!results.evaluation.isReevaluation()) {
       policyAlertNotifier.sendNotifications(application, results);
@@ -390,7 +394,7 @@ public class DefaultPolicyEvaluateService
             app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
         PolicyEvaluationResult policyEvaluationResult =
-            evaluate(app, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId);
+            evaluate(app, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId, clientScanType);
 
         log.debug(
             "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms."
@@ -445,7 +449,8 @@ public class DefaultPolicyEvaluateService
 
       long start = System.currentTimeMillis();
       ScanPolicyEvaluatorResults results =
-          evaluateAndSendNotifications(application, scanId, stage, scanTriggerType, clientUserAgent, null);
+          evaluateAndSendNotifications(application, scanId, stage, scanTriggerType, clientUserAgent, null,
+              clientScanType);
 
       log.debug("Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms.",
           application.getPublicId(), scanId, stage.getStageTypeId(), System.currentTimeMillis() - start);

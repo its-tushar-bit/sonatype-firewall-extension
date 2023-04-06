@@ -249,6 +249,7 @@ import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Table;
@@ -1859,6 +1860,19 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
+  public PolicyEvaluation newPolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      ClientScanType clientScanType)
+  {
+    PolicyEvaluation policyEvaluation =
+        new PolicyEvaluation(applicationId, stageTypeId, scanId, "system", ScanTriggerType.CLI);
+    policyEvaluation.setClientScanType(clientScanType);
+    policyEvaluationDAO.insert(policyEvaluation);
+    return policyEvaluation;
+  }
+
   public SourceControlPullRequestComment newSourceControlPullRequestComment(
       String applicationId,
       int pullRequestId,
@@ -1962,7 +1976,7 @@ public class TemporaryEntity
       Date time)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
-        isForMonitoring, "system", ScanTriggerType.CLI);
+        isForMonitoring, "system", ScanTriggerType.CLI, ClientScanType.SONATYPE);
     policyEvaluation.setTime(time);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
@@ -1992,7 +2006,7 @@ public class TemporaryEntity
       String commitHash)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
-        isForMonitoring, "system", ScanTriggerType.CLI);
+        isForMonitoring, "system", ScanTriggerType.CLI, ClientScanType.SONATYPE);
     policyEvaluation.setCommitHash(commitHash);
     policyEvaluation.setTime(time);
     policyEvaluation.setForObsoleteScan(isForObsoleteScan);
@@ -2012,7 +2026,7 @@ public class TemporaryEntity
       ScanTriggerType scanTriggerType)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
-        isForMonitoring, "system", scanTriggerType);
+        isForMonitoring, "system", scanTriggerType, ClientScanType.SONATYPE);
     policyEvaluation.setCommitHash(commitHash);
     policyEvaluation.setTime(time);
     policyEvaluation.setForObsoleteScan(isForObsoleteScan);

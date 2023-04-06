@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -187,7 +188,7 @@ public class ScanTaskTest
     task.run();
 
     verify(scanPolicyEvaluator).evaluate(eq(app), eq(scanReceipt.getScanId()), match(stage),
-        eq(ScanTriggerType.WEB_UI));
+        eq(ScanTriggerType.WEB_UI), eq(ClientScanType.SONATYPE));
   }
 
   @Test
@@ -212,7 +213,7 @@ public class ScanTaskTest
     results.notifiableViolations = new ArrayList<>();
     results.allViolations = new ArrayList<>();
     when(scanPolicyEvaluator.evaluate(eq(app), eq(scanReceipt.getScanId()), match(stage),
-        eq(ScanTriggerType.WEB_UI))).thenReturn(results);
+        eq(ScanTriggerType.WEB_UI), eq(ClientScanType.SONATYPE))).thenReturn(results);
 
     task.run();
 

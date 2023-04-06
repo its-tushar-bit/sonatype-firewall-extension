@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
@@ -244,7 +245,7 @@ class ScanTask
       persistedScanTicketDAO.update(toPersistedScanTicket());
       // The ScanPolicyEvaluator will fetch the report if it's not there
       ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(app, scanReceipt.getScanId(), stage,
-          ScanTriggerType.WEB_UI);
+          ScanTriggerType.WEB_UI, ClientScanType.SONATYPE);
       if (sendNotifications) {
         policyAlertNotifier.sendNotifications(app, results);
       }

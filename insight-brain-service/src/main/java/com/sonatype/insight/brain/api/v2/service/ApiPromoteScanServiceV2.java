@@ -198,8 +198,21 @@ public class ApiPromoteScanServiceV2
           }
         }
 
-        ScanTriggerType scanTriggerType = getScanTriggerType(sourceScanId);
-        policyEvaluateService.evaluateWithPolling(statusId, application, ClientScanType.SONATYPE,
+        ScanTriggerType scanTriggerType = ScanTriggerType.UNKNOWN;
+        // For older evaluations, we do not have the ClientScanType. ClientScanType was hardcoded to Sonatype here, so
+        // leaving Sonatype here for backwards compatibility. For new evaluations, we will have this information.
+        ClientScanType clientScanType = ClientScanType.SONATYPE;
+
+        PolicyEvaluation policyEvaluation =
+            policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, sourceScanId);
+        if (policyEvaluation != null) {
+          scanTriggerType = policyEvaluation.getScanTriggerType();
+          if (policyEvaluation.getClientScanType() != null) {
+            clientScanType = policyEvaluation.getClientScanType();
+          }
+        }
+
+        policyEvaluateService.evaluateWithPolling(statusId, application, clientScanType,
             new Stage(targetStageId), scanTriggerType, tempScanFile, "api", userAgent, null);
       }
       catch (Exception e) {
@@ -210,14 +223,6 @@ public class ApiPromoteScanServiceV2
 
         throw new RuntimeException(policyEvaluationPollingResult.getReason(), e);
       }
-    }
-
-    private ScanTriggerType getScanTriggerType(String scanId) {
-      PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, scanId);
-      if (policyEvaluation != null) {
-        return policyEvaluation.getScanTriggerType();
-      }
-      return ScanTriggerType.UNKNOWN;
     }
 
     private String getSourceScanId() {

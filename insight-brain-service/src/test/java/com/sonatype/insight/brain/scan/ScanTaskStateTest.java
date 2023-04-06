@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -117,8 +118,8 @@ public class ScanTaskStateTest
     ScanReceipt scanReciept = mock(ScanReceipt.class);
     when(uploader.upload((File) any(), any(Application.class), anyString(), eq(null))).thenReturn(scanReciept);
 
-    when(scanPolicyEvaluator.evaluate(any(), (String) any(), (Stage) any(), eq(ScanTriggerType.WEB_UI)))
-        .then(captureState);
+    when(scanPolicyEvaluator.evaluate(any(), (String) any(), (Stage) any(), eq(ScanTriggerType.WEB_UI),
+        eq(ClientScanType.SONATYPE))).then(captureState);
 
     task.run();
 

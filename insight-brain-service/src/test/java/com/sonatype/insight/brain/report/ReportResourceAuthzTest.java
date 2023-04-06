@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.junit.Test;
 
@@ -49,7 +50,7 @@ public class ReportResourceAuthzTest
     String scanId = "scanId";
     mockReport(scanId, "/ReportResourceTest/report");
     ScanPolicyEvaluator scanPolicyEvaluator = getCLMServer().getInstance(ScanPolicyEvaluator.class);
-    scanPolicyEvaluator.evaluate(app, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI);
+    scanPolicyEvaluator.evaluate(app, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE);
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 

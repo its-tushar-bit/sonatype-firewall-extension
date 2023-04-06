@@ -295,7 +295,7 @@ public class ReportResource
     }
 
     scanPolicyEvaluator.evaluate(application, scanId, new Stage(policyEvaluation.getStageTypeId()),
-        policyEvaluation.getScanTriggerType());
+        policyEvaluation.getScanTriggerType(), policyEvaluation.getClientScanType());
 
     return Response.ok().build();
   }

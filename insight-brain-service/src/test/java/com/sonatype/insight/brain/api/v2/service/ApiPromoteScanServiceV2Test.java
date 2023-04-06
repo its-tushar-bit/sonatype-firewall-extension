@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,9 +34,11 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.inject.Binder;
 import com.google.inject.Inject;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -116,7 +119,7 @@ public class ApiPromoteScanServiceV2Test
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
-        eq(ScanTriggerType.CLI), eq(null), eq(null))).thenReturn(evaluatorResults);
+        eq(ScanTriggerType.CLI), eq(null), eq(null), eq(ClientScanType.SONATYPE))).thenReturn(evaluatorResults);
 
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service.promoteScan(app.getId(),
         ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, toStageId), null /* userAgent */);
@@ -179,6 +182,35 @@ public class ApiPromoteScanServiceV2Test
           .isThrownBy(() -> service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, invalidStage),
               null /* userAgent */)).withMessage("Stage " + invalidStage + " is invalid.");
     }
+  }
+
+  @Test
+  public void testPromoteScan_ThirdPartyScan() throws Exception {
+    createThirdPartyScanFile();
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID, ClientScanType.SONATYPE_THIRD_PARTY);
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(NEW_SCAN_ID);
+    String toStageId = Stage.ID_OPERATE;
+    when(scanUploader.upload(any(File.class), any(Application.class), anyString(), eq(null))).thenReturn(scanReceipt);
+    ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
+    evaluatorResults.evaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID, ClientScanType.SONATYPE_THIRD_PARTY);
+    when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
+        eq(ScanTriggerType.CLI), eq(null), eq(null), eq(ClientScanType.SONATYPE_THIRD_PARTY))).thenReturn(
+        evaluatorResults);
+
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service.promoteScan(app.getId(),
+        ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, toStageId), null /* userAgent */);
+
+    assertThat(apiApplicationEvaluationStatusDTOV2).isNotNull();
+    assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl)
+        .startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId()));
+
+    // await successful completion
+    String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
+    awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
+    assertThat(insightWork.getScanFile(app.getId(), NEW_SCAN_ID)).isFile();
+    verify(policyAlertNotifier).sendNotifications(any(Application.class), eq(evaluatorResults));
   }
 
   @Test
@@ -246,7 +278,7 @@ public class ApiPromoteScanServiceV2Test
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
-        eq(ScanTriggerType.CLI), eq(null), eq(null))).thenReturn(evaluatorResults);
+        eq(ScanTriggerType.CLI), eq(null), eq(null), eq(ClientScanType.SONATYPE))).thenReturn(evaluatorResults);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, toStageId), null /* userAgent */);
@@ -308,6 +340,19 @@ public class ApiPromoteScanServiceV2Test
     try {
       Files.createDirectories(scanFile.getParentFile().toPath());
       Files.write(scanFile.toPath(), Collections.singletonList("test"));
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private void createThirdPartyScanFile() {
+    File scanFile = insightWork.getScanFile(app.getId(), SCAN_ID);
+    try {
+      Files.createDirectories(scanFile.getParentFile().toPath());
+      FileUtils.copyFileToDirectory(
+          Paths.get("src", "test", "resources", "ApiPromoteScanServiceV2Test", "scan-scanId.xml.gz").toFile(),
+          scanFile.getParentFile());
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

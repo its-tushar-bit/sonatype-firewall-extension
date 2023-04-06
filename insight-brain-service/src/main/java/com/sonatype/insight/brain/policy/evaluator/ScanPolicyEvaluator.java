@@ -86,6 +86,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -183,10 +184,11 @@ public class ScanPolicyEvaluator
       final Application application,
       final String scanId,
       final Stage stage,
-      ScanTriggerType scanTriggerType)
+      ScanTriggerType scanTriggerType,
+      ClientScanType clientScanType)
       throws IOException
   {
-    return evaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */);
+    return evaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */, clientScanType);
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -195,21 +197,23 @@ public class ScanPolicyEvaluator
       final Stage stage,
       ScanTriggerType scanTriggerType,
       String clientUserAgent,
-      String clientInstanceId)
+      String clientInstanceId,
+      ClientScanType clientScanType)
       throws IOException
   {
     return evaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
-        false /* forMonitoring */);
+        false /* forMonitoring */, clientScanType);
   }
 
   public ScanPolicyEvaluatorResults evaluateForMonitoring(
       Application application,
       String scanId,
       Stage stage,
-      ScanTriggerType scanTriggerType)
+      ScanTriggerType scanTriggerType,
+      ClientScanType clientScanType)
       throws IOException
   {
-    return evaluate(application, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */);
+    return evaluate(application, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */, clientScanType);
   }
 
   private ScanPolicyEvaluatorResults evaluate(
@@ -219,7 +223,8 @@ public class ScanPolicyEvaluator
       ScanTriggerType scanTriggerType,
       String clientUserAgent,
       String clientInstanceId,
-      boolean forMonitoring) throws IOException
+      boolean forMonitoring,
+      ClientScanType clientScanType) throws IOException
   {
     log.debug(
         "Evaluating policies for application ID {}, scan ID {}, stage {}, scan trigger type {}, for monitoring {}.",
@@ -265,7 +270,7 @@ public class ScanPolicyEvaluator
     // Save the policy evaluation and violations
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring,
-            policyResults, components, telemetryCollector, reportFile);
+            policyResults, components, telemetryCollector, reportFile, clientScanType);
 
     telemetrySender.send(telemetryCollector.getTelemetryData());
 
@@ -349,7 +354,8 @@ public class ScanPolicyEvaluator
       PolicyResults policyResults,
       List<Component> components,
       PolicyViolationTelemetryCollector telemetryCollector,
-      File reportFile) throws IOException
+      File reportFile,
+      ClientScanType clientScanType) throws IOException
   {
     String appId = app.getId();
     long start = System.currentTimeMillis();
@@ -364,7 +370,7 @@ public class ScanPolicyEvaluator
       boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
       AuditData.get().setIsReevaluation(isReevaluation);
       PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
-          forMonitoring, currentUser.getUsernameOrSystem(), scanTriggerType);
+          forMonitoring, currentUser.getUsernameOrSystem(), scanTriggerType, clientScanType);
       policyEvaluation.setCommitHash(extractCommitHash(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME)));
       PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
           appId, stage.getStageTypeId());

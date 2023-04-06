@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 /**
  * @since 1.11
@@ -66,6 +67,15 @@ public class PolicyEvaluation
   @Enumerated(EnumType.STRING)
   private ScanTriggerType scanTriggerType;
 
+
+  /**
+   * @since 1.159.0
+   * Entities before the version 1.159 will have a null value, which indicates an unknown clientScanType.
+   */
+  @Column(name = "client_scan_type")
+  @Enumerated(EnumType.STRING)
+  private ClientScanType clientScanType;
+
   public PolicyEvaluation() {
   }
 
@@ -90,7 +100,8 @@ public class PolicyEvaluation
       boolean isReevaluation,
       boolean isForMonitoring,
       String initiator,
-      ScanTriggerType scanTriggerType)
+      ScanTriggerType scanTriggerType,
+      ClientScanType clientScanType)
   {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
@@ -99,6 +110,7 @@ public class PolicyEvaluation
     this.isForMonitoring = isForMonitoring;
     this.initiator = initiator;
     this.scanTriggerType = scanTriggerType;
+    this.clientScanType = clientScanType;
   }
 
   @Override
@@ -189,6 +201,14 @@ public class PolicyEvaluation
 
   public void setScanTriggerType(ScanTriggerType scanTriggerType) {
     this.scanTriggerType = scanTriggerType;
+  }
+
+  public ClientScanType getClientScanType() {
+    return clientScanType;
+  }
+
+  public void setClientScanType(ClientScanType clientScanType) {
+    this.clientScanType = clientScanType;
   }
 
   public boolean wasInternallyTriggered() {

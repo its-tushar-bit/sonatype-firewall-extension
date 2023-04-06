@@ -34,6 +34,7 @@ describe('baseUrlConfigurationReducer', () => {
       expect(initialState.formState.baseUrl.value).toBe('');
       expect(initialState.serverData).toBeNull();
       expect(initialState.showDeleteModal).toBeFalsy();
+      expect(initialState.shouldDisplayNotice).toBeFalsy();
     });
   });
 
@@ -69,6 +70,7 @@ describe('baseUrlConfigurationReducer', () => {
 
       expect(newState).toEqual({
         ...initialState,
+        shouldDisplayNotice: false,
         formState: {
           baseUrl: nxTextInputStateHelpers.initialState(baseUrlConfiguration.baseUrl),
         },
@@ -83,7 +85,7 @@ describe('baseUrlConfigurationReducer', () => {
         payload: null,
       });
 
-      expect(newState).toEqual(initialState);
+      expect(newState).toEqual({ ...initialState, shouldDisplayNotice: true });
     });
   });
 
@@ -219,6 +221,7 @@ describe('baseUrlConfigurationReducer', () => {
         ...initialState,
         showDeleteModal: true,
         deleteMaskState: true,
+        shouldDisplayNotice: true,
       });
     });
   });

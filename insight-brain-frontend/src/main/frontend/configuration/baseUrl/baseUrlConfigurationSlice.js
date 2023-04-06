@@ -26,6 +26,7 @@ export const initialState = {
   submitMaskState: null,
   submitMaskMessage: null,
   deleteMaskState: null,
+  shouldDisplayNotice: false,
   formState: {
     baseUrl: nxTextInputStateHelpers.initialState(''),
   },
@@ -38,7 +39,7 @@ const clearedErrors = pick(['loadError', 'updateError', 'deleteError'], initialS
 function setFormStateFromServerData(state) {
   const { serverData } = state,
     formState = {
-      baseUrl: nxTextInputStateHelpers.initialState(serverData.baseUrl || ''),
+      baseUrl: nxTextInputStateHelpers.initialState(serverData?.baseUrl || ''),
     };
 
   return { ...state, formState };
@@ -89,6 +90,7 @@ function loadRequested(state) {
 function loadFulfilled(state, { payload }) {
   return resetForm({
     ...state,
+    shouldDisplayNotice: !payload?.baseUrl,
     serverData: payload,
   });
 }
@@ -97,6 +99,7 @@ function loadFailed(state, { payload }) {
   return {
     ...state,
     loading: false,
+    shouldDisplayNotice: false,
     ...clearedErrors,
     loadError: payload.response?.status === 404 ? null : Messages.getHttpErrorMessage(payload),
   };
@@ -131,14 +134,11 @@ function updateFailed(state, { payload }) {
 }
 
 function resetForm(state) {
-  if (state.serverData) {
-    return setFormStateFromServerData({
-      ...initialState,
-      serverData: state.serverData,
-    });
-  }
-
-  return initialState;
+  return setFormStateFromServerData({
+    ...initialState,
+    shouldDisplayNotice: state.shouldDisplayNotice,
+    serverData: state.serverData ? state.serverData : initialState.serverData,
+  });
 }
 
 function deleteRequested(state) {
@@ -155,6 +155,7 @@ function deleteFulfilled() {
     ...initialState,
     showDeleteModal: true,
     deleteMaskState: true,
+    shouldDisplayNotice: true,
   };
 }
 
@@ -166,7 +167,7 @@ function deleteFailed(state, { payload }) {
   };
 }
 
-const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue }) => {
+const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { rejectWithValue }) => {
   return axios.get(getConfigurationUrl().concat(CONFIG_PROPERTIES_PARAMS)).then(prop('data')).catch(rejectWithValue);
 });
 

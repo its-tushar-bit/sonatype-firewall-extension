@@ -24,6 +24,7 @@
       <div class="nx-system-notice-container">
         <system-notice id="system-notice" ng-if="!error"></system-notice>
         <change-default-admin-password-notice ng-if="!error"></change-default-admin-password-notice>
+        <base-url-not-set-notice ng-if="!error"></base-url-not-set-notice>
       </div>
       <toast-container></toast-container>
       <navigation-container

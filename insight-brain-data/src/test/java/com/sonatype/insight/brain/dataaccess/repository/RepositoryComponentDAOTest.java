@@ -27,7 +27,9 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.Fire
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -511,7 +513,7 @@ public class RepositoryComponentDAOTest
 
     // FILTER BY POLICY NAME
     final ArrayList<FirewallFilterField> filterFields = new ArrayList<>();
-    filterFields.add(new FirewallFilterField(FirewallFilterableField.QUARANTINE_POLICY_ID, "policy_id_2"));
+    filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, "policy_id_2"));
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.QUARANTINE, null, true,
             filterFields);
@@ -525,6 +527,67 @@ public class RepositoryComponentDAOTest
     assertThat(dao.getTotalFirewallRepositoryComponents(filter)).isEqualTo(1);
     assertThat(quarantinedFiltered.size()).isEqualTo(1);
     assertComponentForFirewall(quarantinedFiltered.get(0), "/quarantined1", june5th2020, null, null);
+  }
+
+  @Test
+  public void testGetFirewallRepositoryComponents_filterByComponentName() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent1 = newQuarantinedRepositoryComponent(repository.getId(), "a1");
+    newQuarantinedRepositoryComponent(repository.getId(), "a2");
+
+    assertThat(filter(null, "a1")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(repositoryComponent1);
+    assertThat(filter(null, "A1")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(repositoryComponent1);
+  }
+
+  @Test
+  public void testGetFirewallRepositoryComponents_filterByPolicyIdAndComponentName() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent1 = newQuarantinedRepositoryComponent(repository.getId(), "a11");
+    RepositoryComponent repositoryComponent2 = newQuarantinedRepositoryComponent(repository.getId(), "a12");
+    RepositoryComponent repositoryComponent3 = newQuarantinedRepositoryComponent(repository.getId(), "a21");
+    RepositoryComponent repositoryComponent4 = newQuarantinedRepositoryComponent(repository.getId(), "a22");
+    Policy policy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    Policy policy2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    newQuarantinedRepositoryComponentPolicyViolation(policy1, repositoryComponent1);
+    newQuarantinedRepositoryComponentPolicyViolation(policy2, repositoryComponent2);
+    newQuarantinedRepositoryComponentPolicyViolation(policy1, repositoryComponent3);
+    newQuarantinedRepositoryComponentPolicyViolation(policy2, repositoryComponent4);
+
+    assertThat(filter(null, null)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(repositoryComponent1, repositoryComponent2, repositoryComponent3,
+            repositoryComponent4);
+    assertThat(filter(policy1.getId(), null)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(repositoryComponent1, repositoryComponent3);
+    assertThat(filter(null, "a1")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(repositoryComponent1, repositoryComponent2);
+    assertThat(filter(policy1.getId(), "a1")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(repositoryComponent1);
+  }
+
+  public RepositoryComponent newQuarantinedRepositoryComponent(String repositoryId, String artifactName) {
+    return tempEntity.newRepositoryComponent(repositoryId, MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", artifactName, "v", "c", "e"), true);
+  }
+
+  public void newQuarantinedRepositoryComponentPolicyViolation(Policy policy, RepositoryComponent repositoryComponent) {
+    tempEntity.newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), 5, repositoryComponent.getPathname(),
+        false, FailActionType.ID, policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier());
+  }
+
+  public List<RepositoryComponent> filter(String policyId, String componentName) {
+    List<FirewallFilterField> firewallFilterFields = new ArrayList<>();
+    if (policyId != null) {
+      firewallFilterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, policyId));
+    }
+    if (componentName != null) {
+      firewallFilterFields.add(new FirewallFilterField(FirewallFilterableField.COMPONENT_NAME, componentName));
+    }
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 1000, FirewallComponentFilterState.QUARANTINE, null, true,
+            firewallFilterFields);
+    return dao.getFirewallRepositoryComponents(filter);
   }
 
   @Test
@@ -589,7 +652,7 @@ public class RepositoryComponentDAOTest
 
     // FILTER BY UNQUARANTINE_AUTO COMPONENT
     final ArrayList<FirewallFilterField> filterFieldsInvalid = new ArrayList<>();
-    filterFieldsInvalid.add(new FirewallFilterField(FirewallFilterableField.QUARANTINE_POLICY_ID, "policy_5"));
+    filterFieldsInvalid.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, "policy_5"));
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
             filterFieldsInvalid);

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -47,6 +49,8 @@ public class ApiFirewallResourceTest
   private static final ObjectMapper JSON = new ObjectMapper();
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
+  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   @After
   public void cleanUp() {
@@ -182,9 +186,18 @@ public class ApiFirewallResourceTest
     final RepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, june2nd2020, true);
 
+    // ADD ANOTHER COMPONENT
+    RepositoryComponent component2 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june1st2020, june2nd2020, true);
+    component2.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "b", "v"));
+    repositoryComponentDAO.update(component2);
+
     // CREATE POLICY VIOLATION
     final RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component1, tempEntity);
+
+    // CREATE ANOTHER POLICY VIOLATION
+    PolicyViolationTestHelper.createPolicyViolationFail(policy1, component2, tempEntity);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
@@ -193,6 +206,7 @@ public class ApiFirewallResourceTest
         .query("policyId", policy1.getId())
         .query("sortBy", FirewallSortableField.RELEASE_QUARANTINE_TIME.getLabel())
         .query("asc", "false")
+        .query("componentName", "a")
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
@@ -294,9 +308,18 @@ public class ApiFirewallResourceTest
     final RepositoryComponent component1 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june1st2020, null, false);
 
+    // ADD ANOTHER COMPONENT
+    RepositoryComponent component2 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june1st2020, null, false);
+    component2.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "b", "v"));
+    repositoryComponentDAO.update(component2);
+
     // CREATE POLICY VIOLATION
     final RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy1, component1, tempEntity);
+
+    // CREATE ANOTHER POLICY VIOLATION
+    PolicyViolationTestHelper.createPolicyViolationFail(policy1, component2, tempEntity);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
@@ -304,6 +327,7 @@ public class ApiFirewallResourceTest
         .query("pageSize", 2)
         .query("policyId", policy1.getId())
         .query("asc", "false")
+        .query("componentName", "a")
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);

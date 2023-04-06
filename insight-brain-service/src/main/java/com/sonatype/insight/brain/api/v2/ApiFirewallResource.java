@@ -117,12 +117,13 @@ public class ApiFirewallResource
       @DefaultValue("1") @QueryParam("page") int page,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
       @QueryParam("policyId") String policyId,
+      @QueryParam("componentName") String componentName,
       @QueryParam("sortBy") String sortBy,
       @DefaultValue("true") @QueryParam("asc") boolean asc
   )
   {
-    return getComponents(uriInfo, page, pageSize, policyId, sortBy, FirewallSortableField.RELEASE_QUARANTINE_TIME, asc,
-        FirewallComponentFilterState.UNQUARANTINE_AUTO);
+    return getComponents(uriInfo, page, pageSize, policyId, componentName, sortBy,
+        FirewallSortableField.RELEASE_QUARANTINE_TIME, asc, FirewallComponentFilterState.UNQUARANTINE_AUTO);
   }
 
   @GET
@@ -132,12 +133,13 @@ public class ApiFirewallResource
       @DefaultValue("1") @QueryParam("page") int page,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
       @QueryParam("policyId") String policyId,
+      @QueryParam("componentName") String componentName,
       @QueryParam("sortBy") String sortBy,
       @DefaultValue("true") @QueryParam("asc") boolean asc
   )
   {
-    return getComponents(uriInfo, page, pageSize, policyId, sortBy, FirewallSortableField.QUARANTINE_TIME, asc,
-        FirewallComponentFilterState.QUARANTINE);
+    return getComponents(uriInfo, page, pageSize, policyId, componentName, sortBy,
+        FirewallSortableField.QUARANTINE_TIME, asc, FirewallComponentFilterState.QUARANTINE);
   }
 
   /**
@@ -170,6 +172,7 @@ public class ApiFirewallResource
       final int page,
       final int pageSize,
       final String policyId,
+      final String componentName,
       final String sortBy,
       final FirewallSortableField defaultSortableField,
       final boolean asc,
@@ -177,7 +180,11 @@ public class ApiFirewallResource
   {
     List<FirewallFilterField> filterFields = new ArrayList<>();
     if (!StringUtils.isEmpty(policyId)) {
-      filterFields.add(new FirewallFilterField(FirewallFilterableField.QUARANTINE_POLICY_ID, policyId));
+      filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, policyId));
+    }
+
+    if (StringUtils.isNotBlank(componentName)) {
+      filterFields.add(new FirewallFilterField(FirewallFilterableField.COMPONENT_NAME, componentName));
     }
 
     final FirewallSortableField sortableField = sortBy == null ? defaultSortableField : initializeSortField(sortBy);

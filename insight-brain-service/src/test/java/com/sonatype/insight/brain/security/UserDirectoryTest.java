@@ -19,15 +19,12 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.naming.NamingException;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroup;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
-import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -1216,40 +1213,15 @@ public class UserDirectoryTest
   public void testIsGroupSearchDisabled() {
     // It's only disabled if
     // dynamic group search is disabled
-    // and saml is not configured
-    // and either Crowd is disabled or Crowd is not configured
-    assertGroupSearchDisabled(true, false, false, true, true);
-    assertGroupSearchDisabled(true, false, true, false, true);
-    assertGroupSearchDisabled(true, false, false, false, true);
+    assertGroupSearchDisabled(true, true);
     // Otherwise, it's not disabled
-    assertGroupSearchDisabled(true, false, true, true, false);
-    assertGroupSearchDisabled(false, false, true, true, false);
-    assertGroupSearchDisabled(false, false, false, true, false);
-    assertGroupSearchDisabled(false, false, true, false, false);
-    assertGroupSearchDisabled(false, false, false, false, false);
-    assertGroupSearchDisabled(true, true, true, true, false);
-    assertGroupSearchDisabled(false, true, true, true, false);
-    assertGroupSearchDisabled(false, true, false, true, false);
-    assertGroupSearchDisabled(false, true, true, false, false);
-    assertGroupSearchDisabled(false, true, false, false, false);
+    assertGroupSearchDisabled(false, false);
   }
 
-  private void assertGroupSearchDisabled(
-      boolean dynamicGroupSearchDisabled,
-      boolean samlConfigured,
-      boolean crowdIntegrationEnabled,
-      boolean crowdConfigured,
-      boolean expectedDisabled)
-  {
-    CrowdConfigurationDAO mockCrowdConfigurationDAO = mock(CrowdConfigurationDAO.class);
+  private void assertGroupSearchDisabled(boolean dynamicGroupSearchDisabled, boolean expectedDisabled) {
     LdapService mockLdapService = mock(LdapService.class);
-    SamlUserGroupHelper mockSamlUserGroupHelper = mock(SamlUserGroupHelper.class);
-    lenient().when(mockSamlUserGroupHelper.isSamlConfigured()).thenReturn(samlConfigured);
-    UserDirectory userDirectory =
-        new UserDirectory(null, mockSamlUserGroupHelper, mockCrowdConfigurationDAO, mockLdapService, null);
+    UserDirectory userDirectory = new UserDirectory(null, null, mockLdapService, null);
     when(mockLdapService.isDynamicGroupSearchDisabled()).thenReturn(dynamicGroupSearchDisabled);
-    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(crowdIntegrationEnabled);
-    lenient().when(mockCrowdConfigurationDAO.get()).thenReturn(crowdConfigured ? new CrowdConfiguration() : null);
 
     assertThat(userDirectory.isGroupSearchDisabled()).isEqualTo(expectedDisabled);
   }

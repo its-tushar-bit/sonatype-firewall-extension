@@ -29,11 +29,9 @@ import javax.inject.Singleton;
 import javax.naming.NamingException;
 import javax.validation.constraints.NotNull;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroup;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
-import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -103,8 +101,6 @@ public class UserDirectory
 
   private final SamlUserGroupHelper samlUserGroupHelper;
 
-  private final CrowdConfigurationDAO crowdConfigurationDAO;
-
   private final LdapService ldapService;
 
   private final CrowdClientFactory crowdClientFactory;
@@ -113,24 +109,13 @@ public class UserDirectory
   public UserDirectory(
       UserDAO userDao,
       SamlUserGroupHelper samlUserGroupHelper,
-      CrowdConfigurationDAO crowdConfigurationDAO,
       LdapService ldapService,
       CrowdClientFactory crowdClientFactory)
   {
     this.userDao = userDao;
     this.samlUserGroupHelper = samlUserGroupHelper;
-    this.crowdConfigurationDAO = crowdConfigurationDAO;
     this.ldapService = ldapService;
     this.crowdClientFactory = crowdClientFactory;
-  }
-
-  public UserDirectory(
-      UserDAO userDao,
-      SamlUserGroupHelper samlUserGroupHelper,
-      LdapService ldapService,
-      CrowdClientFactory crowdClientFactory)
-  {
-    this(userDao, samlUserGroupHelper, null, ldapService, crowdClientFactory);
   }
 
   /**
@@ -547,9 +532,11 @@ public class UserDirectory
         Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME, null, InternalRealm.DISPLAY_NAME);
   }
 
+  /**
+   * Only used by the UI to determine whether it should allow manually adding groups
+   */
   public boolean isGroupSearchDisabled() {
-    return ldapService.isDynamicGroupSearchDisabled() && !samlUserGroupHelper.isSamlConfigured() &&
-        (!SystemConfigurationPropertyFeature.CROWD_INTEGRATION.isEnabled() || crowdConfigurationDAO.get() == null);
+    return ldapService.isDynamicGroupSearchDisabled();
   }
 
   public boolean isLdapUser(final User user) throws NamingException {

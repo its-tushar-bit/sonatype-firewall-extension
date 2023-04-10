@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -186,31 +187,37 @@ public class ApiPromoteScanServiceV2Test
 
   @Test
   public void testPromoteScan_ThirdPartyScan() throws Exception {
-    createThirdPartyScanFile();
-    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID, ClientScanType.SONATYPE_THIRD_PARTY);
-    ScanReceipt scanReceipt = new ScanReceipt();
-    scanReceipt.setScanId(NEW_SCAN_ID);
-    String toStageId = Stage.ID_OPERATE;
-    when(scanUploader.upload(any(File.class), any(Application.class), anyString(), eq(null))).thenReturn(scanReceipt);
-    ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
-    evaluatorResults.evaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID, ClientScanType.SONATYPE_THIRD_PARTY);
-    when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
-        eq(ScanTriggerType.CLI), eq(null), eq(null), eq(ClientScanType.SONATYPE_THIRD_PARTY))).thenReturn(
-        evaluatorResults);
+    try {
+      createThirdPartyScanFile();
+      tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID, ClientScanType.SONATYPE_THIRD_PARTY);
+      ScanReceipt scanReceipt = new ScanReceipt();
+      scanReceipt.setScanId(NEW_SCAN_ID);
+      String toStageId = Stage.ID_OPERATE;
+      when(scanUploader.upload(any(File.class), any(Application.class), anyString(), eq(null))).thenReturn(scanReceipt);
+      ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
+      evaluatorResults.evaluation =
+          tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID, ClientScanType.SONATYPE_THIRD_PARTY);
+      when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
+          eq(ScanTriggerType.CLI), eq(null), eq(null), eq(ClientScanType.SONATYPE_THIRD_PARTY))).thenReturn(
+          evaluatorResults);
 
-    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service.promoteScan(app.getId(),
-        ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, toStageId), null /* userAgent */);
+      ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service.promoteScan(app.getId(),
+          ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, toStageId), null /* userAgent */);
 
-    assertThat(apiApplicationEvaluationStatusDTOV2).isNotNull();
-    assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl)
-        .startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId()));
+      assertThat(apiApplicationEvaluationStatusDTOV2).isNotNull();
+      assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl)
+          .startsWith(String.format("api/v2/evaluation/applications/%s/status/", app.getId()));
 
-    // await successful completion
-    String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
-    awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
-    assertThat(insightWork.getScanFile(app.getId(), NEW_SCAN_ID)).isFile();
-    verify(policyAlertNotifier).sendNotifications(any(Application.class), eq(evaluatorResults));
+      // await successful completion
+      String scanPromotionStatusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
+      awaitPromoteScanResult(scanPromotionStatusId, 1, TimeUnit.MINUTES);
+      assertThat(insightWork.getScanFile(app.getId(), NEW_SCAN_ID)).isFile();
+      verify(policyAlertNotifier).sendNotifications(any(Application.class), eq(evaluatorResults));
+    }
+    finally {
+      ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = new ThirdPartyCoordinateSecurityDAO();
+      thirdPartyCoordinateSecurityDAO.getAll().forEach(thirdPartyCoordinateSecurityDAO::delete);
+    }
   }
 
   @Test

@@ -33,6 +33,8 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
@@ -132,6 +134,9 @@ public abstract class AbstractRepositoryServiceTest
 
   @Rule
   public LogOutput emailerLogOutput = new LogOutput(RepositoryPolicyAlertEmailer.class);
+
+  @Rule
+  public LogOutput repositoryServiceLogOutput = new LogOutput(AbstractRepositoryService.class);
 
   @Inject
   protected TestProductLicense testProductLicense;
@@ -2538,6 +2543,271 @@ public abstract class AbstractRepositoryServiceTest
     assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
   }
 
+  @Test
+  public void testConfigureRepositories_NewRepositoryManager() {
+    String clientUserAgent = getUserAgent();
+    RepositoryManager repositoryManager = new RepositoryManager(MANUAL_REPO_MAN_INSTANCE_ID);
+
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), null /* repositoryDTOs */,
+        clientUserAgent);
+
+    repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManager.getInstanceId());
+    assertThat(repositoryManager.getUserAgent()).isEqualTo(clientUserAgent);
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).isEmpty();
+  }
+
+  @Test
+  public void testConfigureRepositories_ExistingRepositoryManager() {
+    String clientUserAgent = getUserAgent();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), null /* repositoryDTOs */,
+        clientUserAgent);
+
+    repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManager.getInstanceId());
+    assertThat(repositoryManager.getUserAgent()).isEqualTo(clientUserAgent);
+  }
+
+  @Test
+  public void testConfigureRepositories_NewRepository() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = "testRepoName";
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.hosted;
+    repositoryDTO.auditEnabled = true;
+    repositoryDTO.quarantineEnabled = true;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
+
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
+        "testClientUserAgent");
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).hasSize(1);
+    Repository repository = repositories.get(0);
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.getFormat()).isEqualTo("npm");
+    assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.hosted);
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
+  }
+
+  @Test
+  public void testConfigureRepositories_ExistingRepository() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = repository.getName();
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.proxy;
+    repositoryDTO.auditEnabled = true;
+    repositoryDTO.quarantineEnabled = true;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
+
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
+        "testClientUserAgent");
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).hasSize(1);
+    repository = repositories.get(0);
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.getFormat()).isEqualTo("npm");
+    assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
+  }
+
+  @Test
+  public void testConfigureRepositories_RepositoryWithErrorDoesNotStopProcessingOfOtherRepositories() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
+    // Bad repository because it has a different type, so it cannot be processed
+    RepositoryDTO badRepositoryDTO = new RepositoryDTO();
+    badRepositoryDTO.name = repository.getName();
+    badRepositoryDTO.format = "npm";
+    badRepositoryDTO.type = RepositoryType.hosted;
+    badRepositoryDTO.auditEnabled = true;
+    badRepositoryDTO.quarantineEnabled = true;
+    badRepositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    badRepositoryDTO.namespaceConfusionProtectionEnabled = true;
+    RepositoryDTO goodRepositoryDTO = new RepositoryDTO();
+    goodRepositoryDTO.name = "Good Repo";
+    goodRepositoryDTO.format = "npm";
+    goodRepositoryDTO.type = RepositoryType.hosted;
+    goodRepositoryDTO.auditEnabled = true;
+    goodRepositoryDTO.quarantineEnabled = true;
+    goodRepositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    goodRepositoryDTO.namespaceConfusionProtectionEnabled = true;
+    List<RepositoryDTO> repositoryDTOs = Arrays.asList(badRepositoryDTO, goodRepositoryDTO);
+
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
+        "testClientUserAgent");
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).hasSize(2);
+
+    await().atMost(Duration.ofMillis(5000))
+        .untilAsserted(
+            () -> assertThat(repositoryServiceLogOutput).atErrorLevel()
+                .contains("Cannot change the type for repository " + repository.getName() + " (" + repository.getId()
+                    + ") from " + repository.getRepositoryType() + " to " + badRepositoryDTO.type
+                    + ". Ignoring this repository."));
+
+    Repository existingRepository =
+        repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
+        repository.getName());
+    assertThat(existingRepository.getId()).isEqualTo(repository.getId());
+    assertThat(existingRepository.getFormat()).isEqualTo(repository.getFormat());
+    assertThat(existingRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
+    assertThat(existingRepository.isEnabled()).isTrue();
+    assertThat(existingRepository.isQuarantineEnabled()).isFalse();
+    assertThat(existingRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
+    assertThat(existingRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
+
+    Repository newRepository =
+        repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(), "Good Repo");
+    assertThat(newRepository.getFormat()).isEqualTo("npm");
+    assertThat(newRepository.getRepositoryType()).isEqualTo(RepositoryType.hosted);
+    assertThat(newRepository.isEnabled()).isTrue();
+    assertThat(newRepository.isQuarantineEnabled()).isTrue();
+    assertThat(newRepository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(newRepository.isNamespaceConfusionProtectionEnabled()).isTrue();
+  }
+
+  @Test
+  public void testConfigureRepositories_CannotChangeRepositoryType() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
+    // Bad repository because it has a different type, so it cannot be processed
+    RepositoryDTO badRepositoryDTO = new RepositoryDTO();
+    badRepositoryDTO.name = repository.getName();
+    badRepositoryDTO.format = "npm";
+    badRepositoryDTO.type = RepositoryType.hosted;
+    badRepositoryDTO.auditEnabled = true;
+    badRepositoryDTO.quarantineEnabled = true;
+    badRepositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    badRepositoryDTO.namespaceConfusionProtectionEnabled = true;
+    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(badRepositoryDTO);
+
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
+        "testClientUserAgent");
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).hasSize(1);
+
+    await().atMost(Duration.ofMillis(5000))
+        .untilAsserted(
+            () -> assertThat(repositoryServiceLogOutput).atErrorLevel()
+                .contains("Cannot change the type for repository " + repository.getName() + " (" + repository.getId()
+                    + ") from " + repository.getRepositoryType() + " to " + badRepositoryDTO.type
+                    + ". Ignoring this repository."));
+
+    Repository existingRepository = repositoryDAO.getById(repository.getId());
+    assertThat(existingRepository.getName()).isEqualTo(repository.getName());
+    assertThat(existingRepository.getFormat()).isEqualTo(repository.getFormat());
+    assertThat(existingRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
+    assertThat(existingRepository.isEnabled()).isTrue();
+    assertThat(existingRepository.isQuarantineEnabled()).isFalse();
+    assertThat(existingRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
+    assertThat(existingRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
+  }
+
+  @Test
+  public void testConfigureRepositories_CannotChangeRepositoryFormat() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
+    repository.setFormat("npm");
+    repositoryDAO.update(repository);
+    // Bad repository because it has a different format, so it cannot be processed
+    RepositoryDTO badRepositoryDTO = new RepositoryDTO();
+    badRepositoryDTO.name = repository.getName();
+    badRepositoryDTO.format = "testFormat";
+    badRepositoryDTO.type = RepositoryType.proxy;
+    badRepositoryDTO.auditEnabled = true;
+    badRepositoryDTO.quarantineEnabled = true;
+    badRepositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    badRepositoryDTO.namespaceConfusionProtectionEnabled = true;
+    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(badRepositoryDTO);
+
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
+        "testClientUserAgent");
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).hasSize(1);
+
+    await().atMost(Duration.ofMillis(5000))
+        .untilAsserted(() -> assertThat(repositoryServiceLogOutput).atErrorLevel()
+            .contains("Cannot change the format for repository " + repository.getName() + " (" + repository.getId()
+                + ") from " + repository.getFormat() + " to " + badRepositoryDTO.format
+                + ". Ignoring this repository."));
+
+    Repository existingRepository = repositoryDAO.getById(repository.getId());
+    assertThat(existingRepository.getName()).isEqualTo(repository.getName());
+    assertThat(existingRepository.getFormat()).isEqualTo(repository.getFormat());
+    assertThat(existingRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
+    assertThat(existingRepository.isEnabled()).isTrue();
+    assertThat(existingRepository.isQuarantineEnabled()).isFalse();
+    assertThat(existingRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
+    assertThat(existingRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
+  }
+
+  @Test
+  public void testConfigureRepositories_UpdatesRepositoryFormatIfFormatIsMissing() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
+    assertThat(repository.getFormat()).isNull();
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = repository.getName();
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.proxy;
+    repositoryDTO.auditEnabled = true;
+    repositoryDTO.quarantineEnabled = true;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
+
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
+        "testClientUserAgent");
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).hasSize(1);
+
+    Repository existingRepository = repositoryDAO
+        .getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(), repository.getName());
+    assertThat(existingRepository.getId()).isEqualTo(repository.getId());
+    assertThat(existingRepository.getFormat()).isEqualTo(repositoryDTO.format);
+  }
+
+  @Test
+  public void testConfigureRepositories_Unlicensed() {
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    // Call the service
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), null /* repositoryDTOs */,
+          "testClientUserAgent");
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
   private void testAddProprietaryComponentNames_FormatTranslation(String repoFormat, String componentFormat) {
     String repoManId = tempEntity.newRepositoryManager().getInstanceId();
     String repoId = "hosted-repo";
@@ -2568,5 +2838,9 @@ public abstract class AbstractRepositoryServiceTest
         policyCompliantVersionCount);
     assertThat((Long) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_METADATA_EVALUATION_TIME))
         .isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(evaluationTime);
+  }
+
+  private String getUserAgent() {
+    return "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
   }
 }

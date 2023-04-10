@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -63,6 +64,7 @@ public class RepositoryDAOTest
     assertThat(repository.getParentOwnerId()).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     assertThat(repository.canHaveChildren()).isFalse();
     assertThat(repository.getType()).isEqualTo(OwnerType.REPOSITORY);
+    assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
 
     // Update
     repository.setEnabled(false);

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,6 +17,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -306,5 +308,13 @@ class ArtifactoryRepositoryServiceWrapper
     return repositoryService.getQuarantinedComponentReportUrl(
         getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId), repositoryPublicId,
         pathname, clientUserAgent);
+  }
+
+  void configureRepositories(
+      String repositoryManagerInstanceId,
+      List<RepositoryDTO> repositoryDTOs,
+      String clientUserAgent)
+  {
+    repositoryService.configureRepositories(repositoryManagerInstanceId, repositoryDTOs, clientUserAgent);
   }
 }

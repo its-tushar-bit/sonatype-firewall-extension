@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -16,6 +17,8 @@ import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
@@ -70,6 +73,10 @@ public abstract class AbstractRepositoryResourceTest
 
   private HttpRequest quarantinedComponentReportUrlRequest() {
     return restRequest().path(AbstractRepositoryResource.QUARANTINED_COMPONENT_REPORT_URL_PATH);
+  }
+
+  private HttpRequest configureRepositoriesRequest() {
+    return restRequest().path(AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH);
   }
 
   @Test
@@ -381,5 +388,39 @@ public abstract class AbstractRepositoryResourceTest
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
         .post();
     assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void testConfigureRepositories() throws Exception {
+    String clientUserAgent = getUserAgent();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = "testRepoName";
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.hosted;
+    repositoryDTO.auditEnabled = true;
+    repositoryDTO.quarantineEnabled = true;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
+
+    HttpResponse response =
+        configureRepositoriesRequest().parameter(repositoryManager.getInstanceId())
+            .header(HttpHeaders.USER_AGENT, clientUserAgent).body(repositoryDTOs).post();
+    assertResponseStatus(204, response);
+
+    repositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    assertThat(repositoryManager.getUserAgent()).isEqualTo(clientUserAgent);
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).hasSize(1);
+    Repository repository = repositories.get(0);
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.getFormat()).isEqualTo("npm");
+    assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.hosted);
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
   }
 }

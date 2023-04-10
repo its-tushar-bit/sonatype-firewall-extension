@@ -7,9 +7,12 @@ package com.sonatype.insight.brain.model.repository;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.model.HasStringId;
@@ -31,11 +34,21 @@ public class Repository
   @Column(name = "public_id")
   private String publicId;
 
+  @Column(name = "repository_type")
+  @Enumerated(EnumType.STRING)
+  private RepositoryType repositoryType = RepositoryType.proxy;
+
   @Column(name = "enabled")
   private boolean enabled = true;
 
   @Column(name = "quarantine_enabled")
   private boolean quarantineEnabled = false;
+
+  @Column(name = "policy_compliant_component_selection_enabled")
+  private boolean policyCompliantComponentSelectionEnabled = false;
+
+  @Column(name = "namespace_confusion_protection_enabled")
+  private boolean namespaceConfusionProtectionEnabled = false;
 
   @Column(name = "format")
   private String format;
@@ -121,5 +134,29 @@ public class Repository
 
   public void setFormat(String format) {
     this.format = format;
+  }
+
+  public boolean isPolicyCompliantComponentSelectionEnabled() {
+    return policyCompliantComponentSelectionEnabled;
+  }
+
+  public void setPolicyCompliantComponentSelectionEnabled(boolean policyCompliantComponentSelectionEnabled) {
+    this.policyCompliantComponentSelectionEnabled = policyCompliantComponentSelectionEnabled;
+  }
+
+  public boolean isNamespaceConfusionProtectionEnabled() {
+    return namespaceConfusionProtectionEnabled;
+  }
+
+  public void setNamespaceConfusionProtectionEnabled(boolean namespaceConfusionProtectionEnabled) {
+    this.namespaceConfusionProtectionEnabled = namespaceConfusionProtectionEnabled;
+  }
+
+  public RepositoryType getRepositoryType() {
+    return repositoryType;
+  }
+
+  public void setRepositoryType(RepositoryType repositoryType) {
+    this.repositoryType = repositoryType;
   }
 }

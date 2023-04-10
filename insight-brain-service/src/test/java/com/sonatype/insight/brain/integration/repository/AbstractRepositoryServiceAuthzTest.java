@@ -283,4 +283,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService().evaluateComponentMetadata(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
         null /* componentEvaluationDataRequestList */, null);
   }
+
+  @Test
+  public void testConfigureRepositories_Authorized() {
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* repositoryDTOs */, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testConfigureRepositories_Unauthenticated() {
+    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* repositoryDTOs */, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testConfigureRepositories_Unauthorized() {
+    login();
+    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* repositoryDTOs */, null);
+  }
 }

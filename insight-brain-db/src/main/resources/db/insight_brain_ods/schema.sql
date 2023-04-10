@@ -509,8 +509,11 @@ CREATE TABLE repository (
   repository_id varchar(50) NOT NULL,
   repository_manager_id varchar(50) NOT NULL,
   public_id varchar(500) NOT NULL,
+  repository_type varchar(10) DEFAULT 'proxy' NOT NULL, -- proxy or hosted
   enabled bool DEFAULT true NOT NULL,
   quarantine_enabled bool DEFAULT false NOT NULL,
+  policy_compliant_component_selection_enabled boolean DEFAULT false NOT NULL,
+  namespace_confusion_protection_enabled boolean DEFAULT false NOT NULL,
   format varchar(50),
   CONSTRAINT repository_pk PRIMARY KEY (repository_id),
   CONSTRAINT repository_uk UNIQUE (repository_manager_id, public_id),

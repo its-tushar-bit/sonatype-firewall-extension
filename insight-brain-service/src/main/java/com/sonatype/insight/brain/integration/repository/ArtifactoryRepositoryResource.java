@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +27,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -224,5 +227,22 @@ public class ArtifactoryRepositoryResource
   {
     return repositoryService.evaluateComponentMetadata(repositoryManagerInstanceId, repositoryPublicId,
         componentEvaluationDataRequestList, DefaultHdsClient.getClientUserAgent(request));
+  }
+
+  /**
+   * @since 1.160
+   */
+  @POST
+  @Path(CONFIGURE_REPOSITORIES_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  // @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  @Timed
+  public void configureRepositories(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      List<RepositoryDTO> repositories,
+      @Context HttpServletRequest request)
+  {
+    repositoryService.configureRepositories(repositoryManagerInstanceId, repositories,
+        DefaultHdsClient.getClientUserAgent(request));
   }
 }

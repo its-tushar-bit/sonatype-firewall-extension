@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -38,11 +39,13 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
@@ -630,6 +633,13 @@ public abstract class AbstractRepositoryService
     }
   }
 
+  private void updateUserAgent(String clientUserAgent, RepositoryManager repositoryManager) {
+    if (StringUtils.isNotBlank(clientUserAgent) && SonatypeUserAgentUtil.parse(clientUserAgent) != null) {
+      repositoryManager.setUserAgent(clientUserAgent);
+      repositoryManagerDAO.update(repositoryManager);
+    }
+  }
+
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   void removeComponent(@AuthzContext(Key.REPOSITORY) Repository repository, String pathname) {
     if (!repository.isEnabled()) {
@@ -866,5 +876,94 @@ public abstract class AbstractRepositoryService
     attributes.put(REPOSITORY_COMPONENT_METADATA_EVALUATION_TIME, evaluationTime);
 
     telemetrySender.send(telemetryData);
+  }
+
+  void configureRepositories(
+      String repositoryManagerInstanceId,
+      List<RepositoryDTO> repositoryDTOs,
+      String clientUserAgent)
+  {
+    checkLicenseFeature();
+
+    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+
+    RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
+    
+    if (repositoryDTOs == null) {
+      repositoryDTOs = Collections.emptyList();
+    }
+
+    log.debug("Configuring {} repositories for repository manager instance ID:{} ({})", repositoryDTOs.size(),
+        repositoryManagerInstanceId, repositoryManager.getId());
+    
+    updateUserAgent(clientUserAgent, repositoryManager);
+    
+    for (RepositoryDTO repositoryDTO : repositoryDTOs) {
+      Repository repository =
+          repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryDTO.name);
+
+      if (repository == null) {
+        // This is a new repository
+        repository = new Repository(repositoryManager.getId(), repositoryDTO.name);
+        repository.setFormat(repositoryDTO.format);
+        repository.setRepositoryType(repositoryDTO.type);
+        repository.setEnabled(repositoryDTO.auditEnabled);
+        repository.setQuarantineEnabled(repositoryDTO.quarantineEnabled);
+        repository.setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
+        repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
+        repositoryDAO.insert(repository);
+      }
+      else {
+        // This is an existing repository
+        boolean updated = false;
+
+        if (!repository.getRepositoryType().equals(repositoryDTO.type)) {
+          log.error("Cannot change the type for repository {} ({}) from {} to {}. Ignoring this repository.",
+              repository.getName(), repository.getId(), repository.getRepositoryType(), repositoryDTO.type);
+          continue;
+        }
+        
+        if (repository.getFormat() != null) {
+          if (!repository.getFormat().equals(repositoryDTO.format)) {
+            log.error("Cannot change the format for repository {} ({}) from {} to {}. Ignoring this repository.",
+                repository.getName(), repository.getId(), repository.getFormat(), repositoryDTO.format);
+            continue;
+          }
+        }
+        else {
+          repository.setFormat(repositoryDTO.format);
+          updated = true;
+        }
+
+        if (repositoryDTO.auditEnabled != repository.isEnabled()) {
+          repository.setEnabled(repositoryDTO.auditEnabled);
+          updated = true;
+        }
+        if (repositoryDTO.quarantineEnabled != repository.isQuarantineEnabled()) {
+          repository.setQuarantineEnabled(repositoryDTO.quarantineEnabled);
+          updated = true;
+        }
+        if (repositoryDTO.policyCompliantComponentSelectionEnabled != repository
+            .isPolicyCompliantComponentSelectionEnabled()) {
+          repository
+              .setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
+          updated = true;
+        }
+        if (repositoryDTO.namespaceConfusionProtectionEnabled != repository.isNamespaceConfusionProtectionEnabled()) {
+          repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
+          updated = true;
+        }
+
+        if (updated) {
+          repositoryDAO.update(repository);
+        }
+      }
+    }
+  }
+
+  // Needs to be at least package visible for the authz annotations to be effective.
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void checkEvaluateComponentPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
+    // Do nothing as this method is only used to perform authz check for the caller
   }
 }

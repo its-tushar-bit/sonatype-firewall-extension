@@ -54,6 +54,9 @@ public class Auth0ManagementAPITest
   @Captor
   private ArgumentCaptor<String> clientIdCaptor;
 
+  @Captor
+  private ArgumentCaptor<ClientFilter> clientFilterCaptor;
+
   public Auth0ManagementAPI auth0ManagementAPI;
 
   private ClientsEntity mockClientsEntity;
@@ -114,8 +117,7 @@ public class Auth0ManagementAPITest
     Client tenant = auth0ManagementAPI.createTenant(name, description, logoUrl);
     assertReturnedClientIsTheExpected(name, description, logoUrl, tenant);
 
-    assertCapturedClientIsTheExpected(description, logoUrl, name);
-    verifyCreateRequestWasSent();
+    verifyCreateRequestWasSent(description, logoUrl, name);
   }
 
   @Test
@@ -134,8 +136,7 @@ public class Auth0ManagementAPITest
     Client tenant = auth0ManagementAPI.createTenant(name, subDomain, description, logoUrl);
     assertReturnedClientIsTheExpected(name, description, logoUrl, tenant);
 
-    assertCapturedClientIsTheExpected(description, logoUrl, name);
-    verifyCreateRequestWasSent();
+    verifyCreateRequestWasSent(description, logoUrl, name);
   }
 
   @Test
@@ -156,11 +157,7 @@ public class Auth0ManagementAPITest
     Client tenant = auth0ManagementAPI.createTenant(name, description, logoUrl);
     assertReturnedClientIsTheExpected(name, description, logoUrl, tenant);
 
-    String clientIdParameter = clientIdCaptor.getValue();
-    assertThat(clientIdParameter).isEqualTo(clientId);
-
-    assertCapturedClientIsTheExpected(description, logoUrl, name);
-    verifyUpdateRequestWasSent();
+    verifyUpdateRequestWasSent(clientId, description, logoUrl, name);
   }
 
   @Test
@@ -230,18 +227,44 @@ public class Auth0ManagementAPITest
     assertThat(tenant.getLogoUri()).isEqualTo(logoUrl);
   }
 
-  private void verifyCreateRequestWasSent() throws Auth0Exception {
+  private void verifyCreateRequestWasSent(final String description, final String logoUrl, final String name)
+      throws Auth0Exception
+  {
     verify(auth0ManagementAPI, times(2)).clients();
-    verify(mockClientsEntity).list(any(ClientFilter.class));
-    verify(mockClientsEntity).create(any(Client.class));
+    verify(mockClientsEntity).list(clientFilterCaptor.capture());
+    verify(mockClientsEntity).create(clientCaptor.capture());
     verify(createMockRequest).execute();
+
+    assertCapturedClientIsTheExpected(description, logoUrl, name);
+    assertCapturedListRequestFilterIsTheExpected();
   }
 
-  private void verifyUpdateRequestWasSent() throws Auth0Exception {
+  private void verifyUpdateRequestWasSent(
+      final String clientId,
+      final String description,
+      final String logoUrl,
+      final String name) throws Auth0Exception
+  {
     verify(auth0ManagementAPI, times(2)).clients();
-    verify(mockClientsEntity).list(any(ClientFilter.class));
+    verify(mockClientsEntity).list(clientFilterCaptor.capture());
+    verify(mockClientsEntity).update(clientIdCaptor.capture(), clientCaptor.capture());
     verify(listsMockRequest).execute();
     verify(updateMockRequest).execute();
+
+    assertCapturedClientIdIsTheExpected(clientId);
+    assertCapturedClientIsTheExpected(description, logoUrl, name);
+    assertCapturedListRequestFilterIsTheExpected();
+  }
+
+  private void assertCapturedClientIdIsTheExpected(final String clientId) {
+    String clientIdParameter = clientIdCaptor.getValue();
+    assertThat(clientIdParameter).isEqualTo(clientId);
+  }
+
+  private void assertCapturedListRequestFilterIsTheExpected() {
+    ClientFilter filter = clientFilterCaptor.getValue();
+    assertThat(filter.getAsMap()).containsEntry("include_fields", true);
+    assertThat(filter.getAsMap()).containsEntry("fields", "name,client_id");
   }
 
   private void mockAuth0ClientsEntity() {
@@ -251,7 +274,7 @@ public class Auth0ManagementAPITest
 
   private void mockAuth0CreateClientRequest() {
     createMockRequest = mock(Request.class);
-    when(mockClientsEntity.create(clientCaptor.capture())).thenReturn(createMockRequest);
+    when(mockClientsEntity.create(any(Client.class))).thenReturn(createMockRequest);
   }
 
   private void mockAuth0ListClientsRequest() throws Exception {
@@ -262,7 +285,7 @@ public class Auth0ManagementAPITest
 
   private void mockAuth0UpdateClientRequest() {
     updateMockRequest = mock(Request.class);
-    when(mockClientsEntity.update(clientIdCaptor.capture(), clientCaptor.capture())).thenReturn(updateMockRequest);
+    when(mockClientsEntity.update(any(String.class), any(Client.class))).thenReturn(updateMockRequest);
   }
 
   private Client mockClient(String name, String description, String logoUrl) {

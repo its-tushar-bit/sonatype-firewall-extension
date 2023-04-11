@@ -21,7 +21,7 @@ public class DbMigrationCommand
     extends ConfiguredCommand<InsightConfig>
 {
   // Visible for testing
-  static final long RECENT_CHECKIN_INTERVAL_MILLIS = (long) (QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 3.5);
+  static final long RECENT_CHECKIN_INTERVAL_MILLIS = (long) (QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 2);
 
   // Visible for testing
   static final int ATTEMPTS_TO_WAIT_FOR_LAST_CHECKIN_TO_NOT_BE_RECENT = 1;

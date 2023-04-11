@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.scheduler;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -123,6 +125,17 @@ public class QuartzJobStoreTX
     if (isShuttingDown) {
       return false;
     }
+
+    if (shouldExitDueToSchemaMigration()) {
+      isShuttingDown = true;
+      exitInNewThread(SCHEMA_MIGRATION_UNFINISHED_EXIT_STATUS, SCHEMA_MIGRATION_UNFINISHED_SHUTDOWN_THREAD_NAME);
+      return false;
+    }
+
+    if (!productLicenseLoaded) {
+      return false;
+    }
+
     if (shouldExitDueToOtherNodeInCluster()) {
       // Need to trigger shutdown in a different thread otherwise it can deadlock because
       // - System.exit makes this thread (probably clusterManagementThread) wait for ApplicationShutdownHooks to finish
@@ -133,11 +146,7 @@ public class QuartzJobStoreTX
       exitInNewThread(NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS, UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
       return false;
     }
-    if (shouldExitDueToSchemaMigration()) {
-      isShuttingDown = true;
-      exitInNewThread(SCHEMA_MIGRATION_UNFINISHED_EXIT_STATUS, SCHEMA_MIGRATION_UNFINISHED_SHUTDOWN_THREAD_NAME);
-      return false;
-    }
+
     // Defer calling super.doCheckin() to allow us to check if other nodes checked-in after our previous check-in
     return super.doCheckin();
   }
@@ -151,35 +160,79 @@ public class QuartzJobStoreTX
   }
 
   private boolean shouldExitDueToOtherNodeInCluster() throws JobPersistenceException {
-    if (!productLicenseLoaded) {
-      return false;
-    }
     String potentialErrorMessage = getPotentialErrorMessage();
     if (potentialErrorMessage == null) {
       return false;
     }
-    List<SchedulerStateRecord> schedulerStateRecords = getSchedulerStateRecords();
-    SchedulerStateRecord myRecord = schedulerStateRecords.stream()
+
+    List<SchedulerStateRecord> records = getSchedulerStateRecords();
+    SchedulerStateRecord myRecord;
+    List<SchedulerStateRecord> otherRecords = getOtherSchedulerStateRecords(records);
+    if (otherRecords.isEmpty()) {
+      return false;
+    }
+    SchedulerStateRecord otherMostRecentRecord = getMostRecentRecord(otherRecords);
+    if (firstCheckIn) {
+      myRecord = null;
+      if (isFailed(otherMostRecentRecord)) {
+        return false;
+      }
+    }
+    else {
+      myRecord = getMySchedulerStateRecord(records);
+      if (myRecord == null) {
+        return false;
+      }
+      if (isFirstRecordMoreRecent(myRecord, otherMostRecentRecord)) {
+        return false;
+      }
+    }
+    log.debug("Node clustering is not enabled, but" +
+            " with our own scheduler state record {}" +
+            " found another scheduler state record to cause us to exit {}.",
+        schedulerStateRecordToString(myRecord),
+        schedulerStateRecordToString(otherMostRecentRecord));
+    log.error(potentialErrorMessage);
+    return true;
+  }
+
+  private SchedulerStateRecord getMySchedulerStateRecord(List<SchedulerStateRecord> schedulerStateRecords) {
+    return schedulerStateRecords.stream()
         .filter(schedulerStateRecord -> schedulerStateRecord.getSchedulerInstanceId().equals(getInstanceId()))
         .findFirst()
         .orElse(null);
-    if (myRecord == null) {
-      return false;
-    }
-    List<SchedulerStateRecord> otherRecordsToExitFor = schedulerStateRecords.stream()
+  }
+
+  private List<SchedulerStateRecord> getOtherSchedulerStateRecords(List<SchedulerStateRecord> schedulerStateRecords) {
+    return schedulerStateRecords.stream()
         .filter(otherRecord -> !otherRecord.getSchedulerInstanceId().equals(getInstanceId()))
-        .filter(otherRecord -> shouldExitDueToOtherNodeInCluster(myRecord, otherRecord))
         .collect(Collectors.toList());
-    if (otherRecordsToExitFor.isEmpty()) {
+  }
+
+  private SchedulerStateRecord getMostRecentRecord(List<SchedulerStateRecord> schedulerStateRecords) {
+    return schedulerStateRecords.stream()
+        .max(Comparator.comparing(SchedulerStateRecord::getCheckinTimestamp)).orElse(null);
+  }
+
+  private boolean isFailed(SchedulerStateRecord schedulerStateRecord) {
+    return (System.currentTimeMillis() - schedulerStateRecord.getCheckinTimestamp()) >=
+        CLUSTER_CHECKIN_INTERVAL_MILLIS * 2;
+  }
+
+  private boolean isFirstRecordMoreRecent(
+      SchedulerStateRecord firstRecord,
+      SchedulerStateRecord secondRecord)
+  {
+    if (firstRecord.getCheckinTimestamp() > secondRecord.getCheckinTimestamp()) {
+      return true;
+    }
+    else if (firstRecord.getCheckinTimestamp() == secondRecord.getCheckinTimestamp()) {
+      // Arbitrary ordering based on scheduler instance ID which is a UUID generated in TaskScheduler.createScheduler
+      return secondRecord.getSchedulerInstanceId().compareTo(firstRecord.getSchedulerInstanceId()) > 0;
+    }
+    else {
       return false;
     }
-    log.debug("Node clustering is not enabled," +
-            " but with our own scheduler state record {}" +
-            " found other scheduler state records to cause us to exit [{}].",
-        schedulerStateRecordToString(myRecord),
-        otherRecordsToExitFor.stream().map(this::schedulerStateRecordToString).collect(Collectors.joining(",")));
-    log.error(potentialErrorMessage);
-    return true;
   }
 
   private String getPotentialErrorMessage() {
@@ -196,16 +249,10 @@ public class QuartzJobStoreTX
     return potentialErrorMessage + SHUTTING_DOWN_EXCESS_NODE_MESSAGE;
   }
 
-  private boolean shouldExitDueToOtherNodeInCluster(
-      SchedulerStateRecord myRecord,
-      SchedulerStateRecord otherRecord)
-  {
-    return otherRecord.getCheckinTimestamp() > myRecord.getCheckinTimestamp() ||
-        (otherRecord.getCheckinTimestamp() == myRecord.getCheckinTimestamp() &&
-            myRecord.getSchedulerInstanceId().compareTo(otherRecord.getSchedulerInstanceId()) > 0);
-  }
-
   private String schedulerStateRecordToString(SchedulerStateRecord schedulerStateRecord) {
+    if (schedulerStateRecord == null) {
+      return null;
+    }
     return schedulerStateRecord.getSchedulerInstanceId() + " - " + schedulerStateRecord.getCheckinTimestamp();
   }
 

@@ -106,7 +106,7 @@ public class DbMigrationCommandTest
     assertThat(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).isEqualTo(
         DbMigrationCommand.ATTEMPTS_TO_WAIT_FOR_LAST_CHECKIN_TO_NOT_BE_RECENT).isEqualTo(1);
     assertThat(DbMigrationCommand.RECENT_CHECKIN_INTERVAL_MILLIS).isEqualTo(
-        (long) (QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 3.5));
+        (long) (QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 2));
   }
 
   @Test

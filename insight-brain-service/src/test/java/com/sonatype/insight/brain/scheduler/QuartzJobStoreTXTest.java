@@ -196,8 +196,7 @@ public class QuartzJobStoreTXTest
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
     lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
     quartzJobStoreTXSpy.doCheckin();
-    createSchedulerStateRecord("other",
-        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
+    createSchedulerStateRecord("other", System.currentTimeMillis());
 
     quartzJobStoreTXSpy.doCheckin();
 
@@ -272,6 +271,68 @@ public class QuartzJobStoreTXTest
     quartzJobStoreTXSpy.doCheckin();
     createSchedulerStateRecord("other", quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp());
 
+    quartzJobStoreTXSpy.doCheckin();
+
+    assertThat(logOutput).atErrorLevel()
+        .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
+    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+        QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
+  }
+
+  @Test
+  public void testDoCheckin_NewNodeStartsIfAnotherNodeIsNotRunning() throws Exception {
+    createSchedulerStateRecord("other", System.currentTimeMillis() - 10000);
+    testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
+    lenient().doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
+    quartzJobStoreTXSpy.doCheckin();
+
+    assertThat(logOutput).atErrorLevel()
+        .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
+    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());
+  }
+
+  @Test
+  public void testDoCheckin_NewNodeStartsEvenIfAnotherNodeIsRunning() throws Exception {
+    createSchedulerStateRecord("other", System.currentTimeMillis() - 10000);
+    lenient().doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
+    quartzJobStoreTXSpy.doCheckin();
+
+    assertThat(logOutput).atErrorLevel()
+        .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
+    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());
+  }
+
+  @Test
+  public void testDoCheckin_NewNodeDoesNotStartIfAnotherNodeIsRunning() throws Exception {
+    createSchedulerStateRecord("other", System.currentTimeMillis() - 10000);
+    testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
+    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
+    doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
+    quartzJobStoreTXSpy.productLicenseChanged();
+    quartzJobStoreTXSpy.doCheckin();
+
+    assertThat(logOutput).atErrorLevel()
+        .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
+        .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
+        .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
+    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+        QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
+  }
+
+  @Test
+  public void testDoCheckin_NewNodeDoesNotStartIfAnotherNodeIsRunningAndAnotherNodeStopped() throws Exception {
+    createSchedulerStateRecord("other", System.currentTimeMillis() - 500);
+    createSchedulerStateRecord("one-more-other", System.currentTimeMillis() - 30000);
+    testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
+    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
+    doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
+    quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
 
     assertThat(logOutput).atErrorLevel()

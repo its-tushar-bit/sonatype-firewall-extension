@@ -24,6 +24,7 @@ describe('FirewallQuarantineTable', function () {
     setQuarantineGridPage,
     setQuarantineGridSorting,
     setQuarantineGridPolicyFilter,
+    setQuarantineGridComponentNameFilter,
     goToRepositoryComponentDetailsPageSpy,
     hrefSpy,
     routerContextMock;
@@ -38,6 +39,7 @@ describe('FirewallQuarantineTable', function () {
     setQuarantineGridPage = jasmine.createSpy('setQuarantineGridPage');
     setQuarantineGridSorting = jasmine.createSpy('setQuarantineGridSorting');
     setQuarantineGridPolicyFilter = jasmine.createSpy('setQuarantineGridPolicyFilter');
+    setQuarantineGridComponentNameFilter = jasmine.createSpy('setQuarantineGridComponentNameFilter');
 
     hrefSpy = jasmine.createSpy('href').and.callFake(() => 'someHref');
     routerContextMock = { href: hrefSpy };
@@ -49,11 +51,14 @@ describe('FirewallQuarantineTable', function () {
       setQuarantineGridPage: setQuarantineGridPage,
       setQuarantineGridSorting: setQuarantineGridSorting,
       setQuarantineGridPolicyFilter: setQuarantineGridPolicyFilter,
+      setQuarantineGridComponentNameFilter: setQuarantineGridComponentNameFilter,
       loadedQuarantineList: true,
       loadedPolicies: true,
       quarantinePageCount: 1,
       pageSize: 2,
       currentPage: 0,
+      filterPolicy: 'initialPolicyId',
+      filterComponentName: 'initialComponentName',
       quarantineList: [
         {
           componentDisplayText: 'test-component',
@@ -216,6 +221,31 @@ describe('FirewallQuarantineTable', function () {
       refreshButton.simulate('click');
 
       expect(loadQuarantineList).toHaveBeenCalled();
+    });
+  });
+
+  describe('Quarantine grid filter', () => {
+    it('calls the setQuarantineGridPolicyFilter when selecting a policy name', () => {
+      const component = getShallowComponent(),
+        select = component.find('#firewall-quarantine-table--select-policy');
+      expect(select).not.toBeNull();
+      expect(select.props().value).toBe('initialPolicyId');
+      select.simulate('click');
+      const options = select.find('option');
+      expect(options.at(1)).toHaveText('Security-Medium');
+      select.simulate('change', {
+        currentTarget: { value: 'policyId' },
+      });
+      expect(setQuarantineGridPolicyFilter).toHaveBeenCalledWith('policyId');
+    });
+
+    it('calls the setQuarantineGridComponentNameFilter when entering a component name', () => {
+      const component = getShallowComponent(),
+        input = component.find('#firewall-quarantine-table--component-name');
+      expect(input).not.toBeNull();
+      expect(input).toHaveValue('initialComponentName');
+      input.simulate('change', 'name');
+      expect(setQuarantineGridComponentNameFilter).toHaveBeenCalledWith('name');
     });
   });
 

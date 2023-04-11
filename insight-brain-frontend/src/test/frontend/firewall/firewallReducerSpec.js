@@ -92,6 +92,7 @@ describe('firewallReducer', function () {
       sortDir: null,
       sortField: null,
       filterPolicy: undefined,
+      filterComponentName: '',
       lastUpdated: null,
     }),
   });
@@ -606,6 +607,24 @@ describe('firewallReducer', function () {
     });
   });
 
+  describe('FIREWALL_QUARANTINE_LIST_REQUESTED action', function () {
+    let minimumState = {};
+
+    it('updates the state', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_LIST_REQUESTED' })).toEqual({
+        ...minimumState,
+        quarantineGridState: {
+          ...minimumState.quarantineGridState,
+          loadedQuarantineList: false,
+          loadQuarantineGridError: null,
+          currentPage: null,
+          quarantineList: [],
+          quarantinePageCount: 0,
+        },
+      });
+    });
+  });
+
   describe('FIREWALL_QUARANTINE_LIST_FULFILLED action', function () {
     let minimumState = {};
 
@@ -660,7 +679,6 @@ describe('firewallReducer', function () {
           ...minimumState.quarantineGridState,
           loadQuarantineGridError: payload,
           loadedQuarantineList: true,
-          quarantineList: [],
         },
       });
     });
@@ -694,30 +712,40 @@ describe('firewallReducer', function () {
           ...minimumState.quarantineGridState,
           sortField: 'testSort',
           sortDir: 'asc',
-          currentPage: null,
-          loadedQuarantineList: false,
-          quarantineList: [],
-          quarantinePageCount: 0,
         },
       });
     });
   });
 
-  describe('FIREWALL_QUARANTINE_GRID_SET_FILTER action', function () {
+  describe('FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER action', function () {
     let minimumState = {};
 
     it('updates the state', function () {
       let payload = { policy: { id: '456', name: 'test-name' } };
 
-      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_GRID_SET_FILTER', payload: payload })).toEqual({
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER', payload: payload })).toEqual({
         ...minimumState,
         quarantineGridState: {
           ...minimumState.quarantineGridState,
           filterPolicy: payload.policy,
-          currentPage: null,
-          loadedQuarantineList: false,
-          quarantineList: [],
-          quarantinePageCount: 0,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER action', function () {
+    let minimumState = {};
+
+    it('updates the state', function () {
+      let payload = { componentName: { componentName: 'name' } };
+
+      expect(
+        reduce(minimumState, { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER', payload: payload })
+      ).toEqual({
+        ...minimumState,
+        quarantineGridState: {
+          ...minimumState.quarantineGridState,
+          filterComponentName: payload.componentName,
         },
       });
     });
@@ -805,6 +833,7 @@ describe('firewallReducer', function () {
           sortDir: 'asc',
           sortField: 'componentName',
           filterPolicy: '123',
+          filterComponentName: '',
         },
       };
       expect(reduce(customMinimumState, { type: 'FIREWALL_LOAD_DATA_REQUESTED' })).toEqual({

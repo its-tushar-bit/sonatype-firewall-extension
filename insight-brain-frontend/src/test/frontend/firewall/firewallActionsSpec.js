@@ -19,7 +19,7 @@ import {
   FIREWALL_POLICIES_FAILED,
   FIREWALL_POLICIES_FULFILLED,
   FIREWALL_POLICIES_REQUESTED,
-  FIREWALL_QUARANTINE_GRID_SET_FILTER,
+  FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER,
   FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
   FIREWALL_QUARANTINE_GRID_SET_PAGE,
   FIREWALL_QUARANTINE_GRID_SET_SORTING,
@@ -88,6 +88,8 @@ import {
   loadExistingWaiversDataFailed,
   onGoToRepositoryComponentWaiversPage,
   loadFirewallViolationDetails,
+  FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER,
+  setQuarantineGridComponentNameFilter,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -814,6 +816,41 @@ describe('firewallActions', function () {
   });
 
   describe('loadQuarantineList', function () {
+    it('immediately dispatches a FIREWALL_QUARANTINE_LIST_REQUESTED action with the correct parameters', function () {
+      state = {
+        ...state,
+        firewall: {
+          ...state.firewall,
+          quarantineGridState: {
+            pageSize: 1000,
+            sortField: 'field',
+            currentPage: 100,
+            filterPolicy: 'id',
+            filterComponentName: 'name',
+            sortDir: 'desc',
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+      const expectedParams = '?page=101&pageSize=1000&sortBy=field&asc=false&policyId=id&componentName=name';
+      const payload = { pageCount: 2, results: [{ test: 'testVal' }, { test: 'testVal' }] };
+      mockAxiosCalls({
+        get: {
+          [firewallQuarantineListUrl + expectedParams]: Promise.resolve(payload),
+        },
+      });
+
+      store.dispatch(loadQuarantineList());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+      expect(axios.get).toHaveBeenCalledWith(firewallQuarantineListUrl + expectedParams);
+    });
+  });
+
+  describe('loadQuarantineList', function () {
     let payload = { pageCount: 2, results: [{ test: 'testVal' }, { test: 'testVal' }] },
       defaultParams = '?page=1&pageSize=12';
 
@@ -937,11 +974,39 @@ describe('firewallActions', function () {
 
       const actions = store.getActions();
       expect(actions.length).toBe(2);
-      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_FILTER);
+      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER);
       expect(actions[0].payload).toEqual(policy);
       expect(actions[0].payload.policy).toEqual(jasmine.any(String));
       expect(actions[1].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
       expect(actions[1].payload).toBeUndefined();
+    });
+  });
+
+  describe('setQuarantineGridComponentNameFilter', function () {
+    it('immediately dispatches actions to set the component name filter for the quarantine grid', function () {
+      const componentName = { componentName: 'name' };
+
+      store.dispatch(setQuarantineGridComponentNameFilter(componentName.componentName));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(2);
+      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER);
+      expect(actions[0].payload).toEqual(componentName);
+      expect(actions[0].payload.componentName).toEqual(jasmine.any(String));
+      expect(actions[1].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
+      expect(actions[1].payload).toBeUndefined();
+    });
+
+    it('does not load the quarantine list if the component name is only 1 character', function () {
+      const componentName = { componentName: 'n' };
+
+      store.dispatch(setQuarantineGridComponentNameFilter(componentName.componentName));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER);
+      expect(actions[0].payload).toEqual(componentName);
+      expect(actions[0].payload.componentName).toEqual(jasmine.any(String));
     });
   });
 

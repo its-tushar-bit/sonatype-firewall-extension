@@ -18,7 +18,8 @@ import {
   FIREWALL_POLICIES_FAILED,
   FIREWALL_POLICIES_FULFILLED,
   FIREWALL_POLICIES_REQUESTED,
-  FIREWALL_QUARANTINE_GRID_SET_FILTER,
+  FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER,
+  FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER,
   FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
   FIREWALL_QUARANTINE_GRID_SET_PAGE,
   FIREWALL_QUARANTINE_GRID_SET_SORTING,
@@ -146,6 +147,7 @@ export const initialState = Object.freeze({
     sortDir: null,
     sortField: null,
     filterPolicy: undefined,
+    filterComponentName: '',
     lastUpdated: null,
   }),
 });
@@ -457,6 +459,9 @@ const loadQuarantineListRequested = (_, state) =>
     merge(__, {
       loadedQuarantineList: false,
       loadQuarantineGridError: null,
+      currentPage: null,
+      quarantineList: [],
+      quarantinePageCount: 0,
     }),
     state
   );
@@ -466,9 +471,9 @@ const loadQuarantineListFulfilled = (payload, state) =>
     lensPath(['quarantineGridState']),
     merge(__, {
       loadedQuarantineList: true,
+      currentPage: payload.pageCount === 0 ? null : payload.page - 1,
       quarantineList: payload.results.map((result) => renameKey('displayName', 'componentDisplayText', result)),
       quarantinePageCount: payload.pageCount,
-      currentPage: payload.pageCount === 0 ? null : payload.page - 1,
     }),
     state
   );
@@ -479,7 +484,6 @@ const loadQuarantineListFailed = (payload, state) => ({
     ...state.quarantineGridState,
     loadQuarantineGridError: payload,
     loadedQuarantineList: true,
-    quarantineList: [],
   },
 });
 
@@ -498,10 +502,6 @@ const setQuarantineGridSorting = (payload, state) =>
     merge(__, {
       sortDir: payload.sortDir,
       sortField: payload.sortField,
-      currentPage: null,
-      loadedQuarantineList: false,
-      quarantineList: [],
-      quarantinePageCount: 0,
     }),
     state
   );
@@ -511,10 +511,15 @@ const setQuarantineGridPolicyFilter = (payload, state) =>
     lensPath(['quarantineGridState']),
     merge(__, {
       filterPolicy: payload.policy,
-      currentPage: null,
-      loadedQuarantineList: false,
-      quarantineList: [],
-      quarantinePageCount: 0,
+    }),
+    state
+  );
+
+const setQuarantineGridComponentNameFilter = (payload, state) =>
+  over(
+    lensPath(['quarantineGridState']),
+    merge(__, {
+      filterComponentName: payload.componentName,
     }),
     state
   );
@@ -694,6 +699,7 @@ const setFirewallLoadDataRequested = (_, state) => {
     sortDir: state.quarantineGridState.sortDir,
     sortField: state.quarantineGridState.sortField,
     filterPolicy: state.quarantineGridState.filterPolicy,
+    filterComponentName: state.quarantineGridState.filterComponentName,
   };
   return {
     ...initialState,
@@ -725,7 +731,8 @@ const reducerActionMap = {
   [FIREWALL_QUARANTINE_LIST_FULFILLED]: loadQuarantineListFulfilled,
   [FIREWALL_QUARANTINE_GRID_SET_PAGE]: setQuarantineGridPage,
   [FIREWALL_QUARANTINE_GRID_SET_SORTING]: setQuarantineGridSorting,
-  [FIREWALL_QUARANTINE_GRID_SET_FILTER]: setQuarantineGridPolicyFilter,
+  [FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER]: setQuarantineGridPolicyFilter,
+  [FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER]: setQuarantineGridComponentNameFilter,
   [FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED]: setQuarantineGridLastUpdated,
   [FIREWALL_POLICIES_REQUESTED]: loadPoliciesRequested,
   [FIREWALL_POLICIES_FAILED]: loadPoliciesFailed,

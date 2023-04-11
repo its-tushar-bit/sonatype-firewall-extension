@@ -19,6 +19,7 @@ import {
   NxTextLink,
   NxThreatIndicator,
   NxFormSelect,
+  NxFilterInput,
 } from '@sonatype/react-shared-components';
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
@@ -31,6 +32,7 @@ export default function FirewallQuarantineTable(props) {
     setQuarantineGridPage,
     setQuarantineGridSorting,
     setQuarantineGridPolicyFilter,
+    setQuarantineGridComponentNameFilter,
     goToRepositoryComponentDetailsPage,
   } = props;
 
@@ -44,6 +46,7 @@ export default function FirewallQuarantineTable(props) {
     sortDir,
     sortField,
     filterPolicy,
+    filterComponentName,
     lastUpdated,
   } = props;
 
@@ -152,7 +155,14 @@ export default function FirewallQuarantineTable(props) {
                 </NxFormSelect>
               </NxTableCell>
               <NxTableCell />
-              <NxTableCell />
+              <NxTableCell>
+                <NxFilterInput
+                  id="firewall-quarantine-table--component-name"
+                  placeholder="component name"
+                  onChange={(value) => setQuarantineGridComponentNameFilter(value)}
+                  value={filterComponentName}
+                />
+              </NxTableCell>
               <NxTableCell />
               <NxTableCell />
             </NxTableRow>
@@ -246,6 +256,7 @@ FirewallQuarantineTable.propTypes = {
   setQuarantineGridPage: PropTypes.func.isRequired,
   setQuarantineGridSorting: PropTypes.func.isRequired,
   setQuarantineGridPolicyFilter: PropTypes.func.isRequired,
+  setQuarantineGridComponentNameFilter: PropTypes.func.isRequired,
   loadedQuarantineList: PropTypes.bool.isRequired,
   quarantineList: PropTypes.array.isRequired,
   quarantinePageCount: PropTypes.number.isRequired,
@@ -255,6 +266,7 @@ FirewallQuarantineTable.propTypes = {
   sortDir: PropTypes.string,
   sortField: PropTypes.string,
   filterPolicy: PropTypes.string,
+  filterComponentName: PropTypes.string,
   lastUpdated: PropTypes.object,
   goToRepositoryComponentDetailsPage: PropTypes.func,
 };

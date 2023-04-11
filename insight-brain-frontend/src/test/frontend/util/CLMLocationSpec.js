@@ -1095,4 +1095,26 @@ describe('CLMLocation.js', function () {
       );
     });
   });
+
+  describe('getFirewallQuarantineListUrl', () => {
+    it('should return a URL to get the firewall quarantine list', () => {
+      expect(CLMLocation.getFirewallQuarantineListUrl()).toBe('/api/v2/firewall/components/quarantined');
+    });
+
+    it('should return a URL to get the firewall quarantine list with parameters', () => {
+      expect(CLMLocation.getFirewallQuarantineListUrl(1, 2, 'field', true, 'id', 'name')).toBe(
+        '/api/v2/firewall/components/quarantined?page=1&pageSize=2&sortBy=field&asc=true&policyId=id&componentName=name'
+      );
+    });
+
+    it('handles a single parameter correctly', () => {
+      expect(CLMLocation.getFirewallQuarantineListUrl(2)).toBe('/api/v2/firewall/components/quarantined?page=2');
+    });
+
+    it('handles a different parameter order correctly', () => {
+      expect(CLMLocation.getFirewallQuarantineListUrl(null, 3, 'field')).toBe(
+        '/api/v2/firewall/components/quarantined?pageSize=3&sortBy=field'
+      );
+    });
+  });
 });

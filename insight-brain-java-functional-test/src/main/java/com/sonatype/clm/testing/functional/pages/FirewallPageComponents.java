@@ -145,6 +145,10 @@ public class FirewallPageComponents
     public ElementsCollection policyNameOptions() {
       return children("#firewall-quarantine-table--select-policy option");
     }
+
+    public SelenideElement componentNameInput() {
+      return child("#firewall-quarantine-table--component-name");
+    }
   }
 
   public static class FirewallAutoUnquarantineYtd

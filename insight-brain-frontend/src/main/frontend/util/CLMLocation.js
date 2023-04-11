@@ -400,13 +400,14 @@ export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sort
   return uriTemplate`/api/v2/firewall/components/autoReleasedFromQuarantine` + params;
 }
 
-export function getFirewallQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId) {
+export function getFirewallQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId, componentName) {
   let params = toURIParams({
     page: page,
     pageSize: pageSize,
     sortBy: sortBy,
     asc: sortAsc,
     policyId: policyId,
+    componentName: componentName,
   });
 
   params = params.length === 0 ? '' : '?' + params;

@@ -12,6 +12,7 @@ import {
   openConfigurationModal,
   setQuarantineGridPage,
   setQuarantineGridPolicyFilter,
+  setQuarantineGridComponentNameFilter,
   setQuarantineGridSorting,
   goToRepositoryComponentDetailsPage,
 } from './firewallActions';
@@ -52,6 +53,7 @@ const mapDispatchToProps = {
   setQuarantineGridPage,
   setQuarantineGridSorting,
   setQuarantineGridPolicyFilter,
+  setQuarantineGridComponentNameFilter,
   openConfigurationModal,
   goToRepositoryComponentDetailsPage,
 };

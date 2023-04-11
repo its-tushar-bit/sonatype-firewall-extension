@@ -104,12 +104,16 @@ export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING = 'FIREWALL_AUTO_UNQUAR
 
 export const FIREWALL_QUARANTINE_GRID_SET_PAGE = 'FIREWALL_QUARANTINE_GRID_SET_PAGE';
 export const FIREWALL_QUARANTINE_GRID_SET_SORTING = 'FIREWALL_QUARANTINE_GRID_SET_SORTING';
-export const FIREWALL_QUARANTINE_GRID_SET_FILTER = 'FIREWALL_QUARANTINE_GRID_SET_FILTER';
+export const FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER = 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER';
+export const FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER = 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER';
 export const FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED = 'FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED';
 
 const quarantineGridSetPage = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_PAGE);
 const quarantineGridSetSorting = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_SORTING);
-const quarantineGridSetFilter = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_FILTER);
+const quarantineGridSetPolicyFilter = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER);
+const quarantineGridSetComponentNameFilter = payloadParamActionCreator(
+  FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER
+);
 
 export const FIREWALL_QUARANTINE_SUMMARY_REQUESTED = 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED';
 export const FIREWALL_QUARANTINE_SUMMARY_FULFILLED = 'FIREWALL_QUARANTINE_SUMMARY_FULFILLED';
@@ -366,12 +370,22 @@ export function loadQuarantineList() {
   return function (dispatch, getState) {
     let gridState = getState().firewall.quarantineGridState,
       apiPage = gridState.currentPage ? gridState.currentPage + 1 : 1,
-      filterValue = gridState.filterPolicy === '' ? null : gridState.filterPolicy,
+      filterPolicy = gridState.filterPolicy === '' ? null : gridState.filterPolicy,
+      filterComponentName = gridState.filterComponentName === '' ? null : gridState.filterComponentName,
       sortAsc = gridState.sortDir === null ? gridState.sortDir : gridState.sortDir === 'asc';
 
     dispatch(loadQuarantineListRequested());
     return axios
-      .get(getFirewallQuarantineListUrl(apiPage, gridState.pageSize, gridState.sortField, sortAsc, filterValue))
+      .get(
+        getFirewallQuarantineListUrl(
+          apiPage,
+          gridState.pageSize,
+          gridState.sortField,
+          sortAsc,
+          filterPolicy,
+          filterComponentName
+        )
+      )
       .then(({ data }) => {
         dispatch(loadQuarantineListFulfilled(data));
         dispatch(setQuarantineGridLastUpdated(new Date()));
@@ -488,8 +502,17 @@ export function setQuarantineGridSorting(sortDir, sortField) {
 
 export function setQuarantineGridPolicyFilter(policy) {
   return (dispatch) => {
-    dispatch(quarantineGridSetFilter({ policy: policy }));
+    dispatch(quarantineGridSetPolicyFilter({ policy: policy }));
     dispatch(loadQuarantineList());
+  };
+}
+
+export function setQuarantineGridComponentNameFilter(componentName) {
+  return (dispatch) => {
+    dispatch(quarantineGridSetComponentNameFilter({ componentName: componentName }));
+    if (componentName.length !== 1) {
+      dispatch(loadQuarantineList());
+    }
   };
 }
 

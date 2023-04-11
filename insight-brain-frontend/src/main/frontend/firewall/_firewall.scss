@@ -148,6 +148,10 @@ h2.iq-firewall-table-label {
     line-height: var(--nx-line-height);
     text-decoration: none;
   }
+
+  .nx-text-input {
+    width: 100% !important;
+  }
 }
 
 // id is used to get a high specificity

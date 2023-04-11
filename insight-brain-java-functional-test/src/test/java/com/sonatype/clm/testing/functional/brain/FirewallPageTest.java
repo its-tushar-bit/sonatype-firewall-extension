@@ -12,14 +12,18 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxTableHeader;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantine;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -210,6 +214,37 @@ public class FirewallPageTest
 
     quarantineTimeHeader.sortBtn().shouldHave(
         attribute("aria-label", "Quarantine Date unsorted"));
+  }
+
+  @Test
+  public void testFirewallQuarantineTable_ComponentNameSearch() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "b1", "v"), true);
+    Policy policy =
+        tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "testFirewallQuarantineTable_ComponentNameSearch");
+    tempEntity.newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), 5, repositoryComponent.getPathname(),
+        false, FailActionType.ID, policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier());
+
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    FirewallQuarantineTable firewallQuarantineTable = page.firewallQuarantineTable();
+    // We initially have 3 rows
+    firewallQuarantineTable.tableBodyRows().shouldHaveSize(3);
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("g : a : v", "g : a : v", "g : b1 : v"));
+    // One character in the component name search should not trigger the search
+    firewallQuarantineTable.componentNameInput().sendKeys("b");
+    firewallQuarantineTable.tableBodyRows().shouldHaveSize(3);
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("g : a : v", "g : a : v", "g : b1 : v"));
+    // Two characters in the component name search should trigger the search
+    firewallQuarantineTable.componentNameInput().sendKeys("1");
+    firewallQuarantineTable.tableBodyRows().shouldHaveSize(1);
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("g : b1 : v"));
+    // Zero characters in the component name search should trigger the search
+    firewallQuarantineTable.componentNameInput().sendKeys("\b\b");
+    firewallQuarantineTable.tableBodyRows().shouldHaveSize(3);
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("g : a : v", "g : a : v", "g : b1 : v"));
   }
 
   @Test

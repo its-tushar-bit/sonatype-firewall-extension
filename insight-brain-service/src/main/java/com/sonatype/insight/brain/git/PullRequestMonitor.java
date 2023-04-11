@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -217,11 +218,22 @@ public class PullRequestMonitor
         return null;
       }
 
+      Optional<GitRepositoryInfo> prCommentingEnabledRepository = applications.stream()
+          .map(application -> sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
+          .filter(pullRequestCommentingEligibilityValidator::isPullRequestCommentingEnabled)
+          .findAny();
+
+      if (!prCommentingEnabledRepository.isPresent()) {
+        String applicationNames = applications.stream().map(Application::getPublicId).collect(Collectors.joining(","));
+        log.debug("None of the applications of {} for {} has pull requests commenting enabled.", applicationNames,
+            repositoryUrl);
+        return null;
+      }
+
       List<SourceControlPullRequest> closedPullRequests = new ArrayList<>(pullRequestsForRepository);
       Map<String, List<SourceControlPullRequest>> pullRequestsByBranch =
           pullRequestsForRepository.stream().collect(groupingBy(SourceControlPullRequest::getBranchName, toList()));
-      GitRepositoryInfo gitRepositoryInfo =
-          sourceControlUtils.getGitRepositoryInfoForApplication(applications.get(0).getId());
+      GitRepositoryInfo gitRepositoryInfo = prCommentingEnabledRepository.get();
       GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
       List<String> applicationIds = applications.stream().map(Application::getId).collect(toList());
       try {

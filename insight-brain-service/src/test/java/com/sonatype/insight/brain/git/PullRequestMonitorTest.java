@@ -51,6 +51,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PullRequestMonitorTest
@@ -138,6 +139,10 @@ public class PullRequestMonitorTest
   @Test
   public void testUpdatePullRequestDetails_DeletesClosedPRs() throws Exception {
     createSourceControlForRootOrg();
+
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.pullRequestCommentingEnabled = true;
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     // Given two pull requests
     Application app = tempEntity.newApplicationWithParent();
@@ -277,24 +282,19 @@ public class PullRequestMonitorTest
     gitRepositoryInfo.pullRequestCommentingEnabled = false;
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
-    // the PR source branch is updated
-    when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
-        .thenReturn(Collections.singletonMap("testBranchName", "testHeadCommitHashUpdated"));
-
     // When update pull request details
-    Date before = new Date();
     pullRequestMonitor.updatePullRequestDetails();
-    Date after = new Date();
 
-    // Then the PR is updated
+    // Then the PR is not updated
     pullRequest = pullRequestDAO.getById(pullRequest.getId());
-    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHashUpdated", "testBaseCommitHash1",
+    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHash", "testBaseCommitHash1",
         "testBranchName", createTime);
-    assertThat(pullRequest.getLastCheckTime()).isBetween(before, after, true, true);
-    assertThat(pullRequest.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
+    assertThat(pullRequest.getLastCheckTime()).isEqualTo(lastUpdateTime);
+    assertThat(pullRequest.getLastDetectedUpdateTime()).isEqualTo(lastUpdateTime);
 
-    // But no events are sent
+    // No events are sent
     verify(sourceControlEventPublisherMock, never()).publishEvent(any());
+    verifyNoInteractions(gitApiMock);
   }
 
   @Test
@@ -338,11 +338,19 @@ public class PullRequestMonitorTest
 
   @Test
   public void testUpdatePullRequestDetails_DoesNotSendEventIfEventIsAlreadyPending() throws Exception {
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.pullRequestCommentingEnabled = true;
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
+
     testUpdatePullRequestDetails_DoesNotSendEventIfEventExists(SourceControlEvent.EVENT_STATUS_NEW);
   }
 
   @Test
   public void testUpdatePullRequestDetails_DoesNotSendEventIfEventIsAlreadyInProgress() throws Exception {
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.pullRequestCommentingEnabled = true;
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
+
     testUpdatePullRequestDetails_DoesNotSendEventIfEventExists(SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
   }
 
@@ -376,6 +384,59 @@ public class PullRequestMonitorTest
     configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any());
+  }
+
+  @Test
+  public void testUpdatePullRequestDetails_TwoApplicationsSameRepositoryUrlOneEnabledOneDisabled() throws Exception {
+    createSourceControlForRootOrg();
+
+    // Given two pull requests for the different repositories
+    Application app1 = tempEntity.newApplicationWithParent();
+    String repositoryUrl = "http://example.com/testorg/testproject";
+    tempEntity.newSourceControl(app1.getId(), repositoryUrl);
+    Application app2 = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControl(app2.getId(), repositoryUrl);
+
+    Date createTime = new Date(System.currentTimeMillis() - 2000);
+    Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
+        "testHeadCommitHash", "testBaseCommitHash1", "testBranchName", "baseBranchName",
+        createTime, lastUpdateTime, lastUpdateTime);
+
+    GitRepositoryInfo gitRepositoryInfo1 = new GitRepositoryInfo();
+    gitRepositoryInfo1.pullRequestCommentingEnabled = true;
+
+    GitRepositoryInfo gitRepositoryInfo2 = new GitRepositoryInfo();
+    gitRepositoryInfo2.pullRequestCommentingEnabled = false;
+
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(app1.getId())).thenReturn(gitRepositoryInfo1);
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(app2.getId())).thenReturn(gitRepositoryInfo2);
+
+    when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
+        .thenReturn(Collections.singletonMap("testBranchName", "testHeadCommitHashUpdated"));
+    Date before = new Date();
+    pullRequestMonitor.updatePullRequestDetails();
+    Date after = new Date();
+
+    pullRequest = pullRequestDAO.getById(pullRequest.getId());
+    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHashUpdated", "testBaseCommitHash1",
+        "testBranchName", createTime);
+    assertThat(pullRequest.getLastCheckTime()).isBetween(before, after, true, true);
+    assertThat(pullRequest.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
+
+    // And event sent for enabled app only
+    ArgumentCaptor<SourceControlEvent> sourceControlEventArgumentCaptor =
+        ArgumentCaptor.forClass(SourceControlEvent.class);
+    verify(sourceControlEventPublisherMock, times(1)).publishEvent(sourceControlEventArgumentCaptor.capture());
+    List<SourceControlEvent> sourceControlEvents = sourceControlEventArgumentCaptor.getAllValues();
+    assertThat(sourceControlEvents).extracting(SourceControlEvent::getApplicationId)
+        .containsExactlyInAnyOrder(app1.getId());
+    for (SourceControlEvent sourceControlEvent : sourceControlEvents) {
+      assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.UPDATED_PULL_REQUEST_EVENT);
+      assertThat(sourceControlEvent.getBranchName()).isEqualTo(pullRequest.getBranchName());
+      assertThat(sourceControlEvent.getCommitHash()).isEqualTo(pullRequest.getHeadCommitHash());
+      assertThat(sourceControlEvent.getPullRequestNumber()).isEqualTo(pullRequest.getPullRequestId());
+    }
   }
 
   private void testUpdatePullRequestDetails_DoesNotSendEventIfEventExists(String eventStatus) throws Exception {

@@ -198,6 +198,12 @@ public abstract class AuditData
     if (repository != null) {
       setRepositoryId(repository.getId());
       setRepositoryPublicId(repository.getPublicId());
+      setData("format", repository.getFormat());
+      setData("type", repository.getRepositoryType().name());
+      setData("auditEnabled", repository.isEnabled());
+      setData("quarantineEnabled", repository.isQuarantineEnabled());
+      setData("policyCompliantComponentSelectionEnabled", repository.isPolicyCompliantComponentSelectionEnabled());
+      setData("namespaceConfusionProtectionEnabled", repository.isNamespaceConfusionProtectionEnabled());
     }
     return this;
   }

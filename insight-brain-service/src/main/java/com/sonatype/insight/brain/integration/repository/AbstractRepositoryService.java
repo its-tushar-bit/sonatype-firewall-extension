@@ -878,11 +878,22 @@ public abstract class AbstractRepositoryService
     telemetrySender.send(telemetryData);
   }
 
+  private void auditConfigureRepository(Repository repository, String errorMessage) {
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_REPOSITORY, false)) {
+      AuditData.get().setRepository(repository);
+      if (errorMessage != null) {
+        AuditData.get().setError(errorMessage);
+      }
+    }
+  }
+
   void configureRepositories(
       String repositoryManagerInstanceId,
       List<RepositoryDTO> repositoryDTOs,
       String clientUserAgent)
   {
+    AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
+
     checkLicenseFeature();
 
     checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
@@ -898,66 +909,78 @@ public abstract class AbstractRepositoryService
     
     updateUserAgent(clientUserAgent, repositoryManager);
     
-    for (RepositoryDTO repositoryDTO : repositoryDTOs) {
-      Repository repository =
-          repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryDTO.name);
+    try {
+      for (RepositoryDTO repositoryDTO : repositoryDTOs) {
+        Repository repository =
+            repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryDTO.name);
 
-      if (repository == null) {
-        // This is a new repository
-        repository = new Repository(repositoryManager.getId(), repositoryDTO.name);
-        repository.setFormat(repositoryDTO.format);
-        repository.setRepositoryType(repositoryDTO.type);
-        repository.setEnabled(repositoryDTO.auditEnabled);
-        repository.setQuarantineEnabled(repositoryDTO.quarantineEnabled);
-        repository.setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
-        repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
-        repositoryDAO.insert(repository);
-      }
-      else {
-        // This is an existing repository
-        boolean updated = false;
-
-        if (!repository.getRepositoryType().equals(repositoryDTO.type)) {
-          log.error("Cannot change the type for repository {} ({}) from {} to {}. Ignoring this repository.",
-              repository.getName(), repository.getId(), repository.getRepositoryType(), repositoryDTO.type);
-          continue;
-        }
-        
-        if (repository.getFormat() != null) {
-          if (!repository.getFormat().equals(repositoryDTO.format)) {
-            log.error("Cannot change the format for repository {} ({}) from {} to {}. Ignoring this repository.",
-                repository.getName(), repository.getId(), repository.getFormat(), repositoryDTO.format);
-            continue;
-          }
-        }
-        else {
+        if (repository == null) {
+          // This is a new repository
+          repository = new Repository(repositoryManager.getId(), repositoryDTO.name);
           repository.setFormat(repositoryDTO.format);
-          updated = true;
-        }
-
-        if (repositoryDTO.auditEnabled != repository.isEnabled()) {
+          repository.setRepositoryType(repositoryDTO.type);
           repository.setEnabled(repositoryDTO.auditEnabled);
-          updated = true;
-        }
-        if (repositoryDTO.quarantineEnabled != repository.isQuarantineEnabled()) {
           repository.setQuarantineEnabled(repositoryDTO.quarantineEnabled);
-          updated = true;
-        }
-        if (repositoryDTO.policyCompliantComponentSelectionEnabled != repository
-            .isPolicyCompliantComponentSelectionEnabled()) {
           repository
               .setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
-          updated = true;
-        }
-        if (repositoryDTO.namespaceConfusionProtectionEnabled != repository.isNamespaceConfusionProtectionEnabled()) {
           repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
-          updated = true;
-        }
+          repositoryDAO.insert(repository);
 
-        if (updated) {
-          repositoryDAO.update(repository);
+          auditConfigureRepository(repository, null /* errorMessage */);
+        }
+        else {
+          // This is an existing repository
+          boolean updated = false;
+
+          if (!repository.getRepositoryType().equals(repositoryDTO.type)) {
+            log.error("Cannot change the type for repository {} ({}) from {} to {}. Ignoring this repository.",
+                repository.getName(), repository.getId(), repository.getRepositoryType(), repositoryDTO.type);
+            auditConfigureRepository(repository, "Cannot change the type for repository.");
+            continue;
+          }
+
+          if (repository.getFormat() != null) {
+            if (!repository.getFormat().equals(repositoryDTO.format)) {
+              log.error("Cannot change the format for repository {} ({}) from {} to {}. Ignoring this repository.",
+                  repository.getName(), repository.getId(), repository.getFormat(), repositoryDTO.format);
+              auditConfigureRepository(repository, "Cannot change the format for repository.");
+              continue;
+            }
+          }
+          else {
+            repository.setFormat(repositoryDTO.format);
+            updated = true;
+          }
+
+          if (repositoryDTO.auditEnabled != repository.isEnabled()) {
+            repository.setEnabled(repositoryDTO.auditEnabled);
+            updated = true;
+          }
+          if (repositoryDTO.quarantineEnabled != repository.isQuarantineEnabled()) {
+            repository.setQuarantineEnabled(repositoryDTO.quarantineEnabled);
+            updated = true;
+          }
+          if (repositoryDTO.policyCompliantComponentSelectionEnabled != repository
+              .isPolicyCompliantComponentSelectionEnabled()) {
+            repository
+                .setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
+            updated = true;
+          }
+          if (repositoryDTO.namespaceConfusionProtectionEnabled != repository.isNamespaceConfusionProtectionEnabled()) {
+            repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
+            updated = true;
+          }
+
+          if (updated) {
+            repositoryDAO.update(repository);
+
+            auditConfigureRepository(repository, null /* errorMessage */);
+          }
         }
       }
+    }
+    finally {
+      AuditData.get().commitSubEvents();
     }
   }
 

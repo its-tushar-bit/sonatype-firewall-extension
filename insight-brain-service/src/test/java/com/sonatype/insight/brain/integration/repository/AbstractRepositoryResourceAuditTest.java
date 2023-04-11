@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration.repository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
@@ -15,6 +16,8 @@ import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -66,6 +69,7 @@ public abstract class AbstractRepositoryResourceAuditTest
 
     enableRequest(repositoryManager.getInstanceId(), repository.getPublicId(), false).post();
 
+    repository = new RepositoryDAO().getById(repository.getId());
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DISCONNECT_REPOSITORY, null);
     assertRepositoryData(auditDTO, repository);
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
@@ -76,7 +80,7 @@ public abstract class AbstractRepositoryResourceAuditTest
     enableRequest(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true).with(unauthorizedUser()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONNECT_REPOSITORY, "unauthorized");
-    assertRepositoryData(auditDTO, new Repository(null, REPOSITORY_PUBLIC_ID));
+    assertCustomData(auditDTO, "repositoryPublicId", REPOSITORY_PUBLIC_ID);
   }
 
   @Test
@@ -87,6 +91,7 @@ public abstract class AbstractRepositoryResourceAuditTest
     evaluateRequest(false, repositoryManager.getInstanceId(), repository.getPublicId(),
         new RepositoryComponentEvaluationDataRequestList()).post();
 
+    repository = new RepositoryDAO().getById(repository.getId());
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONNECT_REPOSITORY, null);
     assertRepositoryData(auditDTO, repository);
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
@@ -100,6 +105,7 @@ public abstract class AbstractRepositoryResourceAuditTest
     evaluateRequest(true, repositoryManager.getInstanceId(), repository.getPublicId(),
         new RepositoryComponentEvaluationDataRequestList()).post();
 
+    repository.setEnabled(true);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONNECT_REPOSITORY, null);
     assertRepositoryData(auditDTO, repository);
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
@@ -172,6 +178,7 @@ public abstract class AbstractRepositoryResourceAuditTest
 
     evaluateRequest(true, repositoryManager.getInstanceId(), repository.getPublicId(), repoComponentEvalList).post();
 
+    repository = new RepositoryDAO().getById(repository.getId());
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RETAIN_QUARANTINE, null, SYSTEM_USER);
     assertRepositoryData(auditDTO, repository);
     assertComponentData(auditDTO, repoComponentEvalList.components.get(0).hash,
@@ -201,6 +208,7 @@ public abstract class AbstractRepositoryResourceAuditTest
     evaluateRequest(false, repositoryManager.getInstanceId(), repository.getPublicId(), repoComponentEvalList(1))
         .post();
 
+    repository = new RepositoryDAO().getById(repository.getId());
     AuditDTO auditDTO = assertAuditLog(AuditEvent.RESET_QUARANTINE, null);
     assertRepositoryData(auditDTO, repository);
     assertComponentData(auditDTO, repositoryComponent.getHash(), repositoryComponent.getPathname());
@@ -339,6 +347,7 @@ public abstract class AbstractRepositoryResourceAuditTest
     evaluateRequest(true, repositoryManager.getInstanceId(), repository.getPublicId(),
         new RepositoryComponentEvaluationDataRequestList()).post();
 
+    repository = new RepositoryDAO().getById(repository.getId());
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_QUARANTINE, null);
     assertRepositoryData(auditDTO, repository);
     assertCustomData(auditDTO, "quarantine", "enabled");
@@ -370,6 +379,155 @@ public abstract class AbstractRepositoryResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_PROPRIETARY_COMPONENT_NAMES, "unauthorized");
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
     assertCustomData(auditDTO, "repositoryPublicId", REPOSITORY_PUBLIC_ID);
+  }
+
+  @Test
+  public void testConfigureRepositories_NewRepository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    List<RepositoryDTO> repositoryDTOs = new ArrayList<>();
+
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = "testRepoName";
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.proxy;
+    repositoryDTO.auditEnabled = true;
+    repositoryDTO.quarantineEnabled = true;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTOs.add(repositoryDTO);
+
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
+        .parameter(repositoryManager.getInstanceId()).body(repositoryDTOs).post();
+
+    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_REPOSITORY, 2, null /* error */);
+    for (AuditDTO auditDTO : auditDTOs) {
+      assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+      if (auditDTO.data.size() > 1) {
+        Repository repository = new RepositoryDAO()
+            .getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(), "testRepoName");
+        assertRepositoryData(auditDTO, repository);
+      }
+    }
+    assertThat(auditDTOs).hasSize(2);
+  }
+
+  @Test
+  public void testConfigureRepositories_ExistingRepository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
+
+    List<RepositoryDTO> repositoryDTOs = new ArrayList<>();
+
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = "testRepoName";
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.proxy;
+    repositoryDTO.auditEnabled = true;
+    repositoryDTO.quarantineEnabled = true;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTOs.add(repositoryDTO);
+
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
+        .parameter(repositoryManager.getInstanceId()).body(repositoryDTOs).post();
+
+    List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_REPOSITORY, 2, null /* error */);
+    for (AuditDTO auditDTO : auditDTOs) {
+      assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+      if (auditDTO.data.size() > 1) {
+        repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
+            "testRepoName");
+        assertRepositoryData(auditDTO, repository);
+      }
+    }
+    assertThat(auditDTOs).hasSize(2);
+  }
+
+  @Test
+  public void testConfigureRepositories_ExistingRepositoryWrongType() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
+
+    List<RepositoryDTO> repositoryDTOs = new ArrayList<>();
+
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = "testRepoName";
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.hosted;
+    repositoryDTO.auditEnabled = true;
+    repositoryDTO.quarantineEnabled = true;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTOs.add(repositoryDTO);
+
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
+        .parameter(repositoryManager.getInstanceId()).body(repositoryDTOs).post();
+
+    List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
+    for (AuditDTO auditDTO : auditDTOs) {
+      assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+      if (auditDTO.data.size() == 1) {
+        assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, null /* error */);
+      }
+      else {
+        assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, "Cannot change the type for repository.");
+        repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
+            "testRepoName");
+        assertRepositoryData(auditDTO, repository);
+      }
+    }
+    assertThat(auditDTOs).hasSize(2);
+  }
+
+  @Test
+  public void testConfigureRepositories_ExistingRepositoryWrongFormat() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
+    repository.setFormat("maven2");
+    new RepositoryDAO().update(repository);
+
+    List<RepositoryDTO> repositoryDTOs = new ArrayList<>();
+
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = "testRepoName";
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.proxy;
+    repositoryDTO.auditEnabled = true;
+    repositoryDTO.quarantineEnabled = true;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTOs.add(repositoryDTO);
+
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
+        .parameter(repositoryManager.getInstanceId()).body(repositoryDTOs).post();
+
+    List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
+    for (AuditDTO auditDTO : auditDTOs) {
+      assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+      if (auditDTO.data.size() == 1) {
+        assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, null /* error */);
+      }
+      else {
+        assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, "Cannot change the format for repository.");
+        repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
+            "testRepoName");
+        assertRepositoryData(auditDTO, repository);
+      }
+    }
+    assertThat(auditDTOs).hasSize(2);
+  }
+
+  @Test
+  public void testConfigureRepositories_Unauthorized() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
+        .parameter(repositoryManager.getInstanceId())
+        .with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY, "unauthorized");
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
   }
 
   private HttpRequest enableRequest(String repositoryManagerInstanceId, String repositoryPublicId, boolean enabled) {

@@ -235,7 +235,7 @@ public class ArtifactoryRepositoryResource
   @POST
   @Path(CONFIGURE_REPOSITORIES_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  // @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  @Audited(AuditEvent.CONFIGURE_REPOSITORY)
   @Timed
   public void configureRepositories(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,

@@ -174,12 +174,16 @@ public interface AuditTestSupport
   }
 
   default void assertRepositoryData(AuditDTO auditDTO, Repository repository) {
-    assertRepositoryData(auditDTO, repository.getId(), repository.getPublicId());
-  }
-
-  default void assertRepositoryData(AuditDTO auditDTO, String repositoryId, String repositoryPublicId) {
-    assertCustomData(auditDTO, "repositoryId", repositoryId);
-    assertCustomData(auditDTO, "repositoryPublicId", repositoryPublicId);
+    assertCustomData(auditDTO, "repositoryId", repository.getId());
+    assertCustomData(auditDTO, "repositoryPublicId", repository.getPublicId());
+    assertCustomData(auditDTO, "format", repository.getFormat());
+    assertCustomData(auditDTO, "type", repository.getRepositoryType().name());
+    assertCustomData(auditDTO, "auditEnabled", repository.isEnabled());
+    assertCustomData(auditDTO, "quarantineEnabled", repository.isQuarantineEnabled());
+    assertCustomData(auditDTO, "policyCompliantComponentSelectionEnabled",
+        repository.isPolicyCompliantComponentSelectionEnabled());
+    assertCustomData(auditDTO, "namespaceConfusionProtectionEnabled",
+        repository.isNamespaceConfusionProtectionEnabled());
   }
 
   default void assertRepositoryContainerData(AuditDTO auditDTO) {

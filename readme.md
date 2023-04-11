@@ -47,6 +47,7 @@ Please read our [contribution rules and guidelines](contributing.md).
 This project requires the following local installs:
 1. Java 8 (if you use a version of Maven that has a newer JDK, you'll want to point JAVA_HOME to your Java 8 install)
 2. Maven 3.6.x (note: it is possible newer versions may not work though 3.8.1 seems to work)
+3. npm and yarn (for the frontend; see [that readme](insight-brain-frontend/README.md) for more specific detail)
 
 Be sure to configure both Maven and npm to use repo.s.c (https://repo.sonatype.com) as the source for packages. You will need to use your own personal user credentials for repo.s.c (instructions for how to do this are included in the following Maven repo.s.c instructions):
 

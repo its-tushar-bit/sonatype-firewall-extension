@@ -156,7 +156,7 @@ export default function ReportContent() {
           </NxButton>
           <NxButton onClick={toggleShowFilter} variant="tertiary" id="filters-toggle-button">
             <NxFontAwesomeIcon icon={faFilter} />
-            Filter
+            <span>Filter</span>
           </NxButton>
         </div>
       </div>

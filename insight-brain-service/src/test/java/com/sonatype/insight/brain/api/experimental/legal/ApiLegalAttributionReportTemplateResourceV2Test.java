@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
-import java.util.List;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.DefaultApiLegalAttributionReportTemplateResourceV2;
@@ -65,11 +63,10 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     HttpResponse response =
         restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH).auth().get();
     assertResponseStatus(200, response);
-    List<AttributionReportTemplateDTO> result =
-        response.getBody(List.class);
+    AttributionReportTemplateDTO[] result = response.getBody(AttributionReportTemplateDTO[].class);
     assertThat(result).hasSize(2);
-    assertThat(result.toString()).contains(report.getDocumentTitle());
-    assertThat(result.toString()).contains(report2.getDocumentTitle());
+    assertThat(result).extracting(AttributionReportTemplateDTO::getDocumentTitle)
+        .containsExactlyInAnyOrder(report.getDocumentTitle(), report2.getDocumentTitle());
   }
 
   @Test
@@ -203,7 +200,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     assertThat(response.getBodyText()).isEmpty();
     response = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH).get();
     assertResponseStatus(200, response);
-    assertThat(response.getBody(List.class)).isEmpty();
+    assertThat(response.getBody(AttributionReportTemplateDTO[].class)).isEmpty();
   }
 
   @Test

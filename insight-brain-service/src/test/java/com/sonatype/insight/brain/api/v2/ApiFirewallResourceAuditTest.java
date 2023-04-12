@@ -50,7 +50,8 @@ public class ApiFirewallResourceAuditTest
     //when: setting firewall auto unquarantine config
     HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).body(list).put();
-    List<ApiFirewallReleaseQuarantineConfigDTO> dtos = response.getBody(List.class);
+    ApiFirewallReleaseQuarantineConfigDTO[] dtos = response.getBody(ApiFirewallReleaseQuarantineConfigDTO[].class);
+    assertResponseStatus(200, response);
 
     //then: expect returned dtos to be greater than zero
     assertThat(dtos).isNotNull().isNotEmpty();

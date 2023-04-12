@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.component;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,7 +34,10 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
-import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentCategory;
@@ -43,7 +47,7 @@ import com.sonatype.insight.brain.model.component.IntegrityRating;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCustomDetail;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCustomData;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -54,7 +58,10 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityResearchType;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -85,7 +92,16 @@ public class ComponentDAO
 
   private OwnerDAO ownerDAO = new OwnerDAO();
 
-  private VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
+  private final VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO =
+      new VulnerabilityCustomRemediationDAO();
+
+  private final VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = new VulnerabilityCustomCweDAO();
+
+  private final VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO =
+      new VulnerabilityCustomCvssVectorDAO();
+
+  private final VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
+      new VulnerabilityCustomCvssSeverityDAO();
 
   private final Owner owner;
 
@@ -100,6 +116,14 @@ public class ComponentDAO
   private Map<String, Collection<SecurityVulnerabilityOverride>> securityVulnerabilityOverridesByHash;
 
   private Map<String, Collection<ComponentLabel>> componentLabelsByHash;
+
+  private Map<SimpleEntry<String, ComponentIdentifier>, VulnerabilityCustomRemediation> customRemediations;
+
+  private Map<SimpleEntry<String, ComponentIdentifier>, VulnerabilityCustomCwe> customCwes;
+
+  private Map<SimpleEntry<String, ComponentIdentifier>, VulnerabilityCustomCvssVector> customCvssVectors;
+
+  private Map<SimpleEntry<String, ComponentIdentifier>, VulnerabilityCustomCvssSeverity> customCvssSeverities;
 
   public ComponentDAO(Owner owner) {
     this.owner = owner;
@@ -228,6 +252,49 @@ public class ComponentDAO
           break;
         }
       }
+    }
+  }
+
+  private void loadSecurityVulnerabilityCustomData() {
+    customRemediations = vulnerabilityCustomRemediationDAO.getByOwnerIdWithHierarchy(owner.getId());
+    customCwes = vulnerabilityCustomCweDAO.getByOwnerIdWithHierarchy(owner.getId());
+    customCvssVectors = vulnerabilityCustomCvssVectorDAO.getByOwnerIdWithHierarchy(owner.getId());
+    customCvssSeverities = vulnerabilityCustomCvssSeverityDAO.getByOwnerIdWithHierarchy(owner.getId());
+  }
+
+  private void fillSecurityVulnerabilityCustomData(Component component, SecurityVulnerability securityVulnerability) {
+    String refId = securityVulnerability.getRefId();
+    ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
+    SimpleEntry<String, ComponentIdentifier> entryWithComponent = new SimpleEntry<>(refId, componentIdentifier);
+    SimpleEntry<String, ComponentIdentifier> entryWithoutComponent = new SimpleEntry<>(refId, null);
+
+    VulnerabilityCustomRemediation customRemediation =
+        customRemediations.getOrDefault(entryWithComponent, customRemediations.get(entryWithoutComponent));
+
+    VulnerabilityCustomCwe customCwe =
+        customCwes.getOrDefault(entryWithComponent, customCwes.get(entryWithoutComponent));
+
+    VulnerabilityCustomCvssVector customCvssVector =
+        customCvssVectors.getOrDefault(entryWithComponent, customCvssVectors.get(entryWithoutComponent));
+
+    VulnerabilityCustomCvssSeverity customCvssSeverity =
+        customCvssSeverities.getOrDefault(entryWithComponent, customCvssSeverities.get(entryWithoutComponent));
+
+    if (customRemediation != null || customCwe != null || customCvssVector != null || customCvssSeverity != null) {
+      SecurityVulnerabilityCustomData customData = new SecurityVulnerabilityCustomData();
+      if (customRemediation != null) {
+        customData.setRemediation(customRemediation.getRemediation());
+      }
+      if (customCwe != null) {
+        customData.setCweId(customCwe.getCwe());
+      }
+      if (customCvssVector != null) {
+        customData.setCvssVector(customCvssVector.getVector());
+      }
+      if (customCvssSeverity != null) {
+        customData.setCvssSeverity(customCvssSeverity.getSeverity());
+      }
+      securityVulnerability.setSecurityVulnerabilityCustomData(customData);
     }
   }
 
@@ -437,9 +504,9 @@ public class ComponentDAO
     if (securityJson != null) {
       securityJson = securityJson.get("aaData");
       if (securityJson != null) {
+        loadSecurityVulnerabilityCustomData();
+
         final ArrayNode securityJsonArray = (ArrayNode) securityJson;
-        final Map<String, VulnerabilityCustomDetail> vulnerabilityCustomDetails =
-            vulnerabilityCustomDetailDAO.getByOwnerIdWithHierarchy(owner);
         for (int i = 0; i < securityJsonArray.size(); i++) {
           final JsonNode securityVulnerabilityJson = securityJsonArray.get(i);
           final String hash = securityVulnerabilityJson.get("hash").asText();
@@ -485,9 +552,8 @@ public class ComponentDAO
                 securityVulnerability.addAlias(alias);
               }
             }
-            VulnerabilityCustomDetail detailWithRefId = vulnerabilityCustomDetails.get(reference);
-            securityVulnerability.setVulnerabilityCustomDetail(
-                SecurityVulnerabilityCustomDetail.toSecurityVulnerabilityCustomDetail(detailWithRefId));
+
+            fillSecurityVulnerabilityCustomData(component, securityVulnerability);
             component.addSecurityVulnerability(securityVulnerability);
           }
         }

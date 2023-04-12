@@ -98,6 +98,16 @@
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.AbstractVulnerabilityCustomData</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.AbstractVulnerabilityCustomDataTag</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediationTag</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCweTag</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVectorTag</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverityTag</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

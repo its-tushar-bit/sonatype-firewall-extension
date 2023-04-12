@@ -23,7 +23,7 @@ export default function ApplicationReportRawData(props) {
     openVulnerabilityDetailsModal({
       vulnerabilityId: securityCode,
       componentIdentifier,
-      thirdPartyScanParameters: {
+      extraQueryParameters: {
         identificationSource: identificationSource || '',
         scanId,
         ownerId,

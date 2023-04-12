@@ -28,7 +28,9 @@ public class ConditionTypesTest
     assertThat(allConditionTypes).filteredOn(ConditionType::isEnabled).extracting(ConditionType::getId)
         .doesNotContain(HygieneRatingConditionType.ID)
         .doesNotContain(SecurityVulnerabilitySourceConditionType.ID)
-        .doesNotContain(IacControlConditionType.ID);
+        .doesNotContain(IacControlConditionType.ID)
+        .doesNotContain(SecurityVulnerabilityCustomRemediationConditionType.ID)
+        .doesNotContain(SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID);
   }
 
   @Test

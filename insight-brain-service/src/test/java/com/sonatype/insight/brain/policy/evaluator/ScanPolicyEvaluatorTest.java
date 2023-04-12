@@ -99,6 +99,7 @@ import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupCond
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.SecurityVulnerabilityResearch;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
@@ -1953,13 +1954,10 @@ public class ScanPolicyEvaluatorTest
         "sonatype-2007-0004", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
     VulnerabilityGroup vg = tempEntity.newVulnerabilityGroup("Test Group Name 1", Organization.ROOT_ORGANIZATION_ID);
     tempEntity.newVulnerabilityGroupVulnerability(vg.getId(), "sonatype-2007-0004");
-    tempEntity.newVulnerabilityCustomDetail(Organization.ROOT_ORGANIZATION_ID,
-        "sonatype-2007-0004",
-        8.0F,
-        "cvssVector",
-        "",
-        "",
-        "");
+    Tag tag = tempEntity.newTag(application.getOrganizationId());
+    tempEntity.newApplicationTag(application.getId(), tag.getId());
+    tempEntity.newVulnerabilityCustomData(application.getOrganizationId(), "sonatype-2007-0004", tag,
+        "custom remediation", "770", "cvss", 8.0F);
 
     Condition ageCondition = new Condition(AgeInDaysConditionType.ID, "older than", "1");
     Condition coordinatesCondition = new Condition(CoordinatesConditionType.ID, "match", "maven:*:*:*:*:*");
@@ -2009,6 +2007,8 @@ public class ScanPolicyEvaluatorTest
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
+    ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilityCustomCVSSVectorStringConditionType);
+    ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilityCustomRemediationConditionType);
     try {
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
           .filter(id -> !ProprietaryNameConflictConditionType.ID.equals(id))
@@ -2034,6 +2034,8 @@ public class ScanPolicyEvaluatorTest
       ConditionTypes.disableConditionType(ConditionTypes.HygieneRatingConditionType);
       ConditionTypes.disableConditionType(ConditionTypes.IntegrityRatingConditionType);
       ConditionTypes.disableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
+      ConditionTypes.disableConditionType(ConditionTypes.SecurityVulnerabilityCustomCVSSVectorStringConditionType);
+      ConditionTypes.disableConditionType(ConditionTypes.SecurityVulnerabilityCustomRemediationConditionType);
     }
   }
 

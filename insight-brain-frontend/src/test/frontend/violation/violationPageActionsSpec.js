@@ -37,6 +37,11 @@ describe('violationActions', function () {
       permissionContextTestUrl = getPermissionContextTestUrl('application', 'applicationPrivateId');
       applicationSummaryUrl = getApplicationSummaryUrl('applicationPublicId');
       state = {
+        router: {
+          currentParams: {
+            publicId: 'appPublicId',
+          },
+        },
         violation: {
           violationDetails: {
             policyViolationId: 'baz',
@@ -277,6 +282,10 @@ describe('violationActions', function () {
 
     describe('when violation has a security vulnerability reference', function () {
       let violationDetailsResponseData;
+      const extraQueryParameters = {
+        ownerType: 'application',
+        ownerId: 'appPublicId',
+      };
       beforeEach(function () {
         violationDetailsResponseData = {
           constraintViolations: [
@@ -308,7 +317,9 @@ describe('violationActions', function () {
             [getApplicableWaiversUrl('foo')]: Promise.resolve({
               data: { activeWaivers: [], expiredWaivers: [] },
             }),
-            [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.resolve({ data: vulnerabilityResponseData }),
+            [getVulnerabilityJsonDetailUrl('CVE-2016-1000027', null, extraQueryParameters)]: Promise.resolve({
+              data: vulnerabilityResponseData,
+            }),
             [applicationSummaryUrl]: Promise.resolve({
               data: { id: 'applicationPrivateId' },
             }),
@@ -344,7 +355,8 @@ describe('violationActions', function () {
             [getApplicableWaiversUrl('foo')]: Promise.resolve({
               data: { activeWaivers: [], expiredWaivers: [] },
             }),
-            [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: () => Promise.reject(vulnerabilityResponseError),
+            [getVulnerabilityJsonDetailUrl('CVE-2016-1000027', null, extraQueryParameters)]: () =>
+              Promise.reject(vulnerabilityResponseError),
             [applicationSummaryUrl]: Promise.resolve({
               data: { id: 'applicationPrivateId' },
             }),
@@ -373,10 +385,18 @@ describe('violationActions', function () {
   describe('loadVulnerabilityDetails', function () {
     let store;
 
-    const expectedUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', 'foo : bar : 1.0');
+    const expectedUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', 'foo : bar : 1.0', {
+      ownerType: 'application',
+      ownerId: 'appPublicId',
+    });
 
     beforeEach(function () {
       const state = {
+        router: {
+          currentParams: {
+            publicId: 'appPublicId',
+          },
+        },
         violation: {
           violationDetails: {
             policyViolationId: 'bar',

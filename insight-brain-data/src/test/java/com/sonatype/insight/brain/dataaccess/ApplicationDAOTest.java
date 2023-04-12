@@ -40,6 +40,10 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequ
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
@@ -75,6 +79,10 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -1160,5 +1168,83 @@ public class ApplicationDAOTest
     assertThat(sourceControlPullRequestResultDAO.getAll())
         .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
         .containsExactly(entity);
+  }
+
+  @Test
+  public void testDelete_CascadeToVulnerabilityCustomRemediation() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
+        tempEntity.newTag(organization.getId()), "rem2",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO = new VulnerabilityCustomRemediationDAO();
+    List<VulnerabilityCustomRemediation> vulnerabilityCustomRemediationList =
+        vulnerabilityCustomRemediationDAO.getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomRemediationList).extracting(VulnerabilityCustomRemediation::getRefId)
+        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
+    applicationDAO.delete(application);
+    vulnerabilityCustomRemediationList =
+        new VulnerabilityCustomRemediationDAO().getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomRemediationList).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToVulnerabilityCustomCwe() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = new VulnerabilityCustomCweDAO();
+    List<VulnerabilityCustomCwe> vulnerabilityCustomCweList = vulnerabilityCustomCweDAO
+        .getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomCweList).extracting(VulnerabilityCustomCwe::getRefId)
+        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
+    applicationDAO.delete(application);
+    assertThat(vulnerabilityCustomCweDAO.getByOwnerId(application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToCVSSVector() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO = new VulnerabilityCustomCvssVectorDAO();
+    List<VulnerabilityCustomCvssVector> vulnerabilityCustomCvssVectorList =
+        vulnerabilityCustomCvssVectorDAO.getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomCvssVectorList).extracting(VulnerabilityCustomCvssVector::getRefId)
+        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
+    applicationDAO.delete(application);
+    assertThat(vulnerabilityCustomCvssVectorDAO.getByOwnerId(application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToCVSSSeverity() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-1234",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(application.getId(), "CVE-2022-4321",
+        tempEntity.newTag(organization.getId()), "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO = new VulnerabilityCustomCvssSeverityDAO();
+    List<VulnerabilityCustomCvssSeverity> vulnerabilityCustomCvssSeverityList =
+        vulnerabilityCustomCvssSeverityDAO.getByOwnerId(application.getId());
+    assertThat(vulnerabilityCustomCvssSeverityList).extracting(VulnerabilityCustomCvssSeverity::getRefId)
+        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
+    applicationDAO.delete(application);
+    assertThat(vulnerabilityCustomCvssSeverityDAO.getByOwnerId(application.getId())).isEmpty();
   }
 }

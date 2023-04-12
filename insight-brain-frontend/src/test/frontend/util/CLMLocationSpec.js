@@ -148,13 +148,13 @@ describe('CLMLocation.js', function () {
   }
 
   describe('getVulnerabilityJsonDetailUrl', function () {
-    let mockRefId, mockComponentIdentifier, mockThirdPartyScanParameters;
+    let mockRefId, mockComponentIdentifier, mockExtraQueryParameters;
 
     beforeEach(function () {
       urlUtil._setBaseUrlForTesting('http://localhost');
       mockRefId = 'refId';
       mockComponentIdentifier = { coordinates: 'a-coordinate' };
-      mockThirdPartyScanParameters = {
+      mockExtraQueryParameters = {
         identificationSource: 'CLAIR',
         scanId: 'bf5f6cf419',
         ownerId: 'appId',
@@ -182,7 +182,7 @@ describe('CLMLocation.js', function () {
       expect(actualUrl).toEqual(expectedUrl);
     });
 
-    it('returns URL to get the vulnerability details when componentIdentifier and thirdPartyScanParameters are passed', function () {
+    it('returns URL to get the vulnerability details when componentIdentifier and extraQueryParameters are passed', function () {
       const expectedUrl =
         'http://localhost/api/v2/vulnerabilities/refId' +
         '?componentIdentifier=%7B%22coordinates%22%3A%22a-coordinate%22%7D&identificationSource=CLAIR' +
@@ -190,7 +190,7 @@ describe('CLMLocation.js', function () {
       const actualUrl = CLMLocation.getVulnerabilityJsonDetailUrl(
         mockRefId,
         mockComponentIdentifier,
-        mockThirdPartyScanParameters
+        mockExtraQueryParameters
       );
       expect(actualUrl).toEqual(expectedUrl);
     });
@@ -1062,36 +1062,142 @@ describe('CLMLocation.js', function () {
     });
   });
 
-  describe('getVulnerabilityCustomizeUrl', () => {
-    it('should return a URL to customize a vulnerability', () => {
-      expect(CLMLocation.getVulnerabilityCustomizeUrl('application', 'testId')).toBe(
-        '/api/experimental/vulnerability/customDetail/application/testId'
-      );
-    });
-  });
-
-  describe('getVulnerabilityCustomizeIdUrl', () => {
-    it('should return a URL get a customized vulnerability by ID', () => {
-      expect(CLMLocation.getVulnerabilityCustomizeIdUrl('application', 'testId', 'someId')).toBe(
-        '/api/experimental/vulnerability/customDetail/application/testId/someId'
-      );
-    });
-  });
-
-  describe('getApplicableVulnerabilityCustomizeUrl', () => {
-    it('should return a URL get the applicable customized vulnerability by owner without component identifier', () => {
-      expect(CLMLocation.getApplicableVulnerabilityCustomizeUrl('application', 'testId', 'CVE-123')).toBe(
-        '/api/experimental/vulnerability/customDetail/application/testId/refId/CVE-123'
+  describe('getVulnerabilityCustomRemediationRefIdUrl', () => {
+    it('should return a URL to customize the remediation of a vulnerability without component identifier', () => {
+      expect(CLMLocation.getVulnerabilityCustomRemediationRefIdUrl('application', 'testId', 'CVE-123')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/remediation/refId/CVE-123'
       );
     });
 
-    it('should return a URL get the applicable customized vulnerability by owner with component identifier', () => {
+    it('should return a URL to customize the remediation of a vulnerability with component identifier', () => {
       const componentIdentifier = '{"coordinates": "name"}';
       expect(
-        CLMLocation.getApplicableVulnerabilityCustomizeUrl('application', 'testId', 'CVE-123', componentIdentifier)
+        CLMLocation.getVulnerabilityCustomRemediationRefIdUrl('application', 'testId', 'CVE-123', componentIdentifier)
       ).toBe(
-        '/api/experimental/vulnerability/customDetail/application/testId/refId/CVE-123?componentIdentifier=' +
+        '/api/experimental/vulnerability/customData/application/testId/remediation/refId/CVE-123' +
+          '?componentIdentifier=' +
           componentIdentifier
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomRemediationUrl', () => {
+    it('should return a URL to get the custom remediation of a vulnerability by scope', () => {
+      expect(CLMLocation.getVulnerabilityCustomRemediationUrl('application', 'testId')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/remediation'
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomRemediationIdUrl', () => {
+    it('should return a URL to get the custom remediation of a vulnerability by ID', () => {
+      expect(CLMLocation.getVulnerabilityCustomRemediationIdUrl('application', 'testId', 'some-id')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/remediation/some-id'
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomCweRefIdUrl', () => {
+    it('should return a URL to customize the cwe of a vulnerability without component identifier', () => {
+      expect(CLMLocation.getVulnerabilityCustomCweRefIdUrl('application', 'testId', 'CVE-123')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cwe/refId/CVE-123'
+      );
+    });
+
+    it('should return a URL to customize the cwe of a vulnerability with component identifier', () => {
+      const componentIdentifier = '{"coordinates": "name"}';
+      expect(
+        CLMLocation.getVulnerabilityCustomCweRefIdUrl('application', 'testId', 'CVE-123', componentIdentifier)
+      ).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cwe/refId/CVE-123' +
+          '?componentIdentifier=' +
+          componentIdentifier
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomCweUrl', () => {
+    it('should return a URL to get the custom cwe of a vulnerability by scope', () => {
+      expect(CLMLocation.getVulnerabilityCustomCweUrl('application', 'testId')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cwe'
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomCweIdUrl', () => {
+    it('should return a URL to get the custom cwe of a vulnerability by ID', () => {
+      expect(CLMLocation.getVulnerabilityCustomCweIdUrl('application', 'testId', 'some-id')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cwe/some-id'
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomCvssVectorRefIdUrl', () => {
+    it('should return a URL to customize the CVSS vector of a vulnerability without component identifier', () => {
+      expect(CLMLocation.getVulnerabilityCustomCvssVectorRefIdUrl('application', 'testId', 'CVE-123')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cvss/vector/refId/CVE-123'
+      );
+    });
+
+    it('should return a URL to customize the CVSS vector of a vulnerability with component identifier', () => {
+      const componentIdentifier = '{"coordinates": "name"}';
+      expect(
+        CLMLocation.getVulnerabilityCustomCvssVectorRefIdUrl('application', 'testId', 'CVE-123', componentIdentifier)
+      ).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cvss/vector/refId/CVE-123' +
+          '?componentIdentifier=' +
+          componentIdentifier
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomCvssVectorUrl', () => {
+    it('should return a URL to get the custom CVSS vector of a vulnerability by scope', () => {
+      expect(CLMLocation.getVulnerabilityCustomCvssVectorUrl('application', 'testId')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cvss/vector'
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomCvssVectorIdUrl', () => {
+    it('should return a URL to get the custom CVSS vector of a vulnerability by ID', () => {
+      expect(CLMLocation.getVulnerabilityCustomCvssVectorIdUrl('application', 'testId', 'some-id')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cvss/vector/some-id'
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomCvssSeverityRefIdUrl', () => {
+    it('should return a URL to customize the CVSS severity of a vulnerability without component identifier', () => {
+      expect(CLMLocation.getVulnerabilityCustomCvssSeverityRefIdUrl('application', 'testId', 'CVE-123')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cvss/severity/refId/CVE-123'
+      );
+    });
+
+    it('should return a URL to customize the CVSS severity of a vulnerability with component identifier', () => {
+      const componentIdentifier = '{"coordinates": "name"}';
+      expect(
+        CLMLocation.getVulnerabilityCustomCvssSeverityRefIdUrl('application', 'testId', 'CVE-123', componentIdentifier)
+      ).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cvss/severity/refId/CVE-123' +
+          '?componentIdentifier=' +
+          componentIdentifier
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomCvssSeverityUrl', () => {
+    it('should return a URL to get the custom CVSS severity of a vulnerability by scope', () => {
+      expect(CLMLocation.getVulnerabilityCustomCvssSeverityUrl('application', 'testId')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cvss/severity'
+      );
+    });
+  });
+
+  describe('getVulnerabilityCustomCvssSeverityIdUrl', () => {
+    it('should return a URL to get the custom CVSS severity of a vulnerability by ID', () => {
+      expect(CLMLocation.getVulnerabilityCustomCvssSeverityIdUrl('application', 'testId', 'some-id')).toBe(
+        '/api/experimental/vulnerability/customData/application/testId/cvss/severity/some-id'
       );
     });
   });

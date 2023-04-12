@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -19,11 +20,13 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCustomData;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -285,5 +288,56 @@ public class ComponentDAOTest
     JsonNode jsonNode = JsonUtils.asTree(componentDisplayName);
 
     assertThat(JsonUtils.getTypeToString(jsonNode, ComponentDisplayName.class)).isEqualTo("value1,value2");
+  }
+
+  @Test
+  public void testGetAll_WithSecurityVulnerabilityCustom() throws Exception {
+    String hash = "abc123";
+    String refId = "CVE-123";
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode bom = objectMapper.createObjectNode();
+    ArrayNode aaData = objectMapper.createArrayNode();
+    ObjectNode component = objectMapper.createObjectNode();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    component.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier));
+    component.put("hash", hash);
+    component.put("matchState", MatchState.EXACT.getId());
+    component.set("displayName",
+        objectMapper.valueToTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier)));
+    component.put("proprietary", false);
+    component.put("relativePopularity", 100.0);
+    component.put("createTime", System.currentTimeMillis());
+    aaData.add(objectMapper.valueToTree(component));
+    bom.set("aaData", aaData);
+
+    ObjectNode securityData = objectMapper.createObjectNode();
+    ArrayNode aaDataSecurityData = objectMapper.createArrayNode();
+    ObjectNode securityVulnerability = objectMapper.createObjectNode();
+    securityVulnerability.put("hash", hash);
+    securityVulnerability.put("source", "test");
+    securityVulnerability.put("reference", refId);
+    aaDataSecurityData.add(securityVulnerability);
+    securityData.set("aaData", aaDataSecurityData);
+
+    Tag tag = tempEntity.newTag(application.getOrganizationId());
+    tempEntity.newApplicationTag(application.getId(), tag.getId());
+    tempEntity.newVulnerabilityCustomData(application.getOrganizationId(), refId, tag, "custom-remediation", "123",
+        "custom/vector", 4.4f);
+
+    List<Component> components = new ComponentDAO(application).getAll(null, false,
+        objectMapper.writeValueAsBytes(securityData), objectMapper.writeValueAsBytes(bom), null);
+
+    assertThat(components).hasSize(1);
+    assertThat(components.get(0).getSecurityVulnerabilities()).hasSize(1);
+
+    SecurityVulnerability securityVulnerabilityResult = components.get(0).getSecurityVulnerabilities().get(0);
+    assertThat(securityVulnerabilityResult.getRefId()).isEqualTo(refId);
+
+    SecurityVulnerabilityCustomData customData = securityVulnerabilityResult.getSecurityVulnerabilityCustomData();
+    assertThat(customData).isNotNull();
+    assertThat(customData.getRemediation()).isEqualTo("custom-remediation");
+    assertThat(customData.getCweId()).isEqualTo("123");
+    assertThat(customData.getCvssVector()).isEqualTo("custom/vector");
+    assertThat(customData.getCvssSeverity()).isEqualTo(4.4f);
   }
 }

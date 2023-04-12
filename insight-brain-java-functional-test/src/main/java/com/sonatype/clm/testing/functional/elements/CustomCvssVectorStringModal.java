@@ -13,13 +13,14 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
-public class CustomCVSSVectorStringSeverityModal extends BasicElement<RemediationModal>
+public class CustomCvssVectorStringModal
+    extends BasicElement<CustomCvssVectorStringModal>
 {
   private static final String ROOT = "#custom-cvss-vector-modal";
 
-  private static final String SCOPE_SELECT = "#cvss-scope";
+  private static final String SCOPE_SELECT = "#cvss-vector-string-scope";
 
-  public CustomCVSSVectorStringSeverityModal() {
+  public CustomCvssVectorStringModal() {
     super(ROOT);
   }
 
@@ -43,12 +44,8 @@ public class CustomCVSSVectorStringSeverityModal extends BasicElement<Remediatio
     return $(ROOT + " #cvss-vector-string input");
   }
 
-  public static SelenideElement customCvssSeverity() {
-    return $(ROOT + " #cvss-severity input");
-  }
-
   public static SelenideElement comment() {
-    return $(ROOT + " #cvss-audit-comment textarea");
+    return $(ROOT + " #cvss-vector-string-audit-comment textarea");
   }
 
   public static Button cancelButton() {

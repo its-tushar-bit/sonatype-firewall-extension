@@ -9,6 +9,7 @@ import axios from 'axios';
 import { always, invertObj } from 'ramda';
 
 import { pathSet } from 'MainRoot/util/jsUtil';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getVulnerabilitiesUrl,
   getVulnerabilityJsonDetailUrl,
@@ -93,10 +94,19 @@ const loadVulnerabilityDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilityDetails`,
   (_, { getState, rejectWithValue }) => {
     const componentIdentifier = selectSelectedComponent(getState())?.componentIdentifier;
+    const { publicId } = selectRouterCurrentParams(getState());
     const { ownerId, hash, isRepositoryComponent } = selectRouteParamsFromSecurityTab(getState());
     const vulnerability = selectSelectedVulnerability(getState());
+    const extraQueryParameters = {
+      ownerType: 'application',
+      ownerId: publicId,
+    };
 
-    const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(vulnerability.refId, componentIdentifier);
+    const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
+      vulnerability.refId,
+      componentIdentifier,
+      extraQueryParameters
+    );
     const vulnerabilityOverideUrl = getVulnerabilityOverrideUrl(
       isRepositoryComponent ? 'repository' : 'application',
       ownerId,

@@ -23,7 +23,11 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -40,7 +44,11 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -272,6 +280,34 @@ public class OwnerDAO
     for (VulnerabilityCustomDetail vulnerabilityCustomDetail :
         vulnerabilityCustomDetailDAO.getByOwnerId(tx, owner.getId())) {
       vulnerabilityCustomDetailDAO.delete(tx, vulnerabilityCustomDetail);
+    }
+
+    // Cascade to vulnerability custom remediation
+    VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO = new VulnerabilityCustomRemediationDAO();
+    for (VulnerabilityCustomRemediation vulnerabilityCustomRemediation : vulnerabilityCustomRemediationDAO
+        .getByOwnerId(tx, owner.getId())) {
+      vulnerabilityCustomRemediationDAO.delete(tx, vulnerabilityCustomRemediation);
+    }
+
+    // Cascade to vulnerability custom CWE
+    VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = new VulnerabilityCustomCweDAO();
+    for (VulnerabilityCustomCwe vulnerabilityCustomCwe : vulnerabilityCustomCweDAO.getByOwnerId(tx, owner.getId())) {
+      vulnerabilityCustomCweDAO.delete(tx, vulnerabilityCustomCwe);
+    }
+
+    // Cascade to vulnerability custom CVSS vector data
+    VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssDAO = new VulnerabilityCustomCvssVectorDAO();
+    for (VulnerabilityCustomCvssVector vulnerabilityCustomCvss : vulnerabilityCustomCvssDAO.getByOwnerId(tx,
+        owner.getId())) {
+      vulnerabilityCustomCvssDAO.delete(tx, vulnerabilityCustomCvss);
+    }
+
+    // Cascade to vulnerability custom CVSS severity data
+    VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO = new VulnerabilityCustomCvssSeverityDAO();
+    for (VulnerabilityCustomCvssSeverity vulnerabilityCustomCvssSeverity :
+        vulnerabilityCustomCvssSeverityDAO.getByOwnerId(tx,
+        owner.getId())) {
+      vulnerabilityCustomCvssSeverityDAO.delete(tx, vulnerabilityCustomCvssSeverity);
     }
   }
 

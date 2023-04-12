@@ -13,18 +13,23 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
-public class RemediationModal extends BasicElement<RemediationModal>
+public class CustomCvssSeverityModal
+    extends BasicElement<CustomCvssSeverityModal>
 {
-  private static final String ROOT = "#custom-remediation-modal";
+  private static final String ROOT = "#custom-cvss-severity-modal";
 
-  private static final String SCOPE_SELECT = "#remediation-scope";
+  private static final String SCOPE_SELECT = "#cvss-severity-scope";
 
-  public RemediationModal() {
+  public CustomCvssSeverityModal() {
     super(ROOT);
   }
 
   public static ElementsCollection scopes() {
     return $$(ROOT + " " + SCOPE_SELECT + " .nx-form-select__select option");
+  }
+
+  public SelenideElement scopeSelect() {
+    return child(SCOPE_SELECT + " .nx-form-select__select");
   }
 
   public static ElementsCollection categories() {
@@ -35,12 +40,12 @@ public class RemediationModal extends BasicElement<RemediationModal>
     return $("dialog header h2");
   }
 
-  public static SelenideElement remediationMessage() {
-    return $(ROOT + " #remediation-message textarea");
+  public static SelenideElement customCvssSeverity() {
+    return $(ROOT + " #cvss-severity input");
   }
 
   public static SelenideElement comment() {
-    return $(ROOT + " #remediation-audit-comment textarea");
+    return $(ROOT + " #cvss-severity-audit-comment textarea");
   }
 
   public static Button cancelButton() {

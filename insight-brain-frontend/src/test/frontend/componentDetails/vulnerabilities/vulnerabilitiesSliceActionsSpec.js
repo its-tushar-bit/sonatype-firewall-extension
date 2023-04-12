@@ -289,8 +289,18 @@ describe('vulnerabilitiesSliceActions', () => {
       identifier: 'CVE-2014-3625',
       description: 'Directory traversal vulnerability',
       categories: ['data', 'operational'],
+      customData: {
+        remediation: 'remediation',
+        cweId: '111',
+        cvssVector: '222',
+        cvssSeverity: 3.3,
+      },
     };
     const comment = 'hi, this is a comment';
+    const extraQueryParameters = {
+      ownerType: 'application',
+      ownerId: 'appPublicId',
+    };
     beforeEach(() => {
       spyOn(vulnerabilitiesSelectors, 'selectVulnerabityRefId').and.returnValue('2');
       spyOn(applicationReportSelectors, 'selectSelectedComponent').and.returnValue({
@@ -305,7 +315,11 @@ describe('vulnerabilitiesSliceActions', () => {
         state.router.currentParams.hash,
         vulnerabilityObj
       );
-      const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier);
+      const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
+        '2',
+        expectedComponentIdentifier,
+        extraQueryParameters
+      );
       mockAxiosCalls({
         get: {
           [vulnerabilityJsonDetailUrl]: Promise.resolve({
@@ -343,6 +357,7 @@ describe('vulnerabilitiesSliceActions', () => {
         router: {
           ...state.router,
           currentParams: {
+            publicId: 'appPublicId',
             repositoryId: 'repositoryId',
             componentHash: 'componentHash',
           },
@@ -355,7 +370,11 @@ describe('vulnerabilitiesSliceActions', () => {
         customState.router.currentParams.componentHash,
         vulnerabilityObj
       );
-      const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier);
+      const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
+        '2',
+        expectedComponentIdentifier,
+        extraQueryParameters
+      );
       mockAxiosCalls({
         get: {
           [vulnerabilityJsonDetailUrl]: Promise.resolve({
@@ -390,7 +409,8 @@ describe('vulnerabilitiesSliceActions', () => {
     it('dispatches componentDetailsVulnerabilities/loadVulnerabilityDetails/rejected action', (done) => {
       mockAxiosCalls({
         get: {
-          [getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier)]: () => Promise.reject('some error'),
+          [getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier, extraQueryParameters)]: () =>
+            Promise.reject('some error'),
         },
       });
 

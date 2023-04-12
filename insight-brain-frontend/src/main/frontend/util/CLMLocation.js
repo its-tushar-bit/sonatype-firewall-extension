@@ -14,16 +14,17 @@ import { toURIParams, uriTemplate } from './urlUtil';
  * @param {string} refId refId of the vulnerability whose details are wanted
  * @param {object} componentIdentifier the coordinates of the component where the vulnerability was found.
  * This parameter is _optional_ but providing it will yield results in the scope of the given component.
- * @param {object} thirdPartyScanParameters optional. A set of parameters related to the third-party scans.
- * It is an object of shape `{identificationSource, ownerId, ownerType, scanId}`. If provided it will
- * save one request to HDS and instead will search directly in the third-party vulnerabilities table.
+ * @param {object} extraQueryParameters optional. A set of query parameters to add.
+ * It is an object of shape `{identificationSource, ownerId, ownerType, scanId}`. Depending on the
+ * value for `identificationSource` it will save one request to HDS and instead will search directly in
+ * the third-party vulnerabilities table.
  */
-export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters = {}) {
+export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, extraQueryParameters = {}) {
   const urlWithPath = uriTemplate`/api/v2/vulnerabilities/${refId}`;
 
   const params = toURIParams({
     componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier),
-    ...thirdPartyScanParameters,
+    ...extraQueryParameters,
   });
 
   if (params.length > 0) {
@@ -633,17 +634,69 @@ export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier, legalFil
     ?componentIdentifier=${JSON.stringify(componentIdentifier)}&legalFileType=${legalFileType}`;
 }
 
-export function getVulnerabilityCustomizeUrl(ownerType, ownerId) {
-  return uriTemplate`/api/experimental/vulnerability/customDetail/${ownerType}/${ownerId}`;
+function getVulnerabilityCustomDataUrl(ownerType, ownerId) {
+  return uriTemplate`/api/experimental/vulnerability/customData/${ownerType}/${ownerId}`;
 }
 
-export function getVulnerabilityCustomizeIdUrl(ownerType, ownerId, vulnerabilityId) {
-  return `${getVulnerabilityCustomizeUrl(ownerType, ownerId)}/${vulnerabilityId}`;
+function getVulnerabilityCustomDataFieldUrl(field, ownerType, ownerId) {
+  return `${getVulnerabilityCustomDataUrl(ownerType, ownerId)}/${field}`;
 }
 
-export function getApplicableVulnerabilityCustomizeUrl(ownerType, ownerId, refId, componentIdentifier) {
+function getVulnerabilityCustomDataFieldIdUrl(field, ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataUrl(ownerType, ownerId)}/${field}/${id}`;
+}
+
+function getVulnerabilityCustomDataFieldRefIdUrl(field, ownerType, ownerId, refId, componentIdentifier) {
   const componentIdentifierParam = componentIdentifier ? `?componentIdentifier=${componentIdentifier}` : '';
-  return `${getVulnerabilityCustomizeUrl(ownerType, ownerId)}/refId/${refId}${componentIdentifierParam}`;
+  return `${getVulnerabilityCustomDataFieldUrl(field, ownerType, ownerId)}/refId/${refId}${componentIdentifierParam}`;
+}
+
+export function getVulnerabilityCustomRemediationRefIdUrl(ownerType, ownerId, refId, componentIdentifier) {
+  return getVulnerabilityCustomDataFieldRefIdUrl('remediation', ownerType, ownerId, refId, componentIdentifier);
+}
+
+export function getVulnerabilityCustomRemediationUrl(ownerType, ownerId) {
+  return getVulnerabilityCustomDataFieldUrl('remediation', ownerType, ownerId);
+}
+
+export function getVulnerabilityCustomRemediationIdUrl(ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataFieldIdUrl('remediation', ownerType, ownerId, id)}`;
+}
+
+export function getVulnerabilityCustomCweRefIdUrl(ownerType, ownerId, refId, componentIdentifier) {
+  return getVulnerabilityCustomDataFieldRefIdUrl('cwe', ownerType, ownerId, refId, componentIdentifier);
+}
+
+export function getVulnerabilityCustomCweUrl(ownerType, ownerId) {
+  return getVulnerabilityCustomDataFieldUrl('cwe', ownerType, ownerId);
+}
+
+export function getVulnerabilityCustomCweIdUrl(ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataFieldIdUrl('cwe', ownerType, ownerId, id)}`;
+}
+
+export function getVulnerabilityCustomCvssVectorRefIdUrl(ownerType, ownerId, refId, componentIdentifier) {
+  return getVulnerabilityCustomDataFieldRefIdUrl('cvss/vector', ownerType, ownerId, refId, componentIdentifier);
+}
+
+export function getVulnerabilityCustomCvssVectorUrl(ownerType, ownerId) {
+  return getVulnerabilityCustomDataFieldUrl('cvss/vector', ownerType, ownerId);
+}
+
+export function getVulnerabilityCustomCvssVectorIdUrl(ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataFieldIdUrl('cvss/vector', ownerType, ownerId, id)}`;
+}
+
+export function getVulnerabilityCustomCvssSeverityRefIdUrl(ownerType, ownerId, refId, componentIdentifier) {
+  return getVulnerabilityCustomDataFieldRefIdUrl('cvss/severity', ownerType, ownerId, refId, componentIdentifier);
+}
+
+export function getVulnerabilityCustomCvssSeverityUrl(ownerType, ownerId) {
+  return getVulnerabilityCustomDataFieldUrl('cvss/severity', ownerType, ownerId);
+}
+
+export function getVulnerabilityCustomCvssSeverityIdUrl(ownerType, ownerId, id) {
+  return `${getVulnerabilityCustomDataFieldIdUrl('cvss/severity', ownerType, ownerId, id)}`;
 }
 
 export function getPoliciesUrl() {

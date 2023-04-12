@@ -14,7 +14,11 @@ import java.util.Map;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityTagDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -25,7 +29,11 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverityTag;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVectorTag;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCweTag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -234,6 +242,37 @@ public class TagDAO
         tag.getId())) {
       vulnerabilityCustomDetailDAO.delete(tx, vulnerabilityCustomDetail);
     }
+
+    // Cascade to vulnerability custom remediation tags
+    VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO =
+        new VulnerabilityCustomRemediationTagDAO();
+    for (VulnerabilityCustomRemediationTag vulnerabilityCustomRemediationTag : vulnerabilityCustomRemediationTagDAO
+        .getByTagId(tx, tag.getId())) {
+      vulnerabilityCustomRemediationTagDAO.delete(tx, vulnerabilityCustomRemediationTag);
+    }
+
+    // Cascade to vulnerability custom CWE tags
+    VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO = new VulnerabilityCustomCweTagDAO();
+    for (VulnerabilityCustomCweTag vulnerabilityCustomCweTag : vulnerabilityCustomCweTagDAO.getByTagId(tx,
+        tag.getId())) {
+      vulnerabilityCustomCweTagDAO.delete(tx, vulnerabilityCustomCweTag);
+    }
+
+    // Cascade to vulnerability custom CVSS vector tags
+    VulnerabilityCustomCvssVectorTagDAO vulnerabilityCustomCvssVectorTagDAO = new VulnerabilityCustomCvssVectorTagDAO();
+    for (VulnerabilityCustomCvssVectorTag vulnerabilityCustomCvssVectorTag : vulnerabilityCustomCvssVectorTagDAO
+        .getByTagId(tx, tag.getId())) {
+      vulnerabilityCustomCvssVectorTagDAO.delete(tx, vulnerabilityCustomCvssVectorTag);
+    }
+
+    // Cascade to vulnerability custom CVSS severity tags
+    VulnerabilityCustomCvssSeverityTagDAO vulnerabilityCustomCvssSeverityTagDAO =
+        new VulnerabilityCustomCvssSeverityTagDAO();
+    for (VulnerabilityCustomCvssSeverityTag vulnerabilityCustomCvssSeverityTag : vulnerabilityCustomCvssSeverityTagDAO
+        .getByTagId(tx, tag.getId())) {
+      vulnerabilityCustomCvssSeverityTagDAO.delete(tx, vulnerabilityCustomCvssSeverityTag);
+    }
+
     super.delete(tx, tag);
   }
 

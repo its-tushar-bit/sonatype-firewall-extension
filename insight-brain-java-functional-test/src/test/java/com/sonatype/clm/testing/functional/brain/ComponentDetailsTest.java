@@ -785,6 +785,8 @@ public class ComponentDetailsTest
   @Test
   public void testSecurityTab_vulnerabilityDetailsPopover() {
     mockHdsResponsesForVulnerabilityDetails();
+    tempEntity.newVulnerabilityCustomData(app.getId(), "CVE-1234-56789", null, "Test remediation", "123", "test/vector",
+        8.0F);
 
     refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
@@ -801,17 +803,26 @@ public class ComponentDetailsTest
     vulnerabilityDetailsPopover.popoverTitle().shouldHave(text("Vulnerability Details"));
     vulnerabilityDetailsPopover.vulnerabilityTitle().shouldHave(text("CVE-1234-56789"));
 
+    SelenideElement customRemediationContent = vulnerabilityDetailsPopover.getCustomRemediationSection();
+    customRemediationContent.shouldHave(text("Test remediation"));
+
     SelenideElement issueContent = vulnerabilityDetailsPopover.getSectionContentByIdx(1);
     issueContent.shouldHave(text("CVE-1234-56789"));
 
     SelenideElement severityContent = vulnerabilityDetailsPopover.getSectionContentByIdx(2);
+    severityContent.shouldHave(text("Severity8.0 (Custom)"));
     severityContent.shouldHave(text("Sonatype CVSS 39.1 CVE CVSS 2.00.0"));
 
     SelenideElement weaknessContent = vulnerabilityDetailsPopover.getSectionContentByIdx(3);
+    weaknessContent.shouldHave(text("CWE123 (Custom)"));
     weaknessContent.shouldHave(text("Sonatype CWE400"));
 
     SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
     sourceContent.shouldHave(text("Sonatype Data Research"));
+
+    SelenideElement cvssDetailsContent = vulnerabilityDetailsPopover.getSectionContentByIdx(7);
+    cvssDetailsContent.shouldHave(text("Severity8.0 (Custom)"));
+    cvssDetailsContent.shouldHave(text("Vector Stringtest/vector (Custom)"));
 
     VulnerabilityOverrideForm vulnerabilityOverrideForm = vulnerabilityDetailsPopover.getVulnerabilityOverrideForm();
     vulnerabilityOverrideForm.shouldBe(visible);

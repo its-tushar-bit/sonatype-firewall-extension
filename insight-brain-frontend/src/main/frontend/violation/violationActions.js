@@ -140,6 +140,9 @@ export function loadVulnerabilityDetails() {
   return function (dispatch, getState) {
     const {
         violation: { violationDetails },
+        router: {
+          currentParams: { publicId },
+        },
       } = getState(),
       { constraintViolations, componentIdentifier } = violationDetails;
 
@@ -151,9 +154,14 @@ export function loadVulnerabilityDetails() {
 
     if (reasonWithRefId) {
       dispatch(loadVulnerabilityDetailsRequested());
-      const conditionTriggerReferenceValue = reasonWithRefId.reference.value;
+      const refId = reasonWithRefId.reference.value;
+      const extraQueryParameters = {
+        ownerType: 'application',
+        ownerId: publicId,
+      };
+
       return axios
-        .get(getVulnerabilityJsonDetailUrl(conditionTriggerReferenceValue, componentIdentifier))
+        .get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier, extraQueryParameters))
         .then(({ data }) => dispatch(loadVulnerabilityDetailsFulfilled(data)))
         .catch((err) => dispatch(loadVulnerabilityDetailsFailed(err)));
     } else {

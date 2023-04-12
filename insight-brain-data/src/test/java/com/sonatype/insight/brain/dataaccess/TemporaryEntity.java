@@ -125,7 +125,15 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityTagDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -242,7 +250,15 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverityTag;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVectorTag;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCweTag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediationTag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.brain.utils.ThreatLevel;
@@ -375,6 +391,28 @@ public class TemporaryEntity
       new VulnerabilityGroupVulnerabilityDAO();
 
   private final VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
+
+  private final VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO =
+      new VulnerabilityCustomRemediationDAO();
+
+  private final VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO =
+      new VulnerabilityCustomRemediationTagDAO();
+
+  private final VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO = new VulnerabilityCustomCweDAO();
+
+  private final VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO = new VulnerabilityCustomCweTagDAO();
+
+  private final VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO =
+      new VulnerabilityCustomCvssVectorDAO();
+
+  private final VulnerabilityCustomCvssVectorTagDAO vulnerabilityCustomCvssVectorTagDAO =
+      new VulnerabilityCustomCvssVectorTagDAO();
+
+  private final VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
+      new VulnerabilityCustomCvssSeverityDAO();
+
+  private final VulnerabilityCustomCvssSeverityTagDAO vulnerabilityCustomCvssSeverityTagDAO =
+      new VulnerabilityCustomCvssSeverityTagDAO();
 
   private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
@@ -537,6 +575,22 @@ public class TemporaryEntity
 
   private Collection<VulnerabilityCustomDetail> vulnerabilityCustomDetails;
 
+  private Collection<VulnerabilityCustomRemediation> vulnerabilityCustomRemediations;
+
+  private Collection<VulnerabilityCustomRemediationTag> vulnerabilityCustomRemediationTags;
+
+  private Collection<VulnerabilityCustomCwe> vulnerabilityCustomCwes;
+
+  private Collection<VulnerabilityCustomCweTag> vulnerabilityCustomCweTags;
+
+  private Collection<VulnerabilityCustomCvssVector> vulnerabilityCustomCvssVectors;
+
+  private Collection<VulnerabilityCustomCvssVectorTag> vulnerabilityCustomCvssVectorTags;
+
+  private Collection<VulnerabilityCustomCvssSeverity> vulnerabilityCustomCvssSeverities;
+
+  private Collection<VulnerabilityCustomCvssSeverityTag> vulnerabilityCustomCvssSeverityTags;
+
   private Collection<MembershipMapping> membershipMappings;
 
   private Collection<Webhook> webhooks;
@@ -607,6 +661,14 @@ public class TemporaryEntity
     vulnerabilityGroups = new ArrayList<>();
     vulnerabilityGroupsVulnerability = new ArrayList<>();
     vulnerabilityCustomDetails = new ArrayList<>();
+    vulnerabilityCustomRemediations = new ArrayList<>();
+    vulnerabilityCustomRemediationTags = new ArrayList<>();
+    vulnerabilityCustomCwes = new ArrayList<>();
+    vulnerabilityCustomCweTags = new ArrayList<>();
+    vulnerabilityCustomCvssVectors = new ArrayList<>();
+    vulnerabilityCustomCvssVectorTags = new ArrayList<>();
+    vulnerabilityCustomCvssSeverities = new ArrayList<>();
+    vulnerabilityCustomCvssSeverityTags = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
@@ -663,6 +725,14 @@ public class TemporaryEntity
     delete(vulnerabilityGroupsVulnerability, vulnerabilityGroupVulnerabilityDAO);
     delete(vulnerabilityGroups, vulnerabilityGroupDAO);
     delete(vulnerabilityCustomDetails, vulnerabilityCustomDetailDAO);
+    delete(vulnerabilityCustomRemediations, vulnerabilityCustomRemediationDAO);
+    delete(vulnerabilityCustomRemediationTags, vulnerabilityCustomRemediationTagDAO);
+    delete(vulnerabilityCustomCwes, vulnerabilityCustomCweDAO);
+    delete(vulnerabilityCustomCweTags, vulnerabilityCustomCweTagDAO);
+    delete(vulnerabilityCustomCvssVectors, vulnerabilityCustomCvssVectorDAO);
+    delete(vulnerabilityCustomCvssVectorTags, vulnerabilityCustomCvssVectorTagDAO);
+    delete(vulnerabilityCustomCvssSeverities, vulnerabilityCustomCvssSeverityDAO);
+    delete(vulnerabilityCustomCvssSeverityTags, vulnerabilityCustomCvssSeverityTagDAO);
     delete(users, userDAO);
     samlUserGroupDAO.getAll().forEach(samlUserGroupDAO::delete);
     samlUserDAO.getAll().forEach(samlUserDAO::delete);
@@ -2880,6 +2950,45 @@ public class TemporaryEntity
     return vuln1;
   }
 
+  public VulnerabilityCustomRemediation newVulnerabilityCustomRemediation(String ownerId) {
+    VulnerabilityCustomRemediation vulnerabilityCustomRemediation = new VulnerabilityCustomRemediation();
+    vulnerabilityCustomRemediation.setRemediation("custom remediation");
+    vulnerabilityCustomRemediation.setRefId("CVE-2022-4321");
+    vulnerabilityCustomRemediation.setOwnerId(ownerId);
+    vulnerabilityCustomRemediation.setLastUpdatedByUsername("SUPERUSER");
+    vulnerabilityCustomRemediationDAO.insert(vulnerabilityCustomRemediation);
+    vulnerabilityCustomRemediations.add(vulnerabilityCustomRemediation);
+    return vulnerabilityCustomRemediation;
+  }
+
+  public VulnerabilityCustomRemediation newVulnerabilityCustomRemediation(
+      String ownerId,
+      String refId,
+      ComponentIdentifier componentIdentifier)
+  {
+    VulnerabilityCustomRemediation vulnerabilityCustomRemediation = new VulnerabilityCustomRemediation();
+    vulnerabilityCustomRemediation.setRemediation("custom remediation");
+    vulnerabilityCustomRemediation.setRefId(refId);
+    vulnerabilityCustomRemediation.setOwnerId(ownerId);
+    vulnerabilityCustomRemediation.setLastUpdatedByUsername("SUPERUSER");
+    vulnerabilityCustomRemediation.setComponentIdentifier(componentIdentifier);
+    vulnerabilityCustomRemediationDAO.insert(vulnerabilityCustomRemediation);
+    vulnerabilityCustomRemediations.add(vulnerabilityCustomRemediation);
+    return vulnerabilityCustomRemediation;
+  }
+
+  public VulnerabilityCustomRemediationTag newVulnerabilityCustomRemediationTag(
+      String tagId,
+      String vulnerabilityCustomRemediationId)
+  {
+    VulnerabilityCustomRemediationTag vulnerabilityCustomRemediationTag = new VulnerabilityCustomRemediationTag();
+    vulnerabilityCustomRemediationTag.setTagId(tagId);
+    vulnerabilityCustomRemediationTag.setVulnerabilityCustomRemediationId(vulnerabilityCustomRemediationId);
+    vulnerabilityCustomRemediationTagDAO.insert(vulnerabilityCustomRemediationTag);
+    vulnerabilityCustomRemediationTags.add(vulnerabilityCustomRemediationTag);
+    return vulnerabilityCustomRemediationTag;
+  }
+
   public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
       String ownerId,
       String refId,
@@ -2977,6 +3086,201 @@ public class TemporaryEntity
     vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
     vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
     return vulnerabilityCustomDetail;
+  }
+
+  public void newVulnerabilityCustomData(
+      String ownerId,
+      String refId,
+      Tag tag,
+      String remediation,
+      String cweId,
+      String cvssVector,
+      Float severity)
+  {
+    VulnerabilityCustomRemediation customRemediation = new VulnerabilityCustomRemediation();
+    customRemediation.setOwnerId(ownerId);
+    customRemediation.setRefId(refId);
+    customRemediation.setLastUpdatedByUsername("test");
+    customRemediation.setRemediation(remediation);
+    vulnerabilityCustomRemediationDAO.insert(customRemediation);
+    vulnerabilityCustomRemediations.add(customRemediation);
+
+    if (tag != null) {
+      VulnerabilityCustomRemediationTag remediationTag = new VulnerabilityCustomRemediationTag();
+      remediationTag.setTagId(tag.getId());
+      remediationTag.setVulnerabilityCustomRemediationId(customRemediation.getId());
+      vulnerabilityCustomRemediationTagDAO.insert(remediationTag);
+      vulnerabilityCustomRemediationTags.add(remediationTag);
+    }
+
+    VulnerabilityCustomCwe customCwe = new VulnerabilityCustomCwe();
+    customCwe.setOwnerId(ownerId);
+    customCwe.setRefId(refId);
+    customCwe.setLastUpdatedByUsername("test");
+    customCwe.setCwe(cweId);
+    vulnerabilityCustomCweDAO.insert(customCwe);
+    vulnerabilityCustomCwes.add(customCwe);
+
+    if (tag != null) {
+      VulnerabilityCustomCweTag cweTag = new VulnerabilityCustomCweTag();
+      cweTag.setTagId(tag.getId());
+      cweTag.setVulnerabilityCustomCweId(customCwe.getId());
+      vulnerabilityCustomCweTagDAO.insert(cweTag);
+      vulnerabilityCustomCweTags.add(cweTag);
+    }
+
+    VulnerabilityCustomCvssVector customCvssVector = new VulnerabilityCustomCvssVector();
+    customCvssVector.setOwnerId(ownerId);
+    customCvssVector.setRefId(refId);
+    customCvssVector.setLastUpdatedByUsername("test");
+    customCvssVector.setVector(cvssVector);
+    vulnerabilityCustomCvssVectorDAO.insert(customCvssVector);
+    vulnerabilityCustomCvssVectors.add(customCvssVector);
+
+    if (tag != null) {
+      VulnerabilityCustomCvssVectorTag cvssVectorTag = new VulnerabilityCustomCvssVectorTag();
+      cvssVectorTag.setTagId(tag.getId());
+      cvssVectorTag.setVulnerabilityCustomCvssVectorId(customCvssVector.getId());
+      vulnerabilityCustomCvssVectorTagDAO.insert(cvssVectorTag);
+      vulnerabilityCustomCvssVectorTags.add(cvssVectorTag);
+    }
+
+    VulnerabilityCustomCvssSeverity customCvssSeverity = new VulnerabilityCustomCvssSeverity();
+    customCvssSeverity.setOwnerId(ownerId);
+    customCvssSeverity.setRefId(refId);
+    customCvssSeverity.setLastUpdatedByUsername("test");
+    customCvssSeverity.setSeverity(severity);
+    vulnerabilityCustomCvssSeverityDAO.insert(customCvssSeverity);
+    vulnerabilityCustomCvssSeverities.add(customCvssSeverity);
+
+    if (tag != null) {
+      VulnerabilityCustomCvssSeverityTag cvssSeverityTag = new VulnerabilityCustomCvssSeverityTag();
+      cvssSeverityTag.setTagId(tag.getId());
+      cvssSeverityTag.setVulnerabilityCustomCvssSeverityId(customCvssSeverity.getId());
+      vulnerabilityCustomCvssSeverityTagDAO.insert(cvssSeverityTag);
+      vulnerabilityCustomCvssSeverityTags.add(cvssSeverityTag);
+    }
+  }
+  
+  public VulnerabilityCustomCvssSeverity newVulnerabilityCustomCvssSeverity(
+      String ownerId,
+      String refId,
+      ComponentIdentifier componentIdentifier,
+      Date lastUpdatedAt,
+      Float severity)
+  {
+    VulnerabilityCustomCvssSeverity customCvssSeverity = new VulnerabilityCustomCvssSeverity();
+    customCvssSeverity.setOwnerId(ownerId);
+    customCvssSeverity.setRefId(refId);
+    customCvssSeverity.setComponentIdentifier(componentIdentifier);
+    customCvssSeverity.setLastUpdatedAt(lastUpdatedAt);
+    customCvssSeverity.setLastUpdatedByUsername("test");
+    customCvssSeverity.setSeverity(severity);
+    vulnerabilityCustomCvssSeverityDAO.insert(customCvssSeverity);
+    vulnerabilityCustomCvssSeverities.add(customCvssSeverity);
+    return customCvssSeverity;
+  }
+
+  public VulnerabilityCustomCvssSeverity newVulnerabilityCustomCvssSeverity(
+      String ownerId,
+      String refId,
+      Float severity)
+  {
+    VulnerabilityCustomCvssSeverity customCvssSeverity = new VulnerabilityCustomCvssSeverity();
+    customCvssSeverity.setOwnerId(ownerId);
+    customCvssSeverity.setRefId(refId);
+    customCvssSeverity.setLastUpdatedByUsername("test");
+    customCvssSeverity.setSeverity(severity);
+    vulnerabilityCustomCvssSeverityDAO.insert(customCvssSeverity);
+    vulnerabilityCustomCvssSeverities.add(customCvssSeverity);
+    return customCvssSeverity;
+  }
+
+  public VulnerabilityCustomCvssSeverityTag newVulnerabilityCustomCvssSeverityTag(
+      String vulnerabilityCustomCvssSeverityId,
+      String tagId)
+  {
+    VulnerabilityCustomCvssSeverityTag cvssSeverityTag = new VulnerabilityCustomCvssSeverityTag();
+    cvssSeverityTag.setTagId(tagId);
+    cvssSeverityTag.setVulnerabilityCustomCvssSeverityId(vulnerabilityCustomCvssSeverityId);
+    vulnerabilityCustomCvssSeverityTagDAO.insert(cvssSeverityTag);
+    vulnerabilityCustomCvssSeverityTags.add(cvssSeverityTag);
+    return cvssSeverityTag;
+  }
+
+  public VulnerabilityCustomCvssVector newVulnerabilityCustomCvssVector(
+      String ownerId,
+      String refId,
+      ComponentIdentifier componentIdentifier,
+      Date lastUpdatedAt,
+      String vector)
+  {
+    VulnerabilityCustomCvssVector customCvssVector = new VulnerabilityCustomCvssVector();
+    customCvssVector.setOwnerId(ownerId);
+    customCvssVector.setRefId(refId);
+    customCvssVector.setComponentIdentifier(componentIdentifier);
+    customCvssVector.setLastUpdatedByUsername("test");
+    customCvssVector.setLastUpdatedAt(lastUpdatedAt);
+    customCvssVector.setVector(vector);
+    vulnerabilityCustomCvssVectorDAO.insert(customCvssVector);
+    vulnerabilityCustomCvssVectors.add(customCvssVector);
+    return customCvssVector;
+  }
+
+  public VulnerabilityCustomCvssVectorTag newVulnerabilityCustomCvssVectorTag(String vulnerabilityCustomVectorId,
+                                                                              String tagId)
+  {
+    VulnerabilityCustomCvssVectorTag vulnerabilityCustomVectorTag = new VulnerabilityCustomCvssVectorTag();
+    vulnerabilityCustomVectorTag.setVulnerabilityCustomCvssVectorId(vulnerabilityCustomVectorId);
+    vulnerabilityCustomVectorTag.setTagId(tagId);
+    vulnerabilityCustomCvssVectorTagDAO.insert(vulnerabilityCustomVectorTag);
+    vulnerabilityCustomCvssVectorTags.add(vulnerabilityCustomVectorTag);
+    return vulnerabilityCustomVectorTag;
+  }
+
+  public VulnerabilityCustomCwe newVulnerabilityCustomCwe(
+      String ownerId,
+      String refId,
+      ComponentIdentifier componentIdentifier,
+      Date lastUpdatedAt,
+      String cweId)
+  {
+    VulnerabilityCustomCwe customCwe = new VulnerabilityCustomCwe();
+    customCwe.setOwnerId(ownerId);
+    customCwe.setRefId(refId);
+    customCwe.setComponentIdentifier(componentIdentifier);
+    customCwe.setLastUpdatedAt(lastUpdatedAt);
+    customCwe.setLastUpdatedByUsername("test");
+    customCwe.setCwe(cweId);
+    vulnerabilityCustomCweDAO.insert(customCwe);
+    vulnerabilityCustomCwes.add(customCwe);
+    return customCwe;
+  }
+
+  public VulnerabilityCustomCwe newVulnerabilityCustomCwe(
+      String ownerId,
+      String refId,
+      Date lastUpdatedAt,
+      String cweId)
+  {
+    VulnerabilityCustomCwe customCwe = new VulnerabilityCustomCwe();
+    customCwe.setOwnerId(ownerId);
+    customCwe.setRefId(refId);
+    customCwe.setLastUpdatedAt(lastUpdatedAt);
+    customCwe.setLastUpdatedByUsername("test");
+    customCwe.setCwe(cweId);
+    vulnerabilityCustomCweDAO.insert(customCwe);
+    vulnerabilityCustomCwes.add(customCwe);
+    return customCwe;
+  }
+
+  public VulnerabilityCustomCweTag newVulnerabilityCustomCweTag(String vulnerabilityCustomCweId, String tagId) {
+    VulnerabilityCustomCweTag customCweTag = new VulnerabilityCustomCweTag();
+    customCweTag.setVulnerabilityCustomCweId(vulnerabilityCustomCweId);
+    customCweTag.setTagId(tagId);
+    vulnerabilityCustomCweTagDAO.insert(customCweTag);
+    vulnerabilityCustomCweTags.add(customCweTag);
+    return customCweTag;
   }
 
   public ProprietaryConfig newProprietaryConfig(String ownerId) {

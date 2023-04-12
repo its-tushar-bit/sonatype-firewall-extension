@@ -20,7 +20,10 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
@@ -101,6 +104,80 @@ public class TagDAOTest
         .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
     dao.delete(tag);
     assertThat(vulnerabilityCustomDetailDAO.getByTagId(tag.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToVulnerabilityCustomRemediationTag() {
+    Tag tag1 = tempEntity.newTag(organization.getId());
+    Tag tag2 = tempEntity.newTag(organization.getId());
+    tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1234", tag1, "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1235", tag2, "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO =
+        new VulnerabilityCustomRemediationTagDAO();
+    assertThat(vulnerabilityCustomRemediationTagDAO.getByTagId(tag1.getId())).isNotEmpty();
+    dao.delete(tag1);
+    dao.delete(tag2);
+    assertThat(vulnerabilityCustomRemediationTagDAO.getByTagId(tag1.getId())).isEmpty();
+    assertThat(vulnerabilityCustomRemediationTagDAO.getByTagId(tag2.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToVulnerabilityCustomCweTag() {
+    Tag tag1 = tempEntity.newTag(organization.getId());
+    Tag tag2 = tempEntity.newTag(organization.getId());
+    tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1234", tag1, "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1235", tag2, "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO =
+        new VulnerabilityCustomCweTagDAO();
+
+    assertThat(vulnerabilityCustomCweTagDAO.getByTagId(tag1.getId())).isNotEmpty();
+    dao.delete(tag1);
+    dao.delete(tag2);
+    assertThat(vulnerabilityCustomCweTagDAO.getByTagId(tag1.getId())).isEmpty();
+    assertThat(vulnerabilityCustomCweTagDAO.getByTagId(tag2.getId())).isEmpty();
+
+  }
+
+  @Test
+  public void testDelete_CascadeToCVSSVectorTag() {
+    Tag tag1 = tempEntity.newTag(organization.getId());
+    Tag tag2 = tempEntity.newTag(organization.getId());
+    tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1234", tag1, "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1235", tag2, "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO =
+        new VulnerabilityCustomCweTagDAO();
+    assertThat(vulnerabilityCustomCweTagDAO.getByTagId(tag1.getId())).isNotEmpty();
+    dao.delete(tag1);
+    dao.delete(tag2);
+    assertThat(vulnerabilityCustomCweTagDAO.getByTagId(tag1.getId())).isEmpty();
+    assertThat(vulnerabilityCustomCweTagDAO.getByTagId(tag2.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadeToCVSSSeverityTag() {
+    Tag tag1 = tempEntity.newTag(organization.getId());
+    Tag tag2 = tempEntity.newTag(organization.getId());
+    tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1234", tag1, "rem1",
+        "testCWE", "testCvssVector1", 6.05F);
+    tempEntity.newVulnerabilityCustomData(organization.getId(), "CVE-2022-1235", tag2, "rem1",
+        "testCWE", "testCvssVector2", 6.05F);
+
+    VulnerabilityCustomCvssVectorTagDAO vulnerabilityCustomCvssVectorTagDAO =
+        new VulnerabilityCustomCvssVectorTagDAO();
+    assertThat(vulnerabilityCustomCvssVectorTagDAO.getByTagId(tag1.getId())).isNotEmpty();
+    dao.delete(tag1);
+    dao.delete(tag2);
+    assertThat(vulnerabilityCustomCvssVectorTagDAO.getByTagId(tag1.getId())).isEmpty();
+    assertThat(vulnerabilityCustomCvssVectorTagDAO.getByTagId(tag2.getId())).isEmpty();
   }
 
   @Test

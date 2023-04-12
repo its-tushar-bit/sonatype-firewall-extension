@@ -38,6 +38,7 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import { actions as toastSliceActions } from 'MainRoot/toastContainer/toastSlice';
 import { selectToastSlice } from 'MainRoot/toastContainer/toastSelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
+import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -102,6 +103,7 @@ export const InitModule = angular
               return $q
                 .all([
                   $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded()),
+                  $ngRedux.dispatch(loadProductLicense()),
                   ProductLicense.load(),
                   CurrentUser.waitForLogin(),
                 ])
@@ -111,10 +113,10 @@ export const InitModule = angular
                   const { productFeatures = {} } = $ngRedux.getState().productFeatures;
                   const isDashboardAvailable = productFeatures.dashboard;
                   const isReportsListAvailable = productFeatures['reports-list'];
-
+                  const isFirewallOnlyLicense = selectIsFirewallOnlyLicense($ngRedux.getState());
                   if (isDashboardAvailable) {
                     return 'dashboard.overview.violations';
-                  } else if ($rootScope.isFirewallOnlyLicense) {
+                  } else if (isFirewallOnlyLicense) {
                     return 'firewall.firewallPage';
                   } else if (isReportsListAvailable) {
                     return 'violations';

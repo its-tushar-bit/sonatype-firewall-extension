@@ -6,7 +6,7 @@
 const webpack = require('webpack');
 const path = require('path');
 
-const outputPath = path.resolve(__dirname, 'target/classes/assets');
+const outputPath = path.resolve(__dirname, 'target/generated-resources/webpack/assets');
 
 const config = {
   mode: 'development',

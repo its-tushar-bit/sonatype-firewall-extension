@@ -83,7 +83,7 @@ module.exports = {
     contentBase: [
       'src/main/component-gallery',
       'src/main/frontend',
-      'target/classes/assets',
+      'target/generated-resources/webpack/assets',
       '.tmp/scss',
     ].map((subpath) => path.join(__dirname, subpath)),
     publicPath,

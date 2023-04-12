@@ -18,7 +18,7 @@
     "test-webpack-karma-watch": "npm-run-all -p test-webpack-watch test-karma-watch",
     "test-webpack-watch": "webpack watch --config webpack.config.brain-test.js --env skipTestCoverage",
     "test-karma-watch": "karma start karma.conf.interactive.js",
-    "clean": "rimraf target/classes/assets",
+    "clean": "rimraf target/generated-resources/webpack/assets",
     "format": "prettier -w"
   },
   "dependencies": {

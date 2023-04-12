@@ -17,7 +17,7 @@ module.exports = function (config) {
     frameworks: ['jasmine'],
 
     // list of files / patterns to load in the browser
-    files: ['target/classes/assets/test-bundle.js'],
+    files: ['target/generated-resources/webpack/assets/test-bundle.js'],
 
     // list of files / patterns to exclude
     exclude: [],

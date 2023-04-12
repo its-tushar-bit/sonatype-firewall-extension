@@ -15,7 +15,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const CopyModulesPlugin = require('copy-modules-webpack-plugin');
 
 const webpackOutputPath = 'assets';
-const webpackOutputDir = path.resolve(__dirname, 'target/classes', webpackOutputPath);
+const webpackOutputDir = path.resolve(__dirname, 'target/generated-resources/webpack', webpackOutputPath);
 
 function extractFromPom(nodeName) {
   const doc = new DOMParser().parseFromString(fs.readFileSync('pom.xml', 'utf-8'));
@@ -70,7 +70,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
       new CopyPlugin({
         patterns: copyPluginFromGlobs.map(({ from, transform }) => ({
           from,
-          to: path.join(__dirname, 'target/classes/assets'),
+          to: path.join(__dirname, 'target/generated-resources/webpack/assets'),
           transform: transform ? transformCopiedFile : undefined,
         })),
       }),

@@ -16,6 +16,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
+
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
@@ -105,8 +106,8 @@ public class DbMigrationCommandTest
     assertThat(dbMigrationCommand.getDescription()).isEqualTo("Migrates the database to the latest schema version.");
     assertThat(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).isEqualTo(
         DbMigrationCommand.ATTEMPTS_TO_WAIT_FOR_LAST_CHECKIN_TO_NOT_BE_RECENT).isEqualTo(1);
-    assertThat(DbMigrationCommand.RECENT_CHECKIN_INTERVAL_MILLIS).isEqualTo(
-        (long) (QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 2));
+    assertThat(DbMigrationCommand.RECENT_CHECKIN_INTERVAL_MILLIS)
+        .isEqualTo(QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 2);
   }
 
   @Test

@@ -67,7 +67,7 @@ public class MultiTenantRepositoryConfigurationCollectorTest
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_CONFIGURATION);
       assertThat(telemetryData.getAttributes()).containsOnlyKeys(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY,
           RepositoryConfigurationCollector.IS_QUARANTINE_ENABLED);
-      assertThat((List) telemetryData.getAttributes().get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY))
+      assertThat((List<?>) telemetryData.getAttributes().get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY))
           .hasSize(1);
     });
 
@@ -77,7 +77,7 @@ public class MultiTenantRepositoryConfigurationCollectorTest
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_CONFIGURATION);
       assertThat(telemetryData.getAttributes()).containsOnlyKeys(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY,
           RepositoryConfigurationCollector.IS_QUARANTINE_ENABLED);
-      assertThat((List) telemetryData.getAttributes().get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY))
+      assertThat((List<?>) telemetryData.getAttributes().get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY))
           .hasSize(0);
     });
   }

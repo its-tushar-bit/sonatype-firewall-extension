@@ -2007,8 +2007,6 @@ public class ScanPolicyEvaluatorTest
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
-    ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilityCustomCVSSVectorStringConditionType);
-    ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilityCustomRemediationConditionType);
     try {
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
           .filter(id -> !ProprietaryNameConflictConditionType.ID.equals(id))
@@ -2034,8 +2032,6 @@ public class ScanPolicyEvaluatorTest
       ConditionTypes.disableConditionType(ConditionTypes.HygieneRatingConditionType);
       ConditionTypes.disableConditionType(ConditionTypes.IntegrityRatingConditionType);
       ConditionTypes.disableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
-      ConditionTypes.disableConditionType(ConditionTypes.SecurityVulnerabilityCustomCVSSVectorStringConditionType);
-      ConditionTypes.disableConditionType(ConditionTypes.SecurityVulnerabilityCustomRemediationConditionType);
     }
   }
 

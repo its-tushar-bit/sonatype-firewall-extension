@@ -120,9 +120,9 @@ public class ConditionTypes
     add(SecurityVulnerabilityStatusConditionType);
     add(SecurityVulnerabilityCategoryConditionType);
     add(SecurityVulnerabilityCweConditionType);
-    addDisabledConditionType(SecurityVulnerabilityCustomRemediationConditionType);
+    add(SecurityVulnerabilityCustomRemediationConditionType);
     add(SecurityVulnerabilitySourceConditionType);
-    addDisabledConditionType(SecurityVulnerabilityCustomCVSSVectorStringConditionType);
+    add(SecurityVulnerabilityCustomCVSSVectorStringConditionType);
     add(VulnerabilityGroupConditionType);
     add(SecurityVulnerabilityResearchConditionType);
     add(DataSourceConditionType);

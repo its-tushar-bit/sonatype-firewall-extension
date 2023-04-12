@@ -189,7 +189,7 @@ public class ExportEmbeddedDatabaseCommand
         catch (Exception e) {
           throw new IllegalStateException("Failed to transform SQL command:\n" + sql, e);
         }
-        writer.write(sql);
+        writer.write(sql.replace("\0", ""));
         writer.newLine();
       }
       writer.newLine();

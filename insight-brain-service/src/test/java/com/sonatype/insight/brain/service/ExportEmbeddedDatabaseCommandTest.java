@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -59,6 +60,15 @@ public class ExportEmbeddedDatabaseCommandTest
   private void initData(InsightConfig config) {
     DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
     OperationalDataStoreProvider.init(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods), true);
+
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+         Statement statement = connection.createStatement()) {
+      statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +
+          "VALUES ('\0a74878d8bfe44d2086ca8387e340692f', '{}', '', '');");
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Test
@@ -145,6 +155,7 @@ public class ExportEmbeddedDatabaseCommandTest
           expectedRows.sort(null);
           for (int i = 0; i < actualRows.size(); i++) {
             assertThat(actualRows.get(i)).as(schemaName + "." + tableName + "." + i).usingRecursiveComparison()
+                .withComparatorForType((String o1, String o2) -> o2.replace("\0", "").compareTo(o1), String.class)
                 .isEqualTo(expectedRows.get(i));
           }
         }

@@ -11,7 +11,7 @@ make(
     useEventSpy: false,
     javaVersion: 'Java 8',
     mavenVersion: 'Maven 3.6.x',
-    mavenOptions: '-D skipTests -D skip-functional-test',
+    mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER}",
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
       runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
     },

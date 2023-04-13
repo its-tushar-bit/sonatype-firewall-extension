@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -14,6 +15,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
@@ -289,7 +291,7 @@ public class RepositoryResourceTest
     new RepositoryManagerDAO().update(configuredRepoManager);
 
     RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
-    
+
     HttpResponse response =
         restRequest()
             .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNCONFIGURED_REPOSITORY_MANAGERS_PATH)
@@ -301,5 +303,25 @@ public class RepositoryResourceTest
     assertThat(repoManagers[0].getId()).isEqualTo(unconfiguredRepoManager.getId());
     assertThat(repoManagers[0].getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
     assertThat(repoManagers).hasSize(1);
+  }
+
+  @Test
+  public void testGetSupportedRepositories() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
+    tempEntity.newRepository(repositoryManager, "testRepoCrate", "unsupportedFormat");
+
+    FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
+    firewallIgnorePatterns.regexpsByRepositoryFormat.put("maven2", Arrays.asList("a", "b"));
+    tempEntity.setFirewallIgnorePatterns(firewallIgnorePatterns);
+
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.SUPPORTED_REPOSITORIES)
+            .parameter(repositoryManager.getId()).get();
+
+    assertResponseStatus(200, response);
+    Repository[] supportedRepositories = response.getBody(Repository[].class);
+    assertThat(supportedRepositories).hasSize(1);
+    assertThat(supportedRepositories[0].getFormat()).isEqualTo("maven2");
   }
 }

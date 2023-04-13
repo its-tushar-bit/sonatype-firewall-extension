@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -37,6 +39,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -93,13 +96,17 @@ public class RepositoryService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final FirewallIgnorePatternService firewallIgnorePatternService;
+
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      PolicyViolationLoggerFactory policyViolationLoggerFactory)
+      PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      FirewallIgnorePatternService firewallIgnorePatternService)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.firewallIgnorePatternService = firewallIgnorePatternService;
   }
 
   /**
@@ -438,6 +445,28 @@ public class RepositoryService
     // Only the enabled flag can be updated
     proprietaryComponentNamePattern.setEnabled(proprietaryComponentNamePatternDTO.enabled);
     proprietaryComponentNamePatternDAO.update(proprietaryComponentNamePattern);
+  }
+
+  List<Repository> getSupportedRepositories(String repositoryManagerId) {
+    checkReadPermission(RepositoryContainer.SINGLETON);
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManagerId);
+
+    if (repositories.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    FirewallIgnorePatterns firewallIgnorePatterns = firewallIgnorePatternService.getIgnorePatterns();
+    Set<String> supportedFormats = firewallIgnorePatterns.regexpsByRepositoryFormat.keySet();
+
+    List<Repository> supportedRepositories = new ArrayList<>();
+
+    for (Repository repository : repositories) {
+      if (supportedFormats.contains(repository.getFormat())) {
+        supportedRepositories.add(repository);
+      }
+    }
+    return supportedRepositories;
   }
 
   @Authorize(permission = Permission.READ)

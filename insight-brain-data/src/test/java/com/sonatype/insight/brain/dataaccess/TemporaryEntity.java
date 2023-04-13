@@ -2581,6 +2581,14 @@ public class TemporaryEntity
     return repository;
   }
 
+  public Repository newRepository(RepositoryManager repositoryManager, String publicId, String format) {
+    Repository repository = new Repository(repositoryManager.getId(), publicId);
+    repository.setFormat(format);
+    repositoryDAO.insert(repository);
+    repositories.add(repository);
+    return repository;
+  }
+
   public RepositoryPolicyViolation newRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,

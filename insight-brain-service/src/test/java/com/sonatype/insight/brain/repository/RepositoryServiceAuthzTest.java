@@ -16,8 +16,11 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -34,6 +37,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 public class RepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -50,6 +55,9 @@ public class RepositoryServiceAuthzTest
   @Mock
   private RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
+  @Mock
+  private HdsClient hdsClientMock;
+
   @After
   public void cleanup() {
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
@@ -61,6 +69,7 @@ public class RepositoryServiceAuthzTest
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
+    binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(RepositoryPolicyEvaluator.class).toInstance(repositoryPolicyEvaluator);
   }
 
@@ -448,5 +457,38 @@ public class RepositoryServiceAuthzTest
   public void testGetUnconfiguredRepositoryManagers_Authorized() {
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.getUnconfiguredRepositoryManagers();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSupportedRepositories_Unauthenticated() {
+    repositoryService.getSupportedRepositories(MANUAL_REPO_MAN_INSTANCE_ID);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSupportedRepositories_Unauthorized() {
+    login();
+    repositoryService.getSupportedRepositories(MANUAL_REPO_MAN_INSTANCE_ID);
+  }
+
+  @Test
+  public void testGetSupportedRepositories_Authorized() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
+
+    when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
+        .thenReturn(createFirewallIgnorePatterns());
+
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    List<Repository> supportedRepositories = repositoryService.getSupportedRepositories(repositoryManager.getId());
+
+    assertThat(supportedRepositories).hasSize(1);
+    assertThat(supportedRepositories.get(0).getFormat()).isEqualTo("maven2");
+  }
+
+  private FirewallIgnorePatterns createFirewallIgnorePatterns() {
+    FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
+    firewallIgnorePatterns.regexpsByRepositoryFormat.put("maven2", Collections.singletonList("a"));
+    return firewallIgnorePatterns;
   }
 }

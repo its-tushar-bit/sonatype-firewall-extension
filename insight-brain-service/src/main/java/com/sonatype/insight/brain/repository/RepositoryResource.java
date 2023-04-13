@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.repository.Repository;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -61,6 +62,8 @@ public class RepositoryResource
       PROPRIETARY_COMPONENT_NAME_PATTERN_PATH + "/update";
 
   static final String UNCONFIGURED_REPOSITORY_MANAGERS_PATH = "repositoryManager/unconfigured";
+
+  static final String SUPPORTED_REPOSITORIES = "repositoryManager/{repositoryManagerId}/supportedRepositories";
 
   private RepositoryService repositoryService;
 
@@ -205,5 +208,18 @@ public class RepositoryResource
   @Timed
   public List<RepositoryManager> getUnconfiguredRepositoryManagers() {
     return repositoryService.getUnconfiguredRepositoryManagers();
+  }
+
+  /**
+   * @since 1.160
+   */
+  @GET
+  @Path(SUPPORTED_REPOSITORIES)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  public List<Repository> getSupportedRepositories(
+      @PathParam("repositoryManagerId") String repositoryManagerId)
+  {
+    return repositoryService.getSupportedRepositories(repositoryManagerId);
   }
 }

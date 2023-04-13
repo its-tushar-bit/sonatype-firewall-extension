@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.repository;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -26,6 +28,12 @@ public class RepositoryManager
 
   @Column(name = "user_agent")
   private String userAgent;
+
+  @Column(name = "configured")
+  private boolean configured;
+
+  @Column(name = "configure_time")
+  private Date configureTime;
 
   public RepositoryManager() {
   }
@@ -58,5 +66,21 @@ public class RepositoryManager
 
   public void setUserAgent(String userAgent) {
     this.userAgent = userAgent;
+  }
+
+  public boolean isConfigured() {
+    return configured;
+  }
+
+  public void setConfigured(boolean configured) {
+    this.configured = configured;
+  }
+
+  public Date getConfigureTime() {
+    return configureTime;
+  }
+
+  public void setConfigureTime(Date configureTime) {
+    this.configureTime = configureTime;
   }
 }

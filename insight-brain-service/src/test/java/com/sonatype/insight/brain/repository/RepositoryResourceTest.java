@@ -30,9 +30,9 @@ import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePatte
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,15 +40,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryResourceTest
     extends AbstractResourceTest
 {
-  private Repository repo;
-
-  @Before
-  public void setup() {
-    repo = tempEntity.newRepository();
-  }
-
   @Test
   public void testUnquarantineComponent() throws Exception {
+    Repository repo = tempEntity.newRepository();
     String path = "dir/path";
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNQUARANTINE_PATH)
         .parameter(repo.getId(), path).post();
@@ -59,6 +53,8 @@ public class RepositoryResourceTest
 
   @Test
   public void testGetRepositories() throws Exception {
+    Repository repo = tempEntity.newRepository();
+
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     RepositoriesDTO actual = response.getBody(RepositoriesDTO.class);
@@ -73,6 +69,8 @@ public class RepositoryResourceTest
 
   @Test
   public void testGetRepository() throws Exception {
+    Repository repo = tempEntity.newRepository();
+
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH)
         .parameter(repo.getId()).get();
     assertResponseStatus(200, response);
@@ -87,6 +85,8 @@ public class RepositoryResourceTest
 
   @Test
   public void testReevaluateRepository() throws Exception {
+    Repository repo = tempEntity.newRepository();
+
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.EVALUATE_PATH)
         .parameter(repo.getId()).post();
     assertResponseStatus(204, response);
@@ -94,6 +94,8 @@ public class RepositoryResourceTest
 
   @Test
   public void testDeleteRepository() throws Exception {
+    Repository repo = tempEntity.newRepository();
+
     HttpResponse deleteResponse = restRequest()
         .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH).parameter(repo.getId()).delete();
     assertResponseStatus(204, deleteResponse);
@@ -102,6 +104,7 @@ public class RepositoryResourceTest
 
   @Test
   public void testReevaluateRepositoryComponent() throws Exception {
+    Repository repo = tempEntity.newRepository();
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
     // Setup the mocked hds return
@@ -123,6 +126,7 @@ public class RepositoryResourceTest
 
   @Test
   public void testGetPolicyEvaluationTimestamps() throws Exception {
+    Repository repo = tempEntity.newRepository();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("testPackageId", "testVersion");
     Date firstPolicyEvaluationTime = new Date();
     Date quarantineTime = new Date();
@@ -145,6 +149,7 @@ public class RepositoryResourceTest
 
   @Test
   public void testGetPolicyViolations() throws Exception {
+    Repository repo = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(RepositoryContainer.SINGLETON);
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repo.getId(), "testPathname");
     RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repo.getId(), 8,
@@ -185,6 +190,7 @@ public class RepositoryResourceTest
 
   @Test
   public void testGetPolicyViolation() throws Exception {
+    Repository repo = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(RepositoryContainer.SINGLETON);
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repo.getId(), "testPathname");
     RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repo.getId(), 8,
@@ -274,5 +280,26 @@ public class RepositoryResourceTest
 
     assertResponseStatus(204, response);
     assertThat(new ProprietaryComponentNamePatternDAO().getById(pattern.getId()).isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testGetUnconfiguredRepositoryManagers() throws Exception {
+    RepositoryManager configuredRepoManager = tempEntity.newRepositoryManager();
+    configuredRepoManager.setConfigured(true);
+    new RepositoryManagerDAO().update(configuredRepoManager);
+
+    RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
+    
+    HttpResponse response =
+        restRequest()
+            .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNCONFIGURED_REPOSITORY_MANAGERS_PATH)
+            .get();
+
+    assertResponseStatus(200, response);
+
+    RepositoryManager[] repoManagers = response.getBody(RepositoryManager[].class);
+    assertThat(repoManagers[0].getId()).isEqualTo(unconfiguredRepoManager.getId());
+    assertThat(repoManagers[0].getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+    assertThat(repoManagers).hasSize(1);
   }
 }

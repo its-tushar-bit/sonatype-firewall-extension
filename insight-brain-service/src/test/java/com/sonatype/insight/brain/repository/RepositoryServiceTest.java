@@ -879,6 +879,20 @@ public class RepositoryServiceTest extends AbstractComponentTest
         .withMessage("Cannot find a proprietary component name pattern with ID=does-not-exist");
   }
 
+  @Test
+  public void testGetUnconfiguredRepositoryManagers() {
+    RepositoryManager configuredRepoManager = tempEntity.newRepositoryManager();
+    configuredRepoManager.setConfigured(true);
+    repositoryManagerDAO.update(configuredRepoManager);
+
+    RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
+
+    List<RepositoryManager> repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+    assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+    assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+    assertThat(repoManagers).hasSize(1);
+  }
+
   private void assertProprietaryComponentNamePattern(
       ProprietaryComponentNamePatternDTO actual,
       ProprietaryComponentNamePattern expected)

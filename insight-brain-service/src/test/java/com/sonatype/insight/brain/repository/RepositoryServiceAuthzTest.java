@@ -432,4 +432,21 @@ public class RepositoryServiceAuthzTest
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     assertThat(repositoryService.checkReadPermissionRepositoryContainer()).isTrue();
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetUnconfiguredRepositoryManagers_Unauthenticated() {
+    repositoryService.getUnconfiguredRepositoryManagers();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetUnconfiguredRepositoryManagers_Unauthorized() {
+    login();
+    repositoryService.getUnconfiguredRepositoryManagers();
+  }
+
+  @Test
+  public void testGetUnconfiguredRepositoryManagers_Authorized() {
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.getUnconfiguredRepositoryManagers();
+  }
 }

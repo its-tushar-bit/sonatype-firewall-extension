@@ -473,4 +473,15 @@ public class RepositoryService
 
     return filter;
   }
+
+  /**
+   * @since 1.160
+   */
+  List<RepositoryManager> getUnconfiguredRepositoryManagers() {
+    // This method is called by the UI to determine if the Firewall Onboarding UI should be shown for the current user.
+    // Although it is a getter, if the user doesn't have WRITE permission, s/he cannot finish the Firewall Onboarding.
+    checkWritePermission(RepositoryContainer.SINGLETON);
+
+    return repositoryManagerDAO.getUnconfigured();
+  }
 }

@@ -97,4 +97,12 @@ public class RepositoryManagerDAO
     String sQuery = "SELECT entity FROM RepositoryManager entity";
     return getList(sQuery);
   }
+
+  /**
+   * @since 1.160
+   */
+  public List<RepositoryManager> getUnconfigured() {
+    String sQuery = "SELECT entity FROM RepositoryManager entity WHERE entity.configured = false";
+    return getList(sQuery);
+  }
 }

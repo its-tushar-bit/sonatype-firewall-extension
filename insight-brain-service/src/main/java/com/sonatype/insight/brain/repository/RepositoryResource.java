@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -58,6 +59,8 @@ public class RepositoryResource
 
   static final String PROPRIETARY_COMPONENT_NAME_PATTERN_UPDATE_PATH =
       PROPRIETARY_COMPONENT_NAME_PATTERN_PATH + "/update";
+
+  static final String UNCONFIGURED_REPOSITORY_MANAGERS_PATH = "repositoryManager/unconfigured";
 
   private RepositoryService repositoryService;
 
@@ -191,5 +194,16 @@ public class RepositoryResource
       ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO)
   {
     repositoryService.updateProprietaryComponentNamePattern(proprietaryComponentNamePatternDTO);
+  }
+
+  /**
+   * @since 1.160
+   */
+  @GET
+  @Path(UNCONFIGURED_REPOSITORY_MANAGERS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  public List<RepositoryManager> getUnconfiguredRepositoryManagers() {
+    return repositoryService.getUnconfiguredRepositoryManagers();
   }
 }

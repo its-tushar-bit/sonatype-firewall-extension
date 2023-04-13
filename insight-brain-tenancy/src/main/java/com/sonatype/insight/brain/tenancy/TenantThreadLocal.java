@@ -18,9 +18,21 @@ import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
  */
 public class TenantThreadLocal
 {
-  private static final ThreadLocal<TenantState> tenantThreadLocal = new InheritableThreadLocal<>();
+  private static Tenant defaultTenant = SINGLE_TENANT;
+
+  private static final ThreadLocal<TenantState> tenantThreadLocal = new InheritableThreadLocal<TenantState>()
+  {
+    @Override
+    protected TenantState initialValue() {
+      return new TenantState(null, defaultTenant);
+    }
+  };
 
   private static final TenantUtil tenantUtil = new TenantUtil();
+
+  public static void setDefaultTenantToGlobal() {
+    defaultTenant = GLOBAL_TENANT;
+  }
 
   static {
     tenantThreadLocal.set(new TenantState(SINGLE_TENANT));
@@ -202,7 +214,11 @@ public class TenantThreadLocal
     private final Tenant current;
 
     public TenantState(Tenant current) {
-      this.previous = getCurrentTenantOrNull();
+      this(getCurrentTenantOrNull(), current);
+    }
+
+    public TenantState(Tenant previous, Tenant current) {
+      this.previous = previous;
       this.current = current;
     }
 

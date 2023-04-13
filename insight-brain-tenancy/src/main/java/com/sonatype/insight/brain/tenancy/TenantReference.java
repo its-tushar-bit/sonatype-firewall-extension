@@ -14,7 +14,7 @@ public class TenantReference<T>
 {
   private final Supplier<T> initializer;
 
-  private Map<Tenant, T> tenantMap = new ConcurrentHashMap<>();
+  private final Map<Tenant, T> tenantMap = new ConcurrentHashMap<>();
 
   public TenantReference() {
     this.initializer = null;

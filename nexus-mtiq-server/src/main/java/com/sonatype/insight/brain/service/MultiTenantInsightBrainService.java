@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.telemetry.TelemetryCollectorsProvider;
 import com.sonatype.insight.brain.tenancy.AdminTenantFilter;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
 import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -83,6 +84,8 @@ public class MultiTenantInsightBrainService
   private final AdminResourceBundle adminResourceBundle = new AdminResourceBundle(ADMIN_BASE_PATH);
 
   public static void main(final String[] args) {
+    TenantThreadLocal.setDefaultTenantToGlobal();
+
     new TenantUtil().setGlobalTenant();
 
     try {

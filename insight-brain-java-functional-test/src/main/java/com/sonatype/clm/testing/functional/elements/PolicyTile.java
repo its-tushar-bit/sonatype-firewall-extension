@@ -11,12 +11,13 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class PolicyTile
     extends OwnerTile
 {
-  private static final String OWNER_POLICY = ".nx-tile-subsection";
+  private static final String OWNER_POLICIES = ".nx-tile-subsection .nx-table tbody.iq-policy-table";
+
+  private static final String INHERITED_POLICIES_LIST = ".iq-policy-table-inherited-section";
 
   public PolicyTile() {
     super("#owner-pill-policy");
@@ -24,10 +25,6 @@ public class PolicyTile
 
   public static Condition inheritedText(String parent) {
     return Condition.text("inherited from " + parent);
-  }
-
-  public static Condition subHeaderText(String ownerName) {
-    return Condition.text("applying to " + ownerName);
   }
 
   public static Condition noActionText() {
@@ -39,15 +36,27 @@ public class PolicyTile
   }
 
   public ElementsCollection policyLists() {
-    return children(OWNER_POLICY);
+    return children(OWNER_POLICIES);
+  }
+
+  public ElementsCollection inheritedPolicyLists() {
+    return children(OWNER_POLICIES + INHERITED_POLICIES_LIST);
   }
 
   public PolicyTileList policyList(int num) {
-    return new PolicyTileList(selector, OWNER_POLICY, nthChild(num + 1));
+    return new PolicyTileList(selector, OWNER_POLICIES + ":nth-of-type(" + (num + 1) + ")");
   }
 
   public SelenideElement localPolicy(String policyName) {
     return children("table tr > .nx-cell:nth-of-type(2)").findBy(text(policyName));
+  }
+
+  public PolicyTileList localPolicyList() {
+    return policyList(0);
+  }
+
+  public SelenideElement localEmptyDescriptor() {
+    return child(".nx-list__item--empty");
   }
 
   public SelenideElement policyOverrideAsterisk() {

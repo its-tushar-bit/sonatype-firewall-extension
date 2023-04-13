@@ -175,7 +175,7 @@ public class RepositoryContainerPolicyEditorTest
     Policy policy = createPolicy();
     refresh();
 
-    RepositoriesSummaryPage.policyTile().policyLists().shouldHaveSize(1);
+    RepositoriesSummaryPage.policyTile().policyLists().shouldHaveSize(2);
     PolicyTileList policyList = RepositoriesSummaryPage.policyTile().policyList(0);
     policyList.emptyDescriptor().shouldBe(hidden);
     policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
@@ -206,7 +206,7 @@ public class RepositoryContainerPolicyEditorTest
     createPolicy();
     refresh();
 
-    RepositoriesSummaryPage.policyTile().policyLists().shouldHaveSize(1);
+    RepositoriesSummaryPage.policyTile().policyLists().shouldHaveSize(2); // include inherited policies
     PolicyTileList policyList = RepositoriesSummaryPage.policyTile().policyList(0);
     policyList.row(1).click();
 

@@ -13,10 +13,18 @@ import {
   applicationWithNoPolicies,
   rootOrganizationWithPolicies,
   rootOrganizationWithOnePolicy,
+  inheritanceOrgWithOnePolicy,
+  inheritanceOrgWithNoPolicy,
 } from './policiesTileTestData';
 
 describe('PoliciesTable ', () => {
-  let owner, stages, sorting, isFirewallSupported, isEnforcementSupported, goToEditPolicySpy, props;
+  let policiesByOwner,
+    stages,
+    collapsibleSorting,
+    isFirewallSupported,
+    isEnforcementSupported,
+    goToEditPolicySpy,
+    props;
 
   stages = [
     { stageTypeId: 'proxy', shortName: 'Proxy', stageName: 'Proxy' },
@@ -27,22 +35,9 @@ describe('PoliciesTable ', () => {
     { stageTypeId: 'release', shortName: 'Release', stageName: 'Release' },
     { stageTypeId: 'operate', shortName: 'Operate', stageName: 'Operate' },
   ];
-  sorting = {
-    'Artifactory Test': {
-      key: 'threatLevel',
-      dir: 'desc',
-      ownerName: 'Artifactory Test',
-    },
-    'Consumer Support': {
-      key: 'threatLevel',
-      dir: 'desc',
-      ownerName: 'Consumer Support',
-    },
-    'Root Organization': {
-      key: 'threatLevel',
-      dir: 'desc',
-      ownerName: 'Root Organization',
-    },
+  collapsibleSorting = {
+    key: 'threatLevel',
+    dir: 'desc',
   };
   isFirewallSupported = true;
   isEnforcementSupported = true;
@@ -53,93 +48,144 @@ describe('PoliciesTable ', () => {
     props = {
       ariaLabel: 'Policy tile local policies',
       emptyMessage: 'No local policies defined',
-      owner,
+      policiesByOwner,
       stages,
       isFirewallSupported,
       isEnforcementSupported,
-      sorting,
+      collapsibleSorting,
     };
     goToEditPolicySpy = spyOn(actions, 'goToEditPolicy').and.callThrough();
   });
 
-  it('renders an empty table with a message if owner has no policies', async () => {
-    owner = applicationWithNoPolicies;
+  it('renders an empty messagess if owner has no policies', async () => {
+    policiesByOwner = [applicationWithNoPolicies];
 
-    renderComponent({ ...props, owner });
+    renderComponent({ ...props, policiesByOwner });
     const table = await screen.findByRole('table');
 
-    verifyPoliciesTable(table, goToEditPolicySpy, owner, stages, sorting);
+    verifyPoliciesTable(table, goToEditPolicySpy, policiesByOwner, stages, collapsibleSorting);
   });
 
   it('renders table with policies', async () => {
-    owner = rootOrganizationWithPolicies;
+    policiesByOwner = [rootOrganizationWithPolicies];
 
-    renderComponent({ ...props, owner });
+    renderComponent({ ...props, policiesByOwner });
     const table = await screen.findByRole('table');
 
-    verifyPoliciesTable(table, goToEditPolicySpy, owner, stages, sorting);
+    verifyPoliciesTable(table, goToEditPolicySpy, policiesByOwner, stages, collapsibleSorting);
   });
 
-  it('renders table with policies sorting by name ascending', async () => {
-    owner = rootOrganizationWithPolicies;
-    sorting = {
-      'Artifactory Test': {
-        key: 'threatLevel',
-        dir: 'desc',
-        ownerName: 'Artifactory Test',
-      },
-      'Consumer Support': {
-        key: 'threatLevel',
-        dir: 'desc',
-        ownerName: 'Consumer Support',
-      },
-      'Root Organization': {
-        key: 'name',
-        dir: 'asc',
-        ownerName: 'Root Organization',
-      },
+  it('renders table with local policies sorting by name ascending', async () => {
+    policiesByOwner = [rootOrganizationWithPolicies];
+    collapsibleSorting = {
+      key: 'name',
+      dir: 'asc',
     };
 
-    renderComponent({ ...props, owner, sorting });
+    renderComponent({ ...props, policiesByOwner, collapsibleSorting });
     const table = await screen.findByRole('table');
 
-    verifyPoliciesTable(table, goToEditPolicySpy, owner, stages, sorting);
+    verifyPoliciesTable(table, goToEditPolicySpy, policiesByOwner, stages, collapsibleSorting);
   });
 
-  it('renders table with one policy and no sorting enable', async () => {
-    owner = rootOrganizationWithOnePolicy;
-    sorting = {
-      'Artifactory Test': {
-        key: 'threatLevel',
-        dir: 'desc',
-        ownerName: 'Artifactory Test',
-      },
-      'Consumer Support': {
-        key: 'threatLevel',
-        dir: 'desc',
-        ownerName: 'Consumer Support',
-      },
-      'Root Organization': {
-        key: 'name',
-        dir: 'asc',
-        ownerName: 'Root Organization',
-      },
+  it('renders table with one owner policy and no sorting enable', async () => {
+    policiesByOwner = [rootOrganizationWithOnePolicy];
+    collapsibleSorting = {
+      key: 'threatLevel',
+      dir: 'asc',
     };
 
-    renderComponent({ ...props, owner, sorting });
+    renderComponent({ ...props, policiesByOwner, collapsibleSorting });
     const table = await screen.findByRole('table');
 
-    verifyPoliciesTable(table, goToEditPolicySpy, owner, stages, sorting);
+    verifyPoliciesTable(table, goToEditPolicySpy, policiesByOwner, stages, collapsibleSorting);
   });
 
-  it('renders table with policies when enforcement is not supported', async () => {
-    owner = rootOrganizationWithPolicies;
+  it('renders table with owner policies when enforcement is not supported', async () => {
+    policiesByOwner = [rootOrganizationWithPolicies];
     isFirewallSupported = false;
     isEnforcementSupported = false;
 
-    renderComponent({ ...props, owner, isFirewallSupported, isEnforcementSupported });
+    renderComponent({ ...props, policiesByOwner, isFirewallSupported, isEnforcementSupported });
     const table = await screen.findByRole('table');
 
-    verifyPoliciesTable(table, goToEditPolicySpy, owner, stages, sorting, isFirewallSupported, isEnforcementSupported);
+    verifyPoliciesTable(
+      table,
+      goToEditPolicySpy,
+      policiesByOwner,
+      stages,
+      collapsibleSorting,
+      isFirewallSupported,
+      isEnforcementSupported
+    );
+  });
+
+  it('renders table with owner and inheritance policies and sorting by threatLevel asc', async () => {
+    policiesByOwner = [rootOrganizationWithPolicies, inheritanceOrgWithOnePolicy];
+    isFirewallSupported = false;
+    isEnforcementSupported = false;
+    collapsibleSorting = {
+      key: 'threatLevel',
+      dir: 'asc',
+    };
+
+    renderComponent({ ...props, policiesByOwner, isFirewallSupported, isEnforcementSupported, collapsibleSorting });
+    const table = await screen.findByRole('table');
+
+    verifyPoliciesTable(
+      table,
+      goToEditPolicySpy,
+      policiesByOwner,
+      stages,
+      collapsibleSorting,
+      isFirewallSupported,
+      isEnforcementSupported
+    );
+  });
+
+  it('renders table with owner and inheritance policies and an empty inheritance policies', async () => {
+    policiesByOwner = [rootOrganizationWithPolicies, inheritanceOrgWithOnePolicy, inheritanceOrgWithNoPolicy];
+    isFirewallSupported = false;
+    isEnforcementSupported = false;
+    collapsibleSorting = {
+      key: 'threatLevel',
+      dir: 'asc',
+    };
+
+    renderComponent({ ...props, policiesByOwner, isFirewallSupported, isEnforcementSupported, collapsibleSorting });
+    const table = await screen.findByRole('table');
+
+    verifyPoliciesTable(
+      table,
+      goToEditPolicySpy,
+      policiesByOwner,
+      stages,
+      collapsibleSorting,
+      isFirewallSupported,
+      isEnforcementSupported
+    );
+  });
+
+  it('renders table with no owner and inheritance policies and an empty inheritance policies', async () => {
+    policiesByOwner = [applicationWithNoPolicies, inheritanceOrgWithOnePolicy, inheritanceOrgWithNoPolicy];
+    isFirewallSupported = false;
+    isEnforcementSupported = false;
+    collapsibleSorting = {
+      key: 'threatLevel',
+      dir: 'asc',
+    };
+
+    renderComponent({ ...props, policiesByOwner, isFirewallSupported, isEnforcementSupported, collapsibleSorting });
+    const table = await screen.findByRole('table');
+
+    verifyPoliciesTable(
+      table,
+      goToEditPolicySpy,
+      policiesByOwner,
+      stages,
+      collapsibleSorting,
+      isFirewallSupported,
+      isEnforcementSupported
+    );
   });
 });

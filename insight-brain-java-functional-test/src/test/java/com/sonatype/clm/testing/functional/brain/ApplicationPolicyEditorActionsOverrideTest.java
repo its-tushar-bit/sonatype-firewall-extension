@@ -91,7 +91,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
     refresh();
 
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().policyList(1).row(1).click();
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();
@@ -185,7 +185,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
     refresh();
 
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().policyList(1).row(1).click();
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();
@@ -229,7 +229,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
     goToOwnerSummaryPage(organization);
 
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().policyList(0).row(1).click();
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();
@@ -276,9 +276,10 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
 
-    SelenideElement policyEntry = policyTile.localPolicy(policy.getName());
-    assertThat(policyEntry).isNotNull();
-    policyEntry.shouldHave(text("*" + policy.getName()));
+    PolicyTileList inheritedPolicyEntry = policyTile.policyList(1);
+    PolicyTileList.PolicyTileListElement policyElement = inheritedPolicyEntry.row(1);
+    assertThat(policy).isNotNull();
+    policyElement.name().shouldHave(text("*" + policy.getName()));
 
     SelenideElement overrideAsterisk = policyTile.policyOverrideAsterisk();
     overrideAsterisk.hover();
@@ -310,7 +311,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
     refresh();
 
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().policyList(1).row(1).click();
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();

@@ -71,16 +71,45 @@
       margin-left: 0;
     }
 
+    &.iq-collapsible-row {
+      display: table-row;
+      .iq-collapsible-row__header {
+        margin: 0;
+        h3.nx-h3.iq-collapsible-row__header-title {
+          font-size: var(--nx-font-size-s);
+        }
+        svg {
+          margin-left: 0px;
+        }
+      }
+    }
+
+    &.iq-collapsible-row__empty-message {
+      display: table-row;
+      text-align: center;
+      .nx-cell {
+        &:first-child {
+          justify-content: center !important;
+        }
+      }
+    }
+
     .nx-cell {
       display: flex;
       vertical-align: middle;
       white-space: normal;
       box-sizing: border-box;
-      font-size: 13px;
+      font-size: var(--nx-font-size-s);
+
+      &.nx-cell--header,
+      &.nx-cell--header:nth-of-type(2) {
+        font-weight: 700;
+      }
 
       &:nth-of-type(2),
       .nx-threat-number {
-        font-size: 14px;
+        font-size: var(--nx-font-size-s);
+        font-weight: 600;
       }
 
       &:not(:nth-of-type(2)) {

@@ -6,10 +6,8 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { find, propEq, filter, isEmpty } from 'ramda';
 import {
   NxH2,
-  NxH3,
   NxTile,
   NxButton,
   NxFontAwesomeIcon,
@@ -17,12 +15,12 @@ import {
   NxList,
   NxTableContainer,
 } from '@sonatype/react-shared-components';
-import { selectSelectedOwnerName, selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectPoliciesByOwner,
   selectPolicyTileLoading,
   selectPolicyTileLoadError,
-  selectPolicyTileSorting,
+  selectPolicyTileSortingCollapsible,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
@@ -31,12 +29,10 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import PoliciesTable from './PoliciesTable';
-import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function PoliciesTile() {
   const dispatch = useDispatch();
 
-  const ownerName = useSelector(selectSelectedOwnerName);
   const policiesByOwner = useSelector(selectPoliciesByOwner);
   const actionStages = useSelector(selectActionStageTypes);
   const isEnforcementSupported = useSelector(selectIsEnforcementSupported);
@@ -44,8 +40,7 @@ export default function PoliciesTile() {
   const loading = useSelector(selectPolicyTileLoading);
   const loadError = useSelector(selectPolicyTileLoadError);
   const selectedOwner = useSelector(selectSelectedOwner);
-  const sorting = useSelector(selectPolicyTileSorting);
-  const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
+  const collapsibleSorting = useSelector(selectPolicyTileSortingCollapsible);
 
   const doLoad = () => dispatch(actions.loadPolicyTile());
 
@@ -55,9 +50,11 @@ export default function PoliciesTile() {
 
   const goToCreatePolicy = () => dispatch(actions.goToCreatePolicy());
 
-  const local = find(propEq('inherited', false), policiesByOwner ?? []);
-  const inherited = filter(propEq('inherited', true), policiesByOwner ?? []);
   const stagesNumber = `policy-tile__stages-num--${actionStages?.length || 7}`;
+
+  const isNoPoliciesDefined = !policiesByOwner?.some((owner) => {
+    return owner.policies.length > 0;
+  });
 
   return (
     <NxTile id="owner-pill-policy" data-testid="policies-tile">
@@ -67,9 +64,6 @@ export default function PoliciesTile() {
             <NxTile.HeaderTitle>
               <NxH2>Policies</NxH2>
             </NxTile.HeaderTitle>
-            <NxTile.HeaderSubtitle>
-              applying to {isRepositoriesRelated ? 'All Repositories' : ownerName}
-            </NxTile.HeaderSubtitle>
           </NxTile.Headings>
           <NxTile.HeaderActions>
             <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
@@ -80,47 +74,21 @@ export default function PoliciesTile() {
         </NxTile.Header>
         <NxTile.Content className={stagesNumber}>
           <NxTile.Subsection>
-            <NxTile.SubsectionHeader>
-              <NxH3>Local</NxH3>
-            </NxTile.SubsectionHeader>
-            {isEmpty(local?.policies) ? (
+            {isNoPoliciesDefined ? (
               <NxList emptyMessage="No local policies defined" />
             ) : (
               <NxTableContainer>
                 <PoliciesTable
-                  ariaLabel="Policy tile local policies"
-                  owner={local}
+                  ariaLabel="Policy tile"
+                  policiesByOwner={policiesByOwner ?? []}
                   stages={actionStages}
                   isFirewallSupported={isFirewallSupported}
                   isEnforcementSupported={isEnforcementSupported}
-                  sorting={sorting}
+                  collapsibleSorting={collapsibleSorting}
                 />
               </NxTableContainer>
             )}
           </NxTile.Subsection>
-          {inherited?.map((owner) => {
-            if (!isEmpty(owner.policies)) {
-              return (
-                <NxTile.Subsection key={owner.ownerId}>
-                  <NxTile.SubsectionHeader>
-                    <NxH3>Inherited from {owner.ownerName}</NxH3>
-                  </NxTile.SubsectionHeader>
-                  <NxTableContainer>
-                    <PoliciesTable
-                      ariaLabel={`Policy tile inherited from ${owner.ownerName} policies`}
-                      emptyMessage="No policies defined"
-                      owner={owner}
-                      stages={actionStages}
-                      isFirewallSupported={isFirewallSupported}
-                      isEnforcementSupported={isEnforcementSupported}
-                      sorting={sorting}
-                      isRepositories={isRepositoriesRelated}
-                    />
-                  </NxTableContainer>
-                </NxTile.Subsection>
-              );
-            }
-          })}
         </NxTile.Content>
       </NxLoadWrapper>
     </NxTile>

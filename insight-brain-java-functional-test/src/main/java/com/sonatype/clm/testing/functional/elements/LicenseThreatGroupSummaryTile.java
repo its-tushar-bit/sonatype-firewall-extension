@@ -24,7 +24,7 @@ public class LicenseThreatGroupSummaryTile
 
   private static final String TILE_ACTIONS_SELECTOR = ".nx-tile-header__actions";
 
-  private static final String TILE_SUBSECTION_HEADER = ".iq-collapsible-row__title-row";
+  private static final String TILE_SUBSECTION_HEADER = ".iq-collapsible-row";
 
   private static final String TILE_SUBSECTION_HEADER_ICON = ".iq-collapsible-row__header-icon";
 

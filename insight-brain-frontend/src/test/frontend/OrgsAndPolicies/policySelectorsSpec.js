@@ -59,6 +59,7 @@ import {
   selectValidationError,
   selectCurrentPolicyConstraints,
   selectPolicyDeleteError,
+  selectPolicyTileSortingCollapsible,
   selectCurrentSubmitMaskState,
   selectIsNotificationOverrideEnabled,
   selectOverrideNotificationsFlag,
@@ -2087,6 +2088,15 @@ describe('policySelectors', () => {
         policyNotificationsOverrides: { a: {}, b: {}, c: {} },
       });
       expect(actual).toEqual(3);
+    });
+  });
+
+  describe('selectPolicyTileSortingCollapsible', () => {
+    it('selects sorting for policy tile', () => {
+      const actual = selectPolicyTileSortingCollapsible.resultFunc({
+        collapsibleSorting: { key: 'mykey', dir: 'asc' },
+      });
+      expect(actual).toEqual({ key: 'mykey', dir: 'asc' });
     });
   });
 });

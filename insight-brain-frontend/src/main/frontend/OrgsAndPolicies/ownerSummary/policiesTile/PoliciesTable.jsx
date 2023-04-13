@@ -4,41 +4,45 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import * as PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
 
-import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
-import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { NxTable, NxThreatIndicator, NxTooltip, NxOverflowTooltip } from '@sonatype/react-shared-components';
+import { find, propEq, filter, isEmpty } from 'ramda';
+import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
+import IqCollapsibleRow from 'MainRoot/react/IqCollapsibleRow/IqCollapsibleRow';
 
 export default function PoliciesTable({
   ariaLabel,
   emptyMessage = 'No policies defined',
-  owner,
+  policiesByOwner,
   stages,
   isFirewallSupported,
   isEnforcementSupported,
-  sorting,
+  collapsibleSorting,
   isRepositories,
 }) {
   const dispatch = useDispatch();
 
   const goToEditPolicy = (policyId) => !isRepositories && dispatch(actions.goToEditPolicy(policyId));
-  const changeSortField = (sorting) => dispatch(actions.changeSortField(sorting));
+  const changeSortField = (sorting) => dispatch(actions.changeCollapsibleSortField(sorting));
 
-  const getSortDir = (ownerName, fieldName) => {
-    const { key, dir } = sorting[ownerName];
+  const local = find(propEq('inherited', false), policiesByOwner ?? []);
+  const inherited = filter(propEq('inherited', true), policiesByOwner ?? []);
+
+  const getSortCollapseDir = (fieldName) => {
+    const { key, dir } = collapsibleSorting;
     return key === fieldName ? dir : null;
   };
 
-  const sortingEnabled = owner?.policies?.length > 1;
+  const sortingEnabled = policiesByOwner.some((owner) => owner?.policies?.length > 1);
 
-  const sort = (ownerName, fieldName) => {
+  const sort = (fieldName) => {
     if (isEnforcementSupportedForStage(fieldName) && sortingEnabled) {
       changeSortField({
-        ownerName,
         key: fieldName,
-        dir: getSortDir(ownerName, fieldName) === 'asc' ? 'desc' : 'asc',
+        dir: getSortCollapseDir(fieldName) === 'asc' ? 'desc' : 'asc',
       });
     }
   };
@@ -52,27 +56,23 @@ export default function PoliciesTable({
       'policy-tile__cell--disabled': !isEnforcementSupportedForStage(stage.stageTypeId),
     });
 
-  function renderTableHeader(ownerName) {
+  function renderTableHeader() {
     return (
       <NxTable.Head>
         <NxTable.Row>
           <NxTable.Cell
             isSortable={sortingEnabled}
-            sortDir={getSortDir(ownerName, 'threatLevel')}
-            onClick={() => sort(ownerName, 'threatLevel')}
+            sortDir={getSortCollapseDir('threatLevel')}
+            onClick={() => sort('threatLevel')}
           />
-          <NxTable.Cell
-            isSortable={sortingEnabled}
-            sortDir={getSortDir(ownerName, 'name')}
-            onClick={() => sort(ownerName, 'name')}
-          >
+          <NxTable.Cell isSortable={sortingEnabled} sortDir={getSortCollapseDir('name')} onClick={() => sort('name')}>
             Name
           </NxTable.Cell>
           {stages?.map((stage) => (
             <NxTable.Cell
               isSortable={sortingEnabled}
-              sortDir={getSortDir(ownerName, stage.stageTypeId)}
-              onClick={() => sort(ownerName, stage.stageTypeId)}
+              sortDir={getSortCollapseDir(stage.stageTypeId)}
+              onClick={() => sort(stage.stageTypeId)}
               key={stage.stageTypeId}
               className={getCellClassNames(stage)}
             >
@@ -106,7 +106,7 @@ export default function PoliciesTable({
           <NxOverflowTooltip>
             <div className="nx-truncate-ellipsis">
               {policy.hasLocalActionsOverrides && (
-                <NxTooltip title={!!policy.hasLocalActionsOverrides ? 'Policy Actions are overridden' : ''}>
+                <NxTooltip title={policy?.hasLocalActionsOverrides ? 'Policy Actions are overridden' : ''}>
                   <span>*</span>
                 </NxTooltip>
               )}
@@ -130,10 +130,47 @@ export default function PoliciesTable({
     );
   }
 
+  const renderPolicies = (policies) => {
+    if (isEmpty(policies)) return null;
+    return policies.map(renderTableRow);
+  };
+
   return (
     <NxTable aria-label={ariaLabel}>
-      {owner && renderTableHeader(owner?.ownerName)}
-      <NxTable.Body emptyMessage={emptyMessage}>{owner?.policies.map(renderTableRow)}</NxTable.Body>
+      {renderTableHeader()}
+      {local && (
+        <NxTable.Body
+          emptyMessage={emptyMessage}
+          className="iq-policy-table iq-policy-table-local-section"
+          aria-label="Policy rows local policies"
+        >
+          <IqCollapsibleRow
+            key={local?.ownerName}
+            headerTitle={`Local to ${local?.ownerName}`}
+            noItemsMessage={`No local policies defined`}
+            isCollapsible={false}
+          >
+            {renderPolicies(local?.policies)}
+          </IqCollapsibleRow>
+        </NxTable.Body>
+      )}
+      {inherited &&
+        inherited?.map((owner) => (
+          <NxTable.Body
+            emptyMessage={emptyMessage}
+            key={owner.ownerName}
+            aria-label={`Inherited from ${owner.ownerName}`}
+            className="iq-policy-table iq-policy-table-inherited-section"
+          >
+            <IqCollapsibleRow
+              headerTitle={`Inherited from ${owner.ownerName}`}
+              noItemsMessage={`No ${owner.ownerName} policies defined`}
+              isCollapsible={true}
+            >
+              {renderPolicies(owner.policies)}
+            </IqCollapsibleRow>
+          </NxTable.Body>
+        ))}
     </NxTable>
   );
 }
@@ -141,16 +178,22 @@ export default function PoliciesTable({
 PoliciesTable.propTypes = {
   ariaLabel: PropTypes.string.isRequired,
   emptyMessage: PropTypes.string,
-  owner: PropTypes.shape({
-    ownerId: PropTypes.string,
-    ownerName: PropTypes.string,
-    ownerType: PropTypes.string,
-    inherited: PropTypes.bool,
-    policies: PropTypes.arrayOf(PropTypes.object),
-  }),
+  policiesByOwner: PropTypes.arrayOf(
+    PropTypes.shape({
+      ownerId: PropTypes.string,
+      ownerName: PropTypes.string,
+      ownerType: PropTypes.string,
+      inherited: PropTypes.bool,
+      policies: PropTypes.arrayOf(PropTypes.object),
+    })
+  ).isRequired,
   stages: PropTypes.arrayOf(PropTypes.object),
   isFirewallSupported: PropTypes.bool,
   isEnforcementSupported: PropTypes.bool,
   isRepositories: PropTypes.bool,
   sorting: PropTypes.object,
+  collapsibleSorting: PropTypes.shape({
+    key: PropTypes.string,
+    dir: PropTypes.string,
+  }),
 };

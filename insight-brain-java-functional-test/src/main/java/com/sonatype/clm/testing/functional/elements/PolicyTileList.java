@@ -25,19 +25,15 @@ public class PolicyTileList
 
   @Override
   public PolicyTileListElement row(int num) {
-    return new PolicyTileListElement(selector, "tbody tr", nthChild(num));
+    return new PolicyTileListElement(selector, "tr:nth-of-type(" + (num + 1) + ")");
   }
 
   public SelenideElement ownerName() {
-    return child(".nx-h3");
+    return child(".iq-collapsible-row__header-title");
   }
 
   public SelenideElement emptyDescriptor() {
-    return child(".nx-cell--meta-info");
-  }
-
-  public SelenideElement localEmptyDescriptor() {
-    return child(".nx-list__item--empty");
+    return child(".iq-collapsible-row__empty-message");
   }
 
   public HeaderColumn threatLegendHeaderColumn() {

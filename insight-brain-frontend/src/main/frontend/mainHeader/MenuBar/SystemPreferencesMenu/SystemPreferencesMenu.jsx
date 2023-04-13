@@ -121,9 +121,9 @@ export const SystemPreferencesMenu = ({
         Automatic SCM Configuration
       </NavLink>
       <NavLink
-          stateName="baseUrlConfiguration"
-          id="system-configuration-base-url"
-          showIf={CONFIGURE_SYSTEM && isBaseUrlConfigurationEnabled}
+        stateName="baseUrlConfiguration"
+        id="system-configuration-base-url"
+        showIf={CONFIGURE_SYSTEM && isBaseUrlConfigurationEnabled}
       >
         Base URL
       </NavLink>

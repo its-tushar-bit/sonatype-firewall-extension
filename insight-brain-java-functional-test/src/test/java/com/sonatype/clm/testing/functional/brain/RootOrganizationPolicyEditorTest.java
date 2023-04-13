@@ -101,9 +101,9 @@ public class RootOrganizationPolicyEditorTest
 
   @Test
   public void testQuarantineWarningOnEditPolicy() {
-    Policy policy = createPolicy();
+    createPolicy();
     refresh();
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
 
     PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
     PolicyEditorPage.actionsSection().proxy().failRadio().click();

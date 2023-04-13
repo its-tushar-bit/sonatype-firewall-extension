@@ -299,7 +299,7 @@ public abstract class AbstractPolicyEditorTest
 
     refresh();
 
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false);
 
     testEditPolicy_summarySection(policy.getId());
@@ -347,7 +347,7 @@ public abstract class AbstractPolicyEditorTest
 
     refresh();
 
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true, false, true);
   }
 
@@ -362,7 +362,7 @@ public abstract class AbstractPolicyEditorTest
 
     refresh();
 
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true, true, true);
   }
 
@@ -741,7 +741,7 @@ public abstract class AbstractPolicyEditorTest
     Policy policy = createDisabledHygieneRatingPolicyConditions(ownerId);
     refresh();
 
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     testDisabledPolicy_constraintSectionConditions_summaries(policy,
@@ -761,7 +761,7 @@ public abstract class AbstractPolicyEditorTest
     Policy policy = createDisabledIntegrityRatingPolicyConditions(ownerId);
     refresh();
 
-    OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+    OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     testDisabledPolicy_constraintSectionConditions_summaries(policy,

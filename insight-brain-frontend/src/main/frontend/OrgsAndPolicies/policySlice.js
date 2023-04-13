@@ -208,7 +208,10 @@ export const initialState = {
     loading: false,
     loadError: null,
     policiesByOwner: null,
-    sorting: {},
+    collapsibleSorting: {
+      key: null,
+      dir: null,
+    },
   },
 };
 
@@ -335,8 +338,8 @@ const loadPolicyTileRequested = (state) => {
 
 const loadPolicyTileFulfilled = (state, { payload }) => {
   state.policyTile.loading = false;
-  state.policyTile.sorting = setInitialSorting(payload);
-  state.policyTile.policiesByOwner = sortItemsByField(payload, state.policyTile.sorting);
+  state.policyTile.collapsibleSorting = setInitialSorting();
+  state.policyTile.policiesByOwner = sortCollapsibleItemsByField(payload, state.policyTile.collapsibleSorting);
 };
 
 const loadPolicyTileFailed = (state, { payload }) => {
@@ -344,22 +347,10 @@ const loadPolicyTileFailed = (state, { payload }) => {
   state.policyTile.loadError = Messages.getHttpErrorMessage(payload);
 };
 
-const setInitialSorting = (policiesByOwner) => {
-  const mapped = map(
-    (owner) => ({
-      key: 'threatLevel',
-      dir: 'desc',
-      ownerName: owner.ownerName,
-    }),
-    policiesByOwner
-  );
-
-  const options = {};
-  mapped.forEach((option) => {
-    options[option.ownerName] = option;
-  });
-  return options;
-};
+const setInitialSorting = () => ({
+  key: 'threatLevel',
+  dir: 'desc',
+});
 
 const checkAreStageValuesEqual = (key, policies) => {
   if (includes(key, ['name', 'threatLevel'])) {
@@ -371,42 +362,28 @@ const checkAreStageValuesEqual = (key, policies) => {
   return allEqual(values);
 };
 
-const sortItemsByField = (policiesByOwner, sortingConfig, updatedSorting = null) => {
-  if (!isNil(updatedSorting)) {
-    const { key, dir, ownerName } = updatedSorting;
-    const customSort = sortWith(policiesComparator(prop(key), key));
-
-    const cloned = clone(policiesByOwner);
-    const index = findIndex(propEq('ownerName', ownerName), cloned);
-    const equalValues = checkAreStageValuesEqual(key, cloned[index].policies);
-
-    if (equalValues) {
-      return policiesByOwner;
-    }
-
-    const sorted = customSort(cloned[index].policies);
-
-    cloned[index].policies = dir === 'asc' ? sorted : reverse(sorted);
-    return cloned;
-  }
+const sortCollapsibleItemsByField = (policiesByOwner, updatedSorting) => {
+  const { dir, key } = updatedSorting;
 
   return map((owner) => {
-    const { dir, key } = sortingConfig[owner.ownerName];
+    let policies = clone(owner.policies);
     const customSort = sortWith(policiesComparator(prop(key), key));
+    const equalValues = checkAreStageValuesEqual(key, policies);
+
+    if (!equalValues) {
+      policies = dir === 'asc' ? customSort(policies) : reverse(customSort(policies));
+    }
+
     return {
       ...owner,
-      policies: dir === 'asc' ? customSort(owner.policies) : reverse(customSort(owner.policies)),
+      policies,
     };
   }, policiesByOwner);
 };
 
-const changeSortField = (state, { payload }) => {
-  const newSorting = {
-    ...state.policyTile.sorting,
-    [payload.ownerName]: payload,
-  };
-  state.policyTile.sorting = newSorting;
-  state.policyTile.policiesByOwner = sortItemsByField(state.policyTile.policiesByOwner, newSorting, payload);
+const changeCollapsibleSortField = (state, { payload }) => {
+  state.policyTile.collapsibleSorting = payload;
+  state.policyTile.policiesByOwner = sortCollapsibleItemsByField(state.policyTile.policiesByOwner, payload);
 };
 
 const convertMatcherToUserInput = (policy) => {
@@ -1464,7 +1441,7 @@ const policySlice = createSlice({
     unSetOverrideParentActions,
     setOverrideParentNotifications,
     unSetOverrideParentNotifications,
-    changeSortField,
+    changeCollapsibleSortField,
     saveMaskTimerDone: propSet('submitMaskState', null),
     clearDeleteError: propSet('deleteError', null),
     toggleShowActionsOverridesConfirmationModal: toggleBooleanProp('showActionsOverridesConfirmationModal'),

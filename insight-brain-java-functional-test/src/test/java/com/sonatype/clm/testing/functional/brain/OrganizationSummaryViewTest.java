@@ -247,13 +247,21 @@ public class OrganizationSummaryViewTest
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     ScrollUtil.scrollIntoViewInstantly(policyTile.getElement());
 
-    PolicyTileList policyList = policyTile.policyList(0);
-    policyList.emptyDescriptor().shouldBe(hidden);
-    policyList.rows().shouldHaveSize(2); // 1 row plus header
-    policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
-    PolicyTileListElement policyElement = policyList.row(1);
+    policyTile.policyLists().shouldHaveSize(2); // 2 tbody for each owner policy
+
+    // get local policies
+    PolicyTileList ownerPolicyList = policyTile.policyList(0);
+    ownerPolicyList.emptyDescriptor().shouldBe(hidden);
+    ownerPolicyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
+    PolicyTileListElement policyElement = ownerPolicyList.row(1);
     policyElement.name().shouldBe(visible).shouldHave(text("Test"));
     policyElement.proxy().shouldBe(visible).shouldHave(text("warn"));
+
+    // get Inherited policies by owner
+    PolicyTileList inheritedRootPolicyList = policyTile.policyList(1);
+    inheritedRootPolicyList.emptyDescriptor().shouldBe(visible);
+    inheritedRootPolicyList.emptyDescriptor().shouldHave(text("No Root Organization policies defined"));
+    inheritedRootPolicyList.ownerName().shouldBe(visible).shouldHave(text("Inherited from"));
 
     eyesWatcher.eyesCheck("policy tile after policy import");
 

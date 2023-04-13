@@ -10,6 +10,7 @@ import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/Pol
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { getActionStageUrl, getApplicablePolicies } from 'MainRoot/util/CLMLocation';
 import {
+  applicationPoliciesByOwnerPayload,
   rootOrganizationPoliciesByOwnerPayload,
   rootOrganizationNoPoliciesByOwnerPayload,
   organizationPoliciesByOwnerPayload,
@@ -196,11 +197,6 @@ describe('PoliciesTile', () => {
         expect(await screen.findByText('Policies')).toBeVisible();
       });
 
-      it('renders header with the correct subtitle', async () => {
-        let text = `applying to ${ownerName}`;
-        expect(await screen.findByText(text)).toBeVisible();
-      });
-
       it('Add Policy button is visible and navigates to policy create page', async () => {
         const addButton = await screen.findByRole('button', { name: 'Add a Policy' });
         expect(addButton).toBeVisible();
@@ -298,11 +294,6 @@ describe('PoliciesTile', () => {
         expect(await screen.findByText('Policies')).toBeVisible();
       });
 
-      it('renders header with the correct subtitle', async () => {
-        let text = `applying to ${ownerName}`;
-        expect(await screen.findByText(text)).toBeVisible();
-      });
-
       it('Add Policy button is visible and navigates to policy create page', async () => {
         const addButton = await screen.findByRole('button', { name: 'Add a Policy' });
         expect(addButton).toBeVisible();
@@ -330,6 +321,115 @@ describe('PoliciesTile', () => {
             expect(await screen.findByText(title)).toBeVisible();
           }
         }
+      });
+    });
+  });
+
+  describe('Owner is an application with inherited policies', () => {
+    beforeAll(() => {
+      ownerName = applicationPoliciesByOwnerPayload.ownerName;
+      ownerId = applicationPoliciesByOwnerPayload.ownerId;
+      ownerType = applicationPoliciesByOwnerPayload.ownerType;
+      numberOfTables = applicationPoliciesByOwnerPayload.policiesByOwner.length;
+
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.application',
+            url: '/application/{applicationPublicId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            applicationPublicId: ownerId,
+          },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            firewall: firewallSupported,
+            enforcement: enforcementSupported,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+              policyViolationGrandfatheringEnabled: null,
+              allowPolicyViolationGrandfatheringOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+          stages: {
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: null,
+            },
+          },
+        },
+      };
+    });
+
+    beforeEach(() => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: applicationPoliciesByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
+
+      renderComponent(preloadedState);
+    });
+
+    describe('Tile Header', () => {
+      it('renders header with the correct title', async () => {
+        expect(await screen.findByText('Policies')).toBeVisible();
+      });
+
+      it('Add Policy button is visible and navigates to policy create page', async () => {
+        const addButton = await screen.findByRole('button', { name: 'Add a Policy' });
+        expect(addButton).toBeVisible();
+        fireEvent.click(addButton);
+        expect(goToCreatePolicySpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('Policies table Content', () => {
+      it('renders correct amount of tbodys', async () => {
+        let rowgroups = await screen.findAllByRole('rowgroup');
+
+        // filter rowgroups by collapsible rows
+        rowgroups = rowgroups.filter((row) => {
+          return row.children[0].className.includes('iq-collapsible-row');
+        });
+
+        // check that the total of collapsible rows are equal to the total of policies by owner
+        expect(rowgroups.length).toBe(numberOfTables);
+      });
+
+      it('Correctly renders all collapsible headers rows titles', async () => {
+        const ownersWithPolicies = applicationPoliciesByOwnerPayload.policiesByOwner;
+        let rowgroups = await screen.findAllByRole('rowgroup');
+
+        // filter rowgroups by collapsible rows
+        rowgroups = rowgroups.filter((row) => {
+          return row.children[0].className.includes('iq-collapsible-row');
+        });
+
+        rowgroups.forEach((row) => {
+          const collapsibleHeader = within(row).getByRole('heading', { level: 3 });
+          const index = rowgroups.indexOf(row);
+          let policy = ownersWithPolicies[index];
+          let title = !policy.inherited ? `Local to ${policy.ownerName}` : `Inherited from ${policy.ownerName}`;
+
+          expect(collapsibleHeader).toHaveTextContent(title);
+        });
       });
     });
   });

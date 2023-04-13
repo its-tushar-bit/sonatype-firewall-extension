@@ -537,4 +537,4 @@ export const selectPolicyTile = createSelector(selectPolicySlice, prop('policyTi
 export const selectPoliciesByOwner = createSelector(selectPolicyTile, prop('policiesByOwner'));
 export const selectPolicyTileLoading = createSelector(selectPolicyTile, prop('loading'));
 export const selectPolicyTileLoadError = createSelector(selectPolicyTile, prop('loadError'));
-export const selectPolicyTileSorting = createSelector(selectPolicyTile, prop('sorting'));
+export const selectPolicyTileSortingCollapsible = createSelector(selectPolicyTile, prop('collapsibleSorting'));

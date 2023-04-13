@@ -7,15 +7,14 @@
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { policiesComparator } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { fireEvent, screen, within } from 'TestRoot/SpecUtil';
-import { clone, prop, reverse, sortWith } from 'ramda';
+import { find, propEq, filter, clone, prop, reverse, sortWith } from 'ramda';
 import { verifyThreatLevelIndicator, verifyHeaderCell } from '../utils/tileAndTableTestingUtils';
 
 export function getNumberOfColumns(actionStages) {
   return actionStages.length + 3; // threatLevel, policyName, one colum for each actionStage and one clickable arrow
 }
 
-function getSortedPolicies(ownerName, policies, sortingConfig) {
-  const sorting = sortingConfig[ownerName];
+function getSortedPolicies(policies, sorting) {
   const customSort = sortWith(policiesComparator(prop(sorting.key), sorting.key));
   const sortedPolicies = clone(policies);
   sorting.dir === 'asc' ? customSort(sortedPolicies) : reverse(customSort(sortedPolicies));
@@ -37,25 +36,21 @@ export function verifyPoliciesTable(
 ) {
   let groups;
 
-  //one rowgroup for thead other for tbody
+  const localPolicies = find(propEq('inherited', false), ownerWithPolicies ?? []);
+  const inheritedPolicies = filter(propEq('inherited', true), ownerWithPolicies ?? []);
+
+  //one rowgroup for thead other tbody for local policies and a tbody for each tbody belonging to an inheritance policies
   groups = within(table).getAllByRole('rowgroup');
-  expect(groups.length).toBe(2);
+  expect(groups.length).toBe(2 + inheritedPolicies.length);
 
-  const sortingEnabled = within(groups[1]).getAllByRole('row').length > 1;
+  const sortingEnabled = ownerWithPolicies.some((owner) => owner?.policies?.length > 1);
 
-  verifyTableHead(
-    groups[0],
-    ownerWithPolicies.ownerName,
-    actionStages,
-    sortStrategy,
-    isFirewallSupported,
-    isEnforcementSupported,
-    sortingEnabled
-  );
+  verifyTableHead(groups[0], actionStages, sortStrategy, isFirewallSupported, isEnforcementSupported, sortingEnabled);
   verifyTableBody(
-    groups[1],
+    groups.filter((el) => el.tagName === 'TBODY'),
     goToEditPolicySpy,
-    ownerWithPolicies,
+    localPolicies,
+    inheritedPolicies,
     actionStages,
     sortStrategy,
     isFirewallSupported,
@@ -65,7 +60,6 @@ export function verifyPoliciesTable(
 
 function verifyTableHead(
   thead,
-  ownerName,
   actionStages,
   sortStrategy,
   isFirewallSupported,
@@ -73,7 +67,6 @@ function verifyTableHead(
   sortingEnabled
 ) {
   let rows, headers;
-  const sorting = sortStrategy[ownerName];
 
   const totalOfColumns = getNumberOfColumns(actionStages);
   rows = within(thead).getAllByRole('row');
@@ -81,8 +74,8 @@ function verifyTableHead(
   headers = within(rows[0]).getAllByRole('columnheader');
   expect(headers.length).toBe(totalOfColumns);
 
-  verifyHeaderCell(headers[0], sortingEnabled, '', sorting.key === 'threatLevel', sorting.dir);
-  verifyHeaderCell(headers[1], sortingEnabled, 'Name', sorting.key === 'name', sorting.dir);
+  verifyHeaderCell(headers[0], sortingEnabled, '', sortStrategy.key === 'threatLevel', sortStrategy.dir);
+  verifyHeaderCell(headers[1], sortingEnabled, 'Name', sortStrategy.key === 'name', sortStrategy.dir);
 
   if (!isNilOrEmpty(actionStages)) {
     for (const stage of actionStages) {
@@ -92,8 +85,8 @@ function verifyTableHead(
         headers[2 + index],
         sortingEnabled,
         stage.shortName,
-        sorting.key === stage.stageTypeId,
-        sorting.dir,
+        sortStrategy.key === stage.stageTypeId,
+        sortStrategy.dir,
         stageShouldBeDisable
       );
     }
@@ -101,28 +94,56 @@ function verifyTableHead(
 }
 
 function verifyTableBody(
-  tbody,
+  tbodies,
   goToEditPolicySpy,
-  ownerWithPolicies,
+  localPolicies,
+  inheritedPolicies,
   actionStages,
   sortingState,
   isFirewallSupported,
   isEnforcementSupported
 ) {
-  let policies, rows, editButton;
+  let rows = [],
+    editButton;
   const totalOfColumns = getNumberOfColumns(actionStages);
 
-  rows = within(tbody).getAllByRole('row');
-  policies = ownerWithPolicies.policies;
-  if (isNilOrEmpty(policies)) {
-    expect(rows.length).toBe(1);
+  tbodies.forEach((tbody) => {
+    const polciesRow = within(tbody).getAllByRole('row');
+    rows = rows.concat(polciesRow);
+  });
+
+  const allPolicies = [
+    ...localPolicies?.policies,
+    ...inheritedPolicies.map((inheritedPolicy) => inheritedPolicy.policies).flat(),
+  ];
+
+  // get the total of empty rows
+  let emptyRowsMessage = 0;
+  if (isNilOrEmpty(localPolicies.policies)) emptyRowsMessage++;
+  inheritedPolicies.forEach((inheritedPolicy) => {
+    if (isNilOrEmpty(inheritedPolicy.policies)) emptyRowsMessage++;
+  });
+
+  // add +1 for the local polcy header
+  const collapsibleHeaderRows = inheritedPolicies.length + 1 + emptyRowsMessage;
+
+  if (isNilOrEmpty(allPolicies)) {
+    expect(rows.length).toBe(2);
+    expect(screen.getByRole('cell', { name: `Local to ${localPolicies?.ownerName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: 'No local policies defined' })).toBeVisible();
   } else {
-    expect(rows.length).toBe(policies.length);
+    expect(rows.length).toBe(allPolicies.length + collapsibleHeaderRows);
 
-    let sortedPolicies = getSortedPolicies(ownerWithPolicies.ownerName, ownerWithPolicies.policies, sortingState);
+    let sortedPolicies = getSortedPolicies(allPolicies, sortingState);
 
-    for (const row of rows) {
+    // removed all collapsible rows headers and empty rows
+    rows = rows.filter((row) => {
+      let cells = within(row).getAllByRole('cell');
+      return cells.length === totalOfColumns;
+    });
+
+    // check row sorting
+    rows.forEach((row) => {
       const index = rows.indexOf(row);
       let policy = sortedPolicies[index];
 
@@ -151,6 +172,6 @@ function verifyTableBody(
           }
         }
       }
-    }
+    });
   }
 }

@@ -1025,12 +1025,9 @@ public class RepositoriesSummaryViewTest
 
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldBe(visible);
-    policyTile.subHeader().shouldBe(visible).shouldHave(PolicyTile.subHeaderText("All Repositories"));
     policyTile.newButton().shouldBe(visible);
-
-    PolicyTileList policyList = policyTile.policyList(0);
-    policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
-    policyList.localEmptyDescriptor().shouldBe(visible);
+    policyTile.policyLists().shouldHaveSize(0);
+    policyTile.localEmptyDescriptor().shouldBe(visible).shouldHave(text("No local"));
   }
 
   @Test
@@ -1048,6 +1045,7 @@ public class RepositoriesSummaryViewTest
 
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     PolicyTileList policyTileList = policyTile.policyList(1);
+    policyTileList.ownerName().shouldHave(text("Inherited from"));
 
     // The plus one is added because the rows method selects the table header
     policyTileList.rows().shouldHaveSize(inheritedPolicies.size() + 1);
@@ -1073,6 +1071,12 @@ public class RepositoriesSummaryViewTest
     policyTileList.row(2).stageRelease().shouldHave(PolicyTile.noActionText());
     policyTileList.row(2).release().shouldHave(PolicyTile.noActionText());
     policyTileList.row(2).operate().shouldHave(PolicyTile.noActionText());
+
+    policyTileList.ownerName().click();
+    policyTileList.rows().shouldHaveSize(1); // no rows only collapsible row header is visible
+
+    policyTileList.ownerName().click();
+    policyTileList.rows().shouldHaveSize(3); // rows plus header row
   }
 
   @Test
@@ -1089,7 +1093,8 @@ public class RepositoriesSummaryViewTest
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     PolicyTileList policyTileList = policyTile.policyList(1);
 
-    for (int i = 0; i < policyTileList.rows().size(); i++) {
+    // starts from 1 since 0 is the collapsible header
+    for (int i = 1; i < policyTileList.rows().size(); i++) {
       verifyTableRowIsReadOnly(policyTileList.row(i));
     }
   }

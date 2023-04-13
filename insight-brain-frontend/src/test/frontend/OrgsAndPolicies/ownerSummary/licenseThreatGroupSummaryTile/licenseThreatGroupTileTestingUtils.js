@@ -31,6 +31,9 @@ export const nLevelVerifyTableContent = (tableSections, owners, goToEditLTGSpy) 
     const licenseThreatGroups = sortByThreatLevel(owner.licenseThreatGroups);
     const cellsPerLTGRow = isNilOrEmpty(licenseThreatGroups) ? 1 : 3;
     const firstContentRow = within(section).getAllByRole('row')[1];
+    const expectedEmptyMessage = owner.inherited
+      ? `No ${owner.ownerName} threat groups defined`
+      : 'No local threat groups defined';
 
     expect(within(firstContentRow).getAllByRole('cell')).toHaveSize(cellsPerLTGRow);
 
@@ -43,7 +46,7 @@ export const nLevelVerifyTableContent = (tableSections, owners, goToEditLTGSpy) 
 
     // if ltg count is 0, there should always be two rows and the empty message
     if (licenseThreatGroups.length === 0) {
-      expect(within(section).getByText(`No ${owner.ownerName} threat groups defined`)).toBeVisible();
+      expect(within(section).getByText(expectedEmptyMessage)).toBeVisible();
       expect(within(section).getAllByRole('row')).toHaveSize(2);
     } else {
       allRows = within(section).getAllByRole('row');

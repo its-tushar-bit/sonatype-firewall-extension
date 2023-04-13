@@ -15,14 +15,14 @@ function CollapsibleRow({ headerTitle, noItemsMessage, isCollapsible = true, chi
 
   const EmptyMessage = () => (
     <NxTableRow className="iq-collapsible-row__empty-message">
-      <NxTableCell colspan="100%">{noItemsMessage}</NxTableCell>
+      <NxTableCell colSpan="100%">{noItemsMessage}</NxTableCell>
     </NxTableRow>
   );
 
   return (
     <>
       <NxTableRow
-        className="iq-collapsible-row__title-row"
+        className="iq-collapsible-row iq-collapsible-row__title-row"
         isClickable={isClickable}
         onClick={() => isClickable && toggleOpen()}
       >

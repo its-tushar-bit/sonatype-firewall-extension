@@ -199,7 +199,9 @@ export function formatCollapsibleThreatGroups(threatGroup) {
     headerTitle: threatGroup.inherited
       ? `Inherited from ${threatGroup.ownerName}`
       : `Local to ${threatGroup.ownerName}`,
-    emptyMessage: `No ${threatGroup.ownerName} threat groups defined`,
+    emptyMessage: threatGroup.inherited
+      ? `No ${threatGroup.ownerName} threat groups defined`
+      : 'No local threat groups defined',
     sortedThreatGroups: groupsWithInheritanceValue,
     inherited: threatGroup.inherited,
   };

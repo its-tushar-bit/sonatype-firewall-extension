@@ -128,8 +128,7 @@ public class OrganizationSummaryViewTest
 
       if (i == 0) {
         section.getTitle().shouldBe(visible).shouldHave(text("Local to " + organization.getName()));
-        section.getEmptyDescriptor().shouldBe(visible).shouldHave(text("No " + organization.getName()
-            + " threat groups defined"));
+        section.getEmptyDescriptor().shouldBe(visible).shouldHave(text("No local threat groups defined"));
       }
       else {
         section.getTitle().shouldBe(visible);

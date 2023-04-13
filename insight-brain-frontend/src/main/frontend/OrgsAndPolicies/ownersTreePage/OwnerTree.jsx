@@ -10,21 +10,22 @@ import { NxTextLink, NxTree, NxFontAwesomeIcon } from '@sonatype/react-shared-co
 import { faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
 
 import { selectOwnerById } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
-import { selectSearchTerm } from 'MainRoot/OrgsAndPolicies/ownersTreeSelectors';
+import { selectFilteredOwners, selectSearchTerm } from 'MainRoot/OrgsAndPolicies/ownersTreeSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
-import { selectShouldRenderNode } from '../ownersTreeSelectors';
 import { renderDisplayName } from 'MainRoot/DependencyTree/dependencyTreeUtil';
 
-const shouldRenderNode = (ownerId) => useSelector((state) => selectShouldRenderNode(state, ownerId));
+const shouldRenderNodeById = (searchTerm, filteredOwners) => (nodeId) =>
+  !searchTerm || (searchTerm && filteredOwners.includes(nodeId));
 
 const OwnerTreeNode = ({ ownerId, onToggleTreeNode = () => {}, isNodeOpenSelector = () => true }) => {
   const uiRouterState = useRouterState();
   const { name, organizationIds, applicationIds, publicId: applicationPublicId, id: organizationId, type, synthetic } =
     useSelector((state) => selectOwnerById(state, ownerId)) || {};
   const isOpen = useSelector((state) => isNodeOpenSelector(state, ownerId));
-
   const searchTerm = useSelector(selectSearchTerm);
+  const filteredOwners = useSelector(selectFilteredOwners);
+  const shouldRenderNode = shouldRenderNodeById(searchTerm, filteredOwners);
 
   const hasChildEntities = !!organizationIds?.length || !!applicationIds?.length;
   const items = [...(organizationIds || []), ...(applicationIds || [])];
@@ -91,23 +92,25 @@ OwnerTreeNode.propTypes = {
 const MemoizedOwnerTreeNode = React.memo(OwnerTreeNode);
 
 export default function OwnerTree({ ownerId, onToggleTreeNode, isNodeOpenSelector }) {
-  if (!ownerId) {
-    return null;
-  }
+  const searchTerm = useSelector(selectSearchTerm);
+  const filteredOwners = useSelector(selectFilteredOwners);
+  const shouldRenderNode = shouldRenderNodeById(searchTerm, filteredOwners);
 
-  return shouldRenderNode(ownerId) ? (
-    <NxTree className="nx-tree--no-gutter iq-owner-tree">
-      <MemoizedOwnerTreeNode
-        ownerId={ownerId}
-        onToggleTreeNode={onToggleTreeNode}
-        isNodeOpenSelector={isNodeOpenSelector}
-      />
-    </NxTree>
-  ) : (
-    <p className="iq-dependency-tree__empty" id="iq-owner-tree-empty">
-      No matching results
-    </p>
-  );
+  return ownerId ? (
+    shouldRenderNode(ownerId) ? (
+      <NxTree className="nx-tree--no-gutter iq-owner-tree">
+        <MemoizedOwnerTreeNode
+          ownerId={ownerId}
+          onToggleTreeNode={onToggleTreeNode}
+          isNodeOpenSelector={isNodeOpenSelector}
+        />
+      </NxTree>
+    ) : (
+      <p className="iq-dependency-tree__empty" id="iq-owner-tree-empty">
+        No matching results
+      </p>
+    )
+  ) : null;
 }
 
 OwnerTree.propTypes = {

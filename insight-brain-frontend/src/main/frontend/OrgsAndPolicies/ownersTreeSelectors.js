@@ -34,10 +34,3 @@ export const selectIsOwnerNodeExpanded = createSelector(
     return ownersStatus[ownerId] ?? initialStatus;
   }
 );
-
-export const selectShouldRenderNode = createSelector(
-  selectSearchTerm,
-  selectFilteredOwners,
-  (_, nodeId) => nodeId,
-  (searchTerm, filteredOwners, nodeId) => !searchTerm || (searchTerm && filteredOwners.includes(nodeId))
-);

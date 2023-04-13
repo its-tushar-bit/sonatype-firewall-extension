@@ -224,9 +224,10 @@ public class PullRequestMonitor
           .findAny();
 
       if (!prCommentingEnabledRepository.isPresent()) {
-        String applicationNames = applications.stream().map(Application::getPublicId).collect(Collectors.joining(","));
-        log.debug("None of the applications of {} for {} has pull requests commenting enabled.", applicationNames,
-            repositoryUrl);
+        String applicationPublicIds =
+            applications.stream().map(Application::getPublicId).collect(Collectors.joining(","));
+        log.debug("None of the applications with public id {} for repository {} has pull requests commenting enabled.",
+            applicationPublicIds, repositoryUrl);
         return null;
       }
 

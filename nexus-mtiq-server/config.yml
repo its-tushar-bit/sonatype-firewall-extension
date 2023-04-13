@@ -43,29 +43,6 @@ server:
       # interfaces.
       #bindHost: 127.0.0.1  # only bind to loopback
 
-# MTIQ-specific database configurations
-  # single-tenant IQ creates 5 connection pools from the single database config, 4 of which
-  # represent distinct schemas; For multi-tenant those schemas are consolidated into one but
-  # there is still a need for a separate connection pool for the locks datasource; and because
-  # the current insight-config doesn't allow for multiple connection pool configs in the same
-  # db config definition two datasource definitions are used - one config for the main datasource
-  # and another for the locks datasource.
-  # For more info see:  https://github.com/sonatype/insight-brain/blob/main/insight-brain-db/src/main/java/com/sonatype/insight/brain/db/datastore/DataStore.java
-
-mainDatabase:
-  maxConnections: 500
-  maxIdleConnections: 50
-  url: ${MAIN_DATABASE_URL}
-  username: ${MAIN_DATABASE_USERNAME:-postgres}
-  password: ${MAIN_DATABASE_PASSWORD}
-
-locksDatabase:
-  maxConnections: 50
-  maxIdleConnections: 5
-  url: ${LOCKS_DATABASE_URL}
-  username: ${LOCKS_DATABASE_USERNAME:-postgres}
-  password: ${LOCKS_DATABASE_PASSWORD}
-
   # HTTP request log settings.
   requestLog:
     type: ${REQUEST_LOG_TYPE:-classic}
@@ -79,6 +56,28 @@ locksDatabase:
         currentLogFilename: "${REQUEST_LOG_FILE_NAME:-/var/log/nexus-iq-server/request.log}"
         archivedLogFilenamePattern: "${REQUEST_LOG_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/request-%d.log.gz}"
         archivedFileCount: ${REQUEST_LOG_ARCHIVED_FILE_COUNT:-5}
+
+# MTIQ-specific database configurations
+# single-tenant IQ creates 5 connection pools from the single database config, 4 of which
+# represent distinct schemas; For multi-tenant those schemas are consolidated into one but
+# there is still a need for a separate connection pool for the locks datasource; and because
+# the current insight-config doesn't allow for multiple connection pool configs in the same
+# db config definition two datasource definitions are used - one config for the main datasource
+# and another for the locks datasource.
+# For more info see:  https://github.com/sonatype/insight-brain/blob/main/insight-brain-db/src/main/java/com/sonatype/insight/brain/db/datastore/DataStore.java
+mainDatabase:
+  maxConnections: 500
+  maxIdleConnections: 50
+  url: ${MAIN_DATABASE_URL}
+  username: ${MAIN_DATABASE_USERNAME:-postgres}
+  password: ${MAIN_DATABASE_PASSWORD}
+
+locksDatabase:
+  maxConnections: 50
+  maxIdleConnections: 5
+  url: ${LOCKS_DATABASE_URL}
+  username: ${LOCKS_DATABASE_USERNAME:-postgres}
+  password: ${LOCKS_DATABASE_PASSWORD}
 
 # Logging settings.
 logging:
@@ -101,12 +100,11 @@ logging:
   appenders:
   - type: console
     threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}
-    logFormat: "${LOGGER_CONSOLE_LOG_FORMAT:-%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger  - %msg%n}"
+    logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
   - type: file
     threshold: ${LOGGER_FILE_THRESHOLD:-ALL}
     currentLogFilename: "${LOGGER_FILE_NAME:-/var/log/nexus-iq-server/clm-server.log}"
     archivedLogFilenamePattern: "${LOGGER_FILE_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/clm-server-%d.log.gz}"
-    logFormat: "${LOGGER_FILE_LOG_FORMAT:-%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger  - %msg%n}"
+    logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
     archivedFileCount: ${LOGGER_FILE_ARCHIVED_FILE_COUNT:-5}
 createSampleData: ${CREATE_SAMPLE_DATA:-true}
-

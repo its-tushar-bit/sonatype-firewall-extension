@@ -11,7 +11,7 @@ make(
     useEventSpy: false,
     javaVersion: 'Java 8',
     mavenVersion: 'Maven 3.6.x',
-    mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER}",
+    mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
       runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
     },
@@ -243,7 +243,7 @@ Map<String, Closure> createGebTests() {
       stage('Geb Tests') {
         try {
           copyRepo()
-          String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker.registry=${sonatypeDockerRegistryId()}"
+          String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker.registry=${sonatypeDockerRegistryId()} --threads 4"
           Map<String, ?> testConfig = testConfig(mavenOptions, 'insight-brain-functional-test/pom.xml')
           mvn testConfig, 'verify'
         }
@@ -269,6 +269,7 @@ Map<String, Closure> createFunctionalTests(String stageName, String regex) {
               mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
               mavenOptions += " -DapplitoolsEnabled=${isEyesEnabled()}"
               mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+              mavenOptions += " --threads 4"
               Map<String, ?> testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
               mvn testConfig, 'verify'
             }
@@ -290,7 +291,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
           copyRepo()
           Map<String, ?> testConfig = testConfig(
                 "-Dtest=%regex[${regex}] -Dit.test=%regex[${regex}] -Dskip-functional-test " +
-                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage",
+                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)
           mvn testConfig, 'install'
         }

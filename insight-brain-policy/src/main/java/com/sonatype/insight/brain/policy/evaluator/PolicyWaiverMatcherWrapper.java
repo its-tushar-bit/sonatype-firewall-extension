@@ -47,8 +47,8 @@ public class PolicyWaiverMatcherWrapper
         this.waiverAllVersionsIdentifier.ensureComplete();
       }
       catch (InvalidComponentIdentifierException e) {
-        log.warn("Failed to ensureComplete for purl {} with the following error: ",
-            PackageUrlIdentifier.toPackageUrl(this.waiverAllVersionsIdentifier), e);
+        log.warn("Failed to ensureComplete for purl {} with the following error: {}",
+            PackageUrlIdentifier.toPackageUrl(this.waiverAllVersionsIdentifier), e.getMessage());
       }
     }
   }
@@ -126,8 +126,8 @@ public class PolicyWaiverMatcherWrapper
       componentFactAllVersionsIdentifier.ensureComplete();
     }
     catch (InvalidComponentIdentifierException e) {
-      log.warn("Failed to ensureComplete for purl {} with the following error: ",
-          PackageUrlIdentifier.toPackageUrl(componentFactAllVersionsIdentifier), e);
+      log.warn("Failed to ensureComplete for purl {} with the following error: {}",
+          PackageUrlIdentifier.toPackageUrl(componentFactAllVersionsIdentifier), e.getMessage());
       return compareWhenMissingRequiredCoordinates(waiverAllVersionsIdentifier, componentFactAllVersionsIdentifier);
     }
 

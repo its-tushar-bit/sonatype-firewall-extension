@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -195,6 +196,41 @@ public class TenantManagerTest
     assertThatThrownBy(() -> underTest.setTenant(tenant))
         .withFailMessage("Tenant doesn't exists")
         .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test // CLM-25317
+  public void shouldBootTenantBeforeInitializingTenantJobs() throws Exception {
+    TenantManaged tenantBean = mock(TenantManaged.class);
+    tenantManagedBeans.add(tenantBean);
+
+    setTenantAndAssertRegistration();
+
+    InOrder order = inOrder(job, lifecycle, tenantBean);
+    order.verify(lifecycle).bootTenant();
+    order.verify(tenantBean).register();
+  }
+
+  @Test // CLM-25317
+  public void shouldNotFailAllBeanRegistrations_whenOneJobFails() throws Exception {
+    TenantManaged tenantManaged1 = mock(TenantManaged.class);
+    doThrow(new RuntimeException("expected exception")).when(tenantManaged1).register();
+    tenantManagedBeans.add(tenantManaged1);
+
+    TenantManaged tenantManaged2 = mock(TenantManaged.class);
+    tenantManagedBeans.add(tenantManaged2);
+
+    setTenantAndAssertRegistration();
+
+    verify(tenantManaged2).register();
+  }
+
+  @Test // CLM-25317
+  public void shouldNotMarkTenantAsRegistered_whenRegistrationFails() {
+    when(tenantValidator.validateTenantExists(any(Tenant.class))).thenThrow(new RuntimeException("Expected"));
+
+    assertThatThrownBy(this::setTenantAndAssertRegistration).isNotNull();
+
+    assertThat(underTest.isRegistered()).isFalse();
   }
 
   private void setTenantAndAssertRegistration() throws Exception {

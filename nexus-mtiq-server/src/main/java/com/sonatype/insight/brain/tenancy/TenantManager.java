@@ -124,6 +124,7 @@ public class TenantManager
       throw e;
     }
     catch (Exception e) {
+      registeredTenants.remove(tenant);
       throw new RuntimeException(e);
     }
   }
@@ -137,9 +138,9 @@ public class TenantManager
     long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
         () -> databaseProvisionUtils.initializeDatabasesWithoutMigration(multiTenantDatabaseConfigProvider));
 
-    start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
+    start = runAndLogTime("app boot", tenant, start, tenantLifecycle.get()::bootTenant);
 
-    runAndLogTime("app boot", tenant, start, tenantLifecycle.get()::bootTenant);
+    runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
   }
 
   /**
@@ -163,7 +164,12 @@ public class TenantManager
         continue;
       }
 
-      tenantManaged.register();
+      try {
+        tenantManaged.register();
+      }
+      catch (Exception e) {
+        log.error("Failed to load bean {} for tenant {}", tenantManaged.getClass(), TenantThreadLocal.getTenant(), e);
+      }
     }
   }
 
@@ -178,5 +184,11 @@ public class TenantManager
     log.info("Tenant {} {} completed in {}ms", tenant.tenantSlug, name, System.currentTimeMillis() - start);
 
     return System.currentTimeMillis();
+  }
+
+  boolean isRegistered() {
+    Boolean registered = registeredTenants.get(TenantThreadLocal.getTenant());
+
+    return registered != null && registered;
   }
 }

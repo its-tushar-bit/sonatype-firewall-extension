@@ -29,7 +29,7 @@ const SuccessMetricsReportList = ({ reports, load, loadError, loading, isAddModa
           <div className="nx-page-title__description">
             <h3 className="nx-h3">
               Success Metrics is an experimental feature providing high-level statistics on the past performance of
-              Nexus Lifecycle. If you want to take action on your current policy violations, start with the{' '}
+              Sonatype Lifecycle. If you want to take action on your current policy violations, start with the{' '}
               <a href={uiRouterState.href('dashboard.overview.violations')}>Dashboard.</a>
             </h3>
           </div>

@@ -119,16 +119,16 @@
 
       <div id='error-message' ng-switch='error'>
         <div ng-switch-when='401'>
-          <p>Authentication with the Nexus IQ Server failed. Please verify you supplied the proper credentials in the
+          <p>Authentication with the Sonatype IQ Server failed. Please verify you supplied the proper credentials in the
             plugin configuration. Once the issue has been resolved, you will need to close and re-open this page.</p>
         </div>
         <div ng-switch-when='403'>
           <p>This component has been associated with an invalid application ID. Please verify your plugin
-            configuration or contact your Nexus IQ administrator to verify your permissions. Once the issue has been resolved,
+            configuration or contact your Sonatype IQ administrator to verify your permissions. Once the issue has been resolved,
             you will need to close and re-open this page.</p>
         </div>
         <div ng-switch-default>
-          <p>Unfortunately an error occurred while contacting the Nexus IQ Server, if the problem persists please
+          <p>Unfortunately an error occurred while contacting the Sonatype IQ Server, if the problem persists please
             contact support.</p>
 
           <p>{{errorMessage}}</p>

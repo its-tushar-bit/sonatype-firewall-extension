@@ -32,7 +32,7 @@ export default function IqSidebarNavFooter({ productName, releaseNumber, isShowV
     <NxGlobalSidebarFooter
       className="iq-sidebar-nav-footer"
       releaseText={releaseText}
-      productTagLine="Powered by Nexus IQ Server"
+      productTagLine="Powered by Sonatype IQ Server"
     />
   );
 }

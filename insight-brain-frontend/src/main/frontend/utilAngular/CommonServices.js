@@ -31,7 +31,7 @@ export const Messages = {
       let message = '',
         headers = angular.isFunction(args.headers) ? args.headers() : args.headers;
       if (args.status <= 0 || args.status >= 1000) {
-        message = 'Unable to reach Nexus IQ Server';
+        message = 'Unable to reach Sonatype IQ Server';
       } else if (
         args.data &&
         (!headers || !headers['content-type'] || headers['content-type'].indexOf('text/html') === -1)

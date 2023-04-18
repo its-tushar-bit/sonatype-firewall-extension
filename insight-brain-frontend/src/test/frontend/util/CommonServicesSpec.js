@@ -16,25 +16,25 @@ describe('CommonServices', () => {
     describe('when provided argument is a response object', () => {
       it('uses generic message if response status is less than 0', () => {
         expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: -1 })).toEqual(
-          'Unable to reach Nexus IQ Server'
+          'Unable to reach Sonatype IQ Server'
         );
       });
 
       it('uses generic message if response status is 0', () => {
         expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: 0 })).toEqual(
-          'Unable to reach Nexus IQ Server'
+          'Unable to reach Sonatype IQ Server'
         );
       });
 
       it('uses generic message if response status is 1000', () => {
         expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: 1000 })).toEqual(
-          'Unable to reach Nexus IQ Server'
+          'Unable to reach Sonatype IQ Server'
         );
       });
 
       it('uses generic message if response status is greater than 1000', () => {
         expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: 1001 })).toEqual(
-          'Unable to reach Nexus IQ Server'
+          'Unable to reach Sonatype IQ Server'
         );
       });
 
@@ -75,7 +75,7 @@ describe('CommonServices', () => {
           Messages.getHttpErrorMessage({
             response: { data: 'Bogus String', status: -1 },
           })
-        ).toEqual('Unable to reach Nexus IQ Server');
+        ).toEqual('Unable to reach Sonatype IQ Server');
       });
 
       it('uses generic message if response status is 0', () => {
@@ -83,7 +83,7 @@ describe('CommonServices', () => {
           Messages.getHttpErrorMessage({
             response: { data: 'Bogus String', status: 0 },
           })
-        ).toEqual('Unable to reach Nexus IQ Server');
+        ).toEqual('Unable to reach Sonatype IQ Server');
       });
 
       it('uses generic message if response status is 1000', () => {
@@ -91,7 +91,7 @@ describe('CommonServices', () => {
           Messages.getHttpErrorMessage({
             response: { data: 'Bogus String', status: 1000 },
           })
-        ).toEqual('Unable to reach Nexus IQ Server');
+        ).toEqual('Unable to reach Sonatype IQ Server');
       });
 
       it('uses generic message if response status is greater than 1000', () => {
@@ -99,7 +99,7 @@ describe('CommonServices', () => {
           Messages.getHttpErrorMessage({
             response: { data: 'Bogus String', status: 1001 },
           })
-        ).toEqual('Unable to reach Nexus IQ Server');
+        ).toEqual('Unable to reach Sonatype IQ Server');
       });
 
       it('uses data property if content-type is not text/html', () => {
@@ -158,25 +158,25 @@ describe('CommonServices', () => {
     describe('when provided argument is an array', () => {
       it('uses generic message if provided status is less than 0', () => {
         expect(Messages.getHttpErrorMessage(['Bogus String', -1, null, null])).toEqual(
-          'Unable to reach Nexus IQ Server'
+          'Unable to reach Sonatype IQ Server'
         );
       });
 
       it('uses generic message if provided status is 0', () => {
         expect(Messages.getHttpErrorMessage(['Bogus String', 0, null, null])).toEqual(
-          'Unable to reach Nexus IQ Server'
+          'Unable to reach Sonatype IQ Server'
         );
       });
 
       it('uses generic message if provided status is 1000', () => {
         expect(Messages.getHttpErrorMessage(['Bogus String', 1000, null, null])).toEqual(
-          'Unable to reach Nexus IQ Server'
+          'Unable to reach Sonatype IQ Server'
         );
       });
 
       it('uses generic message if provided status is greater than 1000', () => {
         expect(Messages.getHttpErrorMessage(['Bogus String', 1001, null, null])).toEqual(
-          'Unable to reach Nexus IQ Server'
+          'Unable to reach Sonatype IQ Server'
         );
       });
 

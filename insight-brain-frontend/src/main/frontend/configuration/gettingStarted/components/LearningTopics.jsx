@@ -93,7 +93,9 @@ export default function LearningTopics() {
                   <hr className="nx-grid-h-keyline" />
 
                   <h4 className="nx-h4 nx-grid-header__title">Success Metrics</h4>
-                  <p className="nx-p">Success Metrics provide a high-level summary of your usage of Nexus Lifecycle.</p>
+                  <p className="nx-p">
+                    Success Metrics provide a high-level summary of your usage of Sonatype Lifecycle.
+                  </p>
                   <p className="nx-p">
                     <GettingStartedDocLink
                       href="http://links.sonatype.com/products/nxiq/doc/success-metrics"

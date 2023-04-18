@@ -70,13 +70,13 @@ import org.slf4j.LoggerFactory;
 public class CLMLicenseManager
     implements InsightJob, GlobalTenantJob
 {
-  public static final String PRODUCT_PRO_PLUS = "Pro+";
+  public static final String PRODUCT_PRO_PLUS = "Nexus Pro+";
 
   public static final String PRODUCT_LIFECYCLE = "Lifecycle";
 
   public static final String PRODUCT_LIFECYCLE_FOUNDATION = "Lifecycle Foundation";
 
-  public static final String PRODUCT_FIREWALL = "Firewall";
+  public static final String PRODUCT_FIREWALL = "Repository Firewall";
 
   public static final String PRODUCT_FIREWALL_FOR_ARTIFACTORY = "Firewall for Artifactory";
 
@@ -374,7 +374,7 @@ public class CLMLicenseManager
         return null;
     }
 
-    return "Nexus " + marketingNameSuffix;
+    return "Sonatype " + marketingNameSuffix;
   }
 
   public LicenseSummary getLicenseSummary() {

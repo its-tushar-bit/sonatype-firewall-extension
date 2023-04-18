@@ -1468,8 +1468,8 @@ public class CLMLicenseManagerTest
     installLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
-    assertThat(info.products).containsExactlyInAnyOrder("Nexus Firewall", "Nexus Auditor", "Nexus Lifecycle",
-        "Nexus Pro+", "Nexus Advanced Legal Pack", "Nexus Lifecycle Cloud");
+    assertThat(info.products).containsExactlyInAnyOrder("Sonatype Repository Firewall", "Sonatype Auditor",
+        "Sonatype Lifecycle", "Sonatype Nexus Pro+", "Sonatype Advanced Legal Pack", "Sonatype Lifecycle Cloud");
   }
 
   @Test

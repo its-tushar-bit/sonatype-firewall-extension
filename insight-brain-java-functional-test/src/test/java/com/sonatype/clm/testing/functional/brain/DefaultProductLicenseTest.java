@@ -70,7 +70,8 @@ public class DefaultProductLicenseTest
     ProductLicensePage.licensedDevelopersRows()
         .shouldHave(texts("Lifecycle — 50", "Lifecycle Cloud — 50", "Firewall — 45"));
     ProductLicensePage.licensedApplications().shouldBe(hidden);
-    ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle Cloud", "Nexus Lifecycle", "Nexus Firewall"));
+    ProductLicensePage.products()
+        .shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Lifecycle", "Sonatype Repository Firewall"));
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
 
     eyesWatcher.eyesCheck();
@@ -84,7 +85,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldNotBe(visible);
     ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100 (0 in use)"));
-    ProductLicensePage.products().shouldHave(texts("Nexus Auditor"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Auditor"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Auditor"));
@@ -99,10 +100,10 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("45"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
-    ProductLicensePage.products().shouldHave(texts("Nexus Firewall"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Repository Firewall"));
 
     SidebarNavigation.openNavigationSidebar();
-    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Firewall"));
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Repository Firewall"));
     eyesWatcher.eyesCheck("Nexus Firewall Logo");
   }
 
@@ -115,7 +116,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
-    ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));
@@ -131,7 +132,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
-    ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle Cloud"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle Cloud"));
@@ -146,7 +147,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
-    ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle Foundation"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Foundation"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle Foundation"));
@@ -161,7 +162,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
-    ProductLicensePage.products().shouldHave(texts("Nexus Pro+"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Nexus Pro+"));
   }
 
   @Test

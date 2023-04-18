@@ -70,8 +70,8 @@ function WithLicenseFooter({ fileChangeHandler, uninstallError, uninstallMaskSta
             </header>
             <div className="nx-modal-content">
               <NxWarningAlert>
-                If you uninstall the Nexus IQ Server License, the system will be rendered unusable. Are you sure you
-                want to continue?
+                If you uninstall the Sonatype Nexus IQ Server License, the system will be rendered unusable. Are you
+                sure you want to continue?
               </NxWarningAlert>
             </div>
           </NxStatefulForm>

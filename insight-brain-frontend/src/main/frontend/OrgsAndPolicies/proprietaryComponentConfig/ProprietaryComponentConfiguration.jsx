@@ -89,7 +89,7 @@ export default function ProprietaryComponentConfiguration() {
         <NxH1>Proprietary Component Configuration</NxH1>
 
         <NxPageTitle.Description>
-          These entries are provided to Nexus IQ scanners and are used to help identify internal components. If a
+          These entries are provided to Sonatype IQ scanners and are used to help identify internal components. If a
           specified package or file is contained within a component, it will be considered proprietary.
         </NxPageTitle.Description>
       </NxPageTitle>

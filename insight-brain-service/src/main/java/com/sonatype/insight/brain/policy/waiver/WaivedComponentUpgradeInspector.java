@@ -152,10 +152,9 @@ public class WaivedComponentUpgradeInspector
         OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? ProxyStageType.ID : defaultStageType;
   }
 
-  /*
-   * TODO due to https://issues.sonatype.org/browse/CLM-22331 we need to check that the remediation does
-   * not suggest the same version that is already related to the waiver itself.
-   * This should be a simple check of existence of values in the versionChanges list once that ticket is fixed
+  /**
+   * Since remediation api returns current version if it satisfies the recommendation strategy, we need to check
+   * that the remediation does not suggest the same version that is already related to the waiver itself.
    */
   private static boolean isRemediationAvailable(
       final ApiComponentRemediationDTO suggestedRemediationForComponent,

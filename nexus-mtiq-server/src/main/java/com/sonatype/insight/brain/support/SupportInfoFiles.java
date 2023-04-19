@@ -23,9 +23,9 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class SupportInformation
+public class SupportInfoFiles
 {
-  private static final Logger log = LoggerFactory.getLogger(SupportInformation.class);
+  private static final Logger log = LoggerFactory.getLogger(SupportInfoFiles.class);
 
   private static final String JAVA_INFO_ENTRY = "java-info";
 
@@ -60,7 +60,7 @@ public class SupportInformation
   private List<SupportFile> supportFiles;
 
   @Inject
-  public SupportInformation(
+  public SupportInfoFiles(
       VersionService versionService,
       DbData dbData,
       SystemInfo systemInfo,
@@ -72,12 +72,12 @@ public class SupportInformation
     this.supportInfoUtil = supportInfoUtil;
   }
 
-  public SupportInformation aNewListOfSupportFiles() {
+  public SupportInfoFiles aNewListOfSupportFiles() {
     this.supportFiles = new ArrayList<>();
     return this;
   }
 
-  public SupportInformation withJavaVersion() {
+  public SupportInfoFiles withJavaVersion() {
     String javaVersionJson = JsonUtils.format(systemInfo.getObfuscatedSystemProperties("java", JAVA_INFO_ENTRY));
 
     createAndAddSupportFile(javaVersionJson, JAVA_INFO_FILE, SupportFileType.INFO);
@@ -85,7 +85,7 @@ public class SupportInformation
     return this;
   }
 
-  public SupportInformation withProductVersion() {
+  public SupportInfoFiles withProductVersion() {
     String productVersionJson =
         systemInfo.getPropertiesJson(versionService.getProperties(), PRODUCT_VERSION_ENTRY);
 
@@ -94,7 +94,7 @@ public class SupportInformation
     return this;
   }
 
-  public SupportInformation withLicenseDetails() {
+  public SupportInfoFiles withLicenseDetails() {
     String productLicenseJson = systemInfo.getProductLicense();
 
     createAndAddSupportFile(productLicenseJson, PRODUCT_LICENSE_FILE, SupportFileType.INFO);
@@ -102,7 +102,7 @@ public class SupportInformation
     return this;
   }
 
-  public SupportInformation withUsersDetails() {
+  public SupportInfoFiles withUsersDetails() {
     Entry<String, Object> users = dbData.getUser();
     String usersJson = JsonUtils.format(users);
 
@@ -111,7 +111,7 @@ public class SupportInformation
     return this;
   }
 
-  public SupportInformation withRolesDetails() {
+  public SupportInfoFiles withRolesDetails() {
     Entry<String, Object> roles = dbData.getRole();
     String rolesJson = JsonUtils.format(roles);
 
@@ -120,7 +120,7 @@ public class SupportInformation
     return this;
   }
 
-  public SupportInformation withMembershipMappings() {
+  public SupportInfoFiles withMembershipMappings() {
     Entry<String, Object> membershipMappings = dbData.getMembershipMapping();
     String membershipMappingsJson = JsonUtils.format(membershipMappings);
 
@@ -129,7 +129,7 @@ public class SupportInformation
     return this;
   }
 
-  public SupportInformation withPolicies() {
+  public SupportInfoFiles withPolicies() {
     Entry<String, Object> policies = dbData.getPolicy();
     String policiesJson = JsonUtils.format(policies);
 
@@ -138,7 +138,7 @@ public class SupportInformation
     return this;
   }
 
-  public SupportInformation withComponentsInQuarantine() {
+  public SupportInfoFiles withComponentsInQuarantine() {
     Entry<String, Object> quarantinedComponents = dbData.getQuarantinedComponent();
     String quarantinedComponentsJson = JsonUtils.format(quarantinedComponents);
 
@@ -147,7 +147,7 @@ public class SupportInformation
     return this;
   }
 
-  public SupportInformation withWaivers() {
+  public SupportInfoFiles withWaivers() {
     Entry<String, Object> waivers = dbData.getWaiver();
     String policiesJson = JsonUtils.format(waivers);
 

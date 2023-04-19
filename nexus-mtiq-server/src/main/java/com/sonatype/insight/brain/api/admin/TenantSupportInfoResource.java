@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import java.io.File;
 import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,12 +15,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.service.TenantSupportInfoService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.support.SupportInfo;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 
 @Named
@@ -39,13 +40,16 @@ public class TenantSupportInfoResource
   @GET
   @Produces("application/zip")
   @Audited(AuditEvent.GENERATE_TENANT_SUPPORT_INFO)
-  public Response getSupportZip(@PathParam("tenantSlug") String tenantSlug) throws IOException {
-    final File supportZip = tenantSupportInfoService.getSupportZip(tenantSlug);
+  public Response getSupportZip(
+      @PathParam("tenantSlug") String tenantSlug) throws IOException
+  {
+    final SupportInfo supportInfo = tenantSupportInfoService.getSupportInfo(tenantSlug);
+    final StreamingOutput streamingOutput = supportInfo.getSupportInfoOutputStream()::writeTo;
 
     final ResponseBuilder response = Response.ok();
-    response.entity(supportZip);
+    response.entity(streamingOutput);
     response.header(HttpHeaders.CONTENT_DISPOSITION,
-        HttpHeaderUtils.buildContentDispositionHeaderValue(supportZip.getName()));
+        HttpHeaderUtils.buildContentDispositionHeaderValue(supportInfo.getSupportInfoName()));
 
     return response.build();
   }

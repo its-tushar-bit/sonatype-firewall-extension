@@ -5,12 +5,12 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
+import com.sonatype.insight.brain.support.SupportInfo;
+import com.sonatype.insight.brain.support.SupportInfoFiles;
 import com.sonatype.insight.brain.support.SupportInfoUtil;
-import com.sonatype.insight.brain.support.SupportInformation;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
@@ -39,7 +39,7 @@ public class TenantSupportInfoServiceTest
   private TenantValidator tenantValidator;
 
   @Mock
-  private SupportInformation supportInformation;
+  private SupportInfoFiles supportInfoFiles;
 
   @Mock
   private SupportInfoUtil supportInfoUtil;
@@ -50,34 +50,29 @@ public class TenantSupportInfoServiceTest
   @Override
   public void setup() {
     underTest = new TenantSupportInfoService(tenantUtil, tenantValidator,
-        supportInformation, supportInfoUtil);
+        supportInfoFiles, supportInfoUtil);
   }
 
   @Test
-  public void shouldGetSupportZip() {
+  public void shouldGetSupportInfo() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(supportInfoFiles.aNewListOfSupportFiles()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withJavaVersion()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withProductVersion()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withLicenseDetails()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withUsersDetails()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withRolesDetails()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withMembershipMappings()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withPolicies()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withComponentsInQuarantine()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withWaivers()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.build()).thenReturn(new ArrayList<>());
+      when(supportInfoUtil.generateSupportInfo(any(), any())).thenReturn(
+          new SupportInfo(new ByteArrayOutputStream(), "tenant-support-mtiq"));
+      SupportInfo supportInfo = underTest.getSupportInfo(tenant.tenantSlug);
 
-      try {
-        when(supportInformation.aNewListOfSupportFiles()).thenReturn(supportInformation);
-        when(supportInformation.withJavaVersion()).thenReturn(supportInformation);
-        when(supportInformation.withProductVersion()).thenReturn(supportInformation);
-        when(supportInformation.withLicenseDetails()).thenReturn(supportInformation);
-        when(supportInformation.withUsersDetails()).thenReturn(supportInformation);
-        when(supportInformation.withRolesDetails()).thenReturn(supportInformation);
-        when(supportInformation.withMembershipMappings()).thenReturn(supportInformation);
-        when(supportInformation.withPolicies()).thenReturn(supportInformation);
-        when(supportInformation.withComponentsInQuarantine()).thenReturn(supportInformation);
-        when(supportInformation.withWaivers()).thenReturn(supportInformation);
-        when(supportInformation.build()).thenReturn(new ArrayList<>());
-        when(supportInfoUtil.generateZip(any(), any())).thenReturn(new File("mtiq-support.zip"));
-        File supportZip = underTest.getSupportZip(tenant.tenantSlug);
-
-        assertThat(supportZip).hasName("mtiq-support.zip");
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      assertThat(supportInfo.getSupportInfoName()).isEqualTo("tenant-support-mtiq");
     });
   }
 
@@ -87,7 +82,7 @@ public class TenantSupportInfoServiceTest
 
     testAsGlobalTenant(global -> {
       when(tenantUtil.isGlobalTenant()).thenReturn(true);
-      assertThatThrownBy(() -> underTest.getSupportZip(global.tenantSlug))
+      assertThatThrownBy(() -> underTest.getSupportInfo(global.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
@@ -99,7 +94,7 @@ public class TenantSupportInfoServiceTest
 
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
-      assertThatThrownBy(() -> underTest.getSupportZip(tenant.tenantSlug))
+      assertThatThrownBy(() -> underTest.getSupportInfo(tenant.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(NotFoundException.class);
     });

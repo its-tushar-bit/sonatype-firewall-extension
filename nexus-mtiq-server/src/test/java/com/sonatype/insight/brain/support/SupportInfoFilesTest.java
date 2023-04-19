@@ -46,7 +46,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SupportInformationTest
+public class SupportInfoFilesTest
     extends MultiTenantTestSupport
 {
   @Mock
@@ -61,13 +61,14 @@ public class SupportInformationTest
   @Mock
   private SupportInfoUtil supportInfoUtil;
 
-  private SupportInformation supportInformation;
+  private SupportInfoFiles supportInfoFiles;
 
   @Before
   @Override
   public void setup() {
     super.setup();
-    supportInformation = new SupportInformation(versionService, dbData, systemInfo, supportInfoUtil);
+    supportInfoFiles = new SupportInfoFiles(versionService, dbData, systemInfo,
+        supportInfoUtil);
   }
 
   @AfterClass
@@ -86,7 +87,7 @@ public class SupportInformationTest
     when(systemInfo.getObfuscatedSystemProperties("java", "java-info")).thenReturn(wrapEntry("java-info", entries));
     when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(writeFile(WORK_DIR, javaInfo, "java-info.json"));
     SupportFile supportFile =
-        supportInformation.aNewListOfSupportFiles().withJavaVersion().build().get(0);
+        supportInfoFiles.aNewListOfSupportFiles().withJavaVersion().build().get(0);
 
     // Then
     assertThat(supportFile.file).exists();
@@ -106,7 +107,7 @@ public class SupportInformationTest
     when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, versionInfo, "product-version.json"));
     SupportFile supportFile =
-        supportInformation.aNewListOfSupportFiles().withProductVersion().build().get(0);
+        supportInfoFiles.aNewListOfSupportFiles().withProductVersion().build().get(0);
 
     // Then
     assertThat(supportFile.file).exists();
@@ -126,7 +127,7 @@ public class SupportInformationTest
     when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, licenseInfo, "product-license.json"));
     SupportFile supportFile =
-        supportInformation.aNewListOfSupportFiles().withLicenseDetails().build().get(0);
+        supportInfoFiles.aNewListOfSupportFiles().withLicenseDetails().build().get(0);
 
     // Then
     assertThat(supportFile.file).exists();
@@ -153,7 +154,7 @@ public class SupportInformationTest
     when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedUsers), "users.json"));
     SupportFile supportFile =
-        supportInformation.aNewListOfSupportFiles().withUsersDetails().build().get(0);
+        supportInfoFiles.aNewListOfSupportFiles().withUsersDetails().build().get(0);
 
     // Then
     assertThat(supportFile.file).exists();
@@ -179,7 +180,7 @@ public class SupportInformationTest
     when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedRoles), "roles.json"));
     SupportFile supportFile =
-        supportInformation.aNewListOfSupportFiles().withRolesDetails().build().get(0);
+        supportInfoFiles.aNewListOfSupportFiles().withRolesDetails().build().get(0);
 
     // Then
     assertThat(supportFile.file).exists();
@@ -205,7 +206,7 @@ public class SupportInformationTest
     when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedMembershipMappings), "membership_mappings.json"));
     SupportFile supportFile =
-        supportInformation.aNewListOfSupportFiles().withMembershipMappings().build().get(0);
+        supportInfoFiles.aNewListOfSupportFiles().withMembershipMappings().build().get(0);
 
     // Then
     assertThat(supportFile.file).exists();
@@ -231,7 +232,7 @@ public class SupportInformationTest
     when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedPolicies), "policies.json"));
     SupportFile supportFile =
-        supportInformation.aNewListOfSupportFiles().withPolicies().build().get(0);
+        supportInfoFiles.aNewListOfSupportFiles().withPolicies().build().get(0);
 
     // Then
     assertThat(supportFile.file).exists();
@@ -259,7 +260,7 @@ public class SupportInformationTest
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedQuarantinedComponents),
             "components_in_quarantine.json"));
     SupportFile supportFile =
-        supportInformation.aNewListOfSupportFiles().withComponentsInQuarantine().build().get(0);
+        supportInfoFiles.aNewListOfSupportFiles().withComponentsInQuarantine().build().get(0);
 
     // Then
     assertThat(supportFile.file).exists();
@@ -285,7 +286,7 @@ public class SupportInformationTest
     when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
         writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedWaivers), "waivers.json"));
     SupportFile supportFile =
-        supportInformation.aNewListOfSupportFiles().withWaivers().build().get(0);
+        supportInfoFiles.aNewListOfSupportFiles().withWaivers().build().get(0);
 
     // Then
     assertThat(supportFile.file).exists();

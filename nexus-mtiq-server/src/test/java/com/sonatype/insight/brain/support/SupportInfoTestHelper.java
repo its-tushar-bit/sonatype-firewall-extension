@@ -19,7 +19,7 @@ import org.apache.commons.io.FileUtils;
 
 public class SupportInfoTestHelper
 {
-  public static final String WORK_DIR = "downloads";
+  public static final String WORK_DIR = "support";
 
   public static File writeFile(String workDir, String fileContent, String fileName) throws IOException {
     File outputFile = new File(workDir, fileName);

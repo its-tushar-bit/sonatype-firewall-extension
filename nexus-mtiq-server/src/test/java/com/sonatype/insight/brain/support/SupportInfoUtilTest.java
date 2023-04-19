@@ -5,18 +5,18 @@
  */
 package com.sonatype.insight.brain.support;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
@@ -60,7 +60,7 @@ public class SupportInfoUtilTest
 
     // Then
     assertThat(workDir)
-        .hasName("downloads")
+        .hasName(WORK_DIR)
         .hasParent("/sonatype-work");
   }
 
@@ -71,11 +71,11 @@ public class SupportInfoUtilTest
     String nowPrefix = now.substring(0, now.indexOf("-"));
 
     // When
-    String uniqueName = supportInfoUtil.generateUniqueName("mtiq-support-");
+    String uniqueName = supportInfoUtil.generateUniqueName("tenant-mtiq-support-");
 
     // Then
     assertThat(uniqueName)
-        .startsWith("mtiq-support-" + nowPrefix)
+        .startsWith("tenant-mtiq-support-" + nowPrefix)
         .endsWith("-1");
   }
 
@@ -98,7 +98,7 @@ public class SupportInfoUtilTest
   }
 
   @Test
-  public void shouldGenerateZip() throws IOException {
+  public void shouldGenerateSupportInfo() throws IOException {
     // Given
     Map<String, Object> tenantInfoParams = new HashMap<>();
     tenantInfoParams.put("tenant_info1", "value1");
@@ -120,27 +120,25 @@ public class SupportInfoUtilTest
     filesToZip.add(supportFile2);
 
     // When
-    File supportZip = supportInfoUtil.generateZip("mtiq-support-", filesToZip);
+    SupportInfo supportInfo = supportInfoUtil.generateSupportInfo("tenant", filesToZip);
 
     // Then
-    try (final ZipFile zipFile = new ZipFile(supportZip)) {
-      assertThat(zipFile.getName()).contains("mtiq-support");
-      assertThat(zipFile.getName()).endsWith(".zip");
+    assertThat(supportInfo.getSupportInfoName()).contains("tenant-mtiq-support").endsWith("-1");
 
-      Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      ZipEntry firstEntry = entries.nextElement();
-
+    ByteArrayInputStream byteArrayInputStream =
+        new ByteArrayInputStream(supportInfo.getSupportInfoOutputStream().toByteArray());
+    try (ZipInputStream zipInputStream = new ZipInputStream(byteArrayInputStream)) {
+      ZipEntry firstEntry = zipInputStream.getNextEntry();
+      assertThat(firstEntry).isNotNull();
       assertThat(firstEntry.getName()).isEqualTo(
-          getZipFileBasename(supportZip) + "/" + SupportFileType.TENANT.getDirName() + "/" + "file1.json");
+          supportInfo.getSupportInfoName() + "/" + SupportFileType.TENANT.getDirName() + "/" + "file1.json");
 
-      ZipEntry secondEntry = entries.nextElement();
+      ZipEntry secondEntry = zipInputStream.getNextEntry();
+      assertThat(secondEntry).isNotNull();
       assertThat(secondEntry.getName()).isEqualTo(
-          getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/" + "file2.json");
-      assertThat(entries.hasMoreElements()).isFalse();
-    }
-  }
+          supportInfo.getSupportInfoName() + "/" + SupportFileType.INFO.getDirName() + "/" + "file2.json");
 
-  private static String getZipFileBasename(final File supportZipFile) {
-    return supportZipFile.getName().substring(0, supportZipFile.getName().length() - 4);
+      assertThat(zipInputStream.getNextEntry()).isNull();
+    }
   }
 }

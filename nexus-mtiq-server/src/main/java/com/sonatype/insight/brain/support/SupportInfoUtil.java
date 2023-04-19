@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.support;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,10 +40,7 @@ public class SupportInfoUtil
    */
   static final AtomicLong COUNTER = new AtomicLong();
 
-  /**
-   * Token added to files to indicate truncation has occurred
-   */
-  static final String WORK_DIR = "downloads";
+  static final String WORK_DIR = "support";
 
   private final InsightConfig insightConfig;
 
@@ -51,17 +49,18 @@ public class SupportInfoUtil
     this.insightConfig = insightConfig;
   }
 
-  public File generateZip(
-      final String prefix,
+  public SupportInfo generateSupportInfo(
+      final String tenantSlug,
       final List<SupportFile> filesToZip) throws IOException
   {
-    File supportZip = new File(getWorkDir(), prefix + ".zip").getCanonicalFile();
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    String supportInformationName = generateUniqueName(tenantSlug + "-mtiq-support-");
 
-    log.info("Populating support.zip: {}", supportZip);
-    try (final ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(supportZip.toPath()))) {
+    log.info("Generating Support info: {}", supportInformationName);
+    try (final ZipOutputStream zos = new ZipOutputStream(byteArrayOutputStream)) {
       for (final SupportFile fileToAdd : filesToZip) {
         final ZipEntry zipEntry = new ZipEntry(
-            prefix + "/" + fileToAdd.supportFileType.getDirName() + "/" + fileToAdd.file.getName());
+            supportInformationName + "/" + fileToAdd.supportFileType.getDirName() + "/" + fileToAdd.file.getName());
         zos.putNextEntry(zipEntry);
 
         try (FileInputStream fis = new FileInputStream(fileToAdd.file)) {
@@ -79,13 +78,14 @@ public class SupportInfoUtil
         }
       }
     }
-    log.info("Created support.zip: {}", supportZip.getName());
+    log.info("Generated Support Info: {}", supportInformationName);
 
-    return supportZip;
+    return new SupportInfo(byteArrayOutputStream, supportInformationName);
   }
 
   public String generateUniqueName(final String prefix) {
-    return prefix + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) + "-" + COUNTER.incrementAndGet();
+    return prefix.replaceAll("[\n\r]", "_") + new SimpleDateFormat("yyyyMMdd-HHmmss")
+        .format(new Date()) + "-" + COUNTER.incrementAndGet();
   }
 
   public File writeTextToFile(final String fileContent, String fileName) throws IOException {

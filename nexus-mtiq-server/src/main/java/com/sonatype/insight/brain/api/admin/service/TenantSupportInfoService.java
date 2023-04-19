@@ -5,15 +5,15 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.support.SupportInfo;
 import com.sonatype.insight.brain.support.SupportInfoUtil;
-import com.sonatype.insight.brain.support.SupportInformation;
+import com.sonatype.insight.brain.support.SupportInfoFiles;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
@@ -33,7 +33,7 @@ public class TenantSupportInfoService
 
   private final TenantValidator tenantValidator;
 
-  private final SupportInformation supportInformation;
+  private final SupportInfoFiles supportInfoFiles;
 
   private final SupportInfoUtil supportInfoUtil;
 
@@ -41,16 +41,16 @@ public class TenantSupportInfoService
   public TenantSupportInfoService(
       TenantUtil tenantUtil,
       TenantValidator tenantValidator,
-      SupportInformation supportInformation,
+      SupportInfoFiles supportInfoFiles,
       SupportInfoUtil supportInfoUtil)
   {
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
-    this.supportInformation = supportInformation;
+    this.supportInfoFiles = supportInfoFiles;
     this.supportInfoUtil = supportInfoUtil;
   }
 
-  public File getSupportZip(final String tenantSlug) throws IOException {
+  public SupportInfo getSupportInfo(final String tenantSlug) throws IOException {
     if (tenantUtil.isGlobalTenant()) {
       log.error("Cannot generate Support Info, invalid Tenant: {}", tenantSlug);
       throw new BadRequestException("Invalid tenant");
@@ -61,7 +61,7 @@ public class TenantSupportInfoService
       throw new NotFoundException("Tenant doesn't exist");
     }
 
-    final List<SupportFile> supportFiles = supportInformation
+    final List<SupportFile> supportFiles = this.supportInfoFiles
         .aNewListOfSupportFiles()
         .withJavaVersion()
         .withProductVersion()
@@ -73,8 +73,7 @@ public class TenantSupportInfoService
         .withComponentsInQuarantine()
         .withWaivers()
         .build();
-    final String prefix = supportInfoUtil.generateUniqueName("mtiq-support-");
 
-    return supportInfoUtil.generateZip(prefix, supportFiles);
+    return supportInfoUtil.generateSupportInfo(tenantSlug, supportFiles);
   }
 }

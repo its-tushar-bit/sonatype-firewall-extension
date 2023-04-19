@@ -9,9 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -20,7 +18,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -194,26 +191,6 @@ public class OwnerDAOTest
       assertThat(vulnerabilityList).isEmpty();
       vulnerabilityList = new VulnerabilityGroupVulnerabilityDAO().getByGroupId(vulnGroup2.getId());
       assertThat(vulnerabilityList).isEmpty();
-    }
-  }
-
-  @Test
-  public void testCascadeDelete_VulnerabilityCustomDetail() {
-    try (TransactionContext tx = new ApplicationDAO().createTransactionContext()) {
-      Owner owner = ownerDAO.getById(organization.getId());
-      tempEntity.newVulnerabilityCustomDetail(owner.getId(), "CVE-2022-1234",
-          ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
-      tempEntity.newVulnerabilityCustomDetail(owner.getId(), "CVE-2022-4321",
-          ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
-      List<VulnerabilityCustomDetail> vulnerabilityCustomDetailList = new VulnerabilityCustomDetailDAO()
-          .getByOwnerId(owner.getId());
-      assertThat(vulnerabilityCustomDetailList).extracting("refId")
-          .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
-      tx.begin();
-      ownerDAO.cascadeDelete(tx, owner);
-      tx.commit();
-      vulnerabilityCustomDetailList = new VulnerabilityCustomDetailDAO().getByOwnerId(owner.getId());
-      assertThat(vulnerabilityCustomDetailList).isEmpty();
     }
   }
 

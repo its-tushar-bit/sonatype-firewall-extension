@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerability
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
-import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -47,7 +46,6 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -273,13 +271,6 @@ public class OwnerDAO
     VulnerabilityGroupDAO vulnerabilityGroupDAO = new VulnerabilityGroupDAO();
     for (VulnerabilityGroup vulnerabilityGroup : vulnerabilityGroupDAO.getByOwnerId(tx, owner.getId())) {
       vulnerabilityGroupDAO.delete(tx, vulnerabilityGroup);
-    }
-
-    // Cascade to vulnerability custom details
-    VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
-    for (VulnerabilityCustomDetail vulnerabilityCustomDetail :
-        vulnerabilityCustomDetailDAO.getByOwnerId(tx, owner.getId())) {
-      vulnerabilityCustomDetailDAO.delete(tx, vulnerabilityCustomDetail);
     }
 
     // Cascade to vulnerability custom remediation

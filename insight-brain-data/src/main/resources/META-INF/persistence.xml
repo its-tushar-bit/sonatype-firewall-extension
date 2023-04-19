@@ -97,7 +97,6 @@
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult</class> 
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability</class>
-    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail</class>
     <class>com.sonatype.insight.brain.model.vulnerability.AbstractVulnerabilityCustomData</class>
     <class>com.sonatype.insight.brain.model.vulnerability.AbstractVulnerabilityCustomDataTag</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation</class>

@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
-import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
@@ -32,7 +31,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverityTag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVectorTag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCweTag;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -235,12 +233,6 @@ public class TagDAO
     List<ApplicationTag> appTags = applicationTagDAO.getByTagId(tx, tag.getId());
     for (ApplicationTag appTag : appTags) {
       applicationTagDAO.delete(tx, appTag);
-    }
-    // Cascade to vulnerability custom detail
-    VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
-    for (VulnerabilityCustomDetail vulnerabilityCustomDetail : vulnerabilityCustomDetailDAO.getByTagId(tx,
-        tag.getId())) {
-      vulnerabilityCustomDetailDAO.delete(tx, vulnerabilityCustomDetail);
     }
 
     // Cascade to vulnerability custom remediation tags

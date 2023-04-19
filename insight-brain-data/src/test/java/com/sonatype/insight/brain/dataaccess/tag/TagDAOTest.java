@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
-import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -91,19 +90,6 @@ public class TagDAOTest
     // Get
     tag = dao.getById(tag.getId());
     assertThat(tag).isNull();
-  }
-
-  @Test
-  public void testDelete_CascadeVulnerabilityCustomDetail() {
-    Tag tag = new Tag(organization.getId(), "testCRUD Name", "testCRUD description", Color.yellow);
-    tempEntity.newVulnerabilityCustomDetailWithTag(organization.getId(), "CVE-2022-1234", null, tag);
-    tempEntity.newVulnerabilityCustomDetailWithTag(organization.getId(), "CVE-2022-4321", null, tag);
-
-    VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
-    assertThat(vulnerabilityCustomDetailDAO.getByTagId(tag.getId())).extracting("refId")
-        .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
-    dao.delete(tag);
-    assertThat(vulnerabilityCustomDetailDAO.getByTagId(tag.getId())).isEmpty();
   }
 
   @Test

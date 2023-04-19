@@ -131,7 +131,6 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
-import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
@@ -256,7 +255,6 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVec
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVectorTag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCweTag;
-import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediationTag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
@@ -389,8 +387,6 @@ public class TemporaryEntity
 
   private final VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO =
       new VulnerabilityGroupVulnerabilityDAO();
-
-  private final VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
 
   private final VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO =
       new VulnerabilityCustomRemediationDAO();
@@ -573,8 +569,6 @@ public class TemporaryEntity
 
   private Collection<VulnerabilityGroupVulnerability> vulnerabilityGroupsVulnerability;
 
-  private Collection<VulnerabilityCustomDetail> vulnerabilityCustomDetails;
-
   private Collection<VulnerabilityCustomRemediation> vulnerabilityCustomRemediations;
 
   private Collection<VulnerabilityCustomRemediationTag> vulnerabilityCustomRemediationTags;
@@ -660,7 +654,6 @@ public class TemporaryEntity
     securityVulnerabilityOverrides = new ArrayList<>();
     vulnerabilityGroups = new ArrayList<>();
     vulnerabilityGroupsVulnerability = new ArrayList<>();
-    vulnerabilityCustomDetails = new ArrayList<>();
     vulnerabilityCustomRemediations = new ArrayList<>();
     vulnerabilityCustomRemediationTags = new ArrayList<>();
     vulnerabilityCustomCwes = new ArrayList<>();
@@ -724,7 +717,6 @@ public class TemporaryEntity
     delete(securityVulnerabilityOverrides, securityVulnerabilityOverrideDAO);
     delete(vulnerabilityGroupsVulnerability, vulnerabilityGroupVulnerabilityDAO);
     delete(vulnerabilityGroups, vulnerabilityGroupDAO);
-    delete(vulnerabilityCustomDetails, vulnerabilityCustomDetailDAO);
     delete(vulnerabilityCustomRemediations, vulnerabilityCustomRemediationDAO);
     delete(vulnerabilityCustomRemediationTags, vulnerabilityCustomRemediationTagDAO);
     delete(vulnerabilityCustomCwes, vulnerabilityCustomCweDAO);
@@ -1213,10 +1205,6 @@ public class TemporaryEntity
 
   public void register(VulnerabilityGroup... vulnerabilityGroup) {
     Collections.addAll(this.vulnerabilityGroups, vulnerabilityGroup);
-  }
-
-  public void register(VulnerabilityCustomDetail... vulnerabilityCustomDetail) {
-    Collections.addAll(this.vulnerabilityCustomDetails, vulnerabilityCustomDetail);
   }
 
   public Application newApplicationWithParent() {
@@ -2995,105 +2983,6 @@ public class TemporaryEntity
     vulnerabilityCustomRemediationTagDAO.insert(vulnerabilityCustomRemediationTag);
     vulnerabilityCustomRemediationTags.add(vulnerabilityCustomRemediationTag);
     return vulnerabilityCustomRemediationTag;
-  }
-
-  public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
-      String ownerId,
-      String refId,
-      ComponentIdentifier componentIdentifier)
-  {
-    VulnerabilityCustomDetail
-        vulnerabilityCustomDetail = new VulnerabilityCustomDetail(ownerId, refId, componentIdentifier, "username");
-    vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
-    vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
-    return vulnerabilityCustomDetail;
-  }
-
-  public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
-      String ownerId,
-      String refId,
-      ComponentIdentifier componentIdentifier,
-      Date lastUpdatedAt)
-  {
-    VulnerabilityCustomDetail
-        vulnerabilityCustomDetail = new VulnerabilityCustomDetail(ownerId, refId, componentIdentifier, "username");
-    vulnerabilityCustomDetail.setLastUpdatedAt(lastUpdatedAt);
-    vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
-    vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
-    return vulnerabilityCustomDetail;
-  }
-
-  public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
-      String ownerId,
-      String refId,
-      Float severity,
-      String cvssVector,
-      String cwe,
-      String remediation,
-      String comment)
-  {
-    return newVulnerabilityCustomDetail(ownerId, refId, severity, cvssVector, cwe, remediation, comment, null);
-  }
-
-  public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
-      String ownerId,
-      String refId,
-      Float severity,
-      String cvssVector,
-      String cwe,
-      String remediation,
-      String comment,
-      Tag tag)
-  {
-    VulnerabilityCustomDetail vulnerabilityCustomDetail =
-        new VulnerabilityCustomDetail(ownerId, refId, null, "username");
-    vulnerabilityCustomDetail.setSeverity(severity);
-    vulnerabilityCustomDetail.setCvssVector(cvssVector);
-    vulnerabilityCustomDetail.setCwe(cwe);
-    vulnerabilityCustomDetail.setRemediation(remediation);
-    vulnerabilityCustomDetail.setComment(comment);
-    if (tag != null) {
-      vulnerabilityCustomDetail.setTagId(tag.getId());
-    }
-    vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
-    vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
-    return vulnerabilityCustomDetail;
-  }
-
-  public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
-      String ownerId,
-      String refId,
-      ComponentIdentifier componentIdentifier,
-      Float severity,
-      String cvssVector,
-      String cwe,
-      String remediation,
-      String comment)
-  {
-    VulnerabilityCustomDetail
-        vulnerabilityCustomDetail = new VulnerabilityCustomDetail(ownerId, refId, componentIdentifier, "username");
-    vulnerabilityCustomDetail.setSeverity(severity);
-    vulnerabilityCustomDetail.setCvssVector(cvssVector);
-    vulnerabilityCustomDetail.setCwe(cwe);
-    vulnerabilityCustomDetail.setRemediation(remediation);
-    vulnerabilityCustomDetail.setComment(comment);
-    vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
-    vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
-    return vulnerabilityCustomDetail;
-  }
-
-  public VulnerabilityCustomDetail newVulnerabilityCustomDetailWithTag(
-      String ownerId,
-      String refId,
-      ComponentIdentifier componentIdentifier,
-      Tag tag)
-  {
-    VulnerabilityCustomDetail
-        vulnerabilityCustomDetail = new VulnerabilityCustomDetail(ownerId, refId, componentIdentifier, "username");
-    vulnerabilityCustomDetail.setTagId(tag.getId());
-    vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
-    vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
-    return vulnerabilityCustomDetail;
   }
 
   public void newVulnerabilityCustomData(

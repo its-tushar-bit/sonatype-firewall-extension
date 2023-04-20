@@ -46,4 +46,6 @@ public class ApiSourceControlDTO
   public String sourceControlScanTarget;
 
   public Boolean sshEnabled;
+
+  public Boolean commitStatusEnabled;
 }

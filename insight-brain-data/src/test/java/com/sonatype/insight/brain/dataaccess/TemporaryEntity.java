@@ -3471,7 +3471,7 @@ public class TemporaryEntity
   {
     return newSourceControl(applicationId, repositoryUrl, null, username, token, provider,
         remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestPollTime,
-        pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sourceControlScanTarget, null);
+        pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sourceControlScanTarget, null, null);
   }
 
   public SourceControl newSourceControl(
@@ -3488,7 +3488,8 @@ public class TemporaryEntity
       Boolean pullRequestCommentingEnabled,
       Boolean sourceControlEvaluationsEnabled,
       String sourceControlScanTarget,
-      Boolean sshEnabled
+      Boolean sshEnabled,
+      Boolean commitStatusEnabled
   )
   {
     SourceControl sourceControl =
@@ -3507,6 +3508,7 @@ public class TemporaryEntity
             .setSourceControlEvaluationsEnabled(sourceControlEvaluationsEnabled)
             .setSourceControlScanTarget(sourceControlScanTarget)
             .setSshEnabled(sshEnabled)
+            .setCommitStatusEnabled(commitStatusEnabled)
             .build();
     sourceControlDAO.insert(sourceControl);
     sourceControls.add(sourceControl);

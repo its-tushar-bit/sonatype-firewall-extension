@@ -691,6 +691,7 @@ CREATE TABLE source_control (
   source_control_scan_target varchar(1000),
   pull_request_poll_time timestamp NULL,
   pull_request_error_count INT NOT NULL DEFAULT 0,
+  commit_status_enabled boolean,
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );

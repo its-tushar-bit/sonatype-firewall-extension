@@ -9,12 +9,14 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -397,6 +399,45 @@ public class GitCommitStatusServiceTest
     verifyNoMoreInteractions(commitStatusService, mockAsyncEventBus);
   }
 
+  @Test
+  public void testOnApplicationEvaluation_CommitStatusEnabled_False() throws Exception {
+    GitCommitStatusService commitStatusService = new TestableGitCommitStatusServiceBuilder()
+        .withCommitStatusEnabled(false).build();
+    ApplicationEvaluationEvent event =
+        new ApplicationEvaluationEventBuilder().withApplicationId("app1").withCommitHash("commit456").build();
+
+    commitStatusService.onApplicationEvaluation(event);
+
+    verify(mockSourceControlEventPublisher, never()).publishEvent(any());
+    assertThatLogMessagesEqual(
+        debug("Source control commit status notification feature is disabled")
+    );
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_CommitStatusEnabled_True() throws Exception {
+    GitCommitStatusService commitStatusService = new TestableGitCommitStatusServiceBuilder()
+        .withCommitStatusEnabled(true).build();
+    ApplicationEvaluationEvent event =
+        new ApplicationEvaluationEventBuilder().withApplicationId("app1").withCommitHash("commit456").build();
+
+    commitStatusService.onApplicationEvaluation(event);
+
+    verify(mockSourceControlEventPublisher).publishEvent(any());
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_CommitStatusEnabled_Null() throws Exception {
+    GitCommitStatusService commitStatusService = new TestableGitCommitStatusServiceBuilder()
+        .withCommitStatusEnabled(null).build();
+    ApplicationEvaluationEvent event =
+        new ApplicationEvaluationEventBuilder().withApplicationId("app1").withCommitHash("commit456").build();
+
+    commitStatusService.onApplicationEvaluation(event);
+
+    verify(mockSourceControlEventPublisher).publishEvent(any());
+  }
+
   private void verifyStatusRequest(String expectedState, String expectedMessage, String expectedUrl) {
     ArgumentCaptor<String> stateCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
@@ -437,6 +478,9 @@ public class GitCommitStatusServiceTest
     static final String SUCCESS_STATE = "yes";
 
     static final String FAIL_STATE = "no";
+
+    @Mock
+    private ApiSourceControlService mockApiSourceControlService;
 
     @Mock
     private SourceControlUtils mockSourceControlUtils;
@@ -493,6 +537,8 @@ public class GitCommitStatusServiceTest
     private String applicationId;
 
     private String applicationPublicId;
+    
+    private Boolean commitStatusEnabled;
 
     private Exception apiClientThrowsException = null;
 
@@ -527,6 +573,11 @@ public class GitCommitStatusServiceTest
       return this;
     }
 
+    TestableGitCommitStatusServiceBuilder withCommitStatusEnabled(Boolean commitStatusEnabled) {
+      this.commitStatusEnabled = commitStatusEnabled;
+      return this;
+    }
+
     GitCommitStatusService build() throws IOException {
       MockitoAnnotations.openMocks(this);
 
@@ -535,8 +586,13 @@ public class GitCommitStatusServiceTest
         gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, null, username, token, provider, baseBranch,
             remediationPullRequestsEnabled, statusChecksEnabled, pullRequestCommentingEnabled,
             sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget);
+        doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any(), any());
         doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
       }
+
+      SourceControl sourceControl = new SourceControl();
+      sourceControl.setCommitStatusEnabled(commitStatusEnabled);
+      doReturn(sourceControl).when(mockApiSourceControlService).getCompositeSourceControlByOwnerDecrypted(any());
 
       doReturn(mockGitApiClient).when(mockGitClientFactory).createApiClient(gitRepositoryInfo);
       doReturn(mockStatusRequest).when(mockGitApiClient).createStatusRequest(any(), any(), any(), any());
@@ -573,7 +629,8 @@ public class GitCommitStatusServiceTest
           licenseChecker,
           mockSourceControlEventPublisher,
           mockAsyncEventBus,
-          scmStatusHelper
+          scmStatusHelper,
+          mockApiSourceControlService
       );
     }
   }

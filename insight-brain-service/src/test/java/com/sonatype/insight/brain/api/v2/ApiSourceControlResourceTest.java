@@ -63,6 +63,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
+    assertThat(result.commitStatusEnabled).isNull();
   }
 
   @Test
@@ -79,12 +80,13 @@ public class ApiSourceControlResourceTest
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
+    assertThat(result.commitStatusEnabled).isNull();
   }
 
   @Test
   public void testAddSourceControlByOwner_ByOrganization() throws Exception {
     ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken("token")
+        new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").setCommitStatusEnabled(false)
             .build());
     HttpResponse response = restRequest()
         .path(DefaultApiSourceControlResource.BY_OWNER)
@@ -99,12 +101,14 @@ public class ApiSourceControlResourceTest
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.repositoryUrl);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
+    assertThat(result.commitStatusEnabled).isFalse();
   }
 
   @Test
   public void testAddSourceControlByOwner_ByApplication_HttpsUrl() throws Exception {
     ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
+            .setCommitStatusEnabled(false)
             .build());
     HttpResponse response = restRequest()
         .path(DefaultApiSourceControlResource.BY_OWNER)
@@ -118,6 +122,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
+    assertThat(result.commitStatusEnabled).isFalse();
   }
 
   @Test
@@ -125,6 +130,7 @@ public class ApiSourceControlResourceTest
     SourceControl sourceControl = tempEntity.newSourceControl(
         org.getId(), null, "token", null);
     sourceControl.setToken("NEW_TOKEN");
+    sourceControl.setCommitStatusEnabled(false);
     HttpResponse response = restRequest()
         .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
@@ -137,6 +143,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
+    assertThat(result.commitStatusEnabled).isFalse();
   }
 
   @Test
@@ -144,6 +151,7 @@ public class ApiSourceControlResourceTest
     SourceControl sourceControl = tempEntity.newSourceControl(
         app.getId(), VALID_URL, "token", null);
     sourceControl.setRepositoryUrl(VALID_URL);
+    sourceControl.setCommitStatusEnabled(false);
     HttpResponse response = restRequest()
         .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
@@ -156,6 +164,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
+    assertThat(result.commitStatusEnabled).isFalse();
   }
 
   @Test

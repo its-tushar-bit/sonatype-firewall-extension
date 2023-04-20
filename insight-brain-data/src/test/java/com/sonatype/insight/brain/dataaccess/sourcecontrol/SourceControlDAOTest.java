@@ -1173,6 +1173,7 @@ public class SourceControlDAOTest
         .withRemediationPullRequests(true, null, null)
         .withSourceControlEvaluations(false, null, null)
         .withSsh(false, null, null)
+        .withCommitStatusEnabled(false, null, null)
         .withStatusChecks(false, null, null)
         .build();
 
@@ -1184,6 +1185,23 @@ public class SourceControlDAOTest
         appSourceControl,
         testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId())
     );
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByOwnerId_CommitStatusEnabled_AllNull() {
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId", "appComposite")
+        .withProvider(GITLAB, null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withCommitStatusEnabled(null, null, null)
+        .build();
+
+    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByOwnerId(
+        testableHierarchy.getApplication("appComposite").getId()
+    );
+
+    assertThat(appSourceControl.getCommitStatusEnabled()).isNull();
   }
 
   @Test
@@ -1199,6 +1217,7 @@ public class SourceControlDAOTest
         .withRemediationPullRequests(true, null, false, null, null)
         .withSourceControlEvaluations(false, null, true, null, null)
         .withSsh(false, null, true, null, null)
+        .withCommitStatusEnabled(false, null, true, null, null)
         .withStatusChecks(false, null, true, null, null)
         .branchFrom("org2", "org4", "app2")
         .withRepositoryUrl("https://test.sonatype.com/app/2", "ssh://test.sonatype.com/app/2.git")
@@ -1228,6 +1247,7 @@ public class SourceControlDAOTest
         .withRemediationPullRequests(true, null, false, null, null)
         .withSourceControlEvaluations(false, null, true, null, null)
         .withSsh(false, null, true, null, null)
+        .withCommitStatusEnabled(false, null, true, null, null)
         .withStatusChecks(false, null, true, null, null)
         .build();
 
@@ -1252,6 +1272,7 @@ public class SourceControlDAOTest
         .withRemediationPullRequests(true, false, null)
         .withSourceControlEvaluations(false, true, null)
         .withSsh(false, true, null)
+        .withCommitStatusEnabled(false, true, null)
         .withStatusChecks(false, true, null)
         .build();
 
@@ -1278,6 +1299,7 @@ public class SourceControlDAOTest
         .withRemediationPullRequests(true, null, false)
         .withSourceControlEvaluations(false, null, true)
         .withSsh(false, true, false)
+        .withCommitStatusEnabled(false, true, false)
         .withStatusChecks(false, null, true)
         .build();
 
@@ -1771,6 +1793,14 @@ public class SourceControlDAOTest
       assertHierarchyDepth(sshFlags.length);
       for (int i = 0; i < sshFlags.length; i++) {
         getSourceControl(i).setSshEnabled(sshFlags[i]);
+      }
+      return this;
+    }
+    
+    private TestableHierarchy withCommitStatusEnabled(Boolean... commitStatusEnabledFlags) {
+      assertHierarchyDepth(commitStatusEnabledFlags.length);
+      for (int i = 0; i < commitStatusEnabledFlags.length; i++) {
+        getSourceControl(i).setCommitStatusEnabled(commitStatusEnabledFlags[i]);
       }
       return this;
     }

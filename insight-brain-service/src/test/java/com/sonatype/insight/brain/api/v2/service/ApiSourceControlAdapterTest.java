@@ -32,6 +32,7 @@ public class ApiSourceControlAdapterTest
     sourceControl.setSourceControlEvaluationsEnabled(true);
     sourceControl.setSourceControlScanTarget("/target/*");
     sourceControl.setSshEnabled(true);
+    sourceControl.setCommitStatusEnabled(false);
 
     ApiSourceControlDTO dto = ApiSourceControlAdapter.convertToDTO(sourceControl);
 
@@ -50,6 +51,7 @@ public class ApiSourceControlAdapterTest
     assertThat(dto.sourceControlEvaluationsEnabled).isEqualTo(true);
     assertThat(dto.sourceControlScanTarget).isEqualTo("/target/*");
     assertThat(dto.sshEnabled).isTrue();
+    assertThat(dto.commitStatusEnabled).isFalse();
   }
 
   @Test
@@ -68,6 +70,7 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.sourceControlEvaluationsEnabled = true;
     apiSourceControlDTO.sourceControlScanTarget = "/target/*";
     apiSourceControlDTO.sshEnabled = true;
+    apiSourceControlDTO.commitStatusEnabled = false;
 
     SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
@@ -84,6 +87,7 @@ public class ApiSourceControlAdapterTest
     assertThat(sourceControl.getSourceControlEvaluationsEnabled()).isEqualTo(true);
     assertThat(sourceControl.getSourceControlScanTarget()).isEqualTo("/target/*");
     assertThat(sourceControl.getSshEnabled()).isTrue();
+    assertThat(sourceControl.getCommitStatusEnabled()).isFalse();
   }
 
   @SuppressWarnings("deprecation")

@@ -250,6 +250,13 @@ public class ApiCompositeSourceControlService
         ancestorsSourceControl,
         SourceControl::getSshEnabled
     );
+
+    dto.commitStatusEnabled = collateCompositeDTO(
+        sourceControl,
+        ancestorsNameHiarchy,
+        ancestorsSourceControl,
+        SourceControl::getCommitStatusEnabled
+    );
   }
 
   private <T> ApiCompositeValueDTO<T> collateCompositeDTO(

@@ -9,8 +9,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -50,6 +52,8 @@ public class GitCommitStatusService
 
   private final ScmStatusHelper scmStatusHelper;
 
+  private final ApiSourceControlService apiSourceControlService;
+
   @Inject
   public GitCommitStatusService(
       final SourceControlUtils sourceControlUtils,
@@ -57,7 +61,8 @@ public class GitCommitStatusService
       final IqForScmLicenseChecker licenseChecker,
       final SourceControlEventPublisher sourceControlEventPublisher,
       final AsyncEventBus asyncEventBus,
-      final ScmStatusHelper scmStatusHelper)
+      final ScmStatusHelper scmStatusHelper,
+      final ApiSourceControlService apiSourceControlService)
   {
     this.gitClientFactory = gitClientFactory;
     this.licenseChecker = licenseChecker;
@@ -65,6 +70,7 @@ public class GitCommitStatusService
     this.scmStatusHelper = scmStatusHelper;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.asyncEventBus = asyncEventBus;
+    this.apiSourceControlService = apiSourceControlService;
   }
 
   @Subscribe
@@ -78,7 +84,14 @@ public class GitCommitStatusService
       return;
     }
 
-    GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(event.ownerId);
+    SourceControl sourceControl = apiSourceControlService.getCompositeSourceControlByOwnerDecrypted(event.ownerId);
+    if (Boolean.FALSE.equals(sourceControl.getCommitStatusEnabled())) {
+      log.debug("Source control commit status notification feature is disabled");
+      return;
+    }
+
+    GitRepositoryInfo gitRepositoryInfo =
+        sourceControlUtils.getGitRepositoryInfoForApplication(sourceControl, event.ownerId);
 
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider ||
         Strings.isNullOrEmpty(gitRepositoryInfo.token)) {

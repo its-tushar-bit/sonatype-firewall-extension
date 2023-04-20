@@ -32,4 +32,6 @@ public class ApiCompositeSourceControlDTO
   public ApiCompositeValueDTO<String> sourceControlScanTarget = new ApiCompositeValueDTO<>();
 
   public ApiCompositeValueDTO<Boolean> sshEnabled = new ApiCompositeValueDTO<>();
+
+  public ApiCompositeValueDTO<Boolean> commitStatusEnabled = new ApiCompositeValueDTO<>();
 }

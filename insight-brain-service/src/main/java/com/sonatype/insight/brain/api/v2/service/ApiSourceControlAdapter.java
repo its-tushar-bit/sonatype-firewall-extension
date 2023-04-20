@@ -37,6 +37,7 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.sourceControlEvaluationsEnabled = sourceControl.getSourceControlEvaluationsEnabled();
     apiSourceControlDTO.sourceControlScanTarget = sourceControl.getSourceControlScanTarget();
     apiSourceControlDTO.sshEnabled = sourceControl.getSshEnabled();
+    apiSourceControlDTO.commitStatusEnabled = sourceControl.getCommitStatusEnabled();
 
     return apiSourceControlDTO;
   }
@@ -72,6 +73,7 @@ public class ApiSourceControlAdapter
         .setSourceControlEvaluationsEnabled(dto.sourceControlEvaluationsEnabled)
         .setSourceControlScanTarget(dto.sourceControlScanTarget)
         .setSshEnabled(dto.sshEnabled)
+        .setCommitStatusEnabled(dto.commitStatusEnabled)
         .build();
     
     return sourceControl;

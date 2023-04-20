@@ -88,6 +88,9 @@ public class SourceControl
   @Column(name = "ssh_enabled")
   private Boolean sshEnabled;
 
+  @Column(name = "commit_status_enabled")
+  private Boolean commitStatusEnabled;
+
   public SourceControl() {
   }
 
@@ -104,7 +107,8 @@ public class SourceControl
       final Boolean pullRequestCommentingEnabled,
       final Boolean sourceControlEvaluationsEnabled,
       final String sourceControlScanTarget,
-      final Boolean sshEnabled)
+      final Boolean sshEnabled,
+      final Boolean commitStatusEnabled)
   {
     this.ownerId = ownerId;
     setRepositoryUrl(repositoryUrl);
@@ -119,6 +123,7 @@ public class SourceControl
     this.sourceControlEvaluationsEnabled = sourceControlEvaluationsEnabled;
     this.sourceControlScanTarget = sourceControlScanTarget;
     this.sshEnabled = sshEnabled;
+    this.commitStatusEnabled = commitStatusEnabled;
   }
 
   @Override
@@ -260,6 +265,14 @@ public class SourceControl
     this.sshEnabled = sshEnabled;
   }
 
+  public Boolean getCommitStatusEnabled() {
+    return commitStatusEnabled;
+  }
+
+  public void setCommitStatusEnabled(final Boolean commitStatusEnabled) {
+    this.commitStatusEnabled = commitStatusEnabled;
+  }
+
   public static class Builder
   {
     private String ownerId;
@@ -289,6 +302,8 @@ public class SourceControl
     private String sourceControlScanTarget;
 
     private Boolean sshEnabled;
+
+    private Boolean commitStatusEnabled;
 
     public Builder setOwnerId(final String ownerId) {
       this.ownerId = ownerId;
@@ -360,11 +375,16 @@ public class SourceControl
       return this;
     }
 
+    public Builder setCommitStatusEnabled(final Boolean commitStatusEnabled) {
+      this.commitStatusEnabled = commitStatusEnabled;
+      return this;
+    }
+
     public SourceControl build() {
       SourceControl sourceControl =
           new SourceControl(ownerId, repositoryUrl, repositorySshUrl, username, token, provider,
               remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestCommentingEnabled,
-              sourceControlEvaluationsEnabled, sourceControlScanTarget, sshEnabled);
+              sourceControlEvaluationsEnabled, sourceControlScanTarget, sshEnabled, commitStatusEnabled);
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
       return sourceControl;
     }
@@ -394,6 +414,7 @@ public class SourceControl
     accumulator.setPullRequestErrorCount(
         coalesce(accumulator.getPullRequestErrorCount(), other.getPullRequestErrorCount()));
     accumulator.setSshEnabled(coalesce(accumulator.getSshEnabled(), other.getSshEnabled()));
+    accumulator.setCommitStatusEnabled(coalesce(accumulator.getCommitStatusEnabled(), other.getCommitStatusEnabled()));
     accumulator.setRepositorySshUrl(coalesce(accumulator.getRepositorySshUrl(), other.getRepositorySshUrl()));
   }
 
@@ -432,6 +453,7 @@ public class SourceControl
         ", sourceControlEvaluationsEnabled=" + sourceControlEvaluationsEnabled +
         ", sourceControlScanTarget=" + sourceControlScanTarget +
         ", sshEnabled=" + sshEnabled +
+        ", commitStatusEnabled=" + commitStatusEnabled +
         '}';
   }
 }

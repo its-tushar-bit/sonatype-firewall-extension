@@ -738,7 +738,7 @@ describe('FirewallLegalTab', () => {
       );
 
       expect(
-        document.querySelectorAll('#license-detections-tile #effective-licenses-container .nx-list__item').length
+        document.querySelectorAll('#license-detections-tile #effective-licenses-container .iq-legal-item').length
       ).toBe(1);
 
       fireEvent.click(firstAvailableLicense);

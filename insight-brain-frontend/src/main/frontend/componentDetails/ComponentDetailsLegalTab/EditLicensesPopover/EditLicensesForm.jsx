@@ -192,7 +192,7 @@ export default function EditLicensesForm({
         <dl className="nx-read-only">
           <dt className="nx-read-only__label">Effective Licenses</dt>
           <dd className="nx-read-only__data" id="effective-licenses-container">
-            <NxList bulleted>{renderLicensesList(effectiveLicenses, isClaimed, true)}</NxList>
+            <ul className="iq-legal-list">{renderLicensesList(effectiveLicenses, isClaimed, true)}</ul>
           </dd>
         </dl>
       </div>
@@ -200,7 +200,7 @@ export default function EditLicensesForm({
         <dl className="nx-read-only">
           <dt className="nx-read-only__label">Declared Licenses</dt>
           <dd className="nx-read-only__data" id="declared-licenses-container">
-            <NxList bulleted>{renderLicensesList(declaredLicenses, isClaimed)}</NxList>
+            <ul className="iq-legal-list">{renderLicensesList(declaredLicenses, isClaimed)}</ul>
           </dd>
         </dl>
       </div>
@@ -208,7 +208,7 @@ export default function EditLicensesForm({
         <dl className="nx-read-only">
           <dt className="nx-read-only__label">Observed Licenses</dt>
           <dd className="nx-read-only__data" id="observed-licenses-container">
-            <NxList bulleted>{renderLicensesList(observedLicenses, isClaimed)}</NxList>
+            <ul className="iq-legal-list">{renderLicensesList(observedLicenses, isClaimed)}</ul>
           </dd>
         </dl>
       </div>

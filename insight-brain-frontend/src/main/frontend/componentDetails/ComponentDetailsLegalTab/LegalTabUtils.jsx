@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { NxList, NxThreatIndicator } from '@sonatype/react-shared-components';
+import React, { Fragment } from 'react';
+import { NxThreatIndicator } from '@sonatype/react-shared-components';
 import { contains } from 'ramda';
 
 const claimedComponentAlert = (isEffective, len) => {
@@ -28,20 +28,25 @@ export const renderLicensesList = (list, claimed, isEffective = false) =>
   list?.map((item) => {
     const { licenses } = item;
     const licenseKey = licenses.map((licenseItem) => licenseItem.license.licenseId).join();
-
     const multiDisplay = (multiLicenses) => {
-      return multiLicenses
-        .map((licenseItem) => renderOneLicense(licenseItem))
-        .reduce((prev, curr) => [prev, ' or ', curr]);
+      return multiLicenses.map((licenseItem, index) => (
+        <Fragment key={index}>
+          {index !== 0 && <span> or </span>}
+          <span className="license-list-item__license">
+            <NxThreatIndicator policyThreatLevel={licenseItem.threatLevel} />
+            <span>{licenseItem.license.licenseName}</span>
+          </span>
+        </Fragment>
+      ));
     };
 
     return (
-      <NxList.Item key={licenseKey}>
-        <NxList.Text className="license-list-item">
+      <li className="iq-legal-item" key={licenseKey}>
+        <span className="license-list-item">
           {licenses.length > 1 ? multiDisplay(licenses) : renderOneLicense(licenses[0])}
           {claimed && claimedComponentAlert(isEffective, list.length)}
-        </NxList.Text>
-      </NxList.Item>
+        </span>
+      </li>
     );
   });
 

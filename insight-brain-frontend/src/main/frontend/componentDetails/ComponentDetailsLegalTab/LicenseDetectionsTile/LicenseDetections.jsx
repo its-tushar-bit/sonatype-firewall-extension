@@ -5,7 +5,7 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { NxButton, NxFontAwesomeIcon, NxList, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 
 import { renderLicensesList } from '../LegalTabUtils';
@@ -82,7 +82,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Effective Licenses</dt>
                     <dd className="nx-read-only__data" id="effective-licenses-container">
-                      <NxList bulleted>{renderLicensesList(effectiveLicenses, isClaimed, true)}</NxList>
+                      <ul className="iq-legal-list">{renderLicensesList(effectiveLicenses, isClaimed, true)}</ul>
                     </dd>
                   </div>
                 </dl>
@@ -92,7 +92,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Declared Licenses</dt>
                     <dd className="nx-read-only__data" id="declared-licenses-container">
-                      <NxList bulleted>{renderLicensesList(declaredLicenses, isClaimed)}</NxList>
+                      <ul className="iq-legal-list">{renderLicensesList(declaredLicenses, isClaimed)}</ul>
                     </dd>
                   </div>
                 </dl>
@@ -102,7 +102,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Observed Licenses</dt>
                     <dd className="nx-read-only__data" id="observed-licenses-container">
-                      <NxList bulleted>{renderLicensesList(observedLicenses, isClaimed)}</NxList>
+                      <ul className="iq-legal-list">{renderLicensesList(observedLicenses, isClaimed)}</ul>
                     </dd>
                   </div>
                 </dl>

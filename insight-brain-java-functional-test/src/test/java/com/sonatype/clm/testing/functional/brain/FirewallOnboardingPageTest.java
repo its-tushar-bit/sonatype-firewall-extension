@@ -32,6 +32,9 @@ public class FirewallOnboardingPageTest
 
     SidebarNavigation.container().shouldBe(hidden);
     page.shouldBe(Condition.visible);
-    page.shouldBe(Condition.text("Firewall Onboarding Page"));
+    page.shouldBe(Condition.text("Sidebar content"));
+    page.shouldBe(Condition.text("Main content"));
+    page.shouldBe(Condition.text("footer left settings"));
+    page.shouldBe(Condition.text("footer right paginator"));
   }
 }

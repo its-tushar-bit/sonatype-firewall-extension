@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.security;
 import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 
 public class OneTimeSystemRunnable
-  implements Runnable
+    implements Runnable
 {
   private final TenantAwareOneTimeRunnable tenantAwareRunnable;
 

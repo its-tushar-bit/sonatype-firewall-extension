@@ -86,7 +86,6 @@ export default angular
     sourceControlModule.name,
     artifactoryRepositoryModule.name,
   ])
-  .directive('accessTile', AccessTile)
   .component('ownerSideNav', iqReact2Angular(OwnerSideNav, [], ['$ngRedux', '$state']))
   .component('ownersTreePage', iqReact2Angular(OwnersTreePage, [], ['$ngRedux', '$state']))
   .component(

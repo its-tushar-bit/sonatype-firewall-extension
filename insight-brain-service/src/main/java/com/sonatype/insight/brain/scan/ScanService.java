@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -166,7 +166,7 @@ class ScanService
     scanTask.init(app, binFile, filename, stage, sendNotifications, userAgent, scanType);
     persistedScanTicketDAO.insert(scanTask.toPersistedScanTicket());
     log.debug("Scheduling scan task {}", scanTask.getId());
-    AuditData.get().continueAsync(new SystemRunnable(scanTask), executor::submit);
+    AuditData.get().continueAsync(new OneTimeSystemRunnable(scanTask), executor::submit);
     return scanTask;
   }
 

@@ -17,6 +17,9 @@ describe('FirewallOnboardingPage', function () {
 
   it('renders page with the correct text', () => {
     renderComponent();
-    expect(screen.getByText('Firewall Onboarding Page')).toBeVisible();
+    expect(screen.getByText('Sidebar content')).toBeVisible();
+    expect(screen.getByText('Main content')).toBeVisible();
+    expect(screen.getByText('footer left settings')).toBeVisible();
+    expect(screen.getByText('footer right paginator')).toBeVisible();
   });
 });

@@ -7,4 +7,51 @@
 firewall-onboarding,
 firewall-onboarding-page {
   display: contents;
+
+  #firewall-onboarding-page {
+    padding: 0;
+
+    .nx-card-container {
+      padding: 0;
+      gap: 0px;
+      display: grid;
+      grid-template-columns: 272px 1fr;
+      grid-template-rows: 1fr 91px;
+      grid-template-areas:
+        'sidebar content'
+        'footer footer';
+      height: 100%;
+      width: 100%;
+
+      .sidebar {
+        grid-area: sidebar;
+        background-color: #f5f5f5; // remove this once sidebar is implemented on CLM-25319
+        border-right: 1px solid #ddd;
+      }
+
+      .content {
+        grid-area: content;
+        background-color: #fff; // remove this once content is implemented on CLM-25319
+      }
+
+      .footer {
+        grid-area: footer;
+        background-color: #333; // remove this once footer is implemented on CLM-25319
+        color: #fff;
+        display: flex;
+        align-items: center;
+        height: 91px;
+      }
+
+      .footer-left {
+        width: 272px;
+        height: 100%;
+      }
+
+      .footer-right {
+        flex: 1;
+        height: 100%;
+      }
+    }
+  }
 }

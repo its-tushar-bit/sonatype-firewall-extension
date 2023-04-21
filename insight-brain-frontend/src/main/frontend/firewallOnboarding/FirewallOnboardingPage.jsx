@@ -11,7 +11,14 @@ export default function FirewallOnboardingPage() {
   return (
     <main id="firewall-onboarding-page" className="nx-page-main nx-viewport-sized">
       <LoadWrapper loading={false} error={null} retryHandler={() => {}}>
-        <div className="nx-card-container nx-card-container--no-wrap">Firewall Onboarding Page</div>
+        <div className="nx-card-container nx-card-container--no-wrap">
+          <div className="sidebar">Sidebar content</div>
+          <div className="content">Main content</div>
+          <div className="footer">
+            <div className="footer-left">footer left settings</div>
+            <div className="footer-right">footer right paginator</div>
+          </div>
+        </div>
       </LoadWrapper>
     </main>
   );

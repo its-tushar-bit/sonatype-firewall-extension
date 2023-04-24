@@ -46,4 +46,10 @@ public class MultiTenantDatabaseTestSupport
       test.accept(t);
     });
   }
+
+  protected Tenant provisionNewTenant() {
+    return super.testAsNewTenant(t -> {
+      multiTenantDatabaseTestRule.provisionDatabaseForTenant(t);
+    });
+  }
 }

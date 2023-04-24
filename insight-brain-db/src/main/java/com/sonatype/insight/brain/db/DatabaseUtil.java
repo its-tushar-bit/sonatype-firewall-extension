@@ -11,7 +11,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 
@@ -230,5 +232,24 @@ public class DatabaseUtil
 
   private static String setSchema(String sql, String databaseSchema) {
     return String.format(sql, databaseSchema.trim().replace(" ", "-"));
+  }
+
+  public static List<String> getSchemasList(DataSource dataSource) {
+    List<String> schemas = new ArrayList<>();
+
+    try (Connection connection = dataSource.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(
+             "SELECT * FROM INFORMATION_SCHEMA.SCHEMATA ")) {
+      ResultSet result = preparedStatement.executeQuery();
+      while (result != null && result.next()) {
+        schemas.add(result.getString("SCHEMA_NAME"));
+      }
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(
+          String.format("Failed attempt to get list of existing schemas."), e);
+    }
+
+    return schemas;
   }
 }

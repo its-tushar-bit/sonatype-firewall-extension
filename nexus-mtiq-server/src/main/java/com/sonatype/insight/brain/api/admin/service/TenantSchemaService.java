@@ -14,10 +14,8 @@ import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -32,8 +30,6 @@ public class TenantSchemaService
 
   private final DataMartDataStore dataMartDataStore;
 
-  private final TenantUtil tenantUtil;
-
   private final TenantValidator tenantValidator;
 
   private final InsightConfig insightConfig;
@@ -46,13 +42,11 @@ public class TenantSchemaService
   public TenantSchemaService(
       OperationalDataStore operationalDataStore,
       DataMartDataStore dataMartDataStore,
-      TenantUtil tenantUtil,
       TenantValidator tenantValidator,
       InsightConfig insightConfig,
       DatabaseProvisionUtils databaseProvisionUtils)
   {
     this.operationalDataStore = operationalDataStore;
-    this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
     this.dataMartDataStore = dataMartDataStore;
     this.insightConfig = insightConfig;
@@ -96,12 +90,6 @@ public class TenantSchemaService
   }
 
   private void validateCurrentTenant(String tenantSlug) {
-    /* Proper validations for the tenant name were executed as part of the AdminTenantFilter.
-     * Here we are just checking we are not using the global tenant */
-    if (tenantUtil.isGlobalTenant()) {
-      throw new BadRequestException("Invalid tenant");
-    }
-
     if (!tenantValidator.validateTenantExists(tenantSlug)) {
       log.debug("Tenant {} doesn't exist", tenantSlug);
       throw new NotFoundException("Tenant doesn't exist");

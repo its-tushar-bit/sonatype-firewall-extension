@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
+
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 
 import org.junit.Before;
@@ -15,9 +17,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MultiTenantInsightConfigTest
     extends MultiTenantTestSupport
 {
-  static final String WORK_ROOT = "./sonatype-work/clm-server";
+  static final String WORK_ROOT =
+      "." + File.separator + "sonatype-work" + File.separator + "clm-server";
 
-  static final String CLUSTER_ROOT = "./sonatype-work/clm-cluster";
+  static final String CLUSTER_ROOT =
+      "." + File.separator + "sonatype-work" + File.separator + "clm-cluster";
 
   MultiTenantInsightConfig underTest;
 
@@ -32,17 +36,18 @@ public class MultiTenantInsightConfigTest
 
   @Test
   public void testGetSonatypeWork() {
-    assertThat(underTest.getSonatypeWork().getPath()).isEqualTo(WORK_ROOT + "/global");
+    assertThat(underTest.getSonatypeWork().getPath()).isEqualTo(WORK_ROOT + File.separator + "global");
 
     testAsNewTenant(
-        t -> assertThat(underTest.getSonatypeWork().getPath()).isEqualTo(WORK_ROOT + "/" + t.tenantSlug));
+        t -> assertThat(underTest.getSonatypeWork().getPath()).isEqualTo(WORK_ROOT + File.separator + t.tenantSlug));
   }
 
   @Test
   public void testGetClusterDirectory() {
-    assertThat(underTest.getClusterDirectory().getPath()).isEqualTo(CLUSTER_ROOT + "/global");
+    assertThat(underTest.getClusterDirectory().getPath()).isEqualTo(CLUSTER_ROOT + File.separator + "global");
 
     testAsNewTenant(
-        t -> assertThat(underTest.getClusterDirectory().getPath()).isEqualTo(CLUSTER_ROOT + "/" + t.tenantSlug));
+        t -> assertThat(underTest.getClusterDirectory().getPath()).isEqualTo(
+            CLUSTER_ROOT + File.separator + t.tenantSlug));
   }
 }

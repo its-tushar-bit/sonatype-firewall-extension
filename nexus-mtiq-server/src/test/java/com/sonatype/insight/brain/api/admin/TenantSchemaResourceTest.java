@@ -39,19 +39,23 @@ public class TenantSchemaResourceTest
   }
 
   @Test
+  public void shouldGetTenantSchemaVersions_forGlobalTenant() throws Exception {
+    HttpResponse response = callSchemaEndpoint("global").get();
+    String data = response.getBodyText();
+
+    assertResponseStatus(200, response);
+    assertThat(data).contains("insight_brain_ods");
+    assertThat(data).contains("insight_brain_third_party_scans");
+    assertThat(data).contains("insight_brain_aggregation");
+    assertThat(data).contains("insight_brain_dm");
+  }
+
+  @Test
   public void shouldSend404_getTenantSchemaVersions_whenTenantDoesNotExist() throws Exception {
     HttpResponse response = callSchemaEndpoint("non-existent").get();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
-  }
-
-  @Test
-  public void shouldSend400_getTenantSchemaVersions_whenTenantIsGlobal() throws Exception {
-    HttpResponse response = callSchemaEndpoint("global").get();
-
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
   @Test
@@ -67,19 +71,23 @@ public class TenantSchemaResourceTest
   }
 
   @Test
+  public void shouldMigrateTenantSchema_forGlobalTenant() throws Exception {
+    String tenantSlug = generateTestTenantName();
+
+    //Provisioning a tenant to execute the migration
+    provisionTenant(tenantSlug);
+
+    HttpResponse response = callSchemaEndpoint("global").put();
+
+    assertResponseStatus(204, response);
+  }
+
+  @Test
   public void shouldSend404_migrateSchema_whenTenantDoesNotExist() throws Exception {
     HttpResponse response = callSchemaEndpoint("non-existent").put();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
-  }
-
-  @Test
-  public void shouldSend400_migrateTenantSchema_whenTenantIsGlobal() throws Exception {
-    HttpResponse response = callSchemaEndpoint("global").put();
-
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
   private HttpRequest callSchemaEndpoint(String tenant) {

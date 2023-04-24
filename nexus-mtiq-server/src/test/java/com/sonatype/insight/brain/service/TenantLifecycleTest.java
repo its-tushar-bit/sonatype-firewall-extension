@@ -61,7 +61,7 @@ public class TenantLifecycleTest
   @Test
   public void shouldAttemptToLoadLicenseFile_whenLicenseSpecified() throws Exception {
     testAsNewTenant(t -> {
-      String sonatypeWorkDir = "tenant/work";
+      String sonatypeWorkDir = "tenant" + File.separator + "work";
       String licenseFile = "license.lic";
 
       when(config.getLicenseFile()).thenReturn(licenseFile);
@@ -69,7 +69,7 @@ public class TenantLifecycleTest
 
       underTest.bootTenant();
 
-      verify(licenseManager).installLicenseIfUnlicensed(sonatypeWorkDir + "/" + licenseFile);
+      verify(licenseManager).installLicenseIfUnlicensed(sonatypeWorkDir + File.separator + licenseFile);
     });
   }
 }

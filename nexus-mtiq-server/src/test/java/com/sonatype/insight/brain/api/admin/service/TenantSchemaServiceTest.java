@@ -16,10 +16,8 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
@@ -63,17 +61,14 @@ public class TenantSchemaServiceTest
   @Mock
   private DatabaseProvisionUtils databaseProvisionUtils;
 
-  private TenantUtil tenantUtil;
-
   private TenantSchemaService underTest;
 
   @Before
   @Override
   public void setup() {
     super.setup();
-    tenantUtil = new TenantUtil();
     underTest =
-        new TenantSchemaService(operationalDataStore, dataMartDataStore, tenantUtil, tenantValidator, insightConfig,
+        new TenantSchemaService(operationalDataStore, dataMartDataStore, tenantValidator, insightConfig,
             databaseProvisionUtils);
   }
 
@@ -83,6 +78,21 @@ public class TenantSchemaServiceTest
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
       Map<String, Integer> result = runGetSchemaVersions(tenant);
+
+      assertThat(result).hasSize(4);
+      assertThat(result).containsEntry("insight_brain_ods", 279);
+      assertThat(result).containsEntry("insight_brain_third_party_scans", 12);
+      assertThat(result).containsEntry("insight_brain_aggregation", 12);
+      assertThat(result).containsEntry("insight_brain_dm", 12);
+    });
+  }
+
+  @Test
+  public void shouldGetTenantSchemaVersion_forGlobalTenant() {
+    testAsGlobalTenant(global -> {
+      when(tenantValidator.validateTenantExists(global.tenantSlug)).thenReturn(true);
+
+      Map<String, Integer> result = runGetSchemaVersions(global);
 
       assertThat(result).hasSize(4);
       assertThat(result).containsEntry("insight_brain_ods", 279);
@@ -106,22 +116,23 @@ public class TenantSchemaServiceTest
   }
 
   @Test
-  public void shouldThrowRuntimeException_getTenantSchemaVersion_whenUsingGlobalTenant() {
-    final String errorMessage = "Invalid tenant";
-
-    testAsGlobalTenant(tenant -> {
-      assertThatThrownBy(() -> underTest.getSchemaVersions(tenant.tenantSlug))
-          .withFailMessage(errorMessage)
-          .isInstanceOf(BadRequestException.class);
-    });
-  }
-
-  @Test
   public void shouldMigrateSchema() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
       underTest.migrateSchema(tenant.tenantSlug);
+
+      verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
+          any(MultiTenantDatabaseConfigProvider.class));
+    });
+  }
+
+  @Test
+  public void shouldMigrateSchema_forGlobalTenant() {
+    testAsGlobalTenant(global -> {
+      when(tenantValidator.validateTenantExists(global.tenantSlug)).thenReturn(true);
+
+      underTest.migrateSchema(global.tenantSlug);
 
       verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
           any(MultiTenantDatabaseConfigProvider.class));
@@ -149,17 +160,6 @@ public class TenantSchemaServiceTest
       assertThatThrownBy(() -> underTest.migrateSchema(tenant.tenantSlug))
           .withFailMessage(errorMessage)
           .isInstanceOf(NotFoundException.class);
-    });
-  }
-
-  @Test
-  public void shouldThrowRuntimeException_migrateSchema_whenUsingGlobalTenant() {
-    final String errorMessage = "Invalid tenant";
-
-    testAsGlobalTenant(tenant -> {
-      assertThatThrownBy(() -> underTest.migrateSchema(tenant.tenantSlug))
-          .withFailMessage(errorMessage)
-          .isInstanceOf(BadRequestException.class);
     });
   }
 

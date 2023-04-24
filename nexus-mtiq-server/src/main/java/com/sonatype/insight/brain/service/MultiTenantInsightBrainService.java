@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.service.banning.BannedImplementationService;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.telemetry.MultiTenantTelemetryCollectorsProvider;
 import com.sonatype.insight.brain.telemetry.TelemetryCollectorsProvider;
+import com.sonatype.insight.brain.tenancy.AdminTasksTenantFilter;
 import com.sonatype.insight.brain.tenancy.AdminTenantFilter;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
 import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
@@ -209,7 +210,7 @@ public class MultiTenantInsightBrainService
           log.debug("Added admin REST component: {}", component);
         }
         catch (Exception e) {
-          log.warn("Unable to add admin REST component: {}", impl, e);
+          log.error("Unable to add admin REST component: {}", impl, e);
         }
       }
     }
@@ -234,6 +235,9 @@ public class MultiTenantInsightBrainService
 
     // Add tenant filter for Admin resources. We need to ensure this filter is configured before the AuditFilter.
     addAdminServletFilter(env, AdminTenantFilter.class, ADMIN_BASE_PATH);
+
+    // Add tenant filter for admin tasks api. We need to ensure this filter is configured after the AdminTenantFilter.
+    addAdminServletFilter(env, AdminTasksTenantFilter.class, "/api/admin/tenants/*", "/tasks/*");
 
     super.addServletFilters(env, true);
   }

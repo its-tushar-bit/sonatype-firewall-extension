@@ -1,0 +1,82 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.tenancy;
+
+import java.io.PrintWriter;
+import javax.servlet.FilterChain;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.http.entity.ContentType;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import static com.sonatype.insight.brain.tenancy.AdminTasksTenantFilter.TASKS_API_ERROR_MGS;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class AdminTasksTenantFilterTest
+    extends MultiTenantTestSupport
+{
+  private static final String TENANT_NAME = "tenant1";
+
+  @Mock
+  private HttpServletRequest request;
+
+  @Mock
+  private HttpServletResponse response;
+
+  @Mock
+  private PrintWriter printWriter;
+
+  @Mock
+  private FilterChain chain;
+
+  @Mock
+  private RequestDispatcher dispatcher;
+
+  @Test
+  public void shouldRewriteTasksUrl_whenTenantTasksUrlIsPassed() throws Exception {
+    final AdminTasksTenantFilter adminTasksTenantFilter = new AdminTasksTenantFilter();
+
+    when(request.getRequestURI()).thenReturn(String.format("/api/admin/tenants/%s/tasks/theTask", TENANT_NAME));
+    when(request.getRequestDispatcher("/tasks/theTask")).thenReturn(dispatcher);
+
+    adminTasksTenantFilter.doFilter(request, response, chain);
+
+    verify(dispatcher).forward(request, response);
+  }
+
+  @Test
+  public void shouldNotRewriteTenantUrl_whenNotTasksUrl() throws Exception {
+    final AdminTasksTenantFilter adminTasksTenantFilter = new AdminTasksTenantFilter();
+
+    when(request.getRequestURI()).thenReturn(String.format("/api/admin/tenants/%s/foo/bar", TENANT_NAME));
+
+    adminTasksTenantFilter.doFilter(request, response, chain);
+
+    verify(chain).doFilter(request, response);
+  }
+
+  @Test
+  public void shouldReturnBadRequest_whenNoneTenantTasksUrl() throws Exception {
+    final AdminTasksTenantFilter adminTasksTenantFilter = new AdminTasksTenantFilter();
+
+    when(response.getWriter()).thenReturn(printWriter);
+    when(request.getRequestURI()).thenReturn("/tasks/someTask");
+
+    adminTasksTenantFilter.doFilter(request, response, chain);
+
+    verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    verify(response).setContentType(ContentType.TEXT_PLAIN.getMimeType());
+    verify(response).getWriter();
+    verify(printWriter).print(TASKS_API_ERROR_MGS);
+  }
+}

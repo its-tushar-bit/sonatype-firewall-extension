@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.insight.brain.utils.Retry;
-import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 
 import com.google.common.net.HttpHeaders;
@@ -93,7 +93,7 @@ public class DefaultHdsClientProxyTest
     ProductLicense productLicense = mock(ProductLicense.class);
     lenient().when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
     client = new DefaultHdsClient(new InsightProxy(configuration, passwordHandler), productLicense, configuration,
-        new VersionService(), telemetryId, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
+        new DefaultVersionService(), telemetryId, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
   }
 
   @After

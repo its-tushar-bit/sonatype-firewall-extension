@@ -11,6 +11,7 @@ import java.util.List;
 import com.sonatype.insight.brain.repository.InactiveRepositoryViolationCleaner;
 import com.sonatype.insight.brain.service.DefaultTenantManagedInitializer;
 import com.sonatype.insight.brain.telemetry.DefaultTelemetryScheduler;
+import com.sonatype.insight.brain.version.VersionService;
 
 public class DefaultBannedImplementation
     implements BannedImplementation
@@ -26,7 +27,8 @@ public class DefaultBannedImplementation
       Arrays.asList(
           DefaultTenantManagedInitializer.class,
           DefaultTelemetryScheduler.class,
-          InactiveRepositoryViolationCleaner.class
+          InactiveRepositoryViolationCleaner.class,
+          VersionService.class
       );
 
   @Override

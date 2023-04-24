@@ -57,6 +57,8 @@ import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
+import com.sonatype.insight.brain.version.MultiTenantVersionService;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
@@ -89,13 +91,15 @@ public class MultiTenantInsightBrainService
     new TenantUtil().setGlobalTenant();
 
     try {
-      setupServerLogging(args);
+      MultiTenantInsightBrainService insightBrainService = new MultiTenantInsightBrainService();
+
+      insightBrainService.setupServerLogging(args);
 
       if (!validateTempDir()) {
         System.exit(1);
       }
 
-      new MultiTenantInsightBrainService().run(args);
+      insightBrainService.run(args);
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
@@ -104,6 +108,25 @@ public class MultiTenantInsightBrainService
       log.error(t.getMessage(), t);
       System.exit(2);
     }
+  }
+
+  @Override
+  void printVersion() {
+    VersionService versionService = new MultiTenantVersionService();
+    String build = versionService.getBuild();
+    log.info("|------------------------------------------");
+    log.info("|");
+    log.info("| Initializing {} build {}", PRODUCT_NAME, build);
+    log.info("|");
+    log.info("|------------------------------------------");
+  }
+
+  @Override
+  String getServerInstanceMessage() {
+    String build = new MultiTenantVersionService().getBuild();
+    return PRODUCT_NAME + " build " + build + //
+        " instance ID " + INSTANCE_ID + //
+        " on " + getLocalHostString() + ".";
   }
 
   @Override
@@ -281,6 +304,8 @@ public class MultiTenantInsightBrainService
         bind(FeaturesService.class).to(MTIQFeatureService.class);
 
         bind(AuditRecorder.class).to(MultiTenantAuditRecorder.class);
+
+        bind(VersionService.class).to(MultiTenantVersionService.class);
       }
     };
   }

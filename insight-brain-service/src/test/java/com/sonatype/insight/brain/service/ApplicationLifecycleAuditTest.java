@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.migration.DataMigrator;
-import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.brain.version.DefaultVersionService;
 
 import com.google.inject.Binder;
 import org.junit.After;
@@ -71,7 +71,7 @@ public class ApplicationLifecycleAuditTest
   private void assertLifecycleAuditData(final AuditDTO auditDTO) {
     assertCustomData(auditDTO, "serverInstanceId", InsightBrainService.getInstanceId());
     assertCustomData(auditDTO, "serverConfigurationFile", configFile.toString());
-    assertCustomData(auditDTO, "serverRelease", new VersionService().getLogDisplayVersion());
+    assertCustomData(auditDTO, "serverRelease", new DefaultVersionService().getLogDisplayVersion());
     assertCustomData(auditDTO, "processOwner", System.getProperty("user.name"));
   }
 }

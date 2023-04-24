@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.brain.utils.Retry;
-import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.test.networking.PortAllocator;
 
 import org.junit.After;
@@ -130,7 +130,7 @@ public class DefaultHdsClientKeepConnectionAliveTest
 
   @Test
   public void testConnectTimeoutMustNotAffectRequestConfigSocketTimeout() throws InterruptedException {
-    HdsClient client = new DefaultHdsClient(insightProxy, productLicense, configuration, new VersionService(),
+    HdsClient client = new DefaultHdsClient(insightProxy, productLicense, configuration, new DefaultVersionService(),
         telemetryId, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
 
     stallingServerThread.start();

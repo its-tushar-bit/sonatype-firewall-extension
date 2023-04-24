@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.inject.Inject;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -39,7 +38,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.utils.Retry;
-import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
@@ -85,22 +84,25 @@ public class DefaultHdsClientTest
     ProductLicense productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
     spyInsightProxy = spy(new InsightProxy(configuration, passwordHandler));
-    client = new DefaultHdsClient(spyInsightProxy, productLicense, configuration, new VersionService(), telemetryId, 20,
-        name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
+    client =
+        new DefaultHdsClient(spyInsightProxy, productLicense, configuration, new DefaultVersionService(), telemetryId,
+            20,
+            name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
   }
 
   /**
    * Configures an HTTP request handler that captures the HTTP request headers.
-   * 
+   *
    * @return a map of HTTP headers that can be used to assert HTTP headers for the latest HTTP request
    */
   private Map<String, String> setHttpHeaderCaptorRequestHandler() {
     final Map<String, String> headers = new HashMap<>();
-    handler = new AbstractHandler() {
+    handler = new AbstractHandler()
+    {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           String headerName = en.nextElement();
           headers.put(headerName, request.getHeader(headerName));
         }
@@ -167,7 +169,7 @@ public class DefaultHdsClientTest
 
     client.put(null, InputStream.class, testClientUserAgent, testPath,
         new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(),
-        new String[] {});
+        new String[]{});
     assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
@@ -212,7 +214,7 @@ public class DefaultHdsClientTest
     Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
     String testPath = "/rest/test";
 
-    client.get(InputStream.class, testPath, null, new String[] {});
+    client.get(InputStream.class, testPath, null, new String[]{});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
     client.get(InputStream.class, testPath);
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
@@ -246,11 +248,11 @@ public class DefaultHdsClientTest
     when(request.getHeader(any(String.class))).thenReturn("header-value");
     when(request.getMethod()).thenReturn("GET");
 
-    client.relay(request, InputStream.class, testPath, new String[] {});
+    client.relay(request, InputStream.class, testPath, new String[]{});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
-    client.relay(request, InputStream.class, testPath, null, new String[] {});
+    client.relay(request, InputStream.class, testPath, null, new String[]{});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
-    client.relay(request, null, InputStream.class, testPath, null, new String[] {});
+    client.relay(request, null, InputStream.class, testPath, null, new String[]{});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
   }
 
@@ -263,7 +265,7 @@ public class DefaultHdsClientTest
 
     client.put(null, InputStream.class, "client_user_agent", testPath,
         new File(getClass().getResource("/config-test.yml").toURI()), Collections.emptyMap(),
-        new String[] {});
+        new String[]{});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
   }
 
@@ -275,11 +277,11 @@ public class DefaultHdsClientTest
     initClient();
 
     final Set<String> headers = new HashSet<>();
-    handler = new AbstractHandler() {
-
+    handler = new AbstractHandler()
+    {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           headers.add(en.nextElement());
         }
         baseRequest.setHandled(true);
@@ -302,11 +304,11 @@ public class DefaultHdsClientTest
   @Test
   public void testRemoveXForwarded() throws Exception {
     final Set<String> headers = new HashSet<>();
-    handler = new AbstractHandler() {
-
+    handler = new AbstractHandler()
+    {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           headers.add(en.nextElement());
         }
         baseRequest.setHandled(true);
@@ -349,7 +351,6 @@ public class DefaultHdsClientTest
   public void testTransformAuthErrors_401() {
     handler = new AbstractHandler()
     {
-
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
           throws IOException
@@ -370,7 +371,6 @@ public class DefaultHdsClientTest
   public void testTransformAuthErrors_403() {
     handler = new AbstractHandler()
     {
-
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
           throws IOException
@@ -391,7 +391,6 @@ public class DefaultHdsClientTest
   public void testTransformAuthErrors_407() {
     handler = new AbstractHandler()
     {
-
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
           throws IOException
@@ -412,7 +411,6 @@ public class DefaultHdsClientTest
   public void testTransformServiceUnavailable() {
     handler = new AbstractHandler()
     {
-
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
           throws IOException
@@ -433,7 +431,6 @@ public class DefaultHdsClientTest
   public void testTransformBadGateway() {
     handler = new AbstractHandler()
     {
-
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
           throws IOException
@@ -458,14 +455,15 @@ public class DefaultHdsClientTest
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> client.get(String.class, "/any", null))
         .withMessage("The hostname for the Sonatype Data Services could not be resolved,"
-        + " please verify the network configuration (DNS) at the site where the Nexus IQ Server is operated");
+            + " please verify the network configuration (DNS) at the site where the Nexus IQ Server is operated");
   }
 
   @Test
   public void testAnalyticsIdOnRequests() throws Exception {
     final Map<String, String> headers = new HashMap<>();
     String testPath = "/rest/test";
-    handler = new AbstractHandler() {
+    handler = new AbstractHandler()
+    {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
@@ -483,7 +481,7 @@ public class DefaultHdsClientTest
     app.setId("test-app-id");
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(app);
 
-    client.relay(request, analytics, InputStream.class, testPath, null, new String[] {});
+    client.relay(request, analytics, InputStream.class, testPath, null, new String[]{});
     assertThat(headers).containsEntry(DefaultHdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
         .containsEntry(DefaultHdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
@@ -503,7 +501,8 @@ public class DefaultHdsClientTest
   }
 
   private void testTransformOtherErrors(final int statusCode) {
-    handler = new AbstractHandler() {
+    handler = new AbstractHandler()
+    {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         response.setStatus(statusCode);
@@ -560,7 +559,7 @@ public class DefaultHdsClientTest
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> client.get(String.class, "/any", null))
         .withMessage("The SSL/TLS connection to Sonatype Data Services could not be established, "
-        + "contact your network or system administrator for help.");
+            + "contact your network or system administrator for help.");
   }
 
   @Test
@@ -620,7 +619,7 @@ public class DefaultHdsClientTest
             + "+dojo%22%2C%22qualifier%22%3A%22%22%2C%22version%22%3A%221.8.14%22%7D%7D",
         "&name1=%7B+%7D%2B%26%3B%2F%3F%3A%40%3D%3C%3E%23%25%7C%5C%5E~%5B%5D%60");
   }
-  
+
   private static class ServletInputStreamImpl
       extends ServletInputStream
   {
@@ -671,10 +670,10 @@ public class DefaultHdsClientTest
     when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
     when(request.getMethod()).thenReturn("GET");
 
-    client.relay(request, null, InputStream.class, testPath, null, new String[] {});
+    client.relay(request, null, InputStream.class, testPath, null, new String[]{});
     assertThat(headers).containsEntry(DefaultHdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
-    client.post(String.class, testPath, "foo", new String[] {});
+    client.post(String.class, testPath, "foo", new String[]{});
     assertThat(headers).containsEntry(DefaultHdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
     client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
@@ -759,7 +758,7 @@ public class DefaultHdsClientTest
     {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           String headerName = en.nextElement();
           headers.put(headerName, request.getHeader(headerName));
         }
@@ -781,7 +780,7 @@ public class DefaultHdsClientTest
     assertThat(headers).containsEntry("X-CLM-Token", "license-fingerprint");
     assertThat(headers).containsEntry("X-CLM-Instance-Id", telemetryId.getId());
   }
-  
+
   @Test
   public void testDefaultHdsClient_NoDatabaseHdsUrl_NoInsightConfigHdsUrl() {
     config.setHdsUrl(null);

@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.test.LogOutput;
 
@@ -47,7 +47,7 @@ public class PingHdsClientTest
   protected void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
     client = new PingHdsClient(new InsightProxy(configuration, passwordHandler), productLicense, configuration,
-        new VersionService(), telemetryId);
+        new DefaultVersionService(), telemetryId);
   }
 
   @Test

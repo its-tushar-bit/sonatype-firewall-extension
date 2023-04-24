@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
+import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
@@ -102,7 +103,7 @@ public class InsightBrainService
 {
   protected static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
 
-  private static final String PRODUCT_NAME = "Nexus IQ Server";
+  static final String PRODUCT_NAME = "Nexus IQ Server";
 
   static {
     // INSIGHT-4557
@@ -114,7 +115,7 @@ public class InsightBrainService
 
   public static final String POLICY_ASSET_PATH = "/policy-assets/";
 
-  private static final String INSTANCE_ID = UUID.randomUUID().toString();
+  static final String INSTANCE_ID = UUID.randomUUID().toString();
 
   // Visible for testing
   static final String SISU_URL_CACHES = "sisu.url.caches";
@@ -127,13 +128,15 @@ public class InsightBrainService
 
   public static void main(final String[] args) {
     try {
-      setupServerLogging(args);
+      InsightBrainService insightBrainService = new InsightBrainService();
+
+      insightBrainService.setupServerLogging(args);
 
       if (!validateTempDir()) {
         System.exit(1);
       }
 
-      new InsightBrainService().run(args);
+      insightBrainService.run(args);
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
@@ -152,14 +155,14 @@ public class InsightBrainService
     }
   }
 
-  static void setupServerLogging(final String... args) {
+  void setupServerLogging(final String... args) {
     if (args.length == 0 || "server".equals(args[0])) {
       logServerInstanceMessage("Starting " + getServerInstanceMessage());
       addShutdownLogger();
     }
   }
 
-  private static void addShutdownLogger() {
+  void addShutdownLogger() {
     Runtime.getRuntime().addShutdownHook(new Thread("Shutdown Logger")
     {
       @Override
@@ -287,8 +290,8 @@ public class InsightBrainService
     getInstance(ApplicationLifecycle.class).boot();
   }
 
-  private void printVersion() {
-    VersionService versionService = new VersionService();
+  void printVersion() {
+    VersionService versionService = new DefaultVersionService();
     String version = versionService.getLogDisplayVersion();
     String build = versionService.getBuild();
     log.info("|------------------------------------------");
@@ -298,8 +301,8 @@ public class InsightBrainService
     log.info("|------------------------------------------");
   }
 
-  private static String getServerInstanceMessage() {
-    String version = new VersionService().getLogDisplayVersion();
+  String getServerInstanceMessage() {
+    String version = new DefaultVersionService().getLogDisplayVersion();
     return PRODUCT_NAME + " 1 release " + version + //
         " instance ID " + INSTANCE_ID + //
         " on " + getLocalHostString() + ".";

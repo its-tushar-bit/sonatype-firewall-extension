@@ -12,13 +12,13 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class VersionServiceTest
+public class DefaultVersionServiceTest
 {
   private VersionService versionService;
 
   @Before
   public void setup() {
-    versionService = new VersionService();
+    versionService = new DefaultVersionService();
   }
 
   @Test
@@ -32,7 +32,7 @@ public class VersionServiceTest
     assertThat(versionService.getLogDisplayVersion()).isNotNull();
 
     // Ensure that cleared properties return null.
-    versionService = new VersionService(new Properties());
+    versionService = new DefaultVersionService(new Properties());
     assertThat(versionService.getName()).isNull();
     assertThat(versionService.getBuild()).isNull();
     assertThat(versionService.getTimestamp()).isNull();

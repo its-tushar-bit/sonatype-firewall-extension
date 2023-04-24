@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.brain.version.DefaultVersionService;
 
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
@@ -84,7 +84,7 @@ public class HdsIdeResourcePerformanceUtils
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(8877);
     return new DefaultHdsClient(new InsightProxy(mock(Configuration.class), new PasswordHandler(null)),
-        mock(ProductLicense.class), mock(Configuration.class), new VersionService(), new TelemetryId(config));
+        mock(ProductLicense.class), mock(Configuration.class), new DefaultVersionService(), new TelemetryId(config));
   }
 
   static TelemetrySender createTelemetrySender() {

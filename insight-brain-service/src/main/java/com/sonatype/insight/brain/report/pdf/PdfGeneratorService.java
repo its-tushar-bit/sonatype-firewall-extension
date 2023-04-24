@@ -96,7 +96,7 @@ public class PdfGeneratorService
     File pdfFile = PdfGenerator.getPdfFile(reportService.getReport(app.getId(), scanId));
     PdfData pdfData = new PdfData();
     pdfData.baseUrl = getBaseUrl();
-    pdfData.productVersion = versionService.getLogDisplayVersion();
+    pdfData.productVersion = versionService.getShortVersion();
     pdfData.policyData = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId);
     pdfData.rawData = apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true);
     augmentEmptyLicensesAsNotProvided(pdfData.rawData);

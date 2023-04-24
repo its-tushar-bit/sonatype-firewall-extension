@@ -283,7 +283,7 @@ public class ApiCycloneDxServiceV2
     Tool tool = new Tool();
     tool.setVendor("Sonatype Inc.");
     tool.setName("Nexus IQ Server");
-    tool.setVersion(versionService.getVersion());
+    tool.setVersion(versionService.getFullVersion());
     metadata.addTool(tool);
   }
 

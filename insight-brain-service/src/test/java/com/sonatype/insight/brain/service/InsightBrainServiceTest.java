@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
 import com.sonatype.insight.brain.telemetry.DefaultTelemetryScheduler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
+import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
@@ -351,7 +352,7 @@ public class InsightBrainServiceTest
     });
 
     assertThat(logOutput).atInfoLevel()
-        .contains("Initializing Nexus IQ Server 1 release " + new VersionService().getLogDisplayVersion());
+        .contains("Initializing Nexus IQ Server 1 release " + new DefaultVersionService().getLogDisplayVersion());
   }
 
   @Test

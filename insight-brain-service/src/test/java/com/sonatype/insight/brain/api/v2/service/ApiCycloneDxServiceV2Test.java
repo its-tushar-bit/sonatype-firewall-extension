@@ -165,7 +165,7 @@ public class ApiCycloneDxServiceV2Test
 
   private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities) throws Exception {
     if (version != Version.VERSION_11) {
-      when(versionService.getVersion()).thenReturn("1.0");
+      when(versionService.getFullVersion()).thenReturn("1.0");
     }
 
     createReportAndPolicyEvaluation("report");
@@ -194,7 +194,7 @@ public class ApiCycloneDxServiceV2Test
 
   @Test
   public void testGetByScanId_multipleComponentsWithDuplicatedIdentity() throws Exception {
-    when(versionService.getVersion()).thenReturn("1.0");
+    when(versionService.getFullVersion()).thenReturn("1.0");
 
     createReportAndPolicyEvaluation("duplicatedComponents");
     Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_14);
@@ -231,7 +231,7 @@ public class ApiCycloneDxServiceV2Test
 
   public void testGetByScanId_mavenComponent(String contentType, Version version) throws Exception {
     if (version != Version.VERSION_11) {
-      when(versionService.getVersion()).thenReturn("1.0");
+      when(versionService.getFullVersion()).thenReturn("1.0");
     }
     createReportAndPolicyEvaluation("mavenComponent");
     Response response = service.getByScanId(application.getId(), scanId, contentType, version);
@@ -280,7 +280,7 @@ public class ApiCycloneDxServiceV2Test
 
   public void testGetLatest(String contentType, Version version) throws Exception {
     if (version != Version.VERSION_11) {
-      when(versionService.getVersion()).thenReturn("1.0");
+      when(versionService.getFullVersion()).thenReturn("1.0");
     }
     createReportAndPolicyEvaluation("report");
     Response response = service.getLatest(application.getId(), BuildStageType.ID, contentType, version);

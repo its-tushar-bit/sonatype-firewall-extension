@@ -1019,12 +1019,17 @@ public abstract class AbstractRepositoryService
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
     AuditData.get().setRepositoryPublicId(repositoryPublicId);
 
-    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
         repositoryManagerInstanceId, repositoryPublicId);
 
-    repositoryDAO.delete(repository);
+    if (repository != null) {
+      repositoryDAO.delete(repository);
 
-    log.info("Deleted repository {}:{} ({})", repositoryManagerInstanceId, repositoryPublicId, repository.getId());
+      log.info("Deleted repository {}:{} ({})", repositoryManagerInstanceId, repositoryPublicId, repository.getId());
+    }
+    else {
+      log.info("Not found repository {}:{} ", repositoryManagerInstanceId, repositoryPublicId);
+    }
   }
 
   // Needs to be at least package visible for the authz annotations to be effective.

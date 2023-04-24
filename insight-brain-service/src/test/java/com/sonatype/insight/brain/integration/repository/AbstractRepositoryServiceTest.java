@@ -2998,6 +2998,17 @@ public abstract class AbstractRepositoryServiceTest
         .isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(evaluationTime);
   }
 
+  @Test
+  public void testRemoveRepository_RepositoryDoesNotExist() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(
+        repositoryManager.getId(), "NotExistingId");
+
+    assertThat(repository).isNull();
+
+    getRepositoryService().removeRepository(repositoryManager.getInstanceId(), "NotExistingId");
+  }
+
   private String getUserAgent() {
     return "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
   }

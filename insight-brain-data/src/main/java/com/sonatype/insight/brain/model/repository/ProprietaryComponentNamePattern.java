@@ -30,11 +30,8 @@ public class ProprietaryComponentNamePattern
   @Column(name = "name_pattern")
   private String namePattern = "";
 
-  @Column(name = "repository_manager_instance_id")
-  private String repositoryManagerInstanceId;
-
-  @Column(name = "repository_public_id")
-  private String repositoryPublicId;
+  @Column(name = "repository_id")
+  private String repositoryId;
 
   @Column(name = "enabled")
   private boolean enabled = true;
@@ -42,8 +39,9 @@ public class ProprietaryComponentNamePattern
   public ProprietaryComponentNamePattern() {
   }
 
-  public ProprietaryComponentNamePattern(String format) {
-    setFormat(format);
+  public ProprietaryComponentNamePattern(String repositoryId, String format) {
+    this.repositoryId = repositoryId;
+    this.format = format;
   }
 
   public ProprietaryComponentNamePattern(
@@ -51,16 +49,14 @@ public class ProprietaryComponentNamePattern
       String format,
       String namespacePattern,
       String namePattern,
-      String repositoryManagerInstanceId,
-      String repositoryPublicId,
+      String repositoryId,
       boolean enabled)
   {
     this.id = id;
     this.format = format;
-    this.namespacePattern = namespacePattern;
-    this.namePattern = namePattern;
-    this.repositoryManagerInstanceId = repositoryManagerInstanceId;
-    this.repositoryPublicId = repositoryPublicId;
+    setNamespacePattern(namespacePattern);
+    setNamePattern(namePattern);
+    this.repositoryId = repositoryId;
     this.enabled = enabled;
   }
 
@@ -108,34 +104,12 @@ public class ProprietaryComponentNamePattern
     return this;
   }
 
-  public String getRepositoryManagerInstanceId() {
-    return repositoryManagerInstanceId;
-  }
-
-  public void setRepositoryManagerInstanceId(String repositoryManagerInstanceId) {
-    this.repositoryManagerInstanceId = repositoryManagerInstanceId;
-  }
-
-  public String getRepositoryPublicId() {
-    return repositoryPublicId;
-  }
-
-  public void setRepositoryPublicId(String repositoryPublicId) {
-    this.repositoryPublicId = repositoryPublicId;
-  }
-
   public boolean isEnabled() {
     return enabled;
   }
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
-  }
-
-  public ProprietaryComponentNamePattern withRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
-    setRepositoryManagerInstanceId(repositoryManagerInstanceId);
-    setRepositoryPublicId(repositoryPublicId);
-    return this;
   }
 
   private static String nullToEmpty(String value) {
@@ -149,5 +123,13 @@ public class ProprietaryComponentNamePattern
   @Override
   public String toString() {
     return format + ':' + namespacePattern + '/' + namePattern;
+  }
+
+  public String getRepositoryId() {
+    return repositoryId;
+  }
+
+  public void setRepositoryId(String repositoryId) {
+    this.repositoryId = repositoryId;
   }
 }

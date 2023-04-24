@@ -582,15 +582,15 @@ CREATE TABLE proprietary_component_name_pattern (
   namespace_pattern varchar(200) NOT NULL,
   name_pattern varchar(300) NOT NULL,
 
-  repository_manager_instance_id varchar(50) NOT NULL,
-  repository_public_id varchar(500) NOT NULL,
+  repository_id varchar(50) NOT NULL,
   enabled boolean DEFAULT true NOT NULL,
 
   CONSTRAINT proprietary_component_name_pattern_pk PRIMARY KEY (proprietary_component_name_pattern_id),
+  CONSTRAINT proprietary_component_name_pattern_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
   -- to make this uniqueness constraint work as desired, note that all included columns are not nullable, using empty strings instead if needed
-  CONSTRAINT proprietary_component_name_pattern_uk UNIQUE (format, namespace_pattern, name_pattern, repository_manager_instance_id, repository_public_id)
+  CONSTRAINT proprietary_component_name_pattern_uk UNIQUE (format, namespace_pattern, name_pattern, repository_id)
 );
-CREATE INDEX proprietary_component_name_pattern_repo_idx ON proprietary_component_name_pattern(repository_manager_instance_id, repository_public_id);
+CREATE INDEX proprietary_component_name_pattern_repo_idx ON proprietary_component_name_pattern(repository_id);
 
 CREATE TABLE proprietary_config (
   proprietary_config_id varchar(50) NOT NULL,

@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -394,7 +395,7 @@ public abstract class AbstractRepositoryResourceAuditTest
     repositoryDTO.auditEnabled = true;
     repositoryDTO.quarantineEnabled = true;
     repositoryDTO.policyCompliantComponentSelectionEnabled = true;
-    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = false;
     repositoryDTOs.add(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
@@ -426,7 +427,7 @@ public abstract class AbstractRepositoryResourceAuditTest
     repositoryDTO.auditEnabled = true;
     repositoryDTO.quarantineEnabled = true;
     repositoryDTO.policyCompliantComponentSelectionEnabled = true;
-    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = false;
     repositoryDTOs.add(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
@@ -447,18 +448,18 @@ public abstract class AbstractRepositoryResourceAuditTest
   @Test
   public void testConfigureRepositories_ExistingRepositoryWrongType() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName", ComponentIdentifier.FORMAT_NPM);
 
     List<RepositoryDTO> repositoryDTOs = new ArrayList<>();
 
     RepositoryDTO repositoryDTO = new RepositoryDTO();
-    repositoryDTO.name = "testRepoName";
-    repositoryDTO.format = "npm";
+    repositoryDTO.name = repository.getName();
+    repositoryDTO.format = repository.getFormat();
     repositoryDTO.type = RepositoryType.hosted;
-    repositoryDTO.auditEnabled = true;
-    repositoryDTO.quarantineEnabled = true;
-    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
-    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTO.auditEnabled = repository.isEnabled();
+    repositoryDTO.quarantineEnabled = repository.isQuarantineEnabled();
+    repositoryDTO.policyCompliantComponentSelectionEnabled = repository.isPolicyCompliantComponentSelectionEnabled();
+    repositoryDTO.namespaceConfusionProtectionEnabled = repository.isNamespaceConfusionProtectionEnabled();
     repositoryDTOs.add(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
@@ -471,9 +472,11 @@ public abstract class AbstractRepositoryResourceAuditTest
         assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, null /* error */);
       }
       else {
-        assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, "Cannot change the type for repository.");
+        assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, "Error updating repository "
+            + repository.getPublicId() + " (" + repository.getId() + "): Cannot change the repository type.");
         repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
             "testRepoName");
+        repository.setRepositoryType(repositoryDTO.type);
         assertRepositoryData(auditDTO, repository);
       }
     }
@@ -494,9 +497,9 @@ public abstract class AbstractRepositoryResourceAuditTest
     repositoryDTO.format = "npm";
     repositoryDTO.type = RepositoryType.proxy;
     repositoryDTO.auditEnabled = true;
-    repositoryDTO.quarantineEnabled = true;
-    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
-    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTO.quarantineEnabled = false;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = false;
+    repositoryDTO.namespaceConfusionProtectionEnabled = false;
     repositoryDTOs.add(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
@@ -509,9 +512,11 @@ public abstract class AbstractRepositoryResourceAuditTest
         assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, null /* error */);
       }
       else {
-        assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, "Cannot change the format for repository.");
+        assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, "Error updating repository "
+            + repository.getPublicId() + " (" + repository.getId() + "): Cannot change the repository format.");
         repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
             "testRepoName");
+        repository.setFormat(repositoryDTO.format);
         assertRepositoryData(auditDTO, repository);
       }
     }

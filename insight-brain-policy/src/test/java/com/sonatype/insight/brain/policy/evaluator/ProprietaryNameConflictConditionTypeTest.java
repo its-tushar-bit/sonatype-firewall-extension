@@ -11,6 +11,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -18,6 +19,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import org.junit.Test;
 
@@ -40,13 +43,17 @@ public class ProprietaryNameConflictConditionTypeTest
 
   @Test
   public void testEvaluate_OperatorIsPresent() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "repo-id", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
     Constraint constraint = newConstraint(ProprietaryNameConflictConditionType.OP_IS_PRESENT);
     Policy policy = newPolicy(constraint);
 
     List<Component> components = new ArrayList<>();
 
     Component component1 = new Component(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "1.0"));
-    component1.setConflictingProprietaryName(new ProprietaryComponentName("@sonatype/*", "repo-man-id", "repo-id"));
+    component1.setConflictingProprietaryName(new ProprietaryComponentName("@sonatype/*", repository.getId()));
     components.add(component1);
 
     Component component2 = new Component(ComponentIdentifier.createNpmCoordinates("cli", "1.1"));
@@ -73,13 +80,17 @@ public class ProprietaryNameConflictConditionTypeTest
 
   @Test
   public void testEvaluate_OperatorIsNotPresent() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "repo-id", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
     Constraint constraint = newConstraint(ProprietaryNameConflictConditionType.OP_IS_NOT_PRESENT);
     Policy policy = newPolicy(constraint);
 
     List<Component> components = new ArrayList<>();
 
     Component component1 = new Component(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "1.0"));
-    component1.setConflictingProprietaryName(new ProprietaryComponentName("@sonatype/*", "repo-man-id", "repo-id"));
+    component1.setConflictingProprietaryName(new ProprietaryComponentName("@sonatype/*", repository.getId()));
     components.add(component1);
 
     Component component2 = new Component(ComponentIdentifier.createNpmCoordinates("cli", "1.1"));

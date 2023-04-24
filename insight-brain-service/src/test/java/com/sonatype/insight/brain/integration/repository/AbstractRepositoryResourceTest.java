@@ -343,12 +343,12 @@ public abstract class AbstractRepositoryResourceTest
 
   @Test
   public void testAddProprietaryComponentNames() throws Exception {
-    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
-    String repoId = "hosted-repo";
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, "npm");
     ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames("npm", "name1", "name2");
 
     HttpResponse response =
-        proprietaryNamesRequest().parameter(repoManId, repoId)
+        proprietaryNamesRequest().parameter(repoManager.getInstanceId(), repo.getPublicId())
         .body(proprietaryComponentNames).post();
     assertResponseStatus(204, response);
 
@@ -356,11 +356,8 @@ public abstract class AbstractRepositoryResourceTest
     assertThat(patterns).allSatisfy(pattern -> {
       assertThat(pattern.getFormat()).isEqualTo("npm");
       assertThat(pattern.getNamespacePattern()).isNull();
-      assertThat(pattern.getRepositoryManagerInstanceId()).isEqualTo(repoManId);
-      assertThat(pattern.getRepositoryPublicId()).isEqualTo(repoId);
+      assertThat(pattern.getRepositoryId()).isEqualTo(repo.getId());
     }).extracting(ProprietaryComponentNamePattern::getNamePattern).containsExactlyInAnyOrder("name1", "name2");
-
-    assertThat(new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repoManId, repoId)).isNull();
   }
 
   @Test
@@ -398,9 +395,9 @@ public abstract class AbstractRepositoryResourceTest
     repositoryDTO.name = "testRepoName";
     repositoryDTO.format = "npm";
     repositoryDTO.type = RepositoryType.hosted;
-    repositoryDTO.auditEnabled = true;
-    repositoryDTO.quarantineEnabled = true;
-    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.auditEnabled = false;
+    repositoryDTO.quarantineEnabled = false;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = false;
     repositoryDTO.namespaceConfusionProtectionEnabled = true;
     List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
 
@@ -418,9 +415,9 @@ public abstract class AbstractRepositoryResourceTest
     assertThat(repository.getName()).isEqualTo("testRepoName");
     assertThat(repository.getFormat()).isEqualTo("npm");
     assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.hosted);
-    assertThat(repository.isEnabled()).isTrue();
-    assertThat(repository.isQuarantineEnabled()).isTrue();
-    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
   }
 

@@ -17,6 +17,8 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -407,10 +409,15 @@ public class RepositoryServiceAuthzTest
   public void testUpdateProprietaryComponentNamePattern_Authorized() {
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
     ProprietaryComponentNamePattern proprietaryComponentNamePattern = tempEntity.newProprietaryComponentNamePattern(
-        "repositoryManagerInstanceId", "repositoryPublicId", ComponentIdentifier.FORMAT_NPM, "namespacePattern", null);
-    ProprietaryComponentNamePatternDTO request =
-        new ProprietaryComponentNamePatternDTO(proprietaryComponentNamePattern);
+        repo, "namespacePattern", null);
+    ProprietaryComponentNamePatternDTO request = new ProprietaryComponentNamePatternDTO(
+        proprietaryComponentNamePattern.getId(), proprietaryComponentNamePattern.getFormat(),
+        proprietaryComponentNamePattern.getNamespacePattern(), proprietaryComponentNamePattern.getNamePattern(),
+        repoManager.getInstanceId(), repo.getPublicId(), false /* enabled */);
     repositoryService.updateProprietaryComponentNamePattern(request);
   }
 

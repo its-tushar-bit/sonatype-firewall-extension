@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -82,12 +83,36 @@ public class RepositoryDAO
     }
   }
 
-  /**
-   * If the repository is disabled, then quarantine must be disabled too.
-   */
-  private void ensureCorrectQuarantineMode(Repository repository) {
-    if (!repository.isEnabled()) {
-      repository.setQuarantineEnabled(false);
+  private void validateEnabledFeatures(Repository repository) {
+    if (RepositoryType.proxy.equals(repository.getRepositoryType())) {
+      // If audit is disabled for a proxy repository, then quarantine must be disabled too.
+      // This behavior is important for back compatibility, so we cannot fail it as invalid if audit=disabled and
+      // quarantine=enabled.
+      if (!repository.isEnabled()) {
+        repository.setQuarantineEnabled(false);
+      }
+
+      if (repository.isPolicyCompliantComponentSelectionEnabled()
+          && (!repository.isEnabled() || !repository.isQuarantineEnabled())) {
+        throw new InvalidRepositoryException(
+            "Policy Compliant Component Selection requires Audit and Quarantine to be enabled.");
+      }
+      if (repository.isNamespaceConfusionProtectionEnabled()) {
+        throw new InvalidRepositoryException(
+            "Namespace Confusion Protection can be enabled only for hosted repositories.");
+      }
+    }
+    else {
+      if (repository.isEnabled()) {
+        throw new InvalidRepositoryException("Audit can be enabled only for proxy repositories.");
+      }
+      if (repository.isQuarantineEnabled()) {
+        throw new InvalidRepositoryException("Quarantine can be enabled only for proxy repositories.");
+      }
+      if (repository.isPolicyCompliantComponentSelectionEnabled()) {
+        throw new InvalidRepositoryException(
+            "Policy Compliant Component Selection can be enabled only for proxy repositories.");
+      }
     }
   }
 
@@ -101,7 +126,7 @@ public class RepositoryDAO
           + "' for the same repository manager.");
     }
 
-    ensureCorrectQuarantineMode(repository);
+    validateEnabledFeatures(repository);
 
     super.insert(tx, repository);
   }
@@ -112,18 +137,37 @@ public class RepositoryDAO
 
     Repository existingRepository = getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(),
         repository.getPublicId());
-    if (existingRepository != null && !existingRepository.getId().equals(repository.getId())) {
-      throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
-          + "' for the same repository manager.");
+    if (existingRepository != null) {
+      if (!existingRepository.getId().equals(repository.getId())) {
+        throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
+            + "' for the same repository manager.");
+      }
+
+      if (!existingRepository.getRepositoryType().equals(repository.getRepositoryType())) {
+        throw new InvalidRepositoryException("Cannot change the repository type.");
+      }
+
+      if (!(existingRepository.getFormat() == null) && !existingRepository.getFormat().equals(repository.getFormat())) {
+        throw new InvalidRepositoryException("Cannot change the repository format.");
+      }
     }
 
-    ensureCorrectQuarantineMode(repository);
+    validateEnabledFeatures(repository);
 
-    if (!repository.isEnabled()) {
-      onDisable(tx, repository);
+    if (RepositoryType.proxy.equals(repository.getRepositoryType())) {
+      // This is a proxy repository
+      if (!repository.isEnabled()) {
+        onDisableAudit(tx, repository);
+      }
+      else if (!repository.isQuarantineEnabled()) {
+        onDisableQuarantine(tx, repository);
+      }
     }
-    else if (!repository.isQuarantineEnabled()) {
-      onDisableQuarantine(tx, repository);
+    else {
+      // This is a hosted repository
+      if (!repository.isNamespaceConfusionProtectionEnabled()) {
+        new ProprietaryComponentNamePatternDAO().deleteByRepository(tx, repository.getId());
+      }
     }
 
     super.update(tx, repository);
@@ -132,7 +176,7 @@ public class RepositoryDAO
   /**
    * If the repository is disabled, delete all components and all active policy violations in this repository.
    */
-  private void onDisable(TransactionContext tx, Repository repository) {
+  private void onDisableAudit(TransactionContext tx, Repository repository) {
     Repository existingRepository = getById(tx, repository.getId());
     if (existingRepository.isEnabled()) {
       new RepositoryPolicyViolationDAO().deleteByRepositoryId(tx, repository.getId());
@@ -183,19 +227,29 @@ public class RepositoryDAO
     // This improves performance and keeps db operations (including commits) reasonably short, which means other
     // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
 
-    // Cascade to repository policy violations
-    new RepositoryPolicyViolationDAO().deleteByRepositoryId(tx, repository.getId());
+    switch (repository.getRepositoryType()) {
+      case proxy:
+        // Cascade to repository policy violations
+        new RepositoryPolicyViolationDAO().deleteByRepositoryId(tx, repository.getId());
 
-    // Cascade to repository components
-    new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
+        // Cascade to repository components
+        new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
 
-    // Cascade to repository reevaluation locks
-    ClusterLock.deleteForRepositoryReevaluation(tx, repository);
+        // Cascade to repository reevaluation locks
+        ClusterLock.deleteForRepositoryReevaluation(tx, repository);
 
-    // Cascade to repository migration (if any)
-    if (includeRepositoryMigration) {
-      RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
-      repositoryMigrationDAO.delete(tx, repositoryMigrationDAO.getByRepositoryId(tx, repository.getId()));
+        // Cascade to repository migration (if any)
+        if (includeRepositoryMigration) {
+          RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
+          repositoryMigrationDAO.delete(tx, repositoryMigrationDAO.getByRepositoryId(tx, repository.getId()));
+        }
+        break;
+      case hosted:
+        // Cascade to proprietary component name patterns
+        new ProprietaryComponentNamePatternDAO().deleteByRepository(repository.getId());
+        break;
+      default:
+        throw new IllegalStateException("Unknown repository type: " + repository.getRepositoryType());
     }
 
     long duration = System.currentTimeMillis() - start;

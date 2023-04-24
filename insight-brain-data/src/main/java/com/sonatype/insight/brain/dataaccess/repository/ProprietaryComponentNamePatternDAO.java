@@ -40,19 +40,18 @@ public class ProprietaryComponentNamePatternDAO
     return getList(sQuery, format);
   }
 
-  public void deleteByRepositoryManager(String repositoryManagerInstanceId) {
-    String sQuery = "SELECT DISTINCT entity.repositoryPublicId FROM ProprietaryComponentNamePattern entity"
-        + " WHERE entity.repositoryManagerInstanceId=?1";
-    List<String> repositoryPublicIds = new Query<String>(sQuery, repositoryManagerInstanceId).getList();
-    for (String repositoryPublicId : repositoryPublicIds) {
-      deleteByRepository(repositoryManagerInstanceId, repositoryPublicId);
+  public void deleteByRepository(String repositoryId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      deleteByRepository(tx, repositoryId);
+      tx.commit();
     }
   }
 
-  public void deleteByRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
+  public void deleteByRepository(TransactionContext tx, String repositoryId) {
     String sQuery = "DELETE FROM ProprietaryComponentNamePattern entity"
-        + " WHERE entity.repositoryManagerInstanceId=?1 AND entity.repositoryPublicId=?2";
-    createQuery(sQuery, repositoryManagerInstanceId, repositoryPublicId).executeUpdate();
+        + " WHERE entity.repositoryId=?1";
+    createQuery(sQuery, repositoryId).executeUpdate(tx);
   }
 
   @Override
@@ -69,20 +68,25 @@ public class ProprietaryComponentNamePatternDAO
     super.delete(tx, entity);
   }
 
-  public List<ProprietaryComponentNamePattern> getByFilter(
+  public List<ProprietaryComponentNamePatternDTO> getByFilter(
       ProprietaryComponentNamePatternFilter filter)
   {
     // We need two SELECTs to be able to have namespace_pattern and name_pattern concatenated,
     // so we can filter and sort on it.
-    String innerSelect = "SELECT proprietary_component_name_pattern_id, " + //
-        "format, " + //
-        "namespace_pattern, " + //
-        "name_pattern, " + //
-        "CONCAT(namespace_pattern, name_pattern) as pattern, " + // to be able to sort and filter on both fields
-        "repository_manager_instance_id, " + //
-        "repository_public_id, " + //
-        "enabled" + //
-        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".proprietary_component_name_pattern";
+    String innerSelect = "SELECT pattern.proprietary_component_name_pattern_id, " + //
+        "pattern.format, " + //
+        "pattern.namespace_pattern, " + //
+        "pattern.name_pattern, " + //
+        // to be able to sort and filter on both fields
+        "CONCAT(pattern.namespace_pattern, pattern.name_pattern) as pattern, " + //
+        "repoManager.instance_id AS repository_manager_instance_id, " + //
+        "repo.public_id AS repository_public_id, " + //
+        "pattern.enabled" + //
+        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".proprietary_component_name_pattern pattern" + //
+        " INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository repo" + //
+        " ON pattern.repository_id = repo.repository_id" + //
+        " INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_manager repoManager" + //
+        " ON repo.repository_manager_id = repoManager.repository_manager_id";
     String sQuery = "SELECT proprietary_component_name_pattern_id, " + //
         "format, " + //
         "namespace_pattern, " + //
@@ -159,12 +163,12 @@ public class ProprietaryComponentNamePatternDAO
       // Incremented page size to help UI determine whether to enable / disable NextPage button
       query.setMaxResults(filter.pageSize + 1);
 
-      List<ProprietaryComponentNamePattern> results = ((Stream<Object[]>) query.getResultStream())
-          .map(array -> new ProprietaryComponentNamePattern( //
+      List<ProprietaryComponentNamePatternDTO> results = ((Stream<Object[]>) query.getResultStream())
+          .map(array -> new ProprietaryComponentNamePatternDTO( //
               (String) array[0], // id
               (String) array[1], // format
-              (String) array[2], // namespacePattern
-              (String) array[3], // namePattern
+              emptyToNull((String) array[2]), // namespacePattern
+              emptyToNull((String) array[3]), // namePattern
               // Skip 4 - the concatenated namespacePattern+namePattern
               (String) array[5], // repositoryManagerInstanceId
               (String) array[6], // repositoryPublicId
@@ -173,5 +177,20 @@ public class ProprietaryComponentNamePatternDAO
 
       return results;
     }
+  }
+
+  public List<ProprietaryComponentNamePattern> getByRepositoryId(String repositoryId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByRepositoryId(tx, repositoryId);
+    }
+  }
+
+  public List<ProprietaryComponentNamePattern> getByRepositoryId(TransactionContext tx, String repositoryId) {
+    String sQuery = "SELECT entity FROM ProprietaryComponentNamePattern entity WHERE entity.repositoryId = ?1";
+    return getList(tx, sQuery, repositoryId);
+  }
+
+  private static String emptyToNull(String value) {
+    return "".equals(value) ? null : value;
   }
 }

@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import javax.inject.Inject;
@@ -27,6 +28,7 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -157,6 +159,7 @@ public abstract class AbstractRepositoryService
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
+    validateIsProxyRepository(repository);
 
     if (!repository.isEnabled()) {
       throw new BadRequestException("Repository " + repositoryPublicId + " is disabled.");
@@ -191,6 +194,9 @@ public abstract class AbstractRepositoryService
         repositoryPublicId);
     if (repository == null) {
       repository = new Repository(null, repositoryPublicId);
+    }
+    else {
+      validateIsProxyRepository(repository);
     }
     setEnabled(repositoryManagerInstanceId, repository, enable);
     if (!enable) {
@@ -246,6 +252,7 @@ public abstract class AbstractRepositoryService
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
+    validateIsProxyRepository(repository);
 
     if (enabled && !repository.isEnabled()) {
       throw new BadRequestException("Cannot enable quarantine when repository " + repositoryPublicId + " is disabled.");
@@ -277,6 +284,7 @@ public abstract class AbstractRepositoryService
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
+    validateIsProxyRepository(repository);
 
     log.debug("Evaluating components for repository {}:{} ({}) with quarantine {}", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId(), withQuarantine);
@@ -315,6 +323,7 @@ public abstract class AbstractRepositoryService
 
     Repository repository = repositoryDAO
         .getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, repositoryPublicId);
+    validateIsProxyRepository(repository);
 
     log.debug("Evaluating component metadata for repository {}:{} ({})", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId());
@@ -619,6 +628,7 @@ public abstract class AbstractRepositoryService
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
+    validateIsProxyRepository(repository);
 
     updateUserAgent(clientUserAgent, repository);
 
@@ -699,6 +709,7 @@ public abstract class AbstractRepositoryService
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
+    validateIsProxyRepository(repository);
 
     updateUserAgent(clientUserAgent, repository);
 
@@ -728,48 +739,61 @@ public abstract class AbstractRepositoryService
     return result;
   }
 
-  public void addProprietaryComponentNames(
+  void addProprietaryComponentNames(
       String repositoryManagerInstanceId,
       String repositoryPublicId,
       ProprietaryComponentNames proprietaryComponentNames)
   {
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
     checkLicenseFeature();
-    Repository repository = new Repository(null, repositoryPublicId);
-    addProprietaryComponentNames(repositoryManagerInstanceId, repository, proprietaryComponentNames);
-  }
 
-  @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  void addProprietaryComponentNames(
-      String repositoryManagerInstanceId,
-      @AuthzContext(Key.REPOSITORY) Repository repository,
-      ProprietaryComponentNames proprietaryComponentNames)
-  {
+    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+
     if (proprietaryComponentNames == null) {
       throw new BadRequestException("No component name patterns specified");
     }
     if (StringUtils.isBlank(proprietaryComponentNames.format)) {
       throw new BadRequestException("No component format specified");
     }
+
     String format = translateRepositoryFormat(proprietaryComponentNames.format);
+    Repository repository =
+        repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId);
+    if (repository == null) {
+      RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
+
+      repository = new Repository(repositoryManager.getId(), repositoryPublicId);
+      repository.setEnabled(false);
+      repository.setRepositoryType(RepositoryType.hosted);
+      repository.setFormat(format);
+      repository.setNamespaceConfusionProtectionEnabled(true);
+      repositoryDAO.insert(repository);
+    }
+    else {
+      validateIsHostedRepository(repository);
+      if (!repository.getFormat().equals(format)) {
+        throw new BadRequestException("Format does not match the repository format.");
+      }
+    }
+
     List<ProprietaryComponentNamePattern> patterns = new ArrayList<>();
     if (proprietaryComponentNames.namespaces != null) {
       for (String namespace : proprietaryComponentNames.namespaces) {
         validatePattern("namespace", namespace);
-        patterns.add(new ProprietaryComponentNamePattern(format).withNamespacePattern(namespace));
+        patterns.add(new ProprietaryComponentNamePattern(repository.getId(), format).withNamespacePattern(namespace));
       }
     }
     if (proprietaryComponentNames.names != null) {
       for (String name : proprietaryComponentNames.names) {
         validatePattern("name", name);
-        patterns.add(new ProprietaryComponentNamePattern(format).withNamePattern(name));
+        patterns.add(new ProprietaryComponentNamePattern(repository.getId(), format).withNamePattern(name));
       }
     }
     if (patterns.isEmpty()) {
       throw new BadRequestException("No component name patterns specified");
     }
     for (ProprietaryComponentNamePattern pattern : patterns) {
-      pattern.withRepository(repositoryManagerInstanceId, repository.getPublicId());
+      pattern.setRepositoryId(repository.getId());
     }
     int added = proprietaryComponentNameDetector.addPatterns(format, patterns);
     AuditData.get().setData("addedPatternCount", added);
@@ -805,18 +829,17 @@ public abstract class AbstractRepositoryService
     }
   }
 
-  public void removeProprietaryComponentNames(String repositoryManagerInstanceId, String repositoryPublicId) {
+  void removeProprietaryComponentNames(String repositoryManagerInstanceId, String repositoryPublicId) {
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
-    Repository repository = new Repository(null, repositoryPublicId);
-    removeProprietaryComponentNames(repositoryManagerInstanceId, repository);
-  }
 
-  @Authorize(permission = Permission.MANAGE_PROPRIETARY)
-  void removeProprietaryComponentNames(
-      String repositoryManagerInstanceId,
-      @AuthzContext(Key.REPOSITORY) Repository repository)
-  {
-    proprietaryComponentNameDetector.removePatterns(repositoryManagerInstanceId, repository.getPublicId());
+    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+
+    Repository repository =
+        repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId);
+    if (repository != null) {
+      validateIsHostedRepository(repository);
+      proprietaryComponentNameDetector.removePatterns(repository.getId());
+    }
   }
 
   public QuarantinedComponentReport getQuarantinedComponentReportUrl(
@@ -833,6 +856,7 @@ public abstract class AbstractRepositoryService
           .format("Cannot find repository for repository manager %s and public id %s", repositoryManagerInstanceId,
               repositoryPublicId));
     }
+    validateIsProxyRepository(repository);
 
     updateUserAgent(clientUserAgent, repository);
 
@@ -924,30 +948,28 @@ public abstract class AbstractRepositoryService
           repository
               .setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
           repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
-          repositoryDAO.insert(repository);
 
-          auditConfigureRepository(repository, null /* errorMessage */);
+          try {
+            repositoryDAO.insert(repository);
+            auditConfigureRepository(repository, null /* errorMessage */);
+          }
+          catch (RuntimeException e) {
+            String errorMessage =
+                String.format("Error updating repository %s: %s", repository.getName(), e.getMessage());
+            log.error(errorMessage, e);
+            auditConfigureRepository(repository, errorMessage);
+          }
         }
         else {
           // This is an existing repository
           boolean updated = false;
 
           if (!repository.getRepositoryType().equals(repositoryDTO.type)) {
-            log.error("Cannot change the type for repository {} ({}) from {} to {}. Ignoring this repository.",
-                repository.getName(), repository.getId(), repository.getRepositoryType(), repositoryDTO.type);
-            auditConfigureRepository(repository, "Cannot change the type for repository.");
-            continue;
+            repository.setRepositoryType(repositoryDTO.type);
+            updated = true;
           }
 
-          if (repository.getFormat() != null) {
-            if (!repository.getFormat().equals(repositoryDTO.format)) {
-              log.error("Cannot change the format for repository {} ({}) from {} to {}. Ignoring this repository.",
-                  repository.getName(), repository.getId(), repository.getFormat(), repositoryDTO.format);
-              auditConfigureRepository(repository, "Cannot change the format for repository.");
-              continue;
-            }
-          }
-          else {
+          if (!Objects.equals(repository.getFormat(), repositoryDTO.format)) {
             repository.setFormat(repositoryDTO.format);
             updated = true;
           }
@@ -972,9 +994,16 @@ public abstract class AbstractRepositoryService
           }
 
           if (updated) {
-            repositoryDAO.update(repository);
-
-            auditConfigureRepository(repository, null /* errorMessage */);
+            try {
+              repositoryDAO.update(repository);
+              auditConfigureRepository(repository, null /* errorMessage */);
+            }
+            catch (RuntimeException e) {
+              String errorMessage = String.format("Error updating repository %s (%s): %s", repository.getName(),
+                  repository.getId(), e.getMessage());
+              log.error(errorMessage, e);
+              auditConfigureRepository(repository, errorMessage);
+            }
           }
         }
       }
@@ -1002,5 +1031,19 @@ public abstract class AbstractRepositoryService
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   void checkEvaluateComponentPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
     // Do nothing as this method is only used to perform authz check for the caller
+  }
+
+  private static void validateIsProxyRepository(Repository repository) {
+    if (!RepositoryType.proxy.equals(repository.getRepositoryType())) {
+      throw new BadRequestException(
+          "Repository " + repository.getPublicId() + " (" + repository.getId() + ") is not a proxy repository");
+    }
+  }
+
+  private static void validateIsHostedRepository(Repository repository) {
+    if (!RepositoryType.hosted.equals(repository.getRepositoryType())) {
+      throw new BadRequestException(
+          "Repository " + repository.getPublicId() + " (" + repository.getId() + ") is not a hosted repository");
+    }
   }
 }

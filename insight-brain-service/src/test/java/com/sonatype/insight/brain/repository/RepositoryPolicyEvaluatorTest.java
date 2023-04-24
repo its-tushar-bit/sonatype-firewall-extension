@@ -29,11 +29,11 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
@@ -54,7 +54,6 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
-import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -686,8 +685,9 @@ public class RepositoryPolicyEvaluatorTest
   @Test
   public void testEvaluate_SupportsProprietaryNameConflictCondition() {
     RepositoryManager repoMan = tempEntity.newRepositoryManager();
-    new ProprietaryComponentNamePatternDAO().insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
-        .withNamespacePattern("@sonatype").withRepository(repoMan.getInstanceId(), "hosted-repo"));
+    Repository repoHosted =
+        tempEntity.newRepository(repoMan, "hosted-repo", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    tempEntity.newProprietaryComponentNamePattern(repoHosted, "@sonatype", null);
     Repository repo = tempEntity.newRepository(repoMan, "proxy-repo");
 
     Policy policy = new Policy(null, "Namespace Confusion");

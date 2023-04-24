@@ -32,13 +32,13 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentMultiLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
@@ -77,6 +77,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
@@ -1243,6 +1244,10 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentDetails_PolicyAlerts_ProprietaryComponentNameConflict() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testPublicId", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+
     String hash = "01234567890123456789";
 
     Constraint constraint = new Constraint(null, "Constraint", LogicalOperator.OR);
@@ -1255,10 +1260,8 @@ public class ComponentInfoServiceTest
     tempEntity.newPolicy(policy);
 
     new ProprietaryComponentNamePatternDAO()
-        .insert(new ProprietaryComponentNamePattern(MAVEN_A1_COORDINATES.getFormat())
-            .withNamespacePattern(MAVEN_A1_COORDINATES.get(ComponentIdentifier.MAVEN_GROUP_ID))
-            .withRepository(new RepositoryManagerDAO().getById(repository.getRepositoryManagerId()).getInstanceId(),
-                repository.getPublicId()));
+        .insert(new ProprietaryComponentNamePattern(repository.getId(), MAVEN_A1_COORDINATES.getFormat())
+            .withNamespacePattern(MAVEN_A1_COORDINATES.get(ComponentIdentifier.MAVEN_GROUP_ID)));
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);

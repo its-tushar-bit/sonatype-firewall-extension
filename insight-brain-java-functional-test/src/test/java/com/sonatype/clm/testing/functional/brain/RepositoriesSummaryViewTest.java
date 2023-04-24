@@ -8,22 +8,24 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccess;
 import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
-import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
+import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
-import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
@@ -31,12 +33,12 @@ import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -264,15 +266,20 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testNamespaceConfusionProtection_FilterRows() {
-    String repositoryManagerId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
-    tempEntity.newRepositoryManager(repositoryManagerId);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerId, "functional-theory-release", "maven",
-        "shiedlytics", null);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerId, "jsPlugin-release", "maven", "acceronix", null);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerId, "bigdestero-release", "maven", "maven-center",
-        null);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerId, "lifecycle-release", "maven", null,
-        "blue-space");
+    String repositoryManagerInstanceId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(repositoryManagerInstanceId);
+    Repository repo1 = tempEntity.newRepository(repoManager, "functional-theory-release", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    Repository repo2 = tempEntity.newRepository(repoManager, "jsPlugin-release", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    Repository repo3 = tempEntity.newRepository(repoManager, "bigdestero-release", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    Repository repo4 = tempEntity.newRepository(repoManager, "lifecycle-release", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    tempEntity.newProprietaryComponentNamePattern(repo1, "shiedlytics", null);
+    tempEntity.newProprietaryComponentNamePattern(repo2, "acceronix", null);
+    tempEntity.newProprietaryComponentNamePattern(repo3, "maven-center", null);
+    tempEntity.newProprietaryComponentNamePattern(repo4, null, "blue-space");
 
     refresh();
 
@@ -295,13 +302,16 @@ public class RepositoriesSummaryViewTest
   public void testNamespaceConfusionProtection_sortTableByComponentNamespaces() {
     String[] componentNameSpaces = {"z", "a", "m"};
     String repositoryManagerInstanceId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
-    tempEntity.newRepositoryManager(repositoryManagerInstanceId);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "hosted-npm", "npm", null,
-        componentNameSpaces[0]);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "custom-hosted-maven", "maven",
-        componentNameSpaces[1], null);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "my-hosted-maven", "maven",
-        componentNameSpaces[2], null);
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(repositoryManagerInstanceId);
+    Repository repo1 =
+        tempEntity.newRepository(repoManager, "hosted-npm", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    Repository repo2 = tempEntity.newRepository(repoManager, "custom-hosted-maven", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    Repository repo3 = tempEntity.newRepository(repoManager, "\"my-hosted-maven", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    tempEntity.newProprietaryComponentNamePattern(repo1, null, componentNameSpaces[0]);
+    tempEntity.newProprietaryComponentNamePattern(repo2, componentNameSpaces[1], null);
+    tempEntity.newProprietaryComponentNamePattern(repo3, componentNameSpaces[2], null);
 
     refresh();
 
@@ -331,18 +341,21 @@ public class RepositoriesSummaryViewTest
   public void testNamespaceConfusionProtection_sortTableByRepository() {
     String[] repositoryManagerInstanceIds = {"1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
         "2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"};
-    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
-    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[1]);
-    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[2]);
+    String[] repositoryPublicIds = {"my-hosted-maven", "hosted-npm", "custom-hosted-maven"};
 
-    String[] repositories = {"my-hosted-maven", "hosted-npm", "custom-hosted-maven"};
+    RepositoryManager repoManager1 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
+    Repository repo1 = tempEntity.newRepository(repoManager1, repositoryPublicIds[0], RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    RepositoryManager repoManager2 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[1]);
+    Repository repo2 = tempEntity.newRepository(repoManager2, repositoryPublicIds[1], RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    RepositoryManager repoManager3 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[2]);
+    Repository repo3 = tempEntity.newRepository(repoManager3, repositoryPublicIds[2], RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_NPM);
 
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[0], repositories[0], "maven", "ant",
-        null);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositories[1], "maven", "b-social",
-        null);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[2], repositories[2], "npm", null,
-        "moment");
+    tempEntity.newProprietaryComponentNamePattern(repo1, "ant", null);
+    tempEntity.newProprietaryComponentNamePattern(repo2, "b-social", null);
+    tempEntity.newProprietaryComponentNamePattern(repo3, null, "moment");
 
     refreshOrOpen(RepositoryResultsSummaryPage.url());
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
@@ -350,9 +363,9 @@ public class RepositoriesSummaryViewTest
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
 
-    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositories[0]));
-    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositories[1]));
-    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositories[2]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositoryPublicIds[0]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositoryPublicIds[1]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositoryPublicIds[2]));
 
     namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Repository unsorted"));
@@ -361,17 +374,17 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Repository ascending"));
 
-    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositories[2]));
-    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositories[1]));
-    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositories[0]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositoryPublicIds[2]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositoryPublicIds[1]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositoryPublicIds[0]));
 
     namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn().click();
     namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Repository descending"));
 
-    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositories[0]));
-    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositories[1]));
-    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositories[2]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositoryPublicIds[0]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositoryPublicIds[1]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositoryPublicIds[2]));
   }
 
   @Test
@@ -381,16 +394,19 @@ public class RepositoriesSummaryViewTest
         "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"};
     String[] repositoryPublicIds = {"custom-maven-hosted", "my-maven-hosted", "custom-npm-hosted"};
 
-    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
-    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[1]);
-    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[2]);
+    RepositoryManager repoManager1 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
+    Repository repo1 = tempEntity.newRepository(repoManager1, repositoryPublicIds[0], RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    RepositoryManager repoManager2 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[1]);
+    Repository repo2 = tempEntity.newRepository(repoManager2, repositoryPublicIds[1], RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    RepositoryManager repoManager3 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[2]);
+    Repository repo3 = tempEntity.newRepository(repoManager3, repositoryPublicIds[2], RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_NPM);
 
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[0], repositoryPublicIds[0], "maven",
-        componentNamespaces[0], null);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[1], "maven",
-        componentNamespaces[1], null);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[2], repositoryPublicIds[2], "npm",
-        null, componentNamespaces[2]);
+    tempEntity.newProprietaryComponentNamePattern(repo1, componentNamespaces[0], null);
+    tempEntity.newProprietaryComponentNamePattern(repo2, componentNamespaces[1], null);
+    tempEntity.newProprietaryComponentNamePattern(repo3, null, componentNamespaces[2]);
 
     refresh();
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
@@ -429,13 +445,16 @@ public class RepositoriesSummaryViewTest
   @Test
   public void testNamespaceConfusionProtection_sortTableByEnabled() {
     String repositoryManagerInstanceId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
-    tempEntity.newRepositoryManager(repositoryManagerInstanceId);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "hosted-npm", "npm", null,
-        "a", true);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "custom-hosted-maven", "maven",
-        "b", null, false);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "my-hosted-maven", "maven",
-        "c", null, true);
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(repositoryManagerInstanceId);
+    Repository repo1 =
+        tempEntity.newRepository(repoManager, "hosted-npm", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    tempEntity.newProprietaryComponentNamePattern(repo1, null, "a", true);
+    Repository repo2 = tempEntity.newRepository(repoManager, "custom-hosted-maven", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    tempEntity.newProprietaryComponentNamePattern(repo2, "b", null, false);
+    Repository repo3 = tempEntity.newRepository(repoManager, "my-hosted-maven", RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    tempEntity.newProprietaryComponentNamePattern(repo3, "c", null, true);
 
     refresh();
 
@@ -474,9 +493,10 @@ public class RepositoriesSummaryViewTest
   @Test
   public void testNamespaceConfusionProtection_ToggleEnabled() {
     String repositoryManagerInstanceId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
-    tempEntity.newRepositoryManager(repositoryManagerInstanceId);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "hosted-npm", "npm", null,
-        "a", true);
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(repositoryManagerInstanceId);
+    Repository repo =
+        tempEntity.newRepository(repoManager, "hosted-npm", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    tempEntity.newProprietaryComponentNamePattern(repo, null, "a", true);
 
     WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1500, 1000));
 
@@ -502,37 +522,28 @@ public class RepositoriesSummaryViewTest
         "lodash", "moment", "net.ju-n.compile-command-annotations", "underscore", "v-core", "z-com"};
     String mvnRepositoryManagerId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
     String npmRepositoryManagerId = "9E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
-    tempEntity.newRepositoryManager(mvnRepositoryManagerId);
-    tempEntity.newRepositoryManager(npmRepositoryManagerId);
     String mvnRepositoryPublicName = "hosted-mvn";
     String npmRepositoryPublicName = "hosted-npm";
+    RepositoryManager mvnRepoManager = tempEntity.newRepositoryManager(mvnRepositoryManagerId);
+    Repository mvnRepo = tempEntity.newRepository(mvnRepoManager, mvnRepositoryPublicName, RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    RepositoryManager npmRepoManager = tempEntity.newRepositoryManager(npmRepositoryManagerId);
+    Repository npmRepo = tempEntity.newRepository(npmRepoManager, npmRepositoryPublicName, RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_NPM);
 
-    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
-        componentNamespaces[0]);
-    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
-        componentNamespaces[1], null);
-    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
-        componentNamespaces[2], null);
-    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
-        componentNamespaces[3]);
-    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
-        componentNamespaces[4], null);
-    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
-        componentNamespaces[5], null);
-    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
-        componentNamespaces[6], null);
-    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
-        componentNamespaces[7]);
-    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
-        componentNamespaces[8]);
-    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
-        componentNamespaces[9], null);
-    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
-        componentNamespaces[10]);
-    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
-        componentNamespaces[11], null);
-    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
-        componentNamespaces[12], null);
+    tempEntity.newProprietaryComponentNamePattern(npmRepo, null, componentNamespaces[0]);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepo, componentNamespaces[1], null);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepo, componentNamespaces[2], null);
+    tempEntity.newProprietaryComponentNamePattern(npmRepo, null, componentNamespaces[3]);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepo, componentNamespaces[4], null);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepo, componentNamespaces[5], null);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepo, componentNamespaces[6], null);
+    tempEntity.newProprietaryComponentNamePattern(npmRepo, null, componentNamespaces[7]);
+    tempEntity.newProprietaryComponentNamePattern(npmRepo, null, componentNamespaces[8]);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepo, componentNamespaces[9], null);
+    tempEntity.newProprietaryComponentNamePattern(npmRepo, null, componentNamespaces[10]);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepo, componentNamespaces[11], null);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepo, componentNamespaces[12], null);
 
     refresh();
 
@@ -607,22 +618,21 @@ public class RepositoriesSummaryViewTest
     String[] repositoryManagerInstanceIds =
         {"9E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"};
     String[] repositoryPublicIds = {"my-hosted-npm", "custom-hosted-maven", "custom-hosted-npm"};
+    RepositoryManager repoManager1 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
+    Repository repo1 = tempEntity.newRepository(repoManager1, repositoryPublicIds[1], RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_MAVEN);
+    RepositoryManager repoManager2 = tempEntity.newRepositoryManager(repositoryManagerInstanceIds[1]);
+    Repository repo2 = tempEntity.newRepository(repoManager2, repositoryPublicIds[0], RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_NPM);
+    Repository repo3 = tempEntity.newRepository(repoManager2, repositoryPublicIds[2], RepositoryType.hosted,
+        ComponentIdentifier.FORMAT_NPM);
 
-    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
-    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[1]);
-
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[0], repositoryPublicIds[1], "maven",
-        componentNamespaces[0], null);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[0], "npm", null,
-        componentNamespaces[1]);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[0], "npm", null,
-        componentNamespaces[2]);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[2], "npm", null,
-        componentNamespaces[3]);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[2], "npm", null,
-        componentNamespaces[4]);
-    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[0], repositoryPublicIds[1], "maven",
-        componentNamespaces[5], null);
+    tempEntity.newProprietaryComponentNamePattern(repo1, componentNamespaces[0], null);
+    tempEntity.newProprietaryComponentNamePattern(repo2, null, componentNamespaces[1]);
+    tempEntity.newProprietaryComponentNamePattern(repo2, null, componentNamespaces[2]);
+    tempEntity.newProprietaryComponentNamePattern(repo3, null, componentNamespaces[3]);
+    tempEntity.newProprietaryComponentNamePattern(repo3, null, componentNamespaces[4]);
+    tempEntity.newProprietaryComponentNamePattern(repo1, componentNamespaces[5], null);
 
     refresh();
 

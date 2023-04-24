@@ -228,7 +228,7 @@ public abstract class AbstractRepositoryServiceAuthzTest
 
   @Test
   public void testRemoveProprietaryComponentNames_Authorized() {
-    grantManageProprietaryPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     getRepositoryService().removeProprietaryComponentNames(MANUAL_REPO_MAN_INSTANCE_ID, "internal");
   }
 

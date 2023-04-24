@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -402,16 +403,15 @@ public class RepositoryService
 
     ProprietaryComponentNamePatternFilter filter = validateAndInitializeFilter(request);
 
-    List<ProprietaryComponentNamePattern> proprietaryComponentNamePatterns =
+    List<ProprietaryComponentNamePatternDTO> proprietaryComponentNamePatterns =
         proprietaryComponentNamePatternDAO.getByFilter(filter);
 
     ProprietaryComponentNamePatternsPage result = new ProprietaryComponentNamePatternsPage();
 
     int iPattern = 1;
-    for (ProprietaryComponentNamePattern proprietaryComponentNamePattern : proprietaryComponentNamePatterns) {
+    for (ProprietaryComponentNamePatternDTO proprietaryComponentNamePattern : proprietaryComponentNamePatterns) {
       if (iPattern <= request.pageSize) {
-        result.proprietaryComponentNamePatterns
-            .add(new ProprietaryComponentNamePatternDTO(proprietaryComponentNamePattern));
+        result.proprietaryComponentNamePatterns.add(proprietaryComponentNamePattern);
       }
       else {
         result.hasNextPage = true;

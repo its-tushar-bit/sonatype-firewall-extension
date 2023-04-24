@@ -85,16 +85,8 @@ public class ProprietaryComponentNameDetector
     return inserted;
   }
 
-  public void removePatterns(String repositoryManagerInstanceId, String repositoryPublicId) {
-    if ("*".equals(repositoryPublicId)) {
-      log.debug("Deleting proprietary component names from all repositories of instance {}",
-          repositoryManagerInstanceId);
-      proprietaryComponentNamePatternDAO.deleteByRepositoryManager(repositoryManagerInstanceId);
-    }
-    else {
-      log.debug("Deleting proprietary component names from repository {} of instance {}", repositoryPublicId,
-          repositoryManagerInstanceId);
-      proprietaryComponentNamePatternDAO.deleteByRepository(repositoryManagerInstanceId, repositoryPublicId);
-    }
+  public void removePatterns(String repositoryId) {
+    log.debug("Deleting proprietary component names from repository ID {}", repositoryId);
+    proprietaryComponentNamePatternDAO.deleteByRepository(repositoryId);
   }
 }

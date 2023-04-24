@@ -239,6 +239,17 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testSetEnabled_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().setEnabled(repoManager.getInstanceId(), repo.getPublicId(), true, null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
+  }
+
+  @Test
   public void testSetEnabled_TrueExistingRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
@@ -339,6 +350,17 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testSetQuarantine_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().setQuarantine(repoManager.getInstanceId(), repo.getPublicId(), false, null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
+  }
+
+  @Test
   public void testGetPolicyEvaluationSummary() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1",
@@ -362,6 +384,17 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(policyEvaluationSummary.getReportUrl())
         .isEqualTo("ui/links/repository/" + repository.getId() + "/result");
     assertThat(policyEvaluationSummary.getQuarantinedComponentCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetPolicyEvaluationSummary_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().getPolicyEvaluationSummary(repoManager.getInstanceId(), repo.getPublicId(), null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
   }
 
   @Test
@@ -1405,6 +1438,21 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponents_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponents(repoManager.getInstanceId(), repo.getPublicId(),
+          componentEvaluationDataRequestList, false, null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
+  }
+
+  @Test
   public void testEvaluateComponents_LongHash() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(LicenseConditionType.ID, "is", "Apache-2.0");
@@ -1833,6 +1881,17 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testRemoveComponent_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().removeComponent(repoManager.getInstanceId(), repo.getPublicId(), "testpathname", null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
+  }
+
+  @Test
   public void testRemoveComponent_pathnameSlashPrefix() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
@@ -1886,6 +1945,17 @@ public abstract class AbstractRepositoryServiceTest
     UnquarantinedComponentList result = getRepositoryService()
         .getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, since, null);
     assertThat(result.pathnames).containsExactly("pathnameUnquarantinedAfter");
+  }
+
+  @Test
+  public void testGetUnquarantinedComponents_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().getUnquarantinedComponents(repoManager.getInstanceId(), repo.getPublicId(), 0, null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
   }
 
   @Test
@@ -1969,39 +2039,58 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testAddProprietaryComponentNames() {
-    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
-    String repoId = "hosted-repo";
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
     ProprietaryComponentNames proprietaryComponentNames =
         new ProprietaryComponentNames("npm").addNames("sonatype*").addNamespaces("@sonatype");
 
-    getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+    getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId(),
+        proprietaryComponentNames);
 
-    List<ProprietaryComponentNamePattern> patterns = proprietaryComponentNamePatternDAO.getByFormat("npm");
+    List<ProprietaryComponentNamePattern> patterns =
+        proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM);
     assertThat(patterns).allSatisfy(pattern -> {
-      assertThat(pattern.getFormat()).isEqualTo("npm");
-      assertThat(pattern.getRepositoryManagerInstanceId()).isEqualTo(repoManId);
-      assertThat(pattern.getRepositoryPublicId()).isEqualTo(repoId);
+      assertThat(pattern.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_NPM);
+      assertThat(pattern.getRepositoryId()).isEqualTo(repo.getId());
     }).extracting(ProprietaryComponentNamePattern::getNamespacePattern, ProprietaryComponentNamePattern::getNamePattern)
         .containsExactlyInAnyOrder(tuple("@sonatype", null), tuple(null, "sonatype*"));
   }
 
   @Test
+  public void testAddProprietaryComponentNames_NotHostedRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.proxy, ComponentIdentifier.FORMAT_NPM);
+    ProprietaryComponentNames proprietaryComponentNames =
+        new ProprietaryComponentNames("npm").addNames("sonatype*").addNamespaces("@sonatype");
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId(),
+          proprietaryComponentNames);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a hosted repository");
+  }
+
+  @Test
   public void testAddProprietaryComponentNames_DoesNotChangePatternEnabledStatus() {
-    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
-    String repoId = "hosted-repo";
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
     String namespacePattern = "testNamespacePattern";
     String namePattern = "testNamePattern";
     // Existing disabled patterns
-    ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId,
-        ComponentIdentifier.FORMAT_NPM, null /* namespacePattern */, namePattern, false /* enabled */);
-    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId,
-        ComponentIdentifier.FORMAT_NPM, namespacePattern, null /* namePattern */, false /* enabled */);
+    ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(repo,
+        null /* namespacePattern */, namePattern, false /* enabled */);
+    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(repo, namespacePattern,
+        null /* namePattern */, false /* enabled */);
     assertThat(proprietaryComponentNamePatternDAO.getEnabledByFormat(ComponentIdentifier.FORMAT_NPM)).isEmpty();
 
     // Add the existing patterns
     ProprietaryComponentNames proprietaryComponentNames =
-        new ProprietaryComponentNames("npm").addNames(namePattern).addNamespaces(namespacePattern);
-    getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+        new ProprietaryComponentNames(ComponentIdentifier.FORMAT_NPM).addNames(namePattern)
+            .addNamespaces(namespacePattern);
+    getRepositoryService().addProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId(),
+        proprietaryComponentNames);
 
     pattern1 = proprietaryComponentNamePatternDAO.getById(pattern1.getId());
     assertThat(pattern1.isEnabled()).isFalse();
@@ -2021,14 +2110,33 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testAddProprietaryComponentNames_NoFirewallRepositoryRegistered() {
-    String repoManId = tempEntity.newRepositoryManager().getInstanceId();
-    String repoId = "hosted-repo";
-    ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames("npm", "name");
+  public void testAddProprietaryComponentNames_RepositoryDoesNotExist() {
+    String repoManagerInstanceId = tempEntity.newRepositoryManager().getInstanceId();
+    String repoPublicId = "hosted-repo";
+    ProprietaryComponentNames proprietaryComponentNames =
+        new ProprietaryComponentNames(ComponentIdentifier.FORMAT_NPM, "name");
 
-    getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+    getRepositoryService().addProprietaryComponentNames(repoManagerInstanceId, repoPublicId, proprietaryComponentNames);
 
-    assertThat(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repoManId, repoId)).isNull();
+    Repository repo = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repoManagerInstanceId, repoPublicId);
+    assertThat(repo.getRepositoryType()).isEqualTo(RepositoryType.hosted);
+    assertThat(repo.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_NPM);
+  }
+
+  @Test
+  public void testAddProprietaryComponentNames_RepositoryManagerDoesNotExist() {
+    String repoManagerInstanceId = MANUAL_REPO_MAN_INSTANCE_ID;
+    String repoPublicId = "hosted-repo";
+    ProprietaryComponentNames proprietaryComponentNames =
+        new ProprietaryComponentNames(ComponentIdentifier.FORMAT_NPM, "name");
+
+    getRepositoryService().addProprietaryComponentNames(repoManagerInstanceId, repoPublicId, proprietaryComponentNames);
+
+    RepositoryManager repoManager = repositoryManagerDAO.getByInstanceId(repoManagerInstanceId);
+    assertThat(repoManager).isNotNull();
+    Repository repo = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repoManagerInstanceId, repoPublicId);
+    assertThat(repo.getRepositoryType()).isEqualTo(RepositoryType.hosted);
+    assertThat(repo.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_NPM);
   }
 
   @Test
@@ -2136,6 +2244,18 @@ public abstract class AbstractRepositoryServiceTest
 
     // then
     assertThat(quarantinedComponentReport.getReportUrl()).isEqualTo("ui/links/repositories/quarantinedComponent/token");
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReportUrl_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().getQuarantinedComponentReportUrl(repoManager.getInstanceId(), repo.getPublicId(),
+          "testpathname", null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
   }
 
   @Test
@@ -2249,6 +2369,26 @@ public abstract class AbstractRepositoryServiceTest
         .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             componentEvaluationDataRequestList, null))
         .withMessage("The format cannot be null or empty.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = "metadata";
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest(null /* format */, "pathname", "hash"));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(repoManager.getInstanceId(), repo.getPublicId(),
+          componentEvaluationDataRequestList, null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
+
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2579,9 +2719,9 @@ public abstract class AbstractRepositoryServiceTest
     repositoryDTO.name = "testRepoName";
     repositoryDTO.format = "npm";
     repositoryDTO.type = RepositoryType.hosted;
-    repositoryDTO.auditEnabled = true;
-    repositoryDTO.quarantineEnabled = true;
-    repositoryDTO.policyCompliantComponentSelectionEnabled = true;
+    repositoryDTO.auditEnabled = false;
+    repositoryDTO.quarantineEnabled = false;
+    repositoryDTO.policyCompliantComponentSelectionEnabled = false;
     repositoryDTO.namespaceConfusionProtectionEnabled = true;
     List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
 
@@ -2595,9 +2735,9 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repository.getName()).isEqualTo("testRepoName");
     assertThat(repository.getFormat()).isEqualTo("npm");
     assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.hosted);
-    assertThat(repository.isEnabled()).isTrue();
-    assertThat(repository.isQuarantineEnabled()).isTrue();
-    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
   }
 
@@ -2612,7 +2752,7 @@ public abstract class AbstractRepositoryServiceTest
     repositoryDTO.auditEnabled = true;
     repositoryDTO.quarantineEnabled = true;
     repositoryDTO.policyCompliantComponentSelectionEnabled = true;
-    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = false;
     List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
 
     // Call the service
@@ -2628,7 +2768,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repository.isEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
-    assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
+    assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
   }
 
   @Test
@@ -2647,11 +2787,11 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryDTO goodRepositoryDTO = new RepositoryDTO();
     goodRepositoryDTO.name = "Good Repo";
     goodRepositoryDTO.format = "npm";
-    goodRepositoryDTO.type = RepositoryType.hosted;
+    goodRepositoryDTO.type = RepositoryType.proxy;
     goodRepositoryDTO.auditEnabled = true;
     goodRepositoryDTO.quarantineEnabled = true;
     goodRepositoryDTO.policyCompliantComponentSelectionEnabled = true;
-    goodRepositoryDTO.namespaceConfusionProtectionEnabled = true;
+    goodRepositoryDTO.namespaceConfusionProtectionEnabled = false;
     List<RepositoryDTO> repositoryDTOs = Arrays.asList(badRepositoryDTO, goodRepositoryDTO);
 
     // Call the service
@@ -2664,9 +2804,8 @@ public abstract class AbstractRepositoryServiceTest
     await().atMost(Duration.ofMillis(5000))
         .untilAsserted(
             () -> assertThat(repositoryServiceLogOutput).atErrorLevel()
-                .contains("Cannot change the type for repository " + repository.getName() + " (" + repository.getId()
-                    + ") from " + repository.getRepositoryType() + " to " + badRepositoryDTO.type
-                    + ". Ignoring this repository."));
+                .contains("Error updating repository " + repository.getName() + " (" + repository.getId()
+                    + "): Cannot change the repository type."));
 
     Repository existingRepository =
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
@@ -2682,11 +2821,11 @@ public abstract class AbstractRepositoryServiceTest
     Repository newRepository =
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(), "Good Repo");
     assertThat(newRepository.getFormat()).isEqualTo("npm");
-    assertThat(newRepository.getRepositoryType()).isEqualTo(RepositoryType.hosted);
+    assertThat(newRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
     assertThat(newRepository.isEnabled()).isTrue();
     assertThat(newRepository.isQuarantineEnabled()).isTrue();
     assertThat(newRepository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
-    assertThat(newRepository.isNamespaceConfusionProtectionEnabled()).isTrue();
+    assertThat(newRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
   }
 
   @Test
@@ -2714,9 +2853,8 @@ public abstract class AbstractRepositoryServiceTest
     await().atMost(Duration.ofMillis(5000))
         .untilAsserted(
             () -> assertThat(repositoryServiceLogOutput).atErrorLevel()
-                .contains("Cannot change the type for repository " + repository.getName() + " (" + repository.getId()
-                    + ") from " + repository.getRepositoryType() + " to " + badRepositoryDTO.type
-                    + ". Ignoring this repository."));
+                .contains("Error updating repository " + repository.getName() + " (" + repository.getId()
+                    + "): Cannot change the repository type."));
 
     Repository existingRepository = repositoryDAO.getById(repository.getId());
     assertThat(existingRepository.getName()).isEqualTo(repository.getName());
@@ -2753,10 +2891,8 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositories).hasSize(1);
 
     await().atMost(Duration.ofMillis(5000))
-        .untilAsserted(() -> assertThat(repositoryServiceLogOutput).atErrorLevel()
-            .contains("Cannot change the format for repository " + repository.getName() + " (" + repository.getId()
-                + ") from " + repository.getFormat() + " to " + badRepositoryDTO.format
-                + ". Ignoring this repository."));
+        .untilAsserted(() -> assertThat(repositoryServiceLogOutput).atErrorLevel().contains("Error updating repository "
+            + repository.getName() + " (" + repository.getId() + "): Cannot change the repository format."));
 
     Repository existingRepository = repositoryDAO.getById(repository.getId());
     assertThat(existingRepository.getName()).isEqualTo(repository.getName());
@@ -2775,12 +2911,12 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repository.getFormat()).isNull();
     RepositoryDTO repositoryDTO = new RepositoryDTO();
     repositoryDTO.name = repository.getName();
-    repositoryDTO.format = "npm";
+    repositoryDTO.format = ComponentIdentifier.FORMAT_NPM;
     repositoryDTO.type = RepositoryType.proxy;
     repositoryDTO.auditEnabled = true;
     repositoryDTO.quarantineEnabled = true;
     repositoryDTO.policyCompliantComponentSelectionEnabled = true;
-    repositoryDTO.namespaceConfusionProtectionEnabled = true;
+    repositoryDTO.namespaceConfusionProtectionEnabled = false;
     List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
 
     // Call the service
@@ -2806,6 +2942,17 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), null /* repositoryDTOs */,
           "testClientUserAgent");
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
+  @Test
+  public void testRemoveProprietaryComponentNames_NotHostedRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.proxy, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().removeProprietaryComponentNames(repoManager.getInstanceId(), repo.getPublicId());
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a hosted repository");
   }
 
   @Test

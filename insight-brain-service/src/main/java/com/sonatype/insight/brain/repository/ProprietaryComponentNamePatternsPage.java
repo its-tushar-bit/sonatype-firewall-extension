@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.repository;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
+
 /**
  * @since 1.152
  */

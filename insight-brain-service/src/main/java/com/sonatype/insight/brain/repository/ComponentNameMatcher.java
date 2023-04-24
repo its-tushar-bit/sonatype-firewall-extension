@@ -30,8 +30,6 @@ public class ComponentNameMatcher
 {
   private static final Pattern PYPI_TO_DASH_REGEX = Pattern.compile("[-_.]+");
 
-  private static final char SEP = ':';
-
   private final long createTime = System.currentTimeMillis();
 
   private final String format;
@@ -159,7 +157,7 @@ public class ComponentNameMatcher
       ProprietaryComponentNamePattern pattern,
       Map<String, Collection<String>> sourcesByValue)
   {
-    String source = pattern.getRepositoryManagerInstanceId() + SEP + pattern.getRepositoryPublicId();
+    String source = pattern.getRepositoryId();
     Collection<String> sources = sourcesByValue.computeIfAbsent(value, key -> new CopyOnWriteArrayList<>());
     if (sources.contains(source)) {
       return false;
@@ -243,11 +241,8 @@ public class ComponentNameMatcher
 
   private static ProprietaryComponentName newMatch(String namePattern, Collection<String> sourceRepositories) {
     String source =
-        sourceRepositories.isEmpty() ? "[unknown]" + SEP + "[unknown]" : sourceRepositories.iterator().next();
-    int sep = source.indexOf(SEP);
-    String repoManId = source.substring(0, sep);
-    String repoId = source.substring(sep + 1);
-    return new ProprietaryComponentName(namePattern, repoManId, repoId);
+        sourceRepositories.isEmpty() ? "[unknown]" : sourceRepositories.iterator().next();
+    return new ProprietaryComponentName(namePattern, source);
   }
 
   public long getCreateTime() {

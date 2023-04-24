@@ -13,9 +13,12 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Before;
@@ -32,30 +35,29 @@ public class ProprietaryComponentNameDetectorTest
   @Inject
   private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
-  private String repoManId;
+  private RepositoryManager repoManager;
 
-  private final String repoId = "hosted-repo-with-proprietary-components";
+  private Repository repo;
 
   private Map<String, ComponentNameMatcher> matchersByFormat;
 
   @Before
   public void init() {
-    repoManId = tempEntity.newRepositoryManager().getInstanceId();
+    repoManager = tempEntity.newRepositoryManager();
+    
     matchersByFormat = new HashMap<>();
   }
 
   private void assertMatch(ProprietaryComponentName conflict, String namePattern) {
     assertThat(conflict.getProprietaryNamePattern()).isEqualTo(namePattern);
-    assertThat(conflict.getRepositoryManagerInstanceId()).isEqualTo(repoManId);
-    assertThat(conflict.getRepositoryPublicId()).isEqualTo(repoId);
+    assertThat(conflict.getRepositoryId()).isEqualTo(repo.getId());
   }
 
   @Test
   public void testFindProprietaryComponentName() {
-    proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
-        .withNamePattern("sonatype*").withRepository(repoManId, repoId));
-    proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
-        .withNamespacePattern("@sonatype").withRepository(repoManId, repoId));
+    repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    tempEntity.newProprietaryComponentNamePattern(repo, null, "sonatype*");
+    tempEntity.newProprietaryComponentNamePattern(repo, "@sonatype", null);
 
     assertMatch(proprietaryComponentNameDetector
         .findProprietaryComponentName(matchersByFormat,
@@ -73,24 +75,26 @@ public class ProprietaryComponentNameDetectorTest
 
   @Test
   public void testFindProprietaryComponentName_Namespacing_Maven() {
-    proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_MAVEN)
-        .withNamespacePattern("org.sonatype").withRepository(repoManId, repoId));
+    repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
+    tempEntity.newProprietaryComponentNamePattern(repo, "org.sonatype", null);
     assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(matchersByFormat,
         ComponentIdentifier.createMavenCoordinates("org.sonatype", "test", "1.0", "", "jar")), "org.sonatype/*");
   }
 
   @Test
   public void testFindProprietaryComponentName_Namespacing_Npm() {
-    proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
-        .withNamespacePattern("@sonatype").withRepository(repoManId, repoId));
+    repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    tempEntity.newProprietaryComponentNamePattern(repo, "@sonatype", null);
     assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(matchersByFormat,
         ComponentIdentifier.createNpmCoordinates("@sonatype/test", "1.0")), "@sonatype/*");
   }
 
   @Test
   public void testFindProprietaryComponentName_Namespacing_Nuget() {
-    proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NUGET)
-        .withNamePattern("Sonatype.*").withRepository(repoManId, repoId));
+    repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NUGET);
+    tempEntity.newProprietaryComponentNamePattern(repo, null, "Sonatype.*");
     assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(matchersByFormat,
         ComponentIdentifier.createNugetCoordinates("Sonatype.Type", "1.0")), "sonatype.*");
   }
@@ -102,10 +106,12 @@ public class ProprietaryComponentNameDetectorTest
 
   @Test
   public void testAddPatterns() {
-    ProprietaryComponentNamePattern pattern1 = new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
-        .withNamePattern("sonatype*").withRepository(repoManId, repoId);
-    ProprietaryComponentNamePattern pattern2 = new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
-        .withNamespacePattern("@sonatype").withRepository(repoManId, repoId);
+    repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    ProprietaryComponentNamePattern pattern1 =
+        new ProprietaryComponentNamePattern(repo.getId(), ComponentIdentifier.FORMAT_NPM).withNamePattern("sonatype*");
+    ProprietaryComponentNamePattern pattern2 =
+        new ProprietaryComponentNamePattern(repo.getId(), ComponentIdentifier.FORMAT_NPM)
+            .withNamespacePattern("@sonatype");
     assertThat(
         proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM, Arrays.asList(pattern1, pattern2)))
         .isEqualTo(2);
@@ -129,8 +135,8 @@ public class ProprietaryComponentNameDetectorTest
 
     assertThat(proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM,
         Collections.singletonList(
-            new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM).withNamePattern("sonatype*")
-                .withRepository(repoManId, repoId)))).isEqualTo(0);
+            new ProprietaryComponentNamePattern(repo.getId(), ComponentIdentifier.FORMAT_NPM)
+                .withNamePattern("sonatype*")))).isEqualTo(0);
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM))
         .extracting(ProprietaryComponentNamePattern::getId)
@@ -139,8 +145,9 @@ public class ProprietaryComponentNameDetectorTest
 
   @Test
   public void testAddPatterns_DoesNotChangePatternEnabledStatus() {
-    ProprietaryComponentNamePattern pattern = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId,
-        ComponentIdentifier.FORMAT_NPM, null /* namespacePattern */, "testNamePattern");
+    repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    ProprietaryComponentNamePattern pattern =
+        tempEntity.newProprietaryComponentNamePattern(repo, null /* namespacePattern */, "testNamePattern");
     assertThat(pattern.isEnabled()).isTrue();
 
     // Enabled pattern
@@ -168,25 +175,10 @@ public class ProprietaryComponentNameDetectorTest
 
   @Test
   public void testRemovePatterns_ForSpecificRepo() {
-    ProprietaryComponentNamePattern pattern = new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
-        .withNamePattern("sonatype*").withRepository(repoManId, repoId);
-    proprietaryComponentNamePatternDAO.insert(pattern);
+    repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    tempEntity.newProprietaryComponentNamePattern(repo, null, "sonatype*");
 
-    proprietaryComponentNameDetector.removePatterns(repoManId, repoId);
-
-    assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM)).isEmpty();
-  }
-
-  @Test
-  public void testRemovePatterns_ForEntireRepoManager() {
-    ProprietaryComponentNamePattern pattern1 = new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
-        .withNamePattern("sonatype*").withRepository(repoManId, repoId);
-    proprietaryComponentNamePatternDAO.insert(pattern1);
-    ProprietaryComponentNamePattern pattern2 = new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
-        .withNamespacePattern("@sonatype").withRepository(repoManId, repoId + "-other");
-    proprietaryComponentNamePatternDAO.insert(pattern2);
-
-    proprietaryComponentNameDetector.removePatterns(repoManId, "*");
+    proprietaryComponentNameDetector.removePatterns(repo.getId());
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM)).isEmpty();
   }

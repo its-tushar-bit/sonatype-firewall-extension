@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.repository;
-
-import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
+package com.sonatype.insight.brain.dataaccess.repository;
 
 /**
  * @since 1.152
@@ -15,14 +13,22 @@ public class ProprietaryComponentNamePatternDTO
   public ProprietaryComponentNamePatternDTO() {
   }
 
-  public ProprietaryComponentNamePatternDTO(ProprietaryComponentNamePattern proprietaryComponentNamePattern) {
-    id = proprietaryComponentNamePattern.getId();
-    format = proprietaryComponentNamePattern.getFormat();
-    namespacePattern = proprietaryComponentNamePattern.getNamespacePattern();
-    namePattern = proprietaryComponentNamePattern.getNamePattern();
-    repositoryManagerInstanceId = proprietaryComponentNamePattern.getRepositoryManagerInstanceId();
-    repositoryPublicId = proprietaryComponentNamePattern.getRepositoryPublicId();
-    enabled = proprietaryComponentNamePattern.isEnabled();
+  public ProprietaryComponentNamePatternDTO(
+      String id,
+      String format,
+      String namespacePattern,
+      String namePattern,
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      boolean enabled)
+  {
+    this.id = id;
+    this.format = format;
+    this.namespacePattern = namespacePattern;
+    this.namePattern = namePattern;
+    this.repositoryManagerInstanceId = repositoryManagerInstanceId;
+    this.repositoryPublicId = repositoryPublicId;
+    this.enabled = enabled;
   }
 
   public String id;

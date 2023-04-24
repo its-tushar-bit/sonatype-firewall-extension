@@ -10,11 +10,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -62,8 +64,9 @@ public class ProprietaryNameConflictConditionType
     Optional<ProprietaryComponentName> conflict = matchFact.getComponent().getConflictingProprietaryName();
     if (conflict.isPresent()) {
       ProprietaryComponentName name = conflict.get();
+      Repository repository = new RepositoryDAO().getByIdNotNull(name.getRepositoryId());
       return "Component name conflicts with proprietary component " + name.getProprietaryNamePattern() + " from "
-          + name.getRepositoryPublicId();
+          + repository.getPublicId();
     }
     else {
       return "Component name does not conflict with any proprietary component";

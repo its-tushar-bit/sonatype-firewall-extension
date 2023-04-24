@@ -18,16 +18,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentNameMatcherTest
 {
-  private static final String REPOSITORY_MANAGER_INSTANCE_ID = "repoManId";
-
-  private static final String REPOSITORY_PUBLIC_ID = "repoId";
+  private static final String REPOSITORY_ID = "repoId";
 
   private ProprietaryComponentNamePattern newNamePattern(String format, String namePattern) {
     ProprietaryComponentNamePattern pattern = new ProprietaryComponentNamePattern();
     pattern.setFormat(format);
     pattern.setNamePattern(namePattern);
-    pattern.setRepositoryManagerInstanceId(REPOSITORY_MANAGER_INSTANCE_ID);
-    pattern.setRepositoryPublicId(REPOSITORY_PUBLIC_ID);
+    pattern.setRepositoryId(REPOSITORY_ID);
     return pattern;
   }
 
@@ -35,15 +32,13 @@ public class ComponentNameMatcherTest
     ProprietaryComponentNamePattern pattern = new ProprietaryComponentNamePattern();
     pattern.setFormat(format);
     pattern.setNamespacePattern(namespacePattern);
-    pattern.setRepositoryManagerInstanceId(REPOSITORY_MANAGER_INSTANCE_ID);
-    pattern.setRepositoryPublicId(REPOSITORY_PUBLIC_ID);
+    pattern.setRepositoryId(REPOSITORY_ID);
     return pattern;
   }
 
   private void assertMatch(ProprietaryComponentName conflict, String namePattern) {
     assertThat(conflict.getProprietaryNamePattern()).isEqualTo(namePattern);
-    assertThat(conflict.getRepositoryManagerInstanceId()).isEqualTo(REPOSITORY_MANAGER_INSTANCE_ID);
-    assertThat(conflict.getRepositoryPublicId()).isEqualTo(REPOSITORY_PUBLIC_ID);
+    assertThat(conflict.getRepositoryId()).isEqualTo(REPOSITORY_ID);
   }
 
   @Test
@@ -153,8 +148,9 @@ public class ComponentNameMatcherTest
     assertThat(matcher.add(Arrays.asList(pattern1, pattern2, pattern3))).containsExactlyInAnyOrder(pattern2, pattern3);
     assertThat(matcher.add(Arrays.asList(pattern1, pattern2, pattern3))).isEmpty();
 
-    ProprietaryComponentNamePattern pattern4 = newNamespacePattern(pattern3.getFormat(), pattern3.getNamespacePattern())
-        .withRepository("repo-man-id", "repo-id");
+    ProprietaryComponentNamePattern pattern4 =
+        newNamespacePattern(pattern3.getFormat(), pattern3.getNamespacePattern());
+    pattern4.setRepositoryId("repo-id");
     assertThat(matcher.add(Collections.singletonList(pattern4))).containsExactlyInAnyOrder(pattern4);
     assertThat(matcher.add(Collections.singletonList(pattern4))).isEmpty();
   }

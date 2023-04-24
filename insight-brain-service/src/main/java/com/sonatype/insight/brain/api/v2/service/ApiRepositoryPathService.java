@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO.ApiRepositoryComponentPath;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO.ApiRepositoryPathVersions;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +58,7 @@ public class ApiRepositoryPathService
 
     log.debug("Getting unquarantined component paths for repository {}:{} ({}), since {}.", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId(), pathnames);
+    validateIsProxyRepository(repository);
     
     ApiRepositoryPathResponseDTO repositoryPathResponse = new ApiRepositoryPathResponseDTO();
     if (pathnames == null) {
@@ -105,5 +108,12 @@ public class ApiRepositoryPathService
 
   private String extractNpmPath(final String pathname) {
     return pathname.substring(0, pathname.lastIndexOf("/") + 1);
+  }
+
+  private static void validateIsProxyRepository(Repository repository) {
+    if (!RepositoryType.proxy.equals(repository.getRepositoryType())) {
+      throw new BadRequestException(
+          "Repository " + repository.getPublicId() + " (" + repository.getId() + ") is not a proxy repository");
+    }
   }
 }

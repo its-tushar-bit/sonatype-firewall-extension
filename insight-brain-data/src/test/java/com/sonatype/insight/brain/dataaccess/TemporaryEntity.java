@@ -39,6 +39,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
@@ -740,8 +741,6 @@ public class TemporaryEntity
     delete(licenseThreatGroups, licenseThreatGroupDAO);
     delete(policyMonitorings, policyMonitoringDAO);
     delete(repositories, repositoryDAO);
-    repositoryManagers
-        .forEach(repoMan -> proprietaryComponentNamePatternDAO.deleteByRepositoryManager(repoMan.getInstanceId()));
     delete(repositoryManagers, repositoryManagerDAO);
     delete(webhooks, webhookDAO);
     delete(policyViolationAggregations, policyViolationAggregationDAO);
@@ -2570,8 +2569,19 @@ public class TemporaryEntity
   }
 
   public Repository newRepository(RepositoryManager repositoryManager, String publicId, String format) {
+    return newRepository(repositoryManager, publicId, RepositoryType.proxy, format);
+  }
+
+  public Repository newRepository(
+      RepositoryManager repositoryManager,
+      String publicId,
+      RepositoryType repositoryType,
+      String format)
+  {
     Repository repository = new Repository(repositoryManager.getId(), publicId);
+    repository.setRepositoryType(repositoryType);
     repository.setFormat(format);
+    repository.setEnabled(RepositoryType.proxy.equals(repositoryType));
     repositoryDAO.insert(repository);
     repositories.add(repository);
     return repository;
@@ -4296,27 +4306,22 @@ public class TemporaryEntity
   }
 
   public ProprietaryComponentNamePattern newProprietaryComponentNamePattern(
-      String repositoryManagerInstanceId,
-      String repositoryPublicId,
-      String format,
+      Repository repository,
       String namespacePattern,
       String namePattern)
   {
-    return newProprietaryComponentNamePattern(repositoryManagerInstanceId, repositoryPublicId, format, namespacePattern,
-        namePattern, true /* enabled */);
+    return newProprietaryComponentNamePattern(repository, namespacePattern, namePattern, true /* enabled */);
   }
 
   public ProprietaryComponentNamePattern newProprietaryComponentNamePattern(
-      String repositoryManagerInstanceId,
-      String repositoryPublicId,
-      String format,
+      Repository repository,
       String namespacePattern,
       String namePattern,
       boolean enabled)
   {
     ProprietaryComponentNamePattern proprietaryComponentNamePattern =
-        new ProprietaryComponentNamePattern(format).withNamePattern(namePattern).withNamespacePattern(namespacePattern)
-            .withRepository(repositoryManagerInstanceId, repositoryPublicId);
+        new ProprietaryComponentNamePattern(repository.getId(), repository.getFormat()).withNamePattern(namePattern)
+            .withNamespacePattern(namespacePattern);
     proprietaryComponentNamePattern.setEnabled(enabled);
     proprietaryComponentNamePatternDAO.insert(proprietaryComponentNamePattern);
     proprietaryComponentNamePatterns.add(proprietaryComponentNamePattern);

@@ -9,34 +9,23 @@ public class ProprietaryComponentName
 {
   private final String proprietaryNamePattern;
 
-  private final String repositoryManagerInstanceId;
+  private final String repositoryId;
 
-  private final String repositoryPublicId;
-
-  public ProprietaryComponentName(
-      String proprietaryNamePattern,
-      String repositoryManagerInstanceId,
-      String repositoryPublicId)
-  {
+  public ProprietaryComponentName(String proprietaryNamePattern, String repositoryId) {
     this.proprietaryNamePattern = proprietaryNamePattern;
-    this.repositoryManagerInstanceId = repositoryManagerInstanceId;
-    this.repositoryPublicId = repositoryPublicId;
+    this.repositoryId = repositoryId;
   }
 
   public String getProprietaryNamePattern() {
     return proprietaryNamePattern;
   }
 
-  public String getRepositoryManagerInstanceId() {
-    return repositoryManagerInstanceId;
-  }
-
-  public String getRepositoryPublicId() {
-    return repositoryPublicId;
+  public String getRepositoryId() {
+    return repositoryId;
   }
 
   @Override
   public String toString() {
-    return proprietaryNamePattern + " - " + repositoryManagerInstanceId + ":" + repositoryPublicId;
+    return proprietaryNamePattern + " - " + repositoryId;
   }
 }

@@ -11,11 +11,14 @@ import java.util.Collections;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO.ApiRepositoryComponentPath;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
@@ -129,6 +132,17 @@ public class ApiRepositoryPathServiceTest
     assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() ->
         apiRepositoryPathService.getQuarantinedByPathnames("repositoryManager1", repository.getPublicId(),
             Collections.singletonList("g/a/v/a-v.jar")));
+  }
+
+  @Test
+  public void testGetQuarantinedByPathnames_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      apiRepositoryPathService.getQuarantinedByPathnames(repoManager.getInstanceId(), repo.getPublicId(), null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
   }
 
   private void assertPath(final ApiRepositoryComponentPath apiRepositoryComponentPath, String pathname) {

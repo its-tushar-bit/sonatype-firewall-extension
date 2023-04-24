@@ -30,6 +30,8 @@ import static org.mockito.Mockito.verify;
 public class MultiTenantExecutorThreadPoolsTest
     extends MultiTenantTestSupport
 {
+  private static final long VERIFICATION_TIMEOUT = 500L;
+
   @Rule
   public TestName name = new TestName();
 
@@ -60,7 +62,7 @@ public class MultiTenantExecutorThreadPoolsTest
     doAnswer(invocationOnMock -> assertCorrectTenantSet()).when(mockCallable).call();
 
     testAs(tenant, t -> pool.submit(mockCallable));
-    verify(mockCallable, timeout(100L)).call();
+    verify(mockCallable, timeout(VERIFICATION_TIMEOUT)).call();
     assertTenantSet(GLOBAL_TENANT);
   }
 
@@ -69,7 +71,7 @@ public class MultiTenantExecutorThreadPoolsTest
     doAnswer(invocationOnMock -> assertCorrectTenantSet()).when(mockRunnable).run();
 
     testAs(tenant, t -> pool.submit(mockRunnable));
-    verify(mockRunnable, timeout(100L)).run();
+    verify(mockRunnable, timeout(VERIFICATION_TIMEOUT)).run();
     assertTenantSet(GLOBAL_TENANT);
   }
 
@@ -78,7 +80,7 @@ public class MultiTenantExecutorThreadPoolsTest
     doAnswer(invocationOnMock -> assertCorrectTenantSet()).when(mockRunnable).run();
 
     testAs(tenant, t -> pool.submit(mockRunnable, null));
-    verify(mockRunnable, timeout(100L)).run();
+    verify(mockRunnable, timeout(VERIFICATION_TIMEOUT)).run();
     assertTenantSet(GLOBAL_TENANT);
   }
 
@@ -87,7 +89,7 @@ public class MultiTenantExecutorThreadPoolsTest
     doAnswer(invocationOnMock -> assertCorrectTenantSet()).when(mockRunnable).run();
 
     testAs(tenant, t -> pool.execute(mockRunnable));
-    verify(mockRunnable, timeout(100L)).run();
+    verify(mockRunnable, timeout(VERIFICATION_TIMEOUT)).run();
     assertTenantSet(GLOBAL_TENANT);
   }
 

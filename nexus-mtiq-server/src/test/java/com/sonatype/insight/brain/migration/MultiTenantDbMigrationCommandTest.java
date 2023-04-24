@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -16,6 +19,7 @@ import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.postgres.PostgresServer;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -29,6 +33,14 @@ public class MultiTenantDbMigrationCommandTest
   @BeforeClass
   public static void beforeClass() {
     new TenantUtil().setGlobalTenant();
+  }
+
+  @AfterClass
+  public static void tearDown() {
+    OperationalDataStoreProvider.setInstance(null);
+    AggregationDataStoreProvider.setInstance(null);
+    ThirdPartyScansProvider.setInstance(null);
+    DatamartProvider.setInstance(null);
   }
 
   @Test

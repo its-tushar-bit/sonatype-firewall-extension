@@ -194,11 +194,7 @@ function IqSidebarNav(props) {
         </NxGlobalSidebarNavigation>
       )}
       {productEdition && releaseVersion && (
-        <IqSidebarNavFooter
-          productName={productEdition}
-          releaseNumber={releaseVersion}
-          isShowVersionEnabled={isShowVersionEnabled}
-        />
+        <IqSidebarNavFooter productName="" releaseNumber={releaseVersion} isShowVersionEnabled={isShowVersionEnabled} />
       )}
     </NxGlobalSidebar>
   );

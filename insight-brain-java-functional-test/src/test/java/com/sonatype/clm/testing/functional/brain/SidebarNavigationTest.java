@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigur
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -82,10 +81,7 @@ public class SidebarNavigationTest
     // 2. build numbers (or SNAPSHOT) are not included in the version number
     String version = testCLMServer.getCLMServer().getInstance(VersionService.class).getLogDisplayVersion();
     version = version.substring(0, version.indexOf("-")).replace(".0", "");
-    String productVersion =
-            testCLMServer.getCLMServer().getInstance(ProductLicenseService.class).validateLicense().productEdition
-                    + " release " + version;
-    SidebarNavigation.productVersion().shouldHave(text(productVersion));
+    SidebarNavigation.productVersion().shouldHave(text("Release " + version));
   }
 
   @Test

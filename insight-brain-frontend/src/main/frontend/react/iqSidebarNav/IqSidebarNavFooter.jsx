@@ -33,6 +33,7 @@ export default function IqSidebarNavFooter({ productName, releaseNumber, isShowV
       className="iq-sidebar-nav-footer"
       releaseText={releaseText}
       productTagLine="Powered by Sonatype IQ Server"
+      showCreatedBy={false}
     />
   );
 }

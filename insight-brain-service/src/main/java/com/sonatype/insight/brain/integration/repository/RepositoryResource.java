@@ -329,4 +329,18 @@ public class RepositoryResource
     repositoryService.configureRepositories(repositoryManagerInstanceId, repositories,
         DefaultHdsClient.getClientUserAgent(request));
   }
+
+  /**
+   * @since 1.161
+   */
+  @DELETE
+  @Path(REPOSITORY_PATH)
+  @Audited(AuditEvent.REMOVE_REPOSITORY)
+  @Timed
+  public void removeRepository(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId)
+  {
+    repositoryService.removeRepository(repositoryManagerInstanceId, repositoryPublicId);
+  }
 }

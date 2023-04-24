@@ -984,6 +984,20 @@ public abstract class AbstractRepositoryService
     }
   }
 
+  void removeRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
+    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+
+    AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
+    AuditData.get().setRepositoryPublicId(repositoryPublicId);
+
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManagerInstanceId, repositoryPublicId);
+
+    repositoryDAO.delete(repository);
+
+    log.info("Deleted repository {}:{} ({})", repositoryManagerInstanceId, repositoryPublicId, repository.getId());
+  }
+
   // Needs to be at least package visible for the authz annotations to be effective.
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   void checkEvaluateComponentPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {

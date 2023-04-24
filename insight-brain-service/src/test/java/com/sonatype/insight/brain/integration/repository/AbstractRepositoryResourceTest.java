@@ -423,4 +423,19 @@ public abstract class AbstractRepositoryResourceTest
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
   }
+
+  @Test
+  public void testRemoveRepository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
+
+    HttpResponse response =
+        restRequest().path(RepositoryResource.REPOSITORY_PATH)
+            .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).delete();
+
+    assertResponseStatus(204, response);
+
+    Repository foundRepository = new RepositoryDAO().getById(repository.getId());
+    assertThat(foundRepository).isNull();
+  }
 }

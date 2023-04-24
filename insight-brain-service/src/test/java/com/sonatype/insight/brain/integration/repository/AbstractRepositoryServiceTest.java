@@ -2808,6 +2808,17 @@ public abstract class AbstractRepositoryServiceTest
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
+  @Test
+  public void testRemoveRepository() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
+
+    getRepositoryService().removeRepository(repositoryManager.getInstanceId(), repository.getPublicId());
+
+    Repository repositoryFound = new RepositoryDAO().getById(repository.getId());
+    assertThat(repositoryFound).isNull();
+  }
+
   private void testAddProprietaryComponentNames_FormatTranslation(String repoFormat, String componentFormat) {
     String repoManId = tempEntity.newRepositoryManager().getInstanceId();
     String repoId = "hosted-repo";

@@ -317,4 +317,8 @@ class ArtifactoryRepositoryServiceWrapper
   {
     repositoryService.configureRepositories(repositoryManagerInstanceId, repositoryDTOs, clientUserAgent);
   }
+
+  void removeRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
+    repositoryService.removeRepository(repositoryManagerInstanceId, repositoryPublicId);
+  }
 }

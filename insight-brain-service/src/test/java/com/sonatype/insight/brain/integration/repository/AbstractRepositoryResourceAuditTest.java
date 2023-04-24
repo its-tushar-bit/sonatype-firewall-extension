@@ -519,6 +519,19 @@ public abstract class AbstractRepositoryResourceAuditTest
   }
 
   @Test
+  public void testRemoveRepository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
+
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.REPOSITORY_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_REPOSITORY, null);
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+    assertCustomData(auditDTO, "repositoryPublicId", repository.getPublicId());
+  }
+
+  @Test
   public void testConfigureRepositories_Unauthorized() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 

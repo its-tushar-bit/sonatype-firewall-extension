@@ -138,9 +138,9 @@ public class TenantManager
     long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
         () -> databaseProvisionUtils.initializeDatabasesWithoutMigration(multiTenantDatabaseConfigProvider));
 
-    start = runAndLogTime("app boot", tenant, start, tenantLifecycle.get()::bootTenant);
+    start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
 
-    runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
+    runAndLogTime("app boot", tenant, start, tenantLifecycle.get()::bootTenant);
   }
 
   /**

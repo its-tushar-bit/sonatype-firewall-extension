@@ -198,16 +198,16 @@ public class TenantManagerTest
         .isInstanceOf(IllegalArgumentException.class);
   }
 
-  @Test // CLM-25317
-  public void shouldBootTenantBeforeInitializingTenantJobs() throws Exception {
+  @Test // CLM-25317 // CLM-25499 reverted the ordering introduced with CLM-25317
+  public void shouldBootTenantAfterInitializingTenantJobs() throws Exception {
     TenantManaged tenantBean = mock(TenantManaged.class);
     tenantManagedBeans.add(tenantBean);
 
     setTenantAndAssertRegistration();
 
-    InOrder order = inOrder(job, lifecycle, tenantBean);
-    order.verify(lifecycle).bootTenant();
+    InOrder order = inOrder(job, tenantBean, lifecycle);
     order.verify(tenantBean).register();
+    order.verify(lifecycle).bootTenant();
   }
 
   @Test // CLM-25317

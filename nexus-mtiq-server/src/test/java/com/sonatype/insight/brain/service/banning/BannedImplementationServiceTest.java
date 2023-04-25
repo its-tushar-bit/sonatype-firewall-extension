@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiJiraConfigurationResource;
+import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.service.DefaultTenantManagedInitializer;
 
 import org.junit.Test;
@@ -62,7 +62,7 @@ public class BannedImplementationServiceTest
   @Test
   public void test_MilestoneOneBannedRestClassesAreBanned() {
     underTest = new BannedImplementationService();
-    assertThat(underTest.isBanned(ApiJiraConfigurationResource.class)).isTrue();
+    assertThat(underTest.isBanned(ApiProxyServerConfigurationResource.class)).isTrue();
   }
 
   private static class OtherBannedImplementation

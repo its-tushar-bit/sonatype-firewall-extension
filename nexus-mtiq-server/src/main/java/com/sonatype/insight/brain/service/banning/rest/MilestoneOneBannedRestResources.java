@@ -7,14 +7,7 @@ package com.sonatype.insight.brain.service.banning.rest;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiJiraConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
-import com.sonatype.insight.brain.api.v2.ApiSearchResourceV2;
-import com.sonatype.insight.brain.api.v2.ApiSourceControlConfigurationResource;
-import com.sonatype.insight.brain.api.v2.ApiSourceControlMetricsResource;
-import com.sonatype.insight.brain.api.v2.ApiSourceControlResource;
-import com.sonatype.insight.brain.configuration.AutomaticSourceControlConfigurationResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
 import com.sonatype.insight.brain.search.AdvancedSearchResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
@@ -31,17 +24,10 @@ public class MilestoneOneBannedRestResources
     implements BannedImplementation
 {
   private static final List<Class> BANNED_REST_RESOURCES = ImmutableList.of(
-      ApiJiraConfigurationResource.class,
-      ApiSearchResourceV2.class,
-      ApiSourceControlConfigurationResource.class,
-      ApiSourceControlMetricsResource.class,
-      ApiSourceControlResource.class,
       LdapResource.class,
       ApiProxyServerConfigurationResource.class,
       SuccessMetricsResource.class,
-      AdvancedSearchResource.class,
-      AutomaticSourceControlConfigurationResource.class,
-      ApiCrowdConfigurationResourceV2.class
+      AdvancedSearchResource.class
   );
 
   @Override

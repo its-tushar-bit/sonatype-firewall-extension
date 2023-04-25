@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyEnabledException;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY;
@@ -43,7 +45,6 @@ import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SCM_CONFIGURATION;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
@@ -68,21 +69,22 @@ public class MTIQFeatureService
    * features so that any new features don't automatically get released in MTIQ.
    */
   public static final Set<Feature> ENABLED_FEATURES = Stream.concat(ImmutableSet.of(
-          DASHBOARD_CAN_BE_ENABLED,
-          MULTI_TENANT,
-          LOGOUT_AUTH0_ON_LOGOUT,
-          WEBHOOK_CONFIGURATION,
-          AUTOMATIC_APPLICATION_CONFIGURATION,
-          EMAIL_CONFIGURATION,
-          REPORTS_LIST_CAN_BE_ENABLED,
-          REPORTS_LIST,
-          ENABLE_SSO_ONLY).stream(),
+              DASHBOARD_CAN_BE_ENABLED,
+              MULTI_TENANT,
+              LOGOUT_AUTH0_ON_LOGOUT,
+              WEBHOOK_CONFIGURATION,
+              AUTOMATIC_APPLICATION_CONFIGURATION,
+              AUTOMATIC_SCM_CONFIGURATION,
+              EMAIL_CONFIGURATION,
+              REPORTS_LIST_CAN_BE_ENABLED,
+              REPORTS_LIST,
+              ENABLE_SSO_ONLY).stream(),
 
-      // Add all LicensedFeatures. This is an allow list, whether they are enabled or not depends on the License used.
-      // Excluding DATA_INSIGHTS for now
-      Arrays.stream(LicensedFeature.values())
-          .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS))
-          .filter(f -> !f.equals(LicensedFeature.AUTOMATION)))
+          // Add all LicensedFeatures.
+          // This is an allow list, whether they are enabled or not depends on the License used.
+          // Excluding DATA_INSIGHTS for now
+          Arrays.stream(LicensedFeature.values())
+              .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS)))
 
       .collect(toSet());
 
@@ -171,13 +173,13 @@ public class MTIQFeatureService
    * off.
    */
   private void setConfigurationBasedFeatures() {
-    log.info("Disabling unsupported user configurable features for tenant {}", getTenant());
+    log.info("Enabling/Disabling user configurable features for tenant {}", getTenant());
 
     set(PROPERTY_ENABLED, false);
     set(ADVANCED_SEARCH_ENABLED, false);
     set(AUTOMATIC_APPLICATION_CREATION_ENABLED, true);
-    set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, false);
-    set(AUTOMATIC_SCM_CONFIGURATION, false);
+    set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, true);
+    set(SystemConfigurationProperty.AUTOMATIC_SCM_CONFIGURATION, true);
     set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, false);
   }
 

@@ -29,6 +29,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -512,5 +514,89 @@ public class RepositoryService
     checkWritePermission(RepositoryContainer.SINGLETON);
 
     return repositoryManagerDAO.getUnconfigured();
+  }
+
+  private void auditConfigureRepository(Repository repository, String errorMessage) {
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_REPOSITORY, false)) {
+      AuditData.get().setRepository(repository);
+      if (errorMessage != null) {
+        AuditData.get().setError(errorMessage);
+      }
+    }
+  }
+
+  /**
+   * @since 1.161
+   */
+  void configureRepositories(String repositoryManagerId, List<Repository> repositories) {
+    AuditData.get().setRepositoryManagerId(repositoryManagerId);
+
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repositoryManagerId);
+
+    if (repositoryManager != null) {
+      AuditData.get().setRepositoryManagerInstanceId(repositoryManager.getInstanceId());
+    }
+
+    checkWritePermission(RepositoryContainer.SINGLETON);
+
+    if (repositoryManager == null) {
+      throw new NotFoundException("Cannot find a repository manager with ID " + repositoryManagerId + ".");
+    }
+
+    if (repositories == null) {
+      repositories = Collections.emptyList();
+    }
+
+    log.debug("Updating configuration of {} repositories for repository manager with ID:{}",
+        repositories.size(), repositoryManager.getId());
+
+    try {
+      for (Repository repository : repositories) {
+        Repository existingRepository =
+            repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
+                repository.getPublicId());
+
+        if (existingRepository == null) {
+          log.error(
+              "Cannot update repository config with repository manager ID:{} and name:{} because " +
+                  "it does not exist.", repositoryManager.getId(), repository.getPublicId());
+          continue;
+        }
+
+        boolean updated = false;
+
+        if (existingRepository.isEnabled() != repository.isEnabled()) {
+          updated = true;
+        }
+        if (existingRepository.isQuarantineEnabled() != repository.isQuarantineEnabled()) {
+          updated = true;
+        }
+        if (existingRepository.isPolicyCompliantComponentSelectionEnabled() != repository
+            .isPolicyCompliantComponentSelectionEnabled()) {
+          updated = true;
+        }
+        if (existingRepository.isNamespaceConfusionProtectionEnabled() !=
+            repository.isNamespaceConfusionProtectionEnabled()) {
+          updated = true;
+        }
+
+        if (updated) {
+          repository.setLastManualConfigureTime(new Date());
+          try {
+            repositoryDAO.update(repository);
+            auditConfigureRepository(repository, null /* errorMessage */);
+          }
+          catch (RuntimeException e) {
+            String errorMessage = String.format("Error updating repository %s (%s): %s", repository.getName(),
+                repository.getId(), e.getMessage());
+            log.error(errorMessage, e);
+            auditConfigureRepository(repository, errorMessage);
+          }
+        }
+      }
+    }
+    finally {
+      AuditData.get().commitSubEvents();
+    }
   }
 }

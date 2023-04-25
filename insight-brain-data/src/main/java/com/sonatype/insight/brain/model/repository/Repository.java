@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.repository;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -52,6 +54,9 @@ public class Repository
 
   @Column(name = "format")
   private String format;
+
+  @Column(name = "last_manual_configure_time")
+  private Date lastManualConfigureTime;
 
   public Repository() {
   }
@@ -158,5 +163,13 @@ public class Repository
 
   public void setRepositoryType(RepositoryType repositoryType) {
     this.repositoryType = repositoryType;
+  }
+
+  public Date getLastManualConfigureTime() {
+    return lastManualConfigureTime;
+  }
+
+  public void setLastManualConfigureTime(final Date lastManualConfigureTime) {
+    this.lastManualConfigureTime = lastManualConfigureTime;
   }
 }

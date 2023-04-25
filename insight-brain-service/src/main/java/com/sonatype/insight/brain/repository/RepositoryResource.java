@@ -14,6 +14,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -65,6 +66,8 @@ public class RepositoryResource
   static final String UNCONFIGURED_REPOSITORY_MANAGERS_PATH = "repositoryManager/unconfigured";
 
   static final String SUPPORTED_REPOSITORIES = "repositoryManager/{repositoryManagerId}/supportedRepositories";
+
+  static final String CONFIGURE_REPOSITORIES_PATH = "repositoryManager/{repositoryManagerId}/configureRepositories";
 
   private RepositoryService repositoryService;
 
@@ -222,5 +225,20 @@ public class RepositoryResource
       @PathParam("repositoryManagerId") String repositoryManagerId)
   {
     return repositoryService.getSupportedRepositories(repositoryManagerId);
+  }
+
+  /**
+   * @since 1.161
+   */
+  @PUT
+  @Path(CONFIGURE_REPOSITORIES_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  @Timed
+  public void configureRepositories(
+      @PathParam("repositoryManagerId") String repositoryManagerId,
+      List<Repository> repositories)
+  {
+    repositoryService.configureRepositories(repositoryManagerId, repositories);
   }
 }

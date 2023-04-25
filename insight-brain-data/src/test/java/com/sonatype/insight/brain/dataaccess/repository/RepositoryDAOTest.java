@@ -66,12 +66,16 @@ public class RepositoryDAOTest
     assertThat(repository.canHaveChildren()).isFalse();
     assertThat(repository.getType()).isEqualTo(OwnerType.REPOSITORY);
     assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
+    assertThat(repository.getLastManualConfigureTime()).isNull();
 
     // Update
+    Date now = new Date();
     repository.setEnabled(false);
+    repository.setLastManualConfigureTime(now);
     dao.update(repository);
     repository = dao.getById(id);
     assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.getLastManualConfigureTime()).isEqualTo(now);
 
     // Delete
     dao.delete(repository);

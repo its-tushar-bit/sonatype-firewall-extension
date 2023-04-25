@@ -47,6 +47,8 @@ public class RepositoryServiceAuthzTest
 {
   private static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
 
+  private static final String MANUAL_REPO_MAN_ID = "manualDeleteRepoManagerId";
+
   private static final String REPOSITORY_PUBLIC_ID = "publicId";
 
   private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
@@ -491,6 +493,24 @@ public class RepositoryServiceAuthzTest
 
     assertThat(supportedRepositories).hasSize(1);
     assertThat(supportedRepositories.get(0).getFormat()).isEqualTo("maven2");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testConfigureRepositories_Unauthenticated() {
+    repositoryService.configureRepositories(MANUAL_REPO_MAN_ID, null /* repositoryDTOs */);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testConfigureRepositories_Unauthorized() {
+    login();
+    repositoryService.configureRepositories(MANUAL_REPO_MAN_ID, null /* repositoryDTOs */);
+  }
+
+  @Test
+  public void testConfigureRepositories_Authorized() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.configureRepositories(repositoryManager.getId(), null /* repositoryDTOs */);
   }
 
   private FirewallIgnorePatterns createFirewallIgnorePatterns() {

@@ -933,4 +933,75 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(supportedRepositories).hasSize(1);
     assertThat(supportedRepositories.get(0).getFormat()).isEqualTo("maven2");
   }
+
+  @Test
+  public void testConfigureRepositories_NotExistingRepositoryManager() {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryService.configureRepositories("repositoryManagerId",
+            Collections.singletonList(new Repository())))
+        .withMessage("Cannot find a repository manager with ID repositoryManagerId.");
+  }
+
+  @Test
+  public void testConfigureRepositories_NotExistingRepository() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = new Repository(repositoryManager.getId(), "testRepoName");
+
+    // Call the service
+    repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
+
+    // No updates in DB
+    Repository repositoryInDB =
+        repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
+            repository.getPublicId());
+    assertThat(repositoryInDB).isNull();
+  }
+
+  @Test
+  public void testConfigureRepositories_ExistingRepository() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName", "npm");
+    repository.setQuarantineEnabled(true);
+    repository.setPolicyCompliantComponentSelectionEnabled(true);
+
+    Date before = new Date();
+    // Call the service
+    repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
+    Date after = new Date();
+
+    repository = repositoryDAO.getById(repository.getId());
+
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(repository.getLastManualConfigureTime()).isBetween(before, after);
+  }
+
+  @Test
+  public void testConfigureRepositories_ExceptionForOneRepositoryDoesNotStopProcessingOfOtherRepositories() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository existingRepository1 = tempEntity.newRepository(repositoryManager, "testRepoName1");
+    Repository existingRepository2 = tempEntity.newRepository(repositoryManager, "testRepoName2");
+    existingRepository1.setPublicId(existingRepository2.getPublicId());
+    existingRepository1.setEnabled(false);
+    Repository existingRepository3 = tempEntity.newRepository(repositoryManager, "testRepoName3", "npm");
+    existingRepository3.setQuarantineEnabled(true);
+    existingRepository3.setPolicyCompliantComponentSelectionEnabled(true);
+
+    Date before = new Date();
+    // Call the service
+    repositoryService.configureRepositories(repositoryManager.getId(),
+        Arrays.asList(existingRepository1, existingRepository3));
+    Date after = new Date();
+
+    Repository repository = repositoryDAO.getById(existingRepository3.getId());
+
+    assertThat(repository.getName()).isEqualTo("testRepoName3");
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
+    assertThat(repository.getLastManualConfigureTime()).isBetween(before, after);
+  }
 }

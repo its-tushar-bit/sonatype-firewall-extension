@@ -331,4 +331,28 @@ public class RepositoryResourceTest
     assertThat(supportedRepositories).hasSize(1);
     assertThat(supportedRepositories[0].getFormat()).isEqualTo("maven2");
   }
+
+  @Test
+  public void testConfigureRepositories() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName", "npm");
+    repository.setQuarantineEnabled(true);
+    repository.setPolicyCompliantComponentSelectionEnabled(true);
+
+    Date before = new Date();
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.CONFIGURE_REPOSITORIES_PATH)
+            .parameter(repositoryManager.getId())
+            .body(Collections.singletonList(repository)).put();
+    Date after = new Date();
+
+    assertResponseStatus(204, response);
+    repository = new RepositoryDAO().getById(repository.getId());
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
+    assertThat(repository.getLastManualConfigureTime()).isBetween(before, after);
+  }
 }

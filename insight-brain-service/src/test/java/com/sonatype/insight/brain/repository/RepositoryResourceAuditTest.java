@@ -18,12 +18,14 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
@@ -172,6 +174,62 @@ public class RepositoryResourceAuditTest
     assertRepositoryData(auditDTO, repository);
   }
 
+  @Test
+  public void testConfigureRepositories_Unauthorized() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    configureRepositoriesRequest(repositoryManager.getId(), null).with(unauthorizedUser()).put();
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY, "unauthorized");
+    assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+  }
+
+  @Test
+  public void testConfigureRepositories_NotExistingRepositoryManager() throws Exception {
+    configureRepositoriesRequest("repositoryManagerId", Collections.singletonList(new Repository())).put();
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY, "not-found");
+    assertCustomData(auditDTO, "repositoryManagerId", "repositoryManagerId");
+  }
+
+  @Test
+  public void testConfigureRepositories_RuntimeException() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository existingRepository1 = tempEntity.newRepository(repositoryManager, "testRepoName1");
+    Repository existingRepository2 = tempEntity.newRepository(repositoryManager, "testRepoName2");
+    existingRepository1.setPublicId(existingRepository2.getPublicId());
+    existingRepository1.setEnabled(false);
+    configureRepositoriesRequest(repositoryManager.getId(), Collections.singletonList(existingRepository1)).put();
+    List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
+    for (AuditDTO auditDTO : auditDTOs) {
+      assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
+      assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+      if (auditDTO.data.size() > 2) {
+        assertStandardData(auditDTO, AuditEvent.CONFIGURE_REPOSITORY, "Error updating repository "
+            + existingRepository1.getName() + " (" + existingRepository1.getId() +
+            "): There is already a repository with public ID '"
+            + existingRepository1.getPublicId() + "' for the same repository manager.");
+      }
+    }
+  }
+
+  @Test
+  public void testConfigureRepositories_ExistingRepository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven");
+    repository.setEnabled(false);
+    configureRepositoriesRequest(repositoryManager.getId(), Collections.singletonList(repository)).put();
+
+    List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
+    for (AuditDTO auditDTO : auditDTOs) {
+      assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
+      assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+      if (auditDTO.data.size() == 1) {
+        repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
+            repository.getPublicId());
+        assertRepositoryData(auditDTO, repository);
+      }
+    }
+  }
+
   private HttpRequest repositoryRequest(String repositoryId) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH)
         .parameter(repositoryId);
@@ -200,6 +258,11 @@ public class RepositoryResourceAuditTest
   private HttpRequest policyViolationRequest(String repositoryId, String repositoryPolicyViolationId) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATION_PATH)
         .parameter(repositoryId, repositoryPolicyViolationId);
+  }
+
+  private HttpRequest configureRepositoriesRequest(String repositoryManagerId, List<Repository> repositories) {
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.CONFIGURE_REPOSITORIES_PATH)
+        .parameter(repositoryManagerId).body(repositories);
   }
 
   private Repository repositoryWithComponents(int componentCount) {

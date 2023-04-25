@@ -194,6 +194,11 @@ public abstract class AuditData
     return this;
   }
 
+  public AuditData setRepositoryManagerId(String repositoryManagerId) {
+    setData("repositoryManagerId", repositoryManagerId);
+    return this;
+  }
+
   public AuditData setRepository(Repository repository) {
     if (repository != null) {
       setRepositoryId(repository.getId());

@@ -518,6 +518,8 @@ CREATE TABLE repository (
   policy_compliant_component_selection_enabled boolean DEFAULT false NOT NULL,
   namespace_confusion_protection_enabled boolean DEFAULT false NOT NULL,
   format varchar(50),
+  last_manual_configure_time timestamp DEFAULT NULL,
+
   CONSTRAINT repository_pk PRIMARY KEY (repository_id),
   CONSTRAINT repository_uk UNIQUE (repository_manager_id, public_id),
   CONSTRAINT repository_repository_manager_fk FOREIGN KEY (repository_manager_id) REFERENCES repository_manager(repository_manager_id)

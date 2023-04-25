@@ -85,6 +85,9 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.sourceControlEvaluationsToggle().shouldNotBeDisabled();
     SourceControlEditorPage.sourceControlEvaluationsToggle().shouldBeOn();
 
+    SourceControlEditorPage.sourceControlCommitStatusToggle().shouldNotBeDisabled();
+    SourceControlEditorPage.sourceControlCommitStatusToggle().shouldBeOn();
+
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
     SourceControlEditorPage.saveButton().click();
@@ -108,6 +111,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.remediationPullRequestsToggle().shouldBeOff();
     SourceControlEditorPage.pullRequestCommentingToggle().shouldBeOn();
     SourceControlEditorPage.sourceControlEvaluationsToggle().shouldBeOn();
+    SourceControlEditorPage.sourceControlCommitStatusToggle().shouldBeOn();
 
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
@@ -170,6 +174,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.pullRequestCommentingToggle().shouldExist();
     SourceControlEditorPage.remediationPullRequestsToggle().shouldExist();
     SourceControlEditorPage.sourceControlEvaluationsToggle().shouldExist();
+    SourceControlEditorPage.sourceControlCommitStatusToggle().shouldExist();
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
     //Delete the entry to create the failure
@@ -453,6 +458,13 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.sourceControlEvaluationsDisableRadio().shouldNotBe(visible);
     SourceControlEditorPage.sourceControlEvaluationsEnableRadio().shouldNotBe(visible);
     SourceControlEditorPage.sourceControlEvaluationsInheritRadio().shouldNotBe(visible);
+
+    SourceControlEditorPage.sourceControlCommitStatusToggle().shouldBeDisabled();
+    SourceControlEditorPage.sourceControlCommitStatusToggle().shouldBeOn();
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlCommitStatusInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlCommitStatusEnabledRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlCommitStatusDisabledRadio().shouldNotBe(visible);
 
     SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);

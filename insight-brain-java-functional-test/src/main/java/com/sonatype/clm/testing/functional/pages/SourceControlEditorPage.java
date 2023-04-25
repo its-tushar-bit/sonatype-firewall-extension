@@ -181,6 +181,18 @@ public class SourceControlEditorPage
     return new IqRadio($("#editor-source-control-evaluations-disable"));
   }
 
+  public static IqRadio sourceControlCommitStatusInheritRadio() {
+    return new IqRadio($("#editor-source-control-commit-status-inherit"));
+  }
+
+  public static IqRadio sourceControlCommitStatusEnabledRadio() {
+    return new IqRadio($("#editor-source-control-commit-status-enable"));
+  }
+
+  public static IqRadio sourceControlCommitStatusDisabledRadio() {
+    return new IqRadio($("#editor-source-control-commit-status-disable"));
+  }
+
   public static SelenideElement sourceControlEvaluationsNotSupportedAlert() {
     return $("#source-control-evaluations-unavailable");
   }
@@ -195,6 +207,10 @@ public class SourceControlEditorPage
 
   public static IqToggle sourceControlEvaluationsToggle() {
     return new IqToggle($("#editor-source-control-evaluations-toggle"));
+  }
+
+  public static IqToggle sourceControlCommitStatusToggle() {
+    return new IqToggle($("#editor-source-control-commit-status-toggle"));
   }
 
   public static IqRadio baseBranchInheritRadio() {

@@ -91,6 +91,7 @@ describe('source.control.editor', function () {
       sourceControlEvaluationsEnabled: null,
       statusChecksEnabled: true,
       sshEnabled: null,
+      commitStatusEnabled: null,
     };
   };
 
@@ -202,6 +203,11 @@ describe('source.control.editor', function () {
         parentName: null,
         parentValue: null,
       },
+      commitStatusEnabled: {
+        value: null,
+        parentName: null,
+        parentValue: null,
+      },
     };
 
     const sourceControlModel = {
@@ -239,6 +245,9 @@ describe('source.control.editor', function () {
       sshEnabled: null,
       sshEnabledInheritFrom: null,
       sshEnabledInheritedValue: null,
+      commitStatusEnabled: true,
+      commitStatusEnabledInheritFrom: null,
+      commitStatusEnabledInheritedValue: null,
     };
 
     beforeEach(inject(function () {
@@ -357,6 +366,7 @@ describe('source.control.editor', function () {
             pullRequestCommentingEnabled: true,
             remediationPullRequestsEnabled: false,
             sourceControlEvaluationsEnabled: true,
+            commitStatusEnabled: true,
           },
         };
 
@@ -394,6 +404,7 @@ describe('source.control.editor', function () {
             pullRequestCommentingEnabled: true,
             remediationPullRequestsEnabled: false,
             sourceControlEvaluationsEnabled: true,
+            commitStatusEnabled: true,
           },
         };
 
@@ -441,6 +452,7 @@ describe('source.control.editor', function () {
             pullRequestCommentingEnabled: true,
             remediationPullRequestsEnabled: false,
             sourceControlEvaluationsEnabled: true,
+            commitStatusEnabled: true,
           },
         };
 
@@ -767,6 +779,11 @@ describe('source.control.editor', function () {
         parentName: 'Root Organization',
         parentValue: true,
       },
+      commitStatusEnabled: {
+        value: null,
+        parentName: 'Root Organization',
+        parentValue: true,
+      },
     };
 
     const sourceControlModel = {
@@ -804,6 +821,9 @@ describe('source.control.editor', function () {
       sshEnabled: null,
       sshEnabledInheritedValue: true,
       sshEnabledInheritFrom: 'Root Organization',
+      commitStatusEnabled: null,
+      commitStatusEnabledInheritedValue: true,
+      commitStatusEnabledInheritFrom: 'Root Organization',
     };
 
     beforeEach(inject(function () {
@@ -958,6 +978,9 @@ describe('source.control.editor', function () {
           sshEnabled: null,
           sshEnabledInheritedValue: null,
           sshEnabledInheritFrom: null,
+          commitStatusEnabled: true,
+          commitStatusEnabledInheritedValue: null,
+          commitStatusEnabledInheritFrom: null,
         };
 
         const retrievedCompositeSourceControl = {
@@ -1009,11 +1032,17 @@ describe('source.control.editor', function () {
             parentName: null,
             parentValue: null,
           },
+          commitStatusEnabled: {
+            value: null,
+            parentName: null,
+            parentValue: null,
+          },
         };
 
         const savedSourceControl = {
           ...getSourceControl(SUB_ORG_ID),
           ...{ remediationPullRequestsEnabled: true },
+          commitStatusEnabled: true,
         };
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, retrievedCompositeSourceControl);
@@ -1517,6 +1546,11 @@ describe('source.control.editor', function () {
         parentName: null,
         parentValue: null,
       },
+      commitStatusEnabled: {
+        value: true,
+        parentName: null,
+        parentValue: null,
+      },
     };
 
     const sourceControlModel = {
@@ -1554,6 +1588,9 @@ describe('source.control.editor', function () {
       sshEnabled: true,
       sshEnabledInheritFrom: null,
       sshEnabledInheritedValue: null,
+      commitStatusEnabled: true,
+      commitStatusEnabledInheritFrom: null,
+      commitStatusEnabledInheritedValue: null,
     };
 
     beforeEach(inject(function () {
@@ -1714,6 +1751,9 @@ describe('source.control.editor', function () {
           sshEnabled: null,
           sshEnabledInheritedValue: true,
           sshEnabledInheritFrom: 'Sub Organization',
+          commitStatusEnabled: null,
+          commitStatusEnabledInheritedValue: true,
+          commitStatusEnabledInheritFrom: 'Sub Organization',
         };
 
         const retrievedCompositeSourceControl = {
@@ -1765,6 +1805,11 @@ describe('source.control.editor', function () {
             parentName: 'Sub Organization',
             parentValue: true,
           },
+          commitStatusEnabled: {
+            value: null,
+            parentName: 'Sub Organization',
+            parentValue: true,
+          },
         };
 
         const savedSourceControl = {
@@ -1802,7 +1847,7 @@ describe('source.control.editor', function () {
       it('updates the existing entry if source control is configured', function () {
         const savedSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true, commitStatusEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1840,7 +1885,7 @@ describe('source.control.editor', function () {
       it('updates the existing entry if source control is configured - ssh url', function () {
         const saveSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', SSH_REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true, commitStatusEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1878,7 +1923,7 @@ describe('source.control.editor', function () {
       it('returns an error for unsuccessful save', function () {
         const savedSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true, commitStatusEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1929,7 +1974,7 @@ describe('source.control.editor', function () {
       it('requires confirmation when URL is updated', function () {
         const savedSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true, commitStatusEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1967,7 +2012,7 @@ describe('source.control.editor', function () {
       it('does not require confirmation when URL is not updated', function () {
         const savedSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true, commitStatusEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);

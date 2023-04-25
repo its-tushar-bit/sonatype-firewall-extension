@@ -74,12 +74,14 @@ describe('SourceControlService', function () {
       token: 'secret_token',
       provider: 'github',
       sshEnabled: true,
+      commitStatusEnabled: true,
     };
 
     const inputOrgRecord = {
       token: 'secret_token',
       provider: 'github',
       sshEnabled: true,
+      commitStatusEnabled: true,
     };
 
     it('creates the source control record for an organization', function () {
@@ -138,12 +140,14 @@ describe('SourceControlService', function () {
       token: 'secret_token',
       provider: 'gitlab',
       sshEnabled: null,
+      commitStatusEnabled: null,
     };
 
     const inputOrgRecord = {
       token: 'secret_token',
       provider: 'gitlab',
       sshEnabled: null,
+      commitStatusEnabled: null,
     };
 
     it('updates the source control record for an organization', function () {

@@ -642,6 +642,13 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.sourceControlEvaluationsInheritRadio().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
 
+    SourceControlEditorPage.sourceControlCommitStatusToggle().shouldNotExist();
+    SourceControlEditorPage.sourceControlCommitStatusInheritRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.sourceControlCommitStatusInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.sourceControlCommitStatusEnabledRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.sourceControlCommitStatusDisabledRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
+
     SourceControlEditorPage.baseBranchInheritRadio().shouldBe(visible, disabled, selected);
     SourceControlEditorPage.baseBranchInheritRadio().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.baseBranchOverrideRadio().shouldBe(visible, disabled);

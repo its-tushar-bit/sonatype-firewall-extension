@@ -94,6 +94,9 @@ function SourceControlEditorController(
   // ssh
   vm.sshEnabledInheritText = undefined;
 
+  // commit status
+  vm.commitStatusEnabledInheritText = undefined;
+
   // status checks
   vm.statusChecksInheritText = undefined;
 
@@ -200,6 +203,10 @@ function SourceControlEditorController(
         vm.sshEnabledInheritText = getEnabledDisabledInheritText(
           vm.dirtySourceControl.sshEnabledInheritFrom,
           vm.dirtySourceControl.sshEnabledInheritedValue
+        );
+        vm.commitStatusEnabledInheritText = getEnabledDisabledInheritText(
+          vm.dirtySourceControl.commitStatusEnabledInheritFrom,
+          vm.dirtySourceControl.commitStatusEnabledInheritedValue
         );
 
         vm.sourceControlMetrics = result[1];
@@ -369,6 +376,14 @@ function SourceControlEditorController(
     model.sshEnabledInheritFrom = compositeSourceControl.sshEnabled.parentName;
     model.sshEnabledInheritedValue = compositeSourceControl.sshEnabled.parentValue;
 
+    model.commitStatusEnabled = setDefaultIfNull(
+      compositeSourceControl.commitStatusEnabled.value,
+      compositeSourceControl.commitStatusEnabled.parentValue,
+      true
+    );
+    model.commitStatusEnabledInheritFrom = compositeSourceControl.commitStatusEnabled.parentName;
+    model.commitStatusEnabledInheritedValue = compositeSourceControl.commitStatusEnabled.parentValue;
+
     return model;
   }
 
@@ -391,6 +406,7 @@ function SourceControlEditorController(
     sourceControl.statusChecksEnabled = true;
     sourceControl.repositoryUrl = null;
     sourceControl.sshEnabled = model.sshEnabled;
+    sourceControl.commitStatusEnabled = model.commitStatusEnabled;
 
     if (vm.isApp) {
       sourceControl.repositoryUrl = model.repositoryUrl;

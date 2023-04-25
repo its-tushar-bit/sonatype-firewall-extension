@@ -129,5 +129,13 @@ public abstract class AbstractSourceControlEditorTest
     SourceControlEditorPage.sourceControlEvaluationsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.sourceControlEvaluationsEnableRadio().shouldNotBe(visible);
     SourceControlEditorPage.sourceControlEvaluationsDisableRadio().shouldNotBe(visible);
+
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert()
+        .shouldHave(text("This feature is not supported by your license"));
+    SourceControlEditorPage.sourceControlCommitStatusToggle().shouldNotExist();
+    SourceControlEditorPage.sourceControlCommitStatusInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlCommitStatusEnabledRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlCommitStatusDisabledRadio().shouldNotBe(visible);
   }
 }

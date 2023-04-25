@@ -105,6 +105,7 @@ function getDataFromSourceControl(ownerType, ownerId, sourceControl) {
     sourceControlEvaluationsEnabled: sourceControl.sourceControlEvaluationsEnabled,
     sourceControlScanTarget: sourceControl.sourceControlScanTarget,
     sshEnabled: sourceControl.sshEnabled,
+    commitStatusEnabled: sourceControl.commitStatusEnabled,
   };
   if (ownerType === 'application') {
     data.repositoryUrl = sourceControl.repositoryUrl;

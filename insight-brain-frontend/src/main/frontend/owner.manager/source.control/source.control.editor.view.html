@@ -323,6 +323,19 @@
                 can-inherit="!vm.isRootOrg"
                 inherit-label="vm.sourceControlEvaluationsEnabledInheritText"
                 unavailable-msg="vm.getSourceControlEvaluationsNotAvailableMessage()"></inheritable-enable-disable>
+
+        <!-- source control commit status -->
+        <inheritable-enable-disable
+                id="source-control-commit-status"
+                title="Automated Commit Feedback"
+                description="Allow IQ server to create commit statuses."
+                model="vm.dirtySourceControl.commitStatusEnabled"
+                is-available="vm.areSourceControlEvaluationsSupported()"
+                is-disabled="!vm.isProviderSpecifiedAndSourceControlEvaluationsSupported()"
+                is-required="vm.isRootOrg && vm.areSourceControlEvaluationsSupported()"
+                can-inherit="!vm.isRootOrg"
+                inherit-label="vm.commitStatusEnabledInheritText"
+                unavailable-msg="vm.getSourceControlEvaluationsNotAvailableMessage()"></inheritable-enable-disable>
       </div>
 
       <div id="scm-config-results"

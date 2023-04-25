@@ -17,9 +17,9 @@ describe('ProductLogo Utils', function () {
       expect(getProductLogo('')).toEqual('images/sonatype.svg');
     });
     it('returns a firewall logo if Firewall product name is specified — regardless of case', function () {
-      expect(getProductLogo('firewall')).toEqual('images/nexus_firewall.svg');
-      expect(getProductLogo('FIREWALL')).toEqual('images/nexus_firewall.svg');
-      expect(getProductLogo('fIrEwAlL')).toEqual('images/nexus_firewall.svg');
+      expect(getProductLogo('repository firewall')).toEqual('images/nexus_firewall.svg');
+      expect(getProductLogo('REPOSITORY FIREWALL')).toEqual('images/nexus_firewall.svg');
+      expect(getProductLogo('rePositorY fIrEwAlL')).toEqual('images/nexus_firewall.svg');
     });
     it('returns a lifecycle logo if lifecycle product name is specified — regardless of case', function () {
       expect(getProductLogo('lifecycle')).toEqual('images/nexus_lifecycle.svg');

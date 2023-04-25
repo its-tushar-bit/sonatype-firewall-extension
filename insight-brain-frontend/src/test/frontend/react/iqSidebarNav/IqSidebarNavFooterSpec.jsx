@@ -34,21 +34,6 @@ describe('IqSidebarNavFooter', function () {
     expect(shallow(<Fixture />)).toIncludeText('Release 2');
   });
 
-  // Note: normally you might say this is the sort of detail that should be left to a visual test.  However visual
-  // tests of this area are covered in ignore regions since the release number changes over time
-  it('passes the productName within an iq-sidebar-nav-footer__product-name span in the releaseText', function () {
-    const component = getShallowComponent({ productName: 'Cool Stuff' }),
-      releaseText = component.prop('releaseText');
-
-    function Fixture() {
-      return releaseText;
-    }
-
-    const productName = shallow(<Fixture />).find('span.iq-sidebar-nav-footer__product-name');
-
-    expect(productName).toHaveText('Cool Stuff');
-  });
-
   it('does not display release when version is disabled', function () {
     const component = getShallowComponent({ releaseNumber: '2', isShowVersionEnabled: false }),
       releaseText = component.prop('releaseText');

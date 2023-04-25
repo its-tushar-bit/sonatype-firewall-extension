@@ -470,7 +470,10 @@ describe('IqSidebarNav', function () {
 
   describe('product logo handling', function () {
     it('gets product logo using to the supplied productEdiction prop', function () {
-      expect(getShallowComponent({ productEdition: 'Firewall' })).toHaveProp('logoImg', 'images/nexus_firewall.svg');
+      expect(getShallowComponent({ productEdition: 'Repository Firewall' })).toHaveProp(
+        'logoImg',
+        'images/nexus_firewall.svg'
+      );
       expect(getShallowComponent({ productEdition: 'Lifecycle' })).toHaveProp('logoImg', 'images/nexus_lifecycle.svg');
       expect(getShallowComponent({ productEdition: 'Lifecycle Foundation' })).toHaveProp(
         'logoImg',

@@ -8,21 +8,12 @@ import * as PropTypes from 'prop-types';
 import { NxGlobalSidebarFooter } from '@sonatype/react-shared-components';
 import { SINGLE_TENANT } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-export default function IqSidebarNavFooter({ productName, releaseNumber, isShowVersionEnabled }) {
-  const releaseText = (
-    <Fragment>
-      <span className="iq-sidebar-nav-footer__product-name visual-testing-ignore">{productName}</span>
-      {displayVersion()}
-    </Fragment>
-  );
+export default function IqSidebarNavFooter({ releaseNumber, isShowVersionEnabled }) {
+  const releaseText = <Fragment>{displayVersion()}</Fragment>;
 
   function displayVersion() {
     if (isShowVersionEnabled) {
-      return (
-        <>
-          {` `}Release {releaseNumber}
-        </>
-      );
+      return <>Release {releaseNumber}</>;
     }
 
     return null;
@@ -39,7 +30,6 @@ export default function IqSidebarNavFooter({ productName, releaseNumber, isShowV
 }
 
 IqSidebarNavFooter.propTypes = {
-  productName: PropTypes.string,
   releaseNumber: PropTypes.string,
   isShowVersionEnabled: PropTypes.bool,
 };

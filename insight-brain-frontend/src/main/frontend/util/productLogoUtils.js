@@ -6,7 +6,7 @@
 
 const NEXUS_AUDITOR = 'AUDITOR';
 const NEXUS_AUDITOR_LOGO = require('../img/nexus_auditor.svg');
-const NEXUS_FIREWALL = 'FIREWALL';
+const NEXUS_FIREWALL = 'REPOSITORY FIREWALL';
 const NEXUS_FIREWALL_LOGO = require('../img/nexus_firewall.svg');
 const NEXUS_LIFECYCLE = 'LIFECYCLE';
 const NEXUS_LIFECYCLE_FOUNDATION = 'LIFECYCLE FOUNDATION';

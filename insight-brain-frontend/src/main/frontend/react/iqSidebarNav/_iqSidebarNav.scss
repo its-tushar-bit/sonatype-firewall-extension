@@ -73,3 +73,14 @@ iq-sidebar-nav {
     display: none;
   }
 }
+
+.nx-global-sidebar .nx-global-sidebar__header {
+  // In IQ 161 the product logos have been updated before RSC can accommodate the new larger logos.
+  height: 43px;
+}
+
+.nx-global-sidebar .nx-global-sidebar__logo {
+  // In IQ 161 the product logos have been updated before RSC can accommodate the new larger logos.
+  max-width: 155px;
+  height: 43px;
+}

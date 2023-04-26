@@ -187,10 +187,15 @@ public class TestProductLicenseManager
     private Date expirationDate = new Date(System.currentTimeMillis() + 6000 * 1000);
 
     private String[] products = {
-        ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
-        ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_FIREWALL_V2,
+        ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS,
+        ProductLicenseDetails.PRODUCT_FIREWALL_V2,
         ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2,
-        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD, ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD,
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS,
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS,
+        ProductLicenseDetails.PRODUCT_AUDITOR_SAAS
     };
 
     private Set<LicensedFeature> features;
@@ -200,7 +205,7 @@ public class TestProductLicenseManager
     private final Map<String, String> properties = new HashMap<>();
 
     private boolean forceInstallIOFailure = false;
-    
+
     private boolean forceUninstallFailure = false;
 
     private boolean forceVerificationFailure;

@@ -252,6 +252,24 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetFeatures_AuditorSaaS() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.DASHBOARD, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.POLICY_MONITORING, //
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.POLICY_GRANDFATHERING, //
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+  }
+
+  @Test
   public void testGetFeatures_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     mockHdsProductLicenseDetails(withFeatures());
@@ -305,22 +323,25 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
-    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
-        LicensedFeature.IDE_INTEGRATION,
-        LicensedFeature.CI_INTEGRATION,
-        LicensedFeature.RM_STAGING_INTEGRATION,
-        LicensedFeature.DASHBOARD,
-        LicensedFeature.WAIVERS_DASHBOARD,
-        LicensedFeature.POLICY_MONITORING,
-        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
-        LicensedFeature.CLI_INTEGRATION,
-        LicensedFeature.QUALITY,
-        LicensedFeature.ENFORCEMENT,
-        LicensedFeature.NOTIFICATIONS,
-        LicensedFeature.POLICY_GRANDFATHERING,
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.IDE_INTEGRATION, //
+        LicensedFeature.CI_INTEGRATION, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.DASHBOARD, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.POLICY_MONITORING, //
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.QUALITY, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.POLICY_GRANDFATHERING, //
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
         LicensedFeature.AUTOMATION,
-        LicensedFeature.IP_ALLOWLIST,
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+        LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES,
+        LicensedFeature.HYGIENE,
+        LicensedFeature.RELEASE_INTEGRITY,
+        LicensedFeature.BREAKING_CHANGE);
   }
 
   @Test
@@ -405,15 +426,15 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
-    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
-        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-        LicensedFeature.RELEASE_INTEGRITY,
-        LicensedFeature.FIREWALL,
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(//
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, //
+        LicensedFeature.RELEASE_INTEGRITY, //
+        LicensedFeature.FIREWALL, //
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
-        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES,
-        LicensedFeature.RM_STAGING_INTEGRATION,
-        LicensedFeature.WAIVERS_DASHBOARD,
-        LicensedFeature.IP_ALLOWLIST);
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
   @Test
@@ -431,8 +452,33 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetFeatures_FoundationSaaS() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.DASHBOARD, //
+        LicensedFeature.WAIVERS_DASHBOARD, //
+        LicensedFeature.CI_INTEGRATION, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.QUALITY);
+  }
+
+  @Test
   public void testGetStageTypes_Auditor() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.RELEASE, //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_AuditorSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS);
     mockHdsProductLicenseDetails(withStages());
     installLicense();
 
@@ -576,6 +622,22 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_Foundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE, //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_FoundationSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS);
     mockHdsProductLicenseDetails(withStages());
     installLicense();
 

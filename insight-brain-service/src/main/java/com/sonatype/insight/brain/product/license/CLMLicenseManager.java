@@ -98,6 +98,10 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_LIFECYCLE_FIREWALL_SAAS = "Lifecycle Firewall SaaS";
 
+  public static final String PRODUCT_LIFECYCLE_FOUNDATION_SAAS = "Lifecycle Foundation SaaS";
+
+  public static final String PRODUCT_AUDITOR_SAAS = "Auditor SaaS";
+
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
@@ -332,6 +336,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION:
         marketingNameSuffix = PRODUCT_LIFECYCLE;
         break;
+      case ProductLicenseDetails.PRODUCT_AUDITOR_SAAS:
+        marketingNameSuffix = PRODUCT_AUDITOR_SAAS;
+        break;
       case ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD:
         marketingNameSuffix = PRODUCT_LIFECYCLE_CLOUD;
         break;
@@ -340,6 +347,9 @@ public class CLMLicenseManager
         break;
       case ProductLicenseDetails.PRODUCT_FOUNDATION:
         marketingNameSuffix = PRODUCT_LIFECYCLE_FOUNDATION;
+        break;
+      case ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS:
+        marketingNameSuffix = PRODUCT_LIFECYCLE_FOUNDATION_SAAS;
         break;
       case ProductLicenseDetails.PRODUCT_FIREWALL:
       case ProductLicenseDetails.PRODUCT_FIREWALL_V2:
@@ -398,6 +408,7 @@ public class CLMLicenseManager
       case LEGACY:
         switch (productEdition) {
           case PRODUCT_AUDITOR:
+          case PRODUCT_AUDITOR_SAAS:
             applicationLimitToDisplay = productLicense.getMaxApplications();
             break;
           case PRODUCT_PRO_PLUS:
@@ -407,6 +418,7 @@ public class CLMLicenseManager
           case PRODUCT_LIFECYCLE_CLOUD:
           case PRODUCT_LIFECYCLE_SAAS:
           case PRODUCT_LIFECYCLE_FOUNDATION:
+          case PRODUCT_LIFECYCLE_FOUNDATION_SAAS:
             licensedUsersToDisplay = productLicense.getMaxUsers();
             //$FALL-THROUGH$ fallthrough
           case PRODUCT_FIREWALL:
@@ -447,6 +459,9 @@ public class CLMLicenseManager
     else if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
       return PRODUCT_LIFECYCLE_FOUNDATION;
     }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS)) {
+      return PRODUCT_LIFECYCLE_FOUNDATION_SAAS;
+    }
     else if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
       return PRODUCT_FIREWALL;
     }
@@ -464,6 +479,9 @@ public class CLMLicenseManager
     }
     else if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
       return PRODUCT_AUDITOR;
+    }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS)) {
+      return PRODUCT_AUDITOR_SAAS;
     }
     else if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)) {
       return PRODUCT_LIFECYCLE_CLOUD;
@@ -520,7 +538,8 @@ public class CLMLicenseManager
 
     Set<LicensedFeature> features = EnumSet.noneOf(LicensedFeature.class);
     Set<StageType> stageTypes = new LinkedHashSet<>();
-    if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
+    if (products.contains(ProductLicenseDetails.PRODUCT_RISK)
+        || products.contains(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS)) {
       features.add(LicensedFeature.POLICY_MONITORING);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
       features.add(LicensedFeature.DASHBOARD);
@@ -533,7 +552,8 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       stageTypes.add(StageTypes.RELEASE);
     }
-    if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
+    if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)
+        || products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS)) {
       features.add(LicensedFeature.QUALITY);
       features.add(LicensedFeature.POLICY_MONITORING);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
@@ -563,7 +583,8 @@ public class CLMLicenseManager
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }
-    if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)) {
+    if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)
+        || products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS)) {
       features.add(LicensedFeature.DASHBOARD);
       features.add(LicensedFeature.WAIVERS_DASHBOARD);
       features.add(LicensedFeature.CLI_INTEGRATION);
@@ -584,7 +605,8 @@ public class CLMLicenseManager
       stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_V2) ||
-        products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2)) {
+        products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2) ||
+        products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS)) {
       features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
       features.add(LicensedFeature.RELEASE_INTEGRITY);
       features.add(LicensedFeature.FIREWALL);
@@ -617,24 +639,6 @@ public class CLMLicenseManager
       features.add(LicensedFeature.IP_ALLOWLIST);
       stageTypes.addAll(StageTypes.getAll());
     }
-    if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS)) {
-      features.add(LicensedFeature.QUALITY);
-      features.add(LicensedFeature.POLICY_MONITORING);
-      features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
-      features.add(LicensedFeature.DASHBOARD);
-      features.add(LicensedFeature.WAIVERS_DASHBOARD);
-      features.add(LicensedFeature.CLI_INTEGRATION);
-      features.add(LicensedFeature.ENFORCEMENT);
-      features.add(LicensedFeature.NOTIFICATIONS);
-      features.add(LicensedFeature.POLICY_GRANDFATHERING);
-      features.add(LicensedFeature.IDE_INTEGRATION);
-      features.add(LicensedFeature.CI_INTEGRATION);
-      features.add(LicensedFeature.RM_STAGING_INTEGRATION);
-      features.add(LicensedFeature.AUTOMATION);
-      features.add(LicensedFeature.IP_ALLOWLIST);
-      features.add(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
-      stageTypes.addAll(StageTypes.getAll());
-    }
     if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD)) {
       features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
       features.add(LicensedFeature.RELEASE_INTEGRITY);
@@ -643,18 +647,6 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
-      features.add(LicensedFeature.IP_ALLOWLIST);
-      features.add(LicensedFeature.WAIVERS_DASHBOARD);
-      stageTypes.add(StageTypes.STAGE_RELEASE);
-      stageTypes.add(StageTypes.RELEASE);
-    }
-    if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS)) {
-      features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
-      features.add(LicensedFeature.RELEASE_INTEGRITY);
-      features.add(LicensedFeature.FIREWALL);
-      features.add(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
-      features.add(LicensedFeature.RM_STAGING_INTEGRATION);
-      features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.IP_ALLOWLIST);
       features.add(LicensedFeature.WAIVERS_DASHBOARD);
       stageTypes.add(StageTypes.STAGE_RELEASE);

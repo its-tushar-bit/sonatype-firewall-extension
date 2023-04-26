@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -65,6 +64,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import datadog.trace.api.DDTags;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
@@ -230,6 +232,8 @@ public class IndexService
       else {
         updateIndex();
       }
+
+      updateDatadogResourceName();
     }
     catch (Exception e) {
       log.error("Failed to update search index: {}", e.getMessage(), e);
@@ -240,6 +244,17 @@ public class IndexService
       t.printStackTrace();
       log.error(t.getMessage(), t);
       System.exit(2);
+    }
+  }
+
+  /**
+   * This class ends up being proxied by Guice and has hash appended to its name which ruins Datadog traces. This code
+   * will alter the name to match the expected pattern. See CLM-25207.
+   */
+  private void updateDatadogResourceName() {
+    final Span span = GlobalTracer.get().activeSpan();
+    if (span != null) {
+      span.setTag(DDTags.RESOURCE_NAME, "class com.sonatype.insight.brain.search.index.IndexService");
     }
   }
 

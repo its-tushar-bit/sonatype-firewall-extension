@@ -20,6 +20,7 @@
     <test.forkCount>0.5C</test.forkCount>
     <freemarker.version>2.3.31</freemarker.version>
     <truezipVersion>7.7.10</truezipVersion>
+    <datadog.version>1.12.1</datadog.version>
   </properties>
 
   <dependencies>
@@ -372,6 +373,17 @@
           <artifactId>HikariCP-java7</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>com.datadoghq</groupId>
+      <artifactId>dd-trace-api</artifactId>
+      <version>${datadog.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.datadoghq</groupId>
+      <artifactId>dd-trace-ot</artifactId>
+      <version>${datadog.version}</version>
     </dependency>
 
     <dependency>

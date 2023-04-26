@@ -295,7 +295,8 @@ public abstract class AbstractBrainServiceTest
             SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
             SystemConfigurationProperty.ACCESS_ALLOWLIST,
             SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED,
-            SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR);
+            SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+            SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED);
       }
     }
     releaseScmPerpetualLock();

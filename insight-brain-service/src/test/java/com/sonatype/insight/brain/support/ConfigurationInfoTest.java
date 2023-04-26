@@ -82,6 +82,8 @@ public class ConfigurationInfoTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, "newScan");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
         "14");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
+        "true");
 
     configuration.configurationChanged(Sets.newHashSet(
         SystemConfigurationProperty.PURGE_SCAN_FILES,
@@ -114,7 +116,8 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+        SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED
     ));
 
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
@@ -159,6 +162,8 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("newScan");
     assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR).asText()).isEqualTo(
         "14");
+    assertThat(configNode.get(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED).asText()).isEqualTo(
+        "true");
   }
 
   @Test
@@ -201,5 +206,7 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR).asText()).isEqualTo(
         "null");
+    assertThat(configNode.get(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED).asText()).isEqualTo(
+        "true");
   }
 }

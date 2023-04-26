@@ -74,6 +74,8 @@ public class ConfigurationInfo
         configuration.getBaseUrlConfiguration() != null ? configuration.getBaseUrlConfiguration()
             .isForceBaseUrl() : null);
     entries.put(SystemConfigurationProperty.ACCESS_ALLOWLIST, configuration.getAccessAllowlist());
+    entries.put(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
+        configuration.isALPObservedLicenseDetectionEnabled());
     entries.put(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
         configuration.getWaivedComponentUpgradeInspectionHour());
 

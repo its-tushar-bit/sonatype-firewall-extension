@@ -174,7 +174,8 @@ public class Configuration
         SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT,
         SystemConfigurationProperty.BFS_REPOSITORIES,
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR)
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+        SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED)
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
@@ -406,6 +407,17 @@ public class Configuration
       sourceControlConfiguration = new SourceControlConfiguration();
     }
     return sourceControlConfiguration;
+  }
+
+  public boolean isALPObservedLicenseDetectionEnabled() {
+    return configCache.get(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED);
+  }
+
+  public void setALPObservedLicenseDetectionEnabled(boolean enableObservedLicenseDetection) {
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
+        enableObservedLicenseDetection);
+    configurationService.updateAllClusterNodesFromConfiguration(
+        Collections.singleton(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED));
   }
 
   public int getReleaseGraphCacheSize() {

@@ -653,6 +653,10 @@ INSERT INTO system_configuration_property (system_configuration_property_id, nam
 -- Since 1.159
 -- Waived component upgrade inspection runs at midnight by default
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('dc866d71378a41ce9da2526904bd88e9', 'waivedComponentUpgradeInspectionHour', '1');
+-- Since 1.161
+-- ALP Observed License Detection is enable by default
+INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('bc973eece2b811edb5ea0242ac120002', 'ALP_OBSERVED_LICENSE_DETECTION_ENABLED', 'true');
+
 
 CREATE TABLE data_retention_policy (
   data_retention_policy_id varchar(50) NOT NULL,

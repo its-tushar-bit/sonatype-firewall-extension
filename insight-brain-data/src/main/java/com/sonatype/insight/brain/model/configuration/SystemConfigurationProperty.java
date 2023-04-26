@@ -180,6 +180,8 @@ public class SystemConfigurationProperty
 
   public static final String LOGOUT_AUTH0_ON_LOGOUT = "logoutAuth0OnLogout";
 
+  public static final String ALP_OBSERVED_LICENSE_DETECTION_ENABLED = "alpObservedLicenseDetectionEnabled";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

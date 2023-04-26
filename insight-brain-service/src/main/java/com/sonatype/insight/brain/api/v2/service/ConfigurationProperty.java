@@ -157,6 +157,10 @@ public class ConfigurationProperty
           (p, s) -> NumberUtils.createInteger(s),
           (p, o) -> ConfigurationUtils.integerValueToString(o,
               SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 0, 23)),
+      new ConfigurationProperty(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
+          String.class,
+          (p, s) -> Boolean.parseBoolean(s),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

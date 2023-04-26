@@ -44,8 +44,32 @@ public class PolicyTileList
     return this.header(1);
   }
 
+  public HeaderColumn proxyHeaderColumn() {
+    return this.header(2);
+  }
+
+  public HeaderColumn developHeaderColumn() {
+    return this.header(3);
+  }
+
+  public HeaderColumn sourceHeaderColumn() {
+    return this.header(4);
+  }
+
   public HeaderColumn buildHeaderColumn() {
     return this.header(5);
+  }
+
+  public HeaderColumn stageHeaderColumn() {
+    return this.header(6);
+  }
+
+  public HeaderColumn releaseHeaderColumn() {
+    return this.header(7);
+  }
+
+  public HeaderColumn operateHeaderColumn() {
+    return this.header(8);
   }
 
   public static class PolicyTileListElement

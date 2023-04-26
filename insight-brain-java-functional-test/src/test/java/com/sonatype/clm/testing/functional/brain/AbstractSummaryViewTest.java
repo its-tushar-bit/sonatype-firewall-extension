@@ -21,6 +21,7 @@ import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.ArtifactoryRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
 import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile.InheritedLabel;
@@ -665,7 +666,8 @@ public abstract class AbstractSummaryViewTest
       inheritedPolicieslist.emptyDescriptor().shouldBe(visible).shouldHave(text("No Root"));
     }
 
-    PolicyTileList localPolicieslist = policyTile.policyList(0);
+    PolicyTileList policyTable = policyTile.policyTileTable();
+    PolicyTileList localPolicieslist = policyTile.localPolicyList();
     localPolicieslist.emptyDescriptor().shouldBe(hidden);
 
     localPolicieslist.rows().shouldHaveSize(4); // 3 rows plus header
@@ -681,12 +683,11 @@ public abstract class AbstractSummaryViewTest
     Policy actualPolicy3 = localPolicies.get(2);
     assertPolicy(policyElement3, actualPolicy3);
 
-    // TODO add sort test CLM-25402
-    /*localPolicieslist.buildHeaderColumn().nxAnchor().click();
-    localPolicieslist.buildHeaderColumn().sort(NX_UP_SELECTED).shouldBe(visible);
-    localPolicieslist.buildHeaderColumn().sort(NX_DOWN_SELECTED).shouldBe(visible);
-    localPolicieslist.threatLegendHeaderColumn().sort(NX_DOWN_SELECTED).shouldNotBe(visible);
-    localPolicieslist.threatLegendHeaderColumn().sort(NX_UP_SELECTED).shouldNotBe(visible);
+    policyTable.buildHeaderColumn().nxAnchor().click();
+    policyTable.buildHeaderColumn().sort(HeaderColumn.NX_UP_SELECTED).shouldBe(visible);
+    policyTable.buildHeaderColumn().sort(HeaderColumn.NX_DOWN_SELECTED).shouldBe(visible);
+    localPolicieslist.threatLegendHeaderColumn().sort(HeaderColumn.NX_DOWN_SELECTED).shouldNotBe(visible);
+    localPolicieslist.threatLegendHeaderColumn().sort(HeaderColumn.NX_UP_SELECTED).shouldNotBe(visible);
 
     policyElement1 = localPolicieslist.row(1);
     policyElement2 = localPolicieslist.row(2);
@@ -695,16 +696,16 @@ public abstract class AbstractSummaryViewTest
     assertPolicy(policyElement2, actualPolicy2);
     assertPolicy(policyElement3, actualPolicy3);
 
-    localPolicieslist.buildHeaderColumn().nxAnchor().click();
-    localPolicieslist.buildHeaderColumn().sort(NX_UP_SELECTED).shouldBe(visible);
-    localPolicieslist.buildHeaderColumn().sort(NX_DOWN_SELECTED).shouldBe(visible);
+    policyTable.buildHeaderColumn().nxAnchor().click();
+    policyTable.buildHeaderColumn().sort(HeaderColumn.NX_UP_SELECTED).shouldBe(visible);
+    policyTable.buildHeaderColumn().sort(HeaderColumn.NX_DOWN_SELECTED).shouldBe(visible);
 
     policyElement1 = localPolicieslist.row(1);
     policyElement2 = localPolicieslist.row(2);
     policyElement3 = localPolicieslist.row(3);
     assertPolicy(policyElement1, actualPolicy3);
     assertPolicy(policyElement2, actualPolicy2);
-    assertPolicy(policyElement3, actualPolicy1);*/
+    assertPolicy(policyElement3, actualPolicy1);
   }
 
   @Test
@@ -975,6 +976,7 @@ public abstract class AbstractSummaryViewTest
   private void testPolicyTile_Inherited(List<List<Policy>> inheritedPolicies, List<Owner> parentOwners) {
     int hierarchySize = parentOwners.size() + 1;
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
+    PolicyTileList policyTable = policyTile.policyTileTable();
     assertThat(policyTile.inheritedPolicyLists()).hasSameSizeAs(inheritedPolicies);
     policyTile.policyLists().shouldHaveSize(hierarchySize);
 
@@ -1000,22 +1002,31 @@ public abstract class AbstractSummaryViewTest
         Policy actualPolicy2 = inheritedPolicies.get(i - 1).get(1);
         assertPolicy(policyElement2, actualPolicy2);
 
-        // TODO add sort test here CLM-25402
-        // list.nameHeaderColumn().nxAnchor().click();
-        // list.nameHeaderColumn().sort(NX_UP_SELECTED).shouldBe(visible);
-        // list.nameHeaderColumn().sort(NX_DOWN_SELECTED).shouldBe(visible);
-        // list.threatLegendHeaderColumn().sort(NX_UP_SELECTED).shouldNot(exist);
-        // list.threatLegendHeaderColumn().sort(NX_DOWN_SELECTED).shouldNot(exist);
+        policyTable.threatLegendHeaderColumn().sort(HeaderColumn.NX_UP_SELECTED).shouldBe(visible);
+        policyTable.threatLegendHeaderColumn().sort(HeaderColumn.NX_DOWN_SELECTED).shouldBe(visible);
 
-        // assertPolicy(policyElement1, actualPolicy1);
-        // assertPolicy(policyElement2, actualPolicy2);
+        policyTable.nameHeaderColumn().nxAnchor().click();
 
-        // list.nameHeaderColumn().nxAnchor().click();
-        // list.nameHeaderColumn().sort(NX_UP_SELECTED).shouldBe(visible);
-        // list.nameHeaderColumn().sort(NX_DOWN_SELECTED).shouldBe(visible);
+        policyTable.nameHeaderColumn().sort(HeaderColumn.NX_UP_SELECTED).shouldBe(visible);
+        policyTable.nameHeaderColumn().sort(HeaderColumn.NX_DOWN_SELECTED).shouldBe(visible);
+        policyTable.threatLegendHeaderColumn().sort(HeaderColumn.NX_UP_SELECTED).shouldNot(exist);
+        policyTable.threatLegendHeaderColumn().sort(HeaderColumn.NX_DOWN_SELECTED).shouldNot(exist);
 
-        // assertPolicy(policyElement1, actualPolicy2);
-        // assertPolicy(policyElement2, actualPolicy1);
+        assertPolicy(policyElement1, actualPolicy1);
+        assertPolicy(policyElement2, actualPolicy2);
+
+        policyTable.threatLegendHeaderColumn().nxAnchor().click();
+        
+        policyTable.threatLegendHeaderColumn().sort(HeaderColumn.NX_UP_SELECTED).shouldBe(visible);
+        policyTable.threatLegendHeaderColumn().sort(HeaderColumn.NX_DOWN_SELECTED).shouldBe(visible);
+        policyTable.nameHeaderColumn().sort(HeaderColumn.NX_UP_SELECTED).shouldNot(exist);
+        policyTable.nameHeaderColumn().sort(HeaderColumn.NX_DOWN_SELECTED).shouldNot(exist);
+
+        assertPolicy(policyElement1, actualPolicy2);
+        assertPolicy(policyElement2, actualPolicy1);
+
+        // reset sorting to original state
+        policyTable.threatLegendHeaderColumn().nxAnchor().click();
       }
     }
   }
@@ -1053,8 +1064,6 @@ public abstract class AbstractSummaryViewTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
 
-    // TODO add second param to function assertPolicyTile_Foundation(policy, false);
-    // for sorting CLM-25402
     assertPolicyTile_Foundation(policy);
   }
 
@@ -1066,40 +1075,45 @@ public abstract class AbstractSummaryViewTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
 
-    // TODO add second param to function assertPolicyTile_Foundation(policy, true);
-    // for sorting CLM-25402
-    assertPolicyTile_Foundation(policy);
+    assertPolicyTile_Foundation(policy, true);
   }
 
-  // TODO add second param to function  (Policy policy, boolean proxyActionReadOnly)
-  // for sorting CLM-25402
-  private void assertPolicyTile_Foundation(Policy policy) {
+  private void assertPolicyTile_Foundation(Policy policy, boolean... proxyActionReadOnly) {
+    boolean isProxyActionReadOnly = proxyActionReadOnly.length >= 1 && proxyActionReadOnly[0];
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     ScrollUtil.scrollIntoViewInstantly(policyTile.getElement());
 
+    PolicyTileList policyTable = policyTile.policyTileTable();
     PolicyTileList list = policyTile.policyList(0);
 
     PolicyTileListElement policyElement = list.row(1);
     policyElement.threatLegend().shouldBe(visible).shouldHave(text("" + policy.getThreatLevel()));
     policyElement.name().shouldBe(visible).shouldHave(text(policy.getName()));
 
-    // TODO add assert for disabled header cell CLM-25402
-    /*HeaderColumn proxy = list.header(2);
-    proxy.nxAnchorHeader().shouldHave(text("PROXY"));
+    policyTable.proxyHeaderColumn().nxAnchorHeader().shouldHave(text("PROXY"));
+    policyTable.developHeaderColumn().nxAnchorHeader().shouldHave(text("DEVELOP"));
+    policyTable.sourceHeaderColumn().nxAnchorHeader().shouldHave(text("SOURCE"));
+    policyTable.buildHeaderColumn().nxAnchorHeader().shouldHave(text("BUILD"));
+    policyTable.stageHeaderColumn().nxAnchorHeader().shouldHave(text("STAGE"));
+    policyTable.releaseHeaderColumn().nxAnchorHeader().shouldHave(text("RELEASE"));
+    policyTable.operateHeaderColumn().nxAnchorHeader().shouldHave(text("OPERATE"));
 
-    if (proxyActionReadOnly) {
-      proxy.root.shouldHave(PolicyTileList.CELL_DISABLED);
-      policyElement.column(3).shouldBe(visible).shouldHave(PolicyTile.noActionText())
-          .shouldHave(PolicyTileList.CELL_DISABLED);
+    // Start on proxy column and don't include last column (select row)
+    ElementsCollection headerColumns = policyTile.headerColumns();
+    for (int i = 2; i < headerColumns.size() - 1; i++) {
+      HeaderColumn header = policyTable.header(i);
+      // If not read only, only proxy should not be disabled
+      if (i == 2 && !isProxyActionReadOnly) {
+        header.root.shouldNotHave(PolicyTileList.CELL_DISABLED);
+        policyElement.column(i + 1).shouldBe(visible).shouldHave(PolicyTile.noActionText())
+            .shouldNotHave(PolicyTileList.CELL_DISABLED);
+      }
+      else {
+        header.root.shouldHave(PolicyTileList.CELL_DISABLED);
+        policyElement.column(i + 1).shouldBe(visible).shouldHave(PolicyTile.noActionText())
+            .shouldHave(PolicyTileList.CELL_DISABLED);
+      }
     }
-    else {
-      proxy.root.shouldNotHave(PolicyTileList.CELL_DISABLED);
-      policyElement.column(3).shouldBe(visible).shouldHave(PolicyTile.noActionText())
-          .shouldNotHave(PolicyTileList.CELL_DISABLED);
-    }*/
-
-    // check a few of the other stages (develop, and operate) and make sure they're
-    // disabled.
   }
 
   @Test
@@ -1112,6 +1126,7 @@ public abstract class AbstractSummaryViewTest
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
+    PolicyTileList policyTable = policyTile.policyTileTable();
 
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
     ScrollUtil.scrollIntoViewInstantly(policyTile.getElement());
@@ -1120,16 +1135,12 @@ public abstract class AbstractSummaryViewTest
 
     PolicyTileListElement policyElement = list.row(1);
     Policy actualPolicy = localPolicies.get(0);
-
-    // TODO validate that headers have only proxy and release stages columns
-    // HeaderColumn proxy = list.header(2);
-
-    // should only have proxy and release
-    // proxy.nxAnchorHeader().shouldHave(text("PROXY"));
-
-    // HeaderColumn release = list.header(3);
-    // release.nxAnchorHeader().shouldHave(text("RELEASE"));
-    // list.header(4).name().shouldNot(exist);
+    // Validate that headers only have proxy and release columns
+    policyTable.proxyHeaderColumn().nxAnchorHeader().shouldHave(text("PROXY"));
+    // Release column and select row are next after proxy and there are no additional columns
+    policyTable.header(3).nxAnchorHeader().shouldHave(text("RELEASE"));
+    policyTable.header(4).nxAnchorHeader().shouldHave(text("SELECT ROW"));
+    policyTable.header(5).nxAnchorHeader().shouldNot(exist);
 
     policyElement.chevron().shouldBe(visible);
     policyElement.threatLegend().shouldBe(visible).shouldHave(text("" + actualPolicy.getThreatLevel()));

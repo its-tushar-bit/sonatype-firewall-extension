@@ -964,10 +964,10 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repository.setQuarantineEnabled(true);
     repository.setPolicyCompliantComponentSelectionEnabled(true);
 
-    Date before = new Date();
+    Date beforeConfig = new Date();
     // Call the service
     repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
-    Date after = new Date();
+    Date afterConfig = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
 
@@ -975,7 +975,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repository.isEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
-    assertThat(repository.getLastManualConfigureTime()).isBetween(before, after);
+    assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
   }
 
   @Test
@@ -989,11 +989,11 @@ public class RepositoryServiceTest extends AbstractComponentTest
     existingRepository3.setQuarantineEnabled(true);
     existingRepository3.setPolicyCompliantComponentSelectionEnabled(true);
 
-    Date before = new Date();
+    Date beforeConfig = new Date();
     // Call the service
     repositoryService.configureRepositories(repositoryManager.getId(),
         Arrays.asList(existingRepository1, existingRepository3));
-    Date after = new Date();
+    Date afterConfig = new Date();
 
     Repository repository = repositoryDAO.getById(existingRepository3.getId());
 
@@ -1002,6 +1002,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repository.isQuarantineEnabled()).isTrue();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
-    assertThat(repository.getLastManualConfigureTime()).isBetween(before, after);
+    assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
   }
 }

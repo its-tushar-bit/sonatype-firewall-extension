@@ -339,12 +339,12 @@ public class RepositoryResourceTest
     repository.setQuarantineEnabled(true);
     repository.setPolicyCompliantComponentSelectionEnabled(true);
 
-    Date before = new Date();
+    Date beforeConfig = new Date();
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.CONFIGURE_REPOSITORIES_PATH)
             .parameter(repositoryManager.getId())
             .body(Collections.singletonList(repository)).put();
-    Date after = new Date();
+    Date afterConfig = new Date();
 
     assertResponseStatus(204, response);
     repository = new RepositoryDAO().getById(repository.getId());
@@ -353,6 +353,6 @@ public class RepositoryResourceTest
     assertThat(repository.isQuarantineEnabled()).isTrue();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
-    assertThat(repository.getLastManualConfigureTime()).isBetween(before, after);
+    assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
   }
 }

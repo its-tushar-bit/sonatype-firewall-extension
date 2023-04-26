@@ -97,7 +97,7 @@ public class Tenant
     return !valid;
   }
 
-  public static class InvalidTenantSlugException
+  static class InvalidTenantSlugException
       extends RuntimeException
   {
     public InvalidTenantSlugException(String message) {

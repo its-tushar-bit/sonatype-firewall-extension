@@ -145,7 +145,7 @@ public class TenantThreadLocalTest
     TenantTestHelper.setTenant(new Tenant("tenant1"));
 
     assertThatThrownBy(() -> TenantThreadLocal.setTenant(new Tenant("tenant2"))).hasMessage(
-        "Cannot transition from one valid tenant to another. This is to prevent data leakage");
+        "Tenancy error detected: Cannot transition from one valid tenant to another. This is to prevent data leakage");
   }
 
   @Test
@@ -156,7 +156,7 @@ public class TenantThreadLocalTest
     tenant2.invalidate();
 
     assertThatThrownBy(() -> TenantThreadLocal.setTenant(tenant2)).hasMessage(
-        "Attempting to use a tenant from a previous request/process");
+        "Tenancy error detected: Attempting to use a tenant from a previous request/process");
   }
 
   @Test
@@ -166,7 +166,8 @@ public class TenantThreadLocalTest
     TenantThreadLocal.setGlobalTenant();
 
     assertThatThrownBy(() -> TenantThreadLocal.setTenant(new Tenant("tenant2"))).hasMessage(
-        "Cannot transition from one valid tenant to another via Global. This is to prevent data leakage");
+        "Tenancy error detected: Cannot transition from one valid tenant to another via Global. " +
+            "This is to prevent data leakage");
   }
 
   @Test

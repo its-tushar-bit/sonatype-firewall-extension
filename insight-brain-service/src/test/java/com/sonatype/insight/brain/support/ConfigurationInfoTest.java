@@ -207,6 +207,6 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR).asText()).isEqualTo(
         "null");
     assertThat(configNode.get(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED).asText()).isEqualTo(
-        "true");
+        "false");
   }
 }

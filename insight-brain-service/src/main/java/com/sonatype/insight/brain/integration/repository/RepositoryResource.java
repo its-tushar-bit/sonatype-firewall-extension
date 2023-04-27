@@ -172,7 +172,7 @@ public class RepositoryResource
    * @since 1.133
    */
   @POST
-  @Path(EVALUATE_COMPONENT_METADATA)
+  @Path(EVALUATE_COMPONENT_METADATA_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed

@@ -28,7 +28,7 @@ abstract class AbstractRepositoryResource
   static final String QUARANTINED_COMPONENT_REPORT_URL_PATH =
       REPOSITORY_PATH + "components/{pathname: .+}/quarantinedComponentReportUrl";
 
-  static final String EVALUATE_COMPONENT_METADATA = REPOSITORY_PATH + "evaluate/componentMetadata";
+  static final String EVALUATE_COMPONENT_METADATA_PATH = REPOSITORY_PATH + "evaluate/componentMetadata";
 
   static final String CONFIGURE_REPOSITORIES_PATH = "{repositoryManagerInstanceId}/configureRepositories";
 }

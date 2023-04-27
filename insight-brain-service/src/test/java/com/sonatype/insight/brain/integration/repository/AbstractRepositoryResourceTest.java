@@ -381,7 +381,7 @@ public abstract class AbstractRepositoryResourceTest
 
     ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
 
-    HttpResponse response = restRequest().path(AbstractRepositoryResource.EVALUATE_COMPONENT_METADATA)
+    HttpResponse response = restRequest().path(AbstractRepositoryResource.EVALUATE_COMPONENT_METADATA_PATH)
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
         .post();
     assertResponseStatus(200, response);

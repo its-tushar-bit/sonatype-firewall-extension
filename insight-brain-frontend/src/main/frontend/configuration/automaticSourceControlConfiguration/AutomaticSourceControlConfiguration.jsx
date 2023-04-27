@@ -8,6 +8,7 @@ import { NxStatefulForm, NxButton, NxToggle } from '@sonatype/react-shared-compo
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { displayName } from '../scmOnboarding/utils/providers';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 export default function AutomaticSourceControlConfiguration({
   load,
@@ -50,7 +51,7 @@ export default function AutomaticSourceControlConfiguration({
           submitMaskState={submitMaskState}
           doLoad={load}
           submitMaskMessage="Saving…"
-          validationErrors={isDirty ? null : 'There are no changes to update'}
+          validationErrors={isDirty ? null : MSG_NO_CHANGES_TO_UPDATE}
           additionalFooterBtns={cancelButton}
         >
           <header className="nx-tile-header">

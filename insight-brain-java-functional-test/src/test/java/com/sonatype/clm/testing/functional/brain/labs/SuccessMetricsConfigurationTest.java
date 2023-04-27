@@ -84,7 +84,7 @@ public class SuccessMetricsConfigurationTest
     // check the tooltip on the update button
     metricsConfigPage.update().click();
     FormUtils.getAlertElement(metricsConfigPage)
-        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update"));
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update."));
 
     // check the toggle works
     metricsConfigPage.toggle().click();

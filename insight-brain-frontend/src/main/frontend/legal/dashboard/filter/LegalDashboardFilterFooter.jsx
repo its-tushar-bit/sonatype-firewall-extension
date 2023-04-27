@@ -8,6 +8,7 @@ import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { NxErrorAlert, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import { faSync } from '@fortawesome/free-solid-svg-icons';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 export default function LegalDashboardFilterFooter(props) {
   const {
@@ -61,10 +62,7 @@ export default function LegalDashboardFilterFooter(props) {
           Save
         </NxButton>
       </NxTooltip>
-      <NxTooltip
-        id="legal-dashboard-filter-apply-tooltip"
-        title={filtersAreDirty ? '' : 'There are no changes to update.'}
-      >
+      <NxTooltip id="legal-dashboard-filter-apply-tooltip" title={filtersAreDirty ? '' : MSG_NO_CHANGES_TO_UPDATE}>
         <NxButton
           id="legal-dashboard-filter-apply"
           variant="primary"

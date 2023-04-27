@@ -233,7 +233,7 @@ describe('EditWebhook', () => {
       });
       const form = component.find(NxStatefulForm);
 
-      expect(form).toHaveProp('validationErrors', 'There are no changes to update');
+      expect(form).toHaveProp('validationErrors', 'There are no changes to update.');
     });
 
     describe('onCancel', () => {

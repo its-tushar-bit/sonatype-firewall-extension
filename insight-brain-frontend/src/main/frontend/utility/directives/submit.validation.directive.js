@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { isNil } from 'ramda';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 export default function SubmitValidation() {
   return {
     restrict: 'A',
@@ -72,7 +73,7 @@ export default function SubmitValidation() {
           submitType = scope.submitType() || attrs.submitType;
 
         if (submitType === 'update' && !isSubmissionDirty) {
-          title = 'There are no changes to update.';
+          title = MSG_NO_CHANGES_TO_UPDATE;
         } else {
           title = 'Unable to ' + (submitType ? submitType : 'save') + ': fields with invalid or missing data.';
         }

@@ -28,8 +28,8 @@ import {
 } from '../LicenseDetectionsTile/LicenseDetections';
 import OverriddenField from './OverriddenField';
 import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
-const NOT_DIRTY_ERROR_MESSAGE = 'There are no changes to update';
 const NO_SELECTED_LICENSES_ERROR_MESSAGE = 'There must be at least one selected license';
 
 const getLicenseStatuses = (hasSelectableLicenses) => [
@@ -110,7 +110,7 @@ export default function EditLicensesForm({
 
   const getValidationErrors = () => {
     if (!isDirty) {
-      return NOT_DIRTY_ERROR_MESSAGE;
+      return MSG_NO_CHANGES_TO_UPDATE;
     }
 
     const noSelectedLicenses = isOverriddenOrSelected(status) && !licenseIds.length;

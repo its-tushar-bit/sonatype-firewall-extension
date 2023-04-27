@@ -94,7 +94,9 @@ describe('SuccessMetricsConfigurationSpec', () => {
 
     expect(toggle).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-    expect(screen.getByRole('alert')).toHaveTextContent('There were validation errors. There are no changes to update');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'There were validation errors. There are no changes to update.'
+    );
     fireEvent.click(toggle);
 
     expect(toggle).toBeChecked();
@@ -105,7 +107,9 @@ describe('SuccessMetricsConfigurationSpec', () => {
 
     expect(toggle).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-    expect(screen.getByRole('alert')).toHaveTextContent('There were validation errors. There are no changes to update');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'There were validation errors. There are no changes to update.'
+    );
   });
 
   it('submits updated setting', async () => {
@@ -132,7 +136,9 @@ describe('SuccessMetricsConfigurationSpec', () => {
     await waitFor(() => screen.getByRole('alert'));
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-    expect(screen.getByRole('alert')).toHaveTextContent('There were validation errors. There are no changes to update');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'There were validation errors. There are no changes to update.'
+    );
     expect(screen.getByLabelText('Enable Success Metrics')).toBeChecked();
   });
 

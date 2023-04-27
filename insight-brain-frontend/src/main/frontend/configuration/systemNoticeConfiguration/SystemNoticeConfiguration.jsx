@@ -6,8 +6,8 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxStatefulForm, NxToggle, NxButton, NxTextInput, NxFormGroup } from '@sonatype/react-shared-components';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
-const notDirtyErrorMessage = 'There are no changes to update';
 const notValidErrorMessage = 'Notice Text cannot be blank';
 
 const getValidationErrors = ({ message, enabled, isDirty }) => {
@@ -15,7 +15,7 @@ const getValidationErrors = ({ message, enabled, isDirty }) => {
     return notValidErrorMessage;
   }
   if (!isDirty) {
-    return notDirtyErrorMessage;
+    return MSG_NO_CHANGES_TO_UPDATE;
   }
 
   return null;

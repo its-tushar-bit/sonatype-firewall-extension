@@ -39,6 +39,7 @@ import {
   selectServerData,
   selectShowModal,
 } from 'MainRoot/configuration/crowd/atlassianCrowdConfigurationSelectors';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 export default function AtlassianCrowdConfiguration() {
   const dispatch = useDispatch();
@@ -78,7 +79,7 @@ export default function AtlassianCrowdConfiguration() {
 
   const getValidationErrors = () => {
     if (!isDirty) {
-      return 'There are no changes to update';
+      return MSG_NO_CHANGES_TO_UPDATE;
     } else if (mustReenterPassword) {
       return 'Application Password must be provided when updating Server URL.';
     } else if (!hasAllRequiredData) {

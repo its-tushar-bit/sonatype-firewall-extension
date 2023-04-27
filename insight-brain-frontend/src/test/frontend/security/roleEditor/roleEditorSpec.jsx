@@ -131,7 +131,7 @@ describe('RoleEditor', () => {
       };
       const shallowComponent = getShallowComponent(props);
       const form = shallowComponent.find(NxStatefulForm);
-      expect(form).toHaveProp('validationErrors', 'There are no changes to update');
+      expect(form).toHaveProp('validationErrors', 'There are no changes to update.');
     });
 
     it('has a validation error when the role name already exists', () => {

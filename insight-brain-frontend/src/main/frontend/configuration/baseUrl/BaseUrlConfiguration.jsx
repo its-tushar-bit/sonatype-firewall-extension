@@ -37,6 +37,7 @@ import {
   selectServerData,
   selectShowDeleteModal,
 } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 export default function BaseUrlConfiguration() {
   const dispatch = useDispatch();
@@ -69,7 +70,7 @@ export default function BaseUrlConfiguration() {
 
   const getValidationErrors = () => {
     if (!isDirty) {
-      return 'There are no changes to update';
+      return MSG_NO_CHANGES_TO_UPDATE;
     } else if (!hasAllRequiredFields) {
       return 'Base URL is required data.';
     }

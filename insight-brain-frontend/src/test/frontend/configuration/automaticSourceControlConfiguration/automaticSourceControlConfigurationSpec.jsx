@@ -92,7 +92,7 @@ describe('AutomaticSourceControlConfiguration', function () {
     it('has not validation error when the form is not dirty', function () {
       const shallowComponent = getShallowComponent({ isDirty: false });
       const form = shallowComponent.find(NxStatefulForm);
-      expect(form).toHaveProp('validationErrors', 'There are no changes to update');
+      expect(form).toHaveProp('validationErrors', 'There are no changes to update.');
     });
   });
 

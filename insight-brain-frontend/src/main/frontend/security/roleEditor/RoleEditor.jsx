@@ -19,6 +19,7 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
 
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import RoleEditorPermissionsList from './RoleEditorPermissionsList';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 function RoleEditor({
   setRoleName,
@@ -63,7 +64,7 @@ function RoleEditor({
 
   function formValidatorErrors() {
     if (!isDirty) {
-      return 'There are no changes to update';
+      return MSG_NO_CHANGES_TO_UPDATE;
     }
 
     if ((roleName.validationErrors || []).length || (roleDescription.validationErrors || []).length) {

@@ -21,7 +21,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class SystemNoticeConfigurationPage
     extends BasicElement<SystemNoticeConfigurationPage>
 {
-  public static final String NOT_DIRTY_FORM = "There are no changes to update";
+  public static final String NOT_DIRTY_FORM = "There are no changes to update.";
 
   public static final String EMPTY_NOTICE_MESSAGE = "Notice Text cannot be blank";
 

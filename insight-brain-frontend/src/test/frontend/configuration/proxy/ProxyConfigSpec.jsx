@@ -51,11 +51,11 @@ describe('ProxyConfig', () => {
 
   describe('on render', () => {
     describe('validationErrors', () => {
-      it('is "There are no changes to update" if form was not changed', () => {
+      it('is "There are no changes to update." if form was not changed', () => {
         const component = getShallowComponent({ isDirty: false });
         const form = component.find(NxStatefulForm);
 
-        expect(form).toHaveProp('validationErrors', 'There are no changes to update');
+        expect(form).toHaveProp('validationErrors', 'There are no changes to update.');
       });
 
       it('is null if form has all required data and valid data', () => {

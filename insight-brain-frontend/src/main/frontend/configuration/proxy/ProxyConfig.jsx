@@ -16,6 +16,7 @@ import {
   NxFontAwesomeIcon,
   NxFormGroup,
 } from '@sonatype/react-shared-components';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 export default function ProxyConfig({
   load,
@@ -103,7 +104,7 @@ export default function ProxyConfig({
 
   const getValidationErrors = () => {
     if (!isDirty) {
-      return 'There are no changes to update';
+      return MSG_NO_CHANGES_TO_UPDATE;
     }
 
     const isSubmitEnabled = hasAllRequiredData && isDirty && isValid && !mustReenterPassword;

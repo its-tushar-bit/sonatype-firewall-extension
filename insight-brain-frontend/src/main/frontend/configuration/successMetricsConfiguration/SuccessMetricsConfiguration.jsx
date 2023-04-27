@@ -6,6 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxStatefulForm, NxToggle, NxButton } from '@sonatype/react-shared-components';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 export default function SuccessMetricsConfiguration(props) {
   const { load, update, toggleIsEnabled, resetForm } = props;
@@ -31,7 +32,7 @@ export default function SuccessMetricsConfiguration(props) {
           submitMaskState={submitMaskState}
           submitError={updateError}
           submitBtnText="Update"
-          validationErrors={isDirty ? null : 'There are no changes to update'}
+          validationErrors={isDirty ? null : MSG_NO_CHANGES_TO_UPDATE}
           additionalFooterBtns={
             <NxButton type="button" id="success-metrics-cancel" onClick={resetForm} disabled={!isDirty}>
               Cancel

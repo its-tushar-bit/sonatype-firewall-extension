@@ -114,7 +114,7 @@ describe('AtlassianCrowdConfiguration', () => {
       renderComponent();
       await waitFor(() => screen.getByText('Save Configuration'));
       fireEvent.click(screen.getByText('Save Configuration'));
-      expect(screen.getByRole('alert')).toHaveTextContent('There are no changes to update');
+      expect(screen.getByRole('alert')).toHaveTextContent('There are no changes to update.');
     });
 
     it('shows correct form alert when data partially provided', async () => {

@@ -173,7 +173,7 @@ describe('AutomaticApplicationConfiguration', function () {
       const autoApplicationConfig = getShallow();
       const form = autoApplicationConfig.find(NxStatefulForm);
 
-      expect(form).toHaveProp('validationErrors', 'There are no changes to update');
+      expect(form).toHaveProp('validationErrors', 'There are no changes to update.');
     });
 
     it('is rendered with validationErrors if parent organization is not set', function () {

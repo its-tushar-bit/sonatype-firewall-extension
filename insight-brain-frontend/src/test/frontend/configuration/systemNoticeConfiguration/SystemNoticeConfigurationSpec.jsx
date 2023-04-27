@@ -114,7 +114,7 @@ describe('SystemNoticeConfiguration', function () {
       const shallowComponent = getShallowComponent({ isDirty: false });
       const form = shallowComponent.find(NxStatefulForm);
 
-      expect(form).toHaveProp('validationErrors', 'There are no changes to update');
+      expect(form).toHaveProp('validationErrors', 'There are no changes to update.');
     });
 
     it('should contain tooltip validation message if enabled and message is empty', function () {

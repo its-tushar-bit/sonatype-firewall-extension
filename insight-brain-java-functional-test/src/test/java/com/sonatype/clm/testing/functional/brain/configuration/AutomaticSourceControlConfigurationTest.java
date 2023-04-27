@@ -51,7 +51,7 @@ public class AutomaticSourceControlConfigurationTest
     configurationPage.update().click();
     configurationPage.update().shouldNotBe(visible);
     FormUtils.getAlertElement(configurationPage)
-        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update"));
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update."));
     refresh();
 
     // check that configuration settings can be saved

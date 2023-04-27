@@ -22,6 +22,7 @@ import {
 import { isNilOrEmpty } from '../../../util/jsUtil';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 function EditWebhook({
   isLoading,
@@ -79,7 +80,7 @@ function EditWebhook({
 
   const getValidation = () => {
     if (!isDirty && !createMode) {
-      return 'There are no changes to update';
+      return MSG_NO_CHANGES_TO_UPDATE;
     }
 
     return url.trimmedValue ? url.validationErrors : 'Webhook URL is a required field';

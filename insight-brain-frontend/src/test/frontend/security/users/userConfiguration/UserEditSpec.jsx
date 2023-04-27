@@ -91,11 +91,11 @@ describe('UserEdit', () => {
         expect(form).toHaveProp('validationErrors', null);
       });
 
-      it('has "There are no changes to update" error if form was not changed', function () {
+      it('has "There are no changes to update." error if form was not changed', function () {
         const shallowComponent = getShallowComponent({ isDirty: false });
         const form = shallowComponent.find(NxStatefulForm);
 
-        expect(form).toHaveProp('validationErrors', 'There are no changes to update');
+        expect(form).toHaveProp('validationErrors', 'There are no changes to update.');
       });
 
       it('has "Unable to save" error if form was not changed', function () {

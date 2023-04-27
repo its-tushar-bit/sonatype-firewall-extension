@@ -18,10 +18,11 @@ import { MODAL_MODES } from './modals/modalModes';
 import DeleteModal from './modals/DeleteModal';
 import ResetPasswordModal from './modals/ResetPasswordModal';
 import CopyToClipboard from './modals/CopyToClipboard';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 const getValidationMessage = ({ isDirty, validationError }) => {
   if (!isDirty) {
-    return 'There are no changes to update';
+    return MSG_NO_CHANGES_TO_UPDATE;
   }
 
   return validationError;

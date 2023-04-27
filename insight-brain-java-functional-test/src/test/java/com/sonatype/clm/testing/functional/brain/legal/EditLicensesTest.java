@@ -125,7 +125,7 @@ public class EditLicensesTest
 
     editLicensesPopover.saveButton().click();
     FormUtils.getAlertElement(editLicensesPopover)
-        .shouldHave(text("There are no changes to update"));
+        .shouldHave(text("There are no changes to update."));
     eyesWatcher.eyesCheck();
 
     editLicensesPopover.cancelButton().click();

@@ -14,8 +14,8 @@ import {
   NxErrorAlert,
 } from '@sonatype/react-shared-components';
 import { displayName } from '../scmOnboarding/utils/providers';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
-const notDirtyErrorMessage = 'There are no changes to update';
 const notValidParentOrganizationErrorMessage = 'Unable to update: fields with invalid or missing data.';
 
 export default function AutomaticApplicationsConfiguration(props) {
@@ -34,7 +34,7 @@ export default function AutomaticApplicationsConfiguration(props) {
 
   const getValidation = () => {
     const validations = [
-      { isInvalid: !isDirty, message: notDirtyErrorMessage },
+      { isInvalid: !isDirty, message: MSG_NO_CHANGES_TO_UPDATE },
       { isInvalid: !parentOrganizationId, message: notValidParentOrganizationErrorMessage },
     ];
     const firstError = validations.find((validation) => validation.isInvalid);

@@ -8,6 +8,7 @@ import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { NxErrorAlert, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import { faSync } from '@fortawesome/free-solid-svg-icons';
+import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 export default function DashboardFilterFooter(props) {
   const {
@@ -65,7 +66,7 @@ export default function DashboardFilterFooter(props) {
       <NxTooltip
         id="dashboard-filter-apply-tooltip"
         placement="top-end"
-        title={needsAcknowledgement || filtersAreDirty ? '' : 'There are no changes to update.'}
+        title={needsAcknowledgement || filtersAreDirty ? '' : MSG_NO_CHANGES_TO_UPDATE}
       >
         <NxButton
           id="dashboard-filter-apply"

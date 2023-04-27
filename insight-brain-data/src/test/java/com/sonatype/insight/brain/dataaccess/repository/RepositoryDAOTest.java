@@ -84,13 +84,13 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testValidateNullPublicId_Insert() {
+  public void testInsert_ValidateNullPublicId() {
     assertThatThrownBy(() -> tempEntity.newRepository(null /* publicId */))
         .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
-  public void testValidateNullPublicId_Update() {
+  public void testUpdate_ValidateNullPublicId() {
     Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(null);
     assertThatThrownBy(() -> dao.update(repository))
@@ -98,13 +98,13 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testValidateEmptyPublicId_Insert() {
+  public void testInsert_ValidateEmptyPublicId() {
     assertThatThrownBy(() -> tempEntity.newRepository(" " /* publicId */))
         .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
-  public void testValidateEmptyPublicId_Update() {
+  public void testUpdate_ValidateEmptyPublicId() {
     Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(" ");
     assertThatThrownBy(() -> dao.update(repository))
@@ -112,7 +112,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testDuplicatePublicId_Insert() {
+  public void testInsert_DuplicatePublicId() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     tempEntity.newRepository(repoManager, "SomePublicID");
 
@@ -122,7 +122,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testDuplicatePublicId_Update() {
+  public void testUpdate_DuplicatePublicId() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     tempEntity.newRepository(repoManager, "SomePublicID1");
     Repository repository = tempEntity.newRepository(repoManager, "SomePublicID2");
@@ -133,7 +133,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToRepositoryComponents() {
+  public void testDelete_CascadesToRepositoryComponents() {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
 
@@ -143,7 +143,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToRepositoryPolicyViolations() {
+  public void testDelete_CascadesToRepositoryPolicyViolations() {
     Repository repository = tempEntity.newRepository();
     RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
 
@@ -153,7 +153,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToRepositoryLicenseOverrides() {
+  public void testDelete_CascadesToRepositoryLicenseOverrides() {
     final ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     final LicenseOverride licenseOverride = tempEntity.newLicenseOverride(repository.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "ANTLR-PD");
@@ -164,7 +164,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToSecurityVulnerabilityOverrides() {
+  public void testDelete_CascadesToSecurityVulnerabilityOverrides() {
     SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
         repository.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
 
@@ -174,7 +174,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyWaivers() {
+  public void testDelete_CascadesToPolicyWaivers() {
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), repository.getId(), "Comment");
@@ -187,23 +187,23 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToRepositoryComponentLocks_H2() {
-    testCascadeDeleteToRepositoryComponentLocks();
+  public void testDelete_CascadesToRepositoryComponentLocks_H2() {
+    testDelete_CascadesToRepositoryComponentLocks();
   }
 
   @Test
-  public void testCascadeDeleteToRepositoryComponentLocks_Postgres() {
+  public void testDelete_CascadesToRepositoryComponentLocks_Postgres() {
     DataSourceFactory.clear_ForTestsOnly();
     try (PostgresServer postgres = new PostgresServer()) {
       OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testCascadeDeleteToRepositoryComponentLocks();
+      testDelete_CascadesToRepositoryComponentLocks();
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();
     }
   }
 
-  private void testCascadeDeleteToRepositoryComponentLocks() {
+  private void testDelete_CascadesToRepositoryComponentLocks() {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent.getPathname())
@@ -224,23 +224,23 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToRepositoryReevaluationLocks_H2() {
-    testCascadeDeleteToRepositoryReevaluationLocks();
+  public void testDelete_CascadesToRepositoryReevaluationLocks_H2() {
+    testDelete_CascadesToRepositoryReevaluationLocks();
   }
 
   @Test
-  public void testCascadeDeleteToRepositoryReevaluationLocks_Postgres() {
+  public void testDelete_CascadesToRepositoryReevaluationLocks_Postgres() {
     DataSourceFactory.clear_ForTestsOnly();
     try (PostgresServer postgres = new PostgresServer()) {
       OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
-      testCascadeDeleteToRepositoryReevaluationLocks();
+      testDelete_CascadesToRepositoryReevaluationLocks();
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();
     }
   }
 
-  private void testCascadeDeleteToRepositoryReevaluationLocks() {
+  private void testDelete_CascadesToRepositoryReevaluationLocks() {
     Repository repository = tempEntity.newRepository();
     ClusterLock.createForRepositoryReevaluation(repository);
     assertThat(ClusterLock
@@ -253,7 +253,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToRepositoryMigration() {
+  public void testDelete_CascadesToRepositoryMigration() {
     Repository repository = tempEntity.newRepository();
     tempEntity.newRepositoryMigration(repository);
     assertThat(new RepositoryMigrationDAO().getByRepositoryId(repository.getId())).isNotNull();
@@ -264,7 +264,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyMonitoring() {
+  public void testDelete_CascadesToPolicyMonitoring() {
     Repository repository = tempEntity.newRepository("testCascadeDeleteToPolicyMonitoring");
     tempEntity.newPolicyMonitoring(repository.getId(), Stage.ID_PROXY);
     assertThat(new PolicyMonitoringDAO().getByOwnerId(repository.getId())).isNotNull();
@@ -275,7 +275,7 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testDelete_CascadeToProprietaryComponentNamePatterns() {
+  public void testDelete_CascadesToProprietaryComponentNamePatterns() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, "testPublicId", RepositoryType.hosted,
         ComponentIdentifier.FORMAT_NPM);

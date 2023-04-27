@@ -11,18 +11,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
-import com.sonatype.clm.dto.model.repository.RepositoryType;
-import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.PostIncrementalMigrator;
-import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
-import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -38,49 +32,120 @@ public class ProprietaryComponentNamePatternMigrator
     long start = System.currentTimeMillis();
     log.info("Migrating proprietary component name patterns...");
 
-    RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
-    RepositoryDAO repositoryDAO = new RepositoryDAO();
-    ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO = new ProprietaryComponentNamePatternDAO();
-    
     List<OldProprietaryComponentNamePattern> oldPatterns = OldProprietaryComponentNamePattern.getAll(dataSource);
     log.info("Found {} proprietary component name patterns.", oldPatterns.size());
 
     for (OldProprietaryComponentNamePattern oldPattern : oldPatterns) {
-      // Get or create the repository manager for this pattern
-      RepositoryManager repositoryManager =
-          repositoryManagerDAO.getByInstanceId(oldPattern.repositorymanagerInstanceId);
-      if (repositoryManager == null) {
-        repositoryManager = new RepositoryManager(oldPattern.repositorymanagerInstanceId);
-        repositoryManagerDAO.insert(repositoryManager);
-        log.info("Created repository manager with instance ID {}.", repositoryManager.getInstanceId());
-      }
+      String repositoryManagerId = getOrCreateRepositoryManagerId(dataSource, oldPattern.repositorymanagerInstanceId);
+      String repositoryId =
+          getOrCreateRepositoryId(dataSource, repositoryManagerId, oldPattern.repositoryPublicId, oldPattern.format);
 
-      // Get or create the repository for this pattern
-      Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
-          repositoryManager.getInstanceId(), oldPattern.repositoryPublicId);
-      if (repository == null) {
-        repository = new Repository(repositoryManager.getId(), oldPattern.repositoryPublicId);
-        repository.setRepositoryType(RepositoryType.hosted);
-        repository.setFormat(oldPattern.format);
-        repository.setNamespaceConfusionProtectionEnabled(true);
-        repositoryDAO.insert(repository);
-        log.info("Created repository with public ID {} for repository manager instance ID {} and format {}.",
-            repository.getPublicId(), repositoryManager.getInstanceId(), repository.getFormat());
-      }
-      else {
-        if (!RepositoryType.hosted.equals(repository.getRepositoryType())) {
-          throw new BadRequestException(
-              "Repository " + repository.getPublicId() + " (" + repository.getId() + ") is not a hosted repository");
-        }
-      }
-
-      ProprietaryComponentNamePattern pattern = proprietaryComponentNamePatternDAO.getById(oldPattern.id);
-      pattern.setRepositoryId(repository.getId());
-      proprietaryComponentNamePatternDAO.update(pattern);
+      updateProprietaryComponentNamePattern(dataSource, oldPattern.id, repositoryId);
     }
 
     log.info("Migrated {} proprietary component name patterns in {} ms.", oldPatterns.size(),
         System.currentTimeMillis() - start);
+  }
+
+  private String getOrCreateRepositoryManagerId(
+      DataSource dataSource,
+      String repositoryManagerInstanceId) throws SQLException
+  {
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement statement = connection.prepareStatement("SELECT repository_manager_id FROM "
+            + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_manager WHERE instance_id = ?");) {
+      statement.setString(1, repositoryManagerInstanceId);
+      try (ResultSet resultSet = statement.executeQuery()) {
+        while (resultSet.next()) {
+          return resultSet.getString(1);
+        }
+      }
+    }
+
+    String repositoryManagerId = newUUID();
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement insertStmt =
+            connection.prepareStatement("INSERT INTO " + OperationalDataStoreProvider.getDatabaseSchema()
+                + ".repository_manager (repository_manager_id, instance_id) VALUES (?, ?)");) {
+      connection.setAutoCommit(true);
+      insertStmt.setString(1, repositoryManagerId);
+      insertStmt.setString(2, repositoryManagerInstanceId);
+      insertStmt.executeUpdate();
+
+      log.info("Created repository manager with instance ID {}.", repositoryManagerInstanceId);
+
+      return repositoryManagerId;
+    }
+  }
+
+  private String getOrCreateRepositoryId(
+      DataSource dataSource,
+      String repositoryManagerId,
+      String repositoryPublicId,
+      String format) throws SQLException
+  {
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement statement =
+            connection.prepareStatement(
+                "SELECT repository_id, repository_type FROM " + OperationalDataStoreProvider.getDatabaseSchema()
+                    + ".repository WHERE repository_manager_id = ? AND public_id = ?");) {
+      statement.setString(1, repositoryManagerId);
+      statement.setString(2, repositoryPublicId);
+      try (ResultSet resultSet = statement.executeQuery()) {
+        while (resultSet.next()) {
+          if (!"hosted".equals(resultSet.getString(2))) {
+            throw new BadRequestException(
+                "Repository " + repositoryPublicId + " (" + resultSet.getString(1) + ") is not a hosted repository");
+          }
+          return resultSet.getString(1);
+        }
+      }
+    }
+
+    String repositoryId = newUUID();
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement insertStmt =
+            connection.prepareStatement("INSERT INTO " + OperationalDataStoreProvider.getDatabaseSchema()
+                + ".repository (repository_id, repository_manager_id, public_id, repository_type, format, enabled, "
+                + "quarantine_enabled, policy_compliant_component_selection_enabled, "
+                + "namespace_confusion_protection_enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");) {
+      connection.setAutoCommit(true);
+      insertStmt.setString(1, repositoryId);
+      insertStmt.setString(2, repositoryManagerId);
+      insertStmt.setString(3, repositoryPublicId);
+      insertStmt.setString(4, "hosted");
+      insertStmt.setString(5, format);
+      insertStmt.setBoolean(6, false);
+      insertStmt.setBoolean(7, false);
+      insertStmt.setBoolean(8, false);
+      insertStmt.setBoolean(9, true);
+      insertStmt.executeUpdate();
+
+      log.info("Created repository with public ID {} for repository manager ID {} and format {}.", repositoryPublicId,
+          repositoryManagerId, format);
+
+      return repositoryId;
+    }
+  }
+
+  private String newUUID() {
+    return UUID.randomUUID().toString().replace("-", "");
+  }
+
+  private void updateProprietaryComponentNamePattern(
+      DataSource dataSource,
+      String proprietaryComponentNamePatternId,
+      String repositoryId) throws SQLException
+  {
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement updateStmt = connection.prepareStatement("UPDATE "
+            + OperationalDataStoreProvider.getDatabaseSchema() + ".proprietary_component_name_pattern"
+            + " SET repository_id=? WHERE proprietary_component_name_pattern_id=?");) {
+      connection.setAutoCommit(true);
+      updateStmt.setString(1, repositoryId);
+      updateStmt.setString(2, proprietaryComponentNamePatternId);
+      updateStmt.executeUpdate();
+    }
   }
 
   private static class OldProprietaryComponentNamePattern

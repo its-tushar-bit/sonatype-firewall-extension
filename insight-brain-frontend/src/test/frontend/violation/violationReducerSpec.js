@@ -82,6 +82,7 @@ describe('violationReducer', function () {
         activeWaivers: [123],
         expiredWaivers: [321],
         hasPermissionForAppWaivers: false,
+        hasEditIqPermission: false,
       };
 
       const newState = reducer(initialState, {
@@ -99,6 +100,7 @@ describe('violationReducer', function () {
         expiredWaivers: [],
         selectedViolationId: null,
         hasPermissionForAppWaivers: false,
+        hasEditIqPermission: false,
       });
     });
   });
@@ -205,26 +207,32 @@ describe('violationReducer', function () {
   });
 
   describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED', function () {
-    it('unsets vulnerabilityDetailsError and vulnerabilityDetailsLoading and sets vulnerabilityDetails to the payload', function () {
-      const initialState = {
-        vulnerabilityDetails: {},
-        vulnerabilityDetailsError: 'baz',
-        vulnerabilityDetailsLoading: true,
-        otherProp: 'asdf',
-      };
+    it(
+      'unsets vulnerabilityDetailsError and vulnerabilityDetailsLoading and sets vulnerabilityDetails to the payload' +
+        ' and hasEditIqPermission=true',
+      function () {
+        const initialState = {
+          vulnerabilityDetails: {},
+          vulnerabilityDetailsError: 'baz',
+          vulnerabilityDetailsLoading: true,
+          otherProp: 'asdf',
+          hasEditIqPermission: undefined,
+        };
 
-      const newState = reducer(initialState, {
-        type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED',
-        payload: { foo: 'bar' },
-      });
+        const newState = reducer(initialState, {
+          type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED',
+          payload: { foo: 'bar', hasEditIqPermission: true },
+        });
 
-      expect(newState).toEqual({
-        vulnerabilityDetailsLoading: false,
-        vulnerabilityDetailsError: null,
-        vulnerabilityDetails: { foo: 'bar' },
-        otherProp: 'asdf',
-      });
-    });
+        expect(newState).toEqual({
+          vulnerabilityDetailsLoading: false,
+          vulnerabilityDetailsError: null,
+          vulnerabilityDetails: { foo: 'bar', hasEditIqPermission: true },
+          otherProp: 'asdf',
+          hasEditIqPermission: true,
+        });
+      }
+    );
   });
 
   describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED', function () {

@@ -6,13 +6,16 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
+import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
@@ -20,6 +23,7 @@ import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.Prop
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
@@ -45,6 +49,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
+import com.sonatype.clm.testing.functional.pages.CustomizeVulnerabilityDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
@@ -69,6 +74,11 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness.CweId;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
@@ -632,6 +642,40 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testPolicyViolationsTab_ViewDetailsPopover_customizeButton() {
+    String refIdForFirstClickableTableRowInPolicyViolationTable = "CVE-2016-9879";
+    mockHdsResponseForVulnerabilityDetailsWithRefId(refIdForFirstClickableTableRowInPolicyViolationTable);
+    tempEntity.newVulnerabilityCustomData(app.getId(), refIdForFirstClickableTableRowInPolicyViolationTable, null,
+        "Test remediation", "123", "test/vector", 8.0F);
+    String springSecurityWebComponentHash = "197d803ab63dd3523d9d";
+    refreshOrOpen(ComponentDetailsPage.urlToViolations(app, SCAN_ID, springSecurityWebComponentHash));
+
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    SelenideElement firstRow = policyViolationsTable.getRows().first();
+    firstRow.click();
+
+    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
+
+    SelenideElement customizeButton = violationDetailPopover.getCustomizeButton();
+    customizeButton.shouldBe(visible);
+    customizeButton.click();
+
+    CustomizeVulnerabilityDetailsPage.refIdTitle().shouldBe(visible);
+    CustomizeVulnerabilityDetailsPage.refIdTitle().shouldBe(
+        text(refIdForFirstClickableTableRowInPolicyViolationTable));
+
+    NxBackButton backButton = CustomizeVulnerabilityDetailsPage.backButton();
+    backButton.shouldBe(visible);
+    backButton.shouldHave(text("Back to Vulnerability Details"));
+    backButton.click();
+
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, springSecurityWebComponentHash));
+  }
+
+  @Test
   public void testPolicyViolationsTab_viewAllComponentWaivers() {
     SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
     String dateString = dateFormat.format(Date.from(Instant.now()));
@@ -853,6 +897,41 @@ public class ComponentDetailsTest
     firstRow.click();
     vulnerabilityOverrideForm.status().getElement().shouldHave(text("CONFIRMED"));
     vulnerabilityOverrideForm.comment().shouldHave(text(overridenVulnerabilityComment));
+  }
+
+  @Test
+  public void testSecurityTab_vulnerabilityDetailsPopover_customizeButton() {
+    String testRefId = "CVE-1234-56789";
+    mockHdsResponsesForVulnerabilityDetails();
+    tempEntity.newVulnerabilityCustomData(app.getId(), testRefId, null, "Test remediation",
+        "123", "test/vector",
+        8.0F);
+
+    refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    VulnerabilitiesTable vulnerabilitiesTable = componentDetailsPage.securityTabContent().vulnerabilitiesTable();
+    vulnerabilitiesTable.shouldBe(visible);
+
+    SelenideElement firstRow = vulnerabilitiesTable.getRows().first();
+    firstRow.click();
+
+    VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
+    vulnerabilityDetailsPopover.shouldBe(visible);
+    
+    SelenideElement customizeButton = vulnerabilityDetailsPopover.getCustomizeButton();
+    customizeButton.shouldBe(visible);
+    customizeButton.click();
+
+    CustomizeVulnerabilityDetailsPage.refIdTitle().shouldBe(visible);
+    CustomizeVulnerabilityDetailsPage.refIdTitle().shouldBe(text(testRefId));
+
+    NxBackButton backButton = CustomizeVulnerabilityDetailsPage.backButton();
+    backButton.shouldBe(visible);
+    backButton.shouldHave(text("Back to Vulnerability Details"));
+    backButton.click();
+
+    waitUntilUrl(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));
   }
 
   @Test
@@ -1201,6 +1280,21 @@ public class ComponentDetailsTest
     testCLMServer.getHdsServer()
         .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails_CVE-1234-56789.json"))
         .atUri("rest/vulnerability/details/json/CVE-1234-56789");
+  }
+
+  private void mockHdsResponseForVulnerabilityDetailsWithRefId(String refId) {
+    URI uri = UriBuilder.fromPath("rest/vulnerability/details/json/{arg1}").build(refId);
+
+    SecurityVulnerabilityData securityVulnerabilityData = new SecurityVulnerabilityData(refId);
+    securityVulnerabilityData.isAdvancedVulnerabilityDetection = true;
+    securityVulnerabilityData.researchType = ResearchType.DEEP_DIVE;
+    securityVulnerabilityData.mainSeverity = new SecurityVulnerabilitySeverity("source-test",
+        7.0f, "test/vector");
+    securityVulnerabilityData.weakness = new SecurityVulnerabilityWeakness();
+    securityVulnerabilityData.weakness.cweIds = new ArrayList<>();
+    securityVulnerabilityData.weakness.cweIds.add(new CweId("123", URI.create("http://localhost")));
+
+    testCLMServer.getHdsServer().respondWith(securityVulnerabilityData).atUri(uri);
   }
 
   private ComponentDetailsPage openComponentDetailsPageForFirstViolation() {

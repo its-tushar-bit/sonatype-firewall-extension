@@ -45,4 +45,8 @@ public class PolicyViolationDetailPopover
   public SelenideElement policyViolationText() {
     return child(".nx-h3 strong");
   }
+
+  public SelenideElement getCustomizeButton() {
+    return child("#customize-vulnerability-button");
+  }
 }

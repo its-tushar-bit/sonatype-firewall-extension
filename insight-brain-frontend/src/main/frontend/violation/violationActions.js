@@ -12,6 +12,7 @@ import {
   getVulnerabilityJsonDetailUrl,
   getApplicableWaiversUrl,
   getRepositoryPolicyViolationUrl,
+  getApplicationSummaryUrl,
 } from '../util/CLMLocation';
 import { isNilOrEmpty } from '../util/jsUtil';
 import { convertToWaiverViolationFormat } from '../util/waiverUtils';
@@ -23,6 +24,7 @@ import {
   selectRepositoryId,
   selectRepositoryPolicyId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 
 export const VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED = 'VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED';
 export const VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED = 'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED';
@@ -155,14 +157,19 @@ export function loadVulnerabilityDetails() {
     if (reasonWithRefId) {
       dispatch(loadVulnerabilityDetailsRequested());
       const refId = reasonWithRefId.reference.value;
-      const extraQueryParameters = {
-        ownerType: 'application',
-        ownerId: publicId,
-      };
+      const isFirewallOrRepository = selectIsFirewallOrRepository(getState());
+      const extraQueryParameters = isFirewallOrRepository ? null : { ownerType: 'application', ownerId: publicId };
 
       return axios
         .get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier, extraQueryParameters))
-        .then(({ data }) => dispatch(loadVulnerabilityDetailsFulfilled(data)))
+        .then(({ data }) => {
+          if (!isFirewallOrRepository) {
+            return checkEditIqPermission(publicId)
+              .then(() => dispatch(loadVulnerabilityDetailsFulfilled({ ...data, hasEditIqPermission: true })))
+              .catch(() => dispatch(loadVulnerabilityDetailsFulfilled(data)));
+          }
+          return dispatch(loadVulnerabilityDetailsFulfilled(data));
+        })
         .catch((err) => dispatch(loadVulnerabilityDetailsFailed(err)));
     } else {
       return Promise.resolve();
@@ -179,6 +186,12 @@ export function loadFirewallPolicyVulnerabilityDetails(conditionTriggerReference
       .then(({ data }) => dispatch(loadVulnerabilityDetailsFulfilled(data)))
       .catch((err) => dispatch(loadVulnerabilityDetailsFailed(err)));
   };
+}
+
+function checkEditIqPermission(applicationPublicId) {
+  return axios.get(getApplicationSummaryUrl(applicationPublicId)).then(({ data }) => {
+    return checkPermissions(['WRITE'], 'application', data.id);
+  });
 }
 
 const loadVulnerabilityDetailsRequested = noPayloadActionCreator(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);

@@ -23,6 +23,7 @@ const initialState = Object.freeze({
   vulnerabilityDetailsLoading: false,
   vulnerabilityDetails: null,
   vulnerabilityDetailsError: null,
+  hasEditIqPermission: false,
   activeWaivers: Object.freeze([]),
   expiredWaivers: Object.freeze([]),
   selectedViolationId: null,
@@ -90,6 +91,7 @@ function loadVulnerabilityDetailsFulfilled(payload, state) {
     vulnerabilityDetailsLoading: false,
     vulnerabilityDetailsError: null,
     vulnerabilityDetails: payload,
+    hasEditIqPermission: payload.hasEditIqPermission,
   };
 }
 

@@ -14,6 +14,8 @@ import { selectSelectedViolationId } from '../componentDetails/ViolationsTableTi
 import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { onGoToRepositoryComponentWaiversPage, loadFirewallViolationDetails } from '../firewall/firewallActions';
 import { loadApplicableWaivers } from 'MainRoot/waivers/waiverActions';
+import { selectComponentDetails } from 'MainRoot/componentDetails/componentDetailsSelectors';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps(state, showViolationsDetailPopover) {
   const { stages, violation, firewall } = state;
@@ -22,6 +24,8 @@ function mapStateToProps(state, showViolationsDetailPopover) {
   const isShowViolationsDetailPopover = showViolationsDetailPopover.showViolationsDetailPopover;
   const selectPolicyId = showViolationsDetailPopover.selectPolicyId;
   const policyViolations = componentDetailsPage.policyViolations;
+  const componentDetails = selectComponentDetails(state);
+  const { tabId } = selectRouterCurrentParams(state);
 
   return {
     ...pick(
@@ -37,6 +41,7 @@ function mapStateToProps(state, showViolationsDetailPopover) {
         'addWaiverPermissionLoading',
         'addWaiverPermissionError',
         'hasPermissionForAppWaivers',
+        'hasEditIqPermission',
       ],
       violation
     ),
@@ -46,6 +51,8 @@ function mapStateToProps(state, showViolationsDetailPopover) {
     isFirewallContext: isShowViolationsDetailPopover,
     policyViolations: policyViolations,
     selectPolicyId: selectPolicyId,
+    componentHash: componentDetails?.hash,
+    tabId,
   };
 }
 

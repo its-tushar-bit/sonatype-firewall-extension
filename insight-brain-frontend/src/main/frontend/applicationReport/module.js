@@ -133,6 +133,13 @@ function routes($stateProvider, $urlRouterProvider) {
     .state('applicationReport.violationWaivers', {
       url: '/{hash}/waivers/{violationId}',
       component: 'listWaiversPage',
+    })
+    .state('applicationReport.vulnerabilityCustomize', {
+      url: '/vulnerabilities/{ownerType}/{ownerId}/customize/{refId}?componentIdentifier&componentHash&tabId',
+      component: 'vulnerabilityCustomize',
+      data: {
+        title: 'Customize Vulnerability Details',
+      },
     });
 
   $urlRouterProvider

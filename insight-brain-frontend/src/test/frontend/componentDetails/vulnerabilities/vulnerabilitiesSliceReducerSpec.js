@@ -83,9 +83,10 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
           identifier: 'CVE-2014-3625',
           description: 'Directory traversal vulnerability',
           categories: ['data', 'operational'],
+          hasEditIqPermission: true,
         };
 
-        const { vulnerabilityDetails, vulnerabilitySecurityOverride } = reducer(state, {
+        const { vulnerabilityDetails, vulnerabilitySecurityOverride, hasEditIqPermission } = reducer(state, {
           type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
           payload,
         });
@@ -94,9 +95,11 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
           identifier: 'CVE-2014-3625',
           description: 'Directory traversal vulnerability',
           categories: ['data', 'operational'],
+          hasEditIqPermission: true,
         });
         expect(vulnerabilityDetails.loading).toBe(false);
         expect(vulnerabilityDetails.error).toBe(null);
+        expect(hasEditIqPermission).toBe(true);
 
         expect(vulnerabilitySecurityOverride).toEqual({
           status: 'NOT_APPLICABLE',

@@ -12,6 +12,8 @@ import * as vulnerabilitiesSelectors from 'MainRoot/componentDetails/Vulnerabili
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
 import {
+  getApplicationSummaryUrl,
+  getPermissionContextTestUrl,
   getVulnerabilitiesUrl,
   getVulnerabilityJsonDetailUrl,
   getVulnerabilityOverrideUrl,
@@ -320,6 +322,9 @@ describe('vulnerabilitiesSliceActions', () => {
         expectedComponentIdentifier,
         extraQueryParameters
       );
+      const applicationSummaryUrl = getApplicationSummaryUrl(state.router.currentParams.publicId);
+      const urlPermissionRequest = getPermissionContextTestUrl('application', 'global');
+
       mockAxiosCalls({
         get: {
           [vulnerabilityJsonDetailUrl]: Promise.resolve({
@@ -331,6 +336,16 @@ describe('vulnerabilitiesSliceActions', () => {
             data: {
               comment,
             },
+          }),
+          [applicationSummaryUrl]: Promise.resolve({
+            data: {
+              hasEditIqPermission: false,
+            },
+          }),
+        },
+        put: {
+          [urlPermissionRequest]: Promise.resolve({
+            data: {},
           }),
         },
       });
@@ -351,6 +366,66 @@ describe('vulnerabilitiesSliceActions', () => {
       });
     });
 
+    it(
+      'dispatches a componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action with hasEditIqPermission' +
+        '=true after successful requests for application components',
+      (done) => {
+        const applicationVulnerabilityOverrideUrl = getVulnerabilityOverrideUrl(
+          'application',
+          state.router.currentParams.publicId,
+          state.router.currentParams.hash,
+          vulnerabilityObj
+        );
+        const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
+          '2',
+          expectedComponentIdentifier,
+          extraQueryParameters
+        );
+        const applicationSummaryUrl = getApplicationSummaryUrl(state.router.currentParams.publicId);
+        const urlPermissionRequest = getPermissionContextTestUrl('application', 'global');
+
+        mockAxiosCalls({
+          get: {
+            [vulnerabilityJsonDetailUrl]: Promise.resolve({
+              data: {
+                ...vulnerabilityDetails,
+              },
+            }),
+            [applicationVulnerabilityOverrideUrl]: Promise.resolve({
+              data: {
+                comment,
+              },
+            }),
+            [applicationSummaryUrl]: Promise.resolve({
+              data: {
+                id: state.router.currentParams.publicId,
+              },
+            }),
+          },
+          put: {
+            [urlPermissionRequest]: Promise.resolve({
+              data: {},
+            }),
+          },
+        });
+
+        const expectedPendingAction = {
+          type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/pending',
+        };
+        const expectedFulfilledAction = {
+          type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
+          payload: { ...vulnerabilityDetails, comment },
+        };
+
+        store.dispatch(loadVulnerabilityDetails()).then(() => {
+          const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+
+          expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
+          done();
+        });
+      }
+    );
+
     it('dispatches a componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action after successful requests for repository components', (done) => {
       const customState = {
         ...state,
@@ -370,11 +445,11 @@ describe('vulnerabilitiesSliceActions', () => {
         customState.router.currentParams.componentHash,
         vulnerabilityObj
       );
-      const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
-        '2',
-        expectedComponentIdentifier,
-        extraQueryParameters
-      );
+
+      const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier, {
+        ownerType: 'repository',
+        ownerId: 'repositoryId',
+      });
       mockAxiosCalls({
         get: {
           [vulnerabilityJsonDetailUrl]: Promise.resolve({

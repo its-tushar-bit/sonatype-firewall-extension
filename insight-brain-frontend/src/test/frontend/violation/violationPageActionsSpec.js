@@ -35,7 +35,7 @@ describe('violationActions', function () {
 
     beforeEach(function () {
       permissionContextTestUrl = getPermissionContextTestUrl('application', 'applicationPrivateId');
-      applicationSummaryUrl = getApplicationSummaryUrl('applicationPublicId');
+      applicationSummaryUrl = getApplicationSummaryUrl('appPublicId');
       state = {
         router: {
           currentParams: {
@@ -45,7 +45,7 @@ describe('violationActions', function () {
         violation: {
           violationDetails: {
             policyViolationId: 'baz',
-            applicationPublicId: 'applicationPublicId',
+            applicationPublicId: 'appPublicId',
           },
           selectedViolationId: 'bar',
         },
@@ -308,7 +308,6 @@ describe('violationActions', function () {
 
       it('dispatches VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED with vulnerability details response data', function (done) {
         const vulnerabilityResponseData = { bar: 'baz' };
-
         mockAxiosCalls({
           get: {
             [getViolationDetailsUrl('foo')]: Promise.resolve({
@@ -339,7 +338,7 @@ describe('violationActions', function () {
           expect(store.getActions()[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
           expect(store.getActions()[4].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
           expect(store.getActions()[5].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED);
-          expect(store.getActions()[5].payload).toEqual({ bar: 'baz' });
+          expect(store.getActions()[5].payload).toEqual({ bar: 'baz', hasEditIqPermission: true });
           done();
         });
       });
@@ -383,7 +382,7 @@ describe('violationActions', function () {
   });
 
   describe('loadVulnerabilityDetails', function () {
-    let store;
+    let store, applicationSummaryUrl;
 
     const expectedUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', 'foo : bar : 1.0', {
       ownerType: 'application',
@@ -391,6 +390,7 @@ describe('violationActions', function () {
     });
 
     beforeEach(function () {
+      applicationSummaryUrl = getApplicationSummaryUrl('appPublicId');
       const state = {
         router: {
           currentParams: {
@@ -433,10 +433,18 @@ describe('violationActions', function () {
 
     it('dispatches LOAD_VULNERABILITY_DETAILS_FULFILLED with vulnerability details response data', function (done) {
       const vulnerabilityResponseData = { bar: 'baz' };
-
+      const urlPermissionRequest = getPermissionContextTestUrl('application', 'applicationPrivateId');
       mockAxiosCalls({
         get: {
           [expectedUrl]: Promise.resolve({ data: vulnerabilityResponseData }),
+          [applicationSummaryUrl]: Promise.resolve({
+            data: { id: 'applicationPrivateId' },
+          }),
+        },
+        put: {
+          [urlPermissionRequest]: Promise.resolve({
+            data: ['WRITE'],
+          }),
         },
       });
 
@@ -444,7 +452,7 @@ describe('violationActions', function () {
         expect(store.getActions().length).toBe(2);
         expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
         expect(store.getActions()[1].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED);
-        expect(store.getActions()[1].payload).toEqual({ bar: 'baz' });
+        expect(store.getActions()[1].payload).toEqual({ bar: 'baz', hasEditIqPermission: true });
         done();
       });
 
@@ -465,6 +473,34 @@ describe('violationActions', function () {
         expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
         expect(store.getActions()[1].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED);
         expect(store.getActions()[1].payload).toEqual(vulnerabilityResponseError);
+        done();
+      });
+
+      expect(store.getActions().length).toBe(1);
+    });
+
+    it('dispatches LOAD_VULNERABILITY_DETAILS_FULFILLED after exception caught when trying to get editPermissions', function (done) {
+      const vulnerabilityResponseData = { bar: 'baz' };
+      const urlPermissionRequest = getPermissionContextTestUrl('application', 'applicationPrivateId');
+      mockAxiosCalls({
+        get: {
+          [expectedUrl]: Promise.resolve({ data: vulnerabilityResponseData }),
+          [applicationSummaryUrl]: Promise.resolve({
+            data: { id: 'applicationPrivateId' },
+          }),
+        },
+        put: {
+          [urlPermissionRequest]: Promise.resolve({
+            data: ['WRONG_PERMISSION', 'TEST-PERMISSION'],
+          }),
+        },
+      });
+
+      store.dispatch(loadVulnerabilityDetails()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
+        expect(store.getActions()[1].type).toEqual(VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED);
+        expect(store.getActions()[1].payload).toEqual({ bar: 'baz' });
         done();
       });
 

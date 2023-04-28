@@ -9,8 +9,8 @@ import axios from 'axios';
 import { always, invertObj } from 'ramda';
 
 import { pathSet } from 'MainRoot/util/jsUtil';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
+  getApplicationSummaryUrl,
   getVulnerabilitiesUrl,
   getVulnerabilityJsonDetailUrl,
   getVulnerabilityOverrideUrl,
@@ -26,6 +26,7 @@ import { selectRouteParamsFromSecurityTab } from 'MainRoot/reduxUiRouter/routerS
 import { validateMaxLength } from 'MainRoot/util/validationUtil';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
 const AVAILABLE_STATUS = {
@@ -50,6 +51,7 @@ export const initialState = {
     error: null,
     details: null,
   },
+  hasEditIqPermission: false,
   vulnerabilitySecurityOverride: {
     status: '',
     comments: initUserInput(''),
@@ -94,12 +96,12 @@ const loadVulnerabilityDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilityDetails`,
   (_, { getState, rejectWithValue }) => {
     const componentIdentifier = selectSelectedComponent(getState())?.componentIdentifier;
-    const { publicId } = selectRouterCurrentParams(getState());
     const { ownerId, hash, isRepositoryComponent } = selectRouteParamsFromSecurityTab(getState());
+    const ownerType = isRepositoryComponent ? 'repository' : 'application';
     const vulnerability = selectSelectedVulnerability(getState());
     const extraQueryParameters = {
-      ownerType: 'application',
-      ownerId: publicId,
+      ownerType: ownerType,
+      ownerId: ownerId,
     };
 
     const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
@@ -107,16 +109,24 @@ const loadVulnerabilityDetails = createAsyncThunk(
       componentIdentifier,
       extraQueryParameters
     );
-    const vulnerabilityOverideUrl = getVulnerabilityOverrideUrl(
-      isRepositoryComponent ? 'repository' : 'application',
-      ownerId,
-      hash,
-      vulnerability
-    );
+    const vulnerabilityOverrideUrl = getVulnerabilityOverrideUrl(ownerType, ownerId, hash, vulnerability);
 
     return axios
-      .all([axios.get(vulnerabilityJsonDetailUrl), axios.get(vulnerabilityOverideUrl)])
+      .all([axios.get(vulnerabilityJsonDetailUrl), axios.get(vulnerabilityOverrideUrl)])
       .then(([{ data: vulnerabilityDetails }, { data: vulnerabilityOverride }]) => {
+        if (ownerType === 'application') {
+          return axios
+            .get(getApplicationSummaryUrl(ownerId))
+            .then(({ data }) => {
+              return checkPermissions(['WRITE'], ownerType, data.id);
+            })
+            .then(() => {
+              return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment, hasEditIqPermission: true };
+            })
+            .catch(() => {
+              return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment };
+            });
+        }
         return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment };
       })
       .catch(rejectWithValue);
@@ -170,6 +180,7 @@ function loadVulnerabilityDetailsFulfilled(state, { payload }) {
   state.vulnerabilityDetails.loading = false;
   state.vulnerabilityDetails.error = null;
   state.vulnerabilityDetails.details = payload;
+  state.hasEditIqPermission = payload?.hasEditIqPermission;
 
   state.vulnerabilitySecurityOverride.comments = initUserInput(payload?.comment || '');
 

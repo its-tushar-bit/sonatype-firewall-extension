@@ -14,12 +14,16 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiTagDTO;
+import com.sonatype.insight.brain.api.v2.dto.MoveOrganizationResponseDTO;
+import com.sonatype.insight.brain.api.v2.dto.MoveOrganizationResponseDTO.ValidationError.MoveOrganizationValidationErrorType;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -131,6 +135,84 @@ public class ApiOrganizationResourceV2Test
     assertThat(responseBody.tags).isEmpty();
 
     assertThat(organization.getName()).isEqualTo(requestBody.name);
+  }
+
+  @Test
+  public void testMoveOrganization() throws Exception {
+    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+    Organization organization = tempEntity.newOrganization();
+
+    try {
+      HttpResponse response = restRequest()
+          .path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
+          .parameter(organizations.get(0).getId(), organization.getId())
+          .query("failEarlyOnError", true)
+          .put();
+
+      assertResponseStatus(HttpStatus.SC_OK, response);
+      assertThat(response.getBodyBytes()).isNotNull();
+
+      MoveOrganizationResponseDTO moveOrganizationResponseDTO = response.getBody(MoveOrganizationResponseDTO.class);
+      assertThat(moveOrganizationResponseDTO).isNotNull();
+    }
+    finally {
+      tempEntity.synchronizeOrganizationTemporaryEntities();
+    }
+  }
+
+  @Test
+  public void testMoveOrganization_BadRequest() throws Exception {
+    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organizations.get(0).getId());
+    Tag tag = tempEntity.newTag(organizations.get(1).getId());
+    tempEntity.newApplicationTag(application.getId(), tag.getId());
+
+    HttpResponse response = restRequest()
+        .path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
+        .parameter(organizations.get(0).getId(), organization.getId())
+        .query("failEarlyOnError", false)
+        .put();
+
+    MoveOrganizationResponseDTO moveOrganizationResponseDTO = response.getBody(MoveOrganizationResponseDTO.class);
+    assertResponseStatus(HttpStatus.SC_CONFLICT, response);
+    assertThat(moveOrganizationResponseDTO.errors).isNotEmpty();
+    assertThat(moveOrganizationResponseDTO.errors.get(0).type).isEqualTo(MoveOrganizationValidationErrorType.TAG);
+    assertThat(moveOrganizationResponseDTO.errors.get(0).message)
+        .contains("Missing application categories for new parent org " + organization.getName())
+        .contains(tag.getName());
+  }
+
+  @Test
+  public void testMoveOrganization_BadRequestFailEarlyOnError() throws Exception {
+    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organizations.get(0).getId());
+    Tag tag = tempEntity.newTag(organizations.get(1).getId());
+    tempEntity.newApplicationTag(application.getId(), tag.getId());
+
+    HttpResponse response = restRequest()
+        .path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
+        .parameter(organizations.get(0).getId(), organization.getId())
+        .query("failEarlyOnError", true)
+        .put();
+
+    assertResponseStatus(HttpStatus.SC_CONFLICT, response);
+    assertThat(response.getBodyText()).isEqualTo(
+        String.format("Missing application categories for new parent org %s: %s", organization.getName(),
+            tag.getName()));
+  }
+
+  @Test
+  public void testMoveOrganization_Unlicensed() throws Exception {
+    uninstallLicense();
+
+    HttpResponse response = restRequest()
+        .path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
+        .parameter("org-id-does-not-matter", "destination-org-id-does-not-matter")
+        .query("failEarlyOnError", true)
+        .put();
+    assertResponseStatus(HttpStatus.SC_PAYMENT_REQUIRED, response);
   }
 
   private void assertOrganizationData(

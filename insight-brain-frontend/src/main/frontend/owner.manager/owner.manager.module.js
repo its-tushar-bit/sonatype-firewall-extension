@@ -57,7 +57,7 @@ import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfathe
 import ImportPoliciesModal from 'MainRoot/OrgsAndPolicies/importPoliciesModal/ImportPoliciesModal';
 import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/RetentionTile';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
-import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/MoveApplicationModal';
+import MoveOwnerModal from 'MainRoot/OrgsAndPolicies/moveOwner/MoveOwnerModal';
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
 import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
 import SelectContactModal from 'MainRoot/OrgsAndPolicies/selectContactModal/SelectContactModal';
@@ -135,7 +135,7 @@ export default angular
     'policyViolationGrandfatheringEditor',
     iqReact2Angular(PolicyViolationGrandfatheringEditor, [], ['$ngRedux'])
   )
-  .component('moveApplicationModal', iqReact2Angular(MoveApplicationModal, [], ['$ngRedux']))
+  .component('moveOwnerModal', iqReact2Angular(MoveOwnerModal, [], ['$ngRedux']))
   .component('dataRetentionEditor', iqReact2Angular(DataRetentionEditor, [], ['$ngRedux']))
   .component('ownerSummaryPills', iqReact2Angular(OwnerSummaryPills, [], ['$ngRedux']))
   .component(

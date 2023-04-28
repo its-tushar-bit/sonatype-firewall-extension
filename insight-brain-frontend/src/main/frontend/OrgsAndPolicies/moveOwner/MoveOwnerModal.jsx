@@ -15,58 +15,74 @@ import {
   NxButtonBar,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { actions } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSlice';
-import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
+import { actions } from 'MainRoot/OrgsAndPolicies/moveOwner/moveOwnerSlice';
+import { selectMoveOwnerSlice, selectMoveOwnerWarnings } from 'MainRoot/OrgsAndPolicies/moveOwner/moveOwnerSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import SuccessMoveAppModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/SuccessMoveAppModal';
-import NoAvailableToMoveOrgsWarning from 'MainRoot/OrgsAndPolicies/moveApplicationModal/NoAvailableToMoveOrgsWarning';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import SuccessMoveAppModal from 'MainRoot/OrgsAndPolicies/moveOwner/SuccessMoveAppModal';
+import SuccessMoveOrgModal from 'MainRoot/OrgsAndPolicies/moveOwner/SuccessMoveOrgModal';
+import NoAvailableToMoveOrgsWarning from 'MainRoot/OrgsAndPolicies/moveOwner/NoAvailableToMoveOrgsWarning';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import FetchCSVButton from './FetchCSVButton';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
-const MoveApplicationModal = () => {
+const MoveOwnerModal = () => {
   const dispatch = useDispatch();
-  const closeModal = () => dispatch(actions.closeMoveAppModal());
+  const closeModal = () => dispatch(actions.closeMoveOwnerModal());
   const {
-    isMoveAppModalOpen,
+    isMoveOwnerModalOpen,
     submitMaskState,
     submitError,
     selectedOrganization,
     isShowSuccessModal,
     isDirty,
     fetchOrgs: { organizations, loadError, loading, isShowNoAvailableOrgsWarning },
-  } = useSelector(selectMoveApplicationSlice);
+  } = useSelector(selectMoveOwnerSlice);
+
   const selectedOwner = useSelector(selectSelectedOwner);
 
+  const isApp = useSelector(selectIsApplication);
+  const warnings = useSelector(selectMoveOwnerWarnings);
+  const closeSuccessModal = () => dispatch(actions.closeSuccessModal());
+
   useEffect(() => {
-    if (isMoveAppModalOpen) {
+    if (isMoveOwnerModalOpen) {
       doLoad();
     }
-  }, [isMoveAppModalOpen]);
+  }, [isMoveOwnerModalOpen]);
 
   useEffect(() => {
     return () => {
       closeModal();
-      dispatch(actions.closeSuccessModal());
+      closeSuccessModal();
     };
   }, []);
 
+  const moveOrganization = () => dispatch(actions.moveOrganization(selectedOrganization));
   const moveApplication = () => dispatch(actions.moveApplication(selectedOrganization));
   const doLoad = () => dispatch(actions.loadAvailableToMoveOrganizations(selectedOwner.id));
 
   const onChange = (event) => {
     dispatch(
       actions.setOrganization({
-        applicationId: selectedOwner.id,
-        selectedOrganizationId: event.target.value,
-        currentParentOrganization: selectedOwner.organizationId,
+        movedApplicationId: isApp ? selectedOwner.id : null,
+        movedOrganizationId: isApp ? null : selectedOwner.id,
+        targetParentOrganizationId: event.target.value,
+        currentParentOrganizationId: isApp ? selectedOwner.organizationId : selectedOwner.parentOrganizationId,
       })
     );
   };
 
   const getErrorProps = (submitError) => {
-    if (submitError?.incompatibilities) {
+    if (!isApp && submitError?.response?.status === 409) {
       return {
-        submitErrorTitleMessage: <b>Incompatible Destinations:</b>,
+        submitErrorTitleMessage: <b>Incompatible Destination:</b>,
+        submitError: `There are configuration conflicts preventing the move operation. 
+                Errors details can be accessed by fetching a CSV file for download.`,
+      };
+    } else if (isApp && submitError?.incompatibilities) {
+      return {
+        submitErrorTitleMessage: <b>Incompatible Destination:</b>,
         submitError: submitError.incompatibilities.join('. '),
       };
     }
@@ -77,15 +93,15 @@ const MoveApplicationModal = () => {
 
   return (
     <>
-      {isMoveAppModalOpen && (
-        <NxModal id="move-application-modal" onCancel={closeModal}>
+      {isMoveOwnerModalOpen && (
+        <NxModal id="move-owner-modal" onCancel={closeModal}>
           <NxModal.Header>
-            <NxH2>Move Application</NxH2>
+            <NxH2>Move {isApp ? 'Application' : 'Organization'}</NxH2>
           </NxModal.Header>
           {!isShowNoAvailableOrgsWarning ? (
             <>
               <NxStatefulForm
-                onSubmit={moveApplication}
+                onSubmit={isApp ? moveApplication : moveOrganization}
                 onCancel={closeModal}
                 doLoad={doLoad}
                 loadError={loadError}
@@ -93,11 +109,19 @@ const MoveApplicationModal = () => {
                 submitBtnText="Move"
                 submitMaskState={submitMaskState}
                 validationErrors={!isDirty ? MSG_NO_CHANGES_TO_SAVE : null}
+                additionalFooterBtns={
+                  <FetchCSVButton
+                    isApp={isApp}
+                    submitError={submitError}
+                    currentOrganizationId={selectedOwner?.id}
+                    parentOrganizationId={selectedOrganization?.organizationId}
+                  />
+                }
                 {...getErrorProps(submitError)}
               >
                 <NxModal.Content>
                   <NxFormGroup label="New Parent Organization" isRequired>
-                    <NxFormSelect onChange={onChange}>
+                    <NxFormSelect onChange={onChange} defaultValue={selectedOrganization?.organizationId}>
                       {organizations.map(({ organizationId, organizationName }) => (
                         <option key={organizationId} value={organizationId}>
                           {organizationName}
@@ -120,9 +144,14 @@ const MoveApplicationModal = () => {
           )}
         </NxModal>
       )}
-      {isShowSuccessModal && <SuccessMoveAppModal />}
+      {isShowSuccessModal &&
+        (isApp ? (
+          <SuccessMoveAppModal warnings={warnings} closeModal={closeSuccessModal} />
+        ) : (
+          <SuccessMoveOrgModal warnings={warnings} closeModal={closeSuccessModal} />
+        ))}
     </>
   );
 };
 
-export default MoveApplicationModal;
+export default MoveOwnerModal;

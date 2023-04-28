@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import PropTypes from 'prop-types';
 import React from 'react';
 import {
   NxModal,
@@ -15,18 +16,10 @@ import {
   NxFooter,
   NxButtonBar,
 } from '@sonatype/react-shared-components';
-import { useDispatch, useSelector } from 'react-redux';
-import { actions } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSlice';
-import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
 
-const SuccessMoveAppModal = () => {
-  const dispatch = useDispatch();
-  const modalCloseHandler = () => {
-    dispatch(actions.closeSuccessModal());
-  };
-  const { warnings } = useSelector(selectMoveApplicationSlice);
+const SuccessMoveAppModal = ({ warnings, closeModal }) => {
   return (
-    <NxModal id="success-move-application-modal" onCancel={modalCloseHandler}>
+    <NxModal id="success-move-application-modal" onCancel={closeModal}>
       <NxModal.Header>
         <NxH2>Application Moved Successfully</NxH2>
       </NxModal.Header>
@@ -43,7 +36,7 @@ const SuccessMoveAppModal = () => {
             </NxList.Item>
           </NxList>
         </NxInfoAlert>
-        {warnings && (
+        {warnings?.length > 0 && (
           <NxWarningAlert>
             <NxH3>Policy configurations that differ between the old and new parent:</NxH3>
             <NxList bulleted>
@@ -58,13 +51,18 @@ const SuccessMoveAppModal = () => {
       </NxModal.Content>
       <NxFooter>
         <NxButtonBar>
-          <NxButton variant="primary" onClick={modalCloseHandler}>
+          <NxButton variant="primary" onClick={closeModal}>
             OK
           </NxButton>
         </NxButtonBar>
       </NxFooter>
     </NxModal>
   );
+};
+
+SuccessMoveAppModal.propTypes = {
+  closeModal: PropTypes.func.isRequired,
+  warnings: PropTypes.object,
 };
 
 export default SuccessMoveAppModal;

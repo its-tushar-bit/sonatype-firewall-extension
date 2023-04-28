@@ -1183,8 +1183,8 @@ export const getCrowdConfigurationTestUrl = () => {
   return uriTemplate`/api/v2/config/crowd/test`;
 };
 
-export const getDestinationOrganizationsUrl = (applicationId) => {
-  return uriTemplate`/rest/move/application/${applicationId}/destinations`;
+export const getDestinationOrganizationsUrl = (ownerId, isApp) => {
+  return uriTemplate`/rest/move/${isApp ? 'application' : 'organization'}/${ownerId}/destinations`;
 };
 
 export const getBundleUploadUrl = (applicationPublicId, stageId, sendNotifications) => {
@@ -1201,6 +1201,12 @@ export const getApplicationReportUrl = (applicationPublicId, scanId) =>
 
 export const getMoveApplicationUrl = (applicationId, organizationId) =>
   uriTemplate`/api/v2/applications/${applicationId}/move/organization/${organizationId}`;
+
+export const getMoveOrganizationUrl = (organizationId, destinationId) =>
+  uriTemplate`/api/v2/organizations/${organizationId}/move/destination/${destinationId}?failEarlyOnError=true`;
+
+export const getMoveOrganizationCSVErrorsUrl = (organizationId, destinationId) =>
+  uriTemplate`/rest/organization/move/export/${organizationId}?destinationId=${destinationId}`;
 
 export const getComponentRiskDetailsUrl = (hash) => {
   return uriTemplate`/rest/componentDetails/applications?hash=${hash}`;

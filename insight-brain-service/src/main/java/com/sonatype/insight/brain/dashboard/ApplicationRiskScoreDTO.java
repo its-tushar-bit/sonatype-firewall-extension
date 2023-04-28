@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.utils.CsvWritable;
+
 import com.google.common.base.Joiner;
 
 /**

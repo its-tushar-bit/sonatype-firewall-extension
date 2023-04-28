@@ -96,8 +96,9 @@ public class OrganizationSummaryViewTest
     ActionDropDown.copyOrgIdButton().shouldBe(visible);
     ActionDropDown.editOwner().shouldBe(visible);
     ActionDropDown.importPoliciesButton().shouldBe(visible);
+    ActionDropDown.moveOwner().shouldBe(visible);
     ActionDropDown.deleteOwnerButton().shouldBe(visible);
-    ActionDropDown.actions().shouldHaveSize(4);
+    ActionDropDown.actions().shouldHaveSize(5);
 
     eyesWatcher.eyesCheck("organization actions dropdown");
   }
@@ -148,7 +149,7 @@ public class OrganizationSummaryViewTest
   @Test
   public void testMoveApplicationLink() {
     ActionDropDown.actionButton().click();
-    ActionDropDown.moveApplication().shouldBe(hidden);
+    ActionDropDown.moveOwner().shouldBe(visible);
   }
 
   @Test

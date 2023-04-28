@@ -197,7 +197,14 @@ describe('ActionDropdown', () => {
       fireEvent.click(actionButton);
       const dropdownButtons = await screen.findAllByRole('button');
       dropdownButtons.forEach((button) => expect(button).toBeVisible());
-      const buttonNames = ['Actions', 'Org ID to Clipboard', 'Edit Org Name / Icon', 'Import Policies', 'Delete 4 org'];
+      const buttonNames = [
+        'Actions',
+        'Org ID to Clipboard',
+        'Edit Org Name / Icon',
+        'Move 4 org',
+        'Import Policies',
+        'Delete 4 org',
+      ];
       dropdownButtons.forEach((button, ind) => {
         expect(button.textContent).toBe(buttonNames[ind]);
       });

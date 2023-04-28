@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.utils.CsvWritable;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

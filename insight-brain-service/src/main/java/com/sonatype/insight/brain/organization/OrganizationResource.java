@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.organization;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -25,6 +24,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.api.v2.dto.MoveOrganizationResponseDTO;
+import com.sonatype.insight.brain.api.v2.dto.MoveOrganizationResponseDTO.ValidationError;
 import com.sonatype.insight.brain.api.v2.dto.WaivedComponentUpgradeNotificationDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.Csv;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
 import com.codahale.metrics.annotation.Timed;
@@ -59,7 +61,11 @@ public class OrganizationResource
   public static final String WAIVED_COMPONENT_UPGRADE_NOTIFICATION =
       "/waivedComponentUpgradeNotification";
 
+  public static final String MOVE_ORGANIZATION_ERRORS_EXPORT_PATH = "/move/export/{organizationId}";
+
   private final OrganizationService organizationService;
+
+  private final MoveOrganizationService moveOrganizationService;
 
   private final InsightWork work;
 
@@ -68,11 +74,13 @@ public class OrganizationResource
                               final RobotImageService robotImageService,
                               final BaseUrl baseUrl,
                               final OrganizationService organizationService,
-                              final NgUploadResponseGenerator ngUploadResponseGenerator)
+                              final NgUploadResponseGenerator ngUploadResponseGenerator,
+                              final MoveOrganizationService moveOrganizationService)
   {
     super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
     this.organizationService = organizationService;
+    this.moveOrganizationService = moveOrganizationService;
   }
 
   /**
@@ -204,5 +212,30 @@ public class OrganizationResource
   @Produces(MediaType.APPLICATION_JSON)
   public WaivedComponentUpgradeNotificationDTO getWaivedComponentUpgradeNotification() {
     return organizationService.getWaivedComponentUpgradeNotification();
+  }
+
+  /**
+  * Move an organization under a new parent.
+  *
+  * @since 1.159
+  * */
+
+  @GET
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces("text/csv")
+  @Path(MOVE_ORGANIZATION_ERRORS_EXPORT_PATH)
+  @Audited(AuditEvent.EXPORT_MOVE_ORGANIZATION_ERRORS_LIST)
+  public Response moveOrganizationErrorsExport(
+      @PathParam("organizationId") final String orgId,
+      @QueryParam("destinationId") final String newParentOrgId
+  )
+  {
+    List<ValidationError> validationErrors =
+        moveOrganizationService.getMoveOrganizationErrors(orgId, newParentOrgId);
+
+    final String fileName = "move_organization_errors";
+    return Csv.generate(Response.ok(), fileName, MoveOrganizationResponseDTO.ValidationError.getCsvHeader(),
+            validationErrors)
+        .build();
   }
 }

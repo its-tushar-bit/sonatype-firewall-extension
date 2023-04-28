@@ -14,8 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
-import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationSuccessModal;
+import com.sonatype.clm.testing.functional.elements.MoveOwnerDialog;
 import com.sonatype.clm.testing.functional.elements.NxCollapsible;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
@@ -50,9 +50,9 @@ public class OrgsAndPoliciesSidebarTest
 {
   private Map<Integer, List<Organization>> organizations;
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   @BeforeClass
   public static void beforeClass() {
@@ -70,7 +70,7 @@ public class OrgsAndPoliciesSidebarTest
   public void testOrgsAndPoliciesSideNavbar() {
     eyesWatcher.eyesCheck("Orgs and policies sidebar at Root level");
 
-    organizations.forEach( (key, value) -> {
+    organizations.forEach((key, value) -> {
       Collections.sort(organizations.get(key), Comparator.comparing(o -> o.getName().toUpperCase()));
     });
 
@@ -188,7 +188,7 @@ public class OrgsAndPoliciesSidebarTest
         new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId()))
     );
 
-    MoveApplicationDialog modal = new MoveApplicationDialog();
+    MoveOwnerDialog modal = new MoveOwnerDialog();
     selectOptionAndSubmit(modal, newParentOrganization);
     modal.shouldBe(hidden);
 
@@ -290,9 +290,9 @@ public class OrgsAndPoliciesSidebarTest
     newApplicationButton.click();
   }
 
-  private void selectOptionAndSubmit(MoveApplicationDialog modal, Organization destination) {
+  private void selectOptionAndSubmit(MoveOwnerDialog modal, Organization destination) {
     ActionDropDown.actionButton().shouldBe(visible).click();
-    ActionDropDown.moveApplication().shouldBe(visible).click();
+    ActionDropDown.moveOwner().shouldBe(visible).click();
     modal.shouldBe(visible);
     modal.body().shouldBe(visible);
 

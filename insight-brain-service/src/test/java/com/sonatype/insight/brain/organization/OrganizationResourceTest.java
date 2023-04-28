@@ -8,24 +8,31 @@ package com.sonatype.insight.brain.organization;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
-
 import javax.imageio.ImageIO;
+import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.MoveOrganizationResponseDTO.ValidationError;
 import com.sonatype.insight.brain.api.v2.dto.WaivedComponentUpgradeNotificationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.reverseproxy.jetty.http.HttpStatus;
 
 import org.apache.commons.lang3.StringUtils;
-
+import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -165,7 +172,7 @@ public class OrganizationResourceTest
     response = restRequest().path(testList.get(testList.size() - 2).getId()).delete();
     assertResponseStatus(204, response);
 
-    List<Organization> removedOrgs = testList.subList(0,testList.size() - 2);
+    List<Organization> removedOrgs = testList.subList(0, testList.size() - 2);
     for (Organization org : removedOrgs) {
       String orgId = org.getId();
       assertThat(orgsDAO.getById(orgId)).isNull();
@@ -275,7 +282,7 @@ public class OrganizationResourceTest
     HttpResponse response =
         restRequest().path(OrganizationResource.WAIVED_COMPONENT_UPGRADE_NOTIFICATION)
             .put();
-    assertResponseStatus(HttpStatus.PAYMENT_REQUIRED_402, response);
+    assertResponseStatus(HttpStatus.SC_PAYMENT_REQUIRED, response);
   }
 
   @Test
@@ -289,7 +296,7 @@ public class OrganizationResourceTest
             .body(waivedComponentUpgradeNotificationDTO)
             .put();
 
-    assertResponseStatus(HttpStatus.OK_200, updateWaiverUpgradePathAvailableNotificationStageResponse);
+    assertResponseStatus(HttpStatus.SC_OK, updateWaiverUpgradePathAvailableNotificationStageResponse);
 
     Organization updatedOrganization =
         updateWaiverUpgradePathAvailableNotificationStageResponse.getBody(Organization.class);
@@ -335,7 +342,83 @@ public class OrganizationResourceTest
     HttpResponse response =
         restRequest().path(OrganizationResource.WAIVED_COMPONENT_UPGRADE_NOTIFICATION)
             .get();
-    assertResponseStatus(HttpStatus.PAYMENT_REQUIRED_402, response);
+    assertResponseStatus(HttpStatus.SC_PAYMENT_REQUIRED, response);
+  }
+
+  @Test
+  public void testMoveOrganizationErrorsExport() throws Exception {
+    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 3, 0);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organizations.get(0).getId());
+
+    // create a bunch of validation errors to assert in csv
+    //tags
+    Tag tag1 = tempEntity.newTag(organizations.get(1).getId());
+    Tag tag2 = tempEntity.newTag(organizations.get(1).getId());
+    tempEntity.newApplicationTag(application.getId(), tag1.getId());
+    tempEntity.newApplicationTag(application.getId(), tag2.getId());
+
+    // labels
+    Label label1 = tempEntity.newLabel(organizations.get(1).getId());
+    Label label2 = tempEntity.newLabel(organizations.get(1).getId());
+    Condition condition1 = new Condition(LabelConditionType.ID, "is", label1.getId());
+    tempEntity.newPolicy(application.getId(), "Policy 1", condition1);
+    Condition condition2 = new Condition(LabelConditionType.ID, "is", label2.getId());
+    tempEntity.newPolicy(application.getId(), "Policy 2", condition2);
+
+    // ltg
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(organizations.get(1).getId());
+    Condition ltgCondition = new Condition(LicenseThreatGroupConditionType.ID, "is", ltg.getId());
+    tempEntity.newPolicy(application.getId(), "PolName", ltgCondition);
+
+    HttpResponse response = restRequest()
+        .path(OrganizationResource.MOVE_ORGANIZATION_ERRORS_EXPORT_PATH)
+        .parameter(organizations.get(0).getId())
+        .query("destinationId", organization.getId())
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    assertThat(response.getContentType()).isEqualTo("text/csv");
+    String dispositionHeader = response.getHeader(HttpHeaders.CONTENT_DISPOSITION);
+    String headerStart = "attachment; filename=\"move_organization_errors";
+    assertThat(dispositionHeader).startsWith(headerStart);
+
+    String[] lines = response.getBodyText().split("\r\n");
+
+    String expectedFirstLine = String.format("TAG," + "\"Missing application categories for new parent org %s: %s,%s\"",
+        organization.getName(), tag2.getName(), tag1.getName());
+    String expectedFirstLineOrderAlter =
+        String.format("TAG," + "\"Missing application categories for new parent org %s: %s,%s\"",
+            organization.getName(), tag1.getName(), tag2.getName());
+
+    String expectedSecondLine = String.format("LABEL," + "\"Missing labels for new parent org %s: %s,%s\"",
+        organization.getName(), label2.getLabel(), label1.getLabel());
+    String expectedSecondLineOrderAlter = String.format("LABEL," + "\"Missing labels for new parent org %s: %s,%s\"",
+        organization.getName(), label1.getLabel(), label2.getLabel());
+
+    String expectedThirdLine =
+        String.format("LICENSE_THREAT_GROUP," + "Missing license threat groups for new parent org %s: %s",
+            organization.getName(), ltg.getName());
+
+    // As the variables used to build messages are contained in a set, their order is not stable
+    // We check there is at least one instance of the message, with the values in whatever order
+    assertThat(lines).hasSize(4);
+    assertThat(lines[0]).isEqualTo(ValidationError.getCsvHeader());
+    assertThat(lines).containsAnyElementsOf(Arrays.asList(expectedFirstLine, expectedFirstLineOrderAlter));
+    assertThat(lines).containsAnyElementsOf(Arrays.asList(expectedSecondLine, expectedSecondLineOrderAlter));
+    assertThat(lines).containsOnlyOnce(expectedThirdLine);
+  }
+
+  @Test
+  public void testMoveOrganizationErrorsExport_Unlicensed() throws Exception {
+    uninstallLicense();
+
+    HttpResponse response = restRequest()
+        .path(OrganizationResource.MOVE_ORGANIZATION_ERRORS_EXPORT_PATH)
+        .parameter("org-id-does-not-matter")
+        .query("destinationId", "destination-org-id-does-not-matter")
+        .get();
+    assertResponseStatus(HttpStatus.SC_PAYMENT_REQUIRED, response);
   }
 
   private byte[] loadDefaultIcon() throws IOException {

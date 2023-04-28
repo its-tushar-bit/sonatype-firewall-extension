@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.NxAlert;
 import com.sonatype.clm.testing.functional.elements.NxTree;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -55,5 +56,9 @@ public class OwnerSummaryPageWithLimitedVisibility
 
   public static SelenideElement titleDescription() {
     return $(".nx-page-title__description");
+  }
+    
+  public static NxAlert notification() {
+    return NxAlert.getInfoAlert();
   }
 }

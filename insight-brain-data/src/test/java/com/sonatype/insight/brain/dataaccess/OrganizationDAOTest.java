@@ -229,27 +229,6 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testUpdate_ParentOrganizationIdIsNull() {
-    organization = tempEntity.newOrganization("OrganizationDAOTest");
-    organization.setParentOrganizationId(null);
-
-    assertThatThrownBy(() -> {
-      dao.update(organization);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change the parent organization id");
-  }
-
-  @Test
-  public void testUpdate_ParentOrganizationIdHasChanged() {
-    organization = tempEntity.newOrganization("OrganizationDAOTest");
-    Organization parentOrg = tempEntity.newOrganization("Test Parent Org");
-    organization.setParentOrganizationId(parentOrg.getId());
-
-    assertThatThrownBy(() -> {
-      dao.update(organization);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change the parent organization id");
-  }
-
-  @Test
   public void testUpdateRootOrgs_ParentOrganizationIdIsForcedToNull() {
     organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
     organization.setParentOrganizationId("dummyOrg");
@@ -257,6 +236,28 @@ public class OrganizationDAOTest
 
     organization = dao.getById(organization.getId());
     assertThat(organization.getParentOrganizationId()).isNull();
+  }
+
+  @Test
+  public void testUpdate_ParentOrganizationIdIsNull() {
+    organization = tempEntity.newOrganization("OrganizationDAOTest");
+    organization.setParentOrganizationId(null);
+    assertThatThrownBy(() -> {
+      dao.update(organization);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Parent organization id cant be null.");
+    tempEntity.synchronizeOrganizationTemporaryEntities();
+  }
+
+  @Test
+  public void testUpdate_ParentOrganizationIdHasChanged() {
+    organization = tempEntity.newOrganization("OrganizationDAOTest");
+    Organization parentOrg = tempEntity.newOrganization("Test Parent Org");
+    String parentOrgId = parentOrg.getId();
+    organization.setParentOrganizationId(parentOrgId);
+    dao.update(organization);
+
+    organization = dao.getById(organization.getId());
+    assertThat(parentOrgId).isEqualTo(organization.getParentOrganizationId());
   }
 
   @Test

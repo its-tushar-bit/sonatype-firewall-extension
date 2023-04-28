@@ -11,13 +11,15 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class MoveApplicationDialog
-    extends BasicElement<MoveApplicationDialog>
+public class MoveOwnerDialog
+    extends BasicElement<MoveOwnerDialog>
 {
   private static final String FOOTER_SELECTOR = ".nx-footer";
 
-  public MoveApplicationDialog() {
-    super("#move-application-modal");
+  private static final String BTN_BAR_SELECTOR = ".nx-btn-bar";
+
+  public MoveOwnerDialog() {
+    super("#move-owner-modal");
   }
 
   public SelenideElement body() {
@@ -45,19 +47,23 @@ public class MoveApplicationDialog
   }
 
   public SelenideElement alertMessage() {
-    return $("#move-application-modal .nx-alert__content");
+    return $("#move-owner-modal .nx-alert__content");
   }
 
   public SelenideElement errorMessage() {
-    return $("#move-application-modal .nx-alert--error .nx-alert__content");
+    return $("#move-owner-modal .nx-alert--error .nx-alert__content");
   }
 
   public SelenideElement incompatibleErrorMessage() {
-    return $("#move-application-modal .nx-alert--error b");
+    return $("#move-owner-modal .nx-alert--error b");
   }
 
   public SelenideElement retryButton() {
     return child(FOOTER_SELECTOR, ".nx-btn--error");
+  }
+
+  public SelenideElement fetchCSVButton() {
+    return child(FOOTER_SELECTOR, BTN_BAR_SELECTOR, ".nx-btn--tertiary");
   }
 }
 

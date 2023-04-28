@@ -5,8 +5,11 @@
  */
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { createSelector } from '@reduxjs/toolkit';
+import { prop } from 'ramda';
 
-export const selectMoveApplicationSlice = createSelector(
+export const selectMoveOwnerSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerActions: { moveApplication } }) => moveApplication
+  ({ ownerActions: { moveOwner } }) => moveOwner
 );
+
+export const selectMoveOwnerWarnings = createSelector(selectMoveOwnerSlice, prop('warnings'));

@@ -207,6 +207,37 @@ public class OrganizationResourceAuditTest
     assertOrganizationData(auditDTO, organization);
   }
 
+  @Test
+  public void testMoveOrganizationErrorsExport() throws Exception {
+    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+    Organization organization = tempEntity.newOrganization();
+
+    organizationRequest()
+        .path(OrganizationResource.MOVE_ORGANIZATION_ERRORS_EXPORT_PATH)
+        .parameter(organizations.get(0).getId())
+        .query("destinationId", organization.getId())
+        .get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_MOVE_ORGANIZATION_ERRORS_LIST, null);
+    assertOrganizationData(auditDTO, organizations.get(0));
+  }
+
+  @Test
+  public void testMoveOrganizationErrorsExport_Unauthorized() throws Exception {
+    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+    Organization organization = tempEntity.newOrganization();
+
+    organizationRequest()
+        .path(OrganizationResource.MOVE_ORGANIZATION_ERRORS_EXPORT_PATH)
+        .parameter(organizations.get(0).getId())
+        .query("destinationId", organization.getId())
+        .with(unauthorizedUser())
+        .get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_MOVE_ORGANIZATION_ERRORS_LIST, "unauthorized");
+    assertOrganizationData(auditDTO, organizations.get(0));
+  }
+
   private HttpRequest organizationRequest() {
     return restRequest().path(OrganizationResource.RESOURCE_PATH);
   }

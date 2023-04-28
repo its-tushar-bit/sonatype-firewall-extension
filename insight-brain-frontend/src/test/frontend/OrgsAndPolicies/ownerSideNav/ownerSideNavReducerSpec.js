@@ -306,45 +306,6 @@ describe('ownerSideNavSlice reducer', () => {
       });
     });
 
-    describe('ownerSideNav/moveApplication', () => {
-      it('updates app counters in the whole hierarchy', () => {
-        const { ownersMap } = reducer(stateMock, {
-          type: 'ownerSideNav/moveApplication',
-          payload: {
-            currentOwner: {
-              id: 'app5',
-              publicId: 'app5',
-              name: 'm app',
-              organizationId: 'grandGrandChildOrg1',
-              organizationName: 'grandGrandChildOrg1',
-              contact: null,
-            },
-            newParentId: 'grandChildOrg2',
-          },
-        });
-
-        expect(ownersMap.grandGrandChildOrg1.applicationIds.length).toBe(2);
-        expect(ownersMap.grandGrandChildOrg1.totalApps).toBe(2);
-
-        expect(ownersMap.grandChildOrg1.applicationIds.length).toBe(0);
-        expect(ownersMap.grandChildOrg1.totalApps).toBe(2);
-
-        expect(ownersMap.childOrg1.applicationIds.length).toBe(1);
-        expect(ownersMap.childOrg1.totalApps).toBe(3);
-
-        expect(ownersMap.grandChildOrg2.applicationIds.length).toBe(3);
-        expect(ownersMap.grandChildOrg2.totalApps).toBe(3);
-
-        expect(ownersMap.childOrg2.applicationIds.length).toBe(0);
-        expect(ownersMap.childOrg2.totalApps).toBe(3);
-
-        expect(ownersMap.root.applicationIds.length).toBe(0);
-        expect(ownersMap.root.totalApps).toBe(6);
-
-        expect(ownersMap.grandChildOrg2.applicationIds).toEqual(['app6', 'app5', 'app4']);
-      });
-    });
-
     describe('ownerSideNav/updateOwnersMapWithNewEntry', () => {
       it('updates app flattenEntries and app counters', () => {
         const { ownersMap, flattenEntries } = reducer(stateMock, {

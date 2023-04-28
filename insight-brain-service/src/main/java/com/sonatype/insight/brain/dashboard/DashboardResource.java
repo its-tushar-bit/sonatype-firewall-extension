@@ -21,6 +21,7 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.utils.Csv;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.ExceptionMetered;

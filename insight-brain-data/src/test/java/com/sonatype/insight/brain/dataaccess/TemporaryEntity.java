@@ -14,12 +14,14 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -142,6 +144,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -699,6 +702,44 @@ public class TemporaryEntity
     return copy;
   }
 
+  public List<Organization> sortNLevelOrgsWithLeafNodesOnTop(Collection<Organization> orgs) {
+    List<Organization> unsortedOrganizations = new ArrayList<>(orgs);
+    LinkedList<Organization> sortedOrganizations = new LinkedList<>();
+
+    final Function<Organization, Organization> attachOrphanToRootOrg = organization -> {
+      if (organization != null && organization.getParentOrganizationId() == null) {
+        organization.setParentOrganizationId(ROOT_ORGANIZATION_ID);
+      }
+      return organization;
+    };
+
+    List<Organization> childrenOfRoot = unsortedOrganizations.stream()
+        .map(attachOrphanToRootOrg)
+        .filter(Objects::nonNull)
+        .filter(org -> Organization.ROOT_ORGANIZATION_ID.equals(org.getParentOrganizationId()))
+        .collect(Collectors.toList());
+    // remove from unsorted to avoid double processing and wrong order
+    unsortedOrganizations.removeAll(childrenOfRoot);
+
+    final Function<String, List<Organization>> getChildrenOfOrgFromUnsortedOrganizations =
+        parentIdToFilter -> unsortedOrganizations.stream()
+            .filter(organization -> organization.getParentOrganizationId().equals(parentIdToFilter))
+            .collect(toList());
+
+    Deque<Organization> organizationDeque = new ArrayDeque<>(childrenOfRoot);
+    while (!organizationDeque.isEmpty()) {
+      Organization child = organizationDeque.removeFirst();
+      sortedOrganizations.addFirst(child);
+      List<Organization> childrenOfCurrentChild = getChildrenOfOrgFromUnsortedOrganizations.apply(child.getId());
+      unsortedOrganizations.removeAll(childrenOfCurrentChild);
+      organizationDeque.addAll(childrenOfCurrentChild);
+    }
+
+    // Add any remaining organizations (perhaps with fake parents) that could not be processed
+    unsortedOrganizations.forEach(sortedOrganizations::addFirst);
+    return sortedOrganizations;
+  }
+
   @Override
   public void after() {
     automaticApplicationsConfigurationDAO.setEnabled(false);
@@ -713,6 +754,7 @@ public class TemporaryEntity
     delete(defaultBranchCommitHistoryDAO.getAll(), defaultBranchCommitHistoryDAO);
     orgs.forEach(org -> apps.addAll(appDAO.getByOrganizationId(org.getId())));
     delete(apps, appDAO);
+    orgs = sortNLevelOrgsWithLeafNodesOnTop(orgs);
     delete(orgs, orgDAO);
     delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
     delete(securityVulnerabilityOverrides, securityVulnerabilityOverrideDAO);
@@ -968,6 +1010,17 @@ public class TemporaryEntity
     return newOrganization("Test Org " + uuid(), parentOrg);
   }
 
+  /*
+   * We use local variables for removing mock data after test.
+   * When DB data is modified during test then we can receive an exception because data in db and in local
+   * variables is inconsistent. In that case we need to get data from db to synchronize it. ROOT ORGANIZATION ID
+   * is ignored because we don't delete it.
+   */
+  public void synchronizeOrganizationTemporaryEntities() {
+    orgs = orgDAO.getAll().stream().filter(organization -> !organization.getId().equals("ROOT_ORGANIZATION_ID"))
+        .collect(toList());
+  }
+
   public Organization newOrganization(String name) {
     return newOrganization(name, null /* parentOrg */);
   }
@@ -1105,19 +1158,25 @@ public class TemporaryEntity
     if (depth >= 0) {
       List<Organization> levelOrganizations = organizations.getOrDefault(depth, new LinkedList<>());
       for (int childOrgIndex = 0; childOrgIndex < orgsPerLevel; childOrgIndex++) {
-        String orgName;
-        if (nameSupplier != null) {
-          orgName = nameSupplier.apply("TestOrg_");
-        }
-        else {
-          if (parentOrg != null) {
-            orgName = parentOrg.getName() + "_" + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+        Organization currentOrg;
+        int attemptsAtOrgCreation = 0;
+        do {
+          String orgName =
+              getOrgNameForMultiLevelRelatedOrgs(parentOrg, orgsPerLevel, depth, nameSupplier, childOrgIndex);
+          try {
+            currentOrg = newOrganization(orgName, parentOrg);
           }
-          else {
-            orgName = "TestOrg_" + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+          catch (InvalidNameException e) {
+            if (attemptsAtOrgCreation == 3) {
+              throw new RuntimeException(e);
+            }
+            // There's a possibility of clashes in naming. Retry until max attempts
+            currentOrg = null;
+            attemptsAtOrgCreation++;
           }
         }
-        Organization currentOrg = newOrganization(orgName, parentOrg);
+        while (currentOrg == null);
+
         levelOrganizations.add(currentOrg);
         if (appsPerOrg >= 1) {
           for (int childAppIndex = 0; childAppIndex < appsPerOrg; childAppIndex++) {
@@ -1134,6 +1193,28 @@ public class TemporaryEntity
       }
       organizations.put(depth, levelOrganizations);
     }
+  }
+
+  private String getOrgNameForMultiLevelRelatedOrgs(
+      final Organization parentOrg,
+      final int orgsPerLevel,
+      final int depth,
+      final Function<String, String> nameSupplier,
+      final int childOrgIndex)
+  {
+    String orgName;
+    if (nameSupplier != null) {
+      orgName = nameSupplier.apply("TestOrg_");
+    }
+    else {
+      if (parentOrg != null) {
+        orgName = parentOrg.getName() + "_" + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+      }
+      else {
+        orgName = "TestOrg_" + uuid().substring(0, orgsPerLevel) + "_" + depth + "." + childOrgIndex;
+      }
+    }
+    return orgName;
   }
 
   public void register(DashboardFilter... dashboardFilters) {

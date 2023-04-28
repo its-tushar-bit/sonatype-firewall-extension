@@ -97,6 +97,11 @@ public class OrganizationService
     return organizationDAO.getAll();
   }
 
+  @AuthzFilter(permission = Permission.WRITE, context = AuthzFilter.Context.ORGANIZATION)
+  List<Organization> getAllWithWritePermissions() {
+    return organizationDAO.getAll();
+  }
+
   @Authorize(permission = Permission.READ)
   public Organization getOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId) {
     return organizationDAO.getById(orgId);

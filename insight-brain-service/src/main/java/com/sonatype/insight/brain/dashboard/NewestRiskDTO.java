@@ -10,6 +10,7 @@ import java.util.TimeZone;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.utils.CsvWritable;
 
 import com.google.common.base.Joiner;
 

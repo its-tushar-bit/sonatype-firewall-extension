@@ -133,13 +133,11 @@ public class OrganizationDAO
       organization.setParentOrganizationId(null);
     }
     else {
-      // Make sure the parent org has not changed
-      Organization persistedOrg = getById(tx, organization.getId());
-      if (!persistedOrg.getParentOrganizationId().equals(organization.getParentOrganizationId())) {
-        throw new BadRequestException("Cannot change the parent organization id");
+      // Make sure the parent org is not null
+      if (organization.getParentOrganizationId() == null) {
+        throw new BadRequestException("Parent organization id cant be null.");
       }
     }
-
     Organization existingOrganization = getByName(tx, organization.getName());
     if (existingOrganization != null && !existingOrganization.getId().equals(organization.getId())) {
       throw new InvalidNameException(organization.getName() + " is already used as a name.");

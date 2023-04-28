@@ -6,8 +6,8 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.testing.functional.elements.IqAssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.IqAssociationEditor;
+import com.sonatype.clm.testing.functional.elements.IqAssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;

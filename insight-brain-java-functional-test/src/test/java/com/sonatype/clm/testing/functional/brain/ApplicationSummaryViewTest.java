@@ -23,7 +23,7 @@ import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile.InheritedLabelsList;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
-import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
+import com.sonatype.clm.testing.functional.elements.MoveOwnerDialog;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.NxList;
 import com.sonatype.clm.testing.functional.elements.NxToast;
@@ -199,7 +199,7 @@ public class ApplicationSummaryViewTest
     ActionDropDown.editOwner().shouldBe(visible);
 
     ActionDropDown.changeApplicationId().shouldBe(visible);
-    ActionDropDown.moveApplication().shouldBe(visible);
+    ActionDropDown.moveOwner().shouldBe(visible);
     ActionDropDown.deleteOwnerButton().shouldBe(visible);
     ActionDropDown.grandfather().shouldBe(visible);
     ActionDropDown.revokeGrandfathered().shouldBe(visible);
@@ -366,10 +366,10 @@ public class ApplicationSummaryViewTest
 
   @Test
   public void testMoveApplicationLink() {
-    MoveApplicationDialog moveAppModal = new MoveApplicationDialog();
+    MoveOwnerDialog moveAppModal = new MoveOwnerDialog();
     moveAppModal.shouldBe(hidden);
     ActionDropDown.actionButton().click();
-    ActionDropDown.moveApplication().shouldBe(visible).shouldHave(text("Move " + application.getName())).click();
+    ActionDropDown.moveOwner().shouldBe(visible).shouldHave(text("Move " + application.getName())).click();
     moveAppModal.shouldBe(visible);
   }
 

@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
-import { equals, isEmpty, omit, prop, reject, clone, dissoc, findIndex, propEq, curry } from 'ramda';
+import { equals, isEmpty, omit, prop, reject, clone, dissoc, propEq, curry } from 'ramda';
 import debounce from 'debounce';
 
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
@@ -347,66 +347,6 @@ const updateOwnersMapWithNewEntry = (state, { payload }) => {
   }
 };
 
-const moveApplication = (state, { payload }) => {
-  const { currentOwner, newParentId } = payload;
-  const ownersMap = state.ownersMap;
-  const newParentOrganization = ownersMap[newParentId];
-  const parentOrganization = ownersMap[currentOwner.organizationId];
-  const applicationId = currentOwner.publicId;
-  const filteredEntries = state.filteredEntries;
-  let updatedFilteredOrgs = isNilOrEmpty(filteredEntries.organizations) ? [] : filteredEntries.organizations;
-  let updatedFilteredApps = isNilOrEmpty(filteredEntries.applications) ? [] : filteredEntries.applications;
-  let ownerIndex;
-
-  const findOrganizationByIndex = curry((organizationId, organizations) => {
-    return findIndex(propEq('id', organizationId), organizations);
-  });
-
-  const findApplicationByIndex = curry((publicApplicationId, organizations) => {
-    return findIndex(propEq('publicId', publicApplicationId), organizations);
-  });
-
-  //remove application from current parent org
-  if (parentOrganization) {
-    const oldParentApplicationIds = reject(equals(applicationId))(parentOrganization.applicationIds);
-    ownersMap[parentOrganization.id] = { ...parentOrganization, applicationIds: oldParentApplicationIds };
-    incrementAppCountersInAllParents(ownersMap, currentOwner.organizationId, -1);
-    ownerIndex = findOrganizationByIndex(parentOrganization.id, updatedFilteredOrgs);
-    if (ownerIndex > 0) {
-      updatedFilteredOrgs[ownerIndex] = ownersMap[parentOrganization.id];
-    }
-  }
-
-  //add application to new parent org
-  if (newParentOrganization) {
-    newParentOrganization.applicationIds.push(applicationId);
-    newParentOrganization.applicationIds = sortOwnerIdListByOwnerName(newParentOrganization.applicationIds, ownersMap);
-    incrementAppCountersInAllParents(ownersMap, newParentId, 1);
-    ownerIndex = findOrganizationByIndex(newParentId, updatedFilteredOrgs);
-    if (ownerIndex > 0) {
-      updatedFilteredOrgs[ownerIndex] = ownersMap[newParentId];
-    }
-  }
-
-  const currentApplication = ownersMap[applicationId];
-  const updatedApplication = { ...currentApplication, organizationId: newParentId };
-  ownersMap[applicationId] = updatedApplication;
-  ownerIndex = findApplicationByIndex(applicationId, updatedFilteredApps);
-  if (ownerIndex > 0) {
-    updatedFilteredApps[ownerIndex] = updatedApplication;
-  }
-
-  const flattenEntries = flatEntries(ownersMap);
-
-  //Update displayed organization & flattenEntries too
-  state.displayedOrganization = ownersMap[newParentId];
-  state.flattenEntries = flattenEntries;
-  state.filteredEntries = {
-    organizations: updatedFilteredOrgs,
-    applications: updatedFilteredApps,
-  };
-};
-
 const incrementCountersInAllParents = curry((isApp, ownerMap, immediateParentId, value) => {
   let currentOrgId = immediateParentId;
   while (currentOrgId) {
@@ -441,7 +381,6 @@ const ownerSideNavSlice = createSlice({
     resetFilter,
     updateOwnersMapWithNewAppId,
     updateOwnersMapWithNewEntry,
-    moveApplication,
     updateDisplayedOrganization,
     setDisplayedOrganizations,
   },

@@ -32,9 +32,13 @@ const setSelectedOwnerContact = (state, { payload }) => {
   state.selectedOwner.contact = payload;
 };
 
-const selectedOwnerParentOrganizationUpdated = (state, { payload: { organizationName, organizationId } }) => {
+const selectedOwnerParentOrganizationUpdated = (
+  state,
+  { payload: { organizationName, organizationId, parentOrganizationId } }
+) => {
   state.selectedOwner.organizationName = organizationName;
   state.selectedOwner.organizationId = organizationId;
+  state.selectedOwner.parentOrganizationId = parentOrganizationId;
 };
 
 const loadApplicablePoliciesByOwner = createAsyncThunk(

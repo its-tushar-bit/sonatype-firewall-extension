@@ -140,6 +140,13 @@ public interface AuditTestSupport
     assertCustomData(auditDTO, "organizationName", organizationName);
   }
 
+  default void assertOrganizationAndParentData(AuditDTO auditDTO, Organization childOrg, Organization parentOrg) {
+    assertCustomData(auditDTO, "organizationId", childOrg.getId());
+    assertCustomData(auditDTO, "organizationName", childOrg.getName());
+    assertCustomData(auditDTO, "parentOrganizationId", parentOrg.getId());
+    assertCustomData(auditDTO, "parentOrganizationName", parentOrg.getName());
+  }
+
   default void assertApplicationData(AuditDTO auditDTO, Application application) {
     assertApplicationData(auditDTO, application.getId(), application.getPublicId(), application.getName());
   }

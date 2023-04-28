@@ -33,8 +33,8 @@ public class ActionDropDown
     return $("#app-org-link");
   }
 
-  public static SelenideElement moveApplication() {
-    return $("#app-move-link");
+  public static SelenideElement moveOwner() {
+    return $("#owner-move-link");
   }
 
   public static SelenideElement changeApplicationId() {

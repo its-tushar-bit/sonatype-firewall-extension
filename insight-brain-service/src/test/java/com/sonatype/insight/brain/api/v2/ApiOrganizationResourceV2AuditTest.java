@@ -14,11 +14,25 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.AbstractMembershipMappingAuditTest;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class ApiOrganizationResourceV2AuditTest
     extends AbstractMembershipMappingAuditTest
 {
+  private Organization parentOrg;
+
+  private Organization childOrg;
+
+  private Organization targetOrg;
+
+  @Before
+  public void before() {
+    parentOrg = tempEntity.newOrganization();
+    childOrg = tempEntity.newOrganization(parentOrg);
+    targetOrg = tempEntity.newOrganization();
+  }
+
   @Test
   public void testAddOrganization() throws Exception {
     ApiOrganizationDTO organizationDto = new ApiOrganizationDTO(null, "new-organization");
@@ -38,7 +52,26 @@ public class ApiOrganizationResourceV2AuditTest
     assertAuditLog(AuditEvent.CREATE_ORGANIZATION, "unauthorized");
   }
 
+  @Test
+  public void testMoveOrganization() throws Exception {
+    moveOrganizationApiRequest().parameter(childOrg.getId(), targetOrg.getId()).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_ORGANIZATION, null);
+    assertOrganizationAndParentData(auditDTO, childOrg, targetOrg);
+  }
+
+  @Test
+  public void testMoveOrganization_Unauthorized() throws Exception {
+    moveOrganizationApiRequest().with(unauthorizedUser()).parameter(childOrg.getId(), targetOrg.getId()).put();
+
+    assertAuditLog(AuditEvent.UPDATE_ORGANIZATION, "unauthorized");
+  }
+
   private HttpRequest organizationApiRequest() {
     return restRequest().path(PublicApiPaths.ORG_RESOURCE_PATH);
+  }
+
+  private HttpRequest moveOrganizationApiRequest() {
+    return organizationApiRequest().path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH);
   }
 }

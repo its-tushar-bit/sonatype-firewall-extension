@@ -123,6 +123,7 @@
 @use '../OrgsAndPolicies/policyEditor/editPolicyInheritance/EditPolicyInheritance';
 @use '../OrgsAndPolicies/policyEditor/policyNotificationsEditor/PolicyNotificationsEditor';
 @use '../OrgsAndPolicies/ownerSideNav/OwnerSideNav';
+@use '../OrgsAndPolicies/moveOwner/MoveOwnerModal';
 @use '../OrgsAndPolicies/access/accessPage';
 @use '../OrgsAndPolicies/proprietaryComponentConfig/proprietaryComponentConfiguration';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';

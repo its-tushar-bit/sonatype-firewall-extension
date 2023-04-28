@@ -38,7 +38,7 @@ import { actions as deleteOwnerActions } from 'MainRoot/OrgsAndPolicies/deleteOw
 import { actions as contactActions } from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSlice';
 import { actions as grandfatheringActions } from 'MainRoot/OrgsAndPolicies/grandfatheringModal/grandfatheringSlice';
 import { actions as revokeGrandfatheringActions } from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/revokeGrandfatheringSlice';
-import { actions as moveApplicationActions } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSlice';
+import { actions as moveOwnerActions } from 'MainRoot/OrgsAndPolicies/moveOwner/moveOwnerSlice';
 import { actions as evaluateApplicationActions } from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSlice';
 import copyIdToClipboardAction from 'MainRoot/OrgsAndPolicies/copyIdToClipboardToast/copyIdToClipboardSlice';
 import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
@@ -183,11 +183,11 @@ const ActionDropdown = () => {
           </NxTooltip>
         )}
 
-        {isApp && (
+        {!isRootOrg && (
           <NxOverflowTooltip>
             <button
-              id="app-move-link"
-              onClick={() => dispatch(moveApplicationActions.openMoveAppModal())}
+              id="owner-move-link"
+              onClick={() => dispatch(moveOwnerActions.openMoveOwnerModal())}
               className="nx-dropdown-button"
             >
               <NxFontAwesomeIcon icon={faArrowsAlt} />

@@ -20,7 +20,7 @@ import { selectSelectedOwner, selectPoliciesByOwner } from 'MainRoot/OrgsAndPoli
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { selectImportPoliciesSlice } from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSelectors';
-import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
+import { selectMoveOwnerSlice } from 'MainRoot/OrgsAndPolicies/moveOwner/moveOwnerSelectors';
 import { selectContactSlice } from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSelectors';
 import { selectEvaluateApplicationSlice } from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSelectors';
 import { selectIsDisplayedOrganizationSynthetic } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
@@ -181,7 +181,7 @@ const mapStateToThis = (state) => ({
   loading: selectLoading(state),
   loadError: selectLoadError(state),
   isShowSuccessImportPoliciesModal: selectImportPoliciesSlice(state).submitMaskState,
-  isShowSuccessMoveAppModal: selectMoveApplicationSlice(state).isShowSuccessModal,
+  isShowSuccessMoveAppModal: selectMoveOwnerSlice(state).isShowSuccessModal,
   isShowSuccessSelectContactModal: selectContactSlice(state).submitMaskState,
   scanId: selectEvaluateApplicationSlice(state).evaluationStatus.scanId,
   isDisplayedOrganizationSynthetic: selectIsDisplayedOrganizationSynthetic(state),

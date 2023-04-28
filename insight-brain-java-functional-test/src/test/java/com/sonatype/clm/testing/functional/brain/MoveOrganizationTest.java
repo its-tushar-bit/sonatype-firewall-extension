@@ -5,20 +5,21 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.MoveApplicationSuccessModal;
+import com.sonatype.clm.testing.functional.elements.MoveOrganizationSuccessModal;
 import com.sonatype.clm.testing.functional.elements.MoveOwnerDialog;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -29,23 +30,25 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MoveApplicationTest
+public class MoveOrganizationTest
     extends AbstractFunctionalTest
 {
-  private static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
+  private static final String YE_OLE_PARENT_ORGANIZATION1 = "Ye Ole Parent Organization 1";
 
-  private static final String YE_OLE_APPLICATION = "Ye Ole Application";
+  private static final String YE_OLE_PARENT_ORGANIZATION2 = "Ye Ole Parent Organization 2";
 
-  private static final String SOME_OTHER_ORGANIZATION = "Some Other Organization";
+  private static final String YE_OLE_CHILD_ORGANIZATION2 = "Ye Ole Child Organization";
 
   private static final String POLICY_MONITORING_MISSING_MSG = "The new parent organization does not use continuous"
       + " policy monitoring.";
 
-  private final ApplicationDAO appDAO = new ApplicationDAO();
+  private final OrganizationDAO orgDAO = new OrganizationDAO();
 
-  private Application application;
+  private Organization parentOrg1;
 
-  private Organization otherOrg;
+  private Organization parentOrg2;
+
+  private Organization childOrg;
 
   @BeforeClass
   public static void beforeClass() {
@@ -55,93 +58,81 @@ public class MoveApplicationTest
 
   @Before
   public void init() {
-    application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
-        YE_OLE_ORGANIZATION);
+    parentOrg1 = tempEntity.newOrganization(YE_OLE_PARENT_ORGANIZATION1);
+    parentOrg2 = tempEntity.newOrganization(YE_OLE_PARENT_ORGANIZATION2);
+    childOrg = tempEntity.newOrganization(YE_OLE_CHILD_ORGANIZATION2, parentOrg1);
 
-    refreshOrOpen(OwnerSummaryPage.url(application));
-    OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
+    refreshOrOpen(OwnerSummaryPage.url(childOrg));
+    OwnerSummaryPage.summaryTile().name().shouldHave(text(childOrg.getName()));
+  }
+
+  @After
+  public void syncOrgHierarchy() {
+    tempEntity.synchronizeOrganizationTemporaryEntities();
   }
 
   @Test
-  public void testErrorLoadingDestinations() {
-    ActionDropDown.actionButton().shouldBe(visible).click();
-    ActionDropDown.moveOwner().shouldBe(visible).click();
+  public void testSuccessfullyMovedOrganization() {
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    modal.shouldBe(visible);
-    modal.moveButton().shouldBe(hidden);
-    modal.body().shouldBe(hidden);
-    modal.errorMessage().shouldBe(visible).shouldHave(text("No available destination organizations."));
-    modal.okButton().shouldHave(text("OK")).shouldBe(visible).click();
-    modal.shouldBe(hidden);
-  }
-
-  @Test
-  public void testSuccessfullyMovedApplication() {
-    otherOrg = tempEntity.newOrganization(SOME_OTHER_ORGANIZATION);
-
-    MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectFirstOptionAndSubmit(modal);
+    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2);
     modal.shouldBe(hidden);
 
     // success modal should have only info messages
-    MoveApplicationSuccessModal successDialog = new MoveApplicationSuccessModal();
+    MoveOrganizationSuccessModal successDialog = new MoveOrganizationSuccessModal();
     successDialog.shouldBe(visible);
     successDialog.infoSection().shouldBe(visible);
     successDialog.warningSection().shouldBe(hidden);
     eyesWatcher.eyesCheck();
-    successDialog.okButton().click();
+    successDialog.closeButton().click();
     successDialog.shouldBe(hidden);
     modal.shouldBe(hidden);
 
     // test new parent
-    Application updatedApp = appDAO.getById(application.getId());
-    assertThat(updatedApp.getParentOwnerId()).isEqualTo(otherOrg.getId());
+    Organization updatedOrg = orgDAO.getById(childOrg.getId());
+    assertThat(updatedOrg.getParentOwnerId()).isEqualTo(parentOrg2.getId());
   }
 
   @Test
-  public void shouldSuccessfullyMoveApplicationWithWarningsIfPolicyMonitoringMissingInNewParent() {
-    otherOrg = tempEntity.newOrganization(SOME_OTHER_ORGANIZATION);
+  public void shouldSuccessfullyMoveOrganizationWithWarningsIfPolicyMonitoringMissingInNewParent() {
 
     // set up current parent to have continuous policy monitoring
-    tempEntity.newPolicyMonitoring(application.getParentOwnerId(), Stage.ID_RELEASE);
-
+    tempEntity.newPolicyMonitoring(childOrg.getParentOwnerId(), Stage.ID_RELEASE);
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectFirstOptionAndSubmit(modal);
+    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2);
     modal.shouldBe(hidden);
 
     // success modal should have warning messages
-    MoveApplicationSuccessModal successModal = new MoveApplicationSuccessModal();
+    MoveOrganizationSuccessModal successModal = new MoveOrganizationSuccessModal();
     successModal.shouldBe(visible);
     successModal.infoSection().shouldBe(visible);
     successModal.warningSection().shouldBe(visible).shouldHave(text(POLICY_MONITORING_MISSING_MSG));
-    successModal.okButton().click();
+    successModal.closeButton().click();
     successModal.shouldBe(hidden);
     modal.shouldBe(hidden);
 
     // check continuous policy monitoring text is updated
     OwnerSummaryPage.monitoredStage()
-        .shouldHave(text("Inherit from Some Other Organization (Do not monitor)"));
+        .shouldHave(text("Inherit from Ye Ole Parent Organization 2 (Do not monitor)"));
 
     // test new parent
-    Application updatedApp = appDAO.getById(application.getId());
-    assertThat(updatedApp.getParentOwnerId()).isEqualTo(otherOrg.getId());
+    Organization updatedOrg = orgDAO.getById(childOrg.getId());
+    assertThat(updatedOrg.getParentOwnerId()).isEqualTo(parentOrg2.getId());
   }
 
   @Test
   public void testErrorIncompatibleDestinationAndRetry() {
-    otherOrg = tempEntity.newOrganization(SOME_OTHER_ORGANIZATION);
-
-    // set up current parent to have a tag
-    Tag tag = tempEntity.newTag(application.getParentOwnerId(), "MoveApplicationTest category");
-    tempEntity.newApplicationTag(application.getId(), tag.getId());
-
+    // set up a new policy to make targets incompatible
+    tempEntity.newPolicy(childOrg.getParentOwnerId(), "policyName", 5, Action.ID_FAIL,
+        StageTypes.BUILD.getId(), null);
     // move
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectFirstOptionAndSubmit(modal);
+    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2);
     // error state
     modal.shouldBe(visible);
     modal.retryButton().shouldBe(visible);
-    modal.incompatibleErrorMessage().shouldBe(visible).shouldHave(text("Incompatible Destination:"));
+    modal.errorMessage().shouldBe(visible).shouldHave(text(
+        "Incompatible Destination: There are configuration conflicts preventing the move operation."
+            + " Errors details can be accessed by fetching a CSV file for download. Retry"));
     eyesWatcher.eyesCheck();
     modal.retryButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
@@ -149,7 +140,20 @@ public class MoveApplicationTest
     modal.shouldBe(hidden);
   }
 
-  private void selectFirstOptionAndSubmit(MoveOwnerDialog modal) {
+  @Test
+  public void testErrorIncompatibleDestinationAndFetchCSVButton() {
+    // set up a new policy to make targets incompatible
+    tempEntity.newPolicy(childOrg.getParentOwnerId(), "policyName", 5, Action.ID_FAIL,
+        StageTypes.BUILD.getId(), null);
+    // move
+    MoveOwnerDialog modal = new MoveOwnerDialog();
+    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2);
+    // error state
+    modal.shouldBe(visible);
+    modal.fetchCSVButton().should(visible).shouldHave(text("Fetch CSV")).click();
+  }
+
+  private void selectOptionAndSubmit(MoveOwnerDialog modal, int option, String optionName) {
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.moveOwner().shouldBe(visible).click();
     modal.shouldBe(visible);
@@ -158,7 +162,7 @@ public class MoveApplicationTest
 
     NxFormSelect destinationDropdown = modal.destinationDropdown();
     destinationDropdown.shouldBe(visible).click();
-    destinationDropdown.listItem(1).shouldHave(text(SOME_OTHER_ORGANIZATION)).click();
+    destinationDropdown.listItem(option).shouldHave(text(optionName)).click();
 
     modal.errorMessage().shouldBe(hidden);
     modal.dismissButton().shouldHave(text("Cancel"));

@@ -14,32 +14,10 @@
     }
   }
 
-  > .iq-ltg-table-subsection {
-    > .nx-table-row {
-      > .nx-cell:first-child {
-        // put it like this so that first cell containing threat indicator will take just the right amount of space
-        width: 1px;
-      }
-    }
-
-    // override RSC border radius styles so collapsed rows in the middle have straight edges
-    > .nx-table-row:last-child {
-      > :last-child {
-        border-bottom-right-radius: 0;
-      }
-      > :first-child {
-        border-bottom-left-radius: 0;
-      }
-    }
-  }
-
-  // restore rounded edges on the last row of the last child section
-  > .iq-ltg-table-subsection:last-child > .nx-table-row:last-child {
-    > :last-child {
-      border-bottom-right-radius: var(--nx-border-radius);
-    }
-    > :first-child {
-      border-bottom-left-radius: var(--nx-border-radius);
+  tbody > .nx-table-row {
+    > .nx-cell:first-child {
+      //put it like this so that first cell containing threat indicator will take just the right amount of space
+      width: 1px;
     }
   }
 

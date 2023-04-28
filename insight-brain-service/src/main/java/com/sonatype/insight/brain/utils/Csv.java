@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dashboard;
+package com.sonatype.insight.brain.utils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -19,14 +19,12 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
-import com.sonatype.insight.brain.utils.HttpHeaderUtils;
-
 /**
  * Dashboard-specific CSV utility class
  *
  * @since 1.24.0
  */
-final class Csv
+public final class Csv
 {
   /**
    * Fill out the supplied response with required headers and data for

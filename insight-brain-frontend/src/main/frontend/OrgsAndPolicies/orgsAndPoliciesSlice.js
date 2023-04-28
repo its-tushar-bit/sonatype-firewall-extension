@@ -27,7 +27,7 @@ import grandfatheringSlice from './grandfatheringModal/grandfatheringSlice';
 import revokeGrandfatheringSlice from './revokeGrandfatheringModal/revokeGrandfatheringSlice';
 import changeApplicationIdSlice from './changeApplicationIdModal/changeApplicationIdSlice';
 import importPoliciesSlice from './importPoliciesModal/importPoliciesSlice';
-import moveApplicationSlice from './moveApplicationModal/moveApplicationSlice';
+import moveOwnerSlice from './moveOwner/moveOwnerSlice';
 import licenseThreatGroupsSlice from './licenseThreatGroupSlice';
 import ownerSideNavSlice from './ownerSideNav/ownerSideNavSlice';
 import selectContactModalSlice from './selectContactModal/selectContactModalSlice';
@@ -56,7 +56,7 @@ export default combineReducers({
     grandfathering: grandfatheringSlice,
     revokeGrandfathering: revokeGrandfatheringSlice,
     changeAppId: changeApplicationIdSlice,
-    moveApplication: moveApplicationSlice,
+    moveOwner: moveOwnerSlice,
     contact: selectContactModalSlice,
     ownerModal: ownerModalSlice,
     evaluateApplication: evaluateApplicationSlice,

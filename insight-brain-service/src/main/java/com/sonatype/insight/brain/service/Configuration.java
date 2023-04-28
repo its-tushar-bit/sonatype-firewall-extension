@@ -175,7 +175,8 @@ public class Configuration
         SystemConfigurationProperty.BFS_REPOSITORIES,
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
-        SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED)
+        SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
+        SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
@@ -503,6 +504,10 @@ public class Configuration
 
   public Integer getWaivedComponentUpgradeInspectionHour() {
     return configCache.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR);
+  }
+
+  public Integer getQuarantinedComponentReportExpirationTimeInHours() {
+    return configCache.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS);
   }
 
   public Map<String, String> getMatcherConfiguration() {

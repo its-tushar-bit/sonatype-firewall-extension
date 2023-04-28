@@ -66,6 +66,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -420,7 +421,8 @@ public class QuarantineComponentReportTest
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(),
+            testCLMServer.getCLMServer().getInstance(Configuration.class));
     Date tokenExpiryTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));

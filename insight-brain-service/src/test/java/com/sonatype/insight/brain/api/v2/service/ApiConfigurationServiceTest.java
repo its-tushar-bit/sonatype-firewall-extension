@@ -567,6 +567,13 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetQuarantinedComponentReportExpirationTimeInHours_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
+        SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)))
+        .containsEntry(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, 12);
+  }
+
+  @Test
   public void testExecute() throws Exception {
     Set<String> propertyNames =
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);

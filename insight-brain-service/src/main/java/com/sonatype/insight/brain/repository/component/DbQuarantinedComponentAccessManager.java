@@ -15,6 +15,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -27,14 +28,17 @@ import org.apache.commons.lang.time.DateUtils;
 public class DbQuarantinedComponentAccessManager
     implements QuarantinedComponentAccessManager
 {
-  // Visible for tests
-  static final int EXPIRATION_TIME_IN_HOURS = 12;
-
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
+  private final Configuration configuration;
+
   @Inject
-  public DbQuarantinedComponentAccessManager(final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO) {
+  public DbQuarantinedComponentAccessManager(
+      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
+      final Configuration configuration)
+  {
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
+    this.configuration = configuration;
   }
 
   /**
@@ -82,7 +86,8 @@ public class DbQuarantinedComponentAccessManager
           "The quarantined component view for the blocked component you are trying to view could not be found.");
     }
 
-    Date expirationTime = DateUtils.addHours(quarantinedComponentAccess.getGenerateTime(), EXPIRATION_TIME_IN_HOURS);
+    Date expirationTime = DateUtils.addHours(quarantinedComponentAccess.getGenerateTime(),
+        configuration.getQuarantinedComponentReportExpirationTimeInHours());
 
     if (expirationTime.before(new Date())) {
       throw new NotFoundException("This report expired on " + expirationTime +
@@ -104,6 +109,6 @@ public class DbQuarantinedComponentAccessManager
    */
   @Override
   public Date getTokenExpiryTime(final Date tokenGenerationTime) {
-    return DateUtils.addHours(tokenGenerationTime, EXPIRATION_TIME_IN_HOURS);
+    return DateUtils.addHours(tokenGenerationTime, configuration.getQuarantinedComponentReportExpirationTimeInHours());
   }
 }

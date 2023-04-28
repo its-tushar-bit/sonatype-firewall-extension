@@ -278,6 +278,7 @@ public abstract class AbstractBrainServiceTest
         }
         resetProperties(SystemConfigurationProperty.BASE_URL,
             SystemConfigurationProperty.FORCE_BASE_URL,
+            SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
             SystemConfigurationProperty.CSRF_PROTECTION,
             SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH,
             SystemConfigurationProperty.PURGE_SCAN_FILES,

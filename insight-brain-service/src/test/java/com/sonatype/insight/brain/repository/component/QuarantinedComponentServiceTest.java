@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -74,6 +75,9 @@ public class QuarantinedComponentServiceTest
 {
   @Inject
   private QuarantinedComponentService quarantinedComponentService;
+
+  @Inject
+  private Configuration configuration;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -151,7 +155,7 @@ public class QuarantinedComponentServiceTest
     QuarantinedComponentAccess quarantinedComponentAccess = setupTestData(componentIdentifier, date, date, null);
     String encodedToken = encodeToken(quarantinedComponentAccess);
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     //when
@@ -178,7 +182,7 @@ public class QuarantinedComponentServiceTest
     QuarantinedComponentAccess quarantinedComponentAccess = setupTestData(componentIdentifier, date, null, null);
     String encodedToken = encodeToken(quarantinedComponentAccess);
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     //when
@@ -205,7 +209,7 @@ public class QuarantinedComponentServiceTest
     QuarantinedComponentAccess quarantinedComponentAccess = setupTestData(componentIdentifier, date, date, date);
     String encodedToken = encodeToken(quarantinedComponentAccess);
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     //when
@@ -230,7 +234,7 @@ public class QuarantinedComponentServiceTest
         setupTestData(null /* componentIdentifier */, date, date, null);
     String encodedToken = encodeToken(quarantinedComponentAccess);
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =

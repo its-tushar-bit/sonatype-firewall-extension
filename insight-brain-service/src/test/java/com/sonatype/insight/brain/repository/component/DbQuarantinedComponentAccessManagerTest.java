@@ -12,10 +12,12 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -33,6 +35,9 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Inject
   private DbQuarantinedComponentAccessManager quarantinedComponentAccessManager;
+
+  @Inject
+  private Configuration configuration;
 
   @Test
   public void testCreateToken() {
@@ -110,10 +115,21 @@ public class DbQuarantinedComponentAccessManagerTest
   }
 
   @Test
-  public void testGetTokenExpiryTime() {
+  public void testGetTokenExpiryTime_Default() {
     Date date = new Date();
 
-    assertThat(quarantinedComponentAccessManager.getTokenExpiryTime(date))
-        .isEqualTo(new Date(date.getTime() + DbQuarantinedComponentAccessManager.EXPIRATION_TIME_IN_HOURS * 3600000));
+    assertThat(quarantinedComponentAccessManager.getTokenExpiryTime(date)).isEqualTo(
+        new Date(date.getTime() + configuration.getQuarantinedComponentReportExpirationTimeInHours() * 3600000));
+  }
+
+  @Test
+  public void testGetTokenExpiryTime_Modified() {
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, "24");
+
+    Date date = new Date();
+
+    assertThat(quarantinedComponentAccessManager.getTokenExpiryTime(date)).isEqualTo(
+        new Date(date.getTime() + configuration.getQuarantinedComponentReportExpirationTimeInHours() * 3600000));
   }
 }

@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -57,9 +58,12 @@ public class QuarantinedComponentResourceTest
 {
   private Repository repository;
 
+  private Configuration configuration;
+
   @Before
   public void setup() {
     repository = tempEntity.newRepository();
+    configuration = getCLMServer().getInstance(Configuration.class);
   }
 
   @Test
@@ -121,7 +125,7 @@ public class QuarantinedComponentResourceTest
 
     // when anonymous request
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     // when
@@ -158,7 +162,7 @@ public class QuarantinedComponentResourceTest
     assertThat(response.getStatusCode()).isEqualTo(401);
 
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO(), configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     // when authenticated request

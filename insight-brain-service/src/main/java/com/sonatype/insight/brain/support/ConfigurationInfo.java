@@ -78,6 +78,8 @@ public class ConfigurationInfo
         configuration.isALPObservedLicenseDetectionEnabled());
     entries.put(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
         configuration.getWaivedComponentUpgradeInspectionHour());
+    entries.put(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
+        configuration.getQuarantinedComponentReportExpirationTimeInHours());
 
     List<String> frameAncestorsAllowList = configuration.getFrameAncestorsAllowList();
     if (frameAncestorsAllowList != null) {

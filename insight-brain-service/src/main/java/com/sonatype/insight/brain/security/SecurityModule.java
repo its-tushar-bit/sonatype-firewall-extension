@@ -82,7 +82,6 @@ public class SecurityModule
     // token cookie. We want the cookie to be available for the front-end code as soon as possible so that subsequent
     // requests that are unsafe can access it.
     manager.createChain("/*assets/**", anonUnrestrictedIPFilters + ", antiCsrf"); // assets for the web interface
-    manager.createChain("/favicon.ico", anonUnrestrictedIPFilters); // favicon for web interface
     manager.createChain("/rest/ide/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/report/*/*/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/user/session/logout", anonFilters); // client logout requires no auth

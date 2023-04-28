@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 61 61">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g id="Sonatype_Logo_Favicon" data-name="Sonatype Logo Favicon">
+    <g>
+      <polygon class="cls-1" points="12.91 43.16 7.21 46.47 28.7 58.99 28.7 52.34 12.91 43.16"/>
+      <polygon class="cls-1" points="5.2 17.97 5.2 43 11.1 39.55 11.1 21.41 5.2 17.97"/>
+      <polygon class="cls-1" points="7.21 14.48 13.31 18.03 28.7 9.07 28.7 1.99 7.21 14.48"/>
+      <polygon class="cls-1" points="50.3 21.41 50.3 39.56 56.2 43 56.2 17.97 50.3 21.41"/>
+      <polygon class="cls-1" points="32.71 52.34 32.71 58.99 54.18 46.47 48.49 43.17 32.71 52.34"/>
+      <polygon class="cls-1" points="32.71 1.99 32.71 9.07 48.08 18.02 54.18 14.48 32.71 1.99"/>
+    </g>
+  </g>
+</svg>

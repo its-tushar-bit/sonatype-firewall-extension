@@ -14,11 +14,16 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.gitlab.GitLabApiClientUtils;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 /**
  * Ensure that all SCM clients and providers properly support proxy calls.
@@ -56,9 +61,20 @@ public class GitClientFactoryProxyTest
     client.createPullRequestInfoClient(gitRepositoryInfo).getPullRequestsSince("namespace", OffsetDateTime.now(), 0);
   };
 
-  private static final TestConsumer createGeneralApiClient =
-      (client, provider, url, urlSuffix, username) -> client.createGeneralApiClient(provider, url, username, "token")
-          .listAllRepositories();
+  private static final TestConsumer createGeneralApiClient = (client, provider, url, urlSuffix, username) -> {
+    if (provider == SourceControlProvider.GITLAB) {
+      // GitLabApiClientUtils.getBaseApiUrl makes calls to GitLab REST API to determine the URL context
+      // The below setup is required to make it work
+      GitLabApiClientUtils gitLabApiClientUtilsSpy = spy(new GitLabApiClientUtils());
+      doReturn(url + "api/v4").when(gitLabApiClientUtilsSpy).getBaseApiUrl(anyString(), anyString());
+      GitClientFactory clientSpy = spy(client);
+      doReturn(gitLabApiClientUtilsSpy).when(clientSpy).getClientUtils(SourceControlProvider.GITLAB);
+      clientSpy.createGeneralApiClient(provider, url, username, "token").listAllRepositories();
+    }
+    else {
+      client.createGeneralApiClient(provider, url, username, "token").listAllRepositories();
+    }
+  };
 
   @Parameter(0)
   public TestConsumer func;

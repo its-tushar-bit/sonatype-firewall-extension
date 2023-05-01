@@ -81,7 +81,7 @@ public class GitClientFactory
       final String token)
   {
     Configuration configuration = gitApiClientFactory.createConfiguration();
-    String baseApiUrl = getClientUtils(sourceControlProvider).getBaseApiUrl(hostUrl);
+    String baseApiUrl = getClientUtils(sourceControlProvider).getBaseApiUrl(hostUrl, token);
     insightProxy.contextualize(configuration, baseApiUrl);
     return gitApiClientFactory.getGeneralSCMApiClient(sourceControlProvider, configuration, username, token);
   }

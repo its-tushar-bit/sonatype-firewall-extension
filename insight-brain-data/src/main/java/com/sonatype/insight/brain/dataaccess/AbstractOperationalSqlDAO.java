@@ -6,12 +6,16 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.StringJoiner;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
@@ -21,6 +25,8 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   //visible for testing
   public static final int POSTGRES_IN_OPERATOR_THRESHOLD = Short.MAX_VALUE;
+
+  public static Map<String, String> creationStackTracesForTestEntities = new LinkedHashMap<>();
 
   @Override
   public TransactionContext createTransactionContext() {
@@ -38,6 +44,16 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   @Override
   public void insert(TransactionContext tx, T entity) {
     super.insert(tx, entity);
+
+    if (detectTestEntityLeaks() && OperationalDataStoreProvider.isDatabaseInMemory()) {
+      Exception e = new Exception("Entity of type " + entity.getClass().getName() + " created at:");
+      String stackTraceAsString = ExceptionUtils.getStackTrace(e);
+      // Assume that any entity created via TemporaryEntity is not leaked.
+      if (!stackTraceAsString.contains(".TemporaryEntity")) {
+        creationStackTracesForTestEntities.put(entity.getId(), ExceptionUtils.getStackTrace(e));
+      }
+    }
+
     insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
   }
 
@@ -50,6 +66,11 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   @Override
   public void delete(TransactionContext tx, T entity) {
     super.delete(tx, entity);
+
+    if (entity != null && detectTestEntityLeaks() && OperationalDataStoreProvider.isDatabaseInMemory()) {
+      creationStackTracesForTestEntities.remove(entity.getId());
+    }
+
     insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
   }
 
@@ -99,5 +120,9 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     for (Object object : collection) {
       query.setParameter(startFrom++, object);
     }
+  }
+
+  protected boolean detectTestEntityLeaks() {
+    return false;
   }
 }

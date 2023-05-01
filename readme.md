@@ -89,6 +89,20 @@ about timing of (asynchronous) operations. A delay of 500 ms doesn't delay tests
 typically sufficient to trigger errors where tests are badly coded and fail to wait on page changes. PhantomJS is known
 to not support this slow motion mode properly so other browsers should be used.
 
+**Flaky Tests**:
+One cause for flaky tests is persisted entities left in the db after a test is run. These entities may impact other unrelated tests.
+We have a mechanism to detect this problem.
+If you suspect that a flaky test is caused by some other test that leaves instances of Foo entities in the db,
+- add this method to the FooDAO class:
+  @Override
+  protected boolean detectTestEntityLeaks() {
+    return true;
+  }
+- push the change to a branch and run a CI build for it
+If there are Foo entities leaked by some tests, those tests will fail with a "Detected test entity leaks" error message,
+and the test output will contain the stack trace(s) for where the leaked entities were created.
+WARNING: This mechanism should be used only on branches, never on the main branch - it will cause memory leaks in the product.
+
 ## Adding Configuration
 
 We can generally categorize IQ Server configurations as either simple configurations or complex configurations.

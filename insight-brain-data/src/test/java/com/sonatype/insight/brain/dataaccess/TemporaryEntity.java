@@ -886,6 +886,25 @@ public class TemporaryEntity
         membershipMappingDAO.delete(membershipMapping);
       }
     });
+
+    detectEntityLeaks();
+  }
+
+  private void detectEntityLeaks() {
+    if (!AbstractOperationalSqlDAO.creationStackTracesForTestEntities.isEmpty()) {
+      System.err.println(
+          "Detected " + AbstractOperationalSqlDAO.creationStackTracesForTestEntities.size() + " test entity leaks:");
+      int leakCount = 0;
+      for (String leakedEntityId : AbstractOperationalSqlDAO.creationStackTracesForTestEntities.keySet()) {
+        leakCount++;
+        System.err.println("Leaked test entity " + leakCount + ": " + leakedEntityId + "\n"
+            + AbstractOperationalSqlDAO.creationStackTracesForTestEntities.get(leakedEntityId));
+      }
+
+      AbstractOperationalSqlDAO.creationStackTracesForTestEntities.clear();
+
+      throw new RuntimeException("Detected test entity leaks");
+    }
   }
 
   private <E> void detachEntity(E entity) {

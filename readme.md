@@ -94,11 +94,14 @@ One cause for flaky tests is persisted entities left in the db after a test is r
 We have a mechanism to detect this problem.
 If you suspect that a flaky test is caused by some other test that leaves instances of Foo entities in the db,
 - add this method to the FooDAO class:
+```
   @Override
   protected boolean detectTestEntityLeaks() {
     return true;
   }
+```
 - push the change to a branch and run a CI build for it
+
 If there are Foo entities leaked by some tests, those tests will fail with a "Detected test entity leaks" error message,
 and the test output will contain the stack trace(s) for where the leaked entities were created.
 WARNING: This mechanism should be used only on branches, never on the main branch - it will cause memory leaks in the product.

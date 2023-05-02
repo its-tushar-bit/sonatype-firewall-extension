@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import moment from 'moment-timezone';
+import momentJs from 'moment';
 
 export const STANDARD_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss [UTC]Z';
 export const STANDARD_DATE_FORMAT = 'MM/DD/YYYY';
@@ -15,29 +16,28 @@ export const formatDate = (date, format = STANDARD_DATE_TIME_FORMAT) => {
 };
 
 // Copied from our AngularCommon library
-export const formatTimeAgo = (date, isTruncated = false) => {
+export const formatTimeAgo = (date, isTruncated = false, now = new Date()) => {
   if (!date) {
     return '';
   }
 
-  let diff, unit, val;
+  let providedDate, unit, val;
+  providedDate = new Date(date);
 
-  diff = new Date().getTime() - date;
-
-  if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
-    val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
+  if (momentJs(now).diff(providedDate, 'years', true) >= 1) {
+    val = momentJs(now).diff(providedDate, 'years', true);
     unit = isTruncated ? 'y' : 'year';
-  } else if (diff > 30 * 24 * 60 * 60 * 1000) {
-    val = diff / (30 * 24 * 60 * 60 * 1000);
+  } else if (momentJs(now).diff(providedDate, 'months', true) >= 1) {
+    val = momentJs(now).diff(providedDate, 'months', true);
     unit = isTruncated ? 'mo' : 'month';
-  } else if (diff > 24 * 60 * 60 * 1000) {
-    val = diff / (24 * 60 * 60 * 1000);
+  } else if (momentJs(now).diff(providedDate, 'days', true) >= 1) {
+    val = momentJs(now).diff(providedDate, 'days', true);
     unit = isTruncated ? 'd' : 'day';
-  } else if (diff > 60 * 60 * 1000) {
-    val = diff / (60 * 60 * 1000);
+  } else if (momentJs(now).diff(providedDate, 'hours', true) >= 1) {
+    val = momentJs(now).diff(providedDate, 'hours', true);
     unit = isTruncated ? 'h' : 'hour';
-  } else if (diff > 60 * 1000) {
-    val = diff / (60 * 1000);
+  } else if (momentJs(now).diff(providedDate, 'minutes', true) >= 1) {
+    val = momentJs(now).diff(providedDate, 'minutes', true);
     unit = isTruncated ? 'min' : 'minute';
   } else {
     return isTruncated ? 's' : 'seconds ago';

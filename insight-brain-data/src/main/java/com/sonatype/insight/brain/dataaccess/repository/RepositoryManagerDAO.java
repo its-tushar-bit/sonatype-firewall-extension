@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,6 +39,17 @@ public class RepositoryManagerDAO
     String sQuery = "SELECT entity FROM RepositoryManager entity" + //
         " WHERE entity.instanceId=?1";
     return get(tx, sQuery, instanceId);
+  }
+
+  /**
+   * @since 1.161
+   */
+  public RepositoryManager getByInstanceIdNotNull(String instanceId) {
+    RepositoryManager repositoryManager = getByInstanceId(instanceId);
+    if (repositoryManager == null) {
+      throw new NotFoundException("Cannot find a repository manager with instance ID " + instanceId + ".");
+    }
+    return repositoryManager;
   }
 
   private void validateInstanceId(String instanceId) {

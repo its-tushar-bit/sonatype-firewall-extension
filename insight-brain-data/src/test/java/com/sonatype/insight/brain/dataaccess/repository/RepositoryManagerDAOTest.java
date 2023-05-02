@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
@@ -101,5 +102,22 @@ public class RepositoryManagerDAOTest
     dao.delete(repoManager);
 
     assertThat(repositoryDAO.getById(repository.getId())).isNull();
+  }
+
+  @Test
+  public void testGetByInstanceIdNotNull() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    RepositoryManager resultRepositoryManager = dao.getByInstanceIdNotNull(repositoryManager.getInstanceId());
+
+    assertThat(resultRepositoryManager.getId()).isEqualTo(repositoryManager.getId());
+    assertThat(resultRepositoryManager.getInstanceId()).isEqualTo(repositoryManager.getInstanceId());
+  }
+
+  @Test
+  public void testGetByInstanceIdNotNull_NotFoundException() {
+    assertThatThrownBy(() -> dao.getByInstanceIdNotNull("repoManagerInstanceId"))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a repository manager with instance ID repoManagerInstanceId.");
   }
 }

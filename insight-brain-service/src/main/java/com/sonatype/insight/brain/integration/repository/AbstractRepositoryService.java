@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -1030,6 +1031,47 @@ public abstract class AbstractRepositoryService
     else {
       log.info("Not found repository {}:{} ", repositoryManagerInstanceId, repositoryPublicId);
     }
+  }
+
+  /**
+   * @since 1.161
+   */
+  List<RepositoryDTO> getConfiguredRepositories(
+      String repositoryManagerInstanceId,
+      long sinceUtcTimestamp,
+      String clientUserAgent)
+  {
+    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceIdNotNull(repositoryManagerInstanceId);
+
+    updateUserAgent(clientUserAgent, repositoryManager);
+
+    long start = System.currentTimeMillis();
+
+    List<Repository> repositories =
+        repositoryDAO.getByRepositoryManagerIdAndLastManualConfigureTime(repositoryManager.getId(),
+            new Date(sinceUtcTimestamp));
+
+    List<RepositoryDTO> repositoryDTOS = repositories.stream().map(this::toRepositoryDTO).collect(Collectors.toList());
+
+    log.debug("Retrieved {} repositories for repository manager instance ID:{} ({}), configured since {} in {} ms.",
+        repositories.size(), repositoryManager.getInstanceId(), repositoryManager.getId(), sinceUtcTimestamp,
+        System.currentTimeMillis() - start);
+
+    return repositoryDTOS;
+  }
+
+  private RepositoryDTO toRepositoryDTO(Repository repository) {
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = repository.getName();
+    repositoryDTO.format = repository.getFormat();
+    repositoryDTO.type = repository.getRepositoryType();
+    repositoryDTO.auditEnabled = repository.isEnabled();
+    repositoryDTO.quarantineEnabled = repository.isQuarantineEnabled();
+    repositoryDTO.policyCompliantComponentSelectionEnabled = repository.isPolicyCompliantComponentSelectionEnabled();
+    repositoryDTO.namespaceConfusionProtectionEnabled = repository.isNamespaceConfusionProtectionEnabled();
+    return repositoryDTO;
   }
 
   // Needs to be at least package visible for the authz annotations to be effective.

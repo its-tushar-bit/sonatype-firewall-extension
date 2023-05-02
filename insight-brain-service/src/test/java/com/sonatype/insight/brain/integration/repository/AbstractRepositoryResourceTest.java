@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -434,5 +436,43 @@ public abstract class AbstractRepositoryResourceTest
 
     Repository foundRepository = new RepositoryDAO().getById(repository.getId());
     assertThat(foundRepository).isNull();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories() throws Exception {
+    Date may5th20239AM = Date.from(LocalDateTime.of(2023, 5, 1, 9, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202310AM = Date.from(LocalDateTime.of(2023, 5, 1, 10, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202311AM = Date.from(LocalDateTime.of(2023, 5, 1, 11, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    tempEntity.newRepository(repositoryManager, "testRepoNpm", RepositoryType.proxy, "npm",
+        may5th20239AM);
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven", may5th202311AM);
+    String clientUserAgent = getUserAgent();
+
+    HttpResponse response = restRequest().path(AbstractRepositoryResource.GET_CONFIGURED_REPOSITORIES_PATH)
+        .parameter(repositoryManager.getInstanceId())
+        .query("sinceUtcTimestamp", may5th202310AM.getTime())
+        .header(HttpHeaders.USER_AGENT, clientUserAgent)
+        .get();
+
+    assertResponseStatus(200, response);
+
+    repositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+    assertThat(repositoryManager.getUserAgent()).isEqualTo(clientUserAgent);
+
+    List<RepositoryDTO> repositoryDTOS = response.getBodyList(RepositoryDTO.class);
+    assertThat(repositoryDTOS).hasSize(1);
+    RepositoryDTO repositoryDTO = repositoryDTOS.get(0);
+    assertThat(repositoryDTO.name).isEqualTo(repository.getName());
+    assertThat(repositoryDTO.format).isEqualTo(repository.getFormat());
+    assertThat(repositoryDTO.type).isEqualTo(repository.getRepositoryType());
+    assertThat(repositoryDTO.auditEnabled).isEqualTo(repository.isEnabled());
+    assertThat(repositoryDTO.quarantineEnabled).isEqualTo(repository.isQuarantineEnabled());
+    assertThat(repositoryDTO.policyCompliantComponentSelectionEnabled).isEqualTo(
+        repository.isPolicyCompliantComponentSelectionEnabled());
+    assertThat(repositoryDTO.namespaceConfusionProtectionEnabled).isEqualTo(
+        repository.isNamespaceConfusionProtectionEnabled());
   }
 }

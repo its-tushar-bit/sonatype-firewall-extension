@@ -31,4 +31,6 @@ abstract class AbstractRepositoryResource
   static final String EVALUATE_COMPONENT_METADATA_PATH = REPOSITORY_PATH + "evaluate/componentMetadata";
 
   static final String CONFIGURE_REPOSITORIES_PATH = "{repositoryManagerInstanceId}/configureRepositories";
+
+  static final String GET_CONFIGURED_REPOSITORIES_PATH = "{repositoryManagerInstanceId}/getConfiguredRepositories";
 }

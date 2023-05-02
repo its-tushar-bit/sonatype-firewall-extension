@@ -321,4 +321,12 @@ class ArtifactoryRepositoryServiceWrapper
   void removeRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
     repositoryService.removeRepository(repositoryManagerInstanceId, repositoryPublicId);
   }
+
+  List<RepositoryDTO> getConfiguredRepositories(
+      String repositoryManagerInstanceId,
+      long sinceUtcTimestamp,
+      String clientUserAgent)
+  {
+    return repositoryService.getConfiguredRepositories(repositoryManagerInstanceId, sinceUtcTimestamp, clientUserAgent);
+  }
 }

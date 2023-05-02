@@ -343,4 +343,20 @@ public class RepositoryResource
   {
     repositoryService.removeRepository(repositoryManagerInstanceId, repositoryPublicId);
   }
+
+  /**
+   * @since 1.161
+   */
+  @GET
+  @Path(GET_CONFIGURED_REPOSITORIES_PATH)
+  @Produces({MediaType.APPLICATION_JSON})
+  @Timed
+  public List<RepositoryDTO> getConfiguredRepositories(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @QueryParam("sinceUtcTimestamp") long sinceUtcTimestamp,
+      @Context final HttpServletRequest request)
+  {
+    return repositoryService.getConfiguredRepositories(repositoryManagerInstanceId, sinceUtcTimestamp,
+        DefaultHdsClient.getClientUserAgent(request));
+  }
 }

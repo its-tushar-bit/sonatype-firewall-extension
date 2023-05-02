@@ -292,4 +292,16 @@ public class RepositoryDAO
 
     return getSingle(Long.class, sQuery);
   }
+
+  /**
+   * @since 1.161
+   */
+  public List<Repository> getByRepositoryManagerIdAndLastManualConfigureTime(
+      String repositoryManagerId,
+      Date lastManualConfigureTime)
+  {
+    String sQuery = "SELECT entity FROM Repository entity" + //
+        " WHERE entity.repositoryManagerId=?1 AND entity.lastManualConfigureTime >= ?2";
+    return getList(sQuery, repositoryManagerId, lastManualConfigureTime);
+  }
 }

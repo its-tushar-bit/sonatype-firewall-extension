@@ -321,4 +321,24 @@ public abstract class AbstractRepositoryServiceAuthzTest
 
     getRepositoryService().removeRepository(repositoryManager.getInstanceId(), mavenRepo.getPublicId());
   }
+
+  @Test
+  public void testGetConfiguredRepositories_Authorized() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetConfiguredRepositories_Unauthenticated() {
+    getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetConfiguredRepositories_Unauthorized() {
+    login();
+    getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0, null);
+  }
 }

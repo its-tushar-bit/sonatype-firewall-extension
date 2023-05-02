@@ -2687,6 +2687,23 @@ public class TemporaryEntity
     return repository;
   }
 
+  public Repository newRepository(
+      RepositoryManager repositoryManager,
+      String publicId,
+      RepositoryType repositoryType,
+      String format,
+      Date lastManualConfigureTime)
+  {
+    Repository repository = new Repository(repositoryManager.getId(), publicId);
+    repository.setRepositoryType(repositoryType);
+    repository.setFormat(format);
+    repository.setEnabled(RepositoryType.proxy.equals(repositoryType));
+    repository.setLastManualConfigureTime(lastManualConfigureTime);
+    repositoryDAO.insert(repository);
+    repositories.add(repository);
+    return repository;
+  }
+
   public RepositoryPolicyViolation newRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,

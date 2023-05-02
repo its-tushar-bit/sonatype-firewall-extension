@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -656,5 +659,35 @@ public class RepositoryDAOTest
     assertThatExceptionOfType(InvalidRepositoryException.class).isThrownBy(() -> {
       dao.update(repository);
     }).withMessage("Cannot change the repository format.");
+  }
+
+  @Test
+  public void testGetByRepositoryManagerIdAndLastManualConfigureTime() {
+    Date may5th20239AM = Date.from(LocalDateTime.of(2023, 5, 1, 9, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202310AM = Date.from(LocalDateTime.of(2023, 5, 1, 10, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202311AM = Date.from(LocalDateTime.of(2023, 5, 1, 11, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    tempEntity.newRepository(repositoryManager, "testRepoNpm", RepositoryType.proxy, "npm",
+        may5th20239AM);
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven", may5th202311AM);
+
+    List<Repository> repositories =
+        dao.getByRepositoryManagerIdAndLastManualConfigureTime(repositoryManager.getId(), may5th202310AM);
+
+    assertThat(repositories).hasSize(1);
+
+    Repository resultRepo = repositories.get(0);
+    assertThat(resultRepo.getId()).isEqualTo(repository.getId());
+    assertThat(resultRepo.getName()).isEqualTo(repository.getName());
+    assertThat(resultRepo.getFormat()).isEqualTo(repository.getFormat());
+    assertThat(resultRepo.getType()).isEqualTo(repository.getType());
+    assertThat(resultRepo.isEnabled()).isEqualTo(repository.isEnabled());
+    assertThat(resultRepo.isQuarantineEnabled()).isEqualTo(repository.isQuarantineEnabled());
+    assertThat(resultRepo.isPolicyCompliantComponentSelectionEnabled()).isEqualTo(
+        repository.isPolicyCompliantComponentSelectionEnabled());
+    assertThat(resultRepo.isNamespaceConfusionProtectionEnabled()).isEqualTo(
+        repository.isNamespaceConfusionProtectionEnabled());
   }
 }

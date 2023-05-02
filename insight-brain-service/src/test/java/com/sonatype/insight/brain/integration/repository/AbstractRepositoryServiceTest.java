@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -3007,6 +3009,52 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repository).isNull();
 
     getRepositoryService().removeRepository(repositoryManager.getInstanceId(), "NotExistingId");
+  }
+
+  @Test
+  public void testGetConfiguredRepositories() {
+    Date may5th20239AM = Date.from(LocalDateTime.of(2023, 5, 1, 9, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202310AM = Date.from(LocalDateTime.of(2023, 5, 1, 10, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202311AM = Date.from(LocalDateTime.of(2023, 5, 1, 11, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    tempEntity.newRepository(repositoryManager, "testRepoNpm", RepositoryType.proxy, "npm",
+        may5th20239AM);
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven", may5th202311AM);
+    String clientUserAgent = getUserAgent();
+
+    List<RepositoryDTO> repositoryDTOS =
+        getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), may5th202310AM.getTime(),
+            clientUserAgent);
+    assertThat(repositoryDTOS).hasSize(1);
+    RepositoryDTO repositoryDTO = repositoryDTOS.get(0);
+    assertThat(repositoryDTO.name).isEqualTo(repository.getName());
+    assertThat(repositoryDTO.format).isEqualTo(repository.getFormat());
+    assertThat(repositoryDTO.type).isEqualTo(repository.getRepositoryType());
+    assertThat(repositoryDTO.auditEnabled).isEqualTo(repository.isEnabled());
+    assertThat(repositoryDTO.quarantineEnabled).isEqualTo(repository.isQuarantineEnabled());
+    assertThat(repositoryDTO.policyCompliantComponentSelectionEnabled).isEqualTo(
+        repository.isPolicyCompliantComponentSelectionEnabled());
+    assertThat(repositoryDTO.namespaceConfusionProtectionEnabled).isEqualTo(
+        repository.isNamespaceConfusionProtectionEnabled());
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_UpdateUserAgent() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    String clientUserAgent = getUserAgent();
+
+    getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0, clientUserAgent);
+
+    assertThat(repositoryManagerDAO.getById(repositoryManager.getId()).getUserAgent()).isEqualTo(clientUserAgent);
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_NotExistingRepositoryManager() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0, null);
+    }).withMessage("Cannot find a repository manager with instance ID " + MANUAL_REPO_MAN_INSTANCE_ID + ".");
   }
 
   private String getUserAgent() {

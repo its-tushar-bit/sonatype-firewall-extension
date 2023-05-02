@@ -7,7 +7,7 @@
 import { formatTimeAgo } from '../../../main/frontend/util/dateUtils';
 
 describe('formatTimeAgo specs', function () {
-  it('returns 24h ago', function () {
+  it('returns 1 day ago', function () {
     const date = new Date(2023, 2, 1);
     const now = new Date(2023, 2, 2);
     expect(formatTimeAgo(date, true, now)).toEqual('1d');

@@ -10,7 +10,7 @@ import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.FirewallOnboardingPage;
 
 import com.codeborne.selenide.Condition;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.hidden;
@@ -20,21 +20,38 @@ public class FirewallOnboardingPageTest
 {
   private final FirewallOnboardingPage page = new FirewallOnboardingPage();
 
-  @Before
-  public void before() {
+  @BeforeClass
+  public static void before() {
     refreshOrOpen(FirewallOnboardingPage.url());
     loginAsAdmin();
   }
 
   @Test
-  public void testFirewallOnboardingPage_DisplayText() {
+  public void testFirewallOnboardingPageLayout() {
     refreshOrOpen(FirewallOnboardingPage.url());
 
     SidebarNavigation.container().shouldBe(hidden);
     page.shouldBe(Condition.visible);
-    page.shouldBe(Condition.text("Sidebar content"));
-    page.shouldBe(Condition.text("Main content"));
-    page.shouldBe(Condition.text("footer left settings"));
-    page.shouldBe(Condition.text("footer right paginator"));
+    page.steps().shouldBe(Condition.visible);
+    page.actionsFooter().shouldBe(Condition.visible);
+    page.shouldHave(Condition.text("content"));
+  }
+
+  @Test
+  public void testFirewallOnboardingPageNavigation() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    SidebarNavigation.container().shouldBe(hidden);
+    
+    page.continueButton().shouldBe(Condition.visible);
+    page.previousButton().shouldNotBe(Condition.visible);
+    page.launchFirewallButton().shouldNotBe(Condition.visible);
+    page.selectedStepShouldBe("1. Select");
+
+    page.continueButton().click();
+    page.selectedStepShouldBe("2. Protect");
+    page.previousButton().shouldBe(Condition.visible);
+    page.continueButton().shouldNotBe(Condition.visible);
+    page.launchFirewallButton().shouldBe(Condition.visible);
   }
 }

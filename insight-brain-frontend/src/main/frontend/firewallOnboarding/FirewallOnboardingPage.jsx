@@ -5,21 +5,42 @@
  */
 
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { NxPageMain, NxTile } from '@sonatype/react-shared-components';
+
 import LoadWrapper from '../react/LoadWrapper';
+import OnboardingSteps from './OnboardingSteps';
+import ActionsFooter from './ActionsFooter';
+import { selectCurrentStep } from './firewallOnboardingSelectors';
+import { actions } from './firewallOnboardingSlice';
 
 export default function FirewallOnboardingPage() {
+  const dispatch = useDispatch();
+  const continueToNextStep = () => dispatch(actions.continueToNextStep());
+  const goBackToPreviousStep = () => dispatch(actions.goBackToPreviousStep());
+  const currentStep = useSelector(selectCurrentStep);
+
   return (
-    <main id="firewall-onboarding-page" className="nx-page-main nx-viewport-sized">
+    <NxPageMain id="firewall-onboarding-page" className="firewall-onboarding-page">
       <LoadWrapper loading={false} error={null} retryHandler={() => {}}>
-        <div className="nx-card-container nx-card-container--no-wrap">
-          <div className="sidebar">Sidebar content</div>
-          <div className="content">Main content</div>
-          <div className="footer">
-            <div className="footer-left">footer left settings</div>
-            <div className="footer-right">footer right paginator</div>
-          </div>
+        <aside className="sidebar">
+          <OnboardingSteps currentStep={currentStep} isRequired={{}} />
+        </aside>
+        <div className="content">
+          <header className="nx-page-title">
+            <h1 className="nx-h1 iq-dependency-tree__title">Select proxy repositories</h1>
+          </header>
+          <NxTile>
+            <NxTile.Content>content</NxTile.Content>
+            <ActionsFooter
+              currentStep={currentStep}
+              onPrevious={goBackToPreviousStep}
+              onNext={continueToNextStep}
+              onLaunch={() => console.log('Firewall Launched!')}
+            />
+          </NxTile>
         </div>
       </LoadWrapper>
-    </main>
+    </NxPageMain>
   );
 }

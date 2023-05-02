@@ -4,8 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { render, screen } from 'TestRoot/SpecUtil';
 import React from 'react';
+
+import { render, screen } from 'TestRoot/SpecUtil';
 import FirewallOnboardingPage from 'MainRoot/firewallOnboarding/FirewallOnboardingPage';
 
 describe('FirewallOnboardingPage', function () {
@@ -17,9 +18,8 @@ describe('FirewallOnboardingPage', function () {
 
   it('renders page with the correct text', () => {
     renderComponent();
-    expect(screen.getByText('Sidebar content')).toBeVisible();
-    expect(screen.getByText('Main content')).toBeVisible();
-    expect(screen.getByText('footer left settings')).toBeVisible();
-    expect(screen.getByText('footer right paginator')).toBeVisible();
+    expect(screen.getByRole('complementary')).toBeVisible();
+    expect(screen.getByText('content')).toBeVisible();
+    expect(screen.getByRole('navigation')).toBeVisible();
   });
 });

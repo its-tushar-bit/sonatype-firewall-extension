@@ -79,7 +79,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
     evaluatePolicy(params, restClient, cliScanResult, getClientScanType());
 
-    if (cliScanResult.hasScanningErrors()) {
+    if (cliScanResult.hasScanningErrors() && !params.isIgnoreScanningErrors()) {
       throw new ExitException(2);
     }
   }

@@ -182,6 +182,18 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
+  public void testRun_ContainerTargetIsNotCheckedForFileExists_IgnoreScanningFailure() throws Exception {
+    tempEntity.newApplicationWithParent("the-app-id");
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), "-E", //
+        "container:registry/image:tag");
+    withTestRunner(params)
+        .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
+        .doPolicyEvaluationRun();
+  }
+
+  @Test
   public void testRun_SomeViolations() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     createPolicy(app.getId(), "Policy Name", Action.ID_WARN, 10);

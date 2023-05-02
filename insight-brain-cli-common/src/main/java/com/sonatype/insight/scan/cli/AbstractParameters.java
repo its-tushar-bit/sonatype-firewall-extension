@@ -95,6 +95,10 @@ public abstract class AbstractParameters
   @Parameter(names = {"-e", "--ignore-system-errors"}, description = "Ignore system errors (IO, network, server, etc)")
   private boolean ignoreSystemErrors;
 
+  @Parameter(names = {"-E", "--ignore-scanning-errors"},
+      description = "Ignore scanning errors (invalid files, inaccessible files, etc)")
+  private boolean ignoreScanningErrors;
+
   @Parameter(names = { "-m", "--metadata-file" }, converter = ScanMetadataFileParameterConverter.class,
       description = "Path to a JSON file where meta information about the evaluation request, such as commit hash, " +
           "is located")
@@ -257,6 +261,10 @@ public abstract class AbstractParameters
 
   public boolean isIgnoreSystemErrors() {
     return ignoreSystemErrors;
+  }
+
+  public boolean isIgnoreScanningErrors() {
+    return ignoreScanningErrors;
   }
 
   public ScanMetadata getScanMetadata() {

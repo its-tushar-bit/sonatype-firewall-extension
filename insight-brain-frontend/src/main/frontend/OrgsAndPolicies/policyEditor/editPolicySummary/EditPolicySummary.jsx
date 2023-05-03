@@ -38,7 +38,7 @@ export default function EditPolicySummary() {
   const isInherited = useSelector(selectIsInherited);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
-  const readOnly = isRepositoriesRelated ? false : isInherited || !hasEditIqPermission;
+  const readOnly = isRepositoriesRelated && !isInherited ? false : isInherited || !hasEditIqPermission;
   const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
   const policyViolationGrandfatheringAllowed = useSelector(selectCurrentPolicyViolationGrandfatheringAllowed);
 
@@ -58,7 +58,7 @@ export default function EditPolicySummary() {
             {...name}
             onChange={setPolicyName}
             validatable={!name.isPristine || !name.value}
-            disabled={isRepositoriesRelated ? false : readOnly}
+            disabled={isRepositoriesRelated && !isInherited ? false : readOnly}
             id="editor-policy-name"
             name="policy"
             autoFocus
@@ -68,7 +68,7 @@ export default function EditPolicySummary() {
           className="edit-policy-threat-dropdown"
           threatLevel={threatLevel}
           onSelectThreatLevel={setThreatLevel}
-          disabled={isRepositoriesRelated ? false : readOnly}
+          disabled={isRepositoriesRelated && !isInherited ? false : readOnly}
           id="editor-policy-threat-level"
         />
       </NxFormRow>

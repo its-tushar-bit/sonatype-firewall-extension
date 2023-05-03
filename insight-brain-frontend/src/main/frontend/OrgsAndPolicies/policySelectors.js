@@ -310,7 +310,7 @@ export const selectIsNotificationsInheritOverrideEnabled = createSelector(
     isNotificationOverrideEnabled,
     isRepositoriesRelated
   ) => {
-    if (isRepositoriesRelated) {
+    if (isRepositoriesRelated && !isInherited) {
       return true;
     }
     if (!hasEditIqPermission) {
@@ -332,7 +332,7 @@ export const selectIsNotificationsTableEnabled = createSelector(
   selectOverrideNotificationsFlag,
   selectIsRepositoriesRelated,
   (isNotificationsInheritOverrideEnabled, isInherited, overrideNotificationsFlag, isRepositoriesRelated) => {
-    if (isRepositoriesRelated) {
+    if (isRepositoriesRelated && !isInherited) {
       return true;
     }
     if (!isNotificationsInheritOverrideEnabled) {

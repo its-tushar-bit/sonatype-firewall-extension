@@ -29,4 +29,9 @@ public class SummarySection
   public NxCheckbox policyViolationGrandfatheringCheckbox() {
     return new NxCheckbox(child("#editor-policy-violation-grandfathering"));
   }
+
+  public SelenideElement threatLevel() {
+    return child("#editor-policy-threat-level .nx-btn");
+
+  }
 }

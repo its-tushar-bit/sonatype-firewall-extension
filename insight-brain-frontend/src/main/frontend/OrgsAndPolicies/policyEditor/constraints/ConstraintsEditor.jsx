@@ -211,7 +211,7 @@ export default function ConstraintsEditor() {
         className="constraint-editor__add-constraint-btn"
         type="button"
         onClick={addConstraint}
-        disabled={isRepositoriesRelated ? false : readOnly}
+        disabled={isRepositoriesRelated && !isInherited ? false : readOnly}
       >
         <NxFontAwesomeIcon icon={faPlus} />
         <span>Add Constraint</span>

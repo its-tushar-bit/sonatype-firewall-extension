@@ -24,11 +24,11 @@ import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
-import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
+import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -1051,6 +1052,8 @@ public class RepositoriesSummaryViewTest
     inheritedPolicies.add(tempEntity.newPolicy(parentOwner.getId(), "Policy 2 " + parentOwner.getName(), 5,
         Action.ID_WARN, Stage.ID_BUILD, null));
 
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1000));
+
     refreshOrOpen(RepositoriesSummaryPage.url());
 
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
@@ -1087,29 +1090,14 @@ public class RepositoriesSummaryViewTest
 
     policyTileList.ownerName().click();
     policyTileList.rows().shouldHaveSize(3); // rows plus header row
-  }
 
-  @Test
-  public void testPolicyTileIsReadOnly() {
-    Owner parentOwner = new OrganizationDAO().getByIdNotNull(ROOT_ORGANIZATION_ID);
-
-    tempEntity.newPolicy(parentOwner.getId(), "Policy 1 " + parentOwner.getName(), 10,
-        Action.ID_FAIL, Stage.ID_BUILD, null);
-    tempEntity.newPolicy(parentOwner.getId(), "Policy 2 " + parentOwner.getName(), 5,
-        Action.ID_WARN, Stage.ID_BUILD, null);
-
-    refreshOrOpen(RepositoriesSummaryPage.url());
-
-    PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
-    PolicyTileList policyTileList = policyTile.policyList(1);
-
-    // starts from 1 since 0 is the collapsible header
-    for (int i = 1; i < policyTileList.rows().size(); i++) {
-      verifyTableRowIsReadOnly(policyTileList.row(i));
-    }
-  }
-
-  public void verifyTableRowIsReadOnly(PolicyTileListElement row) {
-    row.chevron().shouldBe(hidden);
+    policyTileList.row(1).chevron().shouldBe(visible);
+    policyTileList.row(1).click();
+    waitUntilUrl(PolicyEditorPage.urlToEdit(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, inheritedPolicies.get(0).getId()));
+    PolicyEditorPage.title().shouldHave(Condition.text("View Policy"));
+    PolicyEditorPage.backButton().shouldHave(Condition.text("All Repositories"));
+    PolicyEditorPage.backButton().click();
+    waitUntilUrl(RepositoriesSummaryPage.url());
   }
 }

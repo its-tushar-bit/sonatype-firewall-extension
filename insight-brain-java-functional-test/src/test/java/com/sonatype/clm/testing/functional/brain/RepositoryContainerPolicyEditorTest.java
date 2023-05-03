@@ -5,7 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -18,6 +20,7 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNotificationItem;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
@@ -27,12 +30,16 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -50,6 +57,8 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryContainerPolicyEditorTest
@@ -397,6 +406,78 @@ public class RepositoryContainerPolicyEditorTest
       refreshOrOpen(RepositoriesSummaryPage.url());
       loginAsAdmin();
     }
+  }
+
+  @Test
+  public void testInheritedPolicies_DisableUpdates() {
+    Owner parentOwner = new OrganizationDAO().getByIdNotNull(ROOT_ORGANIZATION_ID);
+    Policy policy = tempEntity.newPolicy(parentOwner.getId(), "Policy 1 " + parentOwner.getName(), 10,
+        Action.ID_FAIL, Stage.ID_BUILD, null);
+    policy.setNotifications(new Notifications(new UserNotification("email1@domain", Stage.ID_PROXY)));
+    List<Policy> inheritedPolicies = Arrays.asList(policy);
+
+    refresh();
+
+    PolicyTileList policyTileList = RepositoriesSummaryPage.policyTile().policyList(1);
+    policyTileList.rows().shouldHaveSize(inheritedPolicies.size() + 1);
+    policyTileList.row(1).click();
+    waitUntilUrl(PolicyEditorPage.urlToEdit(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, inheritedPolicies.get(0).getId()));
+
+    //Summary Section
+    PolicyEditorPage.summarySection().policyName().input().shouldBe(visible, disabled);
+    PolicyEditorPage.summarySection().threatLevel().shouldBe(visible).shouldHave(DISABLED);
+
+    //Inheritance section
+    PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
+
+    ScrollUtil.scrollIntoView(PolicyEditorPage.inheritanceSection().header());
+    inheritance.shouldBe(visible);
+    inheritance.allChildrenInheritRadio().shouldBe(visible, disabled);
+    inheritance.specifiedChildrenInheritRadio().shouldBe(visible, disabled);
+    inheritance.policyActionsOverrideCheckbox().shouldBe(visible, disabled);
+    inheritance.policyNotificationsOverrideCheckbox().shouldBe(visible, disabled);
+
+    //Constraints Section
+    ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
+    constraintSection.addConstraintButton().shouldBe(visible, disabled);
+
+    //Actions Section
+    ActionsSection actionsSection = PolicyEditorPage.actionsSection();
+
+    ScrollUtil.scrollIntoView(PolicyEditorPage.actionsSection().header());
+    actionsSection.inheritParentActions().shouldBe(visible, disabled);
+    actionsSection.overrideParentActions().shouldBe(visible, disabled);
+    actionsSection.proxy().noActionRadio().shouldBe(visible, disabled);
+    actionsSection.proxy().warnRadio().shouldBe(visible, disabled);
+    actionsSection.proxy().failRadio().shouldBe(visible, disabled);
+    actionsSection.develop().noActionRadio().shouldBe(visible, disabled);
+    actionsSection.develop().warnRadio().shouldBe(visible, disabled);
+    actionsSection.develop().failRadio().shouldBe(visible, disabled);
+    actionsSection.source().noActionRadio().shouldBe(visible, disabled);
+    actionsSection.source().warnRadio().shouldBe(visible, disabled);
+    actionsSection.source().failRadio().shouldBe(visible, disabled);
+    actionsSection.build().noActionRadio().shouldBe(visible, disabled);
+    actionsSection.build().warnRadio().shouldBe(visible, disabled);
+    actionsSection.build().failRadio().shouldBe(visible, disabled);
+    actionsSection.stageRelease().noActionRadio().shouldBe(visible, disabled);
+    actionsSection.stageRelease().warnRadio().shouldBe(visible, disabled);
+    actionsSection.stageRelease().failRadio().shouldBe(visible, disabled);
+    actionsSection.release().noActionRadio().shouldBe(visible, disabled);
+    actionsSection.release().warnRadio().shouldBe(visible, disabled);
+    actionsSection.release().failRadio().shouldBe(visible, disabled);
+    actionsSection.operate().noActionRadio().shouldBe(visible, disabled);
+    actionsSection.operate().warnRadio().shouldBe(visible, disabled);
+    actionsSection.operate().failRadio().shouldBe(visible, disabled);
+
+    //Notifications Section
+    NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
+
+    notificationsSection.notificationsOverrideSection().shouldBe(visible);
+    notificationsSection.inheritParentNotifications().shouldBe(visible, disabled);
+    notificationsSection.overrideParentNotifications().shouldBe(visible, disabled);
+
+    PolicyEditorPage.saveButton().shouldBe(visible).shouldHave(DISABLED);
   }
 
   private Policy createPolicy() {

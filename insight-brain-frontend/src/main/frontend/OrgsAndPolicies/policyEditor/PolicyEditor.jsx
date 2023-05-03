@@ -118,7 +118,7 @@ export default function PolicyEditor() {
           submitMaskMessage="Saving…"
           submitMaskState={submitMaskState}
           submitBtnClasses={classNames({
-            disabled: isRepositoriesRelated ? false : !hasEditIqPermission || !isDirty,
+            disabled: isRepositoriesRelated && !isInherited ? false : !hasEditIqPermission || !isDirty,
           })}
           doLoad={loadPolicyEditor}
           loadError={loadError}

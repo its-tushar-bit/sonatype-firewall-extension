@@ -415,6 +415,7 @@ const loadPolicyEditor = createAsyncThunk(
     return dispatch(rootActions.loadApplicablePoliciesByOwner())
       .then((loadApplicablePoliciesByOwnerAction) => {
         const state = getState();
+        const isRepositories = selectIsRepositoriesRelated(state);
         const policiesByOwner = unwrapResult(loadApplicablePoliciesByOwnerAction);
         const siblings = policiesByOwner.flatMap(prop('policies'));
 
@@ -462,7 +463,7 @@ const loadPolicyEditor = createAsyncThunk(
         );
         dispatch(loadActionStages());
 
-        if (isOrgOwner) {
+        if (isOrgOwner && !isRepositories) {
           dispatch(loadCategoriesForPolicy(currentPolicy));
         }
 

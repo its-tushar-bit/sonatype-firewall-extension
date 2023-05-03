@@ -160,7 +160,7 @@ public class ConfigurationProperty
           (p, o) -> ConfigurationUtils.integerValueToString(o,
               SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 0, 23)),
       new ConfigurationProperty(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
-          String.class,
+          Boolean.class,
           (p, s) -> Boolean.parseBoolean(s),
           (p, o) -> Objects.toString(o, null)),
       };

@@ -208,6 +208,13 @@
                     <exclude>module-info.class</exclude>
                   </excludes>
                 </filter>
+                <filter>
+                  <artifact>com.fasterxml.jackson.core:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/versions/17/**</exclude>
+                    <exclude>META-INF/versions/19/**</exclude>
+                  </excludes>
+                </filter>
               </filters>
             </configuration>
           </execution>

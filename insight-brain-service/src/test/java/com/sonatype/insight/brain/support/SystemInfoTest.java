@@ -26,6 +26,7 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -56,6 +57,7 @@ import io.dropwizard.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
@@ -212,7 +214,7 @@ public class SystemInfoTest
     try (final InputStream reader = Files.newInputStream(configYml.toPath())) {
       obfuscatedYaml = systemInfo.getObfuscatedYaml(reader);
     }
-    final Map<String, Object> obufscatedMap = new Yaml(new SafeConstructor()).load(obfuscatedYaml);
+    final Map<String, Object> obufscatedMap = new Yaml(new SafeConstructor(new LoaderOptions())).load(obfuscatedYaml);
 
     assertThat(obufscatedMap.get("sonatypeWork")).isEqualTo("./sonatype-work/clm-server");
     assertThat(obufscatedMap.get("clusterDirectory")).isEqualTo("./sonatype-work/cluster-directory");

@@ -744,6 +744,13 @@
                     <exclude>rst/pdfbox/layout/text/TextLine.class</exclude>
                   </excludes>
                 </filter>
+                <filter>
+                  <artifact>com.fasterxml.jackson.core:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/versions/17/**</exclude>
+                    <exclude>META-INF/versions/19/**</exclude>
+                  </excludes>
+                </filter>
               </filters>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />

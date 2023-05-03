@@ -51,4 +51,10 @@ public class RisksFilterDTO
   public Set<String> repositoryIds = Collections.emptySet();
 
   public int maxResults = 1000;
+
+  // default pageSize, can be overridden
+  public int pageSize = 100;
+
+  // return first page if page is not provided
+  public int page = 0;
 }

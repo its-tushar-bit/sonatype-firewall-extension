@@ -92,7 +92,7 @@ public class DashboardResource
     return newestRiskService.getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
         risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy,
-        risksFilterDTO.maxDaysOld, risksFilterDTO.maxResults);
+        risksFilterDTO.maxDaysOld, risksFilterDTO.page, risksFilterDTO.pageSize);
   }
 
   @POST
@@ -199,7 +199,7 @@ public class DashboardResource
         .getNewestRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
             risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy, risksFilterDTO.maxDaysOld,
-            Integer.MAX_VALUE).dashboardResults;
+            0, Integer.MAX_VALUE).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("violations");
     return Csv.generate(Response.ok(), fileNamePrefix, NewestRiskDTO.getCsvHeader(), results).build();

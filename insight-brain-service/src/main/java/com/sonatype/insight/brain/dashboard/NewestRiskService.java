@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.Applica
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +91,8 @@ public class NewestRiskService
                                                            PolicyViolationStateFilter policyViolationStateFilter,
                                                            String orderBy,
                                                            Integer maxDaysOld,
-                                                           int maxResults)
+                                                           int page,
+                                                           int pageSize)
   {
     dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
 
@@ -114,7 +116,7 @@ public class NewestRiskService
 
     sort(riskDTOs, orderBy);
 
-    DashboardResultsDTO<NewestRiskDTO> result = buildResultsDTO(riskDTOs, maxResults);
+    DashboardResultsDTO<NewestRiskDTO> result = buildResultsDTO(riskDTOs, page, pageSize);
 
     AuditData.get().setData("resultRecordCount", result.numResults);
 
@@ -206,11 +208,15 @@ public class NewestRiskService
     return riskDTOs;
   }
 
-  private DashboardResultsDTO<NewestRiskDTO> buildResultsDTO(List<NewestRiskDTO> riskDTOs, int maxResults) {
+  private DashboardResultsDTO<NewestRiskDTO> buildResultsDTO(List<NewestRiskDTO> riskDTOs, int page, int pageSize) {
     DashboardResultsDTO<NewestRiskDTO> result = new DashboardResultsDTO<>();
     result.numResults = riskDTOs.size();
-    result.dashboardResults = riskDTOs.subList(0, Math.min(riskDTOs.size(), maxResults));
-
+    if (riskDTOs.isEmpty()) {
+      result.dashboardResults = new ArrayList<>();
+    }
+    else {
+      result.dashboardResults = Lists.partition(riskDTOs, pageSize).get(page);
+    }
     return result;
   }
 

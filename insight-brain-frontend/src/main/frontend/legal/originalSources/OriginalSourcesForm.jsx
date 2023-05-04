@@ -192,7 +192,7 @@ export default function OriginalSourcesForm(props) {
           resetExistingObligation();
         }}
         submitBtnText="Save"
-        submitError={saveOriginalSourceError || (existingObligation ? existingObligation.error : false)}
+        submitError={saveOriginalSourceError || existingObligation?.error}
         onSubmit={trySave}
         validationErrors={areSourcesDirty() || isObligationDirty() ? null : 'No modifications'}
       >

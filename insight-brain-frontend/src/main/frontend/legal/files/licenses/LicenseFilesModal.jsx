@@ -193,7 +193,7 @@ export default function LicenseFilesModal(props) {
         }}
         submitBtnText="Save"
         onSubmit={trySave}
-        submitError={error || (existingObligation ? existingObligation.error : false)}
+        submitError={error || existingObligation?.error}
         submitMaskState={getSubmitMaskState()}
         validationErrors={getValidationErrors()}
       >

@@ -145,7 +145,7 @@ export default function LicenseObligationAttributionTile(props) {
           }}
           submitBtnText="Save"
           onSubmit={() => trySave(name)}
-          submitError={error || (existingObligation ? existingObligation.error : false)}
+          submitError={error || existingObligation?.error}
           submitMaskState={getSubmitMaskState()}
           validationErrors={isValid() ? undefined : validationErrorMessage}
         >

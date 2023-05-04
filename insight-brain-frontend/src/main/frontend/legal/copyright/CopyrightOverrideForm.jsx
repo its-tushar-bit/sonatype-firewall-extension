@@ -210,7 +210,7 @@ export default function CopyrightOverrideForm(props) {
           resetExistingObligation();
         }}
         submitBtnText="Save"
-        submitError={saveCopyrightError || (existingObligation ? existingObligation.error : false)}
+        submitError={saveCopyrightError || existingObligation?.error}
         submitMaskState={getSubmitMaskState()}
         onSubmit={trySave}
         validationErrors={isCopyrightsDirty() || isObligationDirty() ? null : 'No modifications'}

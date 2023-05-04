@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -52,30 +53,30 @@ public class ApiComponentsInQuarantineReportingService
   }
 
   public ApiComponentsInQuarantineDTO getComponentsInQuarantine() {
-    List<RepositoryDTO> repositoryDTOs = repositoryService.getRepositories().repositories;
+    List<Repository> repositories = repositoryService.getRepositoriesWithReadPermission();
 
-    if (repositoryDTOs == null) {
+    if (repositories == null) {
       AuditData.get().setData(QUARANTINED_COMPONENTS_AUDIT_KEY, 0);
       return new ApiComponentsInQuarantineDTO();
     }
 
-    return buildApiComponentsInQuarantineDTO(repositoryDTOs);
+    return buildApiComponentsInQuarantineDTO(repositories);
   }
 
-  private ApiComponentsInQuarantineDTO buildApiComponentsInQuarantineDTO(List<RepositoryDTO> repositoryDTOs) {
+  private ApiComponentsInQuarantineDTO buildApiComponentsInQuarantineDTO(List<Repository> repositories) {
     long numOfQuarantinedComponents = 0L;
     ApiComponentsInQuarantineDTO componentsInQuarantineDTO = new ApiComponentsInQuarantineDTO();
 
-    for (RepositoryDTO repositoryDTO : repositoryDTOs) {
+    for (Repository repository : repositories) {
       ApiRepositoryComponentsInQuarantineDTO repositoryComponentsInQuarantineDTO =
           new ApiRepositoryComponentsInQuarantineDTO();
 
-      repositoryComponentsInQuarantineDTO.repository = convertRepositoryDTOToApiRepositoryDTO(repositoryDTO);
+      repositoryComponentsInQuarantineDTO.repository = ApiRepositoryAdapter.convert(repository);
 
       List<RepositoryComponent> repositoryComponents = repositoryComponentDAO
-          .getQuarantinedByRepositoryId(repositoryDTO.repository.getId());
+          .getQuarantinedByRepositoryId(repository.getId());
       List<ApiRepositoryComponentPolicyViolationDTO> repositoryComponentPolicyViolationDTOs = new ArrayList<>();
-      buildApiRepositoryComponentPolicyViolationDTOs(repositoryDTO, repositoryComponents,
+      buildApiRepositoryComponentPolicyViolationDTOs(repository, repositoryComponents,
           repositoryComponentPolicyViolationDTOs);
 
       if (!repositoryComponentPolicyViolationDTOs.isEmpty()) {
@@ -90,7 +91,7 @@ public class ApiComponentsInQuarantineReportingService
   }
 
   private void buildApiRepositoryComponentPolicyViolationDTOs(
-      RepositoryDTO repositoryDTO,
+      Repository repository,
       List<RepositoryComponent> repositoryComponents,
       List<ApiRepositoryComponentPolicyViolationDTO> repositoryComponentPolicyViolationDTOs)
   {
@@ -102,7 +103,7 @@ public class ApiComponentsInQuarantineReportingService
 
       List<ApiPolicyViolationDTOV2> policyViolationDTOV2List = new ArrayList<>();
       List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-          .getByRepositoryIdAndPathnameAndActionAndNotWaived(repositoryDTO.repository.getId(),
+          .getByRepositoryIdAndPathnameAndActionAndNotWaived(repository.getId(),
               repositoryComponent.getPathname(), Action.ID_FAIL);
       for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
         policyViolationDTOV2List.add(ApiPolicyViolationAdapter.convert(repositoryPolicyViolation));

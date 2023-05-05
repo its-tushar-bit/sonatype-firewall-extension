@@ -35,8 +35,9 @@ public class ApplicationRiskServiceAuthzTest
 
   @Test
   public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthenticated() {
-    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result =
+        applicationRiskService.getApplicationRisks(null, Collections.singleton(app.getId()), null, null, null, null,
+            null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -45,7 +46,7 @@ public class ApplicationRiskServiceAuthzTest
   public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthorized() {
     login();
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
-        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
+        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -53,17 +54,18 @@ public class ApplicationRiskServiceAuthzTest
   @Test
   public void testGetApplicationRisks_ExplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
-    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result =
+        applicationRiskService.getApplicationRisks(null, Collections.singleton(app.getId()), null, null, null, null,
+            null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
   }
 
   @Test
   public void testGetApplicationRisks_ExplicitOrganizationFilter_Unauthenticated() {
-    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null,
-            "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result =
+        applicationRiskService.getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null,
+            null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -71,9 +73,9 @@ public class ApplicationRiskServiceAuthzTest
   @Test
   public void testGetApplicationRisks_ExplicitOrganizationFilter_Unauthorized() {
     login();
-    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null,
-            "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result =
+        applicationRiskService.getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null,
+            null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -81,9 +83,9 @@ public class ApplicationRiskServiceAuthzTest
   @Test
   public void testGetApplicationRisks_ExplicitOrganizationFilter_Authorized() {
     grantReadPermission(app.getParentOwnerId());
-    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null, null, null, null,
-            "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result =
+        applicationRiskService.getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null,
+            null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
   }

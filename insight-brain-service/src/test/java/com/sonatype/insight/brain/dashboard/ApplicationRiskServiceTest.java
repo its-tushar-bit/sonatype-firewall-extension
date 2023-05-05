@@ -90,7 +90,8 @@ public class ApplicationRiskServiceTest
   public void testGetApplicationRisks_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
-        () -> applicationRiskService.getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0));
+        () -> applicationRiskService.getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0,
+          100));
   }
 
   @Test
@@ -100,7 +101,7 @@ public class ApplicationRiskServiceTest
         "g", "a", "v", "somehash");
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 100);
+        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
     assertThat(result.dashboardResults.get(0).getStageRiskScore(DevelopStageType.ID)).isNull();
@@ -108,7 +109,7 @@ public class ApplicationRiskServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> applicationRiskService
         .getApplicationRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null,
-            null, null, "-TOTAL_RISK", 100)).withMessage("Invalid stage type: develop.");
+            null, null, "-TOTAL_RISK", 0, 100)).withMessage("Invalid stage type: develop.");
   }
 
   @Test
@@ -123,7 +124,7 @@ public class ApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app1.getId()),
         new LinkedHashSet<>(Arrays.asList(ReleaseStageType.ID, OperateStageType.ID, BuildStageType.ID,
-            StageReleaseStageType.ID)), null, null, null, null, "-TOTAL_RISK", 100);
+            StageReleaseStageType.ID)), null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
@@ -137,7 +138,7 @@ public class ApplicationRiskServiceTest
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null, null, "-TOTAL_RISK",
-            100);
+            0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
@@ -154,7 +155,7 @@ public class ApplicationRiskServiceTest
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 1000);
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
@@ -167,7 +168,7 @@ public class ApplicationRiskServiceTest
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1");
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED), "-TOTAL_RISK", 1000);
+            new PolicyViolationStateFilter(PolicyViolationState.GRANDFATHERED), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     appDTO = result.dashboardResults.get(0);
@@ -177,7 +178,7 @@ public class ApplicationRiskServiceTest
 
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
+            new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     appDTO = result.dashboardResults.get(0);
@@ -189,7 +190,7 @@ public class ApplicationRiskServiceTest
     result = applicationRiskService
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.GRANDFATHERED,
-                PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
+                PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     appDTO = result.dashboardResults.get(0);
@@ -202,7 +203,7 @@ public class ApplicationRiskServiceTest
   @Test
   public void testGetApplicationRisks_ResultsCountCanExceedNumberOfReturnedResults() {
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
-        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
+        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 1);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(2);
   }
@@ -211,7 +212,7 @@ public class ApplicationRiskServiceTest
   public void testGetApplicationRisks() {
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app1.getId()), Collections.singleton(BuildStageType.ID), null, null, null, null,
-        "-TOTAL_RISK", Integer.MAX_VALUE);
+        "-TOTAL_RISK", 0, Integer.MAX_VALUE);
 
     assertThat(result.dashboardResults).hasSize(1);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
@@ -237,7 +238,7 @@ public class ApplicationRiskServiceTest
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app.getId()), Collections.singleton(BuildStageType.ID), null, null, null, null,
-        "-TOTAL_RISK", Integer.MAX_VALUE);
+        "-TOTAL_RISK", 0 ,Integer.MAX_VALUE);
 
     assertThat(result.dashboardResults).isEmpty();
   }
@@ -247,7 +248,7 @@ public class ApplicationRiskServiceTest
     tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scan app1 id");
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
-        Collections.singleton(app1.getId()), null, null, null, null, null, "-TOTAL_RISK", 100);
+        Collections.singleton(app1.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
@@ -270,7 +271,7 @@ public class ApplicationRiskServiceTest
     tempEntity.newPolicyViolation(policyEvaluation3, policy3);
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null, null, null,
-        null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE);
+        null, null, null, null, "-TOTAL_RISK", 0, Integer.MAX_VALUE);
 
     assertThat(result.dashboardResults).hasSize(4);
 
@@ -317,7 +318,7 @@ public class ApplicationRiskServiceTest
     tempEntity.newPolicyViolation(policyEvaluation3, policy, 10, policy.getThreatCategory());
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
-        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE);
+        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, Integer.MAX_VALUE);
 
     assertThat(result.dashboardResults).hasSize(1);
 
@@ -349,7 +350,7 @@ public class ApplicationRiskServiceTest
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         Collections.singleton(app.getId()), new LinkedHashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)),
-        null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE);
+        null, null, null, null, "-TOTAL_RISK", 0, Integer.MAX_VALUE);
 
     assertThat(result.dashboardResults).hasSize(1);
     ApplicationRiskScoreDTO applicationRiskScoreDTO = result.dashboardResults.get(0);
@@ -393,7 +394,7 @@ public class ApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
         new LinkedHashSet<>(Arrays.asList(app1.getId(), app2.getId())),
         new LinkedHashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), null, null, null, null,
-        "-TOTAL_RISK", Integer.MAX_VALUE);
+        "-TOTAL_RISK", 0, Integer.MAX_VALUE);
 
     assertThat(result.dashboardResults).hasSize(2);
 
@@ -429,11 +430,77 @@ public class ApplicationRiskServiceTest
   }
 
   @Test
+  public void testGetApplicationRisks_Pagination() {
+    Application app1 = tempEntity.newApplication("tsta-app1", "tsta-app1", org.getId());
+    Policy policy11 = tempEntity.newPolicy(app1.getId(), "app owned policy11", 5);
+    PolicyEvaluation policyEvaluation11 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID,
+        "test scan app id11", new Date());
+    tempEntity.newPolicyViolation(policyEvaluation11, policy11);
+    Policy policy12 = tempEntity.newPolicy(app1.getId(), "app owned policy12", 7);
+    PolicyEvaluation policyEvaluation12 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
+        "test scan app id12", new Date());
+    tempEntity.newPolicyViolation(policyEvaluation12, policy12);
+
+    Application app2 = tempEntity.newApplication("tsta-app2", "tsta-app2", org.getId());
+    Policy policy21 = tempEntity.newPolicy(app2.getId(), "app owned policy21", 1);
+    PolicyEvaluation policyEvaluation21 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID,
+        "test scan app id21", new Date());
+    tempEntity.newPolicyViolation(policyEvaluation21, policy21);
+    Policy policy22 = tempEntity.newPolicy(app2.getId(), "app owned policy22", 3);
+    PolicyEvaluation policyEvaluation22 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID,
+        "test scan app id22", new Date());
+    tempEntity.newPolicyViolation(policyEvaluation22, policy22);
+
+    DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
+        new LinkedHashSet<>(Arrays.asList(app1.getId(), app2.getId())),
+        new LinkedHashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), null, null, null, null,
+        "-TOTAL_RISK", 0, 1);
+
+    assertThat(result.dashboardResults).hasSize(1);
+
+    ApplicationRiskScoreDTO applicationRiskScoreDTO1 = result.dashboardResults.get(0);
+    assertRisk(applicationRiskScoreDTO1.totalApplicationRisk, 0, 12, 0, 0, 12);
+    assertThat(applicationRiskScoreDTO1.organizationName).isEqualTo(org.getName());
+    assertThat(applicationRiskScoreDTO1.applicationName).isEqualTo(app1.getName());
+    assertThat(applicationRiskScoreDTO1.applicationId).isEqualTo(app1.getPublicId());
+    assertThat(applicationRiskScoreDTO1.stageRisks).hasSize(2);
+
+    StageRiskScoreDTO buildStageRisk1 = applicationRiskScoreDTO1.getStageRiskScore(BuildStageType.ID);
+    assertRisk(buildStageRisk1.risk, 0, 5, 0, 0, 5);
+    assertThat(buildStageRisk1.scanId).isEqualTo(policyEvaluation11.getScanId());
+
+    StageRiskScoreDTO releaseStageRisk1 = applicationRiskScoreDTO1.getStageRiskScore(ReleaseStageType.ID);
+    assertRisk(releaseStageRisk1.risk, 0, 7, 0, 0, 7);
+    assertThat(releaseStageRisk1.scanId).isEqualTo(policyEvaluation12.getScanId());
+
+    // Get next page
+    result = applicationRiskService.getApplicationRisks(null,
+        new LinkedHashSet<>(Arrays.asList(app1.getId(), app2.getId())),
+        new LinkedHashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), null, null, null, null,
+        "-TOTAL_RISK", 1, 1);
+
+    ApplicationRiskScoreDTO applicationRiskScoreDTO2 = result.dashboardResults.get(0);
+    assertRisk(applicationRiskScoreDTO2.totalApplicationRisk, 0, 0, 3, 1, 4);
+    assertThat(applicationRiskScoreDTO2.organizationName).isEqualTo(org.getName());
+    assertThat(applicationRiskScoreDTO2.applicationName).isEqualTo(app2.getName());
+    assertThat(applicationRiskScoreDTO2.applicationId).isEqualTo(app2.getPublicId());
+    assertThat(applicationRiskScoreDTO2.stageRisks).hasSize(2);
+
+    StageRiskScoreDTO buildStageRisk2 = applicationRiskScoreDTO2.getStageRiskScore(BuildStageType.ID);
+    assertRisk(buildStageRisk2.risk, 0, 0, 0, 1, 1);
+    assertThat(buildStageRisk2.scanId).isEqualTo(policyEvaluation21.getScanId());
+
+    StageRiskScoreDTO releaseStageRisk2 = applicationRiskScoreDTO2.getStageRiskScore(ReleaseStageType.ID);
+    assertRisk(releaseStageRisk2.risk, 0, 0, 3, 0, 3);
+    assertThat(releaseStageRisk2.scanId).isEqualTo(policyEvaluation22.getScanId());
+  }
+
+  @Test
   public void testGetApplicationRisks_DashboardFeatureDisabled() {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
 
     assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> applicationRiskService
-        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE))
+        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, Integer.MAX_VALUE))
         .withMessage("The dashboard feature has been disabled.");
   }
 

@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,8 @@ public class ApplicationRiskService
       final PolicyThreatLevelFilter policyThreatLevelFilter,
       final PolicyViolationStateFilter policyViolationStateFilter,
       final String orderBy,
-      final int maxResults)
+      int page,
+      int pageSize)
   {
     dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
 
@@ -101,8 +103,13 @@ public class ApplicationRiskService
     applicationRiskScoreDTOs.sort(applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
     result.numResults = applicationRiskScoreDTOs.size();
-    result.dashboardResults = 
-        applicationRiskScoreDTOs.subList(0, Math.min(applicationRiskScoreDTOs.size(), maxResults));
+
+    if (applicationRiskScoreDTOs.isEmpty()) {
+      result.dashboardResults = new ArrayList<>();
+    }
+    else {
+      result.dashboardResults = Lists.partition(applicationRiskScoreDTOs, pageSize).get(page);
+    }
 
     AuditData.get().setData("resultRecordCount", result.numResults);
 

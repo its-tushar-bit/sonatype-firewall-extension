@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.MultiTenantAuditRecorder;
 import com.sonatype.insight.brain.component.MultiTenantRepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
+import com.sonatype.insight.brain.datadog.DatadogInterceptor;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
@@ -89,6 +90,8 @@ public class MultiTenantInsightBrainService
 
   public static void main(final String[] args) {
     TenantThreadLocal.setDefaultTenantToGlobal();
+
+    datadog.trace.api.GlobalTracer.get().addTraceInterceptor(new DatadogInterceptor());
 
     new TenantUtil().setGlobalTenant();
 

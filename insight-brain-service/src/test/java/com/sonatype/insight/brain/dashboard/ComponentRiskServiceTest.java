@@ -125,7 +125,8 @@ public class ComponentRiskServiceTest
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(
-            () -> componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0));
+            () -> componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0,
+                100));
   }
 
   @Test
@@ -432,7 +433,7 @@ public class ComponentRiskServiceTest
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1");
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1000);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
@@ -451,7 +452,7 @@ public class ComponentRiskServiceTest
         "Version1", "hash", "ConstraintFact2");
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1000);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
@@ -466,7 +467,7 @@ public class ComponentRiskServiceTest
   @Test
   public void testGetComponentRisks_FilterByApplication() {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null, 
-        Collections.singleton(app2.getId()), null, null, null, null, null, "-TOTAL_RISK", 1000);
+        Collections.singleton(app2.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
@@ -481,7 +482,7 @@ public class ComponentRiskServiceTest
   public void testGetComponentRisks_FilterByOrganization() {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(Collections.singleton(app2.getParentOwnerId()), null, null, null, null, null, null,
-            "-TOTAL_RISK", 1000);
+            "-TOTAL_RISK", 0, 100);
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
@@ -496,8 +497,8 @@ public class ComponentRiskServiceTest
   public void testGetComponentRisks_FilterByEmptyOrganization() {
     Organization emptyOrg = tempEntity.newOrganization();
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(Collections.singleton(emptyOrg.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 
-            1000);
+        .getComponentRisks(Collections.singleton(emptyOrg.getId()), null, null, null, null, null, null, "-TOTAL_RISK",
+            0, 100);
 
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
@@ -509,7 +510,7 @@ public class ComponentRiskServiceTest
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, app1Policy);
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null, null, 
-        Collections.singleton(ReleaseStageType.ID), null, null, null, null, "-TOTAL_RISK", 1000);
+        Collections.singleton(ReleaseStageType.ID), null, null, null, null, "-TOTAL_RISK", 0, 100);
 
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
@@ -527,7 +528,7 @@ public class ComponentRiskServiceTest
         "g", "a", "v", "somehash");
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1000);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     assertThat(result.dashboardResults.get(0).hash).isEqualTo(app1PolicyViolation.getHash());
@@ -535,7 +536,7 @@ public class ComponentRiskServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
             () -> componentRiskService.getComponentRisks(null, null, Collections.singleton(DevelopStageType.ID), null,
-                null, null, null, "-TOTAL_RISK", 1000))
+                null, null, null, "-TOTAL_RISK", 0, 100))
             .withMessage("Invalid stage type: develop.");
   }
 
@@ -545,8 +546,8 @@ public class ComponentRiskServiceTest
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, Collections.singleton(app2Tag.getId()), null, null, null, "-TOTAL_RISK", 
-            1000);
+        .getComponentRisks(null, null, null, Collections.singleton(app2Tag.getId()), null, null, null, "-TOTAL_RISK",
+            0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -565,7 +566,7 @@ public class ComponentRiskServiceTest
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, new PolicyThreatCategoryFilter(violation.getThreatCategory()), null,
-            null, "-TOTAL_RISK", 1000);
+            null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -579,7 +580,7 @@ public class ComponentRiskServiceTest
   public void testGetComponentRisks_FilterPolicyThreatLevel() {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, null, new PolicyThreatLevelFilter(3, 3), null,
-            "-TOTAL_RISK", 1000);
+            "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -598,7 +599,7 @@ public class ComponentRiskServiceTest
     PolicyViolation policyViolation = policyViolationDAO.getById(waivedViolation.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 1000);
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -608,7 +609,7 @@ public class ComponentRiskServiceTest
     assertThat(riskDTO.affectedApplications).isEqualTo(1);
 
     result = componentRiskService.getComponentRisks(null, null, null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
+        new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     riskDTO = result.dashboardResults.get(0);
@@ -619,7 +620,7 @@ public class ComponentRiskServiceTest
     assertThat(riskDTO.affectedApplications).isEqualTo(2);
 
     result = componentRiskService.getComponentRisks(null, null, null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
     riskDTO = result.dashboardResults.get(0);
@@ -644,7 +645,7 @@ public class ComponentRiskServiceTest
     PolicyViolation policyViolation = policyViolationDAO.getById(waivedViolation.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 1000);
+            new PolicyViolationStateFilter(PolicyViolationState.WAIVED), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -654,7 +655,7 @@ public class ComponentRiskServiceTest
     assertThat(riskDTO.affectedApplications).isEqualTo(1);
 
     result = componentRiskService.getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
+        new PolicyViolationStateFilter(PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     riskDTO = result.dashboardResults.get(0);
@@ -664,7 +665,7 @@ public class ComponentRiskServiceTest
     assertThat(riskDTO.affectedApplications).isEqualTo(1);
 
     result = componentRiskService.getComponentRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
-        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK", 1000);
+        new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
     riskDTO = result.dashboardResults.get(0);
@@ -690,7 +691,7 @@ public class ComponentRiskServiceTest
     }
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null, 
-        Collections.singleton(app2.getId()), null, null, null, null, null, "-TOTAL_RISK", 1000);
+        Collections.singleton(app2.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -714,7 +715,7 @@ public class ComponentRiskServiceTest
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(Collections.singleton(app2.getParentOwnerId()), null, null, null, null, null, null,
-            "-TOTAL_RISK", 1000);
+            "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
@@ -740,12 +741,35 @@ public class ComponentRiskServiceTest
         hash);
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 1);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(2);
     ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
     assertThat(riskDTO.hash).isEqualTo(hash);
     assertThat(riskDTO.score).isEqualTo(12);
+    assertThat(riskDTO.affectedApplications).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetComponentRisks_ResultCapping_NextPage() {
+    String gid = "gid";
+    String aid = "aid";
+    String ver = "1";
+    String hash = "somehash";
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid, ver,
+        hash);
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, 4, PolicyThreatCategory.SECURITY, gid, aid, ver,
+        hash);
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid, ver,
+        hash);
+
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1, 1);
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(2);
+    ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
+    assertThat(riskDTO.hash).isEqualTo("hash");
+    assertThat(riskDTO.score).isEqualTo(11);
     assertThat(riskDTO.affectedApplications).isEqualTo(2);
   }
 
@@ -762,7 +786,7 @@ public class ComponentRiskServiceTest
         "b.zip");
 
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null, null,
-        Collections.singleton(ReleaseStageType.ID), null, null, null, null, "NAME", 2);
+        Collections.singleton(ReleaseStageType.ID), null, null, null, null, "NAME", 0, 100);
     assertThat(result.dashboardResults).hasSize(2);
     assertThat(result.numResults).isEqualTo(2);
 
@@ -778,8 +802,8 @@ public class ComponentRiskServiceTest
   public void testGetComponentRisks_DashboardFeatureDisabled() {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
 
-    assertThatExceptionOfType(ConflictException.class)
-        .isThrownBy(() -> componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "NAME", 2))
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(
+      () -> componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "NAME", 0, 100))
         .withMessage("The dashboard feature has been disabled.");
   }
 

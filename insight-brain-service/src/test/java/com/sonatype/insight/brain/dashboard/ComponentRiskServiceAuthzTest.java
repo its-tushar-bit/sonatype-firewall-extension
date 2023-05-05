@@ -33,7 +33,7 @@ public class ComponentRiskServiceAuthzTest
   @Test
   public void testGetComponentRisks_ExplicitApplicationFilter_Unauthenticated() {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null,
-        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
+        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -42,7 +42,7 @@ public class ComponentRiskServiceAuthzTest
   public void testGetComponentRisks_ExplicitApplicationFilter_Unauthorized() {
     login();
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null,
-        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
+        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -51,7 +51,7 @@ public class ComponentRiskServiceAuthzTest
   public void testGetComponentRisks_ExplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null,
-        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 1);
+        Collections.singleton(app.getId()), null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
   }
@@ -59,7 +59,7 @@ public class ComponentRiskServiceAuthzTest
   @Test
   public void testGetComponentRisks_ImplicitApplicationFilter_Unauthenticated() {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -68,7 +68,7 @@ public class ComponentRiskServiceAuthzTest
   public void testGetComponentRisks_ImplicitApplicationFilter_Unauthorized() {
     login();
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -77,15 +77,16 @@ public class ComponentRiskServiceAuthzTest
   public void testGetComponentRisks_ImplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1);
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
   }
 
   @Test
   public void testGetComponentRisks_ExplicitOrganizationFilter_Unauthenticated() {
-    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ComponentRiskDTO> result =
+        componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
+            "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -93,8 +94,9 @@ public class ComponentRiskServiceAuthzTest
   @Test
   public void testGetComponentRisks_ExplicitOrganizationFilter_Unauthorized() {
     login();
-    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ComponentRiskDTO> result =
+        componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
+            "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.numResults).isEqualTo(0);
   }
@@ -102,8 +104,9 @@ public class ComponentRiskServiceAuthzTest
   @Test
   public void testGetComponentRisks_ExplicitOrganizationFilter_Authorized() {
     grantReadPermission(org.getId());
-    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
-        .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 1);
+    DashboardResultsDTO<ComponentRiskDTO> result =
+        componentRiskService.getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
+            "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
   }

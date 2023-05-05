@@ -118,7 +118,7 @@ public class DashboardResource
     return componentRiskService.getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds,
         risksFilterDTO.stageIds, risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories,
         risksFilterDTO.policyThreatLevelRange, risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy,
-        risksFilterDTO.maxResults);
+        risksFilterDTO.page, risksFilterDTO.pageSize);
   }
 
   /**
@@ -220,7 +220,7 @@ public class DashboardResource
     final List<ComponentRiskDTO> results = componentRiskService
         .getComponentRisks(risksFilterDTO.organizationIds, risksFilterDTO.applicationIds, risksFilterDTO.stageIds,
             risksFilterDTO.tagIds, risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange,
-            risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy, Integer.MAX_VALUE).dashboardResults;
+            risksFilterDTO.policyViolationStates, risksFilterDTO.orderBy, 0, Integer.MAX_VALUE).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("components");
     return Csv.generate(Response.ok(), fileNamePrefix, ComponentRiskDTO.getCsvHeader(), results).build();

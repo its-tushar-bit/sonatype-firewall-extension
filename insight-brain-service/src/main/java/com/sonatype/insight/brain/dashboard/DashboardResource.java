@@ -274,7 +274,8 @@ public class DashboardResource
   @ExceptionMetered(name = "getPolicyWaiversExportExceptionMeter")
   @Audited(AuditEvent.EXPORT_DASHBOARD_WAIVER_LIST)
   public Response getPolicyWaiversExport(@FormDataParam("filter") RisksFilterDTO risksFilterDTO) throws IOException {
-    risksFilterDTO.maxResults = Integer.MAX_VALUE;
+    risksFilterDTO.pageSize = Integer.MAX_VALUE;
+    risksFilterDTO.page = 0;
 
     final List<DashboardPolicyWaiverDTO> results = dashboardPolicyWaiverService
         .getDashboardPolicyWaiversForExport(risksFilterDTO).dashboardResults;

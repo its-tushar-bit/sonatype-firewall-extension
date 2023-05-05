@@ -106,7 +106,7 @@ public class DashboardPolicyWaiverServiceTest
     policy = tempEntity.newPolicy(org);
 
     risksFilterDTOBuilder = new RisksFilterDTOBuilder().withApplicationIds(Collections.emptySet())
-        .withOrganizationIds(Collections.emptySet()).withMaxResults(1);
+        .withOrganizationIds(Collections.emptySet()).withPageSize(1);
   }
 
   @Test
@@ -127,12 +127,17 @@ public class DashboardPolicyWaiverServiceTest
     };
     IntStream.range(0, 10).forEach(intConsumer);
 
-    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withMaxResults(2);
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(2);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(3).withPage(1);
+    dashboardPolicyWaivers = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(3);
   }
 
   @Test
@@ -145,7 +150,7 @@ public class DashboardPolicyWaiverServiceTest
     };
     IntStream.range(0, 10).forEach(intConsumer);
 
-    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withMaxResults(2);
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(2);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
@@ -163,7 +168,7 @@ public class DashboardPolicyWaiverServiceTest
     };
     IntStream.range(0, 10).forEach(intConsumer);
 
-    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withMaxResults(2);
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(2);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
@@ -181,7 +186,7 @@ public class DashboardPolicyWaiverServiceTest
     };
     IntStream.range(0, 10).forEach(intConsumer);
 
-    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withMaxResults(2);
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(2);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
@@ -206,7 +211,7 @@ public class DashboardPolicyWaiverServiceTest
 
     Set<String> apps = new HashSet<>(Arrays.asList(app1.getId(), app2.getId()));
     risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId()))
-        .withApplicationIds(apps).withMaxResults(10);
+        .withApplicationIds(apps).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -219,14 +224,14 @@ public class DashboardPolicyWaiverServiceTest
   }
 
   @Test
-  public void getDashboardPolicyWaivers_shouldReturnOnlyMaxResults() {
+  public void getDashboardPolicyWaivers_shouldReturnOnlyPageSize() {
     IntConsumer intConsumer = value -> {
       Policy testPolicy = tempEntity.newPolicy(org);
       tempEntity.newWaiver(testPolicy.getId(), app1.getId());
     };
     IntStream.range(0, 10).forEach(intConsumer);
 
-    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withMaxResults(2);
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(2);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
@@ -242,7 +247,7 @@ public class DashboardPolicyWaiverServiceTest
     PolicyWaiver policyWaiverParentOrg1 = tempEntity.newWaiver(policy.getId(), parentOrg.getId());
     createPolicyWaiverWithFullDetails(app2);
 
-    risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId())).withMaxResults(10);
+    risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId())).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(2);
@@ -256,7 +261,7 @@ public class DashboardPolicyWaiverServiceTest
     PolicyWaiver policyWaiverParentOrg1 = tempEntity.newWaiver(policy.getId(), parentOrg.getId());
     tempEntity.newWaiver(policy.getId(), app1.getId());
 
-    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app2.getId())).withMaxResults(10);
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app2.getId())).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(2);
@@ -292,7 +297,7 @@ public class DashboardPolicyWaiverServiceTest
 
     tempEntity.newWaiver(policyWaiver1);
 
-    risksFilterDTOBuilder.withRepositoryIds(Collections.singleton(repository.getId())).withMaxResults(10);
+    risksFilterDTOBuilder.withRepositoryIds(Collections.singleton(repository.getId())).withPageSize(10);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
@@ -373,7 +378,7 @@ public class DashboardPolicyWaiverServiceTest
     tempEntity.newWaiver(policyWaiverRepoContainer);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
-        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withMaxResults(10).build());
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withPageSize(10).build());
 
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(4);
 
@@ -396,7 +401,7 @@ public class DashboardPolicyWaiverServiceTest
     PolicyViolationTestHelper.createPolicyViolationWaived(policy, component, tempEntity);
 
     dashboardPolicyWaivers =
-        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withMaxResults(10).build());
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withPageSize(10).build());
 
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(5);
   }
@@ -411,7 +416,7 @@ public class DashboardPolicyWaiverServiceTest
     tempEntity.newWaiver(policy.getId(), app1.getId());
     tempEntity.newWaiver(policy.getId(), app2.getId());
 
-    risksFilterDTOBuilder.withTagIds(Collections.singleton(applicationCategory.getId())).withMaxResults(10);
+    risksFilterDTOBuilder.withTagIds(Collections.singleton(applicationCategory.getId())).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
@@ -432,7 +437,7 @@ public class DashboardPolicyWaiverServiceTest
 
     PolicyThreatCategoryFilter threatCategoryFilter = new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY);
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app2.getId()))
-        .withPolicyThreatCategories(threatCategoryFilter).withMaxResults(10);
+        .withPolicyThreatCategories(threatCategoryFilter).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -449,7 +454,7 @@ public class DashboardPolicyWaiverServiceTest
 
     PolicyThreatLevelFilter threatLevelFilter = new PolicyThreatLevelFilter(7, 9);
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app2.getId()))
-        .withPolicyThreatLevelRange(threatLevelFilter).withMaxResults(10);
+        .withPolicyThreatLevelRange(threatLevelFilter).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -468,7 +473,7 @@ public class DashboardPolicyWaiverServiceTest
     tempEntity.newWaiver("hash2", policy.getId(), app1.getId(), "", Date.from(now.plus(40, ChronoUnit.DAYS)));
 
     risksFilterDTOBuilder.withApplicationIds(new HashSet<>(Arrays.asList(app1.getId(), app2.getId())))
-        .withExpirationDate(IN_7_DAYS).withMaxResults(10);
+        .withExpirationDate(IN_7_DAYS).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
@@ -506,7 +511,7 @@ public class DashboardPolicyWaiverServiceTest
         tempEntity.newWaiver("hash", policy.getId(), app1.getId(), "", waiverExpirationDate);
 
     risksFilterDTOBuilder.withApplicationIds(new HashSet<>(Arrays.asList(app1.getId(), app2.getId())))
-        .withMaxResults(10);
+        .withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -526,7 +531,7 @@ public class DashboardPolicyWaiverServiceTest
 
     String orderBy = "-" + DashboardPolicyWaiverOrderByEnum.THREAT_LEVEL;
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId()))
-        .withOrderBy(orderBy).withMaxResults(10);
+        .withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -549,7 +554,7 @@ public class DashboardPolicyWaiverServiceTest
 
     String orderBy = DashboardPolicyWaiverOrderByEnum.CREATION_DATE.toString();
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId()))
-        .withOrderBy(orderBy).withMaxResults(10);
+        .withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -577,7 +582,7 @@ public class DashboardPolicyWaiverServiceTest
 
     String orderBy = "-" + DashboardPolicyWaiverOrderByEnum.EXPIRATION_DATE;
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId()))
-        .withOrderBy(orderBy).withMaxResults(10);
+        .withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -603,7 +608,7 @@ public class DashboardPolicyWaiverServiceTest
 
     String orderBy = "-" + DashboardPolicyWaiverOrderByEnum.POLICY_NAME;
     risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId()))
-        .withOrderBy(orderBy).withMaxResults(10);
+        .withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -626,7 +631,7 @@ public class DashboardPolicyWaiverServiceTest
 
     Set<String> apps = new HashSet<>(Arrays.asList(app1.getId(),app2.getId(), app3.getId()));
     String orderBy = "-" + DashboardPolicyWaiverOrderByEnum.OWNER_SCOPE;
-    risksFilterDTOBuilder.withApplicationIds(apps).withOrderBy(orderBy).withMaxResults(10);
+    risksFilterDTOBuilder.withApplicationIds(apps).withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -685,7 +690,7 @@ public class DashboardPolicyWaiverServiceTest
 
     String orderBy = DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE.toString();
     risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId()))
-        .withOrderBy(orderBy).withMaxResults(10);
+        .withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
@@ -751,7 +756,7 @@ public class DashboardPolicyWaiverServiceTest
   public void getDashboardPolicyWaiversForExport_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.WAIVERS_DASHBOARD);
 
-    risksFilterDTOBuilder.withMaxResults(Integer.MAX_VALUE);
+    risksFilterDTOBuilder.withPageSize(Integer.MAX_VALUE);
     ThrowingCallable functionCall =
         () -> dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(functionCall);
@@ -761,7 +766,7 @@ public class DashboardPolicyWaiverServiceTest
   public void getDashboardPolicyWaiversForExport_DashboardFeatureDisabled() {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
 
-    risksFilterDTOBuilder.withMaxResults(Integer.MAX_VALUE);
+    risksFilterDTOBuilder.withPageSize(Integer.MAX_VALUE);
     ThrowingCallable functionCall =
         () -> dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
     assertThatExceptionOfType(ConflictException.class).isThrownBy(functionCall)
@@ -775,7 +780,7 @@ public class DashboardPolicyWaiverServiceTest
 
     Set<String> apps = new HashSet<>(Arrays.asList(app1.getId(), app2.getId()));
     risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId()))
-        .withApplicationIds(apps).withMaxResults(Integer.MAX_VALUE);
+        .withApplicationIds(apps).withPageSize(Integer.MAX_VALUE);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaiversForExport(risksFilterDTOBuilder.build());
 
@@ -837,7 +842,7 @@ public class DashboardPolicyWaiverServiceTest
 
     String orderBy = DashboardPolicyWaiverOrderByEnum.OWNER_SCOPE.name();
     risksFilterDTOBuilder
-        .withOrderBy(orderBy).withMaxResults(10);
+        .withOrderBy(orderBy).withPageSize(10);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
@@ -908,7 +913,7 @@ public class DashboardPolicyWaiverServiceTest
 
     String orderBy = DashboardPolicyWaiverOrderByEnum.POLICY_NAME.name();
     risksFilterDTOBuilder
-        .withOrderBy(orderBy).withMaxResults(10);
+        .withOrderBy(orderBy).withPageSize(10);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
@@ -972,7 +977,7 @@ public class DashboardPolicyWaiverServiceTest
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(
             risksFilterDTOBuilder
                 .withExpirationDate(IN_7_DAYS)
-                .withMaxResults(10)
+                .withPageSize(10)
                 .build());
 
     assertThat(dashboardPolicyWaivers.numResults)
@@ -1035,7 +1040,7 @@ public class DashboardPolicyWaiverServiceTest
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(
             risksFilterDTOBuilder
                 .withExpirationDate(ALL)
-                .withMaxResults(10)
+                .withPageSize(10)
                 .build());
 
     assertThat(dashboardPolicyWaivers.numResults)
@@ -1071,7 +1076,7 @@ public class DashboardPolicyWaiverServiceTest
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(
             risksFilterDTOBuilder
                 .withApplicationIds(Collections.singleton(app1.getId()))
-                .withMaxResults(10)
+                .withPageSize(10)
                 .build());
 
     assertThat(dashboardPolicyWaivers.numResults)

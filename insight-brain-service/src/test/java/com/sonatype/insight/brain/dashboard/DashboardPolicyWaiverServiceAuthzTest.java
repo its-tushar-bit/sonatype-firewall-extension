@@ -44,7 +44,7 @@ public class DashboardPolicyWaiverServiceAuthzTest
     tempEntity.newWaiver(policy.getId(), Organization.ROOT_ORGANIZATION_ID);
 
     risksFilterDTOBuilder = new RisksFilterDTOBuilder().withApplicationIds(Collections.emptySet())
-        .withOrganizationIds(Collections.emptySet()).withMaxResults(10);
+        .withOrganizationIds(Collections.emptySet()).withPageSize(10);
   }
 
   @Test

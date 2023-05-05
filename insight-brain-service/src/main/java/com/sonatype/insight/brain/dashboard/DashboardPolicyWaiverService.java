@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.repository.RepositoryService;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,7 +112,6 @@ public class DashboardPolicyWaiverService
     PolicyThreatLevelFilter policyThreatLevelRange = risksFilterDTO.policyThreatLevelRange;
     ExpirationDate expirationDate = risksFilterDTO.expirationDate;
     String orderBy = risksFilterDTO.orderBy;
-    int maxResults = risksFilterDTO.maxResults;
 
     // Verify orderBy early to prevent costly operations if it fails
     DashboardPolicyWaiverDTOComparator dashboardPolicyWaiverDTOComparator = verifyOrderByAndBuildComparator(orderBy);
@@ -141,7 +141,15 @@ public class DashboardPolicyWaiverService
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> resultsDTO = new DashboardResultsDTO<>();
     resultsDTO.numResults = filteredWaiverDTOs.size();
-    resultsDTO.dashboardResults = filteredWaiverDTOs.subList(0, Math.min(filteredWaiverDTOs.size(), maxResults));
+
+    if (filteredWaiverDTOs.isEmpty()) {
+      resultsDTO.dashboardResults = new ArrayList<>();
+    }
+    else {
+      int pageSize = risksFilterDTO.pageSize;
+      int page = risksFilterDTO.page;
+      resultsDTO.dashboardResults = Lists.partition(filteredWaiverDTOs, pageSize).get(page);
+    }
 
     AuditData.get().setData("resultRecordCount", resultsDTO.numResults);
     log.debug("getDashboardPolicyWaivers: Finished in {} ms", System.currentTimeMillis() - start);

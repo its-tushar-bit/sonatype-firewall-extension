@@ -59,13 +59,18 @@ public class RisksFilterDTOBuilder
     return this;
   }
 
-  public RisksFilterDTOBuilder withMaxResults(final int maxResults) {
-    this.risksFilterDTO.maxResults = maxResults;
+  public RisksFilterDTOBuilder withPageSize(final int pageSize) {
+    this.risksFilterDTO.pageSize = pageSize;
     return this;
   }
 
   public RisksFilterDTOBuilder withRepositoryIds(final Set<String> repositoryIds) {
     this.risksFilterDTO.repositoryIds = repositoryIds;
+    return this;
+  }
+
+  public RisksFilterDTOBuilder withPage(final int page) {
+    this.risksFilterDTO.page = page;
     return this;
   }
 }

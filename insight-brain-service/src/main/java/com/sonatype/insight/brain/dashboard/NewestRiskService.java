@@ -215,7 +215,8 @@ public class NewestRiskService
       result.dashboardResults = new ArrayList<>();
     }
     else {
-      result.dashboardResults = Lists.partition(riskDTOs, pageSize).get(page);
+      List<List<NewestRiskDTO>> pages = Lists.partition(riskDTOs, pageSize);
+      result.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
     }
     return result;
   }

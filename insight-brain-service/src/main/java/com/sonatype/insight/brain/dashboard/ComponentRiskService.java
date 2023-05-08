@@ -105,7 +105,8 @@ public class ComponentRiskService
       result.dashboardResults = new ArrayList<>();
     }
     else {
-      result.dashboardResults = Lists.partition(dtos, pageSize).get(page);
+      List<List<ComponentRiskDTO>> pages = Lists.partition(dtos, pageSize);
+      result.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
     }
 
     AuditData.get().setData("resultRecordCount", result.numResults);

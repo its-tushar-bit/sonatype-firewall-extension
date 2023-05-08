@@ -138,6 +138,10 @@ public class DashboardPolicyWaiverServiceTest
     dashboardPolicyWaivers = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(10);
     assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(3);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(10).withPage(1);
+    dashboardPolicyWaivers = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.dashboardResults).isEmpty();
   }
 
   @Test

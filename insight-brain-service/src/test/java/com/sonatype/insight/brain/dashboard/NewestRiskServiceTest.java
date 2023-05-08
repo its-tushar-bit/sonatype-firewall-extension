@@ -294,6 +294,12 @@ public class NewestRiskServiceTest
     assertThat(result.numResults).isEqualTo(3);
     assertNewestRiskDTO(result.dashboardResults.get(0), app1, org1, app1PolicyViolation,
         app1PolicyEvaluation.getTime());
+
+    // Must return an empty list when page out of bounds
+    result = newestRiskService
+        .getNewestRisks(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL",
+            DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 3, 1);
+    assertThat(result.dashboardResults).isEmpty();
   }
 
   @Test

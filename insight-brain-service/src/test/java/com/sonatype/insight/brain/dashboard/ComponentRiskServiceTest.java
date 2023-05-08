@@ -774,6 +774,24 @@ public class ComponentRiskServiceTest
   }
 
   @Test
+  public void testGetComponentRisks_ResultCapping_PageOutOfBounds() {
+    String gid = "gid";
+    String aid = "aid";
+    String ver = "1";
+    String hash = "somehash";
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid, ver,
+        hash);
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, 4, PolicyThreatCategory.SECURITY, gid, aid, ver,
+        hash);
+    tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid, ver,
+        hash);
+
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 2, 1);
+    assertThat(result.dashboardResults).isEmpty();
+  }
+
+  @Test
   public void testGetComponentRisks_Unknown() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "pathnames-hash", null, "a.zip/b.zip",

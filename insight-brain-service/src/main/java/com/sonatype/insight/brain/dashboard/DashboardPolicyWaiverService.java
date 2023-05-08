@@ -146,9 +146,9 @@ public class DashboardPolicyWaiverService
       resultsDTO.dashboardResults = new ArrayList<>();
     }
     else {
-      int pageSize = risksFilterDTO.pageSize;
       int page = risksFilterDTO.page;
-      resultsDTO.dashboardResults = Lists.partition(filteredWaiverDTOs, pageSize).get(page);
+      List<List<DashboardPolicyWaiverDTO>> pages = Lists.partition(filteredWaiverDTOs, risksFilterDTO.pageSize);
+      resultsDTO.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
     }
 
     AuditData.get().setData("resultRecordCount", resultsDTO.numResults);

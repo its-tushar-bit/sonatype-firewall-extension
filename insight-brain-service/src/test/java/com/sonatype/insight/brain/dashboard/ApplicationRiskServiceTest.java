@@ -493,6 +493,14 @@ public class ApplicationRiskServiceTest
     StageRiskScoreDTO releaseStageRisk2 = applicationRiskScoreDTO2.getStageRiskScore(ReleaseStageType.ID);
     assertRisk(releaseStageRisk2.risk, 0, 0, 3, 0, 3);
     assertThat(releaseStageRisk2.scanId).isEqualTo(policyEvaluation22.getScanId());
+
+    // Get next page
+    result = applicationRiskService.getApplicationRisks(null,
+        new LinkedHashSet<>(Arrays.asList(app1.getId(), app2.getId())),
+        new LinkedHashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), null, null, null, null,
+        "-TOTAL_RISK", 2, 1);
+
+    assertThat(result.dashboardResults).isEmpty();
   }
 
   @Test

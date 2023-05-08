@@ -108,7 +108,8 @@ public class ApplicationRiskService
       result.dashboardResults = new ArrayList<>();
     }
     else {
-      result.dashboardResults = Lists.partition(applicationRiskScoreDTOs, pageSize).get(page);
+      List<List<ApplicationRiskScoreDTO>> pages = Lists.partition(applicationRiskScoreDTOs, pageSize);
+      result.dashboardResults = page >= pages.size() ? new ArrayList<>() : pages.get(page);
     }
 
     AuditData.get().setData("resultRecordCount", result.numResults);

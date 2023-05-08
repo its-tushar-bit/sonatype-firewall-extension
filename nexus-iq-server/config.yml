@@ -57,9 +57,9 @@ server:
         archivedLogFilenamePattern: "${REQUEST_LOG_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/request-%d.log.gz}"
         archivedFileCount: ${REQUEST_LOG_ARCHIVED_FILE_COUNT:-5}
 
-# System IP Address Filter Allowlist
-# Supports single IP address and IP address range in CIDR notation
-# systemAllowlist:
+  # System IP Address Filter Allowlist
+  # Supports single IP address and IP address range in CIDR notation
+  # systemAllowlist:
   # - ipAddress: 192.168.33.33
   #   description: Only allow access from 192.168.33.33
 
@@ -82,17 +82,17 @@ logging:
     org.zeroturnaround.exec: INFO
     com.networknt.schema: OFF
   appenders:
-  - type: console
-    threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}
-    logFormat: "${LOGGER_CONSOLE_LOG_FORMAT:-%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger  - %msg%n}"
-  - type: file
-    threshold: ${LOGGER_FILE_THRESHOLD:-ALL}
-    currentLogFilename: "${LOGGER_FILE_NAME:-/var/log/nexus-iq-server/clm-server.log}"
-    archivedLogFilenamePattern: "${LOGGER_FILE_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/clm-server-%d.log.gz}"
-    logFormat: "${LOGGER_FILE_LOG_FORMAT:-%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger  - %msg%n}"
-    archivedFileCount: ${LOGGER_FILE_ARCHIVED_FILE_COUNT:-5}
+    - type: console
+      threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}
+      logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+    - type: file
+      threshold: ${LOGGER_FILE_THRESHOLD:-ALL}
+      currentLogFilename: "${LOGGER_FILE_NAME:-/var/log/nexus-iq-server/clm-server.log}"
+      archivedLogFilenamePattern: "${LOGGER_FILE_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/clm-server-%d.log.gz}"
+      logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
+      archivedFileCount: ${LOGGER_FILE_ARCHIVED_FILE_COUNT:-5}
 createSampleData: ${CREATE_SAMPLE_DATA:-true}
-  
+
 database:
   type: ${DATABASE_TYPE:-postgresql}
   hostname: ${DATABASE_HOSTNAME}

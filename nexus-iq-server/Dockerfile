@@ -4,17 +4,18 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 #
 
-ARG SONATYPE_PRIVATE_REGISTRY
-
-FROM $SONATYPE_PRIVATE_REGISTRY/ubi8/openjdk-8:1.3
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 # Build parameters
-ARG IQ_SERVER_VERSION=1.118.0-01
+ARG IQ_SERVER_VERSION=1.160.0-01
 ARG IQ_HOME="/opt/sonatype/nexus-iq-server"
 ARG SONATYPE_WORK="/sonatype-work"
 ARG CONFIG_HOME="/etc/nexus-iq-server"
 ARG LOGS_HOME="/var/log/nexus-iq-server"
 ARG TEMP="/tmp/work"
+ARG GID=1000
+ARG UID=1000
+ARG TIMEOUT=600
 
 LABEL vendor=Sonatype \
   maintainer="Sonatype <support@sonatype.com>" \
@@ -23,9 +24,9 @@ LABEL vendor=Sonatype \
 USER root
 
 # For testing
-RUN microdnf update --nobest -y \
-&& microdnf install -y procps \
-&& microdnf install -y gzip \
+RUN microdnf update -y \
+&& microdnf --setopt=install_weak_deps=0 --setopt=tsflags=nodocs install -y java-1.8.0-openjdk-devel \
+&& microdnf install -y procps gzip unzip tar shadow-utils findutils util-linux less rsync git \
 && microdnf clean all
 
 
@@ -54,9 +55,9 @@ RUN echo "/usr/bin/java \${JAVA_OPTS} -jar nexus-iq-server-${IQ_SERVER_VERSION}.
 && chmod 0755 ${IQ_HOME}/start.sh
 
 # Add group and user
-RUN groupadd -g 1000 nexus \
-&& adduser -u 1000 -d ${IQ_HOME} -c "Nexus IQ user" -g nexus -s /bin/false nexus \
-&& cp /etc/passwd /home/jboss/passwd && chown jboss:root /home/jboss/passwd && chmod ug+rwX /home/jboss /home/jboss/passwd
+RUN groupadd -g ${GID} nexus \
+&& adduser -u ${UID} -d ${IQ_HOME} -c "Nexus IQ user" -g nexus -s /bin/false nexus
+#&& cp /etc/passwd /home/jboss/passwd && chown jboss:root /home/jboss/passwd && chmod ug+rwX /home/jboss /home/jboss/passwd
 # The above addition of cp-ing the /etc/password folder is required due to changes 
 # to the OpenJDK8 image : https://access.redhat.com/articles/4859371
 
@@ -74,10 +75,14 @@ VOLUME ${LOGS_HOME}
 EXPOSE 8070
 EXPOSE 8071
 
+# Wire up health check
+HEALTHCHECK CMD curl --fail --silent --show-error http://localhost:8071/healthcheck || exit 1
+
 # Change to nexus user
 USER nexus
 
 ENV JAVA_OPTS="-Djava.util.prefs.userRoot=${SONATYPE_WORK}/javaprefs"
+ENV SONATYPE_INTERNAL_HOST_SYSTEM=Docker
 
 WORKDIR ${IQ_HOME}
 

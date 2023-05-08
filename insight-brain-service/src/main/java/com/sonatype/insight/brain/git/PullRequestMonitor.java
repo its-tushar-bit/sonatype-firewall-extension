@@ -295,7 +295,7 @@ public class PullRequestMonitor
               sourceControlPullRequestDAO.update(pullRequest);
             }
 
-            log.debug("Processing PR# {} (id={}) for SCM repository URL '{}'", pullRequest.getPullRequestId(),
+            log.debug("Processed PR# {} (id={}) for SCM repository URL '{}'", pullRequest.getPullRequestId(),
                 pullRequest.getId(), pullRequest.getRepositoryUrl());
           }
         }

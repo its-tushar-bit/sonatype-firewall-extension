@@ -244,9 +244,8 @@ public class PullRequestPolicyEvaluationResolver
   {
     SourceControlException exception = new SourceControlException(message, original);
     try {
-      // INT-6119 Only deleting checkout directory for IllegalArgumentException
       // Removing source control directory. IQ will check out the code again later
-      if (original instanceof IllegalArgumentException) {
+      if (original instanceof IllegalArgumentException || original instanceof GitException) {
         sourceControlUtils.deleteCheckoutDirectory(application);
       }
     }

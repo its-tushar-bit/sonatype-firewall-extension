@@ -454,6 +454,35 @@ public class PullRequestPolicyEvaluationResolverTest
   }
 
   @Test
+  public void testResolveForPullRequest_deleteCheckoutDirectoryOnGitException()
+      throws GitException, IOException
+  {
+    // given: default and feature branch policy evals
+    final String message = "Error on SCM";
+    final String baseCommit = "badBaseCommit";
+    final String featureCommit = "commit123";
+    final String featureBranchName = "feature-branch";
+    GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
+
+    PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
+        .withTargetCommitPolicyEvaluationResolverThrowing(new GitException(message))
+        .build();
+
+    // when: resolve policy evaluations
+    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
+        pullRequestPolicyEvaluationResolver
+            .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+                featureBranchName, "main", featureCommit, baseCommit)
+    ).withMessage(String.format(
+        "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
+            "pull request %s - reason: %s",
+        application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), 4, message));
+
+    // and: source control folder is deleted
+    verify(sourceControlUtils, times(1)).deleteCheckoutDirectory(any(Application.class));
+  }
+
+  @Test
   public void testResolveForPullRequest_doNotDeleteCheckoutDirectoryOnRuntimeException()
       throws GitException, IOException
   {

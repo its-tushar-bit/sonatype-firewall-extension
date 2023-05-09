@@ -171,6 +171,7 @@ For example, if you store the "isDirty" flag in the `addWaiver` reducer in a var
 ## Notes on Styling
 
 - Follow the [BEM naming convention](http://getbem.com/naming/)
+- Prefix classes with `iq-`
 
 ## Testing
 

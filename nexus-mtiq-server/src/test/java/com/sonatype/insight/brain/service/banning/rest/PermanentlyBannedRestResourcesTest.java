@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.api.v2.ApiExternalTelemetryResourceV2;
 import com.sonatype.insight.brain.api.v2.DefaultApiCrowdConfigurationResource;
 import com.sonatype.insight.brain.api.v2.DefaultApiDataRetentionPolicyResource;
 import com.sonatype.insight.brain.api.v2.DefaultExternalTelemetryResource;
+import com.sonatype.insight.brain.support.SupportResource;
 
 import org.junit.Test;
 
@@ -30,5 +31,6 @@ public class PermanentlyBannedRestResourcesTest
     assertThat(underTest.isBanned(ApiExternalTelemetryResourceV2.class)).isTrue();
     assertThat(underTest.isBanned(DefaultExternalTelemetryResource.class)).isTrue();
     assertThat(underTest.isBanned(ApiConfigFeaturesResource.class)).isTrue();
+    assertThat(underTest.isBanned(SupportResource.class)).isTrue();
   }
 }

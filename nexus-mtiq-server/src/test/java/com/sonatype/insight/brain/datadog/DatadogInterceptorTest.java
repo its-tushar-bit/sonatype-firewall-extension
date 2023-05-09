@@ -30,7 +30,7 @@ public class DatadogInterceptorTest
     String inputResource = "SELECT t0.system_configuration_property_id, t0.name, t0.value FROM " +
         "t_tenant_1.system_configuration_property t0 WHERE (t0.name = ?)";
     String expectedResource = "SELECT t0.system_configuration_property_id, t0.name, t0.value FROM " +
-        "t_<tenant>.system_configuration_property t0 WHERE (t0.name = ?)";
+        "t_TENANT.system_configuration_property t0 WHERE (t0.name = ?)";
 
     runTest(inputResource, expectedResource);
   }
@@ -40,9 +40,9 @@ public class DatadogInterceptorTest
     String inputResource = "UPDATE t_tenant_1.persisted_user_session SET session_json = ? WHERE " +
         "persisted_user_session_id IN (SELECT DISTINCT t0.persisted_user_session_id FROM " +
         "t_tenant_1.persisted_user_session t0 WHERE (t0.persisted_user_session_id = ?))";
-    String expectedResource = "UPDATE t_<tenant>.persisted_user_session SET session_json = ? WHERE " +
+    String expectedResource = "UPDATE t_TENANT.persisted_user_session SET session_json = ? WHERE " +
         "persisted_user_session_id IN (SELECT DISTINCT t0.persisted_user_session_id FROM " +
-        "t_<tenant>.persisted_user_session t0 WHERE (t0.persisted_user_session_id = ?))";
+        "t_TENANT.persisted_user_session t0 WHERE (t0.persisted_user_session_id = ?))";
 
     runTest(inputResource, expectedResource);
   }
@@ -51,7 +51,7 @@ public class DatadogInterceptorTest
   public void tenantInsert() {
     String inputResource = "INSERT INTO t_tenant_1.license_threat_group_license (license_threat_group_license_id, " +
         "license_id, license_threat_group_id, owner_id) VALUES (?, ?, ?, ?)";
-    String expectedResource = "INSERT INTO t_<tenant>.license_threat_group_license (license_threat_group_license_id, " +
+    String expectedResource = "INSERT INTO t_TENANT.license_threat_group_license (license_threat_group_license_id, " +
         "license_id, license_threat_group_id, owner_id) VALUES (?, ?, ?, ?)";
 
     runTest(inputResource, expectedResource);
@@ -61,7 +61,7 @@ public class DatadogInterceptorTest
   public void tenantDelete() {
     String inputResource = "DELETE FROM t_tenant_1.system_configuration_property WHERE " +
         "system_configuration_property_id = ?";
-    String expectedResource = "DELETE FROM t_<tenant>.system_configuration_property WHERE " +
+    String expectedResource = "DELETE FROM t_TENANT.system_configuration_property WHERE " +
         "system_configuration_property_id = ?";
 
     runTest(inputResource, expectedResource);

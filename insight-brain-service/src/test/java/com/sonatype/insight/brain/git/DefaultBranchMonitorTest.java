@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -45,6 +47,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -172,6 +175,42 @@ public class DefaultBranchMonitorTest
     // then: source control event is published with proper source control information
     sc.setProvider(scRoot.getProvider());
     verifySourceControlEventWasSent(sc);
+  }
+
+  @Test
+  public void testUpdateDefaultBranchScans_doesNotExitOnFirstError() throws Exception {
+    // given: 2 applications with outdated scans
+    // Service started to initialize interval
+    Application app1 = tempEntity.newApplicationWithParent();
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusMinutes(defaultBranchMonitor.getIntervalInMinutes() + 60));
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null,
+        SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app1.getId(), "http://a.com/org/repo1", null);
+    tempEntity.newPolicyEvaluation(app1.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    Application app2 = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControl(app2.getId(), "http://a.com/org/repo2", null);
+    tempEntity.newPolicyEvaluation(app2.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
+        "commitHash456", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    AtomicBoolean firstTime = new AtomicBoolean(true);
+    doAnswer(invocation -> {
+      if (firstTime.get()) {
+        firstTime.set(false);
+        throw new IllegalArgumentException("simulated exception"); // make it fail on first call
+      }
+      else {
+        return null;
+      }
+    }).when(sourceControlEventPublisherMock).publishEvent(any());
+
+    // when: detecting and updating default branch with 2 outdated source scans
+    defaultBranchMonitor.updateDefaultBranchScans();
+
+    // then: 2 source control event publishing calls are attempted, although the first attempt fails
+    verify(sourceControlEventPublisherMock, times(2)).publishEvent(any());
   }
 
   @Test

@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -151,13 +152,18 @@ public class DefaultBranchMonitor
         .setStatusId(statusId)
         .setBranchName(sourceControl.getBaseBranch());
 
-    log.debug("Initiating a source control evaluation for application {}, stage {} and branch {} with status ID {}.",
-        sourceControlEvent.getApplicationId(),
-        sourceControlEvent.getStageTypeId(),
-        sourceControlEvent.getBranchName(),
-        sourceControlEvent.getStatusId());
+    String message = String.format(
+        "a source control evaluation for application %s, stage %s and branch %s with status ID %s.",
+        sourceControlEvent.getApplicationId(), sourceControlEvent.getStageTypeId(),
+        sourceControlEvent.getBranchName(), sourceControlEvent.getStatusId());
 
-    sourceControlEventPublisher.publishEvent(sourceControlEvent);
+    try {
+      sourceControlEventPublisher.publishEvent(sourceControlEvent);
+      log.debug("Initiated " + message);
+    }
+    catch (Exception e) {
+      log.error("Failed to initiate " + message, e);
+    }
   }
 
   @Override

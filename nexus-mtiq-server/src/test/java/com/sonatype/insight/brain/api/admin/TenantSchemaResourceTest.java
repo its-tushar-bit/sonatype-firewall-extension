@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
+import javax.ws.rs.core.HttpHeaders;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
 import org.junit.Test;
@@ -32,10 +35,10 @@ public class TenantSchemaResourceTest
     String data = response.getBodyText();
 
     assertResponseStatus(200, response);
-    assertThat(data).contains("insight_brain_ods");
-    assertThat(data).contains("insight_brain_third_party_scans");
-    assertThat(data).contains("insight_brain_aggregation");
-    assertThat(data).contains("insight_brain_dm");
+    assertThat(data).contains("insight_brain_ods")
+        .contains("insight_brain_third_party_scans")
+        .contains("insight_brain_aggregation")
+        .contains("insight_brain_dm");
   }
 
   @Test
@@ -44,10 +47,10 @@ public class TenantSchemaResourceTest
     String data = response.getBodyText();
 
     assertResponseStatus(200, response);
-    assertThat(data).contains("insight_brain_ods");
-    assertThat(data).contains("insight_brain_third_party_scans");
-    assertThat(data).contains("insight_brain_aggregation");
-    assertThat(data).contains("insight_brain_dm");
+    assertThat(data).contains("insight_brain_ods")
+        .contains("insight_brain_third_party_scans")
+        .contains("insight_brain_aggregation")
+        .contains("insight_brain_dm");
   }
 
   @Test
@@ -90,9 +93,11 @@ public class TenantSchemaResourceTest
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
-  private HttpRequest callSchemaEndpoint(String tenant) {
+  private HttpRequest callSchemaEndpoint(String tenant) throws Exception {
     if (tenant != null) {
-      return restRequest(ADMIN_TENANT_SCHEMA_PATH).parameter(tenant);
+      return restRequest(ADMIN_TENANT_SCHEMA_PATH)
+          .parameter(tenant)
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
     }
     return restRequest();
   }

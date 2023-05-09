@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
+import javax.ws.rs.core.HttpHeaders;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
 import org.junit.Test;
@@ -49,9 +52,11 @@ public class TenantSupportInfoResourceTest
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
   }
 
-  private HttpRequest getSupportInfoZip(String tenant) {
+  private HttpRequest getSupportInfoZip(String tenant) throws Exception {
     if (tenant != null) {
-      return restRequest(ADMIN_SUPPORT_INFO_PATH).parameter(tenant);
+      return restRequest(ADMIN_SUPPORT_INFO_PATH)
+          .parameter(tenant)
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
     }
     return restRequest();
   }

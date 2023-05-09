@@ -108,3 +108,5 @@ logging:
     logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
     archivedFileCount: ${LOGGER_FILE_ARCHIVED_FILE_COUNT:-5}
 createSampleData: ${CREATE_SAMPLE_DATA:-true}
+
+auth0Domain: ${AUTH0_DOMAIN:-"domain/"}

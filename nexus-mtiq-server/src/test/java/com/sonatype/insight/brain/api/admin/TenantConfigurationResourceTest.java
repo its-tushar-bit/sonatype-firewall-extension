@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.api.admin;
 
 import java.util.Collections;
 import java.util.Map;
+import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
 import org.junit.Test;
@@ -111,9 +113,11 @@ public class TenantConfigurationResourceTest
     return restRequest();
   }
 
-  private HttpRequest callConfigurationEndpoint(String tenant) {
+  private HttpRequest callConfigurationEndpoint(String tenant) throws Exception {
     if (tenant != null) {
-      return restRequest(ADMIN_CONFIG_PATH).parameter(tenant);
+      return restRequest(ADMIN_CONFIG_PATH)
+          .parameter(tenant)
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
     }
     return restRequest();
   }

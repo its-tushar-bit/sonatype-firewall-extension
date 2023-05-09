@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
@@ -62,6 +63,8 @@ import org.eclipse.sisu.space.BeanScanning;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.mockito.Mockito.mock;
+
 public class TestMultiTenantInsightBrainService
     extends MultiTenantInsightBrainService
     implements TestInsightBrainService
@@ -93,6 +96,8 @@ public class TestMultiTenantInsightBrainService
   private InsightConfig insightConfig;
 
   private BiConsumer<ServletRequest, ServletResponse> restRequestFilterHandler;
+
+  private MultiTenantJwkProvider multiTenantJwkTestProvider;
 
   @Override
   public void setHttpPort(final int port) {
@@ -216,11 +221,11 @@ public class TestMultiTenantInsightBrainService
     if (dropWizardConfigFile.exists()) {
       // I have no idea why, but INFO level is not enabled at this point
       log.warn("Using DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
-      args = new String[] { "server", dropWizardConfigFile.getAbsolutePath() };
+      args = new String[]{"server", dropWizardConfigFile.getAbsolutePath()};
     }
     else {
       log.warn("Cannot find DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
-      args = new String[] { "server" };
+      args = new String[]{"server"};
     }
 
     TestMultiTenantInsightBrainService.this.run(args);
@@ -251,6 +256,7 @@ public class TestMultiTenantInsightBrainService
 
         private InsightConfig augment(InsightConfig config) {
           config.setSonatypeWork(getWorkDir().getPath());
+
           if (configurator != null) {
             configurator.configure(config);
           }
@@ -330,7 +336,8 @@ public class TestMultiTenantInsightBrainService
   }
 
   public BiConsumer<ServletRequest, ServletResponse> getRestRequestFilterHandler() {
-    return restRequestFilterHandler != null ? restRequestFilterHandler : (a, b) -> { };
+    return restRequestFilterHandler != null ? restRequestFilterHandler : (a, b) -> {
+    };
   }
 
   @Override
@@ -376,6 +383,16 @@ public class TestMultiTenantInsightBrainService
   @Override
   public InsightConfig getConfiguration() {
     return insightConfig;
+  }
+
+  @Override
+  protected MultiTenantJwkProvider getMultitenantJwkProvider(final InsightConfig insightConfig) {
+    multiTenantJwkTestProvider = mock(MultiTenantJwkProvider.class);
+    return multiTenantJwkTestProvider;
+  }
+
+  protected MultiTenantJwkProvider getMultitenantJwkProvider() {
+    return multiTenantJwkTestProvider;
   }
 
   private void initWorkDirectory(File workDir) throws Exception {

@@ -30,6 +30,9 @@ public class MultiTenantInsightConfig
   @JsonProperty
   private DatabaseConfig locksDatabase;
 
+  @JsonProperty
+  private String auth0Domain;
+
   @Override
   public File getSonatypeWork() {
     return new File(sonatypeWork, TenantThreadLocal.getTenant().tenantSlug);
@@ -78,5 +81,13 @@ public class MultiTenantInsightConfig
 
   public void setLocksDatabase(final DatabaseConfig locksDatabase) {
     this.locksDatabase = locksDatabase;
+  }
+
+  public String getAuth0Domain() {
+    return auth0Domain;
+  }
+
+  public void setAuth0Domain(final String auth0Domain) {
+    this.auth0Domain = auth0Domain;
   }
 }

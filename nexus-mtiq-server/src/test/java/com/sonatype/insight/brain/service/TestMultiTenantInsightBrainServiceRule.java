@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.net.URL;
 import java.util.List;
 
+import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
@@ -68,5 +69,11 @@ public class TestMultiTenantInsightBrainServiceRule
   public TestMultiTenantInsightBrainServiceRule setConfigurator(Configurator configurator) {
     this.configurator = configurator;
     return this;
+  }
+
+  //Returns a mocked MultiTenantJwkProvider
+  public MultiTenantJwkProvider getMultiTenantJwkTestProvider() {
+    TestMultiTenantInsightBrainService testMultiTenantBrain = (TestMultiTenantInsightBrainService) brain;
+    return testMultiTenantBrain.getMultitenantJwkProvider();
   }
 }

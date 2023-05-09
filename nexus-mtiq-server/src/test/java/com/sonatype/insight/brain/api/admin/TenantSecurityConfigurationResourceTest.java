@@ -10,9 +10,11 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.api.admin.dto.SecurityConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
@@ -59,7 +61,9 @@ public class TenantSecurityConfigurationResourceTest
     HttpRequest request;
 
     if (tenant != null) {
-      request = restRequest(ADMIN_TENANT_SECURITY_CONFIG_PATH).parameter(tenant);
+      request = restRequest(ADMIN_TENANT_SECURITY_CONFIG_PATH)
+          .parameter(tenant)
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
     }
     else {
       request = restRequest();

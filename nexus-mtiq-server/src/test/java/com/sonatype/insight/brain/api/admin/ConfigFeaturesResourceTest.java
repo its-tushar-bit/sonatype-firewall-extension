@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
+import javax.ws.rs.core.HttpHeaders;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
@@ -18,14 +21,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ConfigFeaturesResourceTest
     extends AbstractMultiTenantResourceTest
 {
-  @Override
-  protected HttpRequest restRequest() {
-    return super.adminRequest().path("api/").path(ADMIN_CONFIG_FEATURES_PATH).query("tenant=global");
+  protected HttpRequest restRequest(String path) {
+    return super.adminRequest().path("api/").path(path);
   }
 
   @Test
   public void testFeatures() throws Exception {
-    HttpResponse response = restRequest().get();
+    HttpResponse response = callConfigFeaturesEndpoint().get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
@@ -34,13 +36,14 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
         SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
         SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
+      
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId()
     );
   }
 
   @Test
   public void testFeatures_all() throws Exception {
-    HttpResponse response = restRequest().path("all").get();
+    HttpResponse response = callConfigFeaturesEndpoint().path("all").get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
@@ -53,5 +56,11 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId()
     );
+  }
+
+  private HttpRequest callConfigFeaturesEndpoint() throws Exception {
+    return restRequest(ADMIN_CONFIG_FEATURES_PATH)
+        .query("tenant=global")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
   }
 }

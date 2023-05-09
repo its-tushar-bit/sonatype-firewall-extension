@@ -12,11 +12,15 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
+import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProperties.SUBJECT_USER;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -38,6 +42,9 @@ public class AdminAuditContainerRequestFilterTest
 
   @Mock(answer = Answers.CALLS_REAL_METHODS)
   private AuditData mockAuditData;
+
+  @Captor
+  private ArgumentCaptor<String> auditedUserNameCaptor;
 
   private AdminAuditContainerRequestFilter underTest;
 
@@ -76,11 +83,13 @@ public class AdminAuditContainerRequestFilterTest
   @Test
   public void testFilter_AuditedMethod_Guice_SetsEvent() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTestGuice$$.class.getMethod("audited"));
+    when(mockContainerRequestContext.getProperty(SUBJECT_USER)).thenReturn("test@test.com");
 
     underTest.filter(mockContainerRequestContext);
 
     verify(mockAuditData).setEvent(AuditEvent.AUTHENTICATION_FAILURE);
-    verify(mockAuditData).setUsername(AdminAuditContainerRequestFilter.ADMIN_SERVICE);
+    verify(mockAuditData).setUsername(auditedUserNameCaptor.capture());
+    assertThat(auditedUserNameCaptor.getValue()).isEqualTo("test@test.com");
   }
 
   @Test(expected = IllegalStateException.class)

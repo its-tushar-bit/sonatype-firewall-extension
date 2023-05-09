@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
@@ -148,5 +149,12 @@ public abstract class AbstractMultiTenantBrainServiceTest
   @Override
   protected void cleanTaskScheduler() {
     //noop
+  }
+
+  protected MultiTenantJwkProvider getMultiTenantJwkTestProvider() {
+    TestMultiTenantInsightBrainServiceRule clmServer =
+        (TestMultiTenantInsightBrainServiceRule) testCLMServer.getCLMServer();
+
+    return clmServer.getMultiTenantJwkTestProvider();
   }
 }

@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
+import javax.ws.rs.core.HttpHeaders;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
 import org.junit.Test;
@@ -46,11 +49,13 @@ public class TenantLicenseResourceTest
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
-  private HttpRequest updateLicense(String tenant) {
+  private HttpRequest updateLicense(String tenant) throws Exception {
     HttpRequest request;
 
     if (tenant != null) {
-      request = restRequest(ADMIN_TENANT_LICENSE_PATH).parameter(tenant);
+      request = restRequest(ADMIN_TENANT_LICENSE_PATH)
+          .parameter(tenant)
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
     }
     else {
       request = restRequest();

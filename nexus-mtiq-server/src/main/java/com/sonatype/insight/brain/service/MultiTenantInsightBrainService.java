@@ -14,6 +14,10 @@ import javax.servlet.Filter;
 import javax.ws.rs.Path;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
+import com.sonatype.insight.brain.api.admin.authorization.JwtHttpAuthorizationFilter;
+import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkAuth0Provider;
+import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkLocalProvider;
+import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.MultiTenantAuditRecorder;
@@ -80,6 +84,8 @@ public class MultiTenantInsightBrainService
     extends InsightBrainService
 {
   public static final String ADMIN_BASE_PATH = "/api/*";
+
+  public static final String NXIQ_ENABLE_LOCAL_JWK_PROVIDER_ENV_VAR = "NXIQ_ENABLE_LOCAL_JWK_PROVIDER";
 
   private final BannedImplementationService bannedImplementationService = new BannedImplementationService();
 
@@ -244,6 +250,9 @@ public class MultiTenantInsightBrainService
     // Add tenant filter for admin tasks api. We need to ensure this filter is configured after the AdminTenantFilter.
     addAdminServletFilter(env, AdminTasksTenantFilter.class, "/api/admin/tenants/*", "/tasks/*");
 
+    // Add Authorization filter
+    addAdminServletFilter(env, JwtHttpAuthorizationFilter.class, ADMIN_BASE_PATH);
+
     super.addServletFilters(env, true);
   }
 
@@ -280,7 +289,7 @@ public class MultiTenantInsightBrainService
       }
     };
 
-    return Arrays.asList(bindings, authc, authz, dbModule, buildMultiTenantModule());
+    return Arrays.asList(bindings, authc, authz, dbModule, buildMultiTenantModule(config));
   }
 
   @Override
@@ -288,7 +297,7 @@ public class MultiTenantInsightBrainService
     return new MultiTenantDbMigrationCommand(databaseProvisionUtils);
   }
 
-  protected Module buildMultiTenantModule() {
+  protected Module buildMultiTenantModule(InsightConfig config) {
     return new AbstractModule()
     {
       @Override
@@ -315,8 +324,19 @@ public class MultiTenantInsightBrainService
         bind(AuditRecorder.class).to(MultiTenantAuditRecorder.class);
 
         bind(VersionService.class).to(MultiTenantVersionService.class);
+
+        bind(MultiTenantJwkProvider.class).toInstance(getMultitenantJwkProvider(config));
       }
     };
+  }
+
+  protected MultiTenantJwkProvider getMultitenantJwkProvider(final InsightConfig insightConfig) {
+    boolean localJwkProviderEnabled = Boolean.parseBoolean(System.getenv().get(NXIQ_ENABLE_LOCAL_JWK_PROVIDER_ENV_VAR));
+
+    if (localJwkProviderEnabled) {
+      return new MultiTenantJwkLocalProvider();
+    }
+    return new MultiTenantJwkAuth0Provider((MultiTenantInsightConfig) insightConfig);
   }
 
   @Override

@@ -14,6 +14,8 @@ import javax.ws.rs.core.Context;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProperties.SUBJECT_USER;
+
 /**
  * Audits the event kind for an Admin REST resource. Worth to highlight is that this request filter can grab the event
  * even if the REST method is never actually invoked (e.g. because its parameters couldn't be deserialized). Put
@@ -24,13 +26,11 @@ import com.google.common.annotations.VisibleForTesting;
 public class AdminAuditContainerRequestFilter
     implements ContainerRequestFilter
 {
-  static final String ADMIN_SERVICE = "*ADMIN SERVICE";
-
   @Context
   private ResourceInfo resInfo;
 
   @VisibleForTesting
-  public AdminAuditContainerRequestFilter() {}
+  public AdminAuditContainerRequestFilter() { }
 
   @VisibleForTesting
   public AdminAuditContainerRequestFilter(ResourceInfo resInfo) {
@@ -50,7 +50,7 @@ public class AdminAuditContainerRequestFilter
     if (audited == null && method.getDeclaringClass().getName().contains("Guice$$")) {
       // workaround for https://github.com/google/guice/issues/201
       // resource classes using AOP (e.g. for @Authorize) get subclassed but the generated subclasses miss the
-      // annotations so we have to manually inspect the original class
+      // annotations, so we have to manually inspect the original class
       try {
         audited = method.getDeclaringClass().getSuperclass().getMethod(method.getName(), method.getParameterTypes())
             .getAnnotation(Audited.class);
@@ -62,8 +62,11 @@ public class AdminAuditContainerRequestFilter
 
     if (audited != null) {
       AuditData.get().setEvent(audited.value());
-      // TODO: Once we have the access token from Auth0 we should be able to set a proper Id for the Username
-      AuditData.get().setUsername(ADMIN_SERVICE);
+
+      String subjectUser = (String) requestContext.getProperty(SUBJECT_USER);
+      if (subjectUser != null) {
+        AuditData.get().setUsername(subjectUser);
+      }
     }
   }
 }

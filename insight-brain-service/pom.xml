@@ -20,7 +20,6 @@
     <test.forkCount>0.5C</test.forkCount>
     <freemarker.version>2.3.31</freemarker.version>
     <truezipVersion>7.7.10</truezipVersion>
-    <datadog.version>1.12.1</datadog.version>
   </properties>
 
   <dependencies>

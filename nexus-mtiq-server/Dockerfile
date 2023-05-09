@@ -14,11 +14,6 @@
 
 ARG SONATYPE_PRIVATE_REGISTRY=docker-all.repo.sonatype.com
 
-# Get the Datadog Agent for APM
-FROM $SONATYPE_PRIVATE_REGISTRY/alpine/curl as builder
-RUN curl -L -o /dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
-
-
 # TODO: RSO currently doesn't proxy gcr.io
 #FROM $SONATYPE_PRIVATE_REGISTRY/distroless/java11-debian11
 FROM gcr.io/distroless/java11-debian11
@@ -31,7 +26,7 @@ LABEL vendor=Sonatype \
 COPY target/nexus-mtiq-server.jar /opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar
 
 # Copy Datadog jar
-COPY --from=builder /dd-java-agent.jar /opt/datadog/dd-java-agent.jar
+COPY target/dd-java-agent.jar /opt/datadog/dd-java-agent.jar
 
 # This is where we will store persistent data
 VOLUME /sonatype-work

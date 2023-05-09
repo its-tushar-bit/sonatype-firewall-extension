@@ -176,6 +176,7 @@ void pushMTIQDockerImage() {
     echo "MTIQ image version: ${imageVersion}"
 
     dir("nexus-mtiq-server") {
+      mvn mavenCommon(javaVersion: 'Java 8', useMvnw: true), "dependency:copy -N"
       withSonatypeDockerRegistry() {
         String imageName = 'mtiq/server'
         String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"

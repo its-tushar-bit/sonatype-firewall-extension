@@ -79,6 +79,8 @@
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
     <test.group>all</test.group>
+
+    <datadog.version>1.12.1</datadog.version>
   </properties>
 
   <scm>

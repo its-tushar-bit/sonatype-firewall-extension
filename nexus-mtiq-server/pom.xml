@@ -40,6 +40,11 @@
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-multipart</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.datadoghq</groupId>
+      <artifactId>dd-java-agent</artifactId>
+      <version>${datadog.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
@@ -171,6 +176,21 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <artifactItems>
+            <artifactItem>
+              <groupId>com.datadoghq</groupId>
+              <artifactId>dd-java-agent</artifactId>
+              <type>jar</type>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+              <destFileName>dd-java-agent.jar</destFileName>
+            </artifactItem>
+          </artifactItems>
+        </configuration>
       </plugin>
     </plugins>
   </build>

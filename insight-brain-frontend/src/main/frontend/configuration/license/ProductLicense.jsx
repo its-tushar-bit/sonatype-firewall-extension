@@ -22,7 +22,6 @@ function ProductLicense({
   loading,
   loadError,
   updateLicense,
-  stateGo,
   submitMaskState,
   updateLicenseError,
   clearUpdateLicenseError,
@@ -47,14 +46,14 @@ function ProductLicense({
   }
 
   function updateLicenseHandler() {
-    updateLicense(updatedLicense).then(({ type: actionType }) => {
-      if (actionType === PRODUCT_LICENSE_UPDATE_LICENSE_FAILED) return;
-      if (license) {
-        window.location.reload();
-      } else {
-        stateGo('gettingStarted');
-      }
-    });
+    updateLicense(updatedLicense)
+      .then(({ type: actionType }) => {
+        if (actionType === PRODUCT_LICENSE_UPDATE_LICENSE_FAILED) return;
+        if (!license) {
+          window.location.href = '#/gettingStarted';
+        }
+      })
+      .then(() => window.location.reload());
     setShowEulaModal(false);
   }
 
@@ -105,7 +104,6 @@ ProductLicense.propTypes = {
   loading: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
   updateLicense: PropTypes.func.isRequired,
-  stateGo: PropTypes.func.isRequired,
   submitMaskState: PropTypes.bool,
   updateLicenseError: PropTypes.string,
   clearUpdateLicenseError: PropTypes.func.isRequired,

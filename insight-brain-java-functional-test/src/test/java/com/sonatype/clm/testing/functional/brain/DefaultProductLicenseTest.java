@@ -7,6 +7,8 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.HelpMenu;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
@@ -221,6 +223,14 @@ public class DefaultProductLicenseTest
     refreshOrOpen(ProductLicensePage.url());
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
     ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
+  }
+
+  @Test
+  public void testGettingStartedPageTransition() {
+    HelpMenu help = MainHeader.helpMenu();
+    help.dropdownToggle().shouldBe(visible).click();
+    help.gettingStartedLink().shouldBe(visible).click();
+    new GettingStartedPage().shouldBe(visible);
   }
 
   private void uploadMockLicense() {

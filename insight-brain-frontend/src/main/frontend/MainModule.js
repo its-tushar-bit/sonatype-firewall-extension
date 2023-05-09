@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*
  * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
@@ -341,18 +342,13 @@ export const InitModule = angular
           productLicense: { installed },
         } = $ngRedux.getState();
 
-        if (!installed) return;
+        if (!installed) return false;
 
         // Stop preventing state changes.  Otherwise, the navigation to the Getting Started page cannot be performed
         if (cancelUnlicensedStateChangeHandler) cancelUnlicensedStateChangeHandler();
 
-        $state.go('gettingStarted');
         submitData(REDIRECTED_ACTION, {
           pageNavigatedFrom: $state.current.name,
-        });
-
-        $timeout(function () {
-          $window.location.reload();
         });
       });
 

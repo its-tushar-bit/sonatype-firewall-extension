@@ -15,12 +15,16 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.GitApiFactory;
+import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -32,6 +36,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -42,6 +47,10 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
+import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.github.dto.GithubRateLimitResponse;
+import com.sonatype.nexus.scm.github.dto.GithubRateLimitsResponse;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
@@ -61,6 +70,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -89,6 +100,9 @@ public class ApiSourceControlServiceTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
+  @Mock
+  private GitClientFactory mockGitClientFactory;
+
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
   private Application app;
@@ -106,6 +120,7 @@ public class ApiSourceControlServiceTest
   public void configure(final Binder binder) {
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     binder.bind(GitApiFactory.class).toInstance(gitApiFactory);
+    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
     super.configure(binder);
   }
 
@@ -878,6 +893,257 @@ public class ApiSourceControlServiceTest
     assertThat(events).hasSize(1);
     assertThat(events.get(0).getEventType()).isEqualTo(DISCOVERED_PULL_REQUEST_EVENT);
     assertThat(events.get(0).getEventPriority()).isEqualTo(EVENT_PRIORITY_NORMAL);
+  }
+
+  @Test
+  public void testGetRateLimits_UnlicensedForSourceControl() {
+    setUnlicensedForSourceControl();
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> sourceControlService.getRateLimits(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID));
+  }
+
+  @Test
+  public void testGetRateLimits_OnlyLicensedForSourceControlByAutomation() {
+    setLicensedForSourceControlByAutomation();
+
+    assertThat(sourceControlService.getRateLimits(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID)).isNotNull();
+  }
+
+  @Test
+  public void testGetRateLimits_OnlyLicensedForSourceControlByNotifications() {
+    setLicensedForSourceControlByNotifications();
+
+    assertThat(sourceControlService.getRateLimits(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID)).isNotNull();
+  }
+
+  @Test
+  public void testGetRateLimits_NoSourceControlConfigured() {
+    tempEntity.newApplicationWithParent();
+
+    ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID);
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.ownerType).isEqualTo(OwnerType.ORGANIZATION.toString());
+    assertThat(dto.ownerId).isEqualTo(ROOT_ORGANIZATION_ID);
+    assertThat(dto.userRateLimits).isEmpty();
+  }
+
+  @Test
+  public void testGetRateLimits_OrganizationSourceControlConfigured() {
+    Organization organization = tempEntity.newOrganization();
+    tempEntity.newSourceControl(organization.getId(), null);
+
+    ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(organization.getType(), organization.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.ownerType).isEqualTo(organization.getType().toString());
+    assertThat(dto.ownerId).isEqualTo(organization.getId());
+    assertThat(dto.userRateLimits).isEmpty();
+  }
+
+  @Test
+  public void testGetRateLimits_ApplicationSourceControlConfigured_NoToken() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControl(application.getId(), "https://github.com/orgName/repoName");
+
+    ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(application.getType(), application.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.ownerType).isEqualTo(application.getType().toString());
+    assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.userRateLimits).isEmpty();
+  }
+
+  @Test
+  public void testGetRateLimits_ApplicationSourceControlConfigured() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(application.getId(), "https://github.com/orgName/repoName",
+            plexusCipher.encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
+    GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
+    when(mockGitClientFactory.createGeneralApiClient(sourceControl.getProvider(), "https://github.com/orgName/repoName",
+        sourceControl.getUsername(), "token")).thenReturn(mockGeneralSCMApiClient);
+    GitApiClient mockGitApiClient = createMockGitApiClient("userId2");
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+
+    ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(application.getType(), application.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.ownerType).isEqualTo(application.getType().toString());
+    assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.userRateLimits).hasSize(1);
+    assertThat(dto.userRateLimits.get(0).user).isEqualTo("userId2");
+    assertThat(dto.userRateLimits.get(0).definingOwnerIds).containsExactly(application.getId());
+    assertThat(dto.userRateLimits.get(0).associatedApplicationIds).containsExactly(application.getId());
+    assertRateLimitResponses(dto.userRateLimits.get(0));
+  }
+
+  @Test
+  public void testGetRateLimits_OrganizationAndApplicationSourceControlConfigured() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    SourceControl orgSourceControl = tempEntity.newSourceControl(org.getId(), null,
+        plexusCipher.encrypt("token1", "CMMDwoV"), SourceControlProvider.GITHUB);
+    Application app1 = tempEntity.newApplication(org.getId());
+    tempEntity.newSourceControl(app1.getId(), "https://github.com/orgName/repoName1", null, null);
+    Application app2 = tempEntity.newApplication(org.getId());
+    tempEntity.newSourceControl(app2.getId(), "https://github.com/orgName/repoName2",
+        plexusCipher.encrypt("token2", "CMMDwoV"), null);
+    GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
+    when(mockGitClientFactory.createGeneralApiClient(eq(orgSourceControl.getProvider()), any(),
+        eq(orgSourceControl.getUsername()), any())).thenReturn(mockGeneralSCMApiClient);
+    lenient().when(mockGitClientFactory.createApiClient(any())).thenAnswer(invocationOnMock -> {
+      GitRepositoryInfo gitRepositoryInfo = invocationOnMock.getArgument(0);
+      if ("https://github.com/orgName/repoName1".equals(gitRepositoryInfo.getRepositoryUrl())) {
+        return createMockGitApiClient("userId2");
+      }
+      if ("https://github.com/orgName/repoName2".equals(gitRepositoryInfo.getRepositoryUrl())) {
+        return createMockGitApiClient("userId1");
+      }
+      return null;
+    });
+
+    ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(org.getType(), org.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.ownerType).isEqualTo(org.getType().toString());
+    assertThat(dto.ownerId).isEqualTo(org.getId());
+    assertThat(dto.userRateLimits).hasSize(2);
+    assertThat(dto.userRateLimits.get(0).user).isEqualTo("userId1");
+    assertThat(dto.userRateLimits.get(0).definingOwnerIds).containsExactly(app2.getId());
+    assertThat(dto.userRateLimits.get(0).associatedApplicationIds).containsExactly(app2.getId());
+    assertRateLimitResponses(dto.userRateLimits.get(0));
+    assertThat(dto.userRateLimits.get(1).user).isEqualTo("userId2");
+    assertThat(dto.userRateLimits.get(1).definingOwnerIds).containsExactly(org.getId());
+    assertThat(dto.userRateLimits.get(1).associatedApplicationIds).containsExactly(app1.getId());
+    assertRateLimitResponses(dto.userRateLimits.get(1));
+  }
+
+  @Test
+  public void testGetRateLimits_DoesNotDuplicateToken() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    SourceControl orgSourceControl = tempEntity.newSourceControl(org.getId(), null,
+        plexusCipher.encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
+    Application app1 = tempEntity.newApplication(org.getId());
+    tempEntity.newSourceControl(app1.getId(), "https://github.com/orgName/repoName1", null, null);
+    Application app2 = tempEntity.newApplication(org.getId());
+    tempEntity.newSourceControl(app2.getId(), "https://github.com/orgName/repoName2",
+        plexusCipher.encrypt("token", "CMMDwoV"), null);
+    GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
+    when(mockGitClientFactory.createGeneralApiClient(eq(orgSourceControl.getProvider()), any(),
+        eq(orgSourceControl.getUsername()), any())).thenReturn(mockGeneralSCMApiClient);
+    GitApiClient mockGitApiClient = createMockGitApiClient("userId2");
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+
+    ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(org.getType(), org.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.ownerType).isEqualTo(org.getType().toString());
+    assertThat(dto.ownerId).isEqualTo(org.getId());
+    assertThat(dto.userRateLimits).hasSize(1);
+    assertThat(dto.userRateLimits.get(0).user).isEqualTo("userId2");
+    assertThat(dto.userRateLimits.get(0).definingOwnerIds).containsExactlyInAnyOrder(org.getId(), app2.getId());
+    assertThat(dto.userRateLimits.get(0).associatedApplicationIds).containsExactlyInAnyOrder(app1.getId(),
+        app2.getId());
+    assertRateLimitResponses(dto.userRateLimits.get(0));
+  }
+
+  @Test
+  public void testGetRateLimits_Error() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControl(application.getId(), "https://github.com/orgName/repoName",
+        plexusCipher.encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
+    GitApiClient mockGitApiClient = createMockGitApiClient("userId2");
+    when(mockGitApiClient.getUserId()).thenThrow(new RuntimeException("Some Error"));
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+
+    ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(application.getType(), application.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.ownerType).isEqualTo(application.getType().toString());
+    assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.userRateLimits).isEmpty();
+  }
+
+  @Test
+  public void testGetRateLimits_NoToken() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(application.getId(), "https://github.com/orgName/repoName",
+            null, SourceControlProvider.GITHUB);
+    GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
+    lenient().when(
+        mockGitClientFactory.createGeneralApiClient(sourceControl.getProvider(), "https://github.com/orgName/repoName",
+            sourceControl.getUsername(), "token")).thenReturn(mockGeneralSCMApiClient);
+    GitApiClient mockGitApiClient = createMockGitApiClient("userId2");
+    lenient().when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+
+    ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(application.getType(), application.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.ownerType).isEqualTo(application.getType().toString());
+    assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.userRateLimits).isEmpty();
+  }
+
+  @Test
+  public void testGetRateLimits_NoGitRepositoryInfo() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    SourceControl sourceControl =
+        tempEntity.newSourceControl(organization.getId(), null,
+            plexusCipher.encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
+    GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
+    lenient().when(mockGitClientFactory.createGeneralApiClient(eq(sourceControl.getProvider()), any(),
+        eq(sourceControl.getUsername()), eq("token"))).thenReturn(mockGeneralSCMApiClient);
+    GitApiClient mockGitApiClient = createMockGitApiClient("userId2");
+    lenient().when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+
+    ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(application.getType(), application.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.ownerType).isEqualTo(application.getType().toString());
+    assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.userRateLimits).isEmpty();
+  }
+
+  private GeneralSCMApiClient createMockGeneralSCMApiClient() throws Exception {
+    GeneralSCMApiClient mockGeneralSCMApiClient = mock(GeneralSCMApiClient.class);
+    GithubRateLimitsResponse rateLimitsResponse = new GithubRateLimitsResponse();
+    Map<String, GithubRateLimitResponse> rateLimitResponseMap = new HashMap<>();
+    rateLimitResponseMap.put("category2", createGithubRateLimitResponse());
+    rateLimitResponseMap.put("category3", createGithubRateLimitResponse());
+    rateLimitResponseMap.put("category1", createGithubRateLimitResponse());
+    rateLimitsResponse.setResources(rateLimitResponseMap);
+    lenient().when(mockGeneralSCMApiClient.listAllRateLimits()).thenReturn(rateLimitsResponse);
+    return mockGeneralSCMApiClient;
+  }
+
+  private GithubRateLimitResponse createGithubRateLimitResponse() {
+    GithubRateLimitResponse githubRateLimitResponse = new GithubRateLimitResponse();
+    githubRateLimitResponse.setLimit(10);
+    githubRateLimitResponse.setRemaining(4);
+    githubRateLimitResponse.setUsed(6);
+    githubRateLimitResponse.setReset(4444);
+    return githubRateLimitResponse;
+  }
+
+  private GitApiClient createMockGitApiClient(String userId) {
+    GitApiClient mockGitApiClient = mock(GitApiClient.class);
+    lenient().when(mockGitApiClient.getUserId()).thenReturn(userId);
+    return mockGitApiClient;
+  }
+
+  private void assertRateLimitResponses(ApiUserRateLimitsDTO dto) {
+    assertThat(dto.rateLimits.get(0).category).isEqualTo("category1");
+    assertThat(dto.rateLimits.get(0)).usingRecursiveComparison().ignoringFields("category")
+        .isEqualTo(ApiRateLimitDTO.convert(createGithubRateLimitResponse()));
+    assertThat(dto.rateLimits.get(1).category).isEqualTo("category2");
+    assertThat(dto.rateLimits.get(1)).usingRecursiveComparison().ignoringFields("category")
+        .isEqualTo(ApiRateLimitDTO.convert(createGithubRateLimitResponse()));
+    assertThat(dto.rateLimits.get(2).category).isEqualTo("category3");
+    assertThat(dto.rateLimits.get(2)).usingRecursiveComparison().ignoringFields("category")
+        .isEqualTo(ApiRateLimitDTO.convert(createGithubRateLimitResponse()));
   }
 
   private ApiSourceControlDTO createSourceControlDtoForTesting() {

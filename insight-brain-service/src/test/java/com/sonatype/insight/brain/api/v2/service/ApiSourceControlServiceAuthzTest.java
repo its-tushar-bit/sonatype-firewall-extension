@@ -213,4 +213,22 @@ public class ApiSourceControlServiceAuthzTest
   public void testGetSourceControlMetricsForApplication_Unauthenticated() {
     sourceControlService.getSourceControlMetricsForApplication(OwnerType.APPLICATION, "any");
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetRateLimits_Unauthenticated() {
+    sourceControlService.getRateLimits(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetRateLimits_Unauthorized() {
+    login();
+    sourceControlService.getRateLimits(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test
+  public void testGetRateLimits() {
+    grantReadPermission(app.getId());
+
+    assertThat(sourceControlService.getRateLimits(OwnerType.APPLICATION, app.getId())).isNotNull();
+  }
 }

@@ -6,16 +6,24 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
+import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -26,6 +34,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
@@ -39,13 +48,17 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlRepositoryUtils;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
+import com.sonatype.nexus.scm.api.model.RateLimitsResponse;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -94,6 +107,8 @@ public class ApiSourceControlService
 
   private final SourceControlRepositoryUtils sourceControlRepositoryUtils;
 
+  private final GitClientFactory gitClientFactory;
+
   @Inject
   public ApiSourceControlService(
       final PlexusCipher plexusCipher,
@@ -107,7 +122,8 @@ public class ApiSourceControlService
       final SourceControlEventDAO sourceControlEventDAO,
       final InsightWork insightWork,
       final FileCleaner fileCleaner,
-      final SourceControlRepositoryUtils sourceControlRepositoryUtils)
+      final SourceControlRepositoryUtils sourceControlRepositoryUtils,
+      final GitClientFactory gitClientFactory)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
@@ -121,6 +137,7 @@ public class ApiSourceControlService
     this.insightWork = insightWork;
     this.fileCleaner = fileCleaner;
     this.sourceControlRepositoryUtils = sourceControlRepositoryUtils;
+    this.gitClientFactory = gitClientFactory;
   }
 
   @Authorize(permission = Permission.READ)
@@ -475,6 +492,97 @@ public class ApiSourceControlService
     checkLicense();
 
     return ApiSourceControlMetricsAdapter.convertToDTO(sourceControlPullRequestMetrics.metricsForApplication(ownerId));
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiOwnerUserRateLimitsDTO getRateLimits(
+      @AuthzContext(Key.TYPE) @SuppressWarnings("unused") OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) String ownerId)
+  {
+    checkLicense();
+    Owner owner = ownerDAO.getById(ownerId);
+    Map<String, ApiUserRateLimitsDTO> rateLimitsByUser = new HashMap<>();
+    Map<String, Set<String>> definingOwnerIdsByToken = new HashMap<>();
+    ownerDAO.getDescendantOrSelfApplicationIds(owner)
+        .forEach(applicationId -> addRateLimits(rateLimitsByUser, definingOwnerIdsByToken, applicationId));
+    List<ApiUserRateLimitsDTO> rateLimits = new ArrayList<>(rateLimitsByUser.values());
+    rateLimits.sort(Comparator.comparing(dto -> dto.user));
+    ApiOwnerUserRateLimitsDTO result = new ApiOwnerUserRateLimitsDTO();
+    result.ownerType = owner.getType().toString();
+    result.ownerId = owner.getId();
+    result.ownerPublicId = owner.getPublicId();
+    result.userRateLimits = rateLimits;
+    return result;
+  }
+
+  private void addRateLimits(
+      Map<String, ApiUserRateLimitsDTO> rateLimitsByUser,
+      Map<String, Set<String>> definingOwnerIdsByToken,
+      String applicationId)
+  {
+    List<SourceControl> sourceControlsInHierarchy = getSourceControlsInHierarchy(applicationId);
+    SourceControl sourceControl = new SourceControl();
+    sourceControlsInHierarchy.forEach(sc -> SourceControl.coalesce(sourceControl, sc));
+    if (sourceControl.getToken() == null) {
+      return;
+    }
+    decryptToken(sourceControl);
+    String definingOwnerId = getOwnerIdDefiningToken(sourceControlsInHierarchy);
+    definingOwnerIdsByToken.computeIfAbsent(sourceControl.getToken(), token -> new LinkedHashSet<>())
+        .add(definingOwnerId);
+    GitRepositoryInfo gitRepositoryInfo =
+        SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, applicationId);
+    if (gitRepositoryInfo == null) {
+      return;
+    }
+    try {
+      String user = getUser(gitRepositoryInfo);
+      ApiUserRateLimitsDTO dto = rateLimitsByUser.get(user);
+      if (dto != null) {
+        dto.definingOwnerIds.addAll(definingOwnerIdsByToken.get(sourceControl.getToken()));
+        dto.associatedApplicationIds.add(applicationId);
+      }
+      else {
+        dto = new ApiUserRateLimitsDTO();
+        dto.user = user;
+        dto.definingOwnerIds = new LinkedHashSet<>();
+        dto.definingOwnerIds.addAll(definingOwnerIdsByToken.get(sourceControl.getToken()));
+        dto.associatedApplicationIds = new LinkedHashSet<>();
+        dto.associatedApplicationIds.add(applicationId);
+        dto.rateLimits = getRateLimits(sourceControl).getRateLimitResponses().stream().map(ApiRateLimitDTO::convert)
+            .sorted(Comparator.comparing(rateLimitDTO -> rateLimitDTO.category)).collect(Collectors.toList());
+        rateLimitsByUser.put(user, dto);
+      }
+    }
+    catch (Exception e) {
+      log.error("Unable to determine rate limits for application with ID {}.", applicationId, e);
+    }
+  }
+
+  private String getOwnerIdDefiningToken(List<SourceControl> sourceControlsInHierarchy) {
+    for (SourceControl sourceControl : sourceControlsInHierarchy) {
+      if (sourceControl.getToken() != null) {
+        return sourceControl.getOwnerId();
+      }
+    }
+    return null;
+  }
+
+  private List<SourceControl> getSourceControlsInHierarchy(String applicationId) {
+    List<String> ownerIds = ownerDAO.getOwnerIds(applicationId);
+    List<SourceControl> unordered = sourceControlDAO.getByOwnerIds(ownerIds);
+    return sourceControlDAO.orderByHierarchy(ownerIds, unordered);
+  }
+
+  private RateLimitsResponse getRateLimits(SourceControl sourceControl) throws IOException {
+    GeneralSCMApiClient generalSCMApiClient =
+        gitClientFactory.createGeneralApiClient(sourceControl.getProvider(), sourceControl.getRepositoryUrl(),
+            sourceControl.getUsername(), sourceControl.getToken());
+    return generalSCMApiClient.listAllRateLimits();
+  }
+
+  private String getUser(GitRepositoryInfo gitRepositoryInfo) {
+    return gitClientFactory.createApiClient(gitRepositoryInfo).getUserId();
   }
 
   enum METHOD

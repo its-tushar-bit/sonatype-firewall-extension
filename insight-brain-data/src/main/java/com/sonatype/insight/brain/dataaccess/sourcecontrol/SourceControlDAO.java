@@ -193,11 +193,11 @@ public class SourceControlDAO
     return sourceControl;
   }
 
-  private List<SourceControl> getByOwnerIds(final List<String> ownerIds) {
+  public List<SourceControl> getByOwnerIds(final List<String> ownerIds) {
     return getList("SELECT entity FROM SourceControl entity WHERE entity.ownerId IN ?1", ownerIds);
   }
 
-  private List<SourceControl> orderByHierarchy(List<String> ownerIds, List<SourceControl> unordered) {
+  public List<SourceControl> orderByHierarchy(List<String> ownerIds, List<SourceControl> unordered) {
     List<SourceControl> sorted = new ArrayList<>();
 
     // create a lookup map for the unordered source control entries

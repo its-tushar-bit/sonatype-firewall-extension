@@ -63,17 +63,24 @@ public class SourceControlUtils
 
   public GitRepositoryInfo getGitRepositoryInfoForApplication(String applicationId) {
     SourceControl sourceControl = sourceControlService.getCompositeSourceControlByOwnerDecrypted(applicationId);
-    return getGitRepositoryInfoForApplication(sourceControl, applicationId);
+    return getGitRepositoryInfoForApplicationStatic(sourceControl, applicationId);
+  }
+
+  public GitRepositoryInfo getGitRepositoryInfoForApplication(SourceControl sourceControl, String applicationId) {
+    return getGitRepositoryInfoForApplicationStatic(sourceControl, applicationId);
   }
 
   /**
-   * Returns a {@link GitRepositoryInfo} object with provider and token sourced from the organization hierarchy
-   * if not available on the application SourceControl record
+   * Returns a {@link GitRepositoryInfo} object with provider and token sourced from the organization hierarchy if not
+   * available on the application SourceControl record
    *
    * @param applicationId The id of the application for which the information needs to be retrieved
    * @return The git repository information for the given application id
    */
-  public GitRepositoryInfo getGitRepositoryInfoForApplication(SourceControl sourceControl, String applicationId) {
+  public static GitRepositoryInfo getGitRepositoryInfoForApplicationStatic(
+      SourceControl sourceControl,
+      String applicationId)
+  {
     // sourceControl.getOwnerId() will be different from the applicationId if no app-level SourceControl record exists
     if (sourceControl == null || !applicationId.equals(sourceControl.getOwnerId())) {
       return null;

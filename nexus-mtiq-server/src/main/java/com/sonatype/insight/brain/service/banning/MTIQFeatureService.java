@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyEnabledException;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
@@ -32,13 +31,7 @@ import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.*;
 import static com.sonatype.insight.brain.features.NonLicensedFeature.REPORTS_LIST;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
@@ -72,6 +65,9 @@ public class MTIQFeatureService
               LOGOUT_AUTH0_ON_LOGOUT,
               WEBHOOK_CONFIGURATION,
               AUTOMATIC_SCM_CONFIGURATION,
+              DEFAULT_BRANCH_MONITORING,
+              PR_COMMENTING,
+              PR_LINE_COMMENTING,
               EMAIL_CONFIGURATION,
               REPORTS_LIST_CAN_BE_ENABLED,
               REPORTS_LIST,
@@ -150,6 +146,12 @@ public class MTIQFeatureService
         .anyMatch(id -> id.equals(feature));
   }
 
+  private boolean enabledFeaturesContainsFeatureWithName(String feature) {
+    return ENABLED_FEATURES.stream()
+        .map(Feature::name)
+        .anyMatch(name -> name.equals(feature));
+  }
+
   @Override
   public void register() {
     for (SystemConfigurationPropertyFeature feature : SystemConfigurationPropertyFeature.values()) {
@@ -175,16 +177,18 @@ public class MTIQFeatureService
     set(PROPERTY_ENABLED, false);
     set(ADVANCED_SEARCH_ENABLED, false);
     set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, true);
-    set(SystemConfigurationProperty.AUTOMATIC_SCM_CONFIGURATION, true);
     set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, false);
   }
 
   private void set(String key, boolean value) {
-    String operation = value ? "Enabling" : "Disabling";
-
-    log.info("{} user configurable feature {} for tenant {}", operation, key, getTenant());
-
-    systemConfigurationPropertyDAO.set(key, Boolean.toString(value));
+    if (!enabledFeaturesContainsFeatureWithName(key)) {
+      String operation = value ? "Enabling" : "Disabling";
+      log.info("{} user configurable feature {} for tenant {}", operation, key, getTenant());
+      systemConfigurationPropertyDAO.set(key, Boolean.toString(value));
+    }
+    else {
+      log.trace("Unable to modify the feature {} as it is already enabled", key);
+    }
   }
 
   private void toggleFeature(SystemConfigurationPropertyFeature feature) {

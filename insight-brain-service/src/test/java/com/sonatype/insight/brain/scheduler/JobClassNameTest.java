@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -36,6 +35,8 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.PullRequestCommentPurger",
         "PullRequestCommentPurger");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.PullRequestMonitor", "PullRequestMonitor");
+    insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.PullRequestPollingTask",
+        "PullRequestPollingTask");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.hds.ComponentCategoryUpdater",
         "LoadComponentCategories");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.migration.ScanFileCleaner", "ScanFileCleaner");

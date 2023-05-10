@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,9 +18,9 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
-import com.sonatype.insight.brain.git.RemediationPullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
+import com.sonatype.insight.brain.git.RemediationPullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -30,6 +29,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -209,7 +209,7 @@ public class PolicyAlertScmNotifier
   static class PullRequestInvoker
   {
     public void execute(final String scanId, Runnable runnable) {
-      new Thread(runnable, "PolicyAlertScmNotifierForScan-" + scanId).start();
+      new Thread(new TenantAwareOneTimeRunnable(runnable), "PolicyAlertScmNotifierForScan-" + scanId).start();
     }
   }
 }

@@ -36,7 +36,10 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
         SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
         SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-      
+        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
+        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
+        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
+        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId()
     );
   }
@@ -54,6 +57,9 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
         SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
         SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
+        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
+        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
+        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId()
     );
   }

@@ -5,20 +5,21 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.security.SystemRunnable;
-import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
+import com.sonatype.insight.brain.product.license.ProductLicenseListener;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.dropwizard.lifecycle.Managed;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,10 +32,13 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
-public class PullRequestPollingScheduler
-    implements Managed
+@DisallowConcurrentExecution
+public class PullRequestPollingTask
+    implements InsightJob, ProductLicenseListener
 {
-  private static final Logger log = LoggerFactory.getLogger(PullRequestPollingScheduler.class);
+  public static final String TASK_NAME = "PullRequestPollingTask";
+
+  private static final Logger log = LoggerFactory.getLogger(PullRequestPollingTask.class);
 
   public static final int PULL_REQUEST_MONITORING_INTERVAL_SECONDS = 60;
 
@@ -44,7 +48,7 @@ public class PullRequestPollingScheduler
 
   private final IqForScmLicenseChecker licenseChecker;
 
-  private ScheduledExecutorService scheduledExecutorService;
+  private final TaskScheduler taskScheduler;
 
   private final int pullRequestMonitoringIntervalSeconds;
 
@@ -53,21 +57,24 @@ public class PullRequestPollingScheduler
   public boolean disableForTesting;
 
   @Inject
-  public PullRequestPollingScheduler(
+  public PullRequestPollingTask(
+      TaskScheduler taskScheduler,
       final PullRequestPollingService pullRequestPollingService,
       final IqForScmLicenseChecker licenseChecker)
   {
-    this(pullRequestPollingService, licenseChecker, PULL_REQUEST_MONITORING_DELAY_SECONDS,
+    this(taskScheduler, pullRequestPollingService, licenseChecker, PULL_REQUEST_MONITORING_DELAY_SECONDS,
         PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
   }
 
   @VisibleForTesting
-  PullRequestPollingScheduler(
+  PullRequestPollingTask(
+      TaskScheduler taskScheduler,
       PullRequestPollingService pullRequestPollingService,
       IqForScmLicenseChecker licenseChecker,
       int pullRequestMonitoringDelaySeconds,
       int pullRequestMonitoringIntervalSeconds)
   {
+    this.taskScheduler = taskScheduler;
     this.pullRequestPollingService = pullRequestPollingService;
     this.licenseChecker = licenseChecker;
     this.pullRequestMonitoringDelaySeconds = pullRequestMonitoringDelaySeconds;
@@ -75,45 +82,40 @@ public class PullRequestPollingScheduler
   }
 
   @Override
-  public void start() throws Exception {
+  public void register() {
     startPullRequestMonitoring();
   }
 
   @Override
-  public void stop() throws Exception {
+  public void deregister() {
     stopPullRequestMonitoring();
   }
 
-  private ScheduledExecutorService newExecutor() {
-    ThreadFactory threadFactory =
-        new ThreadFactoryBuilder().setNameFormat("PullRequestPolling-%d").setDaemon(true).build();
-    return new TenantScheduledThreadPoolExecutor(1, threadFactory);
-  }
-
   private void startPullRequestMonitoring() {
-    if (scheduledExecutorService != null || disableForTesting) {
+    if (disableForTesting || !licenseChecker.isPullRequestCommentingSupported()) {
       return;
     }
-    scheduledExecutorService = newExecutor();
-    Runnable pullRequestMonitoringTask = new SystemRunnable(() -> {
-      try {
-        monitorPullRequestsForCommenting();
-      }
-      catch (RuntimeException e) {
-        log.warn("Failed to monitor pull requests", e);
-      }
-    });
-    scheduledExecutorService.scheduleAtFixedRate(pullRequestMonitoringTask, pullRequestMonitoringDelaySeconds,
-        pullRequestMonitoringIntervalSeconds, TimeUnit.SECONDS);
+    Date startTime = Date.from(
+        LocalDateTime.now().plusSeconds(pullRequestMonitoringDelaySeconds).atZone(ZoneId.systemDefault()).toInstant());
+    taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(pullRequestMonitoringIntervalSeconds), startTime);
     log.info("Scheduled monitoring of SCM pull requests every {} second(s) starting in {} second(s)",
         pullRequestMonitoringIntervalSeconds, pullRequestMonitoringDelaySeconds);
   }
 
+  @Override
+  public void execute(JobExecutionContext context) {
+    execute(this::monitorPullRequestsForCommenting, log, "Failed to monitor pull requests");
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
+  }
+
   private void stopPullRequestMonitoring() {
-    if (scheduledExecutorService != null) {
-      scheduledExecutorService.shutdown();
-      scheduledExecutorService = null;
+    if (!disableForTesting) {
       log.info("Stopped SCM pull request monitoring");
+      taskScheduler.unscheduleTask(this);
     }
   }
 
@@ -128,6 +130,18 @@ public class PullRequestPollingScheduler
         log.error(e.getMessage(), e);
       }
       log.debug("Pull request polling cycle complete");
+    }
+  }
+
+  @Override
+  public void productLicenseChanged() {
+    if (licenseChecker.isPullRequestCommentingSupported()) {
+      log.info("Pull Request Monitoring is licensed");
+      startPullRequestMonitoring();
+    }
+    else {
+      log.info("Pull Request Monitoring is not licensed");
+      stopPullRequestMonitoring();
     }
   }
 }

@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.PullRequestCommentPurger;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
-import com.sonatype.insight.brain.git.PullRequestPollingScheduler;
+import com.sonatype.insight.brain.git.PullRequestPollingTask;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
@@ -335,7 +335,7 @@ public class DefaultTestInsightBrainService
     getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
     getInstance(SuccessMetricsPurger.class).disableForTesting = true;
     getInstance(ReportPurger.class).disableForTesting = true;
-    getInstance(PullRequestPollingScheduler.class).disableForTesting = true;
+    getInstance(PullRequestPollingTask.class).disableForTesting = true;
     getInstance(ScanFileCleaner.class).disableForTesting = true;
     getInstance(DefaultPolicyEvaluateService.class).disablePollingIntervalForTesting = true;
     getInstance(HdsProductNotificationService.class).disableCacheForTesting = true;

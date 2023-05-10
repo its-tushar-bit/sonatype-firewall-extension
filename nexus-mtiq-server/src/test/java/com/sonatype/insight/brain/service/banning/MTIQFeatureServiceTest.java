@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -29,13 +28,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED;
-import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.*;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
@@ -81,7 +74,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(24)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(21)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
 
     List<String> flagsSet = propertyKeyCaptor.getAllValues();
 
@@ -95,7 +88,6 @@ public class MTIQFeatureServiceTest
     verify(systemConfigurationPropertyDAO).set(PROPERTY_ENABLED, "false");
     verify(systemConfigurationPropertyDAO).set(ADVANCED_SEARCH_ENABLED, "false");
     verify(systemConfigurationPropertyDAO).set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, "true");
-    verify(systemConfigurationPropertyDAO).set(SystemConfigurationProperty.AUTOMATIC_SCM_CONFIGURATION, "true");
     verify(systemConfigurationPropertyDAO).set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, "false");
   }
 
@@ -195,6 +187,9 @@ public class MTIQFeatureServiceTest
         .filter(f -> !f.equals(WEBHOOK_CONFIGURATION))
         .filter(f -> !f.equals(ENABLE_SSO_ONLY))
         .filter(f -> !f.equals(AUTOMATIC_SCM_CONFIGURATION))
+        .filter(f -> !f.equals(DEFAULT_BRANCH_MONITORING))
+        .filter(f -> !f.equals(PR_COMMENTING))
+        .filter(f -> !f.equals(PR_LINE_COMMENTING))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
         .collect(Collectors.toList()).toArray(new String[]{});
   }
@@ -218,7 +213,7 @@ public class MTIQFeatureServiceTest
 
     @Override
     Set<Feature> getBaseFeatures() {
-      Set<Feature> features = stream(values())
+      Set<Feature> features = stream(LicensedFeature.values())
           .collect(toSet());
 
       features.add(DASHBOARD_CAN_BE_ENABLED);

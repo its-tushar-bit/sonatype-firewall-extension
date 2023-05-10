@@ -299,18 +299,21 @@ order to enable the communication between MTIQ server and
 [JSON Web Key Sets](https://auth0.com/docs/secure/tokens/json-web-tokens/json-web-key-sets), a set of keys containing
 the public keys used by the JWT verifier.
 
-For local development, if you want to avoid the creation and setup of a custom Auth0 tenant (which will give you the 
+For local development, if you want to avoid the creation and setup of a custom Auth0 tenant (which will give you the
 **auth0Domain**), you can set an environment variable named ```NXIQ_ENABLE_LOCAL_JWK_PROVIDER``` to ```true```. That
-will switch the **Auth0 JWK provider** to a **Local JWK provider**, which will be using a custom local public key to 
+will switch the **Auth0 JWK provider** to a **Local JWK provider**, which will be using a custom local public key to
 perform all request authorization validations.
 
 Custom keys are stored in the [nexus-mtiq-server resources folder](../nexus-mtiq-server/src/main/resources), and
-you can generate a JWT using the public and private keys. Nevertheless, you can also use the following long-duration 
-token for your requests:
+you can generate a JWT using the public and private keys. Optionally you can use the following long-duration token for
+your requests, keeping in mind that the **auth0Domain** property must be set to _"local/"_:
 
 ```
 eyJraWQiOiJsb2NhbEExQjJDMyIsImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0.eyJodHRwczovL3d3dy5zb25hdHlwZS5jb20vZW1haWwiOiJsb2NhbF9tdGlxQHNvbmF0eXBlLmNvbSIsImlzcyI6ImxvY2FsLyIsInN1YiI6ImxvY2FsfDEyMzQ1NiIsImF1ZCI6Imh0dHBzOi8vbG9jYWwubXRpcS1hZG1pbi1zZXJ2aWNlLmNsb3VkeS5zb25hdHlwZS5kZXYvIiwiaWF0IjoxNjgzMTU0MDE2LCJleHAiOjE5ODgxNTA0MDB9.T30ChTpa4oHLV0G9jp8fBTxi97LbrTS3Bf6uL9fpmLucac-ZLAxCNp9vcqahRZhxXGHZgkOO0-swrWBI3hP0lqIHQUmuyr29ls1WSyxhj6X_uqkIuRJ6ZZMO2kViNdzYJ0kg9G7XLNr-5DMoUCb23bl0c9kIqKJt4gImRMKn2fE
 ```
+
+**NOTE:** You can debug the token in [jwt.io](https://jwt.io/). Observe that the **issuer (iss)** claim is matching the
+**auth0Domain** property value.
 
 ### Tenant Provisioning
 

@@ -109,4 +109,4 @@ logging:
     archivedFileCount: ${LOGGER_FILE_ARCHIVED_FILE_COUNT:-5}
 createSampleData: ${CREATE_SAMPLE_DATA:-true}
 
-auth0Domain: ${AUTH0_DOMAIN:-"domain/"}
+auth0Domain: ${AUTH0_DOMAIN:-"local/"}

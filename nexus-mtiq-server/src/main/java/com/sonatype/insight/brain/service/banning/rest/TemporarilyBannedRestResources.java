@@ -19,8 +19,8 @@ import com.google.common.collect.ImmutableList;
 /**
  * It was determined as part of CLM-23906, CLM-23907 that certain REST resources are not going to be supported for
  * certain milestones, mostly because they relate to Lifecycle functionality and are not needed to support Firewall.
- * This class encapsulates those REST resources and is expected to change as we test and adapt each Resource to be
- * MTIQ supported.
+ * This class encapsulates those REST resources and is expected to change as we test and adapt each Resource to be MTIQ
+ * supported.
  */
 public class TemporarilyBannedRestResources
     implements BannedImplementation

@@ -15,7 +15,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class TemporarilyBannedRestResourcesTest {
+public class TemporarilyBannedRestResourcesTest
+{
   @Test
   public void testClassesBanned() {
     TemporarilyBannedRestResources underTest = new TemporarilyBannedRestResources();

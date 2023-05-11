@@ -56,7 +56,9 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.scan.ScanService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.Condition;
@@ -64,6 +66,7 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
@@ -93,6 +96,9 @@ public class ApplicationSummaryViewTest
   private Application application;
 
   private Organization rootOrganization;
+
+  @Rule
+  public LogOutput logOutput = new LogOutput(ScanService.log.getName());
 
   @Before
   public void init() {
@@ -353,7 +359,7 @@ public class ApplicationSummaryViewTest
   public void testActionDropDown() {
     super.testActionDropDown();
 
-    testEvaluateFile(true);
+    testEvaluateFile(true, "mockApplicationBinary.war");
   }
 
   @Test
@@ -361,7 +367,7 @@ public class ApplicationSummaryViewTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
 
-    testEvaluateFile(false);
+    testEvaluateFile(false, "承銷競價拍賣系統_原碼.jar");
   }
 
   @Test
@@ -432,11 +438,11 @@ public class ApplicationSummaryViewTest
     }
   }
 
-  private void testEvaluateFile(boolean isNotificationsAllowed) {
+  private void testEvaluateFile(boolean isNotificationsAllowed, String filename) {
     File tempFile = null;
 
     try {
-      tempFile = tempDir.newFile("mockApplicationBinary.war");
+      tempFile = tempDir.newFile(filename);
     }
     catch (IOException e) {
       throw new AssertionError("Could not create temporary mock binary to evaluate. ", e);
@@ -514,6 +520,10 @@ public class ApplicationSummaryViewTest
 
         WebDriverRunner.getWebDriver().close();
         Selenide.switchTo().window(0);
+
+        List<String> debugMessages = logOutput.getDebugMessages(ScanService.log.getName());
+        String savingFileTo = debugMessages.stream().filter(s -> s.contains("Saving file to")).findFirst().get();
+        assertThat(savingFileTo).contains(filename);
       }
     }
   }

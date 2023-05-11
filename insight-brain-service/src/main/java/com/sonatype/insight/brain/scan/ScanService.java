@@ -48,9 +48,9 @@ import org.slf4j.LoggerFactory;
  * @since 1.8
  */
 @Named
-class ScanService
+public class ScanService
 {
-  private static final Logger log = LoggerFactory.getLogger(ScanService.class);
+  public static final Logger log = LoggerFactory.getLogger(ScanService.class);
 
   private final FileCleaner fileCleaner;
 

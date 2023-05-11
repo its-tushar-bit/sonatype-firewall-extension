@@ -139,6 +139,7 @@ const evaluate = createAsyncThunk(`${REDUCER_NAME}/evaluate`, (_, { dispatch, ge
   const url = getBundleUploadUrl(publicId, selectedStageId, isNotify);
   const formData = new FormData();
   formData.append('file', file.files?.[0]);
+  formData.append('filename', file.files?.[0].name);
   dispatch(actions.isUploadingFile(true));
   return axios
     .post(url, formData, {

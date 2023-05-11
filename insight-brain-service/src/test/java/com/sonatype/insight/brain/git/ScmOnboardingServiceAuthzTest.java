@@ -5,12 +5,13 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.git.dto.OnboardingOrganization;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -153,5 +154,22 @@ public class ScmOnboardingServiceAuthzTest
   public void testGetOrgsForOnboarding_Unauthorized() {
     final List<OnboardingOrganization> organizations = scmOnboardingService.getOrgsForOnboarding();
     assertThat(organizations).isEmpty();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testImportScmOrganization_Unauthenticated() throws Exception {
+    scmOnboardingService.importScmOrganization(org.getId(), new ImportScmOrganizationRequest());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testImportScmOrganization_Unauthorized() throws Exception {
+    login();
+    scmOnboardingService.importScmOrganization(org.getId(), new ImportScmOrganizationRequest());
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testImportScmOrganization_Authorized() throws IOException {
+    grantAddApplicationPermission(org.getId());
+    scmOnboardingService.importScmOrganization(org.getId(), new ImportScmOrganizationRequest());
   }
 }

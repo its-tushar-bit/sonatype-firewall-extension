@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -16,25 +14,13 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.git.dto.ImportResults;
 import com.sonatype.insight.brain.git.dto.SCMRepositories;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
-import org.codehaus.plexus.util.IOUtil;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.git.ScmOnboardingResource.DEFAULT_HOST_URL;
 import static com.sonatype.insight.brain.git.ScmOnboardingResource.IMPORT_REPO_PATH;
 import static com.sonatype.insight.brain.git.ScmOnboardingResource.LOAD_REPO_PATH;
@@ -46,22 +32,8 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ScmOnboardingResourceTest
-    extends AbstractResourceTest
+    extends AbstractScmOnboardingResourceTest
 {
-  @Rule
-  public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
-
-  private Organization org;
-
-  @Before
-  public void setup() {
-    org = tempEntity.newOrganization();
-    gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
-        .willReturn(aResponse()
-            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{\"username\":\"foo\"}")));
-  }
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(RESOURCE_PATH);
@@ -88,19 +60,6 @@ public class ScmOnboardingResourceTest
     assertResponseStatus(200, response);
     SCMRepositories responseList = response.getBody(SCMRepositories.class);
     assertThat(responseList.availableRepositories).hasSize(13);
-  }
-
-  private String getResourceAsString(String filename) throws IOException {
-    return IOUtil.toString(this.getClass().getResourceAsStream(filename));
-  }
-
-  private void mockRepoForPage(WireMockRule gitService, int page, String json) {
-    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
-        .withQueryParam("per_page", equalTo("100"))
-        .withQueryParam("page", equalTo(Integer.toString(page)))
-        .willReturn(aResponse()
-            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody(json)));
   }
 
   @Test

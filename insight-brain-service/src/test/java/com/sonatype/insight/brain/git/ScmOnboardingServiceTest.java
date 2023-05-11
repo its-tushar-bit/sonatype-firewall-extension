@@ -17,15 +17,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.dto.ImportFailure;
 import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.git.dto.ImportResults;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.git.dto.SCMRepositories;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -45,7 +46,6 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
-
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -71,6 +71,7 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -109,6 +110,9 @@ public class ScmOnboardingServiceTest
 
   @Inject
   private ApplicationDAO applicationDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @Inject
   private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
@@ -530,7 +534,7 @@ public class ScmOnboardingServiceTest
             "git@localhost:org/repo3.git", false, "org", "repo3", ""),
         // use org & app names with IQ app name restrictions
         new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo4",
-            "git@localhost:org/repo4.git", false,"--bad-__-org", "--bad_name_99--", ""),
+            "git@localhost:org/repo4.git", false, "--bad-__-org", "--bad_name_99--", ""),
     };
     int totalRepoCount = 50;
     int prevImportedCount = 10;
@@ -944,6 +948,313 @@ public class ScmOnboardingServiceTest
     testImportRepositories_disabledInternalSourceControlPolicyEvaluations(false);
   }
 
+  @Test
+  public void testImportScmOrganization_NullRequest() throws Exception {
+    org = tempEntity.newOrganization();
+    testImportScmOrganization_InvalidParameters(org.getId(), null, "No host URL defined");
+  }
+
+  @Test
+  public void testImportScmOrganization_InvalidHostUrl() throws Exception {
+    org = tempEntity.newOrganization();
+    testImportScmOrganization_InvalidParameters(org.getId(), new ImportScmOrganizationRequest(), "No host URL defined");
+  }
+
+  @Test
+  public void testImportScmOrganization_InvalidImportLimit() {
+    org = tempEntity.newOrganization();
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = "http://example.com/owner/app";
+    importRequest.importLimit = 0;
+    testImportScmOrganization_InvalidParameters(org.getId(), importRequest, "repository import limit must not be 0");
+  }
+
+  @Test
+  public void testImportScmOrganization_InvalidDefaultOrgCount() {
+    org = tempEntity.newOrganization();
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = "http://example.com/owner/app";
+    importRequest.desiredSubOrganizationCount = -1;
+    testImportScmOrganization_InvalidParameters(org.getId(), importRequest,
+        "desiredSubOrganizationCount must be a positive integer");
+  }
+
+  @Test
+  public void testImportScmOrganization_NoAvailableScmReposToImport() throws Exception {
+    org = tempEntity.newOrganization();
+    mockRepoForPage(gitService, 1, getResourceAsString(LIST_WITH_EMPTY_REPOS));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
+
+    String repo1 = "https://localhost/depshield-ci/ci-project-1.git";
+    String repo2 = "https://admin@localhost/sonatype-nexus-community/nexus-repository-p2.git";
+    String repo3 = "https://localhost/sonatype-nexus-community/nexus-repository-puppet.git";
+    tempEntity.newSourceControl(app.getId(), repo1, new Date());
+    Application tmpapp2 = tempEntity.newApplication("tmpapp2", org.getId());
+    tempEntity.newSourceControl(tmpapp2.getId(), repo2, new Date());
+    Application tmpapp3 = tempEntity.newApplication("tmpapp3", org.getId());
+    tempEntity.newSourceControl(tmpapp3.getId(), repo3, new Date());
+
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = gitService.baseUrl();
+
+    ImportResults importResults = scmOnboardingService.importScmOrganization(org.getId(), importRequest);
+
+    assertThat(importResults.getImportedRepositories()).isEmpty();
+    assertThat(importResults.getFailedRepositories()).isEmpty();
+    assertThat(importResults.getFailedImportCount()).isZero();
+
+    verifyNoSourceControlEvaluationEventsCreated();
+  }
+
+  @Test
+  public void testImportScmOrganization_DistributeIntoChildOrgs() throws Exception {
+    org = tempEntity.newOrganization();
+    List<Organization> childOrgsBeforeImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsBeforeImport).isEmpty();
+
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
+
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = gitService.baseUrl();
+    importRequest.desiredSubOrganizationCount = 3;
+
+    ImportResults importResults = scmOnboardingService.importScmOrganization(org.getId(), importRequest);
+
+    List<SCMRepository> imported = importResults.getImportedRepositories();
+    assertThat(imported).hasSize(13);
+    assertThat(importResults.getFailedRepositories()).isEmpty();
+    assertThat(importResults.getFailedImportCount()).isZero();
+
+    List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsAfterImport).hasSize(3);
+    tempEntity.register(childOrgsAfterImport.toArray(new Organization[0]));
+
+    List<Integer> importedAppCountsPerOrg =
+        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+            .collect(Collectors.toList());
+    assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(5, 4, 4);
+    assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
+
+    //verify source control evaluations triggered for all imported apps
+    verifySourceControlEvaluationEventsCreated(imported.size());
+
+    //check the telemetry was sent properly
+    final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock, times(16)).send(telemetryDataArgumentCaptor.capture());
+    final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
+    assertThat(telemetryDataList).hasSize(16);
+    List<TelemetryData> telemetryData = telemetryDataList.stream()
+        .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
+        .collect(Collectors.toList());
+    assertThat(telemetryData).hasSize(3);
+    int prevImportedCount = 0;
+    assertBatchedImportTelemetries(telemetryData.get(0), 5, 13, prevImportedCount);
+    prevImportedCount += 5;
+    assertBatchedImportTelemetries(telemetryData.get(1), 4, 13, prevImportedCount);
+    prevImportedCount += 4;
+    assertBatchedImportTelemetries(telemetryData.get(2), 4, 13, prevImportedCount);
+  }
+
+  @Test
+  public void testImportScmOrganization_DistributeIntoChildOrgsWithLimit() throws Exception {
+    org = tempEntity.newOrganization();
+    List<Organization> childOrgsBeforeImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsBeforeImport).isEmpty();
+
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
+
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = gitService.baseUrl();
+    importRequest.desiredSubOrganizationCount = 3;
+    importRequest.importLimit = 10;
+
+    ImportResults importResults = scmOnboardingService.importScmOrganization(org.getId(), importRequest);
+
+    List<SCMRepository> imported = importResults.getImportedRepositories();
+    assertThat(imported).hasSize(10);
+    assertThat(importResults.getFailedRepositories()).isEmpty();
+    assertThat(importResults.getFailedImportCount()).isZero();
+
+    List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
+    tempEntity.register(childOrgsAfterImport.toArray(new Organization[0]));
+
+    assertThat(childOrgsAfterImport).hasSize(3);
+    List<Integer> importedAppCountsPerOrg =
+        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+            .collect(Collectors.toList());
+    assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(4, 3, 3);
+    assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(10);
+    verifySourceControlEvaluationEventsCreated(imported.size());
+
+    //check the telemetry was sent properly
+    final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock, times(13)).send(telemetryDataArgumentCaptor.capture());
+    final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
+    assertThat(telemetryDataList).hasSize(13);
+    List<TelemetryData> telemetryData = telemetryDataList.stream()
+        .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
+        .collect(Collectors.toList());
+    assertThat(telemetryData).hasSize(3);
+    int prevImportedCount = 0;
+    assertBatchedImportTelemetries(telemetryData.get(0), 4, 13, prevImportedCount);
+    prevImportedCount += 4;
+    assertBatchedImportTelemetries(telemetryData.get(1), 3, 13, prevImportedCount);
+    prevImportedCount += 3;
+    assertBatchedImportTelemetries(telemetryData.get(2), 3, 13, prevImportedCount);
+  }
+
+  private void assertBatchedImportTelemetries(
+      TelemetryData telemetryData,
+      int batchCount,
+      int totalRepoCount,
+      int prevImportedCount)
+  {
+    int batchPercent = (int) Math.round(batchCount * 100.0 / totalRepoCount);
+    int totalPercent = (int) Math.round((batchCount + prevImportedCount) * 100.0 / totalRepoCount);
+    Map<String, Object> attributes = telemetryData.getAttributes();
+    assertThat(attributes).contains(entry("onboarding_batch_count", batchCount));
+    assertThat(attributes).contains(entry("onboarding_batch_percent", batchPercent));
+    assertThat(attributes).contains(entry("onboarding_total_percent", totalPercent));
+  }
+
+  @Test
+  public void testImportScmOrganization_IntoParentOrgOnly() throws Exception {
+    org = tempEntity.newOrganization();
+    assertThat(organizationDAO.getByParentOrganizationId(org.getId())).isEmpty();
+    assertThat(applicationDAO.getByOrganizationId(org.getId())).isEmpty();
+
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
+
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = gitService.baseUrl();
+
+    ImportResults importResults = scmOnboardingService.importScmOrganization(org.getId(), importRequest);
+
+    List<SCMRepository> imported = importResults.getImportedRepositories();
+    assertThat(imported).hasSize(13);
+    assertThat(importResults.getFailedRepositories()).isEmpty();
+    assertThat(importResults.getFailedImportCount()).isZero();
+
+    List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsAfterImport).isEmpty();
+    assertThat(applicationDAO.getByOrganizationId(org.getId())).hasSize(13);
+    verifySourceControlEvaluationEventsCreated(imported.size());
+
+    assertScmImportTelemetries(imported.size());
+  }
+
+  @Test
+  public void testImportScmOrganization_IntoToParentOrgOnlyWithLimit() throws Exception {
+    org = tempEntity.newOrganization();
+    assertThat(organizationDAO.getByParentOrganizationId(org.getId())).isEmpty();
+    assertThat(applicationDAO.getByOrganizationId(org.getId())).isEmpty();
+
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
+
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = gitService.baseUrl();
+    importRequest.importLimit = 5;
+
+    ImportResults importResults = scmOnboardingService.importScmOrganization(org.getId(), importRequest);
+
+    List<SCMRepository> imported = importResults.getImportedRepositories();
+    assertThat(imported).hasSize(5);
+    assertThat(importResults.getFailedRepositories()).isEmpty();
+    assertThat(importResults.getFailedImportCount()).isZero();
+
+    List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsAfterImport).isEmpty();
+    assertThat(applicationDAO.getByOrganizationId(org.getId())).hasSize(5);
+    verifySourceControlEvaluationEventsCreated(imported.size());
+
+    assertScmImportTelemetries(imported.size());
+  }
+
+  @Test
+  public void testImportScmOrganization_WithLimitGreaterThanAvailableRepos() throws Exception {
+    org = tempEntity.newOrganization();
+    assertThat(organizationDAO.getByParentOrganizationId(org.getId())).isEmpty();
+    assertThat(applicationDAO.getByOrganizationId(org.getId())).isEmpty();
+
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
+
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = gitService.baseUrl();
+    importRequest.importLimit = 50; //should only import the available 13 repos
+
+    ImportResults importResults = scmOnboardingService.importScmOrganization(org.getId(), importRequest);
+
+    List<SCMRepository> imported = importResults.getImportedRepositories();
+    assertThat(imported).hasSize(13);
+    assertThat(importResults.getFailedRepositories()).isEmpty();
+    assertThat(importResults.getFailedImportCount()).isZero();
+
+    List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsAfterImport).isEmpty();
+    assertThat(applicationDAO.getByOrganizationId(org.getId())).hasSize(13);
+    verifySourceControlEvaluationEventsCreated(imported.size());
+    assertScmImportTelemetries(imported.size());
+  }
+
+  @Test
+  public void testImportScmOrganization_DesiredNoOfReposGreaterThanAvailableRepos() throws Exception {
+    org = tempEntity.newOrganization();
+    assertThat(organizationDAO.getByParentOrganizationId(org.getId())).isEmpty();
+    assertThat(applicationDAO.getByOrganizationId(org.getId())).isEmpty();
+
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
+
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = gitService.baseUrl();
+    importRequest.desiredSubOrganizationCount = 50; //should only import the available 13 repos
+
+    ImportResults importResults = scmOnboardingService.importScmOrganization(org.getId(), importRequest);
+
+    List<SCMRepository> imported = importResults.getImportedRepositories();
+    assertThat(imported).hasSize(13);
+    assertThat(importResults.getFailedRepositories()).isEmpty();
+    assertThat(importResults.getFailedImportCount()).isZero();
+
+    List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
+    tempEntity.register(childOrgsAfterImport.toArray(new Organization[0]));
+
+    assertThat(childOrgsAfterImport).hasSize(13);
+    List<Integer> importedAppCountsPerOrg =
+        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+            .collect(Collectors.toList());
+    assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+    assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
+  }
+
+  private void assertScmImportTelemetries(int batchCount) {
+    //calculation mentioned here for clarification only
+    int totalRepoCount = 13;
+    int prevImportedCount = 0;
+    int batchPercent = (int) Math.round(batchCount * 100.0 / totalRepoCount);
+    int totalPercent = (int) ((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
+    int updatedApps = 0;
+    int updatedCount = batchCount + updatedApps;
+    assertTelemetry(batchPercent, batchCount, totalPercent, updatedCount);
+  }
+
+  private void testImportScmOrganization_InvalidParameters(
+      final String org,
+      final ImportScmOrganizationRequest importRequest,
+      final String errorMessage)
+  {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> scmOnboardingService.importScmOrganization(org, importRequest))
+        .withMessageContaining(errorMessage);
+
+    verifyNoSourceControlEvaluationEventsCreated();
+  }
+
   private void testImportRepositories_disabledInternalSourceControlPolicyEvaluations(
       Boolean internalSourceControlPolicyEvaluationsEnabled)
   {
@@ -983,7 +1294,7 @@ public class ScmOnboardingServiceTest
 
     // and that all of the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream() //
-        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID) //
+        .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId())) //
         .map(SourceControl::getRepositoryUrl)).containsExactly("http://localhost/org/repo");
 
     // and source control evaluation request events were not created

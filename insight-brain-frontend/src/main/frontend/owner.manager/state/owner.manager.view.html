@@ -1,9 +1,18 @@
 <div class="nx-page-sidebar nx-viewport-sized iq-orgs-and-policies-summary-sidebar">
   <owner-side-nav class="nx-viewport-sized__container"></owner-side-nav>
 </div>
-<div id="owner-manager-main"
+<div ng-if="$state.is('management.view.repository_container') === false"
+     id="owner-manager-main"
      class="nx-page-main"
      ng-class="{ 'nx-viewport-sized': $state.$current.data.viewportSized }">
+  <root-organization-migrate></root-organization-migrate>
+  <ui-view></ui-view>
+</div>
+<div ng-if="$state.is('management.view.repository_container')"
+     id="owner-manager-main"
+     class="nx-page-main"
+     ng-class="{ 'nx-viewport-sized': $state.$current.data.viewportSized }"
+     style="overflow-y: hidden">
   <root-organization-migrate></root-organization-migrate>
   <ui-view></ui-view>
 </div>

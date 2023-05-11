@@ -11,6 +11,7 @@ import NamespaceConfusionProtectionTile from './namespaceConfusionProtectionTile
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { useDispatch } from 'react-redux';
+import RepositoriesPills from 'MainRoot/owner.manager/repositories/RepositoriesPills/RepositoriesPills';
 
 export default function RepositoriesSummaryView() {
   const dispatch = useDispatch();
@@ -21,14 +22,25 @@ export default function RepositoriesSummaryView() {
 
   return (
     <NxPageMain id="repository-page">
-      <NxPageTitle id="repositories-summary">
-        <NxH1>Repositories</NxH1>
-      </NxPageTitle>
+      <header>
+        <NxPageTitle id="repositories-summary">
+          <NxH1>Repositories</NxH1>
+          <RepositoriesPills />
+        </NxPageTitle>
+      </header>
+
       {/*Configuration / Access tabs to go here*/}
-      <RepositoriesConfigurationTile />
-      <PoliciesTile />
-      <AccessTile />
-      <NamespaceConfusionProtectionTile />
+      <div
+        className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
+        id="repositories-summary-sections"
+      >
+        <div id="scrollable-content">
+          <RepositoriesConfigurationTile />
+          <PoliciesTile />
+          <NamespaceConfusionProtectionTile />
+          <AccessTile />
+        </div>
+      </div>
     </NxPageMain>
   );
 }

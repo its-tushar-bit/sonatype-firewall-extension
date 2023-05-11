@@ -149,7 +149,13 @@ const NavPills = ({ list, root }) => {
           ({ label, target, isDisplayed }) =>
             isDisplayed && (
               <li className="iq-nav-pills-menu__pill" key={label}>
-                <button id={`${target}-button`} type="button" data-scroll={target} onClick={scrollTo}>
+                <button
+                  data-testid={`${target}-button`}
+                  id={`${target}-button`}
+                  type="button"
+                  data-scroll={target}
+                  onClick={scrollTo}
+                >
                   {label}
                 </button>
               </li>

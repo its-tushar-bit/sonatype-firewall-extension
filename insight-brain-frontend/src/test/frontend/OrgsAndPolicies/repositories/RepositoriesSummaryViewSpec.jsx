@@ -33,5 +33,15 @@ describe('RepositoriesSummaryView', () => {
     expect(screen.getByTestId('repositories_configuration')).toBeVisible();
     expect(screen.getByTestId('repositories_access')).toBeVisible();
     expect(screen.getByTestId('policies-tile')).toBeVisible();
+    expect(screen.getByTestId('namespace-confusion-protection-pill-configuration')).toBeVisible();
+  });
+
+  it('renders NavPills', () => {
+    renderComponent();
+
+    expect(screen.getByTestId('repositories-pill-configuration-button')).toBeVisible();
+    expect(screen.getByTestId('owner-pill-policy-button')).toBeVisible();
+    expect(screen.getByTestId('access-tile-pill-access-button')).toBeVisible();
+    expect(screen.getByTestId('namespace-confusion-protection-pill-configuration-button')).toBeVisible();
   });
 });

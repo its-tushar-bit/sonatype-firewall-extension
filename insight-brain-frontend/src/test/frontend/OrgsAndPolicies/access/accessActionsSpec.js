@@ -184,7 +184,7 @@ describe('access', () => {
     it('dispatches rejected action if loadRoles request fails', (done) => {
       mockAxiosCalls({
         get: {
-          [roleMappingUrl]: Promise.reject('something went wrong'),
+          [roleMappingUrl]: () => Promise.reject('something went wrong'),
         },
       });
       store.dispatch(loadRoles()).then(() => {
@@ -225,7 +225,7 @@ describe('access', () => {
     it('dispatches rejected action if loadRoles request fails', (done) => {
       mockAxiosCalls({
         get: {
-          [roleRepositoryMappingUrl]: Promise.reject('something went wrong'),
+          [roleRepositoryMappingUrl]: () => Promise.reject('something went wrong'),
         },
       });
       store.dispatch(loadRoles()).then(() => {
@@ -264,7 +264,7 @@ describe('access', () => {
     it('dispatches rejected action if loadFetchUsers request fails', (done) => {
       mockAxiosCalls({
         get: {
-          [fetchUrlOrg]: Promise.reject('something went wrong'),
+          [fetchUrlOrg]: () => Promise.reject('something went wrong'),
         },
       });
       store.dispatch(loadFetchUsers('search')).then(() => {
@@ -303,7 +303,7 @@ describe('access', () => {
     it('dispatches rejected action if loadFetchUsers request fails', (done) => {
       mockAxiosCalls({
         get: {
-          [fetchUrlRepository]: Promise.reject('something went wrong'),
+          [fetchUrlRepository]: () => Promise.reject('something went wrong'),
         },
       });
       store.dispatch(loadFetchUsers('search')).then(() => {
@@ -368,7 +368,7 @@ describe('access', () => {
     it('dispatches rejected action if createOrUpdateRole request fails', (done) => {
       mockAxiosCalls({
         put: {
-          [createOrUpdateRoleUrl]: Promise.reject('something went wrong'),
+          [createOrUpdateRoleUrl]: () => Promise.reject('something went wrong'),
         },
       });
       store.dispatch(createOrUpdateRole('application', 'application', role.roleId)).then(() => {
@@ -423,7 +423,7 @@ describe('access', () => {
     it('dispatches rejected action if createOrUpdateRole request fails', (done) => {
       mockAxiosCalls({
         put: {
-          [createOrUpdateRoleUrlRepository]: Promise.reject('something went wrong'),
+          [createOrUpdateRoleUrlRepository]: () => Promise.reject('something went wrong'),
         },
       });
       store.dispatch(createOrUpdateRole('application', 'application', role.roleId)).then(() => {

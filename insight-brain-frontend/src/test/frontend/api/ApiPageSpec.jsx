@@ -75,7 +75,7 @@ describe('ApiPage', function () {
     beforeEach(async function () {
       mockAxiosCalls({
         get: {
-          [getEndpointsUrl('public')]: Promise.reject('someError'),
+          [getEndpointsUrl('public')]: () => Promise.reject('someError'),
         },
       });
       renderComponent();

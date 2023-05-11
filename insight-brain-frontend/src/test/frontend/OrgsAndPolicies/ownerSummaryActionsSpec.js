@@ -51,7 +51,7 @@ describe('ownerSummarySlice actions', () => {
     it('dispatches rejected action if the permission check fails', (done) => {
       mockAxiosCalls({
         put: {
-          [getPermissionContextTestUrl(mockOwnerType, mockOwnerId)]: Promise.reject('something went wrong'),
+          [getPermissionContextTestUrl(mockOwnerType, mockOwnerId)]: () => Promise.reject('something went wrong'),
         },
       });
 

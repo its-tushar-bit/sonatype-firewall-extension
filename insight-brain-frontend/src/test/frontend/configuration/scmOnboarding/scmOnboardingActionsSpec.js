@@ -339,14 +339,14 @@ describe('scmOnboardingActions', function () {
             }),
           },
           put: {
-            [getPermissionContextTestUrl('organization', 'ownerId')]: Promise.reject('failed call'),
+            [getPermissionContextTestUrl('organization', 'ownerId')]: () => Promise.reject('failed call'),
           },
         };
       });
       authTestFailure('featuresUrl-networkError', 'failed call', () => {
         return {
           get: {
-            [getProductFeaturesUrl()]: Promise.reject('failed call'),
+            [getProductFeaturesUrl()]: () => Promise.reject('failed call'),
           },
           put: {
             [getPermissionContextTestUrl('organization', 'ownerId')]: Promise.resolve({

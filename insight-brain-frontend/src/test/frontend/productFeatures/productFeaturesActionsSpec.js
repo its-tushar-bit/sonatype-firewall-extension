@@ -156,7 +156,7 @@ describe('productFeaturesActions', () => {
     it('dispatches rejected action if load request fails', (done) => {
       mockAxiosCalls({
         get: {
-          [getQuarantinedComponentViewAnonymousAccessEnabledState()]: Promise.reject('rejected'),
+          [getQuarantinedComponentViewAnonymousAccessEnabledState()]: () => Promise.reject('rejected'),
         },
       });
 

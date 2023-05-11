@@ -109,7 +109,7 @@ describe('dashboardResultsActions', function () {
       it('handles failure to load results', function (done) {
         const store = SpecUtil.mockReduxStore(initialState);
         const mockRejection = Promise.reject('load results error');
-        tab.serviceMethod.and.returnValue(mockRejection);
+        tab.serviceMethod.and.callFake(() => mockRejection);
 
         store.dispatch(loadResults(tab.resultsType)).catch(() => {
           expect(store.getActions().length).toBe(2);

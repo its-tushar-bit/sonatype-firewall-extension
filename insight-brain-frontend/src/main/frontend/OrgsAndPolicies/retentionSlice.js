@@ -97,7 +97,7 @@ const loadRetentionFulfilled = (state, { payload }) => {
   }
 
   const appReportsData = payload.entityRetentionData.applicationReports;
-  const { stages } = appReportsData;
+  const stages = appReportsData?.stages ?? {};
   Object.keys(stages).forEach((stage) => {
     const { maxAge, maxCount } = appReportsData.stages[stage];
 
@@ -111,7 +111,7 @@ const loadRetentionFulfilled = (state, { payload }) => {
     state.validationErrors[stage] = { age: null, count: null };
   });
 
-  const successMetricsData = payload.entityRetentionData.successMetrics;
+  const successMetricsData = payload.entityRetentionData?.successMetrics ?? {};
   const age = successMetricsData.maxAge?.toString().split(' ')[0] ?? '';
   state.validationErrors.successMetrics = { age: null, count: null };
   successMetricsData.maxAge = rscInitialState(age);

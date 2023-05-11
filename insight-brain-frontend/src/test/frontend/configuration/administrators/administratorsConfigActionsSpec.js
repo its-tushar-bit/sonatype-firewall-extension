@@ -75,7 +75,7 @@ describe('administratorsConfigActionsSpec', () => {
 
     describe('when not authorized', () => {
       it('does not load configure administrators page', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('Administrator config page: authorization error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('Administrator config page: authorization error'));
         store.dispatch(load()).then(() => {
           const actions = store.getActions();
 
@@ -124,7 +124,7 @@ describe('administratorsConfigActionsSpec', () => {
     it('fires administratorsConfig/loadFetchUsers/rejected action on reject', (done) => {
       mockAxiosCalls({
         get: {
-          [fetchUrl]: Promise.reject('some error'),
+          [fetchUrl]: () => Promise.reject('some error'),
         },
       });
 
@@ -189,7 +189,7 @@ describe('administratorsConfigActionsSpec', () => {
     it('fires administratorsConfig/loadFetchUsers/rejected action on reject', (done) => {
       mockAxiosCalls({
         get: {
-          [fetchUrl]: Promise.reject('some error'),
+          [fetchUrl]: () => Promise.reject('some error'),
         },
       });
 

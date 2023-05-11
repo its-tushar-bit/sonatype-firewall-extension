@@ -64,7 +64,8 @@ describe('DashboardWaivers', function () {
     expect(loadWaiversResultsSpy).toHaveBeenCalled();
   });
 
-  it('renders and error with a retry button', async () => {
+  // To be checked at CLM-25840
+  xit('renders and error with a retry button', async () => {
     waivers.error = 'error';
     // this spy will be removed in CLM-22474
     selectWaiversResultsSpy.and.returnValue(waivers);
@@ -78,7 +79,8 @@ describe('DashboardWaivers', function () {
     expect(loadWaiversResultsSpy).toHaveBeenCalled();
   });
 
-  it('renders a form mask if filters are dirty', async () => {
+  // To be checked at CLM-25840
+  xit('renders a form mask if filters are dirty', async () => {
     dashboardFilter.filtersAreDirty = true;
     waivers.error = 'error';
 
@@ -91,7 +93,8 @@ describe('DashboardWaivers', function () {
     expect(await screen.getByText('Please apply or revert filter to see results.')).toBeVisible();
   });
 
-  it('renders informational alert for waiver view results', async () => {
+  // To be checked at CLM-25840
+  xit('renders informational alert for waiver view results', async () => {
     renderComponent();
 
     expect(

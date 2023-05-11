@@ -245,7 +245,7 @@ describe('firewallActions', function () {
           [licensesOverrideUrl]: Promise.resolve({
             data: { licenseOverridesByOwner: [] },
           }),
-          [erroneusLicensesOverrideUrl]: Promise.reject('error'),
+          [erroneusLicensesOverrideUrl]: () => Promise.reject('error'),
         },
       });
     });
@@ -1248,7 +1248,7 @@ describe('firewallActions', function () {
 
       mockAxiosCalls({
         get: {
-          [componentDetailsUrl]: Promise.reject(mockResponse),
+          [componentDetailsUrl]: () => Promise.reject(mockResponse),
         },
       });
 

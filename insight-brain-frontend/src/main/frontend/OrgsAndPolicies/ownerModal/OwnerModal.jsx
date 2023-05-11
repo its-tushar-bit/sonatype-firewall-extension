@@ -7,7 +7,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import * as PropTypes from 'prop-types';
 
 import { useSelector, useDispatch } from 'react-redux';
-import { isEmpty } from 'ramda';
+import { isEmpty, isNil } from 'ramda';
 import { getRobotUrl } from 'MainRoot/util/CLMLocation';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import {
@@ -87,7 +87,9 @@ export default function OwnerModal({ shouldRedirectToNewOrg }) {
   };
 
   const scrollToBottom = () => {
-    contentRef.current.scrollTop = contentRef.current.scrollHeight;
+    if (!isNil(contentRef.current)) {
+      contentRef.current.scrollTop = contentRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {

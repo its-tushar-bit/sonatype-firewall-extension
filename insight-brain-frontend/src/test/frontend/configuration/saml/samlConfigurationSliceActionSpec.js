@@ -70,7 +70,7 @@ describe('samlConfigurationActions', function () {
 
   describe('when not authorized', () => {
     it('dispatches LOAD_SAML_CONFIGURATION_REQUESTED and LOAD_SAML_CONFIGURATION_FAILED after a failed response', (done) => {
-      spyOn(authorizationUtil, 'checkPermissions').and.returnValue(Promise.reject('Error'));
+      spyOn(authorizationUtil, 'checkPermissions').and.callFake(() => Promise.reject('Error'));
 
       store.dispatch(loadSAMLConfiguration()).then(() => {
         const actions = removeExtraDataFromActions(store.getActions());

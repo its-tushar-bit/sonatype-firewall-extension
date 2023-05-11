@@ -112,7 +112,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
         get: {
           [OrganizationsUrl]: Promise.resolve({ data: organizations }),
           [AutomaticApplicationsConfigurationUrl]: Promise.resolve({ data: automaticApplicationsConfiguration }),
-          [CompositeSourceControlUrl]: Promise.reject(errorMsg),
+          [CompositeSourceControlUrl]: () => Promise.reject(errorMsg),
         },
       });
 
@@ -259,7 +259,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
 
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED on permissions error', function (done) {
       const errorMsg = 'authorization error';
-      checkPermissionsSpy.and.returnValue(Promise.reject(errorMsg));
+      checkPermissionsSpy.and.callFake(() => Promise.reject(errorMsg));
 
       store.dispatch(setParentOrganization('1')).then(() => {
         const actions = store.getActions();
@@ -275,7 +275,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
       const errorMsg = 'error fetching compositeSourceControl';
       mockAxiosCalls({
         get: {
-          [CompositeSourceControlUrl]: Promise.reject(errorMsg),
+          [CompositeSourceControlUrl]: () => Promise.reject(errorMsg),
         },
       });
 

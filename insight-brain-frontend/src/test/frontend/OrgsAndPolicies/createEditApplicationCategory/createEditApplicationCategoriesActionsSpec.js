@@ -577,7 +577,7 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
     it('dispatches reject action if save request fails', (done) => {
       mockAxiosCalls({
         put: {
-          [getCategoriesUrl(mockOwnerType, mockOwnerId)]: Promise.reject('could not save category'),
+          [getCategoriesUrl(mockOwnerType, mockOwnerId)]: () => Promise.reject('could not save category'),
         },
       });
 
@@ -644,9 +644,8 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
 
       mockAxiosCalls({
         del: {
-          [getDeleteCategoriesUrl(mockOwnerType, mockOwnerId, currentCategoryData.id)]: Promise.reject(
-            'failed to delete category'
-          ),
+          [getDeleteCategoriesUrl(mockOwnerType, mockOwnerId, currentCategoryData.id)]: () =>
+            Promise.reject('failed to delete category'),
         },
       });
 

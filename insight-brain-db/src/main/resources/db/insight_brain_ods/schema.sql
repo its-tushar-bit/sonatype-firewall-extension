@@ -655,7 +655,7 @@ INSERT INTO system_configuration_property (system_configuration_property_id, nam
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('dc866d71378a41ce9da2526904bd88e9', 'waivedComponentUpgradeInspectionHour', '1');
 -- Since 1.161
 -- ALP Observed License Detection is enable by default
-INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('bc973eece2b811edb5ea0242ac120002', 'ALP_OBSERVED_LICENSE_DETECTION_ENABLED', 'true');
+INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('531170d2fc694631a05f4d8ab61e53b9', 'alpObservedLicenseDetectionEnabled', 'true');
 
 
 CREATE TABLE data_retention_policy (

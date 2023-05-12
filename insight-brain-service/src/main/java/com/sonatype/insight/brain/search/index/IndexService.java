@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -285,11 +286,14 @@ public class IndexService
               new TenantAwareSupplier<>(() -> buildApplicationDocs(indexingContext, applications)))
           .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
+      TenantAwareFunction<Application, CompletableFuture<Void>> function =
+          new TenantAwareFunction<>(application -> CompletableFuture
+              .supplyAsync(new TenantAwareSupplier<>(() -> buildApplicationSVDocs(indexingContext, application)))
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs)));
       List<CompletableFuture<Void>> appSVDocs = applications
           .parallelStream()
-          .map(new TenantAwareFunction<>(application -> CompletableFuture
-              .supplyAsync(new TenantAwareSupplier<>(() -> buildApplicationSVDocs(indexingContext, application)))
-              .thenAccept(docs -> addDocsWithException(indexWriter, docs)))).collect(toList());
+          .map(function)
+          .collect(toList());
 
       CompletableFuture<Void> tagDocs =
           CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildTagDocs(indexingContext)))

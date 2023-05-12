@@ -50,6 +50,7 @@
 @use 'dashboard';
 @use '../labs/labs';
 @use '../configuration/configuration';
+@use '../integrations/integrations';
 @use 'policy-editor';
 @use '../owner.manager/summary/owner.summary.view';
 @use '../OrgsAndPolicies/repositories/repositoriesSummaryView';

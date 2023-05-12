@@ -11,6 +11,7 @@ import CLMLocationModule from './util/CLMLocation';
 import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './utilAngular/HttpInterceptors';
 import IqHttpInterceptorsModule from './utilAngular/IqHttpInterceptors';
 import configurationModule, { GETTING_STARTED_STATE } from './configuration/module';
+import integrationsModule from './integrations/module';
 import {
   DEPARTED_ACTION,
   REDIRECTED_ACTION,
@@ -83,6 +84,7 @@ export const InitModule = angular
       configurationModule.name,
       loginModalModule.name,
       toastContainerModule.name,
+      integrationsModule.name,
     ],
     [
       '$stateProvider',

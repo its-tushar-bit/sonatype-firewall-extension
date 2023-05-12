@@ -63,8 +63,8 @@ public class SecurityModule
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class).in(Singleton.class);
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
     bindRealm().to(InternalRealm.class);
-    bindRealm().to(LdapRealm.class);
     bindRealm().to(UserTokenRealm.class);
+    bindRealm().to(LdapRealm.class);
     bindRealm().to(CrowdRealm.class);
     bindRealm().to(ReverseProxyRealm.class);
     bindRealm().to(SamlRealm.class);

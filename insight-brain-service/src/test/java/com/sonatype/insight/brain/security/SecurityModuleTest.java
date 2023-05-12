@@ -6,11 +6,15 @@
 package com.sonatype.insight.brain.security;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import com.google.inject.Binder;
 import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.realm.Realm;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.junit.Test;
 
@@ -32,5 +36,16 @@ public class SecurityModuleTest
   public void testRememberMeManagerIsNullToAvoidDeserializationVuln() {
     // CLM-6473
     assertThat(((DefaultWebSecurityManager) securityManager).getRememberMeManager()).isNull();
+  }
+
+  @Test
+  public void testCheckRealmsOrdering() {
+    List<Realm> realmsList = new ArrayList<>(((DefaultWebSecurityManager) securityManager).getRealms());
+    assertThat(realmsList.get(0)).isInstanceOf(InternalRealm.class);
+    assertThat(realmsList.get(1)).isInstanceOf(UserTokenRealm.class);
+    assertThat(realmsList.get(2)).isInstanceOf(LdapRealm.class);
+    assertThat(realmsList.get(3)).isInstanceOf(CrowdRealm.class);
+    assertThat(realmsList.get(4)).isInstanceOf(ReverseProxyRealm.class);
+    assertThat(realmsList.get(5)).isInstanceOf(SamlRealm.class);
   }
 }

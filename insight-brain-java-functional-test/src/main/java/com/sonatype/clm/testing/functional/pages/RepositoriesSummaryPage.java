@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
-import com.sonatype.clm.testing.functional.elements.PillButton;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
@@ -37,21 +36,5 @@ public class RepositoriesSummaryPage
 
   public static NamespaceConfusionProtectionTile namespaceConfusionProtectionTile() {
     return new NamespaceConfusionProtectionTile();
-  }
-
-  public static PillButton repositoriesPillConfigurationButton() {
-    return new PillButton("#repositories-pill-configuration-button");
-  }
-
-  public static PillButton policyPillButton() {
-    return new PillButton("#owner-pill-policy-button");
-  }
-
-  public static PillButton accessPillButton() {
-    return new PillButton("#access-tile-pill-access-button");
-  }
-
-  public static PillButton namespaceConfusionProtectionPillButton() {
-    return new PillButton("#namespace-confusion-protection-pill-configuration-button");
   }
 }

@@ -29,21 +29,3 @@
     grid-column: span 4;
   }
 }
-
-#repository-page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-
-  #repositories-summary {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  #scrollable-content:nth-last-child(1) {
-    padding-bottom: var(--nx-spacing-20x);
-    margin-bottom: var(--nx-spacing-20x);
-  }
-}

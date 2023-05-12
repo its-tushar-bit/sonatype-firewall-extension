@@ -88,10 +88,7 @@ const NamespaceConfusionProtectionTile = () => {
   };
 
   return (
-    <NxTile
-      id="namespace-confusion-protection-pill-configuration"
-      data-testid="namespace-confusion-protection-pill-configuration"
-    >
+    <NxTile id="repositories-pill-configurations" data-testid="repositories-pill-configurations">
       <NxTile.Header>
         <NxTile.HeaderTitle>
           <NxH2>Namespace Confusion Protection</NxH2>

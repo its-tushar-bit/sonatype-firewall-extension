@@ -15,7 +15,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class NamespaceConfusionProtectionTile
     extends BasicElement<NamespaceConfusionProtectionTile>
 {
-  private static final String CONFIGURATION_TILE_SELECTOR = "#namespace-confusion-protection-pill-configuration";
+  private static final String CONFIGURATION_TILE_SELECTOR = "#repositories-pill-configurations";
   
   private static final String ROW_SELECTOR = ".nx-table tbody .nx-table-row";
 

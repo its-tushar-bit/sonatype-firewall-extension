@@ -49,8 +49,8 @@ import org.junit.Test;
 import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Condition.*;
-import static org.assertj.core.api.Assertions.assertThat;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CreateOwnerTest
     extends AbstractFunctionalTest
@@ -65,7 +65,7 @@ public class CreateOwnerTest
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
-  private static Organization parentOrg;
+  private Organization parentOrg;
 
   private static final int IMAGE_RESIZE_WIDTH = 52;
 
@@ -73,13 +73,13 @@ public class CreateOwnerTest
 
   @BeforeClass
   public static void beforeClass() {
-    parentOrg = staticTempEntity.newOrganization("Parent");
     refreshOrOpen(OwnerSummaryPage.url());
     loginAsAdmin();
   }
 
   @Before
   public void init() {
+    parentOrg = tempEntity.newOrganization("Parent");
     refreshOrOpen(OwnerSummaryPage.url());
   }
 

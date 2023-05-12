@@ -287,9 +287,9 @@ public class IndexService
 
       List<CompletableFuture<Void>> appSVDocs = applications
           .parallelStream()
-          .map(application -> CompletableFuture
+          .map(new TenantAwareFunction<>(application -> CompletableFuture
               .supplyAsync(new TenantAwareSupplier<>(() -> buildApplicationSVDocs(indexingContext, application)))
-              .thenAccept(docs -> addDocsWithException(indexWriter, docs))).collect(toList());
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs)))).collect(toList());
 
       CompletableFuture<Void> tagDocs =
           CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildTagDocs(indexingContext)))

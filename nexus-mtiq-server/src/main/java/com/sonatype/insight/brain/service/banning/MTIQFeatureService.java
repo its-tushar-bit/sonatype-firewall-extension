@@ -35,7 +35,6 @@ import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemC
 import static com.sonatype.insight.brain.features.NonLicensedFeature.REPORTS_LIST;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
@@ -64,6 +63,7 @@ public class MTIQFeatureService
               MULTI_TENANT,
               LOGOUT_AUTH0_ON_LOGOUT,
               WEBHOOK_CONFIGURATION,
+              ADVANCED_SEARCH_CONFIGURATION,
               AUTOMATIC_SCM_CONFIGURATION,
               DEFAULT_BRANCH_MONITORING,
               PR_COMMENTING,
@@ -175,7 +175,6 @@ public class MTIQFeatureService
     log.info("Enabling/Disabling user configurable features for tenant {}", getTenant());
 
     set(PROPERTY_ENABLED, false);
-    set(ADVANCED_SEARCH_ENABLED, false);
     set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, true);
     set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, false);
   }

@@ -10,7 +10,6 @@ import java.util.List;
 import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiSourceControlConfigurationResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
-import com.sonatype.insight.brain.search.AdvancedSearchResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsResource;
 
@@ -29,7 +28,6 @@ public class TemporarilyBannedRestResources
       LdapResource.class,
       ApiProxyServerConfigurationResource.class,
       SuccessMetricsResource.class,
-      AdvancedSearchResource.class,
       ApiSourceControlConfigurationResource.class
   );
 

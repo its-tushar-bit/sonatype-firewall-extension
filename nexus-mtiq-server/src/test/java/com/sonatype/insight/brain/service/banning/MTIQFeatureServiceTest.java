@@ -31,7 +31,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.*;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
@@ -74,7 +73,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(21)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(20)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
 
     List<String> flagsSet = propertyKeyCaptor.getAllValues();
 
@@ -86,7 +85,6 @@ public class MTIQFeatureServiceTest
     underTest.register();
 
     verify(systemConfigurationPropertyDAO).set(PROPERTY_ENABLED, "false");
-    verify(systemConfigurationPropertyDAO).set(ADVANCED_SEARCH_ENABLED, "false");
     verify(systemConfigurationPropertyDAO).set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, "true");
     verify(systemConfigurationPropertyDAO).set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, "false");
   }
@@ -190,6 +188,7 @@ public class MTIQFeatureServiceTest
         .filter(f -> !f.equals(DEFAULT_BRANCH_MONITORING))
         .filter(f -> !f.equals(PR_COMMENTING))
         .filter(f -> !f.equals(PR_LINE_COMMENTING))
+        .filter(f -> !f.equals(ADVANCED_SEARCH_CONFIGURATION))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
         .collect(Collectors.toList()).toArray(new String[]{});
   }

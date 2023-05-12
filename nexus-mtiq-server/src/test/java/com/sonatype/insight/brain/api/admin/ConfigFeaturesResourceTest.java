@@ -40,7 +40,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
         SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId()
+        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId()
     );
   }
 
@@ -60,7 +61,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
         SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId()
+        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId()
     );
   }
 

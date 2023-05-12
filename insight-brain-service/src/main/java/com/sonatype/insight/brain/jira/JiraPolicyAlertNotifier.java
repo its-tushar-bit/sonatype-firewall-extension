@@ -14,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -37,6 +36,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -116,87 +116,83 @@ public class JiraPolicyAlertNotifier
 
     log.debug("Sending JIRA notifications for application: {}, scan: {}, stage: {}", app.getId(), scanId, stage);
 
-    new Thread("PolicyAlertJIRANotifierForScan-" + scanId)
-    {
-      @Override
-      public void run() {
-        Map<String, Object> customFields = jiraConfiguration.getCustomFields();
+    new Thread(new TenantAwareOneTimeRunnable(() -> {
+      Map<String, Object> customFields = jiraConfiguration.getCustomFields();
 
-        Map<JiraNotification, List<PolicyFact>> policyFactsByJiraNotifications = getPolicyFactsByJiraNotifications(
-            policyNotifications);
+      Map<JiraNotification, List<PolicyFact>> policyFactsByJiraNotifications = getPolicyFactsByJiraNotifications(
+          policyNotifications);
 
-        if (policyFactsByJiraNotifications.isEmpty()) {
-          log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}"
-              + ", no JIRA projects configured for any violated policy", app.getPublicId(), scanId, stage);
-          return;
-        }
+      if (policyFactsByJiraNotifications.isEmpty()) {
+        log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}"
+            + ", no JIRA projects configured for any violated policy", app.getPublicId(), scanId, stage);
+        return;
+      }
 
-        ContactDTO appContact =
-            ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
-        for (final Entry<JiraNotification, List<PolicyFact>> policyFactsByJiraNotification :
-            policyFactsByJiraNotifications.entrySet()) {
-          try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.CREATE_JIRA_ISSUE)) {
-            JiraNotification jiraNotification = policyFactsByJiraNotification.getKey();
-            List<PolicyFact> policyFacts = policyFactsByJiraNotification.getValue();
+      ContactDTO appContact =
+          ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
+      for (final Entry<JiraNotification, List<PolicyFact>> policyFactsByJiraNotification :
+          policyFactsByJiraNotifications.entrySet()) {
+        try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.CREATE_JIRA_ISSUE)) {
+          JiraNotification jiraNotification = policyFactsByJiraNotification.getKey();
+          List<PolicyFact> policyFacts = policyFactsByJiraNotification.getValue();
 
-            try {
-              AuditData.get().setApplication(app).setScanId(scanId).setStageId(stage.getStageTypeId());
-              JiraIssueCreateRequest request = new JiraIssueCreateRequest();
+          try {
+            AuditData.get().setApplication(app).setScanId(scanId).setStageId(stage.getStageTypeId());
+            JiraIssueCreateRequest request = new JiraIssueCreateRequest();
 
-              // include optional fields; before we add more specific details
-              if (customFields != null) {
-                request.getFields().putAll(customFields);
-              }
-
-              request.project(jiraNotification.getProjectKey());
-              request.issueType(jiraNotification.getIssueTypeId());
-
-              final PolicyAlertCounts counts = new PolicyAlertCounts(policyFacts);
-
-              AuditData.get().setData("jiraProjectKey", jiraNotification.getProjectKey())
-                  .setData("jiraIssueTypeId", jiraNotification.getIssueTypeId())
-                  .setData("totalPolicyViolationCount", counts.getTotal());
-
-              request.summary(String
-                  .format("Nexus IQ: Application %s; %s stage; %d Policy alerts", app.getName(), stage.getStageName(),
-                      counts.getTotal()));
-              request.description(
-                  createDescription(app, appContact, scanId, stage, counts, policyFacts,
-                      isCloudDeployment(jiraConfiguration)));
-
-              log.debug("Creating JIRA issue: {}", request);
-              JiraClient client = jiraService.client(jiraConfiguration);
-              JiraIssueCreateResponse response = client.createIssue(request, isCloudDeployment(jiraConfiguration));
-              log.info("Created JIRA issue: {}", response.getKey());
+            // include optional fields; before we add more specific details
+            if (customFields != null) {
+              request.getFields().putAll(customFields);
             }
-            catch (Exception e) {
-              AuditData.get().setException(e);
-              log.error(
-                  "Failed to create JIRA notification for JIRA project key " + jiraNotification.getProjectKey() +
-                      " and JIRA issue type id " + jiraNotification.getIssueTypeId() + ". Failed for application " +
-                      app.getPublicId() + " and scan " + scanId + " in stage " + stage.getStageTypeId(), e);
-            }
+
+            request.project(jiraNotification.getProjectKey());
+            request.issueType(jiraNotification.getIssueTypeId());
+
+            final PolicyAlertCounts counts = new PolicyAlertCounts(policyFacts);
+
+            AuditData.get().setData("jiraProjectKey", jiraNotification.getProjectKey())
+                .setData("jiraIssueTypeId", jiraNotification.getIssueTypeId())
+                .setData("totalPolicyViolationCount", counts.getTotal());
+
+            request.summary(String
+                .format("Nexus IQ: Application %s; %s stage; %d Policy alerts", app.getName(), stage.getStageName(),
+                    counts.getTotal()));
+            request.description(
+                createDescription(app, appContact, scanId, stage, counts, policyFacts,
+                    isCloudDeployment(jiraConfiguration)));
+
+            log.debug("Creating JIRA issue: {}", request);
+            JiraClient client = jiraService.client(jiraConfiguration);
+            JiraIssueCreateResponse response = client.createIssue(request, isCloudDeployment(jiraConfiguration));
+            log.info("Created JIRA issue: {}", response.getKey());
+          }
+          catch (Exception e) {
+            AuditData.get().setException(e);
+            log.error(
+                "Failed to create JIRA notification for JIRA project key " + jiraNotification.getProjectKey() +
+                    " and JIRA issue type id " + jiraNotification.getIssueTypeId() + ". Failed for application " +
+                    app.getPublicId() + " and scan " + scanId + " in stage " + stage.getStageTypeId(), e);
           }
         }
       }
+    }), "PolicyAlertJIRANotifierForScan-" + scanId).start();
+  }
 
-      private Object createDescription(
-          final Application app,
-          final ContactDTO appContact,
-          final String scanId,
-          final Stage stage,
-          final PolicyAlertCounts counts,
-          final List<PolicyFact> policyFacts,
-          final boolean cloudDeployment) throws IOException
-      {
-        if (cloudDeployment) {
-          return adfBuilder.createDescription(app, appContact, scanId, stage, counts, policyFacts);
-        }
-        // render description from template; prepare template parameters with appropriate details
-        Map<String, Object> params = createPolicyMailModel(app, appContact, scanId, stage, counts, policyFacts);
-        return TemplateUtils.render(descriptionTemplate, params);
-      }
-    }.start();
+  private Object createDescription(
+      final Application app,
+      final ContactDTO appContact,
+      final String scanId,
+      final Stage stage,
+      final PolicyAlertCounts counts,
+      final List<PolicyFact> policyFacts,
+      final boolean cloudDeployment) throws IOException
+  {
+    if (cloudDeployment) {
+      return adfBuilder.createDescription(app, appContact, scanId, stage, counts, policyFacts);
+    }
+    // render description from template; prepare template parameters with appropriate details
+    Map<String, Object> params = createPolicyMailModel(app, appContact, scanId, stage, counts, policyFacts);
+    return TemplateUtils.render(descriptionTemplate, params);
   }
 
   // Visible for tests

@@ -98,137 +98,137 @@ public class DashboardFilterTest
   private static final ComponentIdentifier DEFAULT_COMPONENT_IDENTIFIER = createMavenCoordinates("Group1", "Artifact1",
       "Version1");
 
-  private static final ApplicationDAO appDAO = new ApplicationDAO();
+  private final ApplicationDAO appDAO = new ApplicationDAO();
 
-  private static final OrganizationDAO orgDAO = new OrganizationDAO();
+  private final OrganizationDAO orgDAO = new OrganizationDAO();
 
-  private static Organization rootOrg;
+  private Organization rootOrg;
 
-  private static Organization parentOrg;
+  private Organization parentOrg;
 
-  private static Organization org;
+  private Organization org;
 
-  private static Application firstApp;
+  private Application firstApp;
 
-  private static Repository repository1;
+  private Repository repository1;
 
-  private static Repository repository2;
+  private Repository repository2;
 
-  private static Tag firstAppCategory1;
+  private Tag firstAppCategory1;
 
-  private static Tag firstAppCategory2;
+  private Tag firstAppCategory2;
 
-  private static Application secondApp;
+  private Application secondApp;
 
-  private static Policy policy;
+  private Policy policy;
 
   @BeforeClass
   public static void beforeClass() {
-    setupData();
     refreshOrOpen(DashboardPage.urlToViolations());
     loginAsAdmin();
   }
 
-  private static void setupData() {
+  private void setupData() {
     rootOrg = orgDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    repository1 = staticTempEntity.newRepository("Repository 1");
-    repository2 = staticTempEntity.newRepository("Repository 2");
-    parentOrg = staticTempEntity.newOrganization("ParentOrgTest");
-    org = staticTempEntity.newOrganization("DashboardTest", parentOrg);
-    staticTempEntity.newOrganization("DashboardTestEmptyOrg");
-    firstApp = staticTempEntity.newApplication("DashboardTestAppOne", "DashboardTestAppOne", org.getId());
-    firstAppCategory1 = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory1", Color.dark_blue);
-    firstAppCategory2 = staticTempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory2", Color.dark_red);
-    staticTempEntity.newApplicationTag(firstApp.getId(), firstAppCategory1.getId());
-    staticTempEntity.newApplicationTag(firstApp.getId(), firstAppCategory2.getId());
+    repository1 = tempEntity.newRepository("Repository 1");
+    repository2 = tempEntity.newRepository("Repository 2");
+    parentOrg = tempEntity.newOrganization("ParentOrgTest");
+    org = tempEntity.newOrganization("DashboardTest", parentOrg);
+    tempEntity.newOrganization("DashboardTestEmptyOrg");
+    firstApp = tempEntity.newApplication("DashboardTestAppOne", "DashboardTestAppOne", org.getId());
+    firstAppCategory1 = tempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory1", Color.dark_blue);
+    firstAppCategory2 = tempEntity.newTag(org.getId(), "DashboardSpecAppOneCategory2", Color.dark_red);
+    tempEntity.newApplicationTag(firstApp.getId(), firstAppCategory1.getId());
+    tempEntity.newApplicationTag(firstApp.getId(), firstAppCategory2.getId());
 
-    secondApp = staticTempEntity.newApplication("DashboardTestAppTwo", "DashboardTestAppTwo", org.getId());
+    secondApp = tempEntity.newApplication("DashboardTestAppTwo", "DashboardTestAppTwo", org.getId());
 
-    policy = staticTempEntity.newPolicy(org.getId(), "DashboardTestPolicy");
-    Organization levelOneOrg = staticTempEntity.newOrganization("Level 1 Org");
-    Organization levelTwoOrg = staticTempEntity.newOrganization("Level 2 Org", levelOneOrg);
-    Organization levelThreeOrg = staticTempEntity.newOrganization("Level 3 Org", levelTwoOrg);
-    Organization levelFourOrg = staticTempEntity.newOrganization("Level 4 Org", levelThreeOrg);
-    Organization levelFiveOrg = staticTempEntity.newOrganization("Level 5 Org", levelFourOrg);
+    policy = tempEntity.newPolicy(org.getId(), "DashboardTestPolicy");
+    Organization levelOneOrg = tempEntity.newOrganization("Level 1 Org");
+    Organization levelTwoOrg = tempEntity.newOrganization("Level 2 Org", levelOneOrg);
+    Organization levelThreeOrg = tempEntity.newOrganization("Level 3 Org", levelTwoOrg);
+    Organization levelFourOrg = tempEntity.newOrganization("Level 4 Org", levelThreeOrg);
+    Organization levelFiveOrg = tempEntity.newOrganization("Level 5 Org", levelFourOrg);
 
-    staticTempEntity.newApplication("Level 1 App", "Level1App", levelOneOrg.getId());
-    staticTempEntity.newApplication("Level 2 App", "Level2App", levelTwoOrg.getId());
-    staticTempEntity.newApplication("Level 3 App", "Level3App", levelThreeOrg.getId());
-    staticTempEntity.newApplication("Level 4 App", "Level4App", levelFourOrg.getId());
-    staticTempEntity.newApplication("Level 5 App", "Level5App", levelFiveOrg.getId());
+    tempEntity.newApplication("Level 1 App", "Level1App", levelOneOrg.getId());
+    tempEntity.newApplication("Level 2 App", "Level2App", levelTwoOrg.getId());
+    tempEntity.newApplication("Level 3 App", "Level3App", levelThreeOrg.getId());
+    tempEntity.newApplication("Level 4 App", "Level4App", levelFourOrg.getId());
+    tempEntity.newApplication("Level 5 App", "Level5App", levelFiveOrg.getId());
 
     DateTime now = DateTime.now();
     Instant seeDate = Instant.now();
 
     //first evaluation dated a week ago
-    PolicyEvaluation firstPolicyEvaluation = staticTempEntity
+    PolicyEvaluation firstPolicyEvaluation = tempEntity
         .newPolicyEvaluation(firstApp.getId(), BuildStageType.ID, "DashboardTestFirstEvaluation",
             now.minusDays(7).toDate());
-    PolicyViolation firstViolation = staticTempEntity
+    PolicyViolation firstViolation = tempEntity
         .newPolicyViolation(firstPolicyEvaluation, policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1",
             "Version1", "hash", FailActionType.ID);
-    staticTempEntity
+    tempEntity
         .newApplicationComponent(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getStageTypeId(),
             firstViolation.getHash(), DEFAULT_COMPONENT_IDENTIFIER);
-    staticTempEntity
+    tempEntity
         .newApplicationComponent(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getStageTypeId(),
             "987654321", MatchState.SIMILAR, false);
-    staticTempEntity
+    tempEntity
         .newApplicationComponent(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getStageTypeId(),
             "987654322", MatchState.UNKNOWN, false);
 
     //same policy as first evaluation, but a different stage and earlier
-    PolicyEvaluation firstPolicyEvaluationSecondStage = staticTempEntity.newPolicyEvaluation(firstApp.getId(),
+    PolicyEvaluation firstPolicyEvaluationSecondStage = tempEntity.newPolicyEvaluation(firstApp.getId(),
         StageReleaseStageType.ID, "DashboardTestFirstEvaluationSecondStage", now.minusDays(14).toDate());
-    PolicyViolation firstViolationSecondStage = staticTempEntity.newPolicyViolation(firstPolicyEvaluationSecondStage,
+    PolicyViolation firstViolationSecondStage = tempEntity.newPolicyViolation(firstPolicyEvaluationSecondStage,
         policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", WarnActionType.ID);
-    staticTempEntity.newApplicationComponent(firstPolicyEvaluationSecondStage.getApplicationId(),
+    tempEntity.newApplicationComponent(firstPolicyEvaluationSecondStage.getApplicationId(),
         firstPolicyEvaluationSecondStage.getStageTypeId(), firstViolationSecondStage.getHash(),
         DEFAULT_COMPONENT_IDENTIFIER);
 
     // evaluation in yet another stage
-    PolicyEvaluation thirdPolicyEvaluation = staticTempEntity.newPolicyEvaluation(firstApp.getId(), ReleaseStageType.ID,
+    PolicyEvaluation thirdPolicyEvaluation = tempEntity.newPolicyEvaluation(firstApp.getId(), ReleaseStageType.ID,
         "DashboardTestThirdEvaluation", now.minusDays(8).toDate());
-    staticTempEntity.newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY, "Group1",
+    tempEntity.newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY, "Group1",
         "Artifact1", "Version1");
 
     // and one more stage to cover them all
-    PolicyEvaluation forthPolicyEvaluation = staticTempEntity.newPolicyEvaluation(firstApp.getId(), OperateStageType.ID,
+    PolicyEvaluation forthPolicyEvaluation = tempEntity.newPolicyEvaluation(firstApp.getId(), OperateStageType.ID,
         "DashboardTestForthEvaluation", now.minusDays(9).toDate());
-    staticTempEntity.newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER, "Group1",
+    tempEntity.newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER, "Group1",
         "Artifact1", "Version1");
 
     //most recent evaluation
-    PolicyEvaluation secondPolicyEvaluation = staticTempEntity
+    PolicyEvaluation secondPolicyEvaluation = tempEntity
         .newPolicyEvaluation(secondApp.getId(), ReleaseStageType.ID,
             "DashboardTestSecondEvaluation", now.minusDays(1).toDate());
-    staticTempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10, PolicyThreatCategory.QUALITY);
+    tempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10, PolicyThreatCategory.QUALITY);
 
-    PolicyWaiver policyWaiver = staticTempEntity.newWaiver("hash-waived", policy.getId(), secondApp.getId());
-    staticTempEntity.newWaiver("hash-waived-2", policy.getId(), secondApp.getId(), "",
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash-waived", policy.getId(), secondApp.getId());
+    tempEntity.newWaiver("hash-waived-2", policy.getId(), secondApp.getId(), "",
         Date.from(seeDate.plus(5, ChronoUnit.DAYS)));
-    staticTempEntity.newWaiver("hash-waived-3", policy.getId(), Organization.ROOT_ORGANIZATION_ID, "",
+    tempEntity.newWaiver("hash-waived-3", policy.getId(), Organization.ROOT_ORGANIZATION_ID, "",
         Date.from(seeDate.plus(6, ChronoUnit.DAYS)));
-    staticTempEntity.newWaiver("hash-waived-3", policy.getId(), org.getId(), "",
+    tempEntity.newWaiver("hash-waived-3", policy.getId(), org.getId(), "",
         Date.from(seeDate.plus(7, ChronoUnit.DAYS)));
-    staticTempEntity.newWaiver("hash-waived-4", policy.getId(), firstApp.getId(), "",
+    tempEntity.newWaiver("hash-waived-4", policy.getId(), firstApp.getId(), "",
         Date.from(seeDate.plus(8, ChronoUnit.DAYS)));
-    staticTempEntity.newWaiver("hash-waived-5", policy.getId(), repository1.getId(), "",
+    tempEntity.newWaiver("hash-waived-5", policy.getId(), repository1.getId(), "",
         Date.from(seeDate.plus(9, ChronoUnit.DAYS)));
-    staticTempEntity.newWaiver("hash-waived-6", policy.getId(), repository2.getId(), "",
+    tempEntity.newWaiver("hash-waived-6", policy.getId(), repository2.getId(), "",
         Date.from(seeDate.plus(9, ChronoUnit.DAYS)));
-    staticTempEntity.newWaiver("hash-waived-7", policy.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID, "",
+    tempEntity.newWaiver("hash-waived-7", policy.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID, "",
         Date.from(seeDate.plus(12, ChronoUnit.DAYS)));
-    staticTempEntity.newWaivedPolicyViolation(secondPolicyEvaluation, policy, 3, PolicyThreatCategory.QUALITY,
+    tempEntity.newWaivedPolicyViolation(secondPolicyEvaluation, policy, 3, PolicyThreatCategory.QUALITY,
         ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "Version2"), "hash-waived", policyWaiver);
 
-    Policy grandfatherPolicy = staticTempEntity.newPolicy(org.getId(), "GrandfatherTestPolicy");
-    staticTempEntity.newGrandfatheredPolicyViolation(secondPolicyEvaluation, grandfatherPolicy,
+    Policy grandfatherPolicy = tempEntity.newPolicy(org.getId(), "GrandfatherTestPolicy");
+    tempEntity.newGrandfatheredPolicyViolation(secondPolicyEvaluation, grandfatherPolicy,
         ComponentIdentifier.createMavenCoordinates("Group3", "ArtifactGrandfather", "Version3"), "hash-grandfathered");
   }
 
   @Before
   public void before() {
+    setupData();
     refreshOrOpen(DashboardPage.urlToViolations());
   }
 
@@ -1106,11 +1106,10 @@ public class DashboardFilterTest
     results.applications().shouldHaveSize(2);
 
     // add new App to same Org
-    Application thirdApp = staticTempEntity.newApplication("DashboardTestAppThree", "DashboardTestAppThree",
-        org.getId());
-    PolicyEvaluation appThreePolicyEvaluation = staticTempEntity.newPolicyEvaluation(thirdApp.getId(),
-        BuildStageType.ID, "DashboardTestEvaluationForAppThree", DateTime.now().minusDays(1).toDate());
-    staticTempEntity.newPolicyViolation(appThreePolicyEvaluation, policy, 5, PolicyThreatCategory.LICENSE, "Group1",
+    Application thirdApp = tempEntity.newApplication("DashboardTestAppThree", "DashboardTestAppThree", org.getId());
+    PolicyEvaluation appThreePolicyEvaluation = tempEntity.newPolicyEvaluation(thirdApp.getId(), BuildStageType.ID,
+        "DashboardTestEvaluationForAppThree", DateTime.now().minusDays(1).toDate());
+    tempEntity.newPolicyViolation(appThreePolicyEvaluation, policy, 5, PolicyThreatCategory.LICENSE, "Group1",
         "Artifact1", "Version1", "hash", FailActionType.ID);
 
     // new App should be included in results

@@ -12,7 +12,6 @@ describe('LegalApplicationDetailsFilter', function () {
   const toggleFilterSidebarSpy = jasmine.createSpy('toggleFiltersDropdown');
 
   const filterData = {
-    licenseThreatGroups: ['Liberal', 'Weak Copyleft'],
     selected: {
       licenseThreatGroups: new Set(),
       progressOptions: new Set(),
@@ -22,6 +21,9 @@ describe('LegalApplicationDetailsFilter', function () {
   beforeEach(function () {
     minimalProps = {
       ...filterData,
+      components: {
+        licenseThreatGroups: ['Liberal', 'Weak Copyleft'],
+      },
       toggleFilterSidebar: toggleFilterSidebarSpy,
     };
 

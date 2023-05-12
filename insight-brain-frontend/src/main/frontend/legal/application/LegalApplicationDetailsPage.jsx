@@ -6,7 +6,6 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
-import { chain, map, pipe, prop, uniq } from 'ramda';
 import {
   NxButton,
   NxFilterInput,
@@ -18,7 +17,6 @@ import {
   NxTableRow,
 } from '@sonatype/react-shared-components';
 import { Messages } from '../../utilAngular/CommonServices';
-import { getLicenseThreatGroupsFromLicense } from '../legalUtility';
 import LegalApplicationDetailsComponentRow from './LegalApplicationDetailsComponentRow';
 import LegalApplicationDetailsFilterContainer from './filter/LegalApplicationDetailsFilterContainer';
 import { faFilter } from '@fortawesome/pro-solid-svg-icons';
@@ -52,22 +50,13 @@ export default function LegalApplicationDetailsPage(props) {
     }
   }, [applicationPublicId, stageTypeId]);
 
-  const getLicenseThreatGroupsFromComponents = pipe(
-    chain(prop('licenses')),
-    chain(getLicenseThreatGroupsFromLicense),
-    map(prop('licenseThreatGroupName')),
-    uniq
-  );
-
-  const licenseThreatGroups = getLicenseThreatGroupsFromComponents(components.results);
-
   const errorLoading = application.error || stageType.error;
 
   const allOrNoFilterOptionsSelected = (selectedFilter, totalOptions) =>
     selectedFilter.size === totalOptions || selectedFilter.size === 0;
 
   const showDirtyAsterisk =
-    !allOrNoFilterOptionsSelected(selected.licenseThreatGroups, licenseThreatGroups.length) ||
+    !allOrNoFilterOptionsSelected(selected.licenseThreatGroups, components.licenseThreatGroups.length) ||
     !allOrNoFilterOptionsSelected(selected.progressOptions, expandedProgressOptions.length);
 
   const componentSortOrder = sort.column === 'component' ? sort.sortOrder : null;
@@ -106,7 +95,7 @@ export default function LegalApplicationDetailsPage(props) {
         retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
       >
         <MenuBarBackButton href={$state.href('legal.dashboard')} text="Back" />
-        {filterSidebarOpen && <LegalApplicationDetailsFilterContainer licenseThreatGroups={licenseThreatGroups} />}
+        {filterSidebarOpen && <LegalApplicationDetailsFilterContainer />}
         <div className="nx-page-title">
           <h1 className="nx-h1">{application.name} Obligations</h1>
           <div className="nx-btn-bar">
@@ -237,6 +226,7 @@ LegalApplicationDetailsPage.propTypes = {
     filteredResults: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
     loading: PropTypes.bool,
     error: LoadWrapper.propTypes.error,
+    licenseThreatGroups: PropTypes.array,
     results: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
   }),
   componentFilter: PropTypes.string,

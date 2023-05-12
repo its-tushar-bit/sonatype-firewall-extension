@@ -45,6 +45,7 @@ describe('legalApplicationDetailsReducer', function () {
       expect(newState.components).toEqual({
         results: [],
         filteredResults: [],
+        licenseThreatGroups: [],
         error: null,
         loading: false,
       });
@@ -276,26 +277,163 @@ describe('legalApplicationDetailsReducer', function () {
   });
 
   describe('LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED action', function () {
-    it('updates components state with data', function () {
+    it('updates components state with appropriate data', function () {
       const state = Object.freeze({
         components: {
           results: [],
+          licenseThreatGroups: [],
           error: null,
           loading: true,
         },
+        selected: {
+          licenseThreatGroups: new Set(),
+        },
         other: otherObject,
       });
+
+      const payload = Object.freeze([
+        {
+          licenses: [
+            {
+              licenseThreatGroups: [{ licenseThreatGroupName: 'a' }, { licenseThreatGroupName: 'b' }],
+            },
+            {
+              licenseThreatGroups: [{ licenseThreatGroupName: 'c' }],
+            },
+          ],
+        },
+        {
+          licenses: [
+            {
+              licenseThreatGroups: [{ licenseThreatGroupName: 'a' }],
+            },
+            {
+              licenseThreatGroups: [{ licenseThreatGroupName: 'd' }],
+            },
+          ],
+        },
+      ]);
+
       const action = {
         type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
-        payload: [1, 2, 3],
+        payload,
       };
+
       const newState = legalApplicationDetailsReducer(state, action);
+
       expect(newState.components).toEqual({
-        results: [1, 2, 3],
-        filteredResults: [1, 2, 3],
+        results: payload,
+        filteredResults: payload,
+        licenseThreatGroups: ['a', 'b', 'c', 'd'],
         error: null,
         loading: false,
       });
+
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('assigns licenseThreatGroups, including the "No LTG Assigned"', function () {
+      const state = Object.freeze({
+        components: {
+          results: [],
+          licenseThreatGroups: [],
+          error: null,
+          loading: true,
+        },
+        selected: {
+          licenseThreatGroups: new Set(),
+        },
+        other: otherObject,
+      });
+
+      const payload = Object.freeze([
+        {
+          licenses: [
+            {
+              licenseThreatGroups: [{ licenseThreatGroupName: 'a' }, { licenseThreatGroupName: 'b' }],
+            },
+          ],
+        },
+        {
+          licenses: [
+            {
+              licenseName: 'hi',
+            },
+          ],
+        },
+      ]);
+
+      const action = {
+        type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
+        payload,
+      };
+
+      const newState = legalApplicationDetailsReducer(state, action);
+
+      expect(newState.components).toEqual({
+        results: payload,
+        filteredResults: payload,
+        licenseThreatGroups: ['a', 'b', 'No LTG Assigned'],
+        error: null,
+        loading: false,
+      });
+
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('filters selected licenseThreatGroups', function () {
+      const state = Object.freeze({
+        components: {
+          results: [],
+          licenseThreatGroups: [],
+          error: null,
+          loading: true,
+        },
+        selected: {
+          licenseThreatGroups: new Set(['a', 'x', 'y']),
+        },
+        other: otherObject,
+      });
+
+      const payload = Object.freeze([
+        {
+          licenses: [
+            {
+              licenseThreatGroups: [{ licenseThreatGroupName: 'a' }, { licenseThreatGroupName: 'b' }],
+            },
+            {
+              licenseThreatGroups: [{ licenseThreatGroupName: 'c' }],
+            },
+          ],
+        },
+        {
+          licenses: [
+            {
+              licenseThreatGroups: [{ licenseThreatGroupName: 'd' }],
+            },
+          ],
+        },
+      ]);
+
+      const action = {
+        type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
+        payload,
+      };
+
+      const newState = legalApplicationDetailsReducer(state, action);
+
+      expect(newState.components).toEqual({
+        results: payload,
+        filteredResults: payload,
+        licenseThreatGroups: ['a', 'b', 'c', 'd'],
+        error: null,
+        loading: false,
+      });
+
+      expect(newState.selected).toEqual({
+        licenseThreatGroups: new Set(['a']),
+      });
+
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { any, compose, filter, flatten, map, prop } from 'ramda';
+import { any, compose, filter, flatten, map, prop, pipe, chain, uniq, intersection } from 'ramda';
 import { pathSet } from '../../util/jsUtil';
 import { getLicenseThreatGroupsFromLicense } from '../legalUtility';
 import {
@@ -42,6 +42,7 @@ const initState = {
   components: {
     results: Object.freeze([]),
     filteredResults: Object.freeze([]),
+    licenseThreatGroups: Object.freeze([]),
     error: null,
     loading: false,
   },
@@ -89,8 +90,26 @@ export default function (state = initState, { type, payload }) {
       return { ...state, components };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED: {
-      const components = { ...state.components, loading: false, results: payload, filteredResults: payload };
-      return { ...state, components };
+      const licenseThreatGroups = getLicenseThreatGroupsFromComponentsResults(payload);
+      const components = {
+        ...state.components,
+        loading: false,
+        results: payload,
+        filteredResults: payload,
+        licenseThreatGroups,
+      };
+      const selectedLicenseThreatGroups = new Set(
+        intersection([...state.selected.licenseThreatGroups], licenseThreatGroups)
+      );
+
+      return {
+        ...state,
+        components,
+        selected: {
+          ...state.selected,
+          licenseThreatGroups: selectedLicenseThreatGroups,
+        },
+      };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED: {
       const components = {
@@ -117,6 +136,13 @@ export default function (state = initState, { type, payload }) {
       return state;
   }
 }
+
+const getLicenseThreatGroupsFromComponentsResults = pipe(
+  chain(prop('licenses')),
+  chain(getLicenseThreatGroupsFromLicense),
+  map(prop('licenseThreatGroupName')),
+  uniq
+);
 
 const toggleFilter = ({ filterName, selectedIds }) => (state) => {
   return pathSet(['selected', filterName], selectedIds, state);

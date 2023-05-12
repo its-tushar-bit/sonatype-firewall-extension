@@ -11,7 +11,12 @@ import { expandedProgressOptions } from '../../dashboard/legalDashboardConstants
 import IqPopover from '../../../react/IqPopover';
 
 export default function LegalApplicationDetailsFilter(props) {
-  const { toggleFilter, licenseThreatGroups, selected, toggleFilterSidebar } = props;
+  const {
+    toggleFilter,
+    components: { licenseThreatGroups },
+    selected,
+    toggleFilterSidebar,
+  } = props;
 
   const licenseThreatGroupOptions = sortBy(prop('name'))(
     licenseThreatGroups.map((group) => ({ id: group, name: group }))
@@ -57,7 +62,9 @@ export default function LegalApplicationDetailsFilter(props) {
 }
 
 LegalApplicationDetailsFilter.propTypes = {
-  licenseThreatGroups: PropTypes.array,
+  components: PropTypes.shape({
+    licenseThreatGroups: PropTypes.array,
+  }),
   selected: PropTypes.shape({
     progressOptions: PropTypes.instanceOf(Set).isRequired,
     licenseThreatGroups: PropTypes.instanceOf(Set).isRequired,

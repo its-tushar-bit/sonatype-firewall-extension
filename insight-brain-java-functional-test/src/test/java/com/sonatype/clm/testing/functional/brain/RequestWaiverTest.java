@@ -22,7 +22,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
@@ -31,29 +32,34 @@ import static com.codeborne.selenide.Condition.visible;
 public class RequestWaiverTest
     extends AbstractFunctionalTest
 {
-  private static Organization organization;
+  private Organization organization;
 
-  private static Application application;
+  private Application application;
 
-  private static PolicyViolation policyViolation;
+  private PolicyViolation policyViolation;
 
-  @BeforeClass
-  public static void startup() {
+  @Before
+  public void startup() {
     Instant now = Instant.now();
     Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
 
-    organization = staticTempEntity.newOrganization("Org 1");
-    application = staticTempEntity.newApplication("App 1", "app1", organization.getId());
-    Policy securityPolicy1 = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
+    organization = tempEntity.newOrganization("Org 1");
+    application = tempEntity.newApplication("App 1", "app1", organization.getId());
+    Policy securityPolicy1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
 
-    PolicyEvaluation policyEvaluation1 = staticTempEntity.newPolicyEvaluation(application.getId(),
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(),
         StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
 
-    policyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, securityPolicy1, "Group1",
+    policyViolation = tempEntity.newPolicyViolation(policyEvaluation1, securityPolicy1, "Group1",
         "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
 
     refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
+  }
+
+  @After
+  public void after() {
+    logout();
   }
 
   @Test

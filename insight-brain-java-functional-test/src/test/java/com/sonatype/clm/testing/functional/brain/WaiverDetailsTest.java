@@ -28,12 +28,13 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -48,18 +49,18 @@ import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatc
 
 public class WaiverDetailsTest extends AbstractFunctionalTest
 {
-  private static Organization organization;
+  private Organization organization;
 
-  private static Application application;
+  private Application application;
 
-  private static ArrayList<Policy> securityPolicies;
+  private ArrayList<Policy> securityPolicies;
 
-  private static ArrayList<PolicyViolation> policyViolations;
+  private ArrayList<PolicyViolation> policyViolations;
 
-  private static ArrayList<PolicyWaiver> policyWaivers;
+  private ArrayList<PolicyWaiver> policyWaivers;
 
-  @BeforeClass
-  public static void startup() {
+  @Before
+  public void startup() {
     Instant now = Instant.now();
     Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
     Instant threeDaysAgo = now.minus(3, ChronoUnit.DAYS);
@@ -67,23 +68,23 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     Instant fiveDaysFromNow = now.plus(5, ChronoUnit.DAYS);
     Instant threeDaysFromNow = now.plus(3, ChronoUnit.DAYS);
 
-    organization = staticTempEntity.newOrganization("Org 1");
-    application = staticTempEntity.newApplication("App 1", "app1", organization.getId());
+    organization = tempEntity.newOrganization("Org 1");
+    application = tempEntity.newApplication("App 1", "app1", organization.getId());
     securityPolicies = new ArrayList<Policy>() {{
-        this.add(staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7));
-        this.add(staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 9));
-        this.add(staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 3", 3));
+        this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7));
+        this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 9));
+        this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 3", 3));
       }};
 
-    PolicyEvaluation policyEvaluation1 = staticTempEntity.newPolicyEvaluation(application.getId(),
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(),
         StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
 
     policyViolations = new ArrayList<PolicyViolation>() {{
-        this.add(staticTempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(0), "Group1",
+        this.add(tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(0), "Group1",
             "Artifact1", "Version1", "hash1", "sonatype-2017-0507"));
-        this.add(staticTempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(1), "Group2",
+        this.add(tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(1), "Group2",
             "Artifact2", "Version2", "hash2", "sonatype-2017-8912"));
-        this.add(staticTempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(2), "Group3",
+        this.add(tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(2), "Group3",
             "Artifact3", "Version3", "hash3", "sonatype-2017-7848"));
       }};
 
@@ -97,7 +98,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
 
-    PolicyWaiver policyWaiver1 = staticTempEntity.newWaiver(new TestPolicyWaiverBuilder()
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
         .withHash("hash1")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(application.getId())
@@ -111,7 +112,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
         .withComponentUpgradeAvailable(true)
         .build());
 
-    PolicyWaiver policyWaiver2 = staticTempEntity.newWaiver(new TestPolicyWaiverBuilder()
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
         .withHash("hash2")
         .withPolicyId(securityPolicies.get(1).getId())
         .withOwnerId(application.getId())
@@ -123,7 +124,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
         .withExpiryTime(Date.from(fiveDaysFromNow))
         .build());
 
-    PolicyWaiver policyWaiver3 = staticTempEntity.newWaiver(new TestPolicyWaiverBuilder()
+    PolicyWaiver policyWaiver3 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
         .withHash("hash3")
         .withPolicyId(securityPolicies.get(2).getId())
         .withOwnerId(application.getId())
@@ -143,6 +144,11 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
 
     refreshOrOpen(WaiverDetailsPage.url("ownerTypeId", "ownerId", "waiverId"));
     loginAsAdmin();
+  }
+
+  @After
+  public void after() {
+    logout();
   }
 
   @Test
@@ -218,7 +224,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     Instant expiration = now.plus(1, ChronoUnit.DAYS);
 
     Application veryLongAppName =
-        staticTempEntity.newApplication(
+        tempEntity.newApplication(
             "A Very Long Application Name - Lorem ipsum dolor sit amet consectetur adipisicing elit",
             "app-lorem",
             organization.getId());
@@ -279,7 +285,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
 
     for (int i = 0; i <= 28; i++) {
       Instant pastTime = now.minus(i, ChronoUnit.DAYS);
-      Policy policy = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Scroll Policy " + i, i % 10);
+      Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Scroll Policy " + i, i % 10);
 
       PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(),
           StageTypes.RELEASE.getId(), "scan" + i, false, false, Date.from(pastTime));

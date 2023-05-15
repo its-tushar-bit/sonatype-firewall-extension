@@ -30,6 +30,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
@@ -899,10 +900,22 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
 
-    List<RepositoryManager> repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
-    assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
-    assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
-    assertThat(repoManagers).hasSize(1);
+    // By default, Firewall Onboarding is disabled
+    assertThat(repositoryService.getUnconfiguredRepositoryManagers().isEmpty());
+
+    // Enable Firewall Onboarding
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+    try {
+      List<RepositoryManager> repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+      assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+      assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+      assertThat(repoManagers).hasSize(1);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+      // Sanity check
+      assertThat(repositoryService.getUnconfiguredRepositoryManagers().isEmpty());
+    }
   }
 
   private void assertProprietaryComponentNamePattern(

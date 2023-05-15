@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -512,6 +513,10 @@ public class RepositoryService
     // This method is called by the UI to determine if the Firewall Onboarding UI should be shown for the current user.
     // Although it is a getter, if the user doesn't have WRITE permission, s/he cannot finish the Firewall Onboarding.
     checkWritePermission(RepositoryContainer.SINGLETON);
+
+    if (!SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.isEnabled()) {
+      return Collections.emptyList();
+    }
 
     return repositoryManagerDAO.getUnconfigured();
   }

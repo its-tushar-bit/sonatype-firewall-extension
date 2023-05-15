@@ -185,6 +185,12 @@ public class SystemConfigurationProperty
   public static final String QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS =
       "quarantinedComponentReportExpirationTimeInHours";
 
+  /**
+   * Internal feature flag to enable Firewall Onboarding. It will be removed right before we release Firewall
+   * Onboarding for external customers.
+   */
+  public static final String INTERNAL_FIREWALL_ONBOARDING_ENABLED = "internalFirewallOnboardingEnabled";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

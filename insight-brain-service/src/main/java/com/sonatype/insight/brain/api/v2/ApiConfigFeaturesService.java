@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Arrays;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -148,6 +149,13 @@ public class ApiConfigFeaturesService
     @Deprecated
     INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS(
         SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, true),
+
+    /**
+     * Internal feature flag to enable Firewall Onboarding. It will be removed right before we release Firewall
+     * Onboarding for external customers.
+     */
+    INTERNAL_FIREWALL_ONBOARDING_ENABLED(SystemConfigurationProperty.INTERNAL_FIREWALL_ONBOARDING_ENABLED, false,
+        false),
 
     /**
      * If configured a logout request will be sent to Auth0 via a browser redirect when the application is logged out

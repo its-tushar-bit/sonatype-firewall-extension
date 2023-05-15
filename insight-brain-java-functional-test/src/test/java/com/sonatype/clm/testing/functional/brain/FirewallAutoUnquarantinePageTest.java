@@ -24,7 +24,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
@@ -41,13 +40,9 @@ public class FirewallAutoUnquarantinePageTest
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
-  @BeforeClass
-  public static void beforeClass() {
-    setupData();
-  }
-
   @Before
   public void before() {
+    setupData();
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
 
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
@@ -61,18 +56,18 @@ public class FirewallAutoUnquarantinePageTest
     hardreset();
   }
 
-  public static void setupData() {
-    RepositoryManager repositoryManager = staticTempEntity.newRepositoryManager("1");
-    Repository repository = staticTempEntity.newRepository(repositoryManager, "central", true, false);
+  private void setupData() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("1");
+    Repository repository = tempEntity.newRepository(repositoryManager, "central", true, false);
 
     ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
     Date date1 = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
     Date date2 = Date.from(LocalDateTime.now().withDayOfMonth(2).toInstant(offset));
 
-    staticTempEntity.newRepositoryComponent(repository.getId(), "g:a:1", date1, date1, true);
-    staticTempEntity.newRepositoryComponent(repository.getId(), "g:a:2", date2, date2, true);
-    staticTempEntity.newRepositoryComponent(repository.getId(), "g:a:3", new Date(), new Date(), false);
-    staticTempEntity.newRepositoryComponent(repository.getId(), "g:a:4", new Date(), null, false);
+    tempEntity.newRepositoryComponent(repository.getId(), "g:a:1", date1, date1, true);
+    tempEntity.newRepositoryComponent(repository.getId(), "g:a:2", date2, date2, true);
+    tempEntity.newRepositoryComponent(repository.getId(), "g:a:3", new Date(), new Date(), false);
+    tempEntity.newRepositoryComponent(repository.getId(), "g:a:4", new Date(), null, false);
   }
 
   @Test

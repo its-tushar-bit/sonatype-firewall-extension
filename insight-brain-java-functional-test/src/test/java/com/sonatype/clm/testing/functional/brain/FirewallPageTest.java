@@ -35,7 +35,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -61,13 +60,9 @@ public class FirewallPageTest
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
-  @BeforeClass
-  public static void beforeClass() {
-    setupData();
-  }
-
   @Before
   public void before() {
+    setupData();
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
 
     refreshOrOpen(FirewallPage.url());
@@ -81,31 +76,31 @@ public class FirewallPageTest
     hardreset();
   }
 
-  public static void setupData() {
-    Policy policy = staticTempEntity.newPolicy();
-    RepositoryManager repositoryManager = staticTempEntity.newRepositoryManager("1");
-    Repository repository = staticTempEntity.newRepository(repositoryManager, "maven-central", true, false);
+  private void setupData() {
+    Policy policy = tempEntity.newPolicy();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("1");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central", true, false);
 
     ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
     Date date1 = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
     Date date2 = Date.from(LocalDateTime.now().withDayOfMonth(2).toInstant(offset));
 
-    RepositoryComponent repositoryComponent1 = staticTempEntity.newRepositoryComponent(repository.getId(),
+    RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(),
         "g:a:1", date1, date1, true);
-    staticTempEntity.newRepositoryPolicyViolation(repositoryComponent1, policy.getId());
+    tempEntity.newRepositoryPolicyViolation(repositoryComponent1, policy.getId());
 
-    RepositoryComponent repositoryComponent2 = staticTempEntity.newRepositoryComponent(repository.getId(),
+    RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(),
         "g:a:2", date2, date2, true);
-    staticTempEntity.newRepositoryPolicyViolation(repositoryComponent2, policy.getId());
+    tempEntity.newRepositoryPolicyViolation(repositoryComponent2, policy.getId());
 
-    RepositoryComponent repositoryComponent3 = staticTempEntity.newRepositoryComponent(repository.getId(),
+    RepositoryComponent repositoryComponent3 = tempEntity.newRepositoryComponent(repository.getId(),
         "g:a:3", date1, null, false);
-    staticTempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent3.getPathname(), false,
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent3.getPathname(), false,
         FailActionType.ID, policy.getId(), "policyName", repositoryComponent3.getComponentIdentifier());
 
-    RepositoryComponent repositoryComponent4 = staticTempEntity.newRepositoryComponent(repository.getId(),
+    RepositoryComponent repositoryComponent4 = tempEntity.newRepositoryComponent(repository.getId(),
         "g:a:4", date2, null, false);
-    staticTempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent4.getPathname(), false,
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent4.getPathname(), false,
         FailActionType.ID, policy.getId(), "policyName", repositoryComponent4.getComponentIdentifier());
   }
 

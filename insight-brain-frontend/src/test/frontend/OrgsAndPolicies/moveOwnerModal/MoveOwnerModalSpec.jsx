@@ -66,8 +66,8 @@ describe('MoveOwnerModal', () => {
     parentOrganizationId: rootOrgId,
     applicationIds: [],
     organizationIds: [],
-    subOrgs: 0,
-    totalApps: 0,
+    subOrgs: 12,
+    totalApps: 3,
   };
   const testApplication = {
     type: 'application',
@@ -206,20 +206,24 @@ describe('MoveOwnerModal', () => {
         },
       },
     });
-    const appMoveModalTitle = screen.queryByText('Move Application');
+    const appMoveModalTitle = screen.queryByText('Move Test Application');
     expect(appMoveModalTitle).toBeNull();
   });
 
   it('shows modal with the correct title for app', () => {
     renderComponent();
-    const appMoveModalTitle = screen.getByText('Move Application');
+    const appMoveModalTitle = screen.getByText('Move Test Application');
     expect(appMoveModalTitle).toBeVisible();
   });
 
-  it('shows modal with the correct title for org', () => {
+  it('shows modal with the correct title for org and messages with descendants', () => {
     renderComponent(preloadedStateForOrg);
-    const appMoveModalTitle = screen.getByText('Move Organization');
-    expect(appMoveModalTitle).toBeVisible();
+    const orgMoveModalTitle = screen.getByText('Move Awesome Org');
+    const orgMoveModalMessage = screen.getByText(
+      'Moving Awesome Org will move 15 descendants. Confirm inheritance details after the move is complete.'
+    );
+    expect(orgMoveModalTitle).toBeVisible();
+    expect(orgMoveModalMessage).toBeVisible();
   });
 
   // TODO: when the new endpoint for fetching organizations when moving an orgs is ready, implement the unit test for that request here
@@ -442,10 +446,10 @@ describe('MoveOwnerModal', () => {
       it('closes modal when clicking on "Cancel" Button', async () => {
         renderComponent(preloadedStateForOrg);
         const cancelButton = await screen.findByRole('button', { name: 'Cancel' });
-        let orgMoveModalTitle = screen.getByText('Move Organization');
+        let orgMoveModalTitle = screen.getByText('Move Awesome Org');
         expect(orgMoveModalTitle).toBeVisible();
         fireEvent.click(cancelButton);
-        orgMoveModalTitle = screen.queryByText('Move Organization');
+        orgMoveModalTitle = screen.queryByText('Move Awesome Org');
         expect(orgMoveModalTitle).toBeNull();
       });
 

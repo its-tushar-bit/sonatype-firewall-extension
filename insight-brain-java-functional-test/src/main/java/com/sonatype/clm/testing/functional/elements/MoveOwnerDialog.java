@@ -38,16 +38,20 @@ public class MoveOwnerDialog
     return child(FOOTER_SELECTOR, ".nx-btn--primary");
   }
 
+  public SelenideElement header() {
+    return child(".nx-modal-header");
+  }
+
+  public SelenideElement message() {
+    return child("#move-modal-info-message");
+  }
+
   public SelenideElement dismissButton() {
     return $(".nx-form__cancel-btn");
   }
 
   public SelenideElement okButton() {
     return child(".nx-btn--secondary");
-  }
-
-  public SelenideElement alertMessage() {
-    return $("#move-owner-modal .nx-alert__content");
   }
 
   public SelenideElement errorMessage() {

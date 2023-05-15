@@ -61,6 +61,8 @@ public class MoveOrganizationTest
     parentOrg1 = tempEntity.newOrganization(YE_OLE_PARENT_ORGANIZATION1);
     parentOrg2 = tempEntity.newOrganization(YE_OLE_PARENT_ORGANIZATION2);
     childOrg = tempEntity.newOrganization(YE_OLE_CHILD_ORGANIZATION2, parentOrg1);
+    tempEntity.newApplicationWithParent(childOrg);
+    tempEntity.newApplicationWithParent(childOrg);
 
     refreshOrOpen(OwnerSummaryPage.url(childOrg));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(childOrg.getName()));
@@ -74,7 +76,7 @@ public class MoveOrganizationTest
   @Test
   public void testSuccessfullyMovedOrganization() {
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2);
+    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2, childOrg.getName(), 2);
     modal.shouldBe(hidden);
 
     // success modal should have only info messages
@@ -98,7 +100,7 @@ public class MoveOrganizationTest
     // set up current parent to have continuous policy monitoring
     tempEntity.newPolicyMonitoring(childOrg.getParentOwnerId(), Stage.ID_RELEASE);
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2);
+    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2, childOrg.getName(), 2);
     modal.shouldBe(hidden);
 
     // success modal should have warning messages
@@ -126,7 +128,7 @@ public class MoveOrganizationTest
         StageTypes.BUILD.getId(), null);
     // move
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2);
+    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2, childOrg.getName(), 2);
     // error state
     modal.shouldBe(visible);
     modal.retryButton().shouldBe(visible);
@@ -147,18 +149,29 @@ public class MoveOrganizationTest
         StageTypes.BUILD.getId(), null);
     // move
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2);
+    selectOptionAndSubmit(modal, 2, YE_OLE_PARENT_ORGANIZATION2, childOrg.getName(), 2);
     // error state
     modal.shouldBe(visible);
     modal.fetchCSVButton().should(visible).shouldHave(text("Fetch CSV")).click();
   }
 
-  private void selectOptionAndSubmit(MoveOwnerDialog modal, int option, String optionName) {
+  private void selectOptionAndSubmit(
+      MoveOwnerDialog modal,
+      int option,
+      String optionName,
+      String orgName,
+      int descendants)
+  {
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.moveOwner().shouldBe(visible).click();
+    eyesWatcher.eyesCheck("Move Owner Modal");
     modal.shouldBe(visible);
     modal.moveButton().shouldBe(visible);
     modal.body().shouldBe(visible);
+    modal.header().shouldBe(visible).shouldHave(text("Move " + orgName));
+    modal.message().shouldBe(visible)
+        .shouldHave(text("Moving " + orgName + " will move " + descendants + " descendants. "
+            + "Confirm inheritance details after the move is complete."));
 
     NxFormSelect destinationDropdown = modal.destinationDropdown();
     destinationDropdown.shouldBe(visible).click();

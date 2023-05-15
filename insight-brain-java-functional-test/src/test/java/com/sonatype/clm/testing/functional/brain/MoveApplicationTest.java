@@ -80,7 +80,7 @@ public class MoveApplicationTest
     otherOrg = tempEntity.newOrganization(SOME_OTHER_ORGANIZATION);
 
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectFirstOptionAndSubmit(modal);
+    selectFirstOptionAndSubmit(modal, application.getName());
     modal.shouldBe(hidden);
 
     // success modal should have only info messages
@@ -106,7 +106,7 @@ public class MoveApplicationTest
     tempEntity.newPolicyMonitoring(application.getParentOwnerId(), Stage.ID_RELEASE);
 
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectFirstOptionAndSubmit(modal);
+    selectFirstOptionAndSubmit(modal, application.getName());
     modal.shouldBe(hidden);
 
     // success modal should have warning messages
@@ -137,7 +137,7 @@ public class MoveApplicationTest
 
     // move
     MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectFirstOptionAndSubmit(modal);
+    selectFirstOptionAndSubmit(modal, application.getName());
     // error state
     modal.shouldBe(visible);
     modal.retryButton().shouldBe(visible);
@@ -149,12 +149,13 @@ public class MoveApplicationTest
     modal.shouldBe(hidden);
   }
 
-  private void selectFirstOptionAndSubmit(MoveOwnerDialog modal) {
+  private void selectFirstOptionAndSubmit(MoveOwnerDialog modal, String appName) {
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.moveOwner().shouldBe(visible).click();
     modal.shouldBe(visible);
     modal.moveButton().shouldBe(visible);
     modal.body().shouldBe(visible);
+    modal.header().shouldBe(visible).shouldHave(text("Move " + appName));
 
     NxFormSelect destinationDropdown = modal.destinationDropdown();
     destinationDropdown.shouldBe(visible).click();

@@ -25,6 +25,7 @@ import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import FetchCSVButton from './FetchCSVButton';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { selectOwnerById } from '../ownerSideNav/ownerSideNavSelectors';
 
 const MoveOwnerModal = () => {
   const dispatch = useDispatch();
@@ -40,6 +41,7 @@ const MoveOwnerModal = () => {
   } = useSelector(selectMoveOwnerSlice);
 
   const selectedOwner = useSelector(selectSelectedOwner);
+  const selectedOwnerFromMap = useSelector((state) => selectOwnerById(state, selectedOwner.id));
 
   const isApp = useSelector(selectIsApplication);
   const warnings = useSelector(selectMoveOwnerWarnings);
@@ -96,10 +98,16 @@ const MoveOwnerModal = () => {
       {isMoveOwnerModalOpen && (
         <NxModal id="move-owner-modal" onCancel={closeModal}>
           <NxModal.Header>
-            <NxH2>Move {isApp ? 'Application' : 'Organization'}</NxH2>
+            <NxH2>Move {selectedOwner.name}</NxH2>
           </NxModal.Header>
           {!isShowNoAvailableOrgsWarning ? (
             <>
+              {!isApp && (
+                <p id="move-modal-info-message">
+                  Moving {selectedOwner.name} will move {selectedOwnerFromMap.subOrgs + selectedOwnerFromMap.totalApps}{' '}
+                  descendants. Confirm inheritance details after the move is complete.
+                </p>
+              )}
               <NxStatefulForm
                 onSubmit={isApp ? moveApplication : moveOrganization}
                 onCancel={closeModal}

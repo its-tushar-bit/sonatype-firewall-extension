@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { groupBy } from 'ramda';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxInfoAlert, NxTextLink } from '@sonatype/react-shared-components';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import LoadWrapper from '../../react/LoadWrapper';
 import RoleListItem from './RoleListItem';
@@ -32,6 +32,13 @@ export default function RoleList(props) {
       <div className="nx-page-title">
         <h1 className="nx-h1">Roles</h1>
       </div>
+      <NxInfoAlert>
+        Looking for how to assign a user to a role? Check the{' '}
+        <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/user-management/role-management" external>
+          Docs
+        </NxTextLink>
+        .
+      </NxInfoAlert>
       <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
         <section className="nx-tile">
           <header className="nx-tile-header">

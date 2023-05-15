@@ -18,10 +18,14 @@ import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
+import org.jetbrains.annotations.NotNull;
+import org.quartz.Job;
 import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
@@ -43,9 +47,12 @@ public class MultiTenantTaskScheduler
 
   private final TenantUtil tenantUtil;
 
+  private final QuartzJobStoreTX mtiqBatchJobStoreTX;
+
   @Inject
   public MultiTenantTaskScheduler(
-      QuartzJobStoreTX quartzJobStoreTX,
+      MultiTenantQuartzJobStoreTX quartzJobStoreTX,
+      MultiTenantBatchModeJobStoreTX mtiqBatchJobStoreTX,
       JobFactory jobFactory,
       @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
       QuartzTriggerListener quartzTriggerListener,
@@ -56,6 +63,7 @@ public class MultiTenantTaskScheduler
   {
     super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener);
 
+    this.mtiqBatchJobStoreTX = mtiqBatchJobStoreTX;
     this.tenantContextJobListener = tenantContextJobListener;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.tenantManager = tenantManager;
@@ -63,9 +71,38 @@ public class MultiTenantTaskScheduler
   }
 
   @Override
-  public Scheduler createScheduler() {
+  public void start() throws Exception {
+    /*
+     * When running in "mtiq batch mode" all quartz jobs that implement AllTenantsJob are scheduled via a
+     * separate Quartz scheduler however those nodes still need to be able to handle the clustering events.
+     *
+     * For normal MTIQ all jobs run through a single Quartz scheduler.
+     */
+    startScheduler(schedulerName, quartzJobStoreTX);
+
+    if (tenantUtil.isMtiqBatchMode()) {
+      startScheduler(getMtiqBatchSchedulerName(), mtiqBatchJobStoreTX);
+    }
+  }
+
+  @Override
+  public void stop() throws Exception {
+    super.stop();
+
+    if (tenantUtil.isMtiqBatchMode()) {
+      shutdownScheduler(getScheduler(getMtiqBatchSchedulerName()));
+    }
+  }
+
+  @NotNull
+  private String getMtiqBatchSchedulerName() {
+    return "MtiqMtiqBatch" + schedulerName;
+  }
+
+  @Override
+  public Scheduler createScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
     try {
-      Scheduler scheduler = superCreateScheduler();
+      Scheduler scheduler = superCreateScheduler(schedulerName, jobStoreTX);
       scheduler.getListenerManager().addJobListener(tenantContextJobListener);
       return scheduler;
     }
@@ -75,14 +112,14 @@ public class MultiTenantTaskScheduler
   }
 
   // This is a separate method so that it can be overriden during testing
-  protected Scheduler superCreateScheduler() {
-    return super.createScheduler();
+  protected Scheduler superCreateScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
+    return super.createScheduler(schedulerName, jobStoreTX);
   }
 
   @Override
   SimpleThreadPool createThreadPool() {
     SystemConfigurationProperty configuration =
-        systemConfigurationPropertyDAO.getByName(TASK_SCHEDULER_THREAD_POOL_SIZE);
+            systemConfigurationPropertyDAO.getByName(TASK_SCHEDULER_THREAD_POOL_SIZE);
     int threadPoolSize = configuration != null ? Integer.parseInt(configuration.getValue()) : 10;
 
     SimpleThreadPool threadPool = super.createThreadPool();
@@ -92,11 +129,18 @@ public class MultiTenantTaskScheduler
   }
 
   @Override
+  protected void scheduleTask(JobDetail job, InsightJob insightJob, Trigger... triggers) {
+    Scheduler scheduler = getSchedulerForJobType(job.getJobClass());
+
+    super.scheduleTask(job, insightJob, scheduler, triggers);
+  }
+
+  @Override
   public boolean unscheduleTask(InsightJob insightJob) {
     // When no tenant is specified (e.g. global) unschedule this task for all tenants
     if (tenantUtil.isGlobalTenant()) {
       try {
-        List<String> tenantSlugs = getScheduler().getJobGroupNames();
+        List<String> tenantSlugs = getSchedulerForJobType(insightJob.getClass()).getJobGroupNames();
 
         boolean unscheduled = false;
         for (String tenantSlug : tenantSlugs) {
@@ -136,5 +180,14 @@ public class MultiTenantTaskScheduler
   @Override
   protected TriggerKey toTriggerKey(InsightJob insightJob) {
     return TriggerKey.triggerKey(insightJob.getJobName(), tenantManager.getTenant().tenantSlug);
+  }
+
+  private Scheduler getSchedulerForJobType(Class<? extends Job> jobType) {
+    if (tenantUtil.isMtiqBatchMode() && tenantUtil.isMtiqBatchJob(jobType)) {
+      return getScheduler(getMtiqBatchSchedulerName());
+    }
+    else {
+      return getScheduler();
+    }
   }
 }

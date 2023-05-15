@@ -147,6 +147,63 @@ when finished. They cannot be reused, by design.
 Work that needs to run on a schedule will need its own context. The best way to handle this is to make use of Quartz
 which handles getting and setting the tenant. Custom scheduling outside of Quartz is not currently supported.
 
+### Mtiq Batch Instances
+The majority of quartz jobs are background admin tasks. They either tidy up old data in the database or they read data 
+from the database and then write to another source (EFS, DB, HDS etc.). These jobs are not involved in the clustering 
+mechanism directly and can therefore run on one or more dedicated MTIQ instances (aka a Mtiq Batch Instance). This
+provides a level of independent deploy-ability, meaning if there is an issue with a quartz job the whole system doesn't 
+have to be affected. It also isolates the resource usage and these instances can be run on machines that are optimized
+for quartz. They can be scaled up or down separately to the standard MTIQ instances.
+
+Mtiq Batch Instances should not accept outside traffic as they are run in a "privileged" state and are able to loop
+through tenants. The ability to loop through tenants reduces the number of jobs and triggers that need to be created and
+managed by quartz as we only need one job per job type for all tenants.
+
+To put an MTIQ instance into Mtiq Batch mode set the environment variable IS_MTIQ_BATCH=true.
+
+**Mtiq Batch Instance**: Executes all jobs. Jobs that implement AllTenantsJob are executed in a separate Quartz 
+Scheduler
+
+**Normal Instance**: Executes all jobs that do not implement AllTenantsJob. Only uses a single Quartz Scheduler
+
+```mermaid
+C4Component
+    title Mtiq Batch Instances
+
+    Container(internet, "The internet")
+    
+    Container_Boundary(k8s, "Kubernetes Cluster") {
+        Component(node1, "MTIQ Instance 1", "Traffic / request processing node", "This is a standard MTIQ Instance")
+        Component(nodeN, "MTIQ Instance N", "Traffic / request processing node", "This is a standard MTIQ Instance")
+        Component(backNode1, "Mtiq Batch Instance 1", "Mtiq Batch Instance", "Only handles background Quartz Jobs")
+        Component(backNodeN, "Mtiq Batch Instance N", "Mtiq Batch Instance", "Only handles background Quartz Jobs")
+
+        Rel(node1, db1, "")
+        Rel(node1, efs, "")
+
+        Rel(nodeN, db1, "")
+        Rel(nodeN, efs, "")
+
+        Rel(backNode1, db1, "")
+        Rel(backNode1, efs, "")
+
+        Rel(backNodeN, db1, "")
+        Rel(backNodeN, efs, "")
+
+        UpdateElementStyle(backNode1, $bgColor="green")
+        UpdateElementStyle(backNodeN, $bgColor="green")
+    }
+
+    Rel(internet, node1, "")
+    Rel(internet, nodeN, "")
+
+ Container_Boundary(data, "Data Layer") {
+        ContainerDb(db1, "Database")
+        ContainerDb(efs, "EFS")
+
+    }
+```
+
 #### Telemetry
 
 Telemetry has essentially 2 operating modes. The first is a mode that is predominantly sending cluster information such

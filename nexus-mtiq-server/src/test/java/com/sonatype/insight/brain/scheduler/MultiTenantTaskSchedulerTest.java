@@ -40,7 +40,10 @@ public class MultiTenantTaskSchedulerTest
   public TestName testName = new TestName();
 
   @Mock
-  QuartzJobStoreTX quartzJobStoreTX;
+  MultiTenantQuartzJobStoreTX quartzJobStoreTX;
+
+  @Mock
+  MultiTenantBatchModeJobStoreTX multiTenantBatchModeJobStoreTX;
 
   @Mock
   JobFactory jobFactory;
@@ -71,9 +74,9 @@ public class MultiTenantTaskSchedulerTest
   @Before
   public void setup() {
     try {
-      underTest = new TestMultiTenantTaskScheduler(quartzJobStoreTX, jobFactory, testName.getMethodName(),
-          quartzTriggerListener, tenantContextJobListener, systemConfigurationPropertyDAO, tenantManager,
-          scheduler, tenantUtil);
+      underTest = new TestMultiTenantTaskScheduler(quartzJobStoreTX, multiTenantBatchModeJobStoreTX,
+          jobFactory, testName.getMethodName(), quartzTriggerListener, tenantContextJobListener,
+          systemConfigurationPropertyDAO, tenantManager, scheduler, tenantUtil);
 
       when(scheduler.getListenerManager()).thenReturn(listenerManager);
     }
@@ -158,7 +161,8 @@ public class MultiTenantTaskSchedulerTest
     private final Scheduler scheduler;
 
     public TestMultiTenantTaskScheduler(
-        QuartzJobStoreTX quartzJobStoreTX,
+        MultiTenantQuartzJobStoreTX quartzJobStoreTX,
+        MultiTenantBatchModeJobStoreTX multiTenantBatchModeJobStoreTX,
         JobFactory jobFactory,
         String schedulerName,
         QuartzTriggerListener quartzTriggerListener,
@@ -168,13 +172,14 @@ public class MultiTenantTaskSchedulerTest
         Scheduler scheduler,
         TenantUtil tenantUtil)
     {
-      super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, tenantContextJobListener,
-          systemConfigurationPropertyDAO, tenantManager, tenantUtil);
+      super(quartzJobStoreTX, multiTenantBatchModeJobStoreTX, jobFactory, schedulerName,
+          quartzTriggerListener,
+          tenantContextJobListener, systemConfigurationPropertyDAO, tenantManager, tenantUtil);
       this.scheduler = scheduler;
     }
 
     @Override
-    protected Scheduler superCreateScheduler() {
+    protected Scheduler superCreateScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
       return scheduler;
     }
 

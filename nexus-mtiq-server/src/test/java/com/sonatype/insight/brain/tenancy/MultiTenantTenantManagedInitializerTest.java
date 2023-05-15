@@ -7,17 +7,20 @@ package com.sonatype.insight.brain.tenancy;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class MultiTenantTenantManagedInitializerTest
     extends MultiTenantTestSupport
 {
+  @Mock
+  TenantUtil tenantUtil;
+
   @Test
   public void shouldCallRegisterOnStart_whenGlobalTenantJob() throws Exception {
     TenantManaged job1 = mock(TenantManaged.class);
@@ -25,7 +28,7 @@ public class MultiTenantTenantManagedInitializerTest
     TenantManaged job3 = mock(MockTenantManaged.class);
 
     MultiTenantTenantManagedInitializer initializer =
-        new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2, job3));
+            new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2, job3), tenantUtil);
 
     initializer.start();
 
@@ -35,12 +38,40 @@ public class MultiTenantTenantManagedInitializerTest
   }
 
   @Test
+  public void shouldRegisterAllTenantsJobs_whenMtiqBatchMode() throws Exception {
+    TenantManaged job = mock(AllTenantsJob.class);
+
+    MultiTenantTenantManagedInitializer initializer =
+            new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
+
+    when(tenantUtil.isMtiqBatchMode()).thenReturn(true);
+
+    initializer.start();
+
+    verify(job).register();
+  }
+
+  @Test
+  public void shouldNotRegisterAllTenantsJobs_whenMtiqBatchMode() throws Exception {
+    TenantManaged job = mock(AllTenantsJob.class);
+
+    MultiTenantTenantManagedInitializer initializer =
+            new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
+
+    when(tenantUtil.isMtiqBatchMode()).thenReturn(false);
+
+    initializer.start();
+
+    verify(job, never()).register();
+  }
+
+  @Test
   public void shouldCallDeregisterOnStop() throws Exception {
     TenantManaged job1 = mock(TenantManaged.class);
     TenantManaged job2 = mock(TenantManaged.class);
 
     MultiTenantTenantManagedInitializer
-        initializer = new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2));
+            initializer = new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2), tenantUtil);
 
     initializer.stop();
 
@@ -59,7 +90,8 @@ public class MultiTenantTenantManagedInitializerTest
       return null;
     }).when(job).register();
 
-    MultiTenantTenantManagedInitializer initializer = new MultiTenantTenantManagedInitializer(ImmutableList.of(job));
+    MultiTenantTenantManagedInitializer initializer =
+            new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
 
     initializer.start();
 
@@ -77,7 +109,8 @@ public class MultiTenantTenantManagedInitializerTest
       return null;
     }).when(job).deregister();
 
-    MultiTenantTenantManagedInitializer initializer = new MultiTenantTenantManagedInitializer(ImmutableList.of(job));
+    MultiTenantTenantManagedInitializer initializer =
+            new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
 
     initializer.stop();
 
@@ -93,7 +126,7 @@ public class MultiTenantTenantManagedInitializerTest
     when(job2.includeGlobalTenantDuringRegistration()).thenReturn(false);
 
     MultiTenantTenantManagedInitializer initializer =
-        new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2));
+            new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2), tenantUtil);
 
     initializer.start();
 

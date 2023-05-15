@@ -5,17 +5,22 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.listeners.JobListenerSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 public class TenantContextJobListener
     extends JobListenerSupport
 {
+  private static final Logger log = LoggerFactory.getLogger(TenantContextJobListener.class);
+
   private final TenantManager tenantManager;
 
   private final TenantUtil tenantUtil;
@@ -49,11 +54,37 @@ public class TenantContextJobListener
       tenantUtil.validateTenantForType(context.getJobInstance().getClass(), tenant);
 
       tenantManager.setTenant(tenant);
+
+      if (tenantUtil.isAllTenantsJob(context.getJobDetail().getJobClass()) && tenantUtil.isMtiqBatchMode()) {
+        registerAllTenants();
+
+        // It is possible registration failed for some tenants so only get tenants that are currently registered
+        List<String> tenants = tenantManager.getRegisteredTenants();
+        context.getJobDetail().getJobDataMap().put(AllTenantsJob.TENANT_LIST, tenants);
+      }
     }
     catch (Exception e) {
       tidyUp();
 
       throw new RuntimeException(e);
+    }
+  }
+
+  private void registerAllTenants() {
+    List<Tenant> allTenants = tenantUtil.getAllTenants();
+
+    for (Tenant tenant : allTenants) {
+      log.info("Registering tenant {} for quartz job execution", tenant);
+      try {
+        tenantManager.setTenant(tenant);
+      }
+      catch (Exception e) {
+        log.error("Failed to register tenant {} for execution of quartz jobs", tenant);
+      }
+      finally {
+        //Transitioning directly between tenants is banned so need to invalidate the tenant when done with registration
+        tenant.invalidate();
+      }
     }
   }
 

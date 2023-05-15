@@ -32,16 +32,24 @@ public class MultiTenantTenantManagedInitializer
 
   private final Collection<TenantManaged> tenantLifecycles;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
-  public MultiTenantTenantManagedInitializer(final Collection<TenantManaged> tenantLifecycles) {
+  public MultiTenantTenantManagedInitializer(final Collection<TenantManaged> tenantLifecycles,
+                                             final TenantUtil tenantUtil)
+  {
     this.tenantLifecycles = tenantLifecycles;
+    this.tenantUtil = tenantUtil;
   }
 
   @Override
   public void start() throws Exception {
-    // Only global lifecycle jobs are initialized on startup in multi-tenant mode
+    // Global lifecycle jobs and jobs that are intended to run for all tenants (AllTenantsJob) are initialized on
+    // startup in multi-tenant mode
     for (TenantManaged tenantLifecycle : tenantLifecycles) {
-      if (tenantLifecycle instanceof GlobalTenantJob || tenantLifecycle.includeGlobalTenantDuringRegistration()) {
+      if (tenantLifecycle instanceof GlobalTenantJob
+          || (tenantLifecycle instanceof MtiqBatchJob && tenantUtil.isMtiqBatchMode())
+          || tenantLifecycle.includeGlobalTenantDuringRegistration()) {
         TenantThreadLocal.runAsGlobal(() -> {
           tenantLifecycle.register();
           return null;

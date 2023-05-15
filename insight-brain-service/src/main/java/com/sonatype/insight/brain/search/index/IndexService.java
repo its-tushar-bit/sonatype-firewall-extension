@@ -59,6 +59,8 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.tenancy.AllTenantsJob;
+import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -93,7 +95,7 @@ import static java.util.stream.Collectors.toList;
 @Singleton
 @DisallowConcurrentExecution
 public class IndexService
-    implements InsightJob
+    implements InsightJob, AllTenantsJob
 {
   static final String TASK_NAME = "SearchIndexUpdate";
 
@@ -225,7 +227,7 @@ public class IndexService
   }
 
   @Override
-  public void execute(JobExecutionContext context) {
+  public void executeForTenant(JobExecutionContext context, Tenant tenant) {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       if (context.getMergedJobDataMap().containsKey(TASK_PARAM_INDEX_ALL)) {
         createSearchIndex();

@@ -159,8 +159,11 @@ public class TenantManager
         .collect(toList());
 
     for (TenantManaged tenantManaged : prioritizedBeans) {
-      if (tenantManaged instanceof GlobalTenantJob) {
-        // Global lifecycles are not set here. See QuartzJobInitializer for that.
+      if (tenantManaged instanceof GlobalTenantJob || tenantManaged instanceof MtiqBatchJob) {
+        /*
+          GlobalTenantJob and AllTenantsJob are initialized on startup by MultiTenantTenantManagedInitializer rather
+          than per tenant.
+         */
         continue;
       }
 
@@ -190,5 +193,9 @@ public class TenantManager
     Boolean registered = registeredTenants.get(TenantThreadLocal.getTenant());
 
     return registered != null && registered;
+  }
+
+  List<String> getRegisteredTenants() {
+    return registeredTenants.keySet().stream().map(t -> t.tenantSlug).collect(toList());
   }
 }

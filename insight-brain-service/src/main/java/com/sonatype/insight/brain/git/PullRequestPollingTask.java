@@ -15,7 +15,10 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.AllTenantsJob;
+import com.sonatype.insight.brain.tenancy.Tenant;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.quartz.DisallowConcurrentExecution;
@@ -34,7 +37,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class PullRequestPollingTask
-    implements InsightJob, ProductLicenseListener
+    implements InsightJob, ProductLicenseListener, AllTenantsJob
 {
   public static final String TASK_NAME = "PullRequestPollingTask";
 
@@ -103,8 +106,20 @@ public class PullRequestPollingTask
   }
 
   @Override
-  public void execute(JobExecutionContext context) {
-    execute(this::monitorPullRequestsForCommenting, log, "Failed to monitor pull requests");
+  public void executeForTenant(JobExecutionContext context, Tenant tenant) {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+      monitorPullRequestsForCommenting();
+    }
+    catch (Exception e) {
+      log.error("Failed to monitor pull requests: {}", e.getMessage(), e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+      // at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(2);
+    }
   }
 
   @Override

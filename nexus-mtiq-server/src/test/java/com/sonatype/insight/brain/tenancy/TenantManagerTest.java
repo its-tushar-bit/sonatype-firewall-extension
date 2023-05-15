@@ -46,6 +46,9 @@ public class TenantManagerTest
   TenantManaged job;
 
   @Mock
+  AllTenantsJob allTenantsJob;
+
+  @Mock
   InsightConfig config;
 
   @Mock
@@ -131,8 +134,8 @@ public class TenantManagerTest
   @Test
   public void shouldThrowIllegalArgumentException_whenTenantNull() {
     assertThatThrownBy(() -> underTest.setTenant((Tenant) null))
-        .withFailMessage(TENANT_PARAMETER_CANNOT_BE_NULL)
-        .isInstanceOf(IllegalArgumentException.class);
+            .withFailMessage(TENANT_PARAMETER_CANNOT_BE_NULL)
+            .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -141,6 +144,35 @@ public class TenantManagerTest
 
     verify(job, never()).register();
     verify(lifecycle, never()).bootTenant();
+  }
+
+  @Test
+  public void shouldNotRegister_allTenantsJobs() {
+    tenantManagedBeans.add(allTenantsJob);
+
+    underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils, tenantValidator);
+
+    testAsNewTenant(t -> {
+      when(tenantValidator.validateTenantExists(t)).thenReturn(true);
+
+      underTest.setTenant(t);
+
+      verify(job).register();
+      verify(allTenantsJob, never()).register();
+    });
+  }
+
+  @Test
+  public void shouldGetRegisteredTenants() {
+    underTest.setTenant(tenant);
+
+    testAsNewTenant(t -> {
+      when(tenantValidator.validateTenantExists(t)).thenReturn(true);
+
+      underTest.setTenant(t);
+
+      assertThat(underTest.getRegisteredTenants()).containsExactlyInAnyOrder(tenant.tenantSlug, t.tenantSlug);
+    });
   }
 
   @Test

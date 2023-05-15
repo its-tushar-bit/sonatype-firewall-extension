@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
@@ -18,6 +22,8 @@ import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
  */
 public class TenantThreadLocal
 {
+  private static final Logger log = LoggerFactory.getLogger(TenantThreadLocal.class);
+
   private static Tenant defaultTenant = SINGLE_TENANT;
 
   private static final ThreadLocal<TenantState> tenantThreadLocal = new InheritableThreadLocal<TenantState>()
@@ -103,7 +109,8 @@ public class TenantThreadLocal
     // tenant.
     if (GLOBAL_TENANT.equals(currentTenant)
         && previousTenant != null
-        && !previousTenant.isInvalid()) {
+        && !previousTenant.isInvalid())
+    {
       throw new InvalidTenantOperationException(
           "Cannot transition from one valid tenant to another via Global. This is to prevent " +
               "data leakage");
@@ -168,6 +175,43 @@ public class TenantThreadLocal
     setTenant(GLOBAL_TENANT);
   }
 
+  /**
+   * PACKAGE PRIVATE!!! Only trusted callers should be able to run code as a specific tenant. Note: Using this method
+   * will invalidate the tenant when finished.
+   * </p>
+   * Running across tenants is only allowed when the node is running in quartz mode. This is to prevent any request
+   * traffic from being able to iterate through tenants.
+   */
+  static void runForAllTenants(List<String> tenants, String taskName, Consumer<Tenant> consumer) {
+    if (!tenantUtil.isMultiTenant()) {
+      consumer.accept(SINGLE_TENANT);
+    }
+
+    log.info("Running task {} for all registered tenants. Tenant count = {}", taskName, tenants.size());
+
+    if (tenantUtil.isMtiqBatchMode()) {
+      for (String tenantName : tenants) {
+
+        log.debug("Running task {} for tenant {}", taskName, tenantName);
+
+        try {
+          TenantThreadLocal.setGlobalTenant();
+
+          Tenant tenant = new Tenant(tenantName);
+
+          runAs(tenant, () -> {
+            consumer.accept(tenant);
+            return null;
+          });
+        }
+        catch (Exception e) {
+          log.error("runForAllTenants failed to run consumer for tenant {}, skipping and moving on to next tenant",
+              tenantName, e);
+        }
+      }
+    }
+  }
+
   public static <T> T runAsGlobal(Supplier<T> supplier) {
     return runAs(GLOBAL_TENANT, supplier);
   }
@@ -225,7 +269,8 @@ public class TenantThreadLocal
     private static Tenant getCurrentTenantOrNull() {
       if (tenantThreadLocal.get() == null
           || SINGLE_TENANT.equals(tenantThreadLocal.get().current)
-          || GLOBAL_TENANT.equals(tenantThreadLocal.get().current)) {
+          || GLOBAL_TENANT.equals(tenantThreadLocal.get().current))
+      {
         return null;
       }
 

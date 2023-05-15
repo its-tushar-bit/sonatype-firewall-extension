@@ -5,7 +5,12 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Named;
+
+import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -18,6 +23,19 @@ import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 public class TenantUtil
 {
   private static final Logger log = LoggerFactory.getLogger(TenantUtil.class);
+
+  static final String IS_MTIQ_BATCH = "IS_MTIQ_BATCH";
+
+  //Visible for testing
+  Boolean mtiqBatchMode;
+
+  public boolean isAllTenantsJob(Class clazz) {
+    return AllTenantsJob.class.isAssignableFrom(clazz);
+  }
+
+  public boolean isMtiqBatchJob(Class clazz) {
+    return MtiqBatchJob.class.isAssignableFrom(clazz);
+  }
 
   Tenant validateTenant(Tenant tenant) {
     return validateTenantForType(null, tenant);
@@ -57,8 +75,9 @@ public class TenantUtil
       logTenancyIssue("GlobalTenantJob was invoked which expects a global tenant to be set but instead a specific " +
           "tenant was set: " + clazz);
     }
-    else if (!GlobalTenantJob.class.isAssignableFrom(clazz) && TenantManaged.class.isAssignableFrom(clazz) &&
-        GLOBAL_TENANT.equals(tenant)) {
+    else if (!GlobalTenantJob.class.isAssignableFrom(clazz) && TenantManaged.class.isAssignableFrom(clazz)
+        && !isAllTenantsJob(clazz) && GLOBAL_TENANT.equals(tenant))
+    {
       logTenancyIssue("TenantJob was invoked which expects a specific tenant to be set but instead global " +
           "tenant was set: " + clazz);
     }
@@ -88,11 +107,7 @@ public class TenantUtil
   }
 
   private static boolean isSupportedUrl(String serverName) {
-    if (serverName.contains(".")) {
-      return true;
-    }
-
-    return false;
+    return serverName.contains(".");
   }
 
   public boolean isGlobalTenant(String tenantSlug) {
@@ -129,5 +144,29 @@ public class TenantUtil
 
   public String getTenantSlugForSynchronization() {
     return TenantThreadLocal.getTenantWithoutValidation().tenantSlug.intern();
+  }
+
+  /**
+   * When the node is running as a Mtiq Batch it is responsible for running quartz jobs that implement AllTenantsJob
+   *
+   * @return - is this instance a mtiq batch
+   */
+  public boolean isMtiqBatchMode() {
+    if (mtiqBatchMode == null) {
+      mtiqBatchMode = Boolean.parseBoolean(System.getenv(IS_MTIQ_BATCH));
+    }
+    return mtiqBatchMode;
+  }
+
+  List<Tenant> getAllTenants() {
+    List<String> schemas = DatabaseUtil.getSchemasList(OperationalDataStoreProvider.getInstance().getDataSource());
+
+    return schemas.stream().filter(schema -> schema.startsWith("t_")).map(this::createTenantFromSchema)
+        .collect(Collectors.toList());
+  }
+
+  Tenant createTenantFromSchema(String schema) {
+    String tenantSlug = schema.replaceFirst("t_", "").replace('_', '-');
+    return new Tenant(tenantSlug);
   }
 }

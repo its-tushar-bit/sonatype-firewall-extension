@@ -62,11 +62,11 @@ public class TaskScheduler
 
   private static final Logger log = LoggerFactory.getLogger(TaskScheduler.class);
 
-  private final QuartzJobStoreTX quartzJobStoreTX;
+  protected final QuartzJobStoreTX quartzJobStoreTX;
 
   private final JobFactory jobFactory;
 
-  private final String schedulerName;
+  protected final String schedulerName;
 
   private final QuartzTriggerListener quartzTriggerListener;
 
@@ -94,11 +94,15 @@ public class TaskScheduler
 
   // Visible for testing
   public Scheduler createScheduler() {
+    return createScheduler(schedulerName, quartzJobStoreTX);
+  }
+
+  protected Scheduler createScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
     try {
       String schedulerInstanceId = UUID.randomUUID().toString().replace("-", "");
       // This reuses the schedulerName and schedulerInstanceId for the Scheduler, ThreadPool, and JobStore
       DirectSchedulerFactory.getInstance().createScheduler(schedulerName, schedulerInstanceId, createThreadPool(),
-          quartzJobStoreTX, null, 0, IDLE_WAIT_TIME, -1);
+              jobStoreTX, null, 0, IDLE_WAIT_TIME, -1);
       Scheduler scheduler = DirectSchedulerFactory.getInstance().getScheduler(schedulerName);
       scheduler.setJobFactory(jobFactory);
       scheduler.addCalendar(NeverPastCalendar.CALENDAR_NAME, new NeverPastCalendar(), true, false);
@@ -112,9 +116,13 @@ public class TaskScheduler
 
   @Override
   public void start() throws Exception {
-    Scheduler scheduler = getScheduler();
+    startScheduler(schedulerName, quartzJobStoreTX);
+  }
+
+  protected void startScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) throws SchedulerException {
+    Scheduler scheduler = getScheduler(schedulerName);
     if (scheduler == null) {
-      scheduler = createScheduler();
+      scheduler = createScheduler(schedulerName, jobStoreTX);
     }
     if (disableForTesting) {
       return;
@@ -157,7 +165,7 @@ public class TaskScheduler
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
         .withSchedule(schedule) //
         .build();
-    scheduleTask(job, trigger);
+    scheduleTask(job, insightJob, trigger);
   }
 
   public void scheduleOneTimeTask(InsightJob insightJob) {
@@ -167,7 +175,7 @@ public class TaskScheduler
         .withIdentity(job.getKey().getName(), job.getKey().getGroup())
         .startNow()
         .build();
-    scheduleTask(job, trigger);
+    scheduleTask(job, insightJob, trigger);
   }
 
   public void scheduleOneTimeTask(InsightJob insightJob, LocalTime localTime) {
@@ -180,7 +188,7 @@ public class TaskScheduler
             .withRepeatCount(0) //
             .withMisfireHandlingInstructionDoNothing()) //
         .build();
-    scheduleTask(job, trigger);
+    scheduleTask(job, insightJob, trigger);
   }
 
   public boolean isJobTriggered(InsightJob insightJob, Map<String, Object> data) {
@@ -217,7 +225,7 @@ public class TaskScheduler
     }
 
     Trigger trigger = triggerBuilder.build();
-    scheduleTask(job, trigger);
+    scheduleTask(job,insightJob,  trigger);
   }
 
   public void scheduleOneTimeTaskForAllOtherNodes(InsightJob insightJob) {
@@ -255,7 +263,7 @@ public class TaskScheduler
           .build();
       triggers.add(trigger);
     }
-    scheduleTask(job, triggers.toArray(new Trigger[0]));
+    scheduleTask(job, insightJob, triggers.toArray(new Trigger[0]));
   }
 
   // Visible for testing
@@ -273,9 +281,13 @@ public class TaskScheduler
     return otherNodeIds;
   }
 
-  private void scheduleTask(JobDetail job, Trigger... triggers) {
+  protected void scheduleTask(JobDetail job, InsightJob insightJob, Trigger... triggers) {
+    scheduleTask(job, insightJob, getScheduler(), triggers);
+  }
+
+  protected void scheduleTask(JobDetail job, InsightJob insightJob, Scheduler scheduler, Trigger... triggers) {
     try {
-      getScheduler().scheduleJob(job, new HashSet<>(Arrays.asList(triggers)), true);
+      scheduler.scheduleJob(job, new HashSet<>(Arrays.asList(triggers)), true);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);
@@ -311,6 +323,10 @@ public class TaskScheduler
   @Override
   public void stop() throws Exception {
     Scheduler scheduler = getScheduler();
+    shutdownScheduler(scheduler);
+  }
+
+  protected void shutdownScheduler(Scheduler scheduler) throws SchedulerException {
     if (scheduler != null && !scheduler.isShutdown()) {
       scheduler.shutdown();
       log.info("Stopped task scheduler");
@@ -318,6 +334,10 @@ public class TaskScheduler
   }
 
   public Scheduler getScheduler() {
+    return getScheduler(schedulerName);
+  }
+
+  public Scheduler getScheduler(String schedulerName) {
     try {
       return DirectSchedulerFactory.getInstance().getScheduler(schedulerName);
     }

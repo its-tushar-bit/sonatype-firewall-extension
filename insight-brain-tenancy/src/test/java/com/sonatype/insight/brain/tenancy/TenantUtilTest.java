@@ -5,17 +5,66 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import java.util.List;
+import javax.sql.DataSource;
+
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.DatamartProvider;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantUtil.IS_MTIQ_BATCH;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TenantUtilTest
     extends MultiTenantTestSupport
 {
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+  @Mock
+  OperationalDataStore operationalDataStore;
+
+  @Mock
+  DataSource dataSource;
+
+  @AfterClass
+  public static void tearDown() {
+    OperationalDataStoreProvider.setInstance(null);
+    AggregationDataStoreProvider.setInstance(null);
+    ThirdPartyScansProvider.setInstance(null);
+    DatamartProvider.setInstance(null);
+  }
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+
+    when(operationalDataStore.getDataSource()).thenReturn(dataSource);
+    OperationalDataStoreProvider.setInstance(operationalDataStore);
+  }
+
   @Test
   public void shouldReturnMultiTenantTrue() {
     assertThat(new TenantUtil().isMultiTenant()).isTrue();
@@ -78,5 +127,43 @@ public class TenantUtilTest
 
     assertNotSame(new String(tenantNameCharArray), new TenantUtil().getTenantSlugForSynchronization());
     assertSame(new String(tenantNameCharArray).intern(), new TenantUtil().getTenantSlugForSynchronization());
+  }
+
+  @Test
+  public void shouldReturnTrueWhenAllTenantsJob() {
+    assertThat(new TenantUtil().isAllTenantsJob(AllTenantsJob.class)).isTrue();
+    assertThat(new TenantUtil().isAllTenantsJob(String.class)).isFalse();
+  }
+
+  @Test
+  public void shouldReturnTrueWhenMtiqBatchJob() {
+    assertThat(new TenantUtil().isMtiqBatchJob(MtiqBatchJob.class)).isTrue();
+    assertThat(new TenantUtil().isMtiqBatchJob(String.class)).isFalse();
+  }
+
+  @Test
+  public void shouldReturnBackgroundModeWhenSet() {
+    environmentVariables.set(IS_MTIQ_BATCH, "true");
+
+    assertThat(new TenantUtil().isMtiqBatchMode()).isTrue();
+
+    environmentVariables.set(IS_MTIQ_BATCH, "false");
+
+    assertThat(new TenantUtil().isMtiqBatchMode()).isFalse();
+  }
+
+  @Test
+  public void shouldGetAllTenantsFromDb() {
+    try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
+      String tenant1 = "tenant1";
+      String tenant2 = "tenant2";
+
+      dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource))
+          .thenReturn(asList("t_" + tenant1, "t_" + tenant2));
+
+      List<Tenant> allTenants = new TenantUtil().getAllTenants();
+
+      assertThat(allTenants).containsExactly(new Tenant(tenant1), new Tenant(tenant2));
+    }
   }
 }

@@ -99,7 +99,7 @@ public class RepositoryService extends AbstractRepositoryService
       repository = new Repository(null, repositoryPublicId);
       RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
       repository.setRepositoryManagerId(repositoryManager.getId());
-      repository.setAuditEnabled(false);
+      repository.setEnabled(false);
       repositoryDAO.insert(repository);
     }
     AuditData.get().setRepository(repository);

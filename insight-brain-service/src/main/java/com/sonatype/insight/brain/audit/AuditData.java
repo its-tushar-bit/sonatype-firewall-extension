@@ -205,7 +205,7 @@ public abstract class AuditData
       setRepositoryPublicId(repository.getPublicId());
       setData("format", repository.getFormat());
       setData("type", repository.getRepositoryType().name());
-      setData("auditEnabled", repository.isAuditEnabled());
+      setData("auditEnabled", repository.isEnabled());
       setData("quarantineEnabled", repository.isQuarantineEnabled());
       setData("policyCompliantComponentSelectionEnabled", repository.isPolicyCompliantComponentSelectionEnabled());
       setData("namespaceConfusionProtectionEnabled", repository.isNamespaceConfusionProtectionEnabled());

@@ -2650,18 +2650,18 @@ public class TemporaryEntity
     return repository;
   }
 
-  public Repository newRepository(RepositoryManager repositoryManager, String publicId, boolean auditEnabled) {
-    return newRepository(repositoryManager, publicId, auditEnabled, false);
+  public Repository newRepository(RepositoryManager repositoryManager, String publicId, boolean enabled) {
+    return newRepository(repositoryManager, publicId, enabled, false);
   }
 
   public Repository newRepository(
       RepositoryManager repositoryManager,
       String publicId,
-      boolean auditEnabled,
+      boolean enabled,
       boolean quarantineEnabled)
   {
     Repository repository = new Repository(repositoryManager.getId(), publicId);
-    repository.setAuditEnabled(auditEnabled);
+    repository.setEnabled(enabled);
     repository.setQuarantineEnabled(quarantineEnabled);
     repositoryDAO.insert(repository);
     repositories.add(repository);
@@ -2681,7 +2681,7 @@ public class TemporaryEntity
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setRepositoryType(repositoryType);
     repository.setFormat(format);
-    repository.setAuditEnabled(RepositoryType.proxy.equals(repositoryType));
+    repository.setEnabled(RepositoryType.proxy.equals(repositoryType));
     repositoryDAO.insert(repository);
     repositories.add(repository);
     return repository;
@@ -2697,7 +2697,7 @@ public class TemporaryEntity
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setRepositoryType(repositoryType);
     repository.setFormat(format);
-    repository.setAuditEnabled(RepositoryType.proxy.equals(repositoryType));
+    repository.setEnabled(RepositoryType.proxy.equals(repositoryType));
     repository.setLastManualConfigureTime(lastManualConfigureTime);
     repositoryDAO.insert(repository);
     repositories.add(repository);

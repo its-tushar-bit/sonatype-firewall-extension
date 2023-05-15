@@ -64,7 +64,7 @@ public class RepositoryDAOTest
     repository = dao.getById(id);
     assertThat(repository.getName()).isEqualTo(repository.getPublicId());
     assertThat(repository.getPublicId()).isEqualTo("My Repo Public Id");
-    assertThat(repository.isAuditEnabled()).isTrue();
+    assertThat(repository.isEnabled()).isTrue();
     assertThat(repository.getParentOwnerId()).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     assertThat(repository.canHaveChildren()).isFalse();
     assertThat(repository.getType()).isEqualTo(OwnerType.REPOSITORY);
@@ -73,11 +73,11 @@ public class RepositoryDAOTest
 
     // Update
     Date now = new Date();
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     repository.setLastManualConfigureTime(now);
     dao.update(repository);
     repository = dao.getById(id);
-    assertThat(repository.isAuditEnabled()).isFalse();
+    assertThat(repository.isEnabled()).isFalse();
     assertThat(repository.getLastManualConfigureTime()).isEqualTo(now);
 
     // Delete
@@ -306,74 +306,74 @@ public class RepositoryDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repository = new Repository(repoManager.getId(), "SomePublicID1");
     repository.setRepositoryType(RepositoryType.proxy);
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     repository.setQuarantineEnabled(false);
     repository.setPolicyCompliantComponentSelectionEnabled(false);
     repository.setNamespaceConfusionProtectionEnabled(false);
 
     dao.insert(repository);
     Repository retrievedRepository = dao.getById(repository.getId());
-    assertThat(retrievedRepository.isAuditEnabled()).isFalse();
+    assertThat(retrievedRepository.isEnabled()).isFalse();
     assertThat(retrievedRepository.isQuarantineEnabled()).isFalse();
     assertThat(retrievedRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(retrievedRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
 
     repository = new Repository(repoManager.getId(), "SomePublicID2");
     repository.setRepositoryType(RepositoryType.proxy);
-    repository.setAuditEnabled(true);
+    repository.setEnabled(true);
     repository.setQuarantineEnabled(false);
     repository.setPolicyCompliantComponentSelectionEnabled(false);
     repository.setNamespaceConfusionProtectionEnabled(false);
     dao.insert(repository);
     retrievedRepository = dao.getById(repository.getId());
-    assertThat(retrievedRepository.isAuditEnabled()).isTrue();
+    assertThat(retrievedRepository.isEnabled()).isTrue();
     assertThat(retrievedRepository.isQuarantineEnabled()).isFalse();
     assertThat(retrievedRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(retrievedRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
 
     repository = new Repository(repoManager.getId(), "SomePublicID3");
     repository.setRepositoryType(RepositoryType.proxy);
-    repository.setAuditEnabled(true);
+    repository.setEnabled(true);
     repository.setQuarantineEnabled(true);
     repository.setPolicyCompliantComponentSelectionEnabled(false);
     repository.setNamespaceConfusionProtectionEnabled(false);
     repository.setQuarantineEnabled(true);
     dao.insert(repository);
     retrievedRepository = dao.getById(repository.getId());
-    assertThat(retrievedRepository.isAuditEnabled()).isTrue();
+    assertThat(retrievedRepository.isEnabled()).isTrue();
     assertThat(retrievedRepository.isQuarantineEnabled()).isTrue();
     assertThat(retrievedRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(retrievedRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
 
     repository = new Repository(repoManager.getId(), "SomePublicID4");
     repository.setRepositoryType(RepositoryType.proxy);
-    repository.setAuditEnabled(true);
+    repository.setEnabled(true);
     repository.setQuarantineEnabled(true);
     repository.setPolicyCompliantComponentSelectionEnabled(true);
     repository.setNamespaceConfusionProtectionEnabled(false);
     dao.insert(repository);
     retrievedRepository = dao.getById(repository.getId());
-    assertThat(retrievedRepository.isAuditEnabled()).isTrue();
+    assertThat(retrievedRepository.isEnabled()).isTrue();
     assertThat(retrievedRepository.isQuarantineEnabled()).isTrue();
     assertThat(retrievedRepository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(retrievedRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
 
     repository = new Repository(repoManager.getId(), "SomePublicID5");
     repository.setRepositoryType(RepositoryType.proxy);
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     repository.setQuarantineEnabled(true);
     repository.setPolicyCompliantComponentSelectionEnabled(false);
     repository.setNamespaceConfusionProtectionEnabled(false);
     dao.insert(repository);
     repository = dao.getById(repository.getId());
-    assertThat(repository.isAuditEnabled()).isFalse();
+    assertThat(repository.isEnabled()).isFalse();
     assertThat(repository.isQuarantineEnabled()).isFalse();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
 
     Repository invalidRepository = new Repository(repoManager.getId(), "SomePublicIDInvalid");
     invalidRepository.setRepositoryType(RepositoryType.proxy);
-    invalidRepository.setAuditEnabled(false);
+    invalidRepository.setEnabled(false);
     invalidRepository.setQuarantineEnabled(false);
     invalidRepository.setPolicyCompliantComponentSelectionEnabled(false);
     invalidRepository.setNamespaceConfusionProtectionEnabled(true);
@@ -382,7 +382,7 @@ public class RepositoryDAOTest
     }).withMessage("Namespace Confusion Protection can be enabled only for hosted repositories.");
     repository.setNamespaceConfusionProtectionEnabled(false);
 
-    invalidRepository.setAuditEnabled(true);
+    invalidRepository.setEnabled(true);
     invalidRepository.setQuarantineEnabled(false);
     invalidRepository.setPolicyCompliantComponentSelectionEnabled(true);
     invalidRepository.setNamespaceConfusionProtectionEnabled(false);
@@ -400,12 +400,12 @@ public class RepositoryDAOTest
     repository.setPolicyCompliantComponentSelectionEnabled(false);
     repository.setNamespaceConfusionProtectionEnabled(false);
 
-    repository.setAuditEnabled(true);
+    repository.setEnabled(true);
     assertThatExceptionOfType(InvalidRepositoryException.class).isThrownBy(() -> {
       dao.insert(repository);
     }).withMessage("Audit can be enabled only for proxy repositories.");
 
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     repository.setQuarantineEnabled(true);
     assertThatExceptionOfType(InvalidRepositoryException.class).isThrownBy(() -> {
       dao.insert(repository);
@@ -422,7 +422,7 @@ public class RepositoryDAOTest
     dao.insert(repository);
 
     Repository retrievedRepository = dao.getById(repository.getId());
-    assertThat(retrievedRepository.isAuditEnabled()).isFalse();
+    assertThat(retrievedRepository.isEnabled()).isFalse();
     assertThat(retrievedRepository.isQuarantineEnabled()).isFalse();
     assertThat(retrievedRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(retrievedRepository.isNamespaceConfusionProtectionEnabled()).isTrue();
@@ -433,18 +433,18 @@ public class RepositoryDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     final Repository repository = new Repository(repoManager.getId(), "SomePublicID");
     repository.setRepositoryType(RepositoryType.hosted);
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     repository.setQuarantineEnabled(false);
     repository.setPolicyCompliantComponentSelectionEnabled(false);
     repository.setNamespaceConfusionProtectionEnabled(false);
     dao.insert(repository);
 
-    repository.setAuditEnabled(true);
+    repository.setEnabled(true);
     assertThatExceptionOfType(InvalidRepositoryException.class).isThrownBy(() -> {
       dao.update(repository);
     }).withMessage("Audit can be enabled only for proxy repositories.");
 
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     repository.setQuarantineEnabled(true);
     assertThatExceptionOfType(InvalidRepositoryException.class).isThrownBy(() -> {
       dao.update(repository);
@@ -461,7 +461,7 @@ public class RepositoryDAOTest
     dao.update(repository);
 
     Repository retrievedRepository = dao.getById(repository.getId());
-    assertThat(retrievedRepository.isAuditEnabled()).isFalse();
+    assertThat(retrievedRepository.isEnabled()).isFalse();
     assertThat(retrievedRepository.isQuarantineEnabled()).isFalse();
     assertThat(retrievedRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(retrievedRepository.isNamespaceConfusionProtectionEnabled()).isTrue();
@@ -472,16 +472,16 @@ public class RepositoryDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     final Repository repository = new Repository(repoManager.getId(), "SomePublicID");
     repository.setRepositoryType(RepositoryType.proxy);
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     repository.setQuarantineEnabled(false);
     repository.setPolicyCompliantComponentSelectionEnabled(false);
     repository.setNamespaceConfusionProtectionEnabled(false);
     dao.insert(repository);
 
-    repository.setAuditEnabled(true);
+    repository.setEnabled(true);
     dao.update(repository);
     Repository retrievedRepository = dao.getById(repository.getId());
-    assertThat(retrievedRepository.isAuditEnabled()).isTrue();
+    assertThat(retrievedRepository.isEnabled()).isTrue();
     assertThat(retrievedRepository.isQuarantineEnabled()).isFalse();
     assertThat(retrievedRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(retrievedRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
@@ -489,7 +489,7 @@ public class RepositoryDAOTest
     repository.setQuarantineEnabled(true);
     dao.update(repository);
     retrievedRepository = dao.getById(repository.getId());
-    assertThat(retrievedRepository.isAuditEnabled()).isTrue();
+    assertThat(retrievedRepository.isEnabled()).isTrue();
     assertThat(retrievedRepository.isQuarantineEnabled()).isTrue();
     assertThat(retrievedRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(retrievedRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
@@ -497,7 +497,7 @@ public class RepositoryDAOTest
     repository.setPolicyCompliantComponentSelectionEnabled(true);
     dao.update(repository);
     retrievedRepository = dao.getById(repository.getId());
-    assertThat(retrievedRepository.isAuditEnabled()).isTrue();
+    assertThat(retrievedRepository.isEnabled()).isTrue();
     assertThat(retrievedRepository.isQuarantineEnabled()).isTrue();
     assertThat(retrievedRepository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
 
@@ -507,14 +507,14 @@ public class RepositoryDAOTest
     }).withMessage("Namespace Confusion Protection can be enabled only for hosted repositories.");
     repository.setNamespaceConfusionProtectionEnabled(false);
 
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     repository.setQuarantineEnabled(true);
     repository.setNamespaceConfusionProtectionEnabled(false);
     assertThatExceptionOfType(InvalidRepositoryException.class).isThrownBy(() -> {
       dao.update(repository);
     }).withMessage("Policy Compliant Component Selection requires Audit and Quarantine to be enabled.");
 
-    repository.setAuditEnabled(true);
+    repository.setEnabled(true);
     repository.setQuarantineEnabled(false);
     repository.setNamespaceConfusionProtectionEnabled(false);
     assertThatExceptionOfType(InvalidRepositoryException.class).isThrownBy(() -> {
@@ -554,7 +554,7 @@ public class RepositoryDAOTest
     RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repositoryComponent, "testPolicyId");
 
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
 
     dao.update(repository);
 
@@ -683,7 +683,7 @@ public class RepositoryDAOTest
     assertThat(resultRepo.getName()).isEqualTo(repository.getName());
     assertThat(resultRepo.getFormat()).isEqualTo(repository.getFormat());
     assertThat(resultRepo.getType()).isEqualTo(repository.getType());
-    assertThat(resultRepo.isAuditEnabled()).isEqualTo(repository.isAuditEnabled());
+    assertThat(resultRepo.isEnabled()).isEqualTo(repository.isEnabled());
     assertThat(resultRepo.isQuarantineEnabled()).isEqualTo(repository.isQuarantineEnabled());
     assertThat(resultRepo.isPolicyCompliantComponentSelectionEnabled()).isEqualTo(
         repository.isPolicyCompliantComponentSelectionEnabled());

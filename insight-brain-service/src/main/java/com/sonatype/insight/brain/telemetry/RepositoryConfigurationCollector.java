@@ -82,7 +82,7 @@ public class RepositoryConfigurationCollector
         repository.getRepositoryManagerId(),
         repository.getId(),
         repository.getFormat(),
-        repository.isAuditEnabled(),
+        repository.isEnabled(),
         repository.isQuarantineEnabled(),
         userAgent != null ? userAgent.hostProductName : null,
         userAgent != null ? userAgent.productEdition : null,

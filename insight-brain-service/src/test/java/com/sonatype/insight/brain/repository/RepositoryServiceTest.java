@@ -703,7 +703,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Test
   public void testDeleteRepository_PolicyViolationLogger_RepositoryDisabled() throws Exception {
     Repository repository = tempEntity.newRepository();
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     repositoryDAO.update(repository);
 
     repositoryService.deleteRepository(repository.getId());
@@ -985,7 +985,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repository = repositoryDAO.getById(repository.getId());
 
     assertThat(repository.getName()).isEqualTo("testRepoName");
-    assertThat(repository.isAuditEnabled()).isTrue();
+    assertThat(repository.isEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
@@ -997,7 +997,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     Repository existingRepository1 = tempEntity.newRepository(repositoryManager, "testRepoName1");
     Repository existingRepository2 = tempEntity.newRepository(repositoryManager, "testRepoName2");
     existingRepository1.setPublicId(existingRepository2.getPublicId());
-    existingRepository1.setAuditEnabled(false);
+    existingRepository1.setEnabled(false);
     Repository existingRepository3 = tempEntity.newRepository(repositoryManager, "testRepoName3", "npm");
     existingRepository3.setQuarantineEnabled(true);
     existingRepository3.setPolicyCompliantComponentSelectionEnabled(true);
@@ -1011,7 +1011,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     Repository repository = repositoryDAO.getById(existingRepository3.getId());
 
     assertThat(repository.getName()).isEqualTo("testRepoName3");
-    assertThat(repository.isAuditEnabled()).isTrue();
+    assertThat(repository.isEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();

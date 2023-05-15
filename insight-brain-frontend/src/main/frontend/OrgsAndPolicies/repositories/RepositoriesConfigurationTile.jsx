@@ -97,7 +97,7 @@ const RepositoriesConfigurationTile = () => {
         <NxTable.Cell className="iq-repositories-configuration-table-repository-manager">
           {repository.managerInstanceId}
         </NxTable.Cell>
-        <NxTable.Cell>{repositoryData.auditEnabled ? 'Enabled' : 'Disabled'}</NxTable.Cell>
+        <NxTable.Cell>{repositoryData.enabled ? ' Enabled' : 'Disabled'}</NxTable.Cell>
         <NxTable.Cell>
           <div className="nx-btn-bar">
             <NxButton
@@ -146,8 +146,8 @@ const RepositoriesConfigurationTile = () => {
               <NxTable.Cell
                 id="status-column-header"
                 isSortable
-                sortDir={showHighlight('auditEnabled')}
-                onClick={() => sortRepositories('auditEnabled')}
+                sortDir={showHighlight('enabled')}
+                onClick={() => sortRepositories('enabled')}
               >
                 Status
               </NxTable.Cell>

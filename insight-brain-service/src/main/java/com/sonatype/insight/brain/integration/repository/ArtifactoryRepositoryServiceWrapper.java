@@ -69,14 +69,13 @@ class ArtifactoryRepositoryServiceWrapper
     return Hashing.sha256().hashString(repositoryId, StandardCharsets.UTF_8).toString().substring(0, 50);
   }
 
-  ApiRepositoryDTO setAuditEnabled(
+  ApiRepositoryDTO setEnabled(
       final String repositoryManagerInstanceId,
       final String repositoryPublicId,
       final boolean enabled,
       final String clientUserAgent)
   {
-    return repositoryService.setAuditEnabled(
-        getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
+    return repositoryService.setEnabled(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
         repositoryPublicId, enabled, clientUserAgent);
   }
 

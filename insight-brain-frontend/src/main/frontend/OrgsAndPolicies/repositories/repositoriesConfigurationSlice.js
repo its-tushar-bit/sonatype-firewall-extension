@@ -24,7 +24,7 @@ const initialSortConfiguration = [
     dir: 'asc',
   },
   {
-    key: 'auditEnabled',
+    key: 'enabled',
     dir: 'asc',
   },
 ];

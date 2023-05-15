@@ -57,37 +57,37 @@ public abstract class AbstractRepositoryServiceAuthzTest
   }
 
   @Test
-  public void testSetAuditEnabled_NewRepository_Authorized() {
+  public void testSetEnabled_NewRepository_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testSetAuditEnabled_NewRepository_Unauthenticated() {
-    getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+  public void testSetEnabled_NewRepository_Unauthenticated() {
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSetAuditEnabled_NewRepository_Unauthorized() {
+  public void testSetEnabled_NewRepository_Unauthorized() {
     grantWritePermission();
-    getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
   @Test
-  public void testSetAuditEnabled_ExistingRepository_Authorized() {
+  public void testSetEnabled_ExistingRepository_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true, null);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testSetAuditEnabled_ExistingRepository_Unauthenticated() {
-    getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true, null);
+  public void testSetEnabled_ExistingRepository_Unauthenticated() {
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true, null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSetAuditEnabled_ExistingRepository_Unauthorized() {
+  public void testSetEnabled_ExistingRepository_Unauthorized() {
     grantWritePermission();
-    getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true, null);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true, null);
   }
 
   protected Repository createRepository() {

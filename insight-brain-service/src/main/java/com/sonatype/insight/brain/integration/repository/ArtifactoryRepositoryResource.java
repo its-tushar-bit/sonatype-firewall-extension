@@ -59,17 +59,17 @@ public class ArtifactoryRepositoryResource
    * unknown, new entities are created in the IQ server database.
    */
   @POST
-  @Path(AUDIT_ENABLE_PATH)
+  @Path(ENABLE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public ApiRepositoryDTO setAuditEnabled(
+  public ApiRepositoryDTO setEnabled(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
-      @PathParam("enabled") boolean auditEnabled,
+      @PathParam("enabled") boolean enabled,
       @Context final HttpServletRequest request)
   {
-    AuditData.get().setEvent(auditEnabled ? AuditEvent.CONNECT_REPOSITORY : AuditEvent.DISCONNECT_REPOSITORY);
-    return repositoryService.setAuditEnabled(repositoryManagerInstanceId, repositoryPublicId, auditEnabled,
+    AuditData.get().setEvent(enabled ? AuditEvent.CONNECT_REPOSITORY : AuditEvent.DISCONNECT_REPOSITORY);
+    return repositoryService.setEnabled(repositoryManagerInstanceId, repositoryPublicId, enabled,
         DefaultHdsClient.getClientUserAgent(request));
   }
 

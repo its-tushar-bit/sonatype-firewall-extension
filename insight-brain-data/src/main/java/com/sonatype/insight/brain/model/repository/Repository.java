@@ -40,8 +40,8 @@ public class Repository
   @Enumerated(EnumType.STRING)
   private RepositoryType repositoryType = RepositoryType.proxy;
 
-  @Column(name = "audit_enabled")
-  private boolean auditEnabled = true;
+  @Column(name = "enabled")
+  private boolean enabled = true;
 
   @Column(name = "quarantine_enabled")
   private boolean quarantineEnabled = false;
@@ -93,12 +93,12 @@ public class Repository
     this.publicId = publicId;
   }
 
-  public boolean isAuditEnabled() {
-    return auditEnabled;
+  public boolean isEnabled() {
+    return enabled;
   }
 
-  public void setAuditEnabled(boolean auditEnabled) {
-    this.auditEnabled = auditEnabled;
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
   }
 
   public boolean isQuarantineEnabled() {

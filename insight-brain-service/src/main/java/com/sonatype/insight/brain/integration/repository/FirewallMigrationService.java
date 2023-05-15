@@ -135,7 +135,7 @@ public class FirewallMigrationService
       targetRepository = new Repository(repositoryManager.getId(), targetRepositoryPublicId);
     }
     targetRepository.setFormat(sourceRepository.getFormat());
-    targetRepository.setAuditEnabled(sourceRepository.isAuditEnabled());
+    targetRepository.setEnabled(sourceRepository.isEnabled());
     targetRepository.setQuarantineEnabled(sourceRepository.isQuarantineEnabled());
     if (targetRepository.getId() == null) {
       repositoryDAO.insert(targetRepository);

@@ -237,7 +237,7 @@ public class RepositoryService
     AuditData.get().setData("repositoryManagerInstanceId",
         repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
 
-    if (repository.isAuditEnabled()) {
+    if (repository.isEnabled()) {
       policyViolationLoggerFactory.newLogger(new Date(), repository).logClearEvent();
     }
   }
@@ -570,7 +570,7 @@ public class RepositoryService
 
         boolean updated = false;
 
-        if (existingRepository.isAuditEnabled() != repository.isAuditEnabled()) {
+        if (existingRepository.isEnabled() != repository.isEnabled()) {
           updated = true;
         }
         if (existingRepository.isQuarantineEnabled() != repository.isQuarantineEnabled()) {

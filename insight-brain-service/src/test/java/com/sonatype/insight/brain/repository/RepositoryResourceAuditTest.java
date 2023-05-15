@@ -196,7 +196,7 @@ public class RepositoryResourceAuditTest
     Repository existingRepository1 = tempEntity.newRepository(repositoryManager, "testRepoName1");
     Repository existingRepository2 = tempEntity.newRepository(repositoryManager, "testRepoName2");
     existingRepository1.setPublicId(existingRepository2.getPublicId());
-    existingRepository1.setAuditEnabled(false);
+    existingRepository1.setEnabled(false);
     configureRepositoriesRequest(repositoryManager.getId(), Collections.singletonList(existingRepository1)).put();
     List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
     for (AuditDTO auditDTO : auditDTOs) {
@@ -215,7 +215,7 @@ public class RepositoryResourceAuditTest
   public void testConfigureRepositories_ExistingRepository() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven");
-    repository.setAuditEnabled(false);
+    repository.setEnabled(false);
     configureRepositoriesRequest(repositoryManager.getId(), Collections.singletonList(repository)).put();
 
     List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);

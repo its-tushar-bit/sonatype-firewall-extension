@@ -64,8 +64,8 @@ public class ArtifactoryRepositoryServiceWrapperTest
     String repositoryManagerInstanceId = "foo";
     String repositoryPublicId = "bar";
 
-    wrapper.setAuditEnabled(repositoryManagerInstanceId, repositoryPublicId, true, null);
-    verify(artifactoryRepositoryService).setAuditEnabled(repositoryManagerInstanceId, repositoryPublicId, true, null);
+    wrapper.setEnabled(repositoryManagerInstanceId, repositoryPublicId, true, null);
+    verify(artifactoryRepositoryService).setEnabled(repositoryManagerInstanceId, repositoryPublicId, true, null);
 
     wrapper.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId, null);
     verify(artifactoryRepositoryService).getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId,

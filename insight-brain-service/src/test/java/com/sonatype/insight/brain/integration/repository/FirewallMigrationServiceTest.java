@@ -203,7 +203,7 @@ public class FirewallMigrationServiceTest
     }
     // Assert the target repository mirrors the source configuration
     assertThat(targetRepository.getFormat()).isEqualTo(sourceRepository.getFormat());
-    assertThat(targetRepository.isAuditEnabled()).isEqualTo(sourceRepository.isAuditEnabled());
+    assertThat(targetRepository.isEnabled()).isEqualTo(sourceRepository.isEnabled());
     assertThat(targetRepository.isQuarantineEnabled()).isEqualTo(sourceRepository.isQuarantineEnabled());
 
     // Assert Components are migrated

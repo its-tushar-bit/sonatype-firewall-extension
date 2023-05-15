@@ -23,9 +23,8 @@ import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
-import com.sonatype.clm.testing.functional.pages.RequestWaiverPage;
-
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.RequestWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationConstraintInfoTile;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSecurityDetailsInfoTile;
@@ -56,59 +55,59 @@ import static com.codeborne.selenide.Condition.visible;
 public class ViolationDetailsTest
     extends AbstractFunctionalTest
 {
-  private static Application application;
+  private Application application;
 
-  private static PolicyViolation securityPolicyViolation;
+  private PolicyViolation securityPolicyViolation;
 
-  private static PolicyViolation otherPolicyViolation;
+  private PolicyViolation otherPolicyViolation;
 
-  private static PolicyViolation deletedPolicyViolation;
+  private PolicyViolation deletedPolicyViolation;
 
   @BeforeClass
   public static void startup() {
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-
-    Instant now = Instant.now();
-    Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
-    Instant oneDayAgo = now.minus(1, ChronoUnit.DAYS);
-
-    Organization organization = staticTempEntity.newOrganization("Org 1");
-    application = staticTempEntity.newApplication("App 1", "app1", organization.getId());
-    Policy securityPolicy = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
-
-    PolicyEvaluation policyEvaluation1 = staticTempEntity.newPolicyEvaluation(application.getId(),
-        StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
-
-    PolicyEvaluation policyEvaluation2 = staticTempEntity.newPolicyEvaluation(application.getId(),
-        StageTypes.RELEASE.getId(), "scan2", false, false, Date.from(oneDayAgo));
-
-    PolicyEvaluation policyEvaluation3 = staticTempEntity.newPolicyEvaluation(application.getId(),
-        StageTypes.OPERATE.getId(), "scan3", false, false, Date.from(oneDayAgo));
-
-    securityPolicyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, securityPolicy, "Group1",
-        "Artifact1", "Version1", "hash", "sonatype-2017-0507");
-    securityPolicyViolation.setActionTypeId(Action.ID_FAIL);
-    policyViolationDAO.update(securityPolicyViolation);
-
-    Policy otherPolicy = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 3);
-    otherPolicyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, otherPolicy);
-
-    staticTempEntity.newPolicyViolation(policyEvaluation2, securityPolicy);
-
-    PolicyViolation policyViolation3 = staticTempEntity.newPolicyViolation(policyEvaluation3, securityPolicy);
-    policyViolation3.setActionTypeId(Action.ID_WARN);
-    policyViolationDAO.update(policyViolation3);
-
-    Policy deletedPolicy = staticTempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Deleted Policy", 2);
-    deletedPolicyViolation = staticTempEntity.newPolicyViolation(policyEvaluation1, deletedPolicy);
-    new PolicyDAO().delete(deletedPolicy);
-
     refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
 
   @Before
   public void before() {
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+
+    Instant now = Instant.now();
+    Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
+    Instant oneDayAgo = now.minus(1, ChronoUnit.DAYS);
+
+    Organization organization = tempEntity.newOrganization("Org 1");
+    application = tempEntity.newApplication("App 1", "app1", organization.getId());
+    Policy securityPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(),
+        StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
+
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application.getId(),
+        StageTypes.RELEASE.getId(), "scan2", false, false, Date.from(oneDayAgo));
+
+    PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(application.getId(),
+        StageTypes.OPERATE.getId(), "scan3", false, false, Date.from(oneDayAgo));
+
+    securityPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation1, securityPolicy, "Group1",
+        "Artifact1", "Version1", "hash", "sonatype-2017-0507");
+    securityPolicyViolation.setActionTypeId(Action.ID_FAIL);
+    policyViolationDAO.update(securityPolicyViolation);
+
+    Policy otherPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 3);
+    otherPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation1, otherPolicy);
+
+    tempEntity.newPolicyViolation(policyEvaluation2, securityPolicy);
+
+    PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation3, securityPolicy);
+    policyViolation3.setActionTypeId(Action.ID_WARN);
+    policyViolationDAO.update(policyViolation3);
+
+    Policy deletedPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Deleted Policy", 2);
+    deletedPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation1, deletedPolicy);
+    new PolicyDAO().delete(deletedPolicy);
+
     mockHdsResponseForVulnerabilityDetails();
   }
 

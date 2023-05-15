@@ -176,7 +176,7 @@ public class RepositoryServiceTest
   @Test
   public void testEvaluateComponentsAdhoc_RepositoryExistsAndEnabled() {
     Repository repo = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    repo.setEnabled(true);
+    repo.setAuditEnabled(true);
     repositoryDAO.update(repo);
 
     RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest =
@@ -194,13 +194,13 @@ public class RepositoryServiceTest
     assertThat(repositoryComponentEvaluationDataList.componentEvalResults).hasSize(1);
 
     repo = repositoryDAO.getById(repo.getId());
-    assertThat(repo.isEnabled()).isTrue();
+    assertThat(repo.isAuditEnabled()).isTrue();
   }
 
   @Test
   public void testEvaluateComponentsAdhoc_RepositoryExistsAndNotEnabled() {
     Repository repo = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    repo.setEnabled(false);
+    repo.setAuditEnabled(false);
     repositoryDAO.update(repo);
 
     RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest =
@@ -218,7 +218,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponentEvaluationDataList.componentEvalResults).hasSize(1);
 
     repo = repositoryDAO.getById(repo.getId());
-    assertThat(repo.isEnabled()).isFalse();
+    assertThat(repo.isAuditEnabled()).isFalse();
   }
 
   @Test
@@ -244,7 +244,7 @@ public class RepositoryServiceTest
     // check that a repository was created and it is not enabled
     repo = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     assertThat(repo).isNotNull();
-    assertThat(repo.isEnabled()).isFalse();
+    assertThat(repo.isAuditEnabled()).isFalse();
   }
 
   @Test

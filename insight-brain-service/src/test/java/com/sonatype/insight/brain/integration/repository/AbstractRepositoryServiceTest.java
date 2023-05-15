@@ -213,8 +213,8 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetEnabled_NoRepositoryManager() {
-    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
+  public void testSetAuditEnabled_NoRepositoryManager() {
+    getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
 
@@ -224,40 +224,40 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositories).hasSize(1);
     assertThat(repositories.get(0).getPublicId()).isEqualTo(REPO_PUBLIC_ID);
-    assertThat(repositories.get(0).isEnabled()).isTrue();
+    assertThat(repositories.get(0).isAuditEnabled()).isTrue();
   }
 
   @Test
-  public void testSetEnabled_ExistingRepositoryManager() {
+  public void testSetAuditEnabled_ExistingRepositoryManager() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
 
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
+    getRepositoryService().setAuditEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
     assertThat(repositories).hasSize(1);
     assertThat(repositories.get(0).getPublicId()).isEqualTo(REPO_PUBLIC_ID);
-    assertThat(repositories.get(0).isEnabled()).isTrue();
+    assertThat(repositories.get(0).isAuditEnabled()).isTrue();
   }
 
   @Test
-  public void testSetEnabled_NotProxyRepository() {
+  public void testSetAuditEnabled_NotProxyRepository() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo =
         tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().setEnabled(repoManager.getInstanceId(), repo.getPublicId(), true, null);
+      getRepositoryService().setAuditEnabled(repoManager.getInstanceId(), repo.getPublicId(), true, null);
     }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
   }
 
   @Test
-  public void testSetEnabled_TrueExistingRepository() {
+  public void testSetAuditEnabled_TrueExistingRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
     ApiRepositoryDTO repositoryDTO =
-        getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
+        getRepositoryService().setAuditEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
     assertThat(repositoryDTO).isNotNull();
     assertThat(repositoryDTO.publicId).isEqualTo(REPO_PUBLIC_ID);
     assertThat(repositoryDTO.repositoryId).isNotBlank();
@@ -266,29 +266,30 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositories).hasSize(1);
     assertThat(repositories.get(0).getPublicId()).isEqualTo(REPO_PUBLIC_ID);
-    assertThat(repositories.get(0).isEnabled()).isTrue();
+    assertThat(repositories.get(0).isAuditEnabled()).isTrue();
   }
 
   @Test
-  public void testSetEnabled_MissingLicenseFeature() {
+  public void testSetAuditEnabled_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() -> getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null))
+        .isThrownBy(
+            () -> getRepositoryService().setAuditEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null))
         .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
-  public void testSetEnabled_FalseExistingRepository() {
+  public void testSetAuditEnabled_FalseExistingRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
 
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false, null);
+    getRepositoryService().setAuditEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false, null);
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
     assertThat(repositories).hasSize(1);
     assertThat(repositories.get(0).getPublicId()).isEqualTo(REPO_PUBLIC_ID);
-    assertThat(repositories.get(0).isEnabled()).isFalse();
+    assertThat(repositories.get(0).isAuditEnabled()).isFalse();
   }
 
   @Test
@@ -314,12 +315,12 @@ public abstract class AbstractRepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, true);
 
     // Check initial state
-    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isAuditEnabled()).isFalse();
     assertThat(repository.isQuarantineEnabled()).isFalse();
 
     getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false, null);
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isAuditEnabled()).isFalse();
     assertThat(repository.isQuarantineEnabled()).isFalse();
   }
 
@@ -342,12 +343,12 @@ public abstract class AbstractRepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
     // Check that initial value is true
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
 
     getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false, null);
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isFalse();
   }
 
@@ -534,7 +535,7 @@ public abstract class AbstractRepositoryServiceTest
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -741,7 +742,7 @@ public abstract class AbstractRepositoryServiceTest
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -796,7 +797,7 @@ public abstract class AbstractRepositoryServiceTest
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -848,7 +849,7 @@ public abstract class AbstractRepositoryServiceTest
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -890,7 +891,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isFalse();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -906,7 +907,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
 
     repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -964,7 +965,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine).isFalse();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
 
     repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -992,7 +993,7 @@ public abstract class AbstractRepositoryServiceTest
             null);
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isFalse();
   }
 
@@ -1006,7 +1007,7 @@ public abstract class AbstractRepositoryServiceTest
             null);
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
   }
 
@@ -1020,7 +1021,7 @@ public abstract class AbstractRepositoryServiceTest
             null);
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
   }
 
@@ -1058,7 +1059,7 @@ public abstract class AbstractRepositoryServiceTest
     Date after = new Date();
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(repositoryComponents).hasSize(2);
@@ -1852,7 +1853,7 @@ public abstract class AbstractRepositoryServiceTest
     getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath", null);
 
     repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
 
@@ -2015,11 +2016,11 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetEnabled_PolicyViolationLogger_DisabledLogsClearEvent() throws Exception {
+  public void testSetAuditEnabled_PolicyViolationLogger_DisabledLogsClearEvent() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     Date before = new Date();
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), false, null);
+    getRepositoryService().setAuditEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), false, null);
     Date after = new Date();
 
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
@@ -2030,10 +2031,10 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetEnabled_PolicyViolationLogger_EnabledDoesNotLogClearEvent() {
+  public void testSetAuditEnabled_PolicyViolationLogger_EnabledDoesNotLogClearEvent() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), true, null);
+    getRepositoryService().setAuditEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), true, null);
 
     assertThat(policyViolationLoggerOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME))
         .isEmpty();
@@ -2737,7 +2738,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repository.getName()).isEqualTo("testRepoName");
     assertThat(repository.getFormat()).isEqualTo("npm");
     assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.hosted);
-    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isAuditEnabled()).isFalse();
     assertThat(repository.isQuarantineEnabled()).isFalse();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
@@ -2767,7 +2768,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repository.getName()).isEqualTo("testRepoName");
     assertThat(repository.getFormat()).isEqualTo("npm");
     assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
@@ -2815,7 +2816,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(existingRepository.getId()).isEqualTo(repository.getId());
     assertThat(existingRepository.getFormat()).isEqualTo(repository.getFormat());
     assertThat(existingRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
-    assertThat(existingRepository.isEnabled()).isTrue();
+    assertThat(existingRepository.isAuditEnabled()).isTrue();
     assertThat(existingRepository.isQuarantineEnabled()).isFalse();
     assertThat(existingRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(existingRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
@@ -2824,7 +2825,7 @@ public abstract class AbstractRepositoryServiceTest
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(), "Good Repo");
     assertThat(newRepository.getFormat()).isEqualTo("npm");
     assertThat(newRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
-    assertThat(newRepository.isEnabled()).isTrue();
+    assertThat(newRepository.isAuditEnabled()).isTrue();
     assertThat(newRepository.isQuarantineEnabled()).isTrue();
     assertThat(newRepository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(newRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
@@ -2862,7 +2863,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(existingRepository.getName()).isEqualTo(repository.getName());
     assertThat(existingRepository.getFormat()).isEqualTo(repository.getFormat());
     assertThat(existingRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
-    assertThat(existingRepository.isEnabled()).isTrue();
+    assertThat(existingRepository.isAuditEnabled()).isTrue();
     assertThat(existingRepository.isQuarantineEnabled()).isFalse();
     assertThat(existingRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(existingRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
@@ -2900,7 +2901,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(existingRepository.getName()).isEqualTo(repository.getName());
     assertThat(existingRepository.getFormat()).isEqualTo(repository.getFormat());
     assertThat(existingRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
-    assertThat(existingRepository.isEnabled()).isTrue();
+    assertThat(existingRepository.isAuditEnabled()).isTrue();
     assertThat(existingRepository.isQuarantineEnabled()).isFalse();
     assertThat(existingRepository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(existingRepository.isNamespaceConfusionProtectionEnabled()).isFalse();
@@ -3032,7 +3033,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryDTO.name).isEqualTo(repository.getName());
     assertThat(repositoryDTO.format).isEqualTo(repository.getFormat());
     assertThat(repositoryDTO.type).isEqualTo(repository.getRepositoryType());
-    assertThat(repositoryDTO.auditEnabled).isEqualTo(repository.isEnabled());
+    assertThat(repositoryDTO.auditEnabled).isEqualTo(repository.isAuditEnabled());
     assertThat(repositoryDTO.quarantineEnabled).isEqualTo(repository.isQuarantineEnabled());
     assertThat(repositoryDTO.policyCompliantComponentSelectionEnabled).isEqualTo(
         repository.isPolicyCompliantComponentSelectionEnabled());

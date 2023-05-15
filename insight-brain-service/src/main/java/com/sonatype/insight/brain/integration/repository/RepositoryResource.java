@@ -69,21 +69,21 @@ public class RepositoryResource
   }
 
   /**
-   * Enable a repository. Both the repository manager and the repository may be known or unknown to the IQ server. If
-   * unknown, new entities are created in the IQ server database.
+   * Enable Audit for a repository. Both the repository manager and the repository may be known or unknown to the
+   *  IQ server. If unknown, new entities are created in the IQ server database.
    */
   @POST
-  @Path(ENABLE_PATH)
+  @Path(AUDIT_ENABLE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public ApiRepositoryDTO setEnabled(
+  public ApiRepositoryDTO setAuditEnabled(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
-      @PathParam("enabled") boolean enabled,
+      @PathParam("enabled") boolean auditEnabled,
       @Context final HttpServletRequest request)
   {
-    AuditData.get().setEvent(enabled ? AuditEvent.CONNECT_REPOSITORY : AuditEvent.DISCONNECT_REPOSITORY);
-    return repositoryService.setEnabled(repositoryManagerInstanceId, repositoryPublicId, enabled,
+    AuditData.get().setEvent(auditEnabled ? AuditEvent.CONNECT_REPOSITORY : AuditEvent.DISCONNECT_REPOSITORY);
+    return repositoryService.setAuditEnabled(repositoryManagerInstanceId, repositoryPublicId, auditEnabled,
         DefaultHdsClient.getClientUserAgent(request));
   }
 

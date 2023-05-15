@@ -13,7 +13,7 @@ abstract class AbstractRepositoryResource
 
   static final String QUARANTINE_PATH = REPOSITORY_PATH + "quarantine/{enabled}";
 
-  public static final String ENABLE_PATH = REPOSITORY_PATH + "enable/{enabled}";
+  public static final String AUDIT_ENABLE_PATH = REPOSITORY_PATH + "enable/{enabled}";
 
   static final String EVALUATE_COMPONENTS_PATH = REPOSITORY_PATH + "evaluate/audit";
 

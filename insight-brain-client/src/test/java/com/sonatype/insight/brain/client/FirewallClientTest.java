@@ -92,7 +92,7 @@ public class FirewallClientTest
     Repository repo = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
         REPOSITORY_PUBLIC_ID);
     assertThat(repo.getPublicId()).isEqualTo(REPOSITORY_PUBLIC_ID);
-    assertThat(repo.isEnabled()).isTrue();
+    assertThat(repo.isAuditEnabled()).isTrue();
   }
 
   @Test
@@ -115,7 +115,7 @@ public class FirewallClientTest
     Repository repo = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
         REPOSITORY_PUBLIC_ID);
     assertThat(repo.getPublicId()).isEqualTo(REPOSITORY_PUBLIC_ID);
-    assertThat(repo.isEnabled()).isFalse();
+    assertThat(repo.isAuditEnabled()).isFalse();
   }
 
   @Test

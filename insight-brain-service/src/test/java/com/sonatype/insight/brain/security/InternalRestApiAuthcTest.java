@@ -195,7 +195,7 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie()).isNull();
 
-    response = request.subpath(RepositoryResource.RESOURCE_PATH, RepositoryResource.ENABLE_PATH)
+    response = request.subpath(RepositoryResource.RESOURCE_PATH, RepositoryResource.AUDIT_ENABLE_PATH)
         .parameter(tempEntity.newRepositoryManager().getInstanceId(), "repo", "true").post();
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie()).isNull();

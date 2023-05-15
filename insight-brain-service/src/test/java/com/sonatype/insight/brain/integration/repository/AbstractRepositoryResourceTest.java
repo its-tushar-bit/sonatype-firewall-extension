@@ -53,8 +53,8 @@ public abstract class AbstractRepositoryResourceTest
     return restRequest().path(AbstractRepositoryResource.QUARANTINE_PATH);
   }
 
-  private HttpRequest enableRequest() {
-    return restRequest().path(AbstractRepositoryResource.ENABLE_PATH);
+  private HttpRequest enableAuditRequest() {
+    return restRequest().path(AbstractRepositoryResource.AUDIT_ENABLE_PATH);
   }
 
   private HttpRequest evaluateComponentsRequest() {
@@ -82,12 +82,13 @@ public abstract class AbstractRepositoryResourceTest
   }
 
   @Test
-  public void testSetEnabled_True() throws Exception {
+  public void testSetAuditEnabled_True() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
-    HttpResponse response = enableRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
-        .post();
+    HttpResponse response =
+        enableAuditRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
+            .post();
     assertResponseStatus(200, response);
 
     ApiRepositoryDTO repositoryDTO = response.getBody(ApiRepositoryDTO.class);
@@ -99,19 +100,20 @@ public abstract class AbstractRepositoryResourceTest
     RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
 
     assertThat(repository).isNotNull();
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(foundRepositoryManager.getUserAgent()).isNull();
   }
 
   @Test
-  public void testSetEnabled_WithClientUserAgent() throws Exception {
+  public void testSetAuditEnabled_WithClientUserAgent() throws Exception {
     String userAgent = getUserAgent();
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
-    HttpResponse response = enableRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
-        .header(HttpHeaders.USER_AGENT, userAgent)
-        .post();
+    HttpResponse response =
+        enableAuditRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
+            .header(HttpHeaders.USER_AGENT, userAgent)
+            .post();
     assertResponseStatus(200, response);
 
     RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
@@ -417,7 +419,7 @@ public abstract class AbstractRepositoryResourceTest
     assertThat(repository.getName()).isEqualTo("testRepoName");
     assertThat(repository.getFormat()).isEqualTo("npm");
     assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.hosted);
-    assertThat(repository.isEnabled()).isFalse();
+    assertThat(repository.isAuditEnabled()).isFalse();
     assertThat(repository.isQuarantineEnabled()).isFalse();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
@@ -468,7 +470,7 @@ public abstract class AbstractRepositoryResourceTest
     assertThat(repositoryDTO.name).isEqualTo(repository.getName());
     assertThat(repositoryDTO.format).isEqualTo(repository.getFormat());
     assertThat(repositoryDTO.type).isEqualTo(repository.getRepositoryType());
-    assertThat(repositoryDTO.auditEnabled).isEqualTo(repository.isEnabled());
+    assertThat(repositoryDTO.auditEnabled).isEqualTo(repository.isAuditEnabled());
     assertThat(repositoryDTO.quarantineEnabled).isEqualTo(repository.isQuarantineEnabled());
     assertThat(repositoryDTO.policyCompliantComponentSelectionEnabled).isEqualTo(
         repository.isPolicyCompliantComponentSelectionEnabled());

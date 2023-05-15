@@ -185,7 +185,7 @@ public interface AuditTestSupport
     assertCustomData(auditDTO, "repositoryPublicId", repository.getPublicId());
     assertCustomData(auditDTO, "format", repository.getFormat());
     assertCustomData(auditDTO, "type", repository.getRepositoryType().name());
-    assertCustomData(auditDTO, "auditEnabled", repository.isEnabled());
+    assertCustomData(auditDTO, "auditEnabled", repository.isAuditEnabled());
     assertCustomData(auditDTO, "quarantineEnabled", repository.isQuarantineEnabled());
     assertCustomData(auditDTO, "policyCompliantComponentSelectionEnabled",
         repository.isPolicyCompliantComponentSelectionEnabled());

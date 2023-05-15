@@ -6,19 +6,13 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.List;
-
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.dto.WaivedComponentUpgradeNotificationDTO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,24 +22,6 @@ public class OrganizationServiceAuthzTest
 {
   @Inject
   private OrganizationService organizationService;
-
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
-
-  private String waivedComponentUpgradeStageTypeId;
-
-  @Before
-  public void before() {
-    // Capture the original root org waived component upgrade stage id, so we can restore it after the tests.
-    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    waivedComponentUpgradeStageTypeId = rootOrg.getWaivedComponentUpgradeStageTypeId();
-  }
-
-  @After
-  public void restoreRootOrganizationState() {
-    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    rootOrg.setWaivedComponentUpgradeStageTypeId(waivedComponentUpgradeStageTypeId);
-    organizationDAO.update(rootOrg);
-  }
 
   @Test
   public void testGetAll_Authorized() {
@@ -150,56 +126,5 @@ public class OrganizationServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetOrganization_Unauthenticated() {
     organizationService.getOrganization(org.getId());
-  }
-
-  @Test
-  public void testUpdatePolicyWaiverUpgradePathAvailableNotification_Authorized() {
-    grantWritePermission(Organization.ROOT_ORGANIZATION_ID);
-    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
-        new WaivedComponentUpgradeNotificationDTO();
-    waivedComponentUpgradeNotificationDTO.setStage(Stage.ID_DEVELOP);
-    organizationService.updateWaivedComponentUpgradeNotification(
-        waivedComponentUpgradeNotificationDTO);
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testUpdatePolicyWaiverUpgradePathAvailableNotification_Unauthorized() {
-    login();
-    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
-        new WaivedComponentUpgradeNotificationDTO();
-    waivedComponentUpgradeNotificationDTO.setStage(Stage.ID_DEVELOP);
-
-    organizationService.updateWaivedComponentUpgradeNotification(
-        waivedComponentUpgradeNotificationDTO);
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testUpdatePolicyWaiverUpgradePathAvailableNotification_Unauthenticated() {
-    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
-        new WaivedComponentUpgradeNotificationDTO();
-    waivedComponentUpgradeNotificationDTO.setStage(Stage.ID_DEVELOP);
-
-    organizationService.updateWaivedComponentUpgradeNotification(
-        waivedComponentUpgradeNotificationDTO);
-  }
-
-  @Test
-  public void testGetPolicyWaiverUpgradePathAvailableNotification_Authorized() {
-    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
-
-    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
-        organizationService.getWaivedComponentUpgradeNotification();
-    assertThat(waivedComponentUpgradeNotificationDTO).isNotNull();
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testGetPolicyWaiverUpgradePathAvailableNotification_Unauthorized() {
-    login();
-    organizationService.getWaivedComponentUpgradeNotification();
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetPolicyWaiverUpgradePathAvailableNotification_Unauthenticated() {
-    organizationService.getWaivedComponentUpgradeNotification();
   }
 }

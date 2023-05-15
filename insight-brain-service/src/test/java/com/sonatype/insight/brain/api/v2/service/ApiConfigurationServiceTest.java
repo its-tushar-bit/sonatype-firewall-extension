@@ -44,12 +44,12 @@ import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 
 public class ApiConfigurationServiceTest
     extends AbstractComponentTest
@@ -564,6 +564,13 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR))).containsEntry(
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, null);
+  }
+
+  @Test
+  public void testGetConfiguration_waivedComponentUpgradeMonitoringEnabled_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED))).containsEntry(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, false);
   }
 
   @Test
@@ -1436,19 +1443,16 @@ public class ApiConfigurationServiceTest
     assertMinAndMax(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 0, 23);
   }
 
-  private void assertMinAndMax(String name, int min, int max) {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfigurationNoAuthz(name, min - 1))
-        .withMessageContaining(String.format(ConfigurationUtils.OUTSIDE_RANGE_ERROR_MSG, name, min, max));
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfigurationNoAuthz(name, max + 1))
-        .withMessageContaining(String.format(ConfigurationUtils.OUTSIDE_RANGE_ERROR_MSG, name, min, max));
-    service.setConfigurationNoAuthz(name, min);
-    assertThat(dao.get(name)).isEqualTo(Integer.toString(min));
-    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(name))).containsEntry(name, min);
-    service.setConfigurationNoAuthz(name, max);
-    assertThat(dao.get(name)).isEqualTo(Integer.toString(max));
-    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(name))).containsEntry(name, max);
+  @Test
+  public void testSetConfiguration_waivedComponentUpgradeMonitorEnabled() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true));
+
+    assertThat(dao.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED))
+        .isEqualTo("true");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED))).containsEntry(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true);
   }
 
   @Test
@@ -1484,5 +1488,20 @@ public class ApiConfigurationServiceTest
         SetUtils.hashSet(
             SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES))).containsEntry(
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 60);
+  }
+
+  private void assertMinAndMax(String name, int min, int max) {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.setConfigurationNoAuthz(name, min - 1))
+        .withMessageContaining(String.format(ConfigurationUtils.OUTSIDE_RANGE_ERROR_MSG, name, min, max));
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.setConfigurationNoAuthz(name, max + 1))
+        .withMessageContaining(String.format(ConfigurationUtils.OUTSIDE_RANGE_ERROR_MSG, name, min, max));
+    service.setConfigurationNoAuthz(name, min);
+    assertThat(dao.get(name)).isEqualTo(Integer.toString(min));
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(name))).containsEntry(name, min);
+    service.setConfigurationNoAuthz(name, max);
+    assertThat(dao.get(name)).isEqualTo(Integer.toString(max));
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(name))).containsEntry(name, max);
   }
 }

@@ -3,12 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@use '../../scss/variables' as *;
 
-#form-waived-component-upgrades {
-  margin-top: var(--nx-spacing-4x);
-
-  .nx-radio__content {
-    text-transform: capitalize;
-  }
+waived-component-upgrades-configuration {
+  display: contents;
 }

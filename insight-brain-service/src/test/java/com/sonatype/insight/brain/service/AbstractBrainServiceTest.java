@@ -297,6 +297,7 @@ public abstract class AbstractBrainServiceTest
             SystemConfigurationProperty.ACCESS_ALLOWLIST,
             SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED,
             SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+            SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
             SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED);
       }
     }

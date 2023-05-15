@@ -523,13 +523,6 @@ export function getWaiverDetailsUrl(ownerType, ownerId, policyWaiverId) {
   return uriTemplate`/api/v2/policyWaivers/${ownerType}/${ownerId}/${policyWaiverId}`;
 }
 
-/**
- * Save the stage for Waived Component Upgrades configuration
- */
-export function getWaivedComponentUpgradeConfigUrl() {
-  return uriTemplate`/rest/organization/waivedComponentUpgradeNotification`;
-}
-
 export function userTokenUrl() {
   return uriTemplate`/api/v2/userTokens/currentUser`;
 }

@@ -13,14 +13,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.PathParam;
 
-import com.sonatype.insight.brain.api.v2.dto.WaivedComponentUpgradeNotificationDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -32,14 +28,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeListener;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.tenancy.TenantManaged;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -72,8 +64,6 @@ public class OrganizationService
   private final ManagementEventService managementEventService;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
-
-  private final List<WaivedComponentUpgradeListener> listeners = new CopyOnWriteArrayList<>();
 
   @Inject
   public OrganizationService(
@@ -144,86 +134,6 @@ public class OrganizationService
     AuditData.get().setOrganization(organization);
     deleteOrganization(organization);
     AuditData.get().commitSubEvents();
-  }
-
-  /**
-   * @since 1.159
-   */
-  public Organization updateWaivedComponentUpgradeNotification(
-      WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO)
-  {
-    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
-    rootOrganization.setWaivedComponentUpgradeStageTypeId(waivedComponentUpgradeNotificationDTO.getStage());
-
-    rootOrganization = updateOrganization(rootOrganization);
-    notifyWaivedComponentUpgradeListeners(rootOrganization.getWaivedComponentUpgradeStageTypeId());
-    return rootOrganization;
-  }
-
-  /**
-   * @since 1.159
-   */
-  public WaivedComponentUpgradeNotificationDTO getWaivedComponentUpgradeNotification() {
-    checkReadPermission(Organization.ROOT_ORGANIZATION_ID);
-    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
-
-    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
-        new WaivedComponentUpgradeNotificationDTO();
-    waivedComponentUpgradeNotificationDTO.setStage(rootOrganization.getWaivedComponentUpgradeStageTypeId());
-
-    return waivedComponentUpgradeNotificationDTO;
-  }
-
-  /**
-   * Registers the specified listener to be notified of changes to the waived component upgrade stage on root org.
-   *
-   * @since 1.159
-   */
-  public void addListener(WaivedComponentUpgradeListener listener) {
-    if (Objects.isNull(listener)) {
-      throw new IllegalArgumentException("listener not specified");
-    }
-    listeners.add(listener);
-    log.debug("Added listener {}", listener);
-  }
-
-  /**
-   * Unregisters the specified listener.
-   *
-   * @since 1.159
-   */
-  public void removeListener(WaivedComponentUpgradeListener listener) {
-    listeners.remove(listener);
-    log.debug("Removed listener {}", listener);
-  }
-
-  /**
-   * Notifies the listeners of the waived component upgrade notification stage change.
-   *
-   * @param newWaivedComponentUpgradeStageTypeId ID of the evaluation stage to monitor for upgrades
-   *
-   * @since 1.159
-   */
-  private void notifyWaivedComponentUpgradeListeners(String newWaivedComponentUpgradeStageTypeId) {
-    for (WaivedComponentUpgradeListener listener  : listeners) {
-      try {
-        if (listener instanceof TenantManaged && new TenantUtil().isGlobalTenant()) {
-          // TenantManaged listeners should not be called in the context of the Global tenant
-          continue;
-        }
-
-        log.debug("Notifying listener {}", listener);
-        listener.waivedComponentUpgradeNotificationStageUpdated(newWaivedComponentUpgradeStageTypeId);
-      }
-      catch (RuntimeException e) {
-        log.warn("Failed to notify {} of waived component upgrade stage update", listener, e);
-      }
-    }
-  }
-
-  @Authorize(permission = Permission.READ)
-  void checkReadPermission(@SuppressWarnings("unused") @AuthzContext(Key.ORGANIZATION_ID) String organizationId) {
-    // Do nothing as this method is only used to perform authz check for the caller
   }
 
   private void deleteOrganization(final Organization organization) throws IOException {

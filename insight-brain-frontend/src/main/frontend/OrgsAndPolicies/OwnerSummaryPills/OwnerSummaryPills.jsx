@@ -41,11 +41,6 @@ export default function OwnerSummaryPills() {
         isDisplayed: true,
       },
       {
-        label: 'Waived component upgrades',
-        target: 'owner-pill-waived-component-upgrades',
-        isDisplayed: true,
-      },
-      {
         label: 'Proprietary Components',
         target: 'owner-pill-component-configuration',
         isDisplayed: true,

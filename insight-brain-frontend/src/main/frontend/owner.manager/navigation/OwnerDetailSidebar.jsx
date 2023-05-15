@@ -284,20 +284,6 @@ export default function OwnerDetailSidebar() {
           </NxCollapsibleItems.Child>
         </NxTooltip>
       )}
-      {/* Waived Component Upgrades */}
-      {!isRepositoriesRelated && (
-        <NxCollapsibleItems.Child role="menuitem">
-          <NxTextLink
-            id="upgrade-available-link"
-            className={`iq-noncollapsible ${
-              url.includes('/waivedComponentUpgrades') && !currentRoleId ? 'selected' : ''
-            }`}
-            href={`${linkMainHref}/waivedComponentUpgrades`}
-          >
-            Waived Component Upgrades
-          </NxTextLink>
-        </NxCollapsibleItems.Child>
-      )}
       {/* Proprietary */}
       {!isRepositoriesRelated && (
         <NxCollapsibleItems.Child role="menuitem">

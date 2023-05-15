@@ -21,6 +21,7 @@ import AutomaticApplicationsConfiguration from './automaticApplicationsConfigura
 import AdministratorsConfig from './administrators/config/AdministratorsConfig';
 import AdministratorsEdit from './administrators/edit/AdministratorsEdit';
 import GettingStartedContainer from './gettingStarted/GettingStartedContainer';
+import WaivedComponentUpgradesConfiguration from './waivedComponentUpgradesConfiguration/WaivedComponentUpgradesConfiguration';
 import { submitData, DEPARTED_ACTION } from './gettingStarted/gettingStartedTelemetryServiceHelper';
 
 export const GETTING_STARTED_STATE = 'gettingStarted';
@@ -48,6 +49,10 @@ export default angular
   .component('scmOnboarding', iqReact2Angular(ScmOnboardingContainer, [], ['$ngRedux', '$state']))
   .component('labsDataInsights', iqReact2Angular(LabsDataInsightsContainer, ['isAuthorized'], ['$ngRedux']))
   .component('successMetricsConfiguration', iqReact2Angular(SuccessMetricsConfigurationContainer, [], ['$ngRedux']))
+  .component(
+    'waivedComponentUpgradesConfiguration',
+    iqReact2Angular(WaivedComponentUpgradesConfiguration, [], ['$ngRedux', '$state'])
+  )
   .component('systemNoticeConfiguration', iqReact2Angular(SystemNoticeConfigurationContainer, [], ['$ngRedux']))
   .component('administratorsConfig', iqReact2Angular(AdministratorsConfig, [], ['$ngRedux']))
   .component('administratorsEdit', iqReact2Angular(AdministratorsEdit, [], ['$ngRedux', '$state']))
@@ -126,6 +131,14 @@ function routes($stateProvider) {
       data: {
         title: 'Success Metrics',
         isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
+      },
+    })
+    .state('waivedComponentUpgradesConfiguration', {
+      component: 'waivedComponentUpgradesConfiguration',
+      url: '/waivedComponentUpgradesConfiguration',
+      data: {
+        title: 'Success Metrics',
+        isDirty: ['waivedComponentUpgradesConfiguration', 'isDirty'],
       },
     })
     .state('systemNoticeConfiguration', {

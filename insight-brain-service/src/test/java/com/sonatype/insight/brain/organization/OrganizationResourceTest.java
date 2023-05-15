@@ -10,14 +10,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.HttpHeaders;
 
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.MoveOrganizationResponseDTO.ValidationError;
-import com.sonatype.insight.brain.api.v2.dto.WaivedComponentUpgradeNotificationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
@@ -33,8 +32,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,27 +39,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrganizationResourceTest
     extends AbstractResourceTest
 {
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
-
-  private String waivedComponentUpgradeStageTypeId;
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(OrganizationResource.RESOURCE_PATH);
-  }
-
-  @Before
-  public void before() {
-    // Capture the original root org waived component upgrade stage id, so we can restore it after the tests.
-    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    waivedComponentUpgradeStageTypeId = rootOrg.getWaivedComponentUpgradeStageTypeId();
-  }
-
-  @After
-  public void restoreRootOrganizationState() {
-    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    rootOrg.setWaivedComponentUpgradeStageTypeId(waivedComponentUpgradeStageTypeId);
-    organizationDAO.update(rootOrg);
   }
 
   @Test
@@ -274,75 +253,6 @@ public class OrganizationResourceTest
     HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter("hash").get();
     assertResponseStatus(200, response);
     assertThat(response.getBodyBytes()).isNotNull();
-  }
-
-  @Test
-  public void testUpdatePolicyWaiverUpgradePathAvailableNotification_Unlicensed() throws Exception {
-    uninstallLicense();
-    HttpResponse response =
-        restRequest().path(OrganizationResource.WAIVED_COMPONENT_UPGRADE_NOTIFICATION)
-            .put();
-    assertResponseStatus(HttpStatus.SC_PAYMENT_REQUIRED, response);
-  }
-
-  @Test
-  public void testUpdatePolicyWaiverUpgradePathAvailableNotification() throws Exception {
-    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
-        new WaivedComponentUpgradeNotificationDTO();
-    waivedComponentUpgradeNotificationDTO.setStage(Stage.ID_DEVELOP);
-
-    HttpResponse updateWaiverUpgradePathAvailableNotificationStageResponse =
-        restRequest().path(OrganizationResource.WAIVED_COMPONENT_UPGRADE_NOTIFICATION)
-            .body(waivedComponentUpgradeNotificationDTO)
-            .put();
-
-    assertResponseStatus(HttpStatus.SC_OK, updateWaiverUpgradePathAvailableNotificationStageResponse);
-
-    Organization updatedOrganization =
-        updateWaiverUpgradePathAvailableNotificationStageResponse.getBody(Organization.class);
-    assertThat(updatedOrganization.getWaivedComponentUpgradeStageTypeId()).isEqualTo(Stage.ID_DEVELOP);
-
-    Organization updatedRootOrgFromDB = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    assertThat(updatedRootOrgFromDB.getWaivedComponentUpgradeStageTypeId()).isEqualTo(Stage.ID_DEVELOP);
-  }
-
-  @Test
-  public void testGetPolicyWaiverUpgradePathAvailableNotification() throws Exception {
-    // test default value
-    HttpResponse getWaiverUpgradePathAvailableNotificationStageResponse =
-        restRequest().path(OrganizationResource.WAIVED_COMPONENT_UPGRADE_NOTIFICATION).get();
-
-    WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO =
-        getWaiverUpgradePathAvailableNotificationStageResponse.getBody(
-            WaivedComponentUpgradeNotificationDTO.class);
-
-    assertThat(waivedComponentUpgradeNotificationDTO).isNotNull();
-    assertThat(waivedComponentUpgradeNotificationDTO.getStage())
-        .as("By default, the waiver upgrade path available notification stage is not set")
-        .isNull();
-
-    // set the stage to a different value than null
-    Organization rootOrganization = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
-    rootOrganization.setWaivedComponentUpgradeStageTypeId(Stage.ID_DEVELOP);
-    organizationDAO.update(rootOrganization);
-
-    getWaiverUpgradePathAvailableNotificationStageResponse =
-        restRequest().path(OrganizationResource.WAIVED_COMPONENT_UPGRADE_NOTIFICATION).get();
-
-    waivedComponentUpgradeNotificationDTO = getWaiverUpgradePathAvailableNotificationStageResponse.getBody(
-        WaivedComponentUpgradeNotificationDTO.class);
-
-    assertThat(waivedComponentUpgradeNotificationDTO).isNotNull();
-    assertThat(waivedComponentUpgradeNotificationDTO.getStage()).isEqualTo(Stage.ID_DEVELOP);
-  }
-
-  @Test
-  public void testGetPolicyWaiverUpgradePathAvailableNotification_Unlicensed() throws Exception {
-    uninstallLicense();
-    HttpResponse response =
-        restRequest().path(OrganizationResource.WAIVED_COMPONENT_UPGRADE_NOTIFICATION)
-            .get();
-    assertResponseStatus(HttpStatus.SC_PAYMENT_REQUIRED, response);
   }
 
   @Test

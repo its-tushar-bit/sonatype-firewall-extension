@@ -60,6 +60,7 @@ export default angular
         'isAdvancedSearchConfigurationEnabled',
         'isShowNotificationMenuEnabled',
         'isBaseUrlConfigurationEnabled',
+        'isMonitoringSupported',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

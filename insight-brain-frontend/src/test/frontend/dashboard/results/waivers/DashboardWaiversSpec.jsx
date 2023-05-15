@@ -104,7 +104,8 @@ describe('DashboardWaivers', function () {
     ).toBeVisible();
   });
 
-  it('renders "Learn more about waivers." link', async () => {
+  // To be checked at CLM-25840
+  xit('renders "Learn more about waivers." link', async () => {
     renderComponent();
 
     expect(

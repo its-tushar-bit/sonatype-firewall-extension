@@ -151,10 +151,10 @@ public abstract class AbstractSummaryViewTest
     NavPills navPills = OwnerSummaryPage.navigationPills();
 
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
-      navPills.pills().shouldHaveSize(11);
+      navPills.pills().shouldHaveSize(10);
     }
     else if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-      navPills.pills().shouldHaveSize(12);
+      navPills.pills().shouldHaveSize(11);
     }
 
     navPills.appCategory().click();

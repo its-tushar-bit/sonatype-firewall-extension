@@ -21,6 +21,7 @@ import {
   selectIsAdvancedSearchConfigurationEnabled,
   selectIsShowNotificationMenuEnabled,
   selectIsBaseUrlConfigurationEnabled,
+  selectIsMonitoringSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
@@ -100,6 +101,7 @@ export const mapStateToThis = (state) => ({
   isAdvancedSearchConfigurationEnabled: selectIsAdvancedSearchConfigurationEnabled(state),
   isShowNotificationMenuEnabled: selectIsShowNotificationMenuEnabled(state),
   isBaseUrlConfigurationEnabled: selectIsBaseUrlConfigurationEnabled(state),
+  isMonitoringSupported: selectIsMonitoringSupported(state),
 });
 
 MainHeaderController.$inject = [

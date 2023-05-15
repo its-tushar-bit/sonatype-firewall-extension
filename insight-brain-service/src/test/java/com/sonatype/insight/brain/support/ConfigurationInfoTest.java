@@ -82,6 +82,8 @@ public class ConfigurationInfoTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, "newScan");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
         "14");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
+        String.valueOf(false));
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         "true");
     tempEntity.newSystemConfigurationProperty(
@@ -119,6 +121,7 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
         SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS
     ));
@@ -165,6 +168,8 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("newScan");
     assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR).asText()).isEqualTo(
         "14");
+    assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED).asText())
+        .isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED).asText()).isEqualTo(
         "true");
     assertThat(configNode.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)
@@ -211,6 +216,8 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR).asText()).isEqualTo(
         "null");
+    assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED).asText())
+        .isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED).asText()).isEqualTo(
         "false");
     assertThat(configNode.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)

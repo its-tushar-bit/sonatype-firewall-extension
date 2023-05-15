@@ -14,7 +14,6 @@ import {
   selectCliStagesIsLoading,
   selectCliStagesLoadError,
   selectCliStagesWithInheritOrNoMonitorOption,
-  selectCliStagesWithNoneOption,
 } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 
 describe('policyMonitoringSelectors', () => {
@@ -131,25 +130,6 @@ describe('policyMonitoringSelectors', () => {
         { stageName: 'develop', stageTypeId: 'develop' },
         { stageName: 'build', stageTypeId: 'build' },
       ]);
-    });
-  });
-
-  describe('selectCliStagesWithNoneOption', () => {
-    it('returns cli stage types with None option', () => {
-      const stageTypes = [
-        { stageName: 'develop', stageTypeId: 'develop' },
-        { stageName: 'build', stageTypeId: 'build' },
-      ];
-      expect(selectCliStagesWithNoneOption.resultFunc({ stageTypes })).toEqual([
-        { stageName: 'None', stageTypeId: null },
-        { stageName: 'develop', stageTypeId: 'develop' },
-        { stageName: 'build', stageTypeId: 'build' },
-      ]);
-    });
-
-    it('returns undefined when there is no stage types', () => {
-      const stageTypes = null;
-      expect(selectCliStagesWithNoneOption.resultFunc({ stageTypes })).toBeUndefined();
     });
   });
 });

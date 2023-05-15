@@ -66,8 +66,6 @@ import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdo
 import OwnerDetailSidebar from 'MainRoot/owner.manager/navigation/OwnerDetailSidebar';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import RepositoriesPills from 'MainRoot/owner.manager/repositories/RepositoriesPills/RepositoriesPills';
-import WaivedComponentUpgrades from 'MainRoot/OrgsAndPolicies/waivedComponentUpgrades/WaivedComponentUpgrades';
-import WaivedComponentUpgradesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/WaivedComponentUpgradesTile';
 
 export default angular
   .module('owner.manager.module', [
@@ -147,8 +145,6 @@ export default angular
   .component('actionDropdown', iqReact2Angular(ActionDropdown, [], ['$ngRedux', '$state']))
   .component('ownerDetailSidebar', iqReact2Angular(OwnerDetailSidebar, [], ['$ngRedux', '$state']))
   .component('repositoriesPills', iqReact2Angular(RepositoriesPills, [], []))
-  .component('waivedComponentUpgrades', iqReact2Angular(WaivedComponentUpgrades, [], ['$ngRedux']))
-  .component('waivedComponentUpgradesTile', iqReact2Angular(WaivedComponentUpgradesTile, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {
@@ -298,14 +294,6 @@ export default angular
               title: 'Source Control',
             },
             component: 'sourceControlEditor',
-          })
-          .state('management.edit.' + ownerType.type + '.monitor-component-upgrades', {
-            url: '/waivedComponentUpgrades',
-            data: {
-              title: ownerType.name + ' Waived Component Upgrades',
-              isDirty: ['orgsAndPolicies', 'waivedComponentUpgrades', 'isDirty'],
-            },
-            component: 'waivedComponentUpgrades',
           });
       });
 

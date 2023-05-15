@@ -18,22 +18,21 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.service.Configuration;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +40,8 @@ public class WaivedComponentUpgradeInspector
     implements Runnable
 {
   private static final Logger log = LoggerFactory.getLogger(WaivedComponentUpgradeInspector.class);
+
+  private final Configuration configuration;
 
   private final OrganizationDAO organizationDAO;
 
@@ -56,10 +57,9 @@ public class WaivedComponentUpgradeInspector
 
   private Map<String, Owner> ownersById;
 
-  private String configuredStage;
-
   @Inject
   public WaivedComponentUpgradeInspector(
+      Configuration configuration,
       OrganizationDAO organizationDAO,
       ApplicationDAO applicationDAO,
       RepositoryDAO repositoryDAO,
@@ -67,6 +67,7 @@ public class WaivedComponentUpgradeInspector
       PolicyWaiverDAO policyWaiverDAO,
       ApiComponentRemediationService apiComponentRemediationService)
   {
+    this.configuration = configuration;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
     this.repositoryDAO = repositoryDAO;
@@ -77,9 +78,8 @@ public class WaivedComponentUpgradeInspector
 
   @Override
   public void run() {
-    configuredStage = getConfiguredStage();
-    if (StringUtils.isEmpty(configuredStage)) {
-      log.info("Could not run WaivedComponentUpgradeInspector as stage is not configured");
+    if (!configuration.getWaivedComponentUpgradeMonitoringEnabled()) {
+      log.info("Could not run WaivedComponentUpgradeInspector as upgrade monitoring is turned off");
       return;
     }
 
@@ -87,11 +87,6 @@ public class WaivedComponentUpgradeInspector
 
     // Query by policy to reduce memory load while doing less database hits than querying by owners
     policyDAO.getAll().forEach(this::inspectWaiversForPolicy);
-  }
-
-  private String getConfiguredStage() {
-    Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    return rootOrganization != null ? rootOrganization.getWaivedComponentUpgradeStageTypeId() : null;
   }
 
   private Map<String, Owner> getAllOwnersById() {
@@ -138,24 +133,14 @@ public class WaivedComponentUpgradeInspector
     ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
     componentDTOV2.packageUrl = waiver.getAssociatedPackageUrl();
     OwnerType waiverOwnerType = ownersById.get(waiver.getOwnerId()).getType();
-    String stageId = getProxyStageIdForRepositoryOrDefault(waiverOwnerType, configuredStage);
 
     ApiComponentRemediationDTO suggestedRemediationForComponent =
         apiComponentRemediationService.getSuggestedRemediationForComponentNoAuthz(componentDTOV2, waiverOwnerType,
-            waiver.getOwnerId(), stageId, null, null);
+            waiver.getOwnerId(), null, null, null);
 
     return isRemediationAvailable(suggestedRemediationForComponent, waiver);
   }
 
-  private String getProxyStageIdForRepositoryOrDefault(final OwnerType ownerType, final String defaultStageType) {
-    return OwnerType.REPOSITORY.equals(ownerType) ||
-        OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? ProxyStageType.ID : defaultStageType;
-  }
-
-  /**
-   * Since remediation api returns current version if it satisfies the recommendation strategy, we need to check
-   * that the remediation does not suggest the same version that is already related to the waiver itself.
-   */
   private static boolean isRemediationAvailable(
       final ApiComponentRemediationDTO suggestedRemediationForComponent,
       final PolicyWaiver waiver)
@@ -164,11 +149,30 @@ public class WaivedComponentUpgradeInspector
       return false;
     }
     for (ApiVersionChangeOptionDTO versionChange : suggestedRemediationForComponent.remediation.versionChanges) {
-      if (!versionChange.getData().getComponent().packageUrl.equals(waiver.getAssociatedPackageUrl())) {
+      if (isRecommendationNotCurrentVersionAndIsNonViolatingVersion(waiver, versionChange)) {
         return true;
       }
     }
 
     return false;
+  }
+
+  /*
+   * Since remediation api returns current version if it satisfies the recommendation strategy, we need to check that
+   * the remediation does not suggest the same version that is already related to the waiver itself.
+   */
+  private static boolean isRecommendationNotCurrentVersionAndIsNonViolatingVersion(
+      final PolicyWaiver waiver,
+      final ApiVersionChangeOptionDTO versionChange)
+  {
+    return ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS.equals(versionChange.getType()) &&
+        !isRecommendationSameVersionAsCurrentVersion(waiver, versionChange);
+  }
+
+  private static boolean isRecommendationSameVersionAsCurrentVersion(
+      final PolicyWaiver waiver,
+      final ApiVersionChangeOptionDTO versionChange)
+  {
+    return versionChange.getData().getComponent().packageUrl.equals(waiver.getAssociatedPackageUrl());
   }
 }

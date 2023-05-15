@@ -180,6 +180,8 @@ public class SystemConfigurationProperty
 
   public static final String LOGOUT_AUTH0_ON_LOGOUT = "logoutAuth0OnLogout";
 
+  public static final String WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED = "waivedComponentUpgradeMonitoringEnabled";
+
   public static final String ALP_OBSERVED_LICENSE_DETECTION_ENABLED = "alpObservedLicenseDetectionEnabled";
 
   public static final String QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS =

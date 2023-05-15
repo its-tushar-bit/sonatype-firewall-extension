@@ -95,7 +95,7 @@ public class Configuration
   private final Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
 
   private final Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
-  
+
   private final Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider;
 
   @Inject
@@ -175,6 +175,7 @@ public class Configuration
         SystemConfigurationProperty.BFS_REPOSITORIES,
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
         SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)
     );
@@ -216,6 +217,7 @@ public class Configuration
     Integer currentAutomaticQuarantineReleaseTimeIntervalInMinutes =
         getAutomaticQuarantineReleaseTimeIntervalInMinutes();
     Integer currentWaivedComponentUpgradeInspectionHour = getWaivedComponentUpgradeInspectionHour();
+    boolean isWaivedComponentUpgradeMonitoringEnabled = getWaivedComponentUpgradeMonitoringEnabled();
     updateValueByPropertyNames(propertyNamesCopy);
     if (propertyNamesCopy.contains(SystemConfigurationProperty.HDS_URL) ||
         propertyNamesCopy.contains(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS) ||
@@ -244,8 +246,18 @@ public class Configuration
       automaticQuarantineReleaseSchedulerProvider.get().scheduleAutomaticQuarantineRelease();
     }
     if (propertyNamesCopy.contains(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR) &&
+        isWaivedComponentUpgradeMonitoringEnabled &&
         !Objects.equals(currentWaivedComponentUpgradeInspectionHour, getWaivedComponentUpgradeInspectionHour())) {
       waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection();
+    }
+    if (propertyNamesCopy.contains(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED) &&
+        !Objects.equals(isWaivedComponentUpgradeMonitoringEnabled, getWaivedComponentUpgradeMonitoringEnabled())) {
+      if (getWaivedComponentUpgradeMonitoringEnabled()) {
+        waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection();
+      }
+      else {
+        waivedComponentUpgradeSchedulerProvider.get().deregister();
+      }
     }
   }
 
@@ -504,6 +516,10 @@ public class Configuration
 
   public Integer getWaivedComponentUpgradeInspectionHour() {
     return configCache.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR);
+  }
+
+  public boolean getWaivedComponentUpgradeMonitoringEnabled() {
+    return configCache.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED);
   }
 
   public Integer getQuarantinedComponentReportExpirationTimeInHours() {

@@ -68,10 +68,6 @@ public class OwnerSummaryPage
     return $("#continuous-monitoring");
   }
 
-  public static SelenideElement waivedComponentUpgradesConfiguredStage() {
-    return $("#waived-component-upgrades");
-  }
-
   public static SelenideElement proprietaryComponentMatchers() {
     return $("#proprietary-component-matchers");
   }

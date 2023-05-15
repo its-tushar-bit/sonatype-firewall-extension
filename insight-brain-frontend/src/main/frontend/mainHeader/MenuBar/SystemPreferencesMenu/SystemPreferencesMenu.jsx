@@ -12,7 +12,6 @@ import { MenuButton, MenuTitle, NavLink } from '../MenuButton/MenuButton';
 export const SystemPreferencesMenu = ({
   permissions = {},
   isWebhooksSupported = false,
-  isSourceControlSupported = false,
   isCrowdIntegrationEnabled = false,
   isWebhookConfigurationEnabled = false,
   isProductLicenseConfigurationEnabled = false,
@@ -25,6 +24,7 @@ export const SystemPreferencesMenu = ({
   isAutomaticScmConfigurationEnabled = false,
   isAdvancedSearchConfigurationEnabled = false,
   isBaseUrlConfigurationEnabled = false,
+  isMonitoringSupported = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -61,6 +61,13 @@ export const SystemPreferencesMenu = ({
       </NavLink>
       <NavLink stateName="saml" showIf={CONFIGURE_SYSTEM}>
         SAML
+      </NavLink>
+      <NavLink
+        stateName="waivedComponentUpgradesConfiguration"
+        id="system-configuration-waived-component-upgrades"
+        showIf={CONFIGURE_SYSTEM && isMonitoringSupported}
+      >
+        Waived Components
       </NavLink>
       <NavLink stateName="atlassianCrowdConfiguration" showIf={CONFIGURE_SYSTEM && isCrowdIntegrationEnabled}>
         Atlassian Crowd
@@ -161,6 +168,7 @@ SystemPreferencesMenu.propTypes = {
   isAutomaticScmConfigurationEnabled: PropTypes.bool,
   isAdvancedSearchConfigurationEnabled: PropTypes.bool,
   isBaseUrlConfigurationEnabled: PropTypes.bool,
+  isMonitoringSupported: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

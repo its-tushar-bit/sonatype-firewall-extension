@@ -87,9 +87,9 @@ import namespaceConfusionProtectionTileSlice from 'MainRoot/OrgsAndPolicies/repo
 import apiPageSlice from 'MainRoot/api/apiPageSlice';
 import waiverDetailsSlice from 'MainRoot/waivers/waiverDetails/waiverDetailsSlice';
 import toastSlice from '../toastContainer/toastSlice';
-import waivedComponentUpgradesSlice from 'MainRoot/OrgsAndPolicies/waivedComponentUpgradesSlice';
 import vulnerabilityCustomizeSlice from 'MainRoot/vulnerabilityCustomize/vulnerabilityCustomizeSlice';
 import baseUrlConfigurationSlice from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
+import waivedComponentUpgradesConfigurationSlice from 'MainRoot/configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfigurationSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -177,5 +177,5 @@ export default combineReducers({
   waiverDetails: waiverDetailsSlice,
   toast: toastSlice,
   baseUrlConfiguration: baseUrlConfigurationSlice,
-  waivedComponentUpgrades: waivedComponentUpgradesSlice,
+  waivedComponentUpgradesConfiguration: waivedComponentUpgradesConfigurationSlice,
 });

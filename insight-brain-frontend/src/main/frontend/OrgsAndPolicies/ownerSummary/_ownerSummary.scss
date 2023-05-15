@@ -107,14 +107,3 @@ policies-header-tile {
     margin-left: 0;
   }
 }
-
-#waived-component-upgrades {
-  .waived-component-upgrades {
-    &__list-line {
-      margin-bottom: var(--nx-spacing-2x);
-    }
-    &__stage-name {
-      text-transform: capitalize;
-    }
-  }
-}

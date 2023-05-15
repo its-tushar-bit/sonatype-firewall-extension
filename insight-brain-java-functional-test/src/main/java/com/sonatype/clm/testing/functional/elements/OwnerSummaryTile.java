@@ -71,8 +71,4 @@ public class OwnerSummaryTile
   public PillButton accessButton() {
     return new PillButton("#owner-pill-access-button");
   }
-
-  public PillButton waivedComponentUpgradesButton() {
-    return new PillButton("#owner-pill-waived-component-upgrades");
-  }
 }

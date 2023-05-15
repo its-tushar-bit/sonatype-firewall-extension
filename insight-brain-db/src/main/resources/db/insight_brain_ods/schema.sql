@@ -15,7 +15,6 @@ CREATE TABLE organization (
   allow_repository_connection_override boolean DEFAULT true NOT NULL,
   artifactory_connection_enabled boolean,
   allow_artifactory_connection_override boolean DEFAULT true NOT NULL,
-  waived_component_upgrade_stage_type_id varchar(30) NULL,
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)

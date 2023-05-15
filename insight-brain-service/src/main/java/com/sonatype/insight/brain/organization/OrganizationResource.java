@@ -26,7 +26,6 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.v2.dto.MoveOrganizationResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.MoveOrganizationResponseDTO.ValidationError;
-import com.sonatype.insight.brain.api.v2.dto.WaivedComponentUpgradeNotificationDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.Organization;
@@ -57,9 +56,6 @@ public class OrganizationResource
   public static final String ORGANIZATION_ICON_PATH = ICON_PATH + "/{organizationId}";
 
   public static final String DELETE_ORGANIZATION_PATH = "{organizationId}";
-
-  public static final String WAIVED_COMPONENT_UPGRADE_NOTIFICATION =
-      "/waivedComponentUpgradeNotification";
 
   public static final String MOVE_ORGANIZATION_ERRORS_EXPORT_PATH = "/move/export/{organizationId}";
 
@@ -187,31 +183,6 @@ public class OrganizationResource
   @Audited(AuditEvent.DELETE_ORGANIZATION)
   public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
     organizationService.deleteOrganization(organizationId);
-  }
-
-  /**
-   * @since 1.159
-   */
-  @PUT
-  @Path(WAIVED_COMPONENT_UPGRADE_NOTIFICATION)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Audited(AuditEvent.UPDATE_ORGANIZATION)
-  public Organization updateWaivedComponentUpgradeNotification(
-      WaivedComponentUpgradeNotificationDTO waivedComponentUpgradeNotificationDTO)
-  {
-    return organizationService.updateWaivedComponentUpgradeNotification(
-        waivedComponentUpgradeNotificationDTO);
-  }
-
-  /**
-   * @since 1.159
-   */
-  @GET
-  @Path(WAIVED_COMPONENT_UPGRADE_NOTIFICATION)
-  @Produces(MediaType.APPLICATION_JSON)
-  public WaivedComponentUpgradeNotificationDTO getWaivedComponentUpgradeNotification() {
-    return organizationService.getWaivedComponentUpgradeNotification();
   }
 
   /**

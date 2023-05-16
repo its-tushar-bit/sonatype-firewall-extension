@@ -24,7 +24,6 @@ import com.codeborne.selenide.Selenide;
 import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.enabled;
@@ -36,37 +35,37 @@ import static com.codeborne.selenide.Condition.visible;
 public class SuccessMetricsReportListTest
     extends AbstractFunctionalTest
 {
-  private static Organization organization1;
+  private Organization organization1;
 
-  private static Organization organization2;
+  private Organization organization2;
 
-  private static Organization emptyOrganization;
+  private Organization emptyOrganization;
 
-  private static Application application1;
+  private Application application1;
 
-  private static Application application2;
+  private Application application2;
 
-  private static Application application3;
+  private Application application3;
 
-  @BeforeClass
-  public static void createChartData() {
-    organization1 = staticTempEntity.newOrganization("Test Org 1");
-    organization2 = staticTempEntity.newOrganization("Test Org 2");
-    emptyOrganization = staticTempEntity.newOrganization("Empty Org");
-    application1 = staticTempEntity.newApplication("App1", "App1", organization1.getId());
-    application2 = staticTempEntity.newApplication("App2", "App2", organization1.getId());
-    application3 = staticTempEntity.newApplication("App3", "App3", organization2.getId());
+  private void createChartData() {
+    organization1 = tempEntity.newOrganization("Test Org 1");
+    organization2 = tempEntity.newOrganization("Test Org 2");
+    emptyOrganization = tempEntity.newOrganization("Empty Org");
+    application1 = tempEntity.newApplication("App1", "App1", organization1.getId());
+    application2 = tempEntity.newApplication("App2", "App2", organization1.getId());
+    application3 = tempEntity.newApplication("App3", "App3", organization2.getId());
 
-    staticTempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID,
+    tempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID,
         "scan1", new LocalDate().minusMonths(1).toDate());
-    staticTempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
+    tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID,
         "scan2", new LocalDate().minusMonths(1).toDate());
-    staticTempEntity.newPolicyEvaluation(application3.getId(), BuildStageType.ID,
+    tempEntity.newPolicyEvaluation(application3.getId(), BuildStageType.ID,
         "scan3", new LocalDate().minusMonths(1).toDate());
   }
 
   @Before
   public void before() {
+    createChartData();
     refreshOrOpen(SuccessMetricsReportListPage.url());
     loginAsAdmin();
   }

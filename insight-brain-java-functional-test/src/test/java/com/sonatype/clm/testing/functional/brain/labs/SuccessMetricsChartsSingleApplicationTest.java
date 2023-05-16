@@ -10,11 +10,12 @@ import java.util.HashSet;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ComponentCountsTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Header;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationsByCategoryTile;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -45,40 +46,36 @@ public class SuccessMetricsChartsSingleApplicationTest
 {
   private static final DateTime threeMonthsAgo = now().minusMonths(3);
 
-  private static String successMetricsReportPageUrl;
-
   @BeforeClass
   public static void startup() {
-    Application app1 = staticTempEntity.newApplicationWithParent("app1", "SuccessMetricsChart Test App1");
-
-    Policy licensePolicy = staticTempEntity.newPolicy(app1.getParentOwnerId());
-
-    PolicyEvaluation buildEval3MonthsAgo = staticTempEntity
-        .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "threeMonthsAgo", threeMonthsAgo.toDate());
-
-    ApplicationComponent buildComponent = staticTempEntity
-        .newApplicationComponent(app1.getId(), BuildStageType.ID, "logbackhash",
-            ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-access", "0.6"));
-    
-    // add a violation from a few months ago so we can see the mttr chart/break out of PoC mode
-    staticTempEntity.newPolicyViolation(buildEval3MonthsAgo, licensePolicy, 6,
-        LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
-
-    SuccessMetricsReportScopeDTO successMetricsScope = new SuccessMetricsReportScopeDTO();
-    successMetricsScope.applicationIds = new HashSet<>(Collections.singleton(app1.getId()));
-
-    SuccessMetricsReport successMetrics = staticTempEntity.newSuccessMetricsReport("admin", "Test",
-        JsonUtils.format(successMetricsScope));
-
-    successMetricsReportPageUrl = SuccessMetricsReportPage.url(successMetrics.getId());
-
-    refreshOrOpen(successMetricsReportPageUrl);
+    refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
 
   @Before
   public void navigate() {
-    refreshOrOpen(successMetricsReportPageUrl);
+    Application app1 = tempEntity.newApplicationWithParent("app1", "SuccessMetricsChart Test App1");
+
+    Policy licensePolicy = tempEntity.newPolicy(app1.getParentOwnerId());
+
+    PolicyEvaluation buildEval3MonthsAgo = tempEntity
+        .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "threeMonthsAgo", threeMonthsAgo.toDate());
+
+    ApplicationComponent buildComponent = tempEntity
+        .newApplicationComponent(app1.getId(), BuildStageType.ID, "logbackhash",
+            ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-access", "0.6"));
+    
+    // add a violation from a few months ago so we can see the mttr chart/break out of PoC mode
+    tempEntity.newPolicyViolation(buildEval3MonthsAgo, licensePolicy, 6,
+        LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
+
+    SuccessMetricsReportScopeDTO successMetricsScope = new SuccessMetricsReportScopeDTO();
+    successMetricsScope.applicationIds = new HashSet<>(Collections.singleton(app1.getId()));
+
+    SuccessMetricsReport successMetrics = tempEntity.newSuccessMetricsReport("admin", "Test",
+        JsonUtils.format(successMetricsScope));
+
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetrics.getId()));
   }
 
   @Test

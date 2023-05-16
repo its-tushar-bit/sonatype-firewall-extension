@@ -16,11 +16,12 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.ViolationTrendPlot;
 import com.sonatype.clm.testing.functional.elements.ViolationTrendPlot.BarPlot;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ComponentCountsTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Header;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationsByCategoryTile;
@@ -48,7 +49,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -97,8 +98,6 @@ public class SuccessMetricsChartsTest
 
   private final String browserName = System.getProperty("browser");
 
-  private static String successMetricsChartsPageUrl;
-
   private static void fixViolations(PolicyEvaluation evaluation, Predicate<PolicyViolation> exclude) {
     PolicyViolationDAO violationDAO = new PolicyViolationDAO();
     for (PolicyViolation fixedViolation : violationDAO
@@ -112,68 +111,79 @@ public class SuccessMetricsChartsTest
 
   @BeforeClass
   public static void startup() {
+    refreshOrOpen(DashboardPage.url());
+    loginAsAdmin();
+  }
+
+  @After
+  public void tearDown() {
+    resetTime();
+  }
+
+  @Before
+  public void navigate() {
     // always use the same date to have consistent results in weekly charts
     setTimeTo(thisMonth);
-    Application app1 = staticTempEntity.newApplicationWithParent("app1", "SuccessMetricsChart Test App1");
-    Application app2 = staticTempEntity.newApplicationWithParent("app2", "SuccessMetricsChart Test App2");
-    Application app3 = staticTempEntity.newApplicationWithParent("app3", "SuccessMetricsChart Test App3");
+    Application app1 = tempEntity.newApplicationWithParent("app1", "SuccessMetricsChart Test App1");
+    Application app2 = tempEntity.newApplicationWithParent("app2", "SuccessMetricsChart Test App2");
+    Application app3 = tempEntity.newApplicationWithParent("app3", "SuccessMetricsChart Test App3");
 
-    Policy licensePolicy = staticTempEntity.newPolicy(app1.getParentOwnerId());
-    Policy securityPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId());
-    Policy qualityPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId());
-    Policy otherPolicy = staticTempEntity.newPolicy(app2.getParentOwnerId());
-    Policy app3Policy = staticTempEntity.newPolicy(app3.getParentOwnerId());
+    Policy licensePolicy = tempEntity.newPolicy(app1.getParentOwnerId());
+    Policy securityPolicy = tempEntity.newPolicy(app2.getParentOwnerId());
+    Policy qualityPolicy = tempEntity.newPolicy(app2.getParentOwnerId());
+    Policy otherPolicy = tempEntity.newPolicy(app2.getParentOwnerId());
+    Policy app3Policy = tempEntity.newPolicy(app3.getParentOwnerId());
 
-    PolicyEvaluation buildEval4MonthsAgo = staticTempEntity
+    PolicyEvaluation buildEval4MonthsAgo = tempEntity
         .newPolicyEvaluation(app1.getId(), BuildStageType.ID, "fourMonthsAgo", fourMonthsAgo.toDate());
-    PolicyEvaluation releaseEval3MonthsAgo = staticTempEntity
+    PolicyEvaluation releaseEval3MonthsAgo = tempEntity
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "threeMonthsAgo", threeMonthsAgo.toDate());
-    PolicyEvaluation buildEval2MonthsAgo = staticTempEntity
+    PolicyEvaluation buildEval2MonthsAgo = tempEntity
         .newPolicyEvaluation(app2.getId(), BuildStageType.ID, "twoMonthsAgo", twoMonthsAgo.toDate());
-    PolicyEvaluation releaseEval2MonthsAgo = staticTempEntity
+    PolicyEvaluation releaseEval2MonthsAgo = tempEntity
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "twoMonthsAgo", twoMonthsAgo.toDate());
-    PolicyEvaluation releaseEval1MonthAgo = staticTempEntity
+    PolicyEvaluation releaseEval1MonthAgo = tempEntity
         .newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "oneMonthAgo", oneMonthAgo.toDate());
-    PolicyEvaluation app3Eval1 = staticTempEntity
+    PolicyEvaluation app3Eval1 = tempEntity
         .newPolicyEvaluation(app3.getId(), BuildStageType.ID, "app3Eval1", fourMonthsAgo.toDate());
-    PolicyEvaluation app3Eval2 = staticTempEntity
+    PolicyEvaluation app3Eval2 = tempEntity
         .newPolicyEvaluation(app3.getId(), BuildStageType.ID, "app3Eval2", threeMonthsAgo.toDate());
 
-    ApplicationComponent buildComponent = staticTempEntity
+    ApplicationComponent buildComponent = tempEntity
         .newApplicationComponent(app1.getId(), BuildStageType.ID, "shortnamehash",
             ComponentIdentifier.createMavenCoordinates("short", "name", "0.6"));
-    ApplicationComponent releaseComponent = staticTempEntity
+    ApplicationComponent releaseComponent = tempEntity
         .newApplicationComponent(app2.getId(), ReleaseStageType.ID, "longnamehash",
             ComponentIdentifier.createMavenCoordinates("long.component.name.should.cause.tooltip", "artifact",
               "1.2.3.4"));
 
     // add a few violations
-    staticTempEntity.newPolicyViolation(buildEval4MonthsAgo, licensePolicy, 7,
+    tempEntity.newPolicyViolation(buildEval4MonthsAgo, licensePolicy, 7,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
 
-    staticTempEntity.newPolicyViolation(releaseEval3MonthsAgo, securityPolicy, 8,
+    tempEntity.newPolicyViolation(releaseEval3MonthsAgo, securityPolicy, 8,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
-    staticTempEntity.newPolicyViolation(releaseEval3MonthsAgo, licensePolicy, 1,
+    tempEntity.newPolicyViolation(releaseEval3MonthsAgo, licensePolicy, 1,
         LICENSE, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
-    staticTempEntity.newPolicyViolation(releaseEval3MonthsAgo, securityPolicy, 9,
+    tempEntity.newPolicyViolation(releaseEval3MonthsAgo, securityPolicy, 9,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
-    staticTempEntity.newPolicyViolation(releaseEval3MonthsAgo, securityPolicy, 10,
+    tempEntity.newPolicyViolation(releaseEval3MonthsAgo, securityPolicy, 10,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
 
     fixViolations(releaseEval2MonthsAgo, violation -> violation.getThreatLevel() >= 9);
 
-    staticTempEntity.newPolicyViolation(buildEval2MonthsAgo, licensePolicy, 10,
+    tempEntity.newPolicyViolation(buildEval2MonthsAgo, licensePolicy, 10,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
-    staticTempEntity.newPolicyViolation(buildEval2MonthsAgo, licensePolicy, 7,
+    tempEntity.newPolicyViolation(buildEval2MonthsAgo, licensePolicy, 7,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
-    staticTempEntity.newPolicyViolation(buildEval2MonthsAgo, qualityPolicy, 7,
+    tempEntity.newPolicyViolation(buildEval2MonthsAgo, qualityPolicy, 7,
         QUALITY, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
-    staticTempEntity.newPolicyViolation(buildEval2MonthsAgo, otherPolicy, 7,
+    tempEntity.newPolicyViolation(buildEval2MonthsAgo, otherPolicy, 7,
         OTHER, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
 
     fixViolations(releaseEval1MonthAgo, violation -> violation.getThreatLevel() >= 10);
 
-    staticTempEntity.newPolicyViolation(app3Eval1, app3Policy, 10,
+    tempEntity.newPolicyViolation(app3Eval1, app3Policy, 10,
         SECURITY, releaseComponent.getComponentIdentifier(), releaseComponent.getHash(), FailActionType.ID);
 
     fixViolations(app3Eval2, null);
@@ -183,23 +193,11 @@ public class SuccessMetricsChartsTest
     successMetricsScope.applicationIds = new HashSet<>(Arrays.asList(app1.getId(), app2.getId()));
 
     // Include app2 using its app id and app1 using its parent org id. Do not include app3.
-    SuccessMetricsReport successMetricsReport = staticTempEntity.newSuccessMetricsReport("admin", "Test",
+    SuccessMetricsReport successMetricsReport =
+        tempEntity.newSuccessMetricsReport("admin", "Test",
         JsonUtils.format(successMetricsScope));
 
-    successMetricsChartsPageUrl = SuccessMetricsReportPage.url(successMetricsReport.getId());
-
-    refreshOrOpen(successMetricsChartsPageUrl);
-    loginAsAdmin();
-  }
-
-  @AfterClass
-  public static void tearDown() {
-    resetTime();
-  }
-
-  @Before
-  public void navigate() {
-    refreshOrOpen(successMetricsChartsPageUrl);
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
   }
 
   @Test

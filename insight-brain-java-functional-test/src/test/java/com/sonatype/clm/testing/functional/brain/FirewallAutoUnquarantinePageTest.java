@@ -24,6 +24,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
@@ -40,20 +41,21 @@ public class FirewallAutoUnquarantinePageTest
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
+  @BeforeClass
+  public static void beforeClass() {
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
+    loginAsAdmin();
+  }
+
   @Before
   public void before() {
     setupData();
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
-
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-    loginAsAdmin();
   }
 
   @After
   public void after() {
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
-
-    hardreset();
   }
 
   private void setupData() {

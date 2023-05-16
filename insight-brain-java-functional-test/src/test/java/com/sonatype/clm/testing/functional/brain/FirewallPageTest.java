@@ -35,6 +35,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -60,20 +61,21 @@ public class FirewallPageTest
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
+  @BeforeClass
+  public static void beforeClass() {
+    refreshOrOpen(FirewallPage.url());
+    loginAsAdmin();
+  }
+
   @Before
   public void before() {
     setupData();
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
-
-    refreshOrOpen(FirewallPage.url());
-    loginAsAdmin();
   }
 
   @After
   public void after() {
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
-
-    hardreset();
   }
 
   private void setupData() {

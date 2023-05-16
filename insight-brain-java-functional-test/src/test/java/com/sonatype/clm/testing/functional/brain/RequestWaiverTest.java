@@ -22,8 +22,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
@@ -37,6 +37,12 @@ public class RequestWaiverTest
   private Application application;
 
   private PolicyViolation policyViolation;
+
+  @BeforeClass
+  public static void beforeClass() {
+    refreshOrOpen(DashboardPage.url());
+    loginAsAdmin();
+  }
 
   @Before
   public void startup() {
@@ -52,14 +58,6 @@ public class RequestWaiverTest
 
     policyViolation = tempEntity.newPolicyViolation(policyEvaluation1, securityPolicy1, "Group1",
         "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
-
-    refreshOrOpen(DashboardPage.url());
-    loginAsAdmin();
-  }
-
-  @After
-  public void after() {
-    logout();
   }
 
   @Test

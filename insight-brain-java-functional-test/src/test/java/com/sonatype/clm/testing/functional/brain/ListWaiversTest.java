@@ -33,8 +33,8 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
 import org.apache.tools.ant.util.DateUtils;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -57,6 +57,12 @@ public class ListWaiversTest
 
   private PolicyViolation policyViolation;
 
+  @BeforeClass
+  public static void beforeClass() {
+    refreshOrOpen(DashboardPage.url());
+    loginAsAdmin();
+  }
+
   @Before
   public void startup() {
     Instant now = Instant.now();
@@ -71,14 +77,6 @@ public class ListWaiversTest
 
     policyViolation = tempEntity.newPolicyViolation(policyEvaluation1, securityPolicy1, "Group1",
         "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
-
-    refreshOrOpen(DashboardPage.url());
-    loginAsAdmin();
-  }
-
-  @After
-  public void after() {
-    logout();
   }
 
   @Test
@@ -113,16 +111,23 @@ public class ListWaiversTest
     User user = tempEntity.newUser();
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
 
+    refreshOrOpen(DashboardPage.url());
     logout();
     login(user.getUsername(), user.getPassword());
-    refreshOrOpen(ListWaiversPage.url(policyViolation.getId()));
+    try {
+      refreshOrOpen(ListWaiversPage.url(policyViolation.getId()));
 
-    ListWaiversPage listWaiversPage = new ListWaiversPage();
-    listWaiversPage.addWaiverButton().shouldBe(visible, DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("Insufficient permissions to Add Waiver"));
-    listWaiversPage.addWaiverButton().click();
-    // should remain on the same page
-    listWaiversPage.title().shouldBe(visible);
+      ListWaiversPage listWaiversPage = new ListWaiversPage();
+      listWaiversPage.addWaiverButton().shouldBe(visible, DISABLED).hover();
+      Tooltip.get().shouldBe(visible).shouldHave(text("Insufficient permissions to Add Waiver"));
+      listWaiversPage.addWaiverButton().click();
+      // should remain on the same page
+      listWaiversPage.title().shouldBe(visible);
+    }
+    finally {
+      logout();
+      loginAsAdmin();
+    }
   }
 
   @Test

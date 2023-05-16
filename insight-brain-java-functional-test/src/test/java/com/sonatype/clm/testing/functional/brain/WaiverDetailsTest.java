@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.WaiverDetailsPage;
 import com.sonatype.clm.testing.functional.pages.WaiverDetailsPage.SidebarNav;
@@ -33,8 +34,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -58,6 +59,12 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
   private ArrayList<PolicyViolation> policyViolations;
 
   private ArrayList<PolicyWaiver> policyWaivers;
+
+  @BeforeClass
+  public static void beforeClass() {
+    refreshOrOpen(DashboardPage.url());
+    loginAsAdmin();
+  }
 
   @Before
   public void startup() {
@@ -143,12 +150,6 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
       }};
 
     refreshOrOpen(WaiverDetailsPage.url("ownerTypeId", "ownerId", "waiverId"));
-    loginAsAdmin();
-  }
-
-  @After
-  public void after() {
-    logout();
   }
 
   @Test

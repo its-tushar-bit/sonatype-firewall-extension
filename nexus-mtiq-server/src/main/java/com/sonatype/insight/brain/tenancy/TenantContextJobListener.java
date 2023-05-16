@@ -74,12 +74,12 @@ public class TenantContextJobListener
     List<Tenant> allTenants = tenantUtil.getAllTenants();
 
     for (Tenant tenant : allTenants) {
-      log.info("Registering tenant {} for quartz job execution", tenant);
+      log.trace("Setting tenant {} for quartz job execution", tenant);
       try {
         tenantManager.setTenant(tenant);
       }
       catch (Exception e) {
-        log.error("Failed to register tenant {} for execution of quartz jobs", tenant);
+        log.error("Failed to register tenant {} for execution of quartz jobs", tenant, e);
       }
       finally {
         //Transitioning directly between tenants is banned so need to invalidate the tenant when done with registration

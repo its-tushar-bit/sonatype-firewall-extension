@@ -355,7 +355,7 @@ public class RepositoryResourceTest
     assertResponseStatus(204, response);
     repository = new RepositoryDAO().getById(repository.getId());
     assertThat(repository.getName()).isEqualTo("testRepoName");
-    assertThat(repository.isEnabled()).isTrue();
+    assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();

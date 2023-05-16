@@ -51,10 +51,10 @@ public abstract class AbstractRepositoryResourceAuditTest
   protected abstract String getResourcePath();
 
   @Test
-  public void testSetEnabled_Connect() throws Exception {
+  public void testSetAuditEnabled_Connect() throws Exception {
     tempEntity.newRepositoryManager(REPOSITORY_MANAGER_INSTANCE_ID);
 
-    enableRequest(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true).post();
+    enableAuditRequest(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONNECT_REPOSITORY, null);
     Repository repository = new RepositoryDAO()
@@ -64,11 +64,11 @@ public abstract class AbstractRepositoryResourceAuditTest
   }
 
   @Test
-  public void testSetEnabled_Disconnect() throws Exception {
+  public void testSetAuditEnabled_Disconnect() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
 
-    enableRequest(repositoryManager.getInstanceId(), repository.getPublicId(), false).post();
+    enableAuditRequest(repositoryManager.getInstanceId(), repository.getPublicId(), false).post();
 
     repository = new RepositoryDAO().getById(repository.getId());
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DISCONNECT_REPOSITORY, null);
@@ -77,8 +77,8 @@ public abstract class AbstractRepositoryResourceAuditTest
   }
 
   @Test
-  public void testSetEnabled_Unauthorized() throws Exception {
-    enableRequest(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true).with(unauthorizedUser()).post();
+  public void testSetAuditEnabled_Unauthorized() throws Exception {
+    enableAuditRequest(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true).with(unauthorizedUser()).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONNECT_REPOSITORY, "unauthorized");
     assertCustomData(auditDTO, "repositoryPublicId", REPOSITORY_PUBLIC_ID);
@@ -106,7 +106,7 @@ public abstract class AbstractRepositoryResourceAuditTest
     evaluateRequest(true, repositoryManager.getInstanceId(), repository.getPublicId(),
         new RepositoryComponentEvaluationDataRequestList()).post();
 
-    repository.setEnabled(true);
+    repository.setAuditEnabled(true);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONNECT_REPOSITORY, null);
     assertRepositoryData(auditDTO, repository);
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
@@ -456,7 +456,7 @@ public abstract class AbstractRepositoryResourceAuditTest
     repositoryDTO.name = repository.getName();
     repositoryDTO.format = repository.getFormat();
     repositoryDTO.type = RepositoryType.hosted;
-    repositoryDTO.auditEnabled = repository.isEnabled();
+    repositoryDTO.auditEnabled = repository.isAuditEnabled();
     repositoryDTO.quarantineEnabled = repository.isQuarantineEnabled();
     repositoryDTO.policyCompliantComponentSelectionEnabled = repository.isPolicyCompliantComponentSelectionEnabled();
     repositoryDTO.namespaceConfusionProtectionEnabled = repository.isNamespaceConfusionProtectionEnabled();
@@ -548,9 +548,13 @@ public abstract class AbstractRepositoryResourceAuditTest
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
   }
 
-  private HttpRequest enableRequest(String repositoryManagerInstanceId, String repositoryPublicId, boolean enabled) {
-    return restRequest().path(getResourcePath(), AbstractRepositoryResource.ENABLE_PATH)
-        .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);
+  private HttpRequest enableAuditRequest(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      boolean auditEnabled)
+  {
+    return restRequest().path(getResourcePath(), AbstractRepositoryResource.AUDIT_ENABLE_PATH)
+        .parameter(repositoryManagerInstanceId, repositoryPublicId, auditEnabled);
   }
 
   private HttpRequest evaluateRequest(boolean withQuarantine,

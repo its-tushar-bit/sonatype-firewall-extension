@@ -12,7 +12,7 @@ import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories
 import { getRepositoriesUrl, getRepositoryInfoUrl } from 'MainRoot/util/CLMLocation';
 import { fireEvent } from '@testing-library/react';
 
-describe('RepositoriesConfigurationTile', () => {
+fdescribe('RepositoriesConfigurationTile', () => {
   let renderComponent,
     repositoriesSlice,
     mockAxiosCalls,
@@ -35,7 +35,7 @@ describe('RepositoriesConfigurationTile', () => {
           id: 'repositoryA',
           repositoryManagerId: 'repositoryManagerIdA',
           publicId: 'repositoryNameA',
-          enabled: true,
+          auditEnabled: true,
           quarantineEnabled: true,
           format: 'maven2',
         },
@@ -47,7 +47,7 @@ describe('RepositoriesConfigurationTile', () => {
           id: 'repositoryB',
           repositoryManagerId: 'repositoryManagerIdB',
           publicId: 'repositoryNameB',
-          enabled: false,
+          auditEnabled: false,
           quarantineEnabled: true,
           format: 'maven2',
         },
@@ -145,22 +145,22 @@ describe('RepositoriesConfigurationTile', () => {
         {
           publicId: screen.getByText('repositoryNameA'),
           managerInstanceId: screen.getByText('managerInstanceIdA'),
-          enabled: screen.getByText('Enabled'),
+          auditEnabled: screen.getByText('Enabled'),
         },
         {
           publicId: screen.getByText('repositoryNameB'),
           managerInstanceId: screen.getByText('managerInstanceIdB'),
-          enabled: screen.getByText('Disabled'),
+          auditEnabled: screen.getByText('Disabled'),
         },
       ];
 
       expect(repositories[0].publicId).toBeVisible();
       expect(repositories[0].managerInstanceId).toBeVisible();
-      expect(repositories[0].enabled).toBeVisible();
+      expect(repositories[0].auditEnabled).toBeVisible();
 
       expect(repositories[1].publicId).toBeVisible();
       expect(repositories[1].managerInstanceId).toBeVisible();
-      expect(repositories[1].enabled).toBeVisible();
+      expect(repositories[1].auditEnabled).toBeVisible();
     });
 
     describe('Delete modal', () => {

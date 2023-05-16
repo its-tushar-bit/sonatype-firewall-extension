@@ -88,12 +88,12 @@ public class RepositoryDAO
       // If audit is disabled for a proxy repository, then quarantine must be disabled too.
       // This behavior is important for back compatibility, so we cannot fail it as invalid if audit=disabled and
       // quarantine=enabled.
-      if (!repository.isEnabled()) {
+      if (!repository.isAuditEnabled()) {
         repository.setQuarantineEnabled(false);
       }
 
       if (repository.isPolicyCompliantComponentSelectionEnabled()
-          && (!repository.isEnabled() || !repository.isQuarantineEnabled())) {
+          && (!repository.isAuditEnabled() || !repository.isQuarantineEnabled())) {
         throw new InvalidRepositoryException(
             "Policy Compliant Component Selection requires Audit and Quarantine to be enabled.");
       }
@@ -103,7 +103,7 @@ public class RepositoryDAO
       }
     }
     else {
-      if (repository.isEnabled()) {
+      if (repository.isAuditEnabled()) {
         throw new InvalidRepositoryException("Audit can be enabled only for proxy repositories.");
       }
       if (repository.isQuarantineEnabled()) {
@@ -156,7 +156,7 @@ public class RepositoryDAO
 
     if (RepositoryType.proxy.equals(repository.getRepositoryType())) {
       // This is a proxy repository
-      if (!repository.isEnabled()) {
+      if (!repository.isAuditEnabled()) {
         onDisableAudit(tx, repository);
       }
       else if (!repository.isQuarantineEnabled()) {
@@ -178,7 +178,7 @@ public class RepositoryDAO
    */
   private void onDisableAudit(TransactionContext tx, Repository repository) {
     Repository existingRepository = getById(tx, repository.getId());
-    if (existingRepository.isEnabled()) {
+    if (existingRepository.isAuditEnabled()) {
       new RepositoryPolicyViolationDAO().deleteByRepositoryId(tx, repository.getId());
 
       new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());

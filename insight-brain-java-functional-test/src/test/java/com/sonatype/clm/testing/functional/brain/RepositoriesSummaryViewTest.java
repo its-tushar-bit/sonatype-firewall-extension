@@ -143,7 +143,7 @@ public class RepositoriesSummaryViewTest
       configurationRow.publicId().shouldHave(text(repository.getPublicId()));
       configurationRow.managerId()
           .shouldHave(text(repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId()));
-      configurationRow.status().shouldHave(text(repository.isEnabled() ? "Enabled" : "Disabled"));
+      configurationRow.status().shouldHave(text(repository.isAuditEnabled() ? "Enabled" : "Disabled"));
     }
 
     Repository firstRepo = repositories.get(0);

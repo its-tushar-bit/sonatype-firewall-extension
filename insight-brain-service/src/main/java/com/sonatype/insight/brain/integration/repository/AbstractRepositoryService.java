@@ -162,7 +162,7 @@ public abstract class AbstractRepositoryService
         repositoryManagerInstanceId, repositoryPublicId);
     validateIsProxyRepository(repository);
 
-    if (!repository.isEnabled()) {
+    if (!repository.isAuditEnabled()) {
       throw new BadRequestException("Repository " + repositoryPublicId + " is disabled.");
     }
 
@@ -178,17 +178,17 @@ public abstract class AbstractRepositoryService
     return getPolicyEvaluationSummaryInternal(repository);
   }
 
-  ApiRepositoryDTO setEnabled(
+  ApiRepositoryDTO setAuditEnabled(
       String repositoryManagerInstanceId,
       String repositoryPublicId,
-      boolean enable,
+      boolean auditEnabled,
       final String clientUserAgent)
   {
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId)
         .setRepositoryPublicId(repositoryPublicId);
     checkLicenseFeature();
 
-    log.debug("{} audit for repository {}:{}", enable ? "Enabling" : "Disabling", repositoryManagerInstanceId,
+    log.debug("{} audit for repository {}:{}", auditEnabled ? "Enabling" : "Disabling", repositoryManagerInstanceId,
         repositoryPublicId);
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
@@ -199,25 +199,26 @@ public abstract class AbstractRepositoryService
     else {
       validateIsProxyRepository(repository);
     }
-    setEnabled(repositoryManagerInstanceId, repository, enable);
-    if (!enable) {
+    setAuditEnabled(repositoryManagerInstanceId, repository, auditEnabled);
+    if (!auditEnabled) {
       policyViolationLoggerFactory.newLogger(new Date(), repository).logClearEvent();
     }
 
     updateUserAgent(clientUserAgent, repository);
 
-    log.info("{} audit for repository {}:{} ({})", enable ? "Enabled" : "Disabled", repositoryManagerInstanceId,
+    log.info("{} audit for repository {}:{} ({})", auditEnabled ? "Enabled" : "Disabled", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId());
 
     return ApiRepositoryAdapter.convert(repository);
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  void setEnabled(String repositoryManagerInstanceId,
-                  @AuthzContext(Key.REPOSITORY) Repository repository,
-                  boolean enable)
+  void setAuditEnabled(
+      String repositoryManagerInstanceId,
+      @AuthzContext(Key.REPOSITORY) Repository repository,
+      boolean enable)
   {
-    repository.setEnabled(enable);
+    repository.setAuditEnabled(enable);
     if (repository.getId() == null) {
       RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
       repository.setRepositoryManagerId(repositoryManager.getId());
@@ -255,7 +256,7 @@ public abstract class AbstractRepositoryService
         repositoryManagerInstanceId, repositoryPublicId);
     validateIsProxyRepository(repository);
 
-    if (enabled && !repository.isEnabled()) {
+    if (enabled && !repository.isAuditEnabled()) {
       throw new BadRequestException("Cannot enable quarantine when repository " + repositoryPublicId + " is disabled.");
     }
 
@@ -360,7 +361,7 @@ public abstract class AbstractRepositoryService
   {
     long start = System.currentTimeMillis();
 
-    if (!repository.isEnabled() || !repository.isQuarantineEnabled()) {
+    if (!repository.isAuditEnabled() || !repository.isQuarantineEnabled()) {
       throw new BadRequestException("The repository must be enabled in quarantine mode.");
     }
 
@@ -530,12 +531,12 @@ public abstract class AbstractRepositoryService
   {
     long start = System.currentTimeMillis();
 
-    if (!repository.isEnabled() || (withQuarantine && !repository.isQuarantineEnabled())
+    if (!repository.isAuditEnabled() || (withQuarantine && !repository.isQuarantineEnabled())
         || repository.getFormat() == null) {
-      if (!repository.isEnabled() && persistEvaluationResults) {
+      if (!repository.isAuditEnabled() && persistEvaluationResults) {
         log.info("Enabled audit for repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId());
-        repository.setEnabled(true);
+        repository.setAuditEnabled(true);
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONNECT_REPOSITORY, false)) {
           AuditData.get().setRepository(repository).setData("repositoryManagerInstanceId", repositoryManagerInstanceId);
         }
@@ -653,8 +654,8 @@ public abstract class AbstractRepositoryService
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   void removeComponent(@AuthzContext(Key.REPOSITORY) Repository repository, String pathname) {
-    if (!repository.isEnabled()) {
-      repository.setEnabled(true);
+    if (!repository.isAuditEnabled()) {
+      repository.setAuditEnabled(true);
       repositoryDAO.update(repository);
     }
 
@@ -764,7 +765,7 @@ public abstract class AbstractRepositoryService
       RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
 
       repository = new Repository(repositoryManager.getId(), repositoryPublicId);
-      repository.setEnabled(false);
+      repository.setAuditEnabled(false);
       repository.setRepositoryType(RepositoryType.hosted);
       repository.setFormat(format);
       repository.setNamespaceConfusionProtectionEnabled(true);
@@ -944,7 +945,7 @@ public abstract class AbstractRepositoryService
           repository = new Repository(repositoryManager.getId(), repositoryDTO.name);
           repository.setFormat(repositoryDTO.format);
           repository.setRepositoryType(repositoryDTO.type);
-          repository.setEnabled(repositoryDTO.auditEnabled);
+          repository.setAuditEnabled(repositoryDTO.auditEnabled);
           repository.setQuarantineEnabled(repositoryDTO.quarantineEnabled);
           repository
               .setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
@@ -975,8 +976,8 @@ public abstract class AbstractRepositoryService
             updated = true;
           }
 
-          if (repositoryDTO.auditEnabled != repository.isEnabled()) {
-            repository.setEnabled(repositoryDTO.auditEnabled);
+          if (repositoryDTO.auditEnabled != repository.isAuditEnabled()) {
+            repository.setAuditEnabled(repositoryDTO.auditEnabled);
             updated = true;
           }
           if (repositoryDTO.quarantineEnabled != repository.isQuarantineEnabled()) {
@@ -1067,7 +1068,7 @@ public abstract class AbstractRepositoryService
     repositoryDTO.name = repository.getName();
     repositoryDTO.format = repository.getFormat();
     repositoryDTO.type = repository.getRepositoryType();
-    repositoryDTO.auditEnabled = repository.isEnabled();
+    repositoryDTO.auditEnabled = repository.isAuditEnabled();
     repositoryDTO.quarantineEnabled = repository.isQuarantineEnabled();
     repositoryDTO.policyCompliantComponentSelectionEnabled = repository.isPolicyCompliantComponentSelectionEnabled();
     repositoryDTO.namespaceConfusionProtectionEnabled = repository.isNamespaceConfusionProtectionEnabled();

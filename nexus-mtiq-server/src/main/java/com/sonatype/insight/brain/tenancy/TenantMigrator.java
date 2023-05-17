@@ -44,25 +44,32 @@ public class TenantMigrator
 
     List<String> schemas = DatabaseUtil.getSchemasList(OperationalDataStoreProvider.getInstance().getDataSource());
 
-    List<Tenant> tenants = schemas.stream().filter(schema -> schema.startsWith("t_")).map(this::createTenantFromSchema)
+    List<Tenant> tenants = schemas.stream()
+        .filter(schema -> schema.startsWith("t_"))
+        .map(this::createTenantFromSchema)
+        .sorted() // sort so we run the migrations in a consistent order
         .collect(Collectors.toList());
 
-    log.debug("Tenants to migrate: {}", tenants.stream().map(tenant -> tenant.tenantSlug).collect(Collectors.toList()));
+    log.info("Total of {} tenants to migrate: {}", tenants.size(),
+        tenants.stream().map(tenant -> tenant.tenantSlug).collect(Collectors.toList()));
 
+    int index = 1;
     for (Tenant tenant : tenants) {
+      Integer finalIndex = index;
       runAs(tenant, () -> {
+        log.info("Running database migrations {} of {}. Processing tenant: {}", finalIndex, tenants.size(),
+            TenantThreadLocal.getTenant().databaseSchema);
         migrateSchema();
         tenant.invalidate();
         return null;
       });
+      index++;
     }
   }
 
   private void migrateSchema() {
     try {
       DatabaseMigrator.setForceEnableMigration(true);
-
-      log.debug("Running DB migrations for tenant: {}", TenantThreadLocal.getTenant().databaseSchema);
 
       databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
     }

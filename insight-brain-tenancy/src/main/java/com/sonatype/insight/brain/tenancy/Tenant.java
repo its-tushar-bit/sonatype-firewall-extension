@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
  * have a single tenant.
  */
 public class Tenant
+    implements Comparable<Tenant>
 {
   private static final Pattern SLUG_PATTERN = Pattern.compile("^[a-z][a-z0-9-]*[a-z0-9]$");
 
@@ -95,6 +96,11 @@ public class Tenant
 
   public boolean isInvalid() {
     return !valid;
+  }
+
+  @Override
+  public int compareTo(final Tenant t) {
+    return tenantSlug.compareTo(t.tenantSlug);
   }
 
   static class InvalidTenantSlugException

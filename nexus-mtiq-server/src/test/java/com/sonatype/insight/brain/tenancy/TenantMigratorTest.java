@@ -18,15 +18,18 @@ import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
+import com.sonatype.insight.test.LogOutput;
 
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -38,6 +41,9 @@ import static org.mockito.Mockito.when;
 public class TenantMigratorTest
     extends MultiTenantTestSupport
 {
+  @Rule
+  public final LogOutput logOutput = new LogOutput(TenantMigrator.class);
+
   @Mock
   private MultiTenantInsightConfig insightConfig;
 
@@ -70,9 +76,13 @@ public class TenantMigratorTest
   @Test
   public void shouldRunMigrationsForExistingTenants() {
     testAsGlobalTenant(global -> {
-      runMigrateAllSchemas(Arrays.asList("t_tenant_1", "t_tenant_2"));
+      runMigrateAllSchemas(Arrays.asList("t_tenant_1", "t_tenant_z", "t_tenant_2", "t_tenant_a"));
 
-      assertMigrationExecutedForTheExpectedNumberOfTenants(2);
+      assertMigrationExecutedForTheExpectedNumberOfTenants(4);
+
+      // used to assert sort order
+      assertThat(logOutput).atInfoLevel()
+          .contains("Total of 4 tenants to migrate: [tenant-1, tenant-2, tenant-a, tenant-z]");
     });
   }
 

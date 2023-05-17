@@ -41,6 +41,8 @@ import { actions as toastSliceActions } from 'MainRoot/toastContainer/toastSlice
 import { selectToastSlice } from 'MainRoot/toastContainer/toastSelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
+import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
+import { selectUnconfiguredRepoManager } from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -101,14 +103,15 @@ export const InitModule = angular
                 $rootScope = injector.get('$rootScope'),
                 $q = injector.get('$q'),
                 $ngRedux = injector.get('$ngRedux'),
-                Messages = injector.get('Messages');
-
+                Messages = injector.get('Messages'),
+                { loadUnconfiguredRepoManagers } = firewallOnboardingActions;
               return $q
                 .all([
                   $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded()),
                   $ngRedux.dispatch(loadProductLicense()),
                   ProductLicense.load(),
                   CurrentUser.waitForLogin(),
+                  $ngRedux.dispatch(loadUnconfiguredRepoManagers()),
                 ])
                 .then((results) => {
                   unwrapResult(results[0]);
@@ -116,8 +119,12 @@ export const InitModule = angular
                   const { productFeatures = {} } = $ngRedux.getState().productFeatures;
                   const isDashboardAvailable = productFeatures.dashboard;
                   const isReportsListAvailable = productFeatures['reports-list'];
+                  const isFirewallAvailable = productFeatures['firewall'];
                   const isFirewallOnlyLicense = selectIsFirewallOnlyLicense($ngRedux.getState());
-                  if (isDashboardAvailable) {
+                  const unconfiguredRepoManager = selectUnconfiguredRepoManager($ngRedux.getState());
+                  if (isFirewallAvailable && unconfiguredRepoManager) {
+                    return 'firewallOnboarding.firewallOnboardingPage';
+                  } else if (isDashboardAvailable) {
                     return 'dashboard.overview.violations';
                   } else if (isFirewallOnlyLicense) {
                     return 'firewall.firewallPage';

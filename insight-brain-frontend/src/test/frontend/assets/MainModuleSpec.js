@@ -58,7 +58,16 @@ describe('mainModuleSpec', function () {
 
   describe('Validate requests made on initService start', function () {
     beforeEach(() => {
-      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({ productFeatures: { productFeatures: {} } });
+      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        productFeatures: { productFeatures: {} },
+        firewallOnboarding: {
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
+          },
+        },
+      });
     });
 
     it('validate state after all requests succeed', inject(function (
@@ -208,6 +217,13 @@ describe('mainModuleSpec', function () {
             dashboard: true,
           },
         },
+        firewallOnboarding: {
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
+          },
+        },
       });
 
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
@@ -237,6 +253,13 @@ describe('mainModuleSpec', function () {
         productFeatures: {
           productFeatures: {
             'reports-list': true,
+          },
+        },
+        firewallOnboarding: {
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
           },
         },
       });
@@ -269,6 +292,13 @@ describe('mainModuleSpec', function () {
           productFeatures: {
             dashboard: true,
             'reports-list': true,
+          },
+        },
+        firewallOnboarding: {
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
           },
         },
       });

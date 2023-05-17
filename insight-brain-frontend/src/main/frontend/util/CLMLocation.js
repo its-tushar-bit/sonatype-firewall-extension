@@ -1233,6 +1233,8 @@ export const getImportPoliciesUrl = (appId) => uriTemplate`/rest/policy/organiza
 export const getRepositoryPolicyViolationUrl = (repositoryId, repositoryPolicyId) =>
   uriTemplate`/rest/repositories/${repositoryId}/policyViolation/${repositoryPolicyId}`;
 
+export const getUnconfiguredRepositoriesManager = () => uriTemplate`/rest/repositories/repositoryManager/unconfigured`;
+
 export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositories/proprietaryComponentNamePatterns`;
 
 export const getConfigurationUrl = () => {

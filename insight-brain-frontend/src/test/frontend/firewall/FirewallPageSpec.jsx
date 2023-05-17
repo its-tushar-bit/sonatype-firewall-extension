@@ -16,6 +16,7 @@ describe('FirewallPage', function () {
   let minimalProps,
     Firewall,
     loadFirewallDataSpy,
+    stateGoSpy,
     openConfigurationModalSpy,
     stateMock,
     getShallowComponent,
@@ -31,6 +32,7 @@ describe('FirewallPage', function () {
     }).default;
 
     loadFirewallDataSpy = jasmine.createSpy('loadFirewallData');
+    stateGoSpy = jasmine.createSpy('stateGo');
     openConfigurationModalSpy = jasmine.createSpy('openConfigurationModal');
     stateMock = jasmine.createSpy('state');
 
@@ -54,6 +56,7 @@ describe('FirewallPage', function () {
       $state: stateMock,
       loadFirewallData: loadFirewallDataSpy,
       openConfigurationModal: openConfigurationModalSpy,
+      stateGo: stateGoSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(Firewall, minimalProps);

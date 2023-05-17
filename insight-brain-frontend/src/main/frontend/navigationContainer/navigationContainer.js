@@ -8,6 +8,7 @@ import template from './navigationContainer.html';
 import { load as loadAdvancedSearchConfig } from '../configuration/advancedSearch/advancedSearchConfigActions';
 import { loadConfiguration as loadSuccessMetricsConfig } from '../configuration/successMetricsConfiguration/successMetricsConfigurationActions';
 import { load as loadProductLicense } from '../configuration/license/productLicenseActions';
+import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
 
 import {
   selectIsAdvancedLegalPackSupported,
@@ -60,10 +61,12 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   }
 
   function doLoad() {
+    const { loadUnconfiguredRepoManagers } = firewallOnboardingActions;
     CurrentUser.waitForLogin().then(function () {
       $ngRedux.dispatch(loadAdvancedSearchConfig());
       $ngRedux.dispatch(loadSuccessMetricsConfig());
       $ngRedux.dispatch(loadProductLicense());
+      $ngRedux.dispatch(loadUnconfiguredRepoManagers());
     });
   }
 

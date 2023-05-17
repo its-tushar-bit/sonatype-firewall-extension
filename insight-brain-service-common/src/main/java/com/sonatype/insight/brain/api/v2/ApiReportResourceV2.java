@@ -19,5 +19,5 @@ public interface ApiReportResourceV2
 
   List<ApiApplicationReportDTOV2> getAll();
 
-  ApiReportHistoryDTO getReportHistoryForApplication(String applicationId);
+  ApiReportHistoryDTO getReportHistoryForApplication(String applicationId, String stage, Integer limit);
 }

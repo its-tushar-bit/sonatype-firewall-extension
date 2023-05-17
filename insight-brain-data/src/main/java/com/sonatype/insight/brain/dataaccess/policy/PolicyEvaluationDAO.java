@@ -390,12 +390,18 @@ public class PolicyEvaluationDAO
     return getSingle(Long.class, sQuery);
   }
 
-  public List<PolicyEvaluation> getLimitedAmountByApplicationId(String applicationId, int maxResultsToReturn) {
+  public List<PolicyEvaluation> getLimitedAmountByApplicationId(
+      String applicationId,
+      int maxResultsToReturn,
+      String stage)
+  {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1 " + //
+        (stage != null ? " AND entity.stageTypeId = ?2 " : "") +
         " AND entity.isForObsoleteScan = false" + //
         " ORDER BY entity.time DESC";
-    Query<PolicyEvaluation> query = new Query<>(sQuery, applicationId);
+    Query<PolicyEvaluation> query =
+        stage != null ? new Query<>(sQuery, applicationId, stage) : new Query<>(sQuery, applicationId);
     query.setMaxResults(maxResultsToReturn);
     return query.getList();
   }

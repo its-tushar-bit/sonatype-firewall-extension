@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -91,14 +93,23 @@ public class ApiReportServiceV2
 
   @Authorize(permission = Permission.READ)
   public ApiReportHistoryDTO getReportHistoryForApplication(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId)
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId, String stage, Integer limit)
   {
     Application application = applicationDAO.getByIdNotNull(applicationId);
+
+    if (stage != null && StageTypes.getById(stage) == null) {
+      throw new BadRequestException("Invalid stage: " + stage + ".");
+    }
+
+    if (limit != null && limit < 1) {
+      throw new BadRequestException("Limit must be positive integer.");
+    }
+
     final ApiReportHistoryDTO
         apiReportHistoryDTO = new ApiReportHistoryDTO();
     apiReportHistoryDTO.applicationId = applicationId;
     apiReportHistoryDTO.reports = new ArrayList<>();
-    loadReportHistory(apiReportHistoryDTO, application);
+    loadReportHistory(apiReportHistoryDTO, application, stage, limit);
     return apiReportHistoryDTO;
   }
 
@@ -131,10 +142,16 @@ public class ApiReportServiceV2
     report.reportDataUrl = DefaultApiReportDataResourceV2.getDataUrl(app.getPublicId(), eval.getScanId());
   }
 
-  private void loadReportHistory(ApiReportHistoryDTO apiReportHistoryDTO, Application application) {
+  private void loadReportHistory(
+      ApiReportHistoryDTO apiReportHistoryDTO,
+      Application application,
+      String stage,
+      Integer limit)
+  {
+    int maxResultsToReturn = limit != null ? limit : MAX_POLICY_EVALUATIONS_TO_RETURN;
     List<PolicyEvaluation> policyEvaluations =
-        policyEvaluationDAO.getLimitedAmountByApplicationId(apiReportHistoryDTO.applicationId,
-            MAX_POLICY_EVALUATIONS_TO_RETURN);
+        policyEvaluationDAO.getLimitedAmountByApplicationId(apiReportHistoryDTO.applicationId, maxResultsToReturn,
+            stage);
     Set<String> processedScans = new HashSet<>();
     policyEvaluations.forEach(policyEvaluation -> {
       if (!processedScans.contains(policyEvaluation.getScanId())) {

@@ -13,6 +13,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -56,8 +57,10 @@ public class DefaultApiReportResourceV2 implements ApiReportResourceV2
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApiReportHistoryDTO getReportHistoryForApplication(
-      @PathParam("applicationId") final String applicationId)
+      @PathParam("applicationId") final String applicationId,
+      @QueryParam("stage") String stage,
+      @QueryParam("limit") Integer limit)
   {
-    return reportService.getReportHistoryForApplication(applicationId);
+    return reportService.getReportHistoryForApplication(applicationId, stage, limit);
   }
 }

@@ -71,7 +71,7 @@ public class ApiReportServiceV2AuthzTest
   public void testGetReportHistoryForApplication_Authorized() {
     grantReadPermission(app.getId());
 
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(0);
@@ -79,12 +79,12 @@ public class ApiReportServiceV2AuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetReportHistoryForApplication_Unauthenticated() {
-    apiReportServiceV2.getReportHistoryForApplication(app.getId());
+    apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetReportHistoryForApplication_Unauthorized() {
     login();
-    apiReportServiceV2.getReportHistoryForApplication(app.getId());
+    apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
   }
 }

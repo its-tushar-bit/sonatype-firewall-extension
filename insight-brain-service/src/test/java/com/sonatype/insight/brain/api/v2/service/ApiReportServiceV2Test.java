@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ScanHelper;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +38,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
 public class ApiReportServiceV2Test
@@ -121,7 +123,7 @@ public class ApiReportServiceV2Test
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
 
     //When fetching all reports for application
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
 
     //Verify 3 reports with correct results are retrieved
     assertThat(reports.applicationId).isEqualTo(app.getId());
@@ -129,6 +131,146 @@ public class ApiReportServiceV2Test
     assertPolicyEvaluationResults(reports.reports.get(0));
     assertPolicyEvaluationResults(reports.reports.get(1));
     assertPolicyEvaluationResults(reports.reports.get(2));
+  }
+
+  @Test
+  public void testGetReportHistoryForApplication_ByStage() throws IOException, URISyntaxException {
+    Application app = tempEntity.newApplicationWithParent("application");
+    tempEntity.newPolicy(app);
+    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
+
+    final String scanId1 = "ScanId1";
+    final String scanId2 = "ScanId2";
+    final String scanId3 = "ScanId3";
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId1);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId2);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId3);
+    createReportFile(app.getId(), scanId1, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId3, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+
+    evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
+    evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
+    evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
+
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), "release", null);
+
+    assertThat(reports.applicationId).isEqualTo(app.getId());
+    assertThat(reports.reports).hasSize(1);
+    assertThat(reports.reports.get(0).stage).isEqualTo("release");
+
+    reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), "build", null);
+
+    assertThat(reports.applicationId).isEqualTo(app.getId());
+    assertThat(reports.reports).hasSize(2);
+    assertThat(reports.reports.get(0).stage).isEqualTo("build");
+    assertThat(reports.reports.get(1).stage).isEqualTo("build");
+  }
+
+  @Test
+  public void testGetReportHistoryForApplication_ByStage_EmptyResultSet() throws IOException, URISyntaxException {
+    Application app = tempEntity.newApplicationWithParent("application");
+    tempEntity.newPolicy(app);
+    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
+
+    final String scanId1 = "ScanId1";
+    final String scanId2 = "ScanId2";
+    final String scanId3 = "ScanId3";
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId1);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId2);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId3);
+    createReportFile(app.getId(), scanId1, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId3, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+
+    evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
+    evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
+    evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
+
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), "source", null);
+
+    assertThat(reports.applicationId).isEqualTo(app.getId());
+    assertThat(reports.reports).isEmpty();
+  }
+
+  @Test
+  public void testGetReportHistoryForApplication_ByLimit() throws IOException, URISyntaxException {
+    Application app = tempEntity.newApplicationWithParent("application");
+    tempEntity.newPolicy(app);
+    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
+
+    final String scanId1 = "ScanId1";
+    final String scanId2 = "ScanId2";
+    final String scanId3 = "ScanId3";
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId1);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId2);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId3);
+    createReportFile(app.getId(), scanId1, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId3, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+
+    evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
+    evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
+    evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
+
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, 2);
+
+    assertThat(reports.applicationId).isEqualTo(app.getId());
+    assertThat(reports.reports).hasSize(2);
+    assertThat(reports.reports.get(0).scanId).isEqualTo("ScanId3");
+    assertThat(reports.reports.get(1).scanId).isEqualTo("ScanId2");
+  }
+
+  @Test
+  public void testGetReportHistoryForApplication_ByStageAndLimit() throws IOException, URISyntaxException {
+    Application app = tempEntity.newApplicationWithParent("application");
+    tempEntity.newPolicy(app);
+    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
+
+    final String scanId1 = "ScanId1";
+    final String scanId2 = "ScanId2";
+    final String scanId3 = "ScanId3";
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId1);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId2);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId3);
+    createReportFile(app.getId(), scanId1, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId3, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+
+    evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
+    evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
+    evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
+
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), "build", 1);
+
+    assertThat(reports.applicationId).isEqualTo(app.getId());
+    assertThat(reports.reports).hasSize(1);
+    assertThat(reports.reports.get(0).stage).isEqualTo("build");
+    assertThat(reports.reports.get(0).scanId).isEqualTo("ScanId2");  // should return most recent
+  }
+
+  @Test
+  public void testGetReportHistoryForApplication_InvalidStage() throws IOException, URISyntaxException {
+    Application app = tempEntity.newApplicationWithParent("application");
+    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
+
+    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId(), "no-such-stage", null))
+        .isInstanceOf(BadRequestException.class).hasMessageContaining("Invalid stage: no-such-stage.");
+  }
+
+  @Test
+  public void testGetReportHistoryForApplication_InvalidLimit() throws IOException, URISyntaxException {
+    Application app = tempEntity.newApplicationWithParent("application");
+    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
+
+    assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, 0))
+        .isInstanceOf(BadRequestException.class).hasMessageContaining("Limit must be positive integer.");
   }
 
   @Test
@@ -157,7 +299,7 @@ public class ApiReportServiceV2Test
     policyViolationGrandfatheringService.grandfather(app.getPublicId());
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
 
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(2);
@@ -172,7 +314,7 @@ public class ApiReportServiceV2Test
     grantReadPermission(application.getId());
 
     //When fetching all reports for application
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(application.getId());
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(application.getId(), null, null);
 
     //Verify no reports are retrieved
     assertThat(reports.applicationId).isEqualTo(application.getId());

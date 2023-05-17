@@ -12,7 +12,7 @@ import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories
 import { getRepositoriesUrl, getRepositoryInfoUrl } from 'MainRoot/util/CLMLocation';
 import { fireEvent } from '@testing-library/react';
 
-fdescribe('RepositoriesConfigurationTile', () => {
+describe('RepositoriesConfigurationTile', () => {
   let renderComponent,
     repositoriesSlice,
     mockAxiosCalls,

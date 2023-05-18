@@ -296,7 +296,7 @@ public class UserManagementTest
     deleteModal.submitButton().click();
     deleteModal.error().shouldBe(visible);
     deleteModal.shouldBe(visible);
-    staticTempEntity.cleanupAllPersistedUserSessions();
+    cleanupAllPersistedUserSessions();
     // Start the server again, and log back in
     testCLMServer.start();
 

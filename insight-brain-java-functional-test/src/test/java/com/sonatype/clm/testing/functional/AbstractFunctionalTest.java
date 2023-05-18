@@ -26,10 +26,13 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
+import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -621,5 +624,11 @@ public abstract class AbstractFunctionalTest
     }
 
     driver.switchTo().window(currentHandle);
+  }
+
+  protected void cleanupAllPersistedUserSessions() {
+    ShiroSessionDAO shiroSessionDAO = new ShiroSessionDAO();
+    new PersistedUserSessionDAO().getAll().stream().map(PersistedUserSession::getId)
+        .forEach(shiroSessionDAO::deleteById);
   }
 }

@@ -923,10 +923,6 @@ public class TemporaryEntity
         .filter(id -> !persistedUserSessionIds.contains(id)).forEach(shiroSessionDAO::deleteById);
   }
 
-  public void cleanupAllPersistedUserSessions() {
-    persistedUserSessionDAO.getAll().stream().map(PersistedUserSession::getId).forEach(shiroSessionDAO::deleteById);
-  }
-
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {
     delete(entities, entity -> dao.getById(entity.getId()), dao::delete);
   }

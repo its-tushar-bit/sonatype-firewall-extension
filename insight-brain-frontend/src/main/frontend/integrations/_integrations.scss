@@ -4,6 +4,29 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-integrations {
-  display: contents;
+#integrations-sidebar {
+  background-color: var(--nx-swatch-indigo-30);
+  color: var(--nx-swatch-white);
+
+  .nx-h4,
+  .nx-h3,
+  .nx-h2,
+  .nx-h1 {
+    color: var(--nx-swatch-white); // have to be specific enough to override rsc
+  }
+}
+
+.nx-text-link.integrations-link,
+.nx-text-link.integrations-link:hover,
+.nx-text-link.integrations-link:focus {
+  color: var(--nx-swatch-white);
+  text-decoration: none;
+  display: block;
+  padding: var(--nx-spacing-4x);
+  border-radius: var(--nx-border-radius) 0 0 var(--nx-border-radius);
+}
+
+a.nx-text-link.integrations-link.integrations-link-selected {
+  background-color: var(--nx-swatch-blue-10);
+  color: var(--nx-swatch-white);
 }

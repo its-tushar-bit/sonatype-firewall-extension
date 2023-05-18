@@ -4,12 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import { NxH2, NxTile } from '@sonatype/react-shared-components';
 import React from 'react';
 
-export default function Integrations() {
+export default function IssueTracking() {
   return (
-    <main id="integrations" className="nx-page-main">
-      place holder -- we will likely need some sub routing to deal with individual sections
-    </main>
+    <div>
+      <NxH2>Issue Tracking Integrations</NxH2>
+
+      <NxTile>
+        <NxTile.Content>Content...</NxTile.Content>
+      </NxTile>
+    </div>
   );
 }

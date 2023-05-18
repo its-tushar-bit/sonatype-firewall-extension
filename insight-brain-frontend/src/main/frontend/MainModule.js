@@ -41,7 +41,6 @@ import { actions as toastSliceActions } from 'MainRoot/toastContainer/toastSlice
 import { selectToastSlice } from 'MainRoot/toastContainer/toastSelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
-import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
 import { selectUnconfiguredRepoManager } from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
@@ -103,15 +102,13 @@ export const InitModule = angular
                 $rootScope = injector.get('$rootScope'),
                 $q = injector.get('$q'),
                 $ngRedux = injector.get('$ngRedux'),
-                Messages = injector.get('Messages'),
-                { loadUnconfiguredRepoManagers } = firewallOnboardingActions;
+                Messages = injector.get('Messages');
               return $q
                 .all([
                   $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded()),
                   $ngRedux.dispatch(loadProductLicense()),
                   ProductLicense.load(),
                   CurrentUser.waitForLogin(),
-                  $ngRedux.dispatch(loadUnconfiguredRepoManagers()),
                 ])
                 .then((results) => {
                   unwrapResult(results[0]);

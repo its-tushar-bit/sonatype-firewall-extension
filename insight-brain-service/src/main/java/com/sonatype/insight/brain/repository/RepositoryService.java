@@ -510,6 +510,8 @@ public class RepositoryService
    * @since 1.160
    */
   List<RepositoryManager> getUnconfiguredRepositoryManagers() {
+    log.debug("Getting unconfigured repository managers...");
+
     // This method is called by the UI to determine if the Firewall Onboarding UI should be shown for the current user.
     // Although it is a getter, if the user doesn't have WRITE permission, s/he cannot finish the Firewall Onboarding.
     checkWritePermission(RepositoryContainer.SINGLETON);
@@ -518,7 +520,9 @@ public class RepositoryService
       return Collections.emptyList();
     }
 
-    return repositoryManagerDAO.getUnconfigured();
+    List<RepositoryManager> unconfiguredRepositoryManagers = repositoryManagerDAO.getUnconfigured();
+    log.debug("Found {} unconfigured repository managers.", unconfiguredRepositoryManagers.size());
+    return unconfiguredRepositoryManagers;
   }
 
   private void auditConfigureRepository(Repository repository, String errorMessage) {

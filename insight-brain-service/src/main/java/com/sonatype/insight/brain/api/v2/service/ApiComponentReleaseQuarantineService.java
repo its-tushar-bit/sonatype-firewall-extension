@@ -51,7 +51,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +117,7 @@ public class ApiComponentReleaseQuarantineService
       final String quarantineId,
       final String comment)
   {
-    if (StringUtils.isEmpty(comment)) {
+    if (StringUtils.isBlank(comment)) {
       throw new BadRequestException("Comment has not been specified.");
     }
 

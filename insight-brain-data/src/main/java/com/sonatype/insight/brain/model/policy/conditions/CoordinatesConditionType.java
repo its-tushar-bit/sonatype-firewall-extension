@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.ImmutableSet;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class CoordinatesConditionType
     extends AbstractComponentConditionType<String>
@@ -86,7 +86,7 @@ public class CoordinatesConditionType
   }
 
   private String convertToWildcardWhereNeeded(final String value) {
-    if (StringUtils.isEmpty(value)) {
+    if (StringUtils.isBlank(value)) {
       return value;
     }
     final String[] splitValue = value.split(":", -1);

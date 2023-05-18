@@ -18,7 +18,7 @@ import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.104
@@ -101,7 +101,7 @@ public class AggregateFile
   }
 
   public Set<String> getPathnames() {
-    if (StringUtils.isEmpty(pathnamesString)) {
+    if (StringUtils.isBlank(pathnamesString)) {
       return Collections.emptySet();
     }
     return Sets.newLinkedHashSet(Arrays.asList(pathnamesString.split(PATHNAMES_DELIMITER_REGEX)));

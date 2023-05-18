@@ -19,7 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.base.Joiner;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Association between applications and components.
@@ -166,7 +166,7 @@ public class ApplicationComponent
   }
 
   public List<String> getPathnames() {
-    if (StringUtils.isEmpty(pathnamesString)) {
+    if (StringUtils.isBlank(pathnamesString)) {
       return Collections.emptyList();
     }
 

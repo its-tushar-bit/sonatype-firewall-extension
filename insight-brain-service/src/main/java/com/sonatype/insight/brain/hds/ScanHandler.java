@@ -26,8 +26,8 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
+import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,7 +136,7 @@ public class ScanHandler
 
   private void saveScanFromHttpRequest(HttpServletRequest httpRequest, File scanFile) throws IOException {
     try (ServletInputStream is = httpRequest.getInputStream(); FileOutputStream os = new FileOutputStream(scanFile)) {
-      IOUtil.copy(is, os);
+      IOUtils.copy(is, os);
     }
   }
 

@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Copied from com.sonatype.nexus.procurement.ArtifactCoordinate.
@@ -102,15 +102,15 @@ public class ArtifactCoordinate
    * @return
    */
   private boolean matchesGroup(String coordinate, String value) {
-    if (StringUtils.isEmpty(coordinate)) {
+    if (StringUtils.isBlank(coordinate)) {
       // coordinate empty, only empty value matches
-      return StringUtils.isEmpty(value);
+      return StringUtils.isBlank(value);
     }
     if (PLACEHOLDER.equals(coordinate)) {
       // coordinate wildcard, it matches all
       return true;
     }
-    else if (StringUtils.isEmpty(value)) {
+    else if (StringUtils.isBlank(value)) {
       // coordinate not empty and not wildcard, value empty, no match
       return false;
     }
@@ -151,15 +151,15 @@ public class ArtifactCoordinate
    * @return
    */
   private boolean matches(String coordinate, String value, final boolean ignoreCase) {
-    if (StringUtils.isEmpty(coordinate)) {
+    if (StringUtils.isBlank(coordinate)) {
       // coordinate empty, only empty value matches
-      return StringUtils.isEmpty(value);
+      return StringUtils.isBlank(value);
     }
     else if (PLACEHOLDER.equals(coordinate)) {
       // coordinate wildcard, it matches all
       return true;
     }
-    else if (StringUtils.isEmpty(value)) {
+    else if (StringUtils.isBlank(value)) {
       // coordinate not empty and not wildcard, value empty, no match
       return false;
     }

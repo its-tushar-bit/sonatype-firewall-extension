@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -210,7 +210,7 @@ public abstract class ComponentDetailsLoader
       String matchState,
       DependencyType dependencyType)
   {
-    componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
+    componentDetails.setMatchState(StringUtils.isBlank(matchState) ? MatchState.EXACT.getId() : matchState);
 
     if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())
         && !IdentificationSource.PACKAGE_MANIFEST.getId().equals(componentDetails.getIdentificationSource())) {

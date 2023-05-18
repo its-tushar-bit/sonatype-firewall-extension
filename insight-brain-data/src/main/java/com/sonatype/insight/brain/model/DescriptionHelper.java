@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.model;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class DescriptionHelper
 {
   public static final int MAX_DESC_LENGTH = 255;
 
   public static void validate(String description) {
-    if (StringUtils.isEmpty(description)) {
+    if (StringUtils.isBlank(description)) {
       throw new BadRequestException("The description is required.");
     }
     if (description.length() > MAX_DESC_LENGTH) {

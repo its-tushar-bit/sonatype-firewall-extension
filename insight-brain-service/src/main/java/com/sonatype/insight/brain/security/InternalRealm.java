@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -20,7 +21,6 @@ import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authc.credential.PasswordMatcher;
 import org.apache.shiro.realm.AuthenticatingRealm;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Security Shiro realm backed by the CLM ODS database. It is used by shiro for authentication and authorization. It
@@ -52,7 +52,7 @@ public class InternalRealm
     UsernamePasswordToken usernamePasswordToken = (UsernamePasswordToken) token;
 
     String username = usernamePasswordToken.getUsername();
-    if (StringUtils.isEmpty(username)) {
+    if (StringUtils.isBlank(username)) {
       throw new AuthenticationException("The username is required");
     }
 

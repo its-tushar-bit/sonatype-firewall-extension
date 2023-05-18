@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +92,7 @@ public class ApiSearchServiceV2
   {
     AuditData.get().setComponentHash(hash).setComponentIdentifier(componentIdentifier);
 
-    if (StringUtils.isEmpty(stageId)) {
+    if (StringUtils.isBlank(stageId)) {
       throw new BadRequestException("Stage has not been specified.");
     }
     if (StageTypes.getById(stageId) == null) {
@@ -111,10 +111,10 @@ public class ApiSearchServiceV2
       componentIdentifier = constructWildcardedComponentIdentifier(componentIdentifier);
       coords = new ArtifactCoordinate(componentIdentifier);
     }
-    else if (StringUtils.isEmpty(hash)) {
+    else if (StringUtils.isBlank(hash)) {
       throw new BadRequestException("Neither hash nor coordinates of component to search for have been specified.");
     }
-    if (!StringUtils.isEmpty(hash)) {
+    if (!StringUtils.isBlank(hash)) {
       if (!hash.matches("[0-9a-fA-F]{20,40}")) {
         throw new BadRequestException("Invalid hash: " + hash + ".");
       }
@@ -251,7 +251,7 @@ public class ApiSearchServiceV2
       if (requiredCoordinateNames.contains(coordinateName)) {
         // a required coordinate must have a value, so null/empty implies it is a wildcard
         convertedCoordinates.put(coordinateName,
-            StringUtils.isEmpty(coordinateValue) ? ArtifactCoordinate.PLACEHOLDER : coordinateValue);
+            StringUtils.isBlank(coordinateValue) ? ArtifactCoordinate.PLACEHOLDER : coordinateValue);
       }
       else {
         // an optional coordinate can have a value or be empty, so only null implies it is a wildcard

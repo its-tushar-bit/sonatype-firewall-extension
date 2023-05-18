@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.17
@@ -157,7 +157,7 @@ public abstract class AbstractPolicyViolation
   }
 
   public void setConstraintFactsJson(String constraintFactsJson) {
-    if (StringUtils.isEmpty(constraintFactsJson)) {
+    if (StringUtils.isBlank(constraintFactsJson)) {
       throw new IllegalArgumentException("ConstraintFactsJson cannot be null or empty.");
     }
     this.constraintFactsJson = constraintFactsJson;
@@ -175,7 +175,7 @@ public abstract class AbstractPolicyViolation
 
   @Override
   public List<ConstraintFact> getConstraintFacts() {
-    if (constraintFacts == null && !StringUtils.isEmpty(constraintFactsJson)) {
+    if (constraintFacts == null && !StringUtils.isBlank(constraintFactsJson)) {
       try {
         constraintFacts = Arrays.asList(JsonUtils.parse(constraintFactsJson, ConstraintFact[].class));
       }

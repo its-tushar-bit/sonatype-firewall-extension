@@ -43,6 +43,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemedia
 import com.sonatype.clm.testing.functional.pages.QuarantineComponentReportPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -120,6 +121,8 @@ public class QuarantineComponentReportTest
 
   @Before
   public void before() {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+
     repositoryManager = tempEntity.newRepositoryManager();
     repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
     quarantineReportPage = new QuarantineComponentReportPage();

@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
@@ -227,7 +226,6 @@ public abstract class AbstractFunctionalTest
   @BeforeClass
   public static void setUpClass() {
     setupWebDriver();
-    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(staticTempEntity);
     Subject subject = mock(Subject.class);
     lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Admin", InternalRealm.ID));
     SecurityManager securityManager = mock(SecurityManager.class);

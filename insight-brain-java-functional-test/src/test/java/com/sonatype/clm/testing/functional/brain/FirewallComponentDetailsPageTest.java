@@ -64,6 +64,7 @@ import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.Repo
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -176,6 +177,8 @@ public class FirewallComponentDetailsPageTest
 
   @Before
   public void before() {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+
     repositoryManager = tempEntity.newRepositoryManager();
     repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
     date = new Date();

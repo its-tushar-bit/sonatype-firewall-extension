@@ -70,6 +70,7 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -99,6 +100,11 @@ public abstract class AbstractSummaryViewTest
     this.currentOwner = currentOwner;
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
+  }
+
+  @Before
+  public void before() {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
   @After

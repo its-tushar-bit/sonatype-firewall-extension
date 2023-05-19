@@ -28,6 +28,7 @@ import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -89,6 +90,8 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Before
   public void start() throws IOException {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+
     SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.setEnabled(false);
     Organization org = tempEntity.newOrganization("ApplicationReportTest");
     app = tempEntity.newApplicationWithSpecificId("8bbaa746602142d9adf2de00a9ca4d4a", "ApplicationReportTest",

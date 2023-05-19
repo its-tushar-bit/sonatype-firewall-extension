@@ -10,6 +10,7 @@ import java.util.Collections;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -27,7 +28,14 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public abstract class AbstractVersionGraphMavenTest
     extends AbstractFunctionalTest
@@ -51,6 +59,8 @@ public abstract class AbstractVersionGraphMavenTest
 
   @Before
   public void start() {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+
     appFirst = tempEntity.newApplicationWithParent("app-123", "app-123");
     appLast = tempEntity.newApplicationWithParent("SomeApp", "Some App");
     app = tempEntity.newApplicationWithParent("ApplicationReportTest", "ApplicationReportTest");

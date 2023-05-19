@@ -68,7 +68,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
@@ -170,9 +169,6 @@ public abstract class AbstractFunctionalTest
         enableDefaultPasswordWarning);
     service.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
   }
-
-  @ClassRule
-  public static TemporaryEntity staticTempEntity = new TemporaryEntity();
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity()
@@ -363,7 +359,6 @@ public abstract class AbstractFunctionalTest
     loginModal.loginButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
     loginModal.shouldBe(hidden);
-    staticTempEntity.initializePersistedUserSessions();
   }
 
   protected static void logout() {

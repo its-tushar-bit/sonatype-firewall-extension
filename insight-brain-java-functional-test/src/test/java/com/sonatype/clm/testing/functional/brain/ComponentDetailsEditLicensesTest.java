@@ -26,6 +26,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -75,6 +76,7 @@ public class ComponentDetailsEditLicensesTest
 
   @Before
   public void start() throws IOException {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
     parentOrg = tempEntity.newOrganization("ParentApplicationReportTest");
     Organization org = tempEntity.newOrganization("ApplicationReportTest", parentOrg);
     app = tempEntity.newApplication("ApplicationReportTest",

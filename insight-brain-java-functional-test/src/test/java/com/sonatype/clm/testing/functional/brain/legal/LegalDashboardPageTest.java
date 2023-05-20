@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.LegalDashboardPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
@@ -75,6 +76,8 @@ public class LegalDashboardPageTest
 
   @Before
   public void start() throws IOException {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+
     testCLMServer.getHdsServer().respondWith("[]").atUri("/rest/license/metadata");
     app = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName(), "app", "org");
 

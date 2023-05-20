@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.pages.EditAllObligationsModal;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -59,6 +60,8 @@ public class AllObligationsTest
 
   @Before
   public void init() throws IOException {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+
     app = tempEntity.newApplicationWithParent(AllObligationsTest.class.getSimpleName(), "app", "org");
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
 

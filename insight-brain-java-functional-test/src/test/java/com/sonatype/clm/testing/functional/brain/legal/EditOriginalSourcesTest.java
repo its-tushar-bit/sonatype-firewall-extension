@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.functional.pages.EditOriginalSourcesModal;
 import com.sonatype.clm.testing.functional.pages.EditOriginalSourcesModal.StatusDropdownMenu;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -28,6 +29,7 @@ import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
 import org.apache.mina.core.RuntimeIoException;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -46,6 +48,11 @@ public class EditOriginalSourcesTest
   public static void boot() {
     refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void before() {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
   private void init(String hash, ComponentIdentifier componentIdentifier, String testFileSuffix) {

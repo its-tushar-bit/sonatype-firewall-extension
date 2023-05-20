@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -24,6 +25,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -45,6 +47,11 @@ public class EditLicensesTest
   public static void boot() {
     refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
+  }
+
+  @Before
+  public void before() {
+    LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
   private void init(String hash, ComponentIdentifier componentIdentifier, String testFileSuffix) throws IOException {

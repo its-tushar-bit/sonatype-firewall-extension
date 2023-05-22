@@ -776,6 +776,7 @@
                 <include>**/AbstractBrainServiceTest*</include>
                 <include>**/HdsMockServerRule*</include>
                 <include>**/DefaultTestInsightBrainService*</include>
+                <include>**/MultiTenantBrainServiceTestService*</include>
                 <include>**/TestInsightBrainService*</include>
                 <include>**/TestInsightBrainServiceRule*</include>
                 <include>**/TestCLMServer*</include>
@@ -808,6 +809,7 @@
                 <include>**/BrainInjectedTest*</include>
                 <include>**/AuditTestSupport*</include>
                 <include>**/TestAuditSession*</include>
+                <include>**/*Test*</include>
               </includes>
             </configuration>
           </execution>

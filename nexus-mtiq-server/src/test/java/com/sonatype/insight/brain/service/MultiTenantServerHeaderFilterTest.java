@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.util.regex.Pattern;
+
 import com.google.common.net.HttpHeaders;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +18,8 @@ public class MultiTenantServerHeaderFilterTest
 {
   private String tenantName;
 
+  private Pattern buildRegex = Pattern.compile("NexusIQ/1\\.[0-9]+.*-(build-number|SNAPSHOT-\\d+)$");
+
   @Before
   public void setUp() {
     tenantName = generateTestTenantName();
@@ -23,9 +27,8 @@ public class MultiTenantServerHeaderFilterTest
 
   @Test
   public void testServerHeaderPresent() throws Exception {
-    assertThat(adminRequest().path("api", "admin").get().getHeader(HttpHeaders.SERVER))
-        .matches("NexusIQ/1\\.[0-9]+.*-build-number$");
+    assertThat(adminRequest().path("api", "admin").get().getHeader(HttpHeaders.SERVER)).matches(buildRegex);
     provisionTenant(tenantName);
-    assertThat(restRequest().get().getHeader(HttpHeaders.SERVER)).matches("NexusIQ/1\\.[0-9]+.*-build-number$");
+    assertThat(restRequest().get().getHeader(HttpHeaders.SERVER)).matches(buildRegex);
   }
 }

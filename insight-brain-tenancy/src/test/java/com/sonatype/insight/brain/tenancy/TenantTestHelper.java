@@ -27,6 +27,13 @@ public class TenantTestHelper
     assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(tenant);
   }
 
+  public static Tenant setupNewTestTenant(TestName testName) {
+    Tenant tenant = createTenant(testName);
+    setTenant(tenant);
+
+    return tenant;
+  }
+
   public static Tenant testAsNewTenant(TestName testName, ConsumerWithException<Tenant> test) {
     Tenant tenant = createTenant(testName);
 
@@ -63,6 +70,10 @@ public class TenantTestHelper
 
   public static void setSingleTenant() {
     TenantThreadLocal.setTenantWithoutValidation(SINGLE_TENANT);
+  }
+
+  public static void setGlobalTenant() {
+    TenantThreadLocal.setGlobalTenant();
   }
 
   @FunctionalInterface

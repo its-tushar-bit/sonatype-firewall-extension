@@ -101,6 +101,21 @@
       <artifactId>postgres-server</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock-jre8</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
@@ -132,6 +147,40 @@
                 </transformer>
               </transformers>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <properties>
+            <property>
+              <name>listener</name>
+              <value>com.sonatype.insight.brain.test.IntegrationTestRunListener</value>
+            </property>
+          </properties>
+          <dependenciesToScan>
+            <dependency>com.sonatype.insight.brain:insight-brain-service</dependency>
+          </dependenciesToScan>
+          <includes>
+            <!-- Include insight-brain-server integration tests here to test with MTIQ -->
+            <include>com.sonatype.insight.brain.api.v2.ApiFirewallResourceTest</include>
+            <include>com.sonatype.insight.brain.api.v2.ApiRoleResourceTest</include>
+          </includes>
+          <trimStackTrace>false</trimStackTrace>
+          <reuseForks>false</reuseForks>
+          <useUnlimitedThreads>false</useUnlimitedThreads>
+          <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
+          <forkCount>1</forkCount>
+          <argLine>@{argLine} -Xmx768M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>

@@ -32,12 +32,14 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -439,6 +441,8 @@ public class ApiFirewallResourceTest
 
   @Test
   public void testGetQuarantinedComponentViewAnonymousAccess() throws Exception {
+    Assume.assumeFalse("QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS is banned in MTIQ",
+        MultiTenantBrainServiceTestService.isTestingAgainstMtiq());
     // This REST endpoint must work with anonymous access (i.e. no authentication required)
 
     // Sanity check

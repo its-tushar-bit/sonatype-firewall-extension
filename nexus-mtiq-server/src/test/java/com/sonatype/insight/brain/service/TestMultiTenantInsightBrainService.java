@@ -377,6 +377,7 @@ public class TestMultiTenantInsightBrainService
 
       LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
     }
+
     new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.HDS_URL, null);
   }
 

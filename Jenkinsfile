@@ -236,6 +236,9 @@ Map<String, Closure> getParallelTests() {
   testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 B', 'OpenJDK 11', '.*/[D-K].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 C', 'OpenJDK 11', '.*/[L-P].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 D', 'OpenJDK 11', '.*/[R-Z].*Test.class')
+  testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 8', 'Java 8')
+  testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 11', 'OpenJDK 11')
+
   return testStages
 }
 
@@ -292,7 +295,8 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
         try {
           copyRepo()
           Map<String, ?> testConfig = testConfig(
-                "-Dtest=%regex[${regex}] -Dit.test=%regex[${regex}] -Dskip-functional-test " +
+                "-pl '!com.sonatype.insight.brain:nexus-mtiq-server' -Dtest=%regex[${regex}] " +
+                    "-Dit.test=%regex[${regex}] -Dskip-functional-test " +
                     "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)
           mvn testConfig, 'install'
@@ -301,6 +305,26 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
           if (jdk == 'Java 8' && stageName == 'Unit and Integration Tests - Java 8 A') {
             sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: !currentBuild.fullProjectName.contains("master"))
           }
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
+  return ["${stageName}": {
+    node(InsightConstants.AGENT_LABEL){
+      stage(stageName) {
+        try {
+          copyRepo()
+          Map<String, ?> testConfig = testConfig(
+                "-pl com.sonatype.insight.brain:nexus-mtiq-server -Dskip-functional-test " +
+                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
+                null, jdk)
+          mvn testConfig, 'install'
+        }
+        finally {
           captureResultsAndCleanup()
         }
       }

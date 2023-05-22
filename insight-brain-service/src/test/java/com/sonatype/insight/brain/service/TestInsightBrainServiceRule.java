@@ -75,8 +75,15 @@ public class TestInsightBrainServiceRule
   public void start() throws Exception {
     long start = System.currentTimeMillis();
 
-    log.info("Starting TestInsightBrainService on port {}, admin port {}", port, adminPort);
-    brain = new DefaultTestInsightBrainService();
+    if (MultiTenantBrainServiceTestService.isTestingAgainstMtiq()) {
+      log.info("Starting MultiTenantTestInsightBrainService on port {}, admin port {}", port, adminPort);
+      brain = MultiTenantBrainServiceTestService.createNewTestInsightBrainService();
+    }
+    else {
+      log.info("Starting TestInsightBrainService on port {}, admin port {}", port, adminPort);
+      brain = new DefaultTestInsightBrainService();
+    }
+
     brain.setHttpPort(port);
     brain.setHttpAdminPort(adminPort);
     if (hdsUrl != null) {

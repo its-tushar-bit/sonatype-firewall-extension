@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
@@ -73,6 +72,8 @@ import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.ScanHelper;
@@ -85,7 +86,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.networking.PortAllocator;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -96,6 +96,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -129,8 +130,17 @@ public abstract class AbstractBrainServiceTest
   {
     @Override
     public void after() {
-      super.after();
-      afterDatabaseReset();
+      if (MultiTenantBrainServiceTestService.isTestingAgainstMtiq()) {
+        Runnable superAfter = super::after;
+        TenantTestHelper.testAs(Tenant.GLOBAL_TENANT, tenant -> {
+          superAfter.run();
+          afterDatabaseReset();
+        });
+      }
+      else {
+        super.after();
+        afterDatabaseReset();
+      }
     }
   };
 
@@ -160,6 +170,10 @@ public abstract class AbstractBrainServiceTest
   protected DatabaseContainer databaseContainer;
 
   public void setUpTestLicenseThreatGroups() {
+    if (MultiTenantBrainServiceTestService.isTestingAgainstMtiq()) {
+      // no-op for MTIQ because the default creates LicenseThreatGroups under global which is write protected
+      return;
+    }
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
@@ -186,19 +200,22 @@ public abstract class AbstractBrainServiceTest
         getCLMServer().getInstance(ApiProxyServerConfigurationService.class).applyProxyServerConfigurationToClients();
       }
     }
-  }
 
-  protected void initialiseLicenseThreatGroups() {
-    setUpTestLicenseThreatGroups();
+    MultiTenantBrainServiceTestService.beforeTestHandler(this);
   }
 
   protected void initDatabaseContainer() {
     if (databaseContainer == null) {
-      DatabaseProvisionUtils databaseProvisionUtils =
-          spy(new DatabaseProvisionUtils(OperationalDataStoreProvider.getInstance(),
-              AggregationDataStoreProvider.getInstance(), DatamartProvider.getInstance(),
-              ThirdPartyScansProvider.getInstance()));
-      databaseContainer = new DatabaseContainer(new DataSourceFactory(), databaseProvisionUtils);
+      if (MultiTenantBrainServiceTestService.isTestingAgainstMtiq()) {
+        databaseContainer = MultiTenantBrainServiceTestService.getDatabaseContainer();
+      }
+      else {
+        DatabaseProvisionUtils databaseProvisionUtils =
+            spy(new DatabaseProvisionUtils(OperationalDataStoreProvider.getInstance(),
+                AggregationDataStoreProvider.getInstance(), DatamartProvider.getInstance(),
+                ThirdPartyScansProvider.getInstance()));
+        databaseContainer = new DatabaseContainer(new DataSourceFactory(), databaseProvisionUtils);
+      }
     }
   }
 
@@ -230,13 +247,21 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void initServer(Configurator configurator) throws Exception {
+    if (configurator == null) {
+      configurator = MultiTenantBrainServiceTestService.getConfigurator();
+    }
+
     if (testCLMServer != null && !testCLMServer.isReusable(isProxyRequiredToReachHds(), configurator)) {
       testCLMServer.stop();
       testCLMServer = null;
     }
 
     if (testCLMServer == null) {
-      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator, hdsMockServer,
+      testCLMServer = new TestCLMServer(
+          isProxyRequiredToReachHds(),
+          getBrainModules(),
+          configurator,
+          hdsMockServer,
           databaseContainer);
       testCLMServer.start();
     }
@@ -247,6 +272,9 @@ public abstract class AbstractBrainServiceTest
   @After
   public void cleanupTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
+
+    MultiTenantBrainServiceTestService.afterTestHandler(this);
+
     boolean installLicense = false;
     if (savedLicenseFingerprint != null) {
       licenseFingerprinter.setDummyLicenseFingerprint(savedLicenseFingerprint);
@@ -313,7 +341,17 @@ public abstract class AbstractBrainServiceTest
     }
   }
 
+  @AfterClass
+  public static void afterAll() {
+    MultiTenantBrainServiceTestService.afterAllTestsHandler(testCLMServer);
+  }
+
   protected void cleanTaskScheduler() throws Exception {
+    if (MultiTenantBrainServiceTestService.isTestingAgainstMtiq()) {
+      // Noop for MTIQ tests
+      return;
+    }
+
     TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
     if (taskScheduler != null) {
       taskScheduler.standby();
@@ -353,6 +391,14 @@ public abstract class AbstractBrainServiceTest
         bind(JiraClientFactory.class).toInstance(jiraClientFactory);
       }
     });
+
+    if (MultiTenantBrainServiceTestService.isTestingAgainstMtiq()) {
+      AbstractModule brainModules = MultiTenantBrainServiceTestService.getBrainModules();
+      if (brainModules != null) {
+        modules.add(brainModules);
+      }
+    }
+
     return modules;
   }
 

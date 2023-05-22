@@ -13,13 +13,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.After;
@@ -497,13 +503,166 @@ public class SourceControlEventDAOTest
         expectedEvent2.getId(), expectedEvent3.getId(), expectedEvent4.getId());
   }
 
+  @Test
+  public void testSelectEventsByCriteria_CreatedOnOrAfterFilter() {
+    long cutOffTimeMs = currentTimeMillis() + 3000;
+    persistSourceControlEvent(cutOffTimeMs - 1000);
+    persistSourceControlEvent(cutOffTimeMs - 2000);
+    SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs);
+    SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 1000);
+    boolean ascending = true;
+    Set<String> applicationIds = Collections.singleton(app.getId());
+
+    List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
+        .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs), ascending, 10, 0);
+
+    assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
+        .containsExactly(expectedEvent.getId(), expectedEventTwo.getId());
+  }
+
+  @Test
+  public void testSelectEventsByCriteria_AscendingFilter() {
+    long cutOffTimeMs = currentTimeMillis() - 5000;
+    SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs + 1000);
+    SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 2000);
+    SourceControlEvent expectedEventThree = persistSourceControlEvent(cutOffTimeMs + 3000);
+    boolean ascending = true;
+    Set<String> applicationIds = Collections.singleton(app.getId());
+
+    List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
+        .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs), ascending, 10, 0);
+
+    assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
+        .containsExactly(expectedEvent.getId(), expectedEventTwo.getId(), expectedEventThree.getId());
+  }
+
+  @Test
+  public void testSelectEventsByCriteria_DescendingFilter() {
+    long cutOffTimeMs = currentTimeMillis() - 5000;
+    SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs + 1000);
+    SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 2000);
+    SourceControlEvent expectedEventThree = persistSourceControlEvent(cutOffTimeMs + 3000);
+    boolean ascending = false;
+    Set<String> applicationIds = Collections.singleton(app.getId());
+
+    List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
+        .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs), ascending, 10, 0);
+
+    assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
+        .containsExactly(expectedEventThree.getId(), expectedEventTwo.getId(), expectedEvent.getId());
+  }
+
+  @Test
+  public void testSelectEventsByCriteria_LimitAndAscendingFilter() {
+    long cutOffTimeMs = currentTimeMillis() - 5000;
+    SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs + 1000);
+    SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 2000);
+    persistSourceControlEvent(cutOffTimeMs + 3000);
+    boolean ascending = true;
+    Set<String> applicationIds = Collections.singleton(app.getId());
+
+    List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
+        .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs), ascending, 2, 0);
+
+    assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
+        .containsExactly(expectedEvent.getId(), expectedEventTwo.getId());
+  }
+
+  @Test
+  public void testSelectEventsByCriteria_LimitAndDescendingFilter() {
+    long cutOffTimeMs = currentTimeMillis() - 5000;
+    persistSourceControlEvent(cutOffTimeMs + 1000);
+    SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs + 2000);
+    SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 3000);
+    boolean ascending = false;
+    Set<String> applicationIds = Collections.singleton(app.getId());
+
+    List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
+        .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs), ascending, 2, 0);
+
+    assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
+        .containsExactly(expectedEventTwo.getId(), expectedEvent.getId());
+  }
+
+  @Test
+  public void testSelectEventsByCriteria_LimitOffsetAndAscendingFilter() {
+    long cutOffTimeMs = currentTimeMillis() - 5000;
+    persistSourceControlEvent(cutOffTimeMs + 1000);
+    persistSourceControlEvent(cutOffTimeMs + 2000);
+    SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs + 3000);
+    SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 4000);
+    boolean ascending = true;
+    Set<String> applicationIds = Collections.singleton(app.getId());
+
+    List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
+        .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs), ascending, 2, 2);
+
+    assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
+        .containsExactly(expectedEvent.getId(), expectedEventTwo.getId());
+  }
+
+  @Test
+  public void testSelectEventsByCriteria_LimitOffsetAndDescendingFilter() {
+    long cutOffTimeMs = currentTimeMillis() - 5000;
+    SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs + 1000);
+    SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 2000);
+    persistSourceControlEvent(cutOffTimeMs + 3000);
+    persistSourceControlEvent(cutOffTimeMs + 4000);
+    boolean ascending = false;
+    Set<String> applicationIds = Collections.singleton(app.getId());
+
+    List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
+        .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs), ascending, 2, 2);
+
+    assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
+        .containsExactly(expectedEventTwo.getId(), expectedEvent.getId());
+  }
+
+  @Test
+  public void testSelectEventsByCriteria_EmptyResult() {
+    long cutOffTimeMs = currentTimeMillis() - 5000;
+    boolean ascending = true;
+    Set<String> applicationIds = Collections.singleton(app.getId());
+
+    List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
+        .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs), ascending, 10, 0);
+
+    assertThat(fetchedSourceControlEvents).isEmpty();
+  }
+
+  @Test
+  public void testSelectEventsByCriteria_CreatedOnOrAfterFilterPostgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      Organization tempOrganization = tempEntity.newOrganization();
+      Application tempApplication = tempEntity.newApplication(tempOrganization.getId());
+      long cutOffTimeMs = 100000;
+      persistSourceControlEvent(0 , tempApplication.getId());
+      persistSourceControlEvent(0 , tempApplication.getId());
+      SourceControlEvent expectedEvent = persistSourceControlEvent(cutOffTimeMs + 100000, tempApplication.getId());
+      SourceControlEvent expectedEventTwo = persistSourceControlEvent(cutOffTimeMs + 100000, tempApplication.getId());
+      boolean ascending = true;
+      Set<String> applicationIds = Collections.singleton(tempApplication.getId());
+
+      List<SourceControlEvent> fetchedSourceControlEvents = sourceControlEventDAO
+          .selectEventsByCriteria(applicationIds, new Date(cutOffTimeMs + 100000), ascending, 10, 0);
+
+      assertThat(fetchedSourceControlEvents).extracting(SourceControlEvent::getId)
+          .containsExactly(expectedEvent.getId(), expectedEventTwo.getId());
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
   private SourceControlEvent getNewSourceControlEvent() {
     return getNewSourceControlEvent(app.getId());
   }
 
   private SourceControlEvent getNewSourceControlEvent(final String applicationId) {
     PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId2", false, false, false,
+        tempEntity.newPolicyEvaluation(applicationId, StageTypes.BUILD.getId(), "scanId2", false, false, false,
             testStartTime,
             "commitHash1235");
 
@@ -595,5 +754,18 @@ public class SourceControlEventDAOTest
 
   private Date toDate(final LocalDateTime localDateTime) {
     return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+  }
+
+  private SourceControlEvent persistSourceControlEvent(long createTime) {
+    return persistSourceControlEvent(createTime, app.getId());
+  }
+
+  private SourceControlEvent persistSourceControlEvent(long createTime, String applicationId) {
+    SourceControlEvent sourceControlEvent = getNewSourceControlEvent(applicationId);
+    sourceControlEvent.setEventStatus("complete")
+        .setInstanceId("instance1")
+        .setCreateTime(new Date(createTime));
+    sourceControlEventDAO.insert(sourceControlEvent);
+    return sourceControlEvent;
   }
 }

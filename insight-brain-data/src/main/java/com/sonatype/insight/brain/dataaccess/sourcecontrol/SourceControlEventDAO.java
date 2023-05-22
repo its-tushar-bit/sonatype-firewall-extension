@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import javax.persistence.LockModeType;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -111,6 +112,25 @@ public class SourceControlEventDAO
     }
 
     return unassignedEvents;
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<SourceControlEvent> selectEventsByCriteria(
+      final Set<String> applicationIds,
+      final Date createdOnOrAfter,
+      final boolean ascending,
+      final int limit,
+      final int offset)
+  {
+    String sQuery = SELECT_ENTITY +
+        "WHERE entity.applicationId IN ?1 AND entity.createTime >= ?2 ORDER BY entity.createTime " +
+        (ascending ? "ASC " : "DESC ");
+    try (TransactionContext tx = createTransactionContext()) {
+      final javax.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, limit);
+      paginationQuery.setParameter(1, applicationIds);
+      paginationQuery.setParameter(2, createdOnOrAfter);
+      return paginationQuery.getResultList();
+    }
   }
 
   public List<SourceControlEvent> selectEventsForInstance(final String instanceId, final int quantity) {

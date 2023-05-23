@@ -158,10 +158,13 @@ public class TenantUtil
     return mtiqBatchMode;
   }
 
-  List<Tenant> getAllTenants() {
+  List<String> getAllTenants() {
     List<String> schemas = DatabaseUtil.getSchemasList(OperationalDataStoreProvider.getInstance().getDataSource());
 
-    return schemas.stream().filter(schema -> schema.startsWith("t_")).map(this::createTenantFromSchema)
+    return schemas.stream()
+        .filter(schema -> schema.startsWith("t_"))
+        .map(this::createTenantFromSchema)
+        .map(t -> t.tenantSlug)
         .collect(Collectors.toList());
   }
 

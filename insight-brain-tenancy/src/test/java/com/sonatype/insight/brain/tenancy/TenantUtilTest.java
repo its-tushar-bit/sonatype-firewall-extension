@@ -161,9 +161,9 @@ public class TenantUtilTest
       dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource))
           .thenReturn(asList("t_" + tenant1, "t_" + tenant2));
 
-      List<Tenant> allTenants = new TenantUtil().getAllTenants();
+      List<String> allTenants = new TenantUtil().getAllTenants();
 
-      assertThat(allTenants).containsExactly(new Tenant(tenant1), new Tenant(tenant2));
+      assertThat(allTenants).containsExactly(tenant1, tenant2);
     }
   }
 }

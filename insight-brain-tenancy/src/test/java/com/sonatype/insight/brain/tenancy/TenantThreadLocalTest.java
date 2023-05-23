@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,20 +14,30 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.MDC;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantName;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class TenantThreadLocalTest
     extends MultiTenantTestSupport
 {
+  @Before
+  public void before() {
+    TenantThreadLocal.tenantUtil = new TenantUtil();
+  }
+
   @After
   public void after() {
     TenantThreadLocal.invalidateTenant();
@@ -95,7 +107,7 @@ public class TenantThreadLocalTest
     Tenant tenant = new Tenant("testtenant");
     TenantTestHelper.setTenant(tenant);
 
-    Supplier mockSupplier = Mockito.mock(Supplier.class);
+    Supplier mockSupplier = mock(Supplier.class);
     Mockito.when(mockSupplier.get()).thenAnswer(invocationOnMock -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(GLOBAL_TENANT);
       return null;
@@ -142,32 +154,48 @@ public class TenantThreadLocalTest
 
   @Test
   public void shouldThrowException_whenTransitioningFromOneValidTenantToAnother() {
-    TenantTestHelper.setTenant(new Tenant("tenant1"));
+    testAsNewTenant(t -> {
 
-    assertThatThrownBy(() -> TenantThreadLocal.setTenant(new Tenant("tenant2"))).hasMessage(
-        "Tenancy error detected: Cannot transition from one valid tenant to another. This is to prevent data leakage");
+      assertThatThrownBy(() -> TenantThreadLocal.setTenant(new Tenant("tenant2")))
+          .hasMessage("Tenancy error detected: Cannot transition from one valid tenant to another. " +
+              "This is to prevent data leakage");
+    });
   }
 
   @Test
   public void shouldThrowException_whenTransitioningFromOneValidTenantToAnInvalidTenant() {
-    TenantTestHelper.setTenant(new Tenant("tenant1"));
+    testAsNewTenant(t -> {
 
-    Tenant tenant2 = new Tenant("tenant2");
-    tenant2.invalidate();
+      Tenant tenant2 = new Tenant("tenant2");
+      tenant2.invalidate();
 
-    assertThatThrownBy(() -> TenantThreadLocal.setTenant(tenant2)).hasMessage(
-        "Tenancy error detected: Attempting to use a tenant from a previous request/process");
+      assertThatThrownBy(() -> TenantThreadLocal.setTenant(tenant2)).hasMessage(
+          "Tenancy error detected: Attempting to use a tenant from a previous request/process");
+    });
   }
 
   @Test
   public void shouldThrowException_whenTransitioningFromOneValidTenantToAnother_viaGlobal() {
-    TenantTestHelper.setTenant(new Tenant("tenant1"));
+    testAsNewTenant(t -> {
+      TenantThreadLocal.setGlobalTenant();
 
-    TenantThreadLocal.setGlobalTenant();
+      assertThatThrownBy(() -> TenantThreadLocal.setTenant(new Tenant("tenant2"))).hasMessage(
+          "Tenancy error detected: Cannot transition from one valid tenant to another via Global. " +
+              "This is to prevent data leakage");
+    });
+  }
 
-    assertThatThrownBy(() -> TenantThreadLocal.setTenant(new Tenant("tenant2"))).hasMessage(
-        "Tenancy error detected: Cannot transition from one valid tenant to another via Global. " +
-            "This is to prevent data leakage");
+  @Test
+  public void shouldNotCircumventViaGlobalCheck_whenSettingGlobalTenantTwice() {
+    testAsNewTenant(t -> {
+
+      TenantThreadLocal.setGlobalTenant();
+      TenantThreadLocal.setGlobalTenant();
+
+      assertThatThrownBy(() -> TenantThreadLocal.setTenant(new Tenant("tenant2"))).hasMessage(
+          "Tenancy error detected: Cannot transition from one valid tenant to another via Global. " +
+              "This is to prevent data leakage");
+    });
   }
 
   @Test
@@ -209,5 +237,39 @@ public class TenantThreadLocalTest
     assertThat(MDC.get("tenant")).isEqualTo("testtenant");
     TenantThreadLocal.invalidateTenant();
     assertThat(MDC.get("tenant")).isNull();
+  }
+
+  @Test
+  public void shouldRunAsAllTenants_whenBatchMode() {
+    TenantUtil tenantUtilMock = mock(TenantUtil.class);
+    TenantThreadLocal.tenantUtil = tenantUtilMock;
+    when(tenantUtilMock.isMtiqBatchMode()).thenReturn(true);
+    when(tenantUtilMock.isMultiTenant()).thenReturn(true);
+
+    List<String> tenants = ImmutableList.of(createTenantName(testName), createTenantName(testName));
+
+    List<Tenant> runAs = new ArrayList<>();
+    TenantThreadLocal.runForAllTenants(tenants, testName.getMethodName(), runAs::add);
+
+    assertThat(runAs).hasSize(2);
+    for (int i = 0; i < tenants.size(); i++) {
+      assertThat(runAs.get(i).tenantSlug).isEqualTo(tenants.get(i));
+    }
+  }
+
+  @Test
+  public void shouldRunAsSingleTenant_whenSingleTenant_andRunForAllTenantsCalled() {
+    TenantUtil tenantUtilMock = mock(TenantUtil.class);
+    TenantThreadLocal.tenantUtil = tenantUtilMock;
+    when(tenantUtilMock.isMtiqBatchMode()).thenReturn(true);
+    when(tenantUtilMock.isMultiTenant()).thenReturn(false);
+
+    List<String> tenants = ImmutableList.of(createTenantName(testName), createTenantName(testName));
+
+    List<Tenant> runAs = new ArrayList<>();
+    TenantThreadLocal.runForAllTenants(tenants, testName.getMethodName(), runAs::add);
+
+    assertThat(runAs).hasSize(1);
+    assertThat(runAs.get(0)).isEqualTo(SINGLE_TENANT);
   }
 }

@@ -47,6 +47,8 @@ public class AllTenantsJobTest extends MultiTenantTestSupport
   @Before
   @Override
   public void setup() {
+    super.setup();
+
     underTest = new StubbedAllTenantsJob(true);
 
     AllTenantsJob.tenantUtil.mtiqBatchMode = true;
@@ -95,7 +97,7 @@ public class AllTenantsJobTest extends MultiTenantTestSupport
     testAsGlobalTenant(g -> {
       underTest.execute(jobExecutionContext);
 
-      assertThat(underTest.tenantsUsed).isEqualTo(expectedTenants);
+      assertThat(underTest.tenantsUsed).containsExactlyInAnyOrder(expectedTenants.toArray(new Tenant[]{}));
     });
   }
 

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.util.List;
-
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,8 +19,8 @@ import org.quartz.JobKey;
 
 import static com.sonatype.insight.brain.tenancy.AllTenantsJob.TENANT_LIST;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantName;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
@@ -166,25 +164,29 @@ public class TenantContextJobListenerTest
 
   @Test
   public void shouldRegisterAllTenants_whenInMtiqBatchMode() throws Exception {
-    ImmutableList<String> tenantNames = ImmutableList.of("tenant1", "tenant2");
-    List<Tenant> tenants = tenantNames.stream().map(Tenant::new).collect(toList());
+    try {
+      TenantThreadLocal.tenantUtil = tenantUtil;
 
-    when(tenantUtil.isMtiqBatchMode()).thenReturn(true);
-    when(tenantUtil.isAllTenantsJob(any())).thenReturn(true);
-    when(tenantUtil.getAllTenants()).thenReturn(tenants);
+      ImmutableList<String> tenantNames = ImmutableList.of(createTenantName(testName), createTenantName(testName));
 
-    when(detail.getKey()).thenReturn(new JobKey("name", "global"));
+      when(tenantUtil.isMtiqBatchMode()).thenReturn(true);
+      when(tenantUtil.isMultiTenant()).thenReturn(true);
+      when(tenantUtil.isAllTenantsJob(any())).thenReturn(true);
+      when(tenantUtil.getAllTenants()).thenReturn(tenantNames);
 
-    when(tenantManager.getRegisteredTenants()).thenReturn(tenantNames);
+      when(detail.getKey()).thenReturn(new JobKey("name", "global"));
 
-    underTest.jobToBeExecuted(context);
+      when(tenantManager.getRegisteredTenants()).thenReturn(tenantNames);
 
-    verify(jobDataMap).put(TENANT_LIST, tenantNames);
+      underTest.jobToBeExecuted(context);
 
-    verify(tenantManager).setTenant(tenants.get(0));
-    verify(tenantManager).setTenant(tenants.get(1));
+      verify(jobDataMap).put(TENANT_LIST, tenantNames);
 
-    assertThat(tenants.get(0).isInvalid()).isTrue();
-    assertThat(tenants.get(1).isInvalid()).isTrue();
+      verify(tenantManager).setTenant(new Tenant(tenantNames.get(0)));
+      verify(tenantManager).setTenant(new Tenant(tenantNames.get(1)));
+    }
+    finally {
+      TenantThreadLocal.tenantUtil = new TenantUtil();
+    }
   }
 }

@@ -34,7 +34,8 @@ public class TenantThreadLocal
     }
   };
 
-  private static final TenantUtil tenantUtil = new TenantUtil();
+  //Visible for testing
+  static TenantUtil tenantUtil = new TenantUtil();
 
   public static void setDefaultTenantToGlobal() {
     defaultTenant = GLOBAL_TENANT;
@@ -147,6 +148,14 @@ public class TenantThreadLocal
       throw new IllegalArgumentException("Tenant parameter cannot be null");
     }
 
+    if (getTenantWithoutValidation() != null
+        && getTenantWithoutValidation().equals(tenant)
+        && getTenantWithoutValidation().isInvalid() == tenant.isInvalid())
+    {
+      // There is no change in the tenant so setting the tenant should be a no-op
+      return;
+    }
+
     setTenantWithoutValidation(tenant);
   }
 
@@ -185,6 +194,8 @@ public class TenantThreadLocal
   static void runForAllTenants(List<String> tenants, String taskName, Consumer<Tenant> consumer) {
     if (!tenantUtil.isMultiTenant()) {
       consumer.accept(SINGLE_TENANT);
+
+      return;
     }
 
     log.info("Running task {} for all registered tenants. Tenant count = {}", taskName, tenants.size());
@@ -200,8 +211,13 @@ public class TenantThreadLocal
           Tenant tenant = new Tenant(tenantName);
 
           runAs(tenant, () -> {
-            consumer.accept(tenant);
-            return null;
+            try {
+              consumer.accept(tenant);
+              return null;
+            }
+            finally {
+              invalidateTenant();
+            }
           });
         }
         catch (Exception e) {
@@ -249,6 +265,12 @@ public class TenantThreadLocal
 
     getTenantWithoutValidation().invalidate();
     clearLoggingContext();
+  }
+
+  //Visible for test
+  static void resetTenantForTesting() {
+    tenantThreadLocal.remove();
+    TenantThreadLocal.setGlobalTenant();
   }
 
   private static class TenantState

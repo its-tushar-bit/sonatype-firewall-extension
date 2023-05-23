@@ -15,6 +15,8 @@ import org.quartz.listeners.JobListenerSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runForAllTenants;
+
 @Named
 public class TenantContextJobListener
     extends JobListenerSupport
@@ -71,21 +73,18 @@ public class TenantContextJobListener
   }
 
   private void registerAllTenants() {
-    List<Tenant> allTenants = tenantUtil.getAllTenants();
+    List<String> allTenants = tenantUtil.getAllTenants();
 
-    for (Tenant tenant : allTenants) {
-      log.trace("Setting tenant {} for quartz job execution", tenant);
-      try {
-        tenantManager.setTenant(tenant);
-      }
-      catch (Exception e) {
-        log.error("Failed to register tenant {} for execution of quartz jobs", tenant, e);
-      }
-      finally {
-        //Transitioning directly between tenants is banned so need to invalidate the tenant when done with registration
-        tenant.invalidate();
-      }
-    }
+    runForAllTenants(allTenants, "Ensure all tenants are registered before AllTenantsJob",
+        t -> {
+          log.trace("Setting tenant {} for quartz job execution", t);
+          try {
+            tenantManager.setTenant(t);
+          }
+          catch (Exception e) {
+            log.error("Failed to register tenant {} for execution of quartz jobs", t, e);
+          }
+        });
   }
 
   @Override

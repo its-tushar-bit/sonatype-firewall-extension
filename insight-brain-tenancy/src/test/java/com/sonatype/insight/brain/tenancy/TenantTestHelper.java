@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TenantTestHelper
 {
   public static void initMultiTenantMode() {
-    TenantThreadLocal.setGlobalTenant();
+    TenantThreadLocal.resetTenantForTesting();
   }
 
   static void setTenant(final Tenant tenant) {

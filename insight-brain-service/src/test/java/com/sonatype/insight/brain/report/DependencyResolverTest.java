@@ -45,6 +45,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -92,7 +93,7 @@ public class DependencyResolverTest
   public void processInnerSource_createInnerSourceParent() throws Exception {
     JsonNode dependenciesJson =
         new ObjectMapper()
-            .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource/dependencies.json"));
+            .readTree(getClass().getResource("/DependencyResolverTest/report-innersource/dependencies.json"));
     JsonNode dependencyTree = dependenciesJson.path("dependencyTree");
 
     PackageUrlIdentifier rootPurl =
@@ -214,10 +215,10 @@ public class DependencyResolverTest
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
     List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
-    assertThat(innerSourceComponents).hasSize(8);
+    assertThat(innerSourceComponents).hasSize(9);
 
     assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertDependencyInfo(bomJson, 7, 3, 1, 2, 3, summaryJson, dataJson, appInnerSource, knownComponents);
+    assertDependencyInfo(bomJson, 8, 2, 1, 2, 3, 13, 0, summaryJson, dataJson, appInnerSource, knownComponents);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     producerTelemetries.add(
@@ -257,10 +258,10 @@ public class DependencyResolverTest
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
     List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
-    assertThat(innerSourceComponents).hasSize(8);
+    assertThat(innerSourceComponents).hasSize(9);
 
     assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertDependencyInfo(bomJson, 9, 3, 1, 2, 2, summaryJson, dataJson, appInnerSource, knownComponents);
+    assertDependencyInfo(bomJson, 10, 2, 1, 2, 2, 14, 0, summaryJson, dataJson, appInnerSource, knownComponents);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     producerTelemetries.add(
@@ -301,7 +302,7 @@ public class DependencyResolverTest
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
-    assertDependencyInfo(bomJson, 4, 6, 3, 5, 4, summaryJson, dataJson, appInnerSource, knownComponents);
+    assertDependencyInfo(bomJson, 4, 6, 3, 5, 4, 14, 0, summaryJson, dataJson, appInnerSource, knownComponents);
 
     Map<ComponentIdentifier, String> dependencyComponentPurls = new HashMap<>();
     dependencyComponentPurls
@@ -331,49 +332,6 @@ public class DependencyResolverTest
   }
 
   @Test
-  public void processInnerSource_InvalidDep() throws Exception {
-    Application appInnerSource = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60?type=jar", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar",
-        appInnerSource);
-
-    PackageUrlIdentifier knownModule1 = new PackageUrlIdentifier(
-        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar");
-    PackageUrlIdentifier knownModule2 =
-        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar");
-    PackageUrlIdentifier knownModule3 = new PackageUrlIdentifier(
-        "pkg:maven/com.sonatype.insight.scan/insight-scanner-model-io@2.23.5-SNAPSHOT?type=jar");
-    PackageUrlIdentifier knownModule4 =
-        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-core@2.23.5-SNAPSHOT?type=jar");
-
-    List<String> knownComponents =
-        Arrays.asList(knownModule1.getPackageUrl(), knownModule2.getPackageUrl(), knownModule3.getPackageUrl(),
-            knownModule4.getPackageUrl());
-
-    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-invalid-dep/dependencies.json");
-    JsonNode bomJson = getJsonNodeInformation("report-innersource-invalid-dep/bom.json");
-    JsonNode summaryJson = getJsonNodeInformation("report-innersource-invalid-dep/summary.json");
-    JsonNode dataJson = getJsonNodeInformation("report-innersource-invalid-dep/data.json");
-
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
-
-    List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
-    assertThat(innerSourceComponents).hasSize(8);
-
-    assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertDependencyInfo(bomJson, 8, 2, 1, 2, 5, summaryJson, dataJson, appInnerSource, knownComponents);
-
-    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
-    producerTelemetries.add(
-        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
-            AnalysisType.COORDINATE.name(), "mvn", null));
-
-    assertTelemetryInformation(app.getId(), producerTelemetries);
-    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
-  }
-
-  @Test
   public void processInnerSource_knownInnerSourceParent() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
@@ -392,7 +350,7 @@ public class DependencyResolverTest
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
-    assertDependencyInfo(bomJson, 4, 7, 3, 5, 6, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 4, 7, 3, 5, 6, 17, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     producerTelemetries.add(
@@ -421,7 +379,7 @@ public class DependencyResolverTest
     JsonNode dataJson = getJsonNodeInformation("report-innersource-nested-transitive/data.json");
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
-    assertDependencyInfo(bomJson, 4, 17, 3, 15, 5, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 4, 17, 3, 15, 5, 25, 1, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     producerTelemetries.add(
@@ -454,7 +412,7 @@ public class DependencyResolverTest
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
-    assertDependencyInfo(bomJson, 1, 2, 1, 2, 0, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 1, 2, 1, 2, 0, 3, 0, summaryJson, dataJson, appInnerSource);
 
     assertUpdatedBomAttributeValue(bomJson, modelId, "packageUrl",
         "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
@@ -485,7 +443,7 @@ public class DependencyResolverTest
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
-    assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, summaryJson, dataJson, app);
+    assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, 3, 1, summaryJson, dataJson, app);
 
     verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR)).isNull();
@@ -506,7 +464,7 @@ public class DependencyResolverTest
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
-    assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, 3, 1, summaryJson, dataJson, appInnerSource);
     verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
   }
 
@@ -531,7 +489,7 @@ public class DependencyResolverTest
     assertThat(innerSourceComponents).hasSize(2);
 
     assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertDependencyInfo(bomJson, 3, 2, 1, 2, 0, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 3, 2, 1, 2, 0, 5, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     producerTelemetries.add(
@@ -554,7 +512,7 @@ public class DependencyResolverTest
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
-    assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, 3, 1, summaryJson, dataJson, appInnerSource);
 
     verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
@@ -790,7 +748,7 @@ public class DependencyResolverTest
     JsonNode dataJson = getJsonNodeInformation("report-innersource-npm/data.json");
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
-    assertDependencyInfo(bomJson, 3, 7, 2, 6, 0, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 3, 7, 2, 6, 0, 10, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     producerTelemetries.add(
@@ -814,7 +772,7 @@ public class DependencyResolverTest
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
-    assertDependencyInfo(bomJson, 2, 1, 1, 1, 0, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 2, 1, 1, 1, 0, 3, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     InnerSourceProducerComponentTelemetry producerInfo =
@@ -838,7 +796,7 @@ public class DependencyResolverTest
     JsonNode dataJson = getJsonNodeInformation("report-innersource-sbom/data.json");
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
-    assertDependencyInfo(bomJson, 1, 1, 1, 1, 0, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 1, 1, 1, 1, 0, 2, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     InnerSourceProducerComponentTelemetry producerInfo =
@@ -863,7 +821,43 @@ public class DependencyResolverTest
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
-    assertDependencyInfo(bomJson, 3, 3, 0, 0, 0, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 3, 3, 0, 0, 0, 6, 0, summaryJson, dataJson, appInnerSource);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
+  }
+
+  @Test
+  public void testResolve_maven_unknownComponent() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+
+    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer@1.0-SNAPSHOT?type=pom", appInnerSource);
+
+    String folderName = "report-maven-plugin-unknown-component";
+    JsonNode dependenciesJson = getJsonNodeInformation(folderName + "/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation(folderName + "/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation(folderName + "/summary.json");
+    JsonNode dataJson = getJsonNodeInformation(folderName + "/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    assertDependencyInfo(bomJson, 1, 0, 0, 0, 0, 0, 1, summaryJson, dataJson, appInnerSource);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
+  }
+
+  @Test
+  public void testResolve_maven_unknownComponent_modules() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+
+    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer@1.0-SNAPSHOT?type=pom", appInnerSource);
+
+    String folderName = "report-maven-plugin-unknown-component-modules";
+    JsonNode dependenciesJson = getJsonNodeInformation(folderName + "/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation(folderName + "/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation(folderName + "/summary.json");
+    JsonNode dataJson = getJsonNodeInformation(folderName + "/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    assertDependencyInfo(bomJson, 2, 4, 0, 0, 0, 5, 1, summaryJson, dataJson, appInnerSource);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -880,7 +874,7 @@ public class DependencyResolverTest
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
-    assertDependencyInfo(bomJson, 2, 2, 1, 2, 2, summaryJson, dataJson, appInnerSource);
+    assertDependencyInfo(bomJson, 3, 2, 1, 2, 1, 6, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     InnerSourceProducerComponentTelemetry producerInfo =
@@ -1024,26 +1018,31 @@ public class DependencyResolverTest
 
   private void assertDependencyInfo(
       final JsonNode bomJson,
-      final int expectedDirectComponents,
-      final int expectedTransitiveComponents,
-      final int expectedDirectISComponents,
-      final int expectedTransitiveISComponents,
+      final int expectedDirectDependencies,
+      final int expectedTransitiveDependencies,
+      final int expectedDirectISDependencies,
+      final int expectedTransitiveISDependencies,
       final int expectedUnknownDependencyType,
+      final int expectedKnownComponentsCount,
+      final int expectedUnknownComponentsCount,
       final JsonNode summaryJson,
       final JsonNode dataJson,
       final Application innerSourceApp)
   {
-    assertDependencyInfo(bomJson, expectedDirectComponents, expectedTransitiveComponents, expectedDirectISComponents,
-        expectedTransitiveISComponents, expectedUnknownDependencyType, summaryJson, dataJson, innerSourceApp, null);
+    assertDependencyInfo(bomJson, expectedDirectDependencies, expectedTransitiveDependencies,
+        expectedDirectISDependencies, expectedTransitiveISDependencies, expectedUnknownDependencyType,
+        expectedKnownComponentsCount, expectedUnknownComponentsCount, summaryJson, dataJson, innerSourceApp, null);
   }
 
   private void assertDependencyInfo(
       final JsonNode bomJson,
-      final int expectedDirectComponents,
-      final int expectedTransitiveComponents,
-      final int expectedDirectISComponents,
-      final int expectedTransitiveISComponents,
+      final int expectedDirectDependencies,
+      final int expectedTransitiveDependencies,
+      final int expectedDirectISDependencies,
+      final int expectedTransitiveISDependencies,
       final int expectedUnknownDependencyType,
+      final int expectedKnownComponentsCount,
+      final int expectedUnknownComponentsCount,
       final JsonNode summaryJson,
       final JsonNode dataJson,
       final Application innerSourceApp,
@@ -1057,26 +1056,34 @@ public class DependencyResolverTest
     List<JsonNode> unknownDepType = new ArrayList<>();
     // Purl list of the known components
     Set<String> componentList = new HashSet<>();
-    int expectedUnknownCount  = getDependencyInfo(bomJson, direct, transitive, unknownDepType, componentList);
+    Pair<Integer, Integer> componentsCount =
+        getDependencyInfo(bomJson, direct, transitive, unknownDepType, componentList);
+
+    int actualUnknownCount  = componentsCount.getRight();
+    int actualKnownCount  = componentsCount.getLeft();
+
+    assertThat(actualKnownCount).isEqualTo(expectedKnownComponentsCount);
+    assertThat(actualUnknownCount).isEqualTo(expectedUnknownComponentsCount);
+
     assertThat(unknownDepType).hasSize(expectedUnknownDependencyType);
-    assertThat(direct).hasSize(expectedDirectComponents);
-    assertThat(transitive).hasSize(expectedTransitiveComponents);
+    assertThat(direct).hasSize(expectedDirectDependencies);
+    assertThat(transitive).hasSize(expectedTransitiveDependencies);
 
     int expectedCount = direct.size() + transitive.size() + unknownDepType.size();
 
-    if (expectedDirectISComponents > 0) {
-      assertDirectDependenciesInformation(direct, expectedDirectISComponents, innerSourceApp);
+    if (expectedDirectISDependencies > 0) {
+      assertDirectDependenciesInformation(direct, expectedDirectISDependencies, innerSourceApp);
     }
-    if (expectedTransitiveISComponents > 0) {
-      assertTransitiveInformation(transitive, expectedTransitiveISComponents, innerSourceApp);
+    if (expectedTransitiveISDependencies > 0) {
+      assertTransitiveInformation(transitive, expectedTransitiveISDependencies, innerSourceApp);
     }
     if (expectedKnownComponents != null) {
       assertThat(componentList).containsAll(expectedKnownComponents);
     }
-    assertSummaryCounters(summaryJson, dataJson, expectedCount - expectedUnknownCount, expectedCount);
+    assertSummaryCounters(summaryJson, dataJson, expectedCount - actualUnknownCount, expectedCount);
   }
 
-  private int getDependencyInfo(
+  private Pair<Integer, Integer> getDependencyInfo(
       final JsonNode bomJson,
       List<JsonNode> direct,
       List<JsonNode> transitive,
@@ -1084,6 +1091,7 @@ public class DependencyResolverTest
       Set<String> componentList)
   {
     int unknownComponentsCount = 0;
+    int knownComponentsCount = 0;
     List<JsonNode> bomNodes = loadBomInfo(bomJson);
 
     for (JsonNode bomChild : bomNodes) {
@@ -1109,8 +1117,11 @@ public class DependencyResolverTest
       if (MatchState.UNKNOWN.getId().equals(matchState)) {
         unknownComponentsCount++;
       }
+      else {
+        knownComponentsCount++;
+      }
     }
-    return unknownComponentsCount;
+    return Pair.of(knownComponentsCount, unknownComponentsCount);
   }
 
   private List<JsonNode> loadBomInfo(final JsonNode bomJson) {
@@ -1330,7 +1341,7 @@ public class DependencyResolverTest
   }
 
   private JsonNode getJsonNodeInformation(String path) throws IOException {
-    return objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/" + path));
+    return objectMapper.readTree(getClass().getResource("/DependencyResolverTest/" + path));
   }
 
   private void assertUpdatedBomAttributeValue(

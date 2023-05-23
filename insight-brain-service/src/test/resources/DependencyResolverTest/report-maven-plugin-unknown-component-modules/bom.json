@@ -1,0 +1,250 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-logging",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-logging",
+        "version" : "1.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-logging/commons-logging@1.2?type=jar",
+    "groupId" : "commons-logging",
+    "artifactId" : "commons-logging",
+    "version" : "1.2",
+    "filenames" : [ "commons-logging-1.2.jar" ],
+    "pathnames" : [ "dependency:/org.example:unknown-deps:jar:1.0-SNAPSHOT/commons-logging:commons-logging:jar:1.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "4bfc12adfe4842bf07b6",
+    "relativePopularity" : 1.0,
+    "createTime" : 1404583945000,
+    "lastModifiedTime" : 1665686658000,
+    "lastModifiedEntryTime" : 1404609114000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.1?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.14.1",
+    "filenames" : [ "jackson-core-2.14.1.jar" ],
+    "pathnames" : [ "dependency:/org.example:unknown-deps:jar:1.0-SNAPSHOT/com.fasterxml.jackson.core:jackson-core:jar:2.14.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7a07bc535ccf0b7f6929",
+    "relativePopularity" : null,
+    "createTime" : 1669073894000,
+    "lastModifiedTime" : 1670338482000,
+    "lastModifiedEntryTime" : 1669063078000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-collections",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-collections",
+        "version" : "3.2.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar",
+    "groupId" : "commons-collections",
+    "artifactId" : "commons-collections",
+    "version" : "3.2.2",
+    "filenames" : [ "commons-collections-3.2.2.jar" ],
+    "pathnames" : [ "dependency:/org.example:unknown-deps:jar:1.0-SNAPSHOT/commons-collections:commons-collections:jar:3.2.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8ad72fe39fa8c91eaaf1",
+    "relativePopularity" : 1.0,
+    "createTime" : 1471601401000,
+    "lastModifiedTime" : 1665686506000,
+    "lastModifiedEntryTime" : 1447391436000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-beanutils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-beanutils",
+        "version" : "1.9.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-beanutils/commons-beanutils@1.9.4?type=jar",
+    "groupId" : "commons-beanutils",
+    "artifactId" : "commons-beanutils",
+    "version" : "1.9.4",
+    "filenames" : [ "commons-beanutils-1.9.4.jar" ],
+    "pathnames" : [ "dependency:/org.example:unknown-deps:jar:1.0-SNAPSHOT/commons-beanutils:commons-beanutils:jar:1.9.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d52b9abcd97f38c81342",
+    "relativePopularity" : 0.73,
+    "createTime" : 1564352213000,
+    "lastModifiedTime" : 1665686506000,
+    "lastModifiedEntryTime" : 1564355798000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test-1.0.jar" ],
+    "pathnames" : [ "dependency:/org.example:maven-deps:jar:1.0-SNAPSHOT/test:test:jar:1.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0e9a15c973cf4490221b",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1666742248000,
+    "lastModifiedEntryTime" : 1509564258000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : null
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "unknown-deps-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/org.example:maven-deps:jar:1.0-SNAPSHOT/org.example:unknown-deps:jar:1.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f5fc6631063191e3e4b8",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1682537696000,
+    "lastModifiedEntryTime" : 1682537698000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : null
+  } ]
+}

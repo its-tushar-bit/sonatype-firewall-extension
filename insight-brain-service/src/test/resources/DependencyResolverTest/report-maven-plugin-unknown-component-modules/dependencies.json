@@ -1,0 +1,109 @@
+{
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "maven-deps",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.example/maven-deps@1.0-SNAPSHOT?type=jar",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "unknown-deps",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.example",
+          "version" : "1.0-SNAPSHOT"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.example/unknown-deps@1.0-SNAPSHOT?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-beanutils",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "commons-beanutils",
+            "version" : "1.9.4"
+          }
+        },
+        "packageUrl" : "pkg:maven/commons-beanutils/commons-beanutils@1.9.4?type=jar",
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "commons-logging",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "commons-logging",
+              "version" : "1.2"
+            }
+          },
+          "packageUrl" : "pkg:maven/commons-logging/commons-logging@1.2?type=jar"
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "commons-collections",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "commons-collections",
+              "version" : "3.2.2"
+            }
+          },
+          "packageUrl" : "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar"
+        } ],
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.14.1"
+          }
+        },
+        "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.1?type=jar",
+        "direct" : true
+      } ],
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "test",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "test",
+          "version" : "1.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/test/test@1.0?type=jar",
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "unknown-deps",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.example",
+          "version" : "1.0-SNAPSHOT"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.example/unknown-deps@1.0-SNAPSHOT?type=jar",
+      "direct" : true,
+      "module" : true
+    } ],
+    "module" : true
+  }
+}

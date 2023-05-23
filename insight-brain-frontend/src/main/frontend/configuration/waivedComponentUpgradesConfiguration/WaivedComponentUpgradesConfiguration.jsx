@@ -51,14 +51,14 @@ const WaivedComponentUpgradesConfiguration = () => {
   return (
     <NxPageMain id="waived-component-upgrades-configuration">
       <NxPageTitle>
-        <NxH1>Waived Component Upgrade</NxH1>
+        <NxH1>Waived Component Upgrades</NxH1>
         <NxPageTitle.Description>
           <NxP>
             Monitor for non-violating versions of waived components and indicate upgrade availability on the Waiver
             Dashboard. For more information, see{' '}
             <NxTextLink
               external
-              href="https://help.sonatype.com/iqserver/managing/policy-management/waived-component-upgrades"
+              href="https://links.sonatype.com/products/nxiq/doc/waived-component-upgrades-configuration"
             >
               Waived Component Upgrades
             </NxTextLink>

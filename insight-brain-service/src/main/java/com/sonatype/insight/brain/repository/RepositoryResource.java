@@ -29,8 +29,8 @@ import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentName
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
-import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -65,7 +65,7 @@ public class RepositoryResource
 
   static final String UNCONFIGURED_REPOSITORY_MANAGERS_PATH = "repositoryManager/unconfigured";
 
-  static final String SUPPORTED_REPOSITORIES = "repositoryManager/{repositoryManagerId}/supportedRepositories";
+  static final String REPOSITORIES_PATH = "repositoryManager/{repositoryManagerId}/repositories";
 
   static final String CONFIGURE_REPOSITORIES_PATH = "repositoryManager/{repositoryManagerId}/configureRepositories";
 
@@ -218,13 +218,13 @@ public class RepositoryResource
    * @since 1.160
    */
   @GET
-  @Path(SUPPORTED_REPOSITORIES)
+  @Path(REPOSITORIES_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public List<Repository> getSupportedRepositories(
+  public List<Repository> getRepositoriesByRepositoryManagerId(
       @PathParam("repositoryManagerId") String repositoryManagerId)
   {
-    return repositoryService.getSupportedRepositories(repositoryManagerId);
+    return repositoryService.getRepositoriesByRepositoryManagerId(repositoryManagerId);
   }
 
   /**

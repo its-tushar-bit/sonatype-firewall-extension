@@ -23,7 +23,6 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -43,7 +42,6 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
-import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -100,17 +98,13 @@ public class RepositoryService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
-  private final FirewallIgnorePatternService firewallIgnorePatternService;
-
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      FirewallIgnorePatternService firewallIgnorePatternService)
+      PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
-    this.firewallIgnorePatternService = firewallIgnorePatternService;
   }
 
   /**
@@ -450,26 +444,14 @@ public class RepositoryService
     proprietaryComponentNamePatternDAO.update(proprietaryComponentNamePattern);
   }
 
-  List<Repository> getSupportedRepositories(String repositoryManagerId) {
+  List<Repository> getRepositoriesByRepositoryManagerId(String repositoryManagerId) {
+    log.debug("Getting repositories for repository manager ID {}...", repositoryManagerId);
     checkReadPermission(RepositoryContainer.SINGLETON);
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManagerId);
+    log.debug("Found {} repositories for repository manager ID {}.", repositories.size(), repositoryManagerId);
 
-    if (repositories.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    FirewallIgnorePatterns firewallIgnorePatterns = firewallIgnorePatternService.getIgnorePatterns();
-    Set<String> supportedFormats = firewallIgnorePatterns.regexpsByRepositoryFormat.keySet();
-
-    List<Repository> supportedRepositories = new ArrayList<>();
-
-    for (Repository repository : repositories) {
-      if (supportedFormats.contains(repository.getFormat())) {
-        supportedRepositories.add(repository);
-      }
-    }
-    return supportedRepositories;
+    return repositories;
   }
 
   @Authorize(permission = Permission.READ)

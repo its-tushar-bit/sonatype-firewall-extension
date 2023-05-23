@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -15,7 +14,6 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpResponse;
@@ -319,23 +317,19 @@ public class RepositoryResourceTest
   }
 
   @Test
-  public void testGetSupportedRepositories() throws Exception {
+  public void testGetRepositoriesByRepositoryManagerId() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
-    tempEntity.newRepository(repositoryManager, "testRepoCrate", "unsupportedFormat");
-
-    FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
-    firewallIgnorePatterns.regexpsByRepositoryFormat.put("maven2", Arrays.asList("a", "b"));
-    tempEntity.setFirewallIgnorePatterns(firewallIgnorePatterns);
+    Repository repository1 = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
+    Repository repository2 = tempEntity.newRepository(repositoryManager, "testRepoUnsupported", "unsupportedFormat");
 
     HttpResponse response =
-        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.SUPPORTED_REPOSITORIES)
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORIES_PATH)
             .parameter(repositoryManager.getId()).get();
 
     assertResponseStatus(200, response);
-    Repository[] supportedRepositories = response.getBody(Repository[].class);
-    assertThat(supportedRepositories).hasSize(1);
-    assertThat(supportedRepositories[0].getFormat()).isEqualTo("maven2");
+    Repository[] repositories = response.getBody(Repository[].class);
+    assertThat(repositories).extracting(Repository::getId) //
+        .containsExactlyInAnyOrder(repository1.getId(), repository2.getId());
   }
 
   @Test

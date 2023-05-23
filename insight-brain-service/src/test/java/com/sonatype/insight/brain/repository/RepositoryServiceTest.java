@@ -936,15 +936,16 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testGetSupportedRepositories_supportedAndNotSupportedRepositories() {
+  public void testGetRepositoriesByRepositoryManagerId() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
-    tempEntity.newRepository(repositoryManager, "testRepoUnsupported", "unsupportedFormat");
+    Repository repository1 = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
+    Repository repository2 = tempEntity.newRepository(repositoryManager, "testRepoUnsupported", "unsupportedFormat");
 
-    List<Repository> supportedRepositories = repositoryService.getSupportedRepositories(repositoryManager.getId());
+    List<Repository> repositories =
+        repositoryService.getRepositoriesByRepositoryManagerId(repositoryManager.getId());
 
-    assertThat(supportedRepositories).hasSize(1);
-    assertThat(supportedRepositories.get(0).getFormat()).isEqualTo("maven2");
+    assertThat(repositories).extracting(Repository::getId) //
+        .containsExactlyInAnyOrder(repository1.getId(), repository2.getId());
   }
 
   @Test

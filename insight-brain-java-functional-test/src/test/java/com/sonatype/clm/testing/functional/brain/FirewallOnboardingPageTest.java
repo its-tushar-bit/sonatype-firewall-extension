@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallOnboardingPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -45,7 +46,7 @@ public class FirewallOnboardingPageTest
     refreshOrOpen(FirewallOnboardingPage.url());
 
     SidebarNavigation.container().shouldBe(Condition.hidden);
-    
+
     page.continueButton().shouldBe(Condition.visible);
     page.previousButton().shouldNotBe(Condition.visible);
     page.launchFirewallButton().shouldNotBe(Condition.visible);
@@ -56,6 +57,25 @@ public class FirewallOnboardingPageTest
     page.previousButton().shouldBe(Condition.visible);
     page.continueButton().shouldNotBe(Condition.visible);
     page.launchFirewallButton().shouldBe(Condition.visible);
+  }
+
+  @Test
+  public void testLaunchFirewallButtonRedirectsToFirewallPageAndOpensWelcomeModal() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.continueButton().click();
+    page.launchFirewallButton().shouldBe(Condition.visible).click();
+
+    waitUntilUrl(FirewallPage.url());
+
+    FirewallPage firewallPage = new FirewallPage();
+    firewallPage.shouldBe(Condition.visible);
+    firewallPage.firewallWelcomeModal().shouldBe(Condition.visible);
+
+    eyesWatcher.eyesCheck("Firewall Welcome Modal");
+
+    firewallPage.firewallWelcomeModal().closeButton().click();
+    firewallPage.firewallWelcomeModal().shouldBe(Condition.hidden);
   }
 
   @Test

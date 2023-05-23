@@ -31,6 +31,11 @@ import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoo
 import { selectRepositoryId, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
+import { getShowWelcomeModalFromStore, removeShowWelcomeModalFromStore } from './firewallWelcomeModalStore';
+
+export const FIREWALL_SET_SHOW_WELCOME_MODAL = 'FIREWALL_SET_SHOW_WELCOME_MODAL';
+
+export const setShowWelcomeModal = payloadParamActionCreator(FIREWALL_SET_SHOW_WELCOME_MODAL);
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
@@ -196,6 +201,19 @@ export const FIREWALL_REEVALUATE_COMPONENT_FAILED = 'FIREWALL_REEVALUATE_COMPONE
 export const reevaluateComponentRequested = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_REQUESTED);
 export const reevaluateComponentFulfilled = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_FULFILLED);
 export const reevaluateComponentFailed = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_FAILED);
+
+export function initializeWelcomeModal() {
+  return (dispatch) => {
+    dispatch(setShowWelcomeModal(getShowWelcomeModalFromStore()));
+  };
+}
+
+export function closeWelcomeModal() {
+  return (dispatch) => {
+    removeShowWelcomeModalFromStore();
+    dispatch(setShowWelcomeModal(false));
+  };
+}
 
 export function loadFirewallData() {
   return (dispatch) => {

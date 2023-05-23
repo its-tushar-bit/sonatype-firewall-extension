@@ -61,4 +61,8 @@ public class FirewallPage
   public FirewallConfigurationModal firewallConfigurationModal() {
     return new FirewallConfigurationModal(ROOT);
   }
+
+  public FirewallWelcomeModal firewallWelcomeModal() {
+    return new FirewallWelcomeModal(ROOT);
+  }
 }

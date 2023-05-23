@@ -11,6 +11,7 @@ import FirewallStatus from '../../../main/frontend/firewall/FirewallStatus';
 import FirewallAutoReleaseQuarantine from '../../../main/frontend/firewall/FirewallAutoReleaseQuarantine';
 import FirewallQuarantine from '../../../main/frontend/firewall/FirewallQuarantine';
 import FirewallQuarantineTable from '../../../main/frontend/firewall/FirewallQuarantineTable';
+import FirewallWelcomeModal from '../../../main/frontend/firewall/FirewallWelcomeModal';
 
 describe('FirewallPage', function () {
   let minimalProps,
@@ -37,6 +38,9 @@ describe('FirewallPage', function () {
     stateMock = jasmine.createSpy('state');
 
     minimalProps = {
+      showWelcomeModal: false,
+      initializeWelcomeModal: () => {},
+      closeWelcomeModal: () => {},
       loadedStatus: true,
       isShowConfigurationModal: true,
       loadError: null,
@@ -64,6 +68,10 @@ describe('FirewallPage', function () {
 
   it('renders a component with the "nx-page-main" class', function () {
     expect(getShallowComponent().find('.nx-page-main')).toExist();
+  });
+
+  it('renders welcome modal if showWelcomeModal is true', function () {
+    expect(getShallowComponent({ showWelcomeModal: true }).find(FirewallWelcomeModal)).toExist();
   });
 
   it('renders a FirewallStatus card', function () {

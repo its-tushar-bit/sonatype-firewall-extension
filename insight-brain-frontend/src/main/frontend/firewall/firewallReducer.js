@@ -6,6 +6,7 @@
 
 import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
+  FIREWALL_SET_SHOW_WELCOME_MODAL,
   FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
@@ -62,6 +63,7 @@ import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop
 import { pathSet } from '../util/jsUtil';
 
 export const initialState = Object.freeze({
+  showWelcomeModal: false,
   cip: Object.freeze({
     showCipModal: false,
     selectedComponent: null,
@@ -151,6 +153,13 @@ export const initialState = Object.freeze({
     lastUpdated: null,
   }),
 });
+
+const setShowWelcomeModal = (payload, state) => {
+  return {
+    ...state,
+    showWelcomeModal: payload,
+  };
+};
 
 const loadReleaseQuarantineSummaryRequested = (_, state) =>
   over(
@@ -711,6 +720,7 @@ const setFirewallLoadDataRequested = (_, state) => {
 };
 
 const reducerActionMap = {
+  [FIREWALL_SET_SHOW_WELCOME_MODAL]: setShowWelcomeModal,
   [FIREWALL_LOAD_DATA_REQUESTED]: setFirewallLoadDataRequested,
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
   [FIREWALL_LOAD_CONFIGURATION_REQUESTED]: loadConfigurationRequested,

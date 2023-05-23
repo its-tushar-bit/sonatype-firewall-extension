@@ -14,11 +14,15 @@ import FirewallQuarantineTable from './FirewallQuarantineTable';
 import * as PropTypes from 'prop-types';
 import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
 import FirewallAutoUnquarantineStatus from './FirewallAutoUnquarantineStatus';
+import FirewallWelcomeModal from './FirewallWelcomeModal';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function FirewallPage(props) {
   // Actions
   const { loadFirewallData } = props;
+
+  // Welcome Modal
+  const { initializeWelcomeModal, showWelcomeModal, closeWelcomeModal } = props;
 
   // viewState
   const { isShowConfigurationModal, loadError } = props;
@@ -36,10 +40,12 @@ export default function FirewallPage(props) {
 
   useEffect(() => {
     loadFirewallData();
+    initializeWelcomeModal();
   }, []);
 
   return (
     <main id="firewall-page" className="nx-page-main">
+      {showWelcomeModal && <FirewallWelcomeModal close={closeWelcomeModal} />}
       {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
       <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadFirewallData}>
         <FirewallStatus {...props} />
@@ -63,6 +69,9 @@ function isDataLoaded(loadedReleaseQuarantineSummary, loadedConfiguration, loade
 }
 
 FirewallPage.propTypes = {
+  showWelcomeModal: PropTypes.bool.isRequired,
+  initializeWelcomeModal: PropTypes.func.isRequired,
+  closeWelcomeModal: PropTypes.func.isRequired,
   loadFirewallData: PropTypes.func.isRequired,
   autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,
   loadedReleaseQuarantineSummary: PropTypes.bool.isRequired,

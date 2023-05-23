@@ -10,6 +10,8 @@ import FirewallPage from '../../../main/frontend/firewall/FirewallPage';
 
 describe('FirewallPageContainer', function () {
   let FirewallPageContainer,
+    closeWelcomeModalMock,
+    initializeWelcomeModalMock,
     loadFirewallDataMock,
     openConfigurationModalMock,
     loadQuarantineListMock,
@@ -21,6 +23,16 @@ describe('FirewallPageContainer', function () {
     vdom;
 
   beforeEach(function () {
+    closeWelcomeModalMock = jasmine.createSpy('closeWelcomeModalMock').and.returnValue({
+      type: 'FIREWALL_SET_SHOW_WELCOME_MODAL',
+      payload: false,
+    });
+
+    initializeWelcomeModalMock = jasmine.createSpy('initializeWelcomeModalMock').and.returnValue({
+      type: 'FIREWALL_SET_SHOW_WELCOME_MODAL',
+      payload: true,
+    });
+
     loadFirewallDataMock = jasmine.createSpy('loadFirewallDataMock').and.returnValue({
       type: 'LOAD_FIREWALL_DATA',
     });
@@ -51,6 +63,8 @@ describe('FirewallPageContainer', function () {
 
     FirewallPageContainer = require('inject-loader!../../../main/frontend/firewall/FirewallPageContainer')({
       './firewallActions': {
+        closeWelcomeModal: closeWelcomeModalMock,
+        initializeWelcomeModal: initializeWelcomeModalMock,
         loadFirewallData: loadFirewallDataMock,
         openConfigurationModal: openConfigurationModalMock,
         loadQuarantineList: loadQuarantineListMock,
@@ -63,6 +77,7 @@ describe('FirewallPageContainer', function () {
     state = {
       loadError: 'this is not the error',
       firewall: {
+        showWelcomeModal: false,
         viewState: {
           isShowConfigurationModal: false,
           loadError: null,
@@ -99,6 +114,7 @@ describe('FirewallPageContainer', function () {
   it('maps the state slice to props', () => {
     let wrapper = shallow(vdom).dive();
 
+    expect(wrapper).toHaveProp('showWelcomeModal', false);
     expect(wrapper).toHaveProp('isShowConfigurationModal', false);
     expect(wrapper).toHaveProp('loadError', null);
     expect(wrapper).toHaveProp('loadedConfiguration', false);
@@ -118,6 +134,7 @@ describe('FirewallPageContainer', function () {
       ...state,
       firewall: {
         ...state.firewall,
+        showWelcomeModal: true,
         viewState: {
           ...state.firewall.viewState,
           isShowConfigurationModal: true,
@@ -154,6 +171,7 @@ describe('FirewallPageContainer', function () {
     };
     wrapper = shallow(vdom).dive();
 
+    expect(wrapper).toHaveProp('showWelcomeModal', true);
     expect(wrapper).toHaveProp('isShowConfigurationModal', true);
     expect(wrapper).toHaveProp('loadError', 'error');
     expect(wrapper).toHaveProp('loadedConfiguration', true);
@@ -172,6 +190,8 @@ describe('FirewallPageContainer', function () {
 
   it('maps action creators to props', function () {
     const wrapper = shallow(vdom).dive(),
+      initializeWelcomeModalActionCreator = wrapper.prop('initializeWelcomeModal'),
+      closeWelcomeModalActionCreator = wrapper.prop('closeWelcomeModal'),
       loadFirewallDataActionCreator = wrapper.prop('loadFirewallData'),
       openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal'),
       loadQuarantineListActionCreator = wrapper.prop('loadQuarantineList'),
@@ -179,6 +199,8 @@ describe('FirewallPageContainer', function () {
       setQuarantineGridPolicyFilterActionCreator = wrapper.prop('setQuarantineGridPolicyFilter'),
       setQuarantineGridComponentNameFilterActionCreator = wrapper.prop('setQuarantineGridComponentNameFilter');
 
+    expect(initializeWelcomeModalActionCreator).toEqual(jasmine.any(Function));
+    expect(closeWelcomeModalActionCreator).toEqual(jasmine.any(Function));
     expect(loadFirewallDataActionCreator).toEqual(jasmine.any(Function));
     expect(openConfigurationModalActionCreator).toEqual(jasmine.any(Function));
     expect(loadQuarantineListActionCreator).toEqual(jasmine.any(Function));
@@ -226,6 +248,29 @@ describe('FirewallPageContainer', function () {
       { type: 'firewall.componentDetailsPage' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
       { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
+    ]);
+
+    initializeWelcomeModalActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_QUARANTINE_LIST' },
+      { type: 'OPEN_FIREWALL_CONFIGURATION' },
+      { type: 'firewall.componentDetailsPage' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
+      { type: 'FIREWALL_SET_SHOW_WELCOME_MODAL', payload: true },
+    ]);
+
+    closeWelcomeModalActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_QUARANTINE_LIST' },
+      { type: 'OPEN_FIREWALL_CONFIGURATION' },
+      { type: 'firewall.componentDetailsPage' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER' },
+      { type: 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER' },
+      { type: 'FIREWALL_SET_SHOW_WELCOME_MODAL', payload: true },
+      { type: 'FIREWALL_SET_SHOW_WELCOME_MODAL', payload: false },
     ]);
   });
 

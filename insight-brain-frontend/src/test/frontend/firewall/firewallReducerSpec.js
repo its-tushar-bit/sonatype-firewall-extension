@@ -7,6 +7,7 @@ import reduce from '../../../main/frontend/firewall/firewallReducer';
 
 describe('firewallReducer', function () {
   const defaultState = Object.freeze({
+    showWelcomeModal: false,
     cip: Object.freeze({
       showCipModal: false,
       selectedComponent: null,
@@ -119,6 +120,17 @@ describe('firewallReducer', function () {
         newState = reduce(state, { type: 'UNKNOWN' });
 
       expect(newState).toBe(state);
+    });
+  });
+
+  describe('FIREWALL_SET_SHOW_WELCOME_MODAL action', function () {
+    let minimumState = {};
+
+    it('updates the state and sets the showWelcomeModal to the payload', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_SET_SHOW_WELCOME_MODAL', payload: true })).toEqual({
+        ...minimumState,
+        showWelcomeModal: true,
+      });
     });
   });
 

@@ -7,9 +7,11 @@ import { connect } from 'react-redux';
 import FirewallPage from './FirewallPage';
 import { pick } from 'ramda';
 import {
+  initializeWelcomeModal,
   loadFirewallData,
   loadQuarantineList,
   openConfigurationModal,
+  closeWelcomeModal,
   setQuarantineGridPage,
   setQuarantineGridPolicyFilter,
   setQuarantineGridComponentNameFilter,
@@ -19,6 +21,7 @@ import {
 
 function mapStateToProps({ firewall }) {
   return {
+    ...pick(['showWelcomeModal'], firewall),
     ...pick(['isShowConfigurationModal', 'loadError'], firewall.viewState),
     ...pick(['autoUnquarantineEnabled'], firewall.configurationState),
     ...pick(
@@ -48,8 +51,10 @@ function mapStateToProps({ firewall }) {
 }
 
 const mapDispatchToProps = {
+  initializeWelcomeModal,
   loadFirewallData,
   loadQuarantineList,
+  closeWelcomeModal,
   setQuarantineGridPage,
   setQuarantineGridSorting,
   setQuarantineGridPolicyFilter,

@@ -7,6 +7,7 @@ import axios from 'axios';
 
 import {
   closeConfigurationModal,
+  FIREWALL_SET_SHOW_WELCOME_MODAL,
   FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
@@ -137,6 +138,7 @@ describe('firewallActions', function () {
   beforeEach(function () {
     state = {
       firewall: Object.freeze({
+        showWelcomeModal: false,
         cip: Object.freeze({
           showCipModal: false,
           selectedComponent: null,
@@ -230,6 +232,79 @@ describe('firewallActions', function () {
     };
 
     store = SpecUtil.mockReduxStore(state);
+  });
+
+  describe('Welcome Modal', function () {
+    let getShowWelcomeModalFromStoreSpy, removeShowWelcomeModalFromStoreSpy, actionsModule;
+
+    beforeEach(() => {
+      getShowWelcomeModalFromStoreSpy = jasmine.createSpy('getShowWelcomeModalFromStore');
+      removeShowWelcomeModalFromStoreSpy = jasmine.createSpy('removeShowWelcomeModalFromStore');
+      actionsModule = require('inject-loader!../../../main/frontend/firewall/firewallActions')({
+        './firewallWelcomeModalStore': {
+          getShowWelcomeModalFromStore: getShowWelcomeModalFromStoreSpy,
+          removeShowWelcomeModalFromStore: removeShowWelcomeModalFromStoreSpy,
+        },
+      });
+    });
+
+    describe('setShowWelcomeModal', function () {
+      it('dispatches setShowWelcomeModal given boolean payload', function () {
+        store.dispatch(actionsModule.setShowWelcomeModal(true));
+        store.dispatch(actionsModule.setShowWelcomeModal(false));
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_SET_SHOW_WELCOME_MODAL);
+        expect(actions[0].payload).toEqual(true);
+        expect(actions[1].type).toBe(FIREWALL_SET_SHOW_WELCOME_MODAL);
+        expect(actions[1].payload).toEqual(false);
+      });
+    });
+
+    describe('initializeWelcomeModal', function () {
+      it('dispatches setShowWelcomeModal with payload boolean value from getShowWelcomeModalFromStore', function () {
+        getShowWelcomeModalFromStoreSpy.and.returnValue(true);
+        store.dispatch(actionsModule.initializeWelcomeModal());
+
+        expect(getShowWelcomeModalFromStoreSpy).toHaveBeenCalled();
+
+        getShowWelcomeModalFromStoreSpy.and.returnValue(false);
+        store.dispatch(actionsModule.initializeWelcomeModal());
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_SET_SHOW_WELCOME_MODAL);
+        expect(actions[0].payload).toEqual(true);
+        expect(actions[1].type).toBe(FIREWALL_SET_SHOW_WELCOME_MODAL);
+        expect(actions[1].payload).toEqual(false);
+      });
+    });
+
+    describe('closeWelcomeModal', function () {
+      it('calls removeShowWelcomeModalFromStore and dispatches setShowWelcomeModal with payload of false', function () {
+        store.dispatch(actionsModule.closeWelcomeModal());
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(1);
+        expect(actions[0].type).toBe(FIREWALL_SET_SHOW_WELCOME_MODAL);
+        expect(actions[0].payload).toEqual(false);
+        expect(removeShowWelcomeModalFromStoreSpy).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('openConfigurationModal', function () {
+    it('immediately dispatches loadConfiguration and setShowConfigurationModal actions', function () {
+      store.dispatch(openConfigurationModal());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(2);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+      expect(actions[1].type).toBe(FIREWALL_SET_SHOW_CONFIGURATION_MODAL);
+      expect(actions[1].payload).toEqual(true);
+    });
   });
 
   describe('loadComponentLicenses', function () {
@@ -463,19 +538,6 @@ describe('firewallActions', function () {
         let actions = store.getActions();
         expect(actions.length).toBe(1);
       });
-    });
-  });
-
-  describe('openConfigurationModal', function () {
-    it('immediately dispatches loadConfiguration and setShowConfigurationModal actions', function () {
-      store.dispatch(openConfigurationModal());
-
-      const actions = store.getActions();
-      expect(actions.length).toBe(2);
-      expect(actions[0].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
-      expect(actions[0].payload).toBeUndefined();
-      expect(actions[1].type).toBe(FIREWALL_SET_SHOW_CONFIGURATION_MODAL);
-      expect(actions[1].payload).toEqual(true);
     });
   });
 

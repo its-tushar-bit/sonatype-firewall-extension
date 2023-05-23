@@ -151,12 +151,17 @@ void pushDockerImageIfDeployBranch() {
 
 void pushMTIQDockerImage() {
     // MTIQ image push rules:
-    // - any build on the `main` branch
+    // - any snapshot build on the `main` branch (iq on-prem release builds should not be processed)
     // - any branch ending with `_mtiq`
     // - any branch run manually with the parameter to push selected
     // Note: there is a cleanup policy on RSC to purge old MTIQ feature branches images.
 
     boolean isMainBuild = isDeployBranch(env, 'main')
+
+    if (currentBuild.fullProjectName.contains("insight-brain/release")) {
+        echo 'Skipping MTIQ docker image for IQ on-premise release'
+        return
+    }
 
     String iqVersion = getMavenProjectVersion('.')
 

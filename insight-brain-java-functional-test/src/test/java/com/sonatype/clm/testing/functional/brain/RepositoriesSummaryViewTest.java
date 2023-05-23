@@ -107,6 +107,9 @@ public class RepositoriesSummaryViewTest
   public void testRepositorySummaryView() {
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
     summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
+
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1000));
+
     testRepositorySummaryView_configurationTile();
   }
 
@@ -456,6 +459,8 @@ public class RepositoriesSummaryViewTest
     Repository repo3 = tempEntity.newRepository(repoManager, "my-hosted-maven", RepositoryType.hosted,
         ComponentIdentifier.FORMAT_MAVEN);
     tempEntity.newProprietaryComponentNamePattern(repo3, "c", null, true);
+
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1000));
 
     refresh();
 
@@ -1099,5 +1104,34 @@ public class RepositoriesSummaryViewTest
     PolicyEditorPage.backButton().shouldHave(Condition.text("All Repositories"));
     PolicyEditorPage.backButton().click();
     waitUntilUrl(RepositoriesSummaryPage.url());
+  }
+
+  @Test
+  public void testNavigationPills() {
+    RepositoriesSummaryPage.repositoriesPillConfigurationButton().shouldBe(visible).click();
+    RepositoriesSummaryTile repositoriesSummaryTile = RepositoriesSummaryPage.summaryTile();
+    repositoriesSummaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    configurationTile.emptyDescriptor().shouldBe(visible).shouldHave(EMPTY_LIST_TEXT);
+
+    RepositoriesSummaryPage.policyPillButton().shouldBe(visible).click();
+    PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
+    policyTile.shouldHave(visible);
+    policyTile.newButton().shouldBe(visible);
+    policyTile.policyLists().shouldHaveSize(0);
+    policyTile.localEmptyDescriptor().shouldBe(visible).shouldHave(text("No local"));
+
+    RepositoriesSummaryPage.namespaceConfusionProtectionPillButton().shouldBe(visible).click();
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+    namespaceConfusionProtectionTile.shouldBe(visible);
+    namespaceConfusionProtectionTile.shouldBe(visible).shouldHave(text("Namespace Confusion Protection"));
+    namespaceConfusionProtectionTile.emptyDescriptor().shouldBe(visible).shouldHave(text("No results"));
+
+    RepositoriesSummaryPage.accessPillButton().shouldBe(visible).click();
+    AccessTile accessTile = RepositoriesSummaryPage.accessTile();
+    accessTile.shouldBe(visible);
+    AccessTileList list = accessTile.accessList(0);
+    list.emptyDescriptor().should(exist);
   }
 }

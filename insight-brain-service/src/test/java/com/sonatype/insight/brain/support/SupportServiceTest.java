@@ -13,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -111,47 +113,6 @@ public class SupportServiceTest
     supportService.createSupportZip(false, null, false);
     final File filteredConfigYml = new File(supportService.getWorkDir(), "filtered-" + configYml.getName());
     assertThat(filteredConfigYml.exists()).isFalse();
-  }
-
-  @Test
-  public void testCreateSupportZip_TruncatedFileStartsWithToken() throws Exception {
-    InsightBrainService.setConfigFile(getConfigYml());
-
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 500L);
-    configurationService.applyConfigurationToClients(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
-
-    final File supportZip = supportService.createSupportZip(false, null, false);
-    // read file from zip and assert token suffix
-    try (final ZipFile zipFile = new ZipFile(supportZip)) {
-      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      final ZipEntry zipEntry = entries.nextElement();
-      assertThat(zipEntry.getName()).isEqualTo(getZipFileBasename(supportZip) + "/"
-          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME);
-      try (final ByteArrayOutputStream zipEntryContent = new ByteArrayOutputStream()) {
-        try (final InputStream zipEntryStream = zipFile.getInputStream(zipEntry)) {
-          IOUtil.copy(zipEntryStream, zipEntryContent);
-        }
-        assertThat(zipEntryContent.toString("UTF-8")).startsWith(SupportService.TRUNCATED_TOKEN);
-      }
-    }
-  }
-
-  @Test
-  public void testCreateSupportZip_TruncatedZipIncludesTruncatedEntry() throws Exception {
-    InsightBrainService.setConfigFile(getConfigYml());
-
-    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 5L);
-    configurationService.applyConfigurationToClients(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
-
-    final File supportZip = supportService.createSupportZip(false, null, false);
-    // read zip and assert truncated entry
-    try (final ZipFile zipFile = new ZipFile(supportZip)) {
-      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      assertThat(entries.nextElement().getName()).isEqualTo(getZipFileBasename(supportZip) + "/"
-          + SupportFileType.CONFIG.getDirName() + "/filtered-" + CONFIG_YML_FILENAME);
-      verifyRequiredEntries(supportZip, entries);
-      assertThat(entries.nextElement().getName()).isEqualTo(getZipFileBasename(supportZip) + "/" + "truncated");
-    }
   }
 
   private static void verifyRequiredEntries(final File supportZipFile, final Enumeration<? extends ZipEntry> entries) {
@@ -295,57 +256,66 @@ public class SupportServiceTest
     return expectedFiles;
   }
 
-  private File createPopulatedZip(final boolean noLimit, final File fileToAdd) throws Exception {
+  private File createPopulatedZip(final boolean noLimit, final List<SupportFile> filesToAdd) throws Exception {
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 1L);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
     final File workDir = tempDir.newFolder("populateZipTest");
     final String prefix = "prefix";
     final File supportZip = new File(workDir, prefix + ".zip").getCanonicalFile();
 
-    assertThat(fileToAdd.length()).isGreaterThan(configuration.getSupportReadLimitBytes());
-    final List<SupportFile> filesToZip = new ArrayList<>();
-    filesToZip.add(new SupportFile(SupportFileType.CONFIG, fileToAdd, false));
+    for (SupportFile fileToAdd : filesToAdd) {
+      assertThat(fileToAdd.file.length()).isGreaterThan(configuration.getSupportReadLimitBytes());
+    }
 
-    supportService.populateZip(prefix, supportZip, filesToZip, noLimit);
+    supportService.populateZip(prefix, supportZip, filesToAdd, noLimit);
     return supportZip;
   }
 
   @Test
   public void testPopulateZip_Limit() throws Exception {
-    final File fileToAdd = getConfigYml();
+    SupportFile logFile = new SupportFile(SupportFileType.LOG, createFile(50), false);
+    SupportFile clusterLogFile = new SupportFile(SupportFileType.CLUSTER_LOG, createFile(50), false);
+    SupportFile otherFile = new SupportFile(SupportFileType.INFO, getConfigYml(), false);
 
-    final File supportZip = createPopulatedZip(false, fileToAdd);
+    File supportZip = createPopulatedZip(false, Arrays.asList(logFile, clusterLogFile, otherFile));
 
-    try (final ZipFile zipFile = new ZipFile(supportZip)) {
-      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      final ZipEntry firstEntry = entries.nextElement();
-      assertThat(firstEntry.getName()).isEqualTo(
-          getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/" + CONFIG_YML_FILENAME);
-      long readLimitBytes = configuration.getSupportReadLimitBytes();
-      assertThat(firstEntry.getSize()).isEqualTo(
-          // expected size includes the limit size, plus the appended "Truncated" message, plus a newline
-          readLimitBytes + (SupportService.TRUNCATED_TOKEN + "\n").length());
+    long expectedTruncatedSize =
+        configuration.getSupportReadLimitBytes() + (SupportService.TRUNCATED_TOKEN + "\n").length();
+    try (ZipFile zipFile = new ZipFile(supportZip)) {
+      List<? extends ZipEntry> entries = Collections.list(zipFile.entries());
 
-      assertThat(entries.nextElement().getName()).isEqualTo(getZipFileBasename(supportZip) + "/truncated");
+      assertThat(entries).map(ZipEntry::getName).contains(getZipFileBasename(supportZip) + "/" + "truncated");
 
-      assertThat(entries.hasMoreElements()).isFalse();
+      ZipEntry logFileZipEntry = getZipEntryNotNull(supportZip, entries, logFile);
+      assertThat(logFileZipEntry.getSize()).isEqualTo(expectedTruncatedSize).isLessThan(logFile.file.length());
+      assertThat(getZipEntryContent(zipFile, logFileZipEntry)).startsWith(SupportService.TRUNCATED_TOKEN);
+
+      ZipEntry clusterLogFileZipEntry = getZipEntryNotNull(supportZip, entries, clusterLogFile);
+      assertThat(clusterLogFileZipEntry.getSize()).isEqualTo(expectedTruncatedSize)
+          .isLessThan(clusterLogFile.file.length());
+      assertThat(getZipEntryContent(zipFile, clusterLogFileZipEntry)).startsWith(SupportService.TRUNCATED_TOKEN);
+
+      ZipEntry otherFileZipEntry = getZipEntryNotNull(supportZip, entries, otherFile);
+      assertThat(otherFileZipEntry.getSize()).isEqualTo(otherFile.file.length());
     }
   }
 
   @Test
   public void testPopulateZip_NoLimit() throws Exception {
-    final File fileToAdd = getConfigYml();
+    SupportFile logFile = new SupportFile(SupportFileType.LOG, createFile(50), false);
+    SupportFile clusterLogFile = new SupportFile(SupportFileType.CLUSTER_LOG, createFile(50), false);
+    SupportFile otherFile = new SupportFile(SupportFileType.INFO, getConfigYml(), false);
 
-    final File supportZip = createPopulatedZip(true, fileToAdd);
+    File supportZip = createPopulatedZip(true, Arrays.asList(logFile, clusterLogFile, otherFile));
 
-    try (final ZipFile zipFile = new ZipFile(supportZip)) {
-      final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      final ZipEntry firstEntry = entries.nextElement();
-      assertThat(firstEntry.getName()).isEqualTo(
-          getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/" + CONFIG_YML_FILENAME);
-      assertThat(firstEntry.getSize()).isEqualTo(fileToAdd.length());
-
-      assertThat(entries.hasMoreElements()).isFalse();
+    try (ZipFile zipFile = new ZipFile(supportZip)) {
+      List<? extends ZipEntry> entries = Collections.list(zipFile.entries());
+      ZipEntry logFileZipEntry = getZipEntryNotNull(supportZip, entries, logFile);
+      assertThat(logFileZipEntry.getSize()).isEqualTo(logFile.file.length());
+      ZipEntry clusterLogFileZipEntry = getZipEntryNotNull(supportZip, entries, clusterLogFile);
+      assertThat(clusterLogFileZipEntry.getSize()).isEqualTo(clusterLogFile.file.length());
+      ZipEntry otherFileZipEntry = getZipEntryNotNull(supportZip, entries, otherFile);
+      assertThat(otherFileZipEntry.getSize()).isEqualTo(otherFile.file.length());
     }
   }
 
@@ -372,6 +342,33 @@ public class SupportServiceTest
       assertThat(clusterLogEntry2).isNotNull();
       assertThat(IOUtils.toString(zipFile.getInputStream(clusterLogEntry2), StandardCharsets.UTF_8)).isEqualTo("b");
       assertThat(otherEntry).isNull();
+    }
+  }
+
+  private File createFile(int sizeInBytes) throws Exception {
+    File file = tempDir.newFile();
+    byte[] bytes = new byte[sizeInBytes];
+    Arrays.fill(bytes, (byte) 1);
+    FileUtils.writeByteArrayToFile(file, bytes);
+    return file;
+  }
+
+  private ZipEntry getZipEntryNotNull(File supportZip, List<? extends ZipEntry> entries, SupportFile supportFile) {
+    ZipEntry entry = entries.stream().filter(e -> e.getName().equals(
+            getZipFileBasename(supportZip) + "/" + supportFile.supportFileType.getDirName() + "/" +
+                supportFile.file.getName()))
+        .findFirst()
+        .orElse(null);
+    assertThat(entry).isNotNull();
+    return entry;
+  }
+
+  private String getZipEntryContent(ZipFile zipFile, ZipEntry zipEntry) throws Exception {
+    try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+      try (InputStream inputStream = zipFile.getInputStream(zipEntry)) {
+        IOUtil.copy(inputStream, byteArrayOutputStream);
+      }
+      return byteArrayOutputStream.toString(StandardCharsets.UTF_8.name());
     }
   }
 }

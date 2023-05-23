@@ -667,6 +667,13 @@ public abstract class AbstractBrainServiceTest
     setProperties(properties);
   }
 
+  public void setSupportReadLimitBytes(long supportReadLimitBytes) {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, supportReadLimitBytes);
+
+    setProperties(properties);
+  }
+
   private void setProperties(Map<String, Object> properties) {
     ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
     service.setConfigurationNoAuthz(properties);

@@ -351,12 +351,14 @@ public class SupportService
       boolean isTruncated = false;
 
       for (final SupportFile fileToAdd : filesToZip) {
+        boolean isLogFile = fileToAdd.supportFileType == SupportFileType.LOG ||
+            fileToAdd.supportFileType == SupportFileType.CLUSTER_LOG;
 
         final ZipEntry zipEntry = new ZipEntry(
             prefix + "/" + fileToAdd.supportFileType.getDirName() + "/" + fileToAdd.file.getName());
         zos.putNextEntry(zipEntry);
 
-        if (noLimit) {
+        if (noLimit || !isLogFile) {
           try (FileInputStream fis = new FileInputStream(fileToAdd.file)) {
             ByteStreams.copy(fis, zos);
           }

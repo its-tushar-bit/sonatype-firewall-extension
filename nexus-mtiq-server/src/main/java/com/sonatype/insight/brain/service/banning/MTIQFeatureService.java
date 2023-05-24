@@ -18,9 +18,7 @@ import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyEnabledException;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -120,7 +118,6 @@ public class MTIQFeatureService
     return enabled;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void enableFeature(String feature) {
     if (enabledFeaturesContainsFeatureWithId(feature)) {
       service.enableFeatureNoAuthz(feature);
@@ -130,7 +127,6 @@ public class MTIQFeatureService
     }
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void disableFeature(String feature) {
     if (enabledFeaturesContainsFeatureWithId(feature)) {
       service.disableFeatureNoAuthz(feature);

@@ -21,52 +21,48 @@ import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.service.ConfigFeaturesService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.license.model.Feature;
 
 @Named
 @MtiqAdminEndpoint
-@Path(AdminApiPaths.ADMIN_CONFIG_FEATURES_PATH)
+@Path(AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH)
 public class ConfigFeaturesResource
 {
   public static final String FEATURE = "{feature}";
 
   public static final String ALL = "all";
 
-  private final MTIQFeatureService mtiqFeatureService;
-
   private final ConfigFeaturesService configFeaturesService;
 
   @Inject
-  public ConfigFeaturesResource(MTIQFeatureService mtiqFeatureService, ConfigFeaturesService configFeaturesService) {
-    this.mtiqFeatureService = mtiqFeatureService;
+  public ConfigFeaturesResource(ConfigFeaturesService configFeaturesService) {
     this.configFeaturesService = configFeaturesService;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Set<Feature> getFeatures() {
-    return configFeaturesService.getFeatures();
+  public Set<Feature> getFeatures(@PathParam("tenantSlug") String tenantSlug) {
+    return configFeaturesService.getFeatures(tenantSlug);
   }
 
   @GET
   @Path(ALL)
   @Produces(MediaType.APPLICATION_JSON)
-  public Set<Feature> getAllFeatures() {
-    return configFeaturesService.getAllFeatures();
+  public Set<Feature> getAllFeatures(@PathParam("tenantSlug") String tenantSlug) {
+    return configFeaturesService.getAllFeatures(tenantSlug);
   }
 
   @POST
   @Audited(AuditEvent.SET_FEATURES)
   @Path(FEATURE)
-  public void enableFeature(@PathParam("feature") String feature) {
-    mtiqFeatureService.enableFeature(feature);
+  public void enableFeature(@PathParam("tenantSlug") String tenantSlug, @PathParam("feature") String feature) {
+    configFeaturesService.enableFeature(tenantSlug, feature);
   }
 
   @DELETE
   @Audited(AuditEvent.UNSET_FEATURES)
   @Path(FEATURE)
-  public void disableFeature(@PathParam("feature") String feature) {
-    mtiqFeatureService.disableFeature(feature);
+  public void disableFeature(@PathParam("tenantSlug") String tenantSlug, @PathParam("feature") String feature) {
+    configFeaturesService.disableFeature(tenantSlug, feature);
   }
 }

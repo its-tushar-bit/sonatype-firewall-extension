@@ -9,9 +9,12 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.ws.rs.PathParam;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
+import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.Feature;
 
 import org.slf4j.Logger;
@@ -26,15 +29,23 @@ public class ConfigFeaturesService
 
   private final MTIQFeatureService mtiqFeatureService;
 
+  private final TenantValidator tenantValidator;
+
   @Inject
-  public ConfigFeaturesService(MTIQFeatureService mtiqFeatureService) {
+  public ConfigFeaturesService(MTIQFeatureService mtiqFeatureService, TenantValidator tenantValidator) {
     this.mtiqFeatureService = mtiqFeatureService;
+    this.tenantValidator = tenantValidator;
   }
 
   /**
    * Gets a list of all features supported by this server instance
    */
-  public Set<Feature> getAllFeatures() {
+  public Set<Feature> getAllFeatures(String tenantSlug) {
+    if (!tenantValidator.validateTenantExists(tenantSlug)) {
+      log.error("Cannot get features, Tenant {} does not exist", tenantSlug);
+      throw new NotFoundException(String.format("Tenant %s does not exist", tenantSlug));
+    }
+
     Set<Feature> features = Arrays.stream(SystemConfigurationPropertyFeature.values())
         .filter(mtiqFeatureService::isEnabled)
         .collect(Collectors.toSet());
@@ -46,7 +57,12 @@ public class ConfigFeaturesService
   /**
    * Gets a list of enabled features for the tenant
    */
-  public Set<Feature> getFeatures() {
+  public Set<Feature> getFeatures(String tenantSlug) {
+    if (!tenantValidator.validateTenantExists(tenantSlug)) {
+      log.error("Cannot get features, Tenant {} does not exist", tenantSlug);
+      throw new NotFoundException(String.format("Tenant %s does not exist", tenantSlug));
+    }
+
     Set<Feature> features = Arrays.stream(SystemConfigurationPropertyFeature.values())
         .filter(SystemConfigurationPropertyFeature::isEnabled)
         .filter(mtiqFeatureService::isEnabled)
@@ -54,5 +70,23 @@ public class ConfigFeaturesService
 
     log.debug("Found features: {}", features);
     return features;
+  }
+
+  public void enableFeature(@PathParam("tenantSlug") String tenantSlug, @PathParam("feature") String feature) {
+    if (!tenantValidator.validateTenantExists(tenantSlug)) {
+      log.error("Cannot enable feature {}, Tenant {} does not exist", feature, tenantSlug);
+      throw new NotFoundException(String.format("Tenant %s does not exist", tenantSlug));
+    }
+
+    mtiqFeatureService.enableFeature(feature);
+  }
+
+  public void disableFeature(@PathParam("tenantSlug") String tenantSlug, @PathParam("feature") String feature) {
+    if (!tenantValidator.validateTenantExists(tenantSlug)) {
+      log.error("Cannot disable feature {}, Tenant {} does not exist", feature, tenantSlug);
+      throw new NotFoundException(String.format("Tenant %s does not exist", tenantSlug));
+    }
+
+    mtiqFeatureService.disableFeature(feature);
   }
 }

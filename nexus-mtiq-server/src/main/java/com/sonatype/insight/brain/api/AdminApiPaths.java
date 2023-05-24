@@ -9,7 +9,7 @@ public class AdminApiPaths
 {
   public static final String ADMIN_PATH = "admin/";
 
-  public static final String ADMIN_CONFIG_FEATURES_PATH = ADMIN_PATH + "config/features";
+  public static final String ADMIN_TENANT_CONFIG_FEATURES_PATH = ADMIN_PATH + "tenants/{tenantSlug}/config/features";
 
   public static final String ADMIN_TENANT_PROVISIONING_PATH = ADMIN_PATH + "tenants/{tenantSlug}";
 

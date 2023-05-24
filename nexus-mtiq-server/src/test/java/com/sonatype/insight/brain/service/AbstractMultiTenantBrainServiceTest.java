@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper.ConsumerWithException;
 
 import org.junit.BeforeClass;
 
@@ -26,8 +27,16 @@ public class AbstractMultiTenantBrainServiceTest
   /**
    * getTestTenant returns the pre provisioned tenant ready for use in test
    */
-  static Tenant getTestTenant() {
+  protected static Tenant getTestTenant() {
     return MultiTenantBrainServiceTestHelper.getTestTenant();
+  }
+
+  protected static void testAsTenant(ConsumerWithException<Tenant> test) {
+    TenantTestHelper.testAs(getTestTenant(), test);
+  }
+
+  protected static void testAsGlobal(ConsumerWithException<Tenant> test) {
+    TenantTestHelper.testAs(Tenant.GLOBAL_TENANT, test);
   }
 
   protected String generateTestTenantName() {

@@ -149,8 +149,8 @@ public class TenantThreadLocal
     }
 
     if (getTenantWithoutValidation() != null
-        && getTenantWithoutValidation().equals(tenant)
-        && getTenantWithoutValidation().isInvalid() == tenant.isInvalid())
+        && GLOBAL_TENANT == getTenantWithoutValidation()
+        && GLOBAL_TENANT == tenant)
     {
       // There is no change in the tenant so setting the tenant should be a no-op
       return;

@@ -158,6 +158,15 @@ public class TenantUtil
     return mtiqBatchMode;
   }
 
+  public List<String> getAllTenantsNames() {
+    List<String> schemas = DatabaseUtil.getSchemasList(OperationalDataStoreProvider.getInstance().getDataSource());
+
+    return schemas.stream()
+        .filter(schema -> schema.startsWith("t_"))
+        .map(this::getTenantNameFromSchema)
+        .collect(Collectors.toList());
+  }
+
   List<String> getAllTenants() {
     List<String> schemas = DatabaseUtil.getSchemasList(OperationalDataStoreProvider.getInstance().getDataSource());
 
@@ -168,8 +177,11 @@ public class TenantUtil
         .collect(Collectors.toList());
   }
 
-  Tenant createTenantFromSchema(String schema) {
-    String tenantSlug = schema.replaceFirst("t_", "").replace('_', '-');
-    return new Tenant(tenantSlug);
+  private Tenant createTenantFromSchema(String schema) {
+    return new Tenant(getTenantNameFromSchema(schema));
+  }
+
+  private String getTenantNameFromSchema(String schema) {
+    return schema.replaceFirst("t_", "").replace('_', '-');
   }
 }

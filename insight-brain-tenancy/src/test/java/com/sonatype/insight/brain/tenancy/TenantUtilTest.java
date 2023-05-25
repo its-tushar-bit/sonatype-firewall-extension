@@ -166,4 +166,19 @@ public class TenantUtilTest
       assertThat(allTenants).containsExactly(tenant1, tenant2);
     }
   }
+
+  @Test
+  public void shouldGetAllTenantsNamesFromDb() {
+    try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
+      String tenant1 = "tenant1";
+      String tenant2 = "tenant2";
+
+      dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource))
+          .thenReturn(asList("t_" + tenant1, "t_" + tenant2));
+
+      List<String> allTenants = new TenantUtil().getAllTenantsNames();
+
+      assertThat(allTenants).containsExactly(tenant1, tenant2);
+    }
+  }
 }

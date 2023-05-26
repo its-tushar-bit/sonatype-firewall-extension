@@ -12,7 +12,9 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -64,7 +66,8 @@ public class DefaultApiSourceControlResourceTest
 
   @Test
   public void testGetRateLimits() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
     tempEntity.newSourceControl(application.getId(), mockScmServer.baseUrl() + "/orgName/repoName",
         new DefaultPlexusCipher().encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
 
@@ -77,10 +80,14 @@ public class DefaultApiSourceControlResourceTest
     assertThat(result.ownerType).isEqualTo(OwnerType.ORGANIZATION.toString());
     assertThat(result.ownerId).isEqualTo(application.getOrganizationId());
     assertThat(result.ownerPublicId).isEqualTo(application.getOrganizationId());
+    assertThat(result.ownerName).isEqualTo(organization.getName());
     assertThat(result.userRateLimits).hasSize(1);
     assertThat(result.userRateLimits.get(0).user).isEqualTo("userId");
-    assertThat(result.userRateLimits.get(0).definingOwnerIds).containsExactly(application.getId());
-    assertThat(result.userRateLimits.get(0).associatedApplicationIds).containsExactly(application.getId());
+    assertThat(result.userRateLimits.get(0).provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(result.userRateLimits.get(0).definingOwners).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(ApiOwnerDTO.fromOwner(application));
+    assertThat(result.userRateLimits.get(0).associatedApplications).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(ApiOwnerDTO.fromOwner(application));
     assertThat(result.userRateLimits.get(0).rateLimits).hasSize(1);
     assertThat(result.userRateLimits.get(0).rateLimits.get(0).category).isEqualTo("core");
     assertThat(result.userRateLimits.get(0).rateLimits.get(0).remaining).isEqualTo(4);

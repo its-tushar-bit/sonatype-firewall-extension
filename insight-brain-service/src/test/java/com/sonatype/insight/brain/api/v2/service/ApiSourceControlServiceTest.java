@@ -18,8 +18,10 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
@@ -919,6 +921,7 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetRateLimits_NoSourceControlConfigured() {
+    Organization rootOrganization = new OrganizationDAO().getById(ROOT_ORGANIZATION_ID);
     tempEntity.newApplicationWithParent();
 
     ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID);
@@ -926,6 +929,8 @@ public class ApiSourceControlServiceTest
     assertThat(dto).isNotNull();
     assertThat(dto.ownerType).isEqualTo(OwnerType.ORGANIZATION.toString());
     assertThat(dto.ownerId).isEqualTo(ROOT_ORGANIZATION_ID);
+    assertThat(dto.ownerPublicId).isEqualTo(ROOT_ORGANIZATION_ID);
+    assertThat(dto.ownerName).isEqualTo(rootOrganization.getName());
     assertThat(dto.userRateLimits).isEmpty();
   }
 
@@ -939,6 +944,8 @@ public class ApiSourceControlServiceTest
     assertThat(dto).isNotNull();
     assertThat(dto.ownerType).isEqualTo(organization.getType().toString());
     assertThat(dto.ownerId).isEqualTo(organization.getId());
+    assertThat(dto.ownerPublicId).isEqualTo(organization.getPublicId());
+    assertThat(dto.ownerName).isEqualTo(organization.getName());
     assertThat(dto.userRateLimits).isEmpty();
   }
 
@@ -952,6 +959,8 @@ public class ApiSourceControlServiceTest
     assertThat(dto).isNotNull();
     assertThat(dto.ownerType).isEqualTo(application.getType().toString());
     assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.ownerPublicId).isEqualTo(application.getPublicId());
+    assertThat(dto.ownerName).isEqualTo(application.getName());
     assertThat(dto.userRateLimits).isEmpty();
   }
 
@@ -972,10 +981,15 @@ public class ApiSourceControlServiceTest
     assertThat(dto).isNotNull();
     assertThat(dto.ownerType).isEqualTo(application.getType().toString());
     assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.ownerPublicId).isEqualTo(application.getPublicId());
+    assertThat(dto.ownerName).isEqualTo(application.getName());
     assertThat(dto.userRateLimits).hasSize(1);
     assertThat(dto.userRateLimits.get(0).user).isEqualTo("userId2");
-    assertThat(dto.userRateLimits.get(0).definingOwnerIds).containsExactly(application.getId());
-    assertThat(dto.userRateLimits.get(0).associatedApplicationIds).containsExactly(application.getId());
+    assertThat(dto.userRateLimits.get(0).provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(dto.userRateLimits.get(0).definingOwners).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(ApiOwnerDTO.fromOwner(application));
+    assertThat(dto.userRateLimits.get(0).associatedApplications).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(ApiOwnerDTO.fromOwner(application));
     assertRateLimitResponses(dto.userRateLimits.get(0));
   }
 
@@ -1008,14 +1022,22 @@ public class ApiSourceControlServiceTest
     assertThat(dto).isNotNull();
     assertThat(dto.ownerType).isEqualTo(org.getType().toString());
     assertThat(dto.ownerId).isEqualTo(org.getId());
+    assertThat(dto.ownerPublicId).isEqualTo(org.getPublicId());
+    assertThat(dto.ownerName).isEqualTo(org.getName());
     assertThat(dto.userRateLimits).hasSize(2);
     assertThat(dto.userRateLimits.get(0).user).isEqualTo("userId1");
-    assertThat(dto.userRateLimits.get(0).definingOwnerIds).containsExactly(app2.getId());
-    assertThat(dto.userRateLimits.get(0).associatedApplicationIds).containsExactly(app2.getId());
+    assertThat(dto.userRateLimits.get(0).provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(dto.userRateLimits.get(0).definingOwners).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(ApiOwnerDTO.fromOwner(app2));
+    assertThat(dto.userRateLimits.get(0).associatedApplications).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(ApiOwnerDTO.fromOwner(app2));
     assertRateLimitResponses(dto.userRateLimits.get(0));
     assertThat(dto.userRateLimits.get(1).user).isEqualTo("userId2");
-    assertThat(dto.userRateLimits.get(1).definingOwnerIds).containsExactly(org.getId());
-    assertThat(dto.userRateLimits.get(1).associatedApplicationIds).containsExactly(app1.getId());
+    assertThat(dto.userRateLimits.get(1).provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(dto.userRateLimits.get(1).definingOwners).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(ApiOwnerDTO.fromOwner(org));
+    assertThat(dto.userRateLimits.get(1).associatedApplications).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(ApiOwnerDTO.fromOwner(app1));
     assertRateLimitResponses(dto.userRateLimits.get(1));
   }
 
@@ -1040,11 +1062,15 @@ public class ApiSourceControlServiceTest
     assertThat(dto).isNotNull();
     assertThat(dto.ownerType).isEqualTo(org.getType().toString());
     assertThat(dto.ownerId).isEqualTo(org.getId());
+    assertThat(dto.ownerPublicId).isEqualTo(org.getPublicId());
+    assertThat(dto.ownerName).isEqualTo(org.getName());
     assertThat(dto.userRateLimits).hasSize(1);
     assertThat(dto.userRateLimits.get(0).user).isEqualTo("userId2");
-    assertThat(dto.userRateLimits.get(0).definingOwnerIds).containsExactlyInAnyOrder(org.getId(), app2.getId());
-    assertThat(dto.userRateLimits.get(0).associatedApplicationIds).containsExactlyInAnyOrder(app1.getId(),
-        app2.getId());
+    assertThat(dto.userRateLimits.get(0).provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(dto.userRateLimits.get(0).definingOwners).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(ApiOwnerDTO.fromOwner(org), ApiOwnerDTO.fromOwner(app2));
+    assertThat(dto.userRateLimits.get(0).associatedApplications).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(ApiOwnerDTO.fromOwner(app1), ApiOwnerDTO.fromOwner(app2));
     assertRateLimitResponses(dto.userRateLimits.get(0));
   }
 
@@ -1062,6 +1088,8 @@ public class ApiSourceControlServiceTest
     assertThat(dto).isNotNull();
     assertThat(dto.ownerType).isEqualTo(application.getType().toString());
     assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.ownerPublicId).isEqualTo(application.getPublicId());
+    assertThat(dto.ownerName).isEqualTo(application.getName());
     assertThat(dto.userRateLimits).isEmpty();
   }
 
@@ -1083,6 +1111,8 @@ public class ApiSourceControlServiceTest
     assertThat(dto).isNotNull();
     assertThat(dto.ownerType).isEqualTo(application.getType().toString());
     assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.ownerPublicId).isEqualTo(application.getPublicId());
+    assertThat(dto.ownerName).isEqualTo(application.getName());
     assertThat(dto.userRateLimits).isEmpty();
   }
 
@@ -1104,6 +1134,8 @@ public class ApiSourceControlServiceTest
     assertThat(dto).isNotNull();
     assertThat(dto.ownerType).isEqualTo(application.getType().toString());
     assertThat(dto.ownerId).isEqualTo(application.getId());
+    assertThat(dto.ownerPublicId).isEqualTo(application.getPublicId());
+    assertThat(dto.ownerName).isEqualTo(application.getName());
     assertThat(dto.userRateLimits).isEmpty();
   }
 

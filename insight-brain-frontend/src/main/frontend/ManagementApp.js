@@ -35,6 +35,7 @@ import artifactoryRepositoryConfigurationModule from './artifactoryRepositoryCon
 import apiModule from './api/module';
 import baseUrlConfigurationModule from './configuration/baseUrl/module';
 import baseUrlNotSetNoticeModule from 'MainRoot/configuration/baseUrl/baseUrlNotSetNotice/module';
+import sourceControlRateLimitsModule from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/module';
 
 export default angular
   .module('managementApp', [
@@ -67,6 +68,7 @@ export default angular
     apiModule.name,
     baseUrlConfigurationModule.name,
     baseUrlNotSetNoticeModule.name,
+    sourceControlRateLimitsModule.name,
   ])
   .component('advancedSearch', iqReact2Angular(AdvancedSearchContainer, [], ['$ngRedux', '$state']))
   .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']))

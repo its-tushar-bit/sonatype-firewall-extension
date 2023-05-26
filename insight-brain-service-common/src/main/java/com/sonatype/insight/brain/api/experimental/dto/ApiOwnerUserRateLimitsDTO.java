@@ -15,5 +15,7 @@ public class ApiOwnerUserRateLimitsDTO
 
   public String ownerPublicId;
 
+  public String ownerName;
+
   public List<ApiUserRateLimitsDTO> userRateLimits;
 }

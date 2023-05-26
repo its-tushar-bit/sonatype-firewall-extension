@@ -1244,6 +1244,9 @@ export const getConfigurationUrl = () => {
 export const getRepositoryComponentNamePatternUpdateUrl = () =>
   uriTemplate`/rest/repositories/proprietaryComponentNamePatterns/update`;
 
+export const getSourceControlRateLimitsUrl = (ownerType, ownerId) =>
+  uriTemplate`/api/experimental/sourceControl/${ownerType}/${ownerId}/rateLimits`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

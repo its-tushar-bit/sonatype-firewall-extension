@@ -8,13 +8,18 @@ package com.sonatype.insight.brain.api.experimental.dto;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
+import com.sonatype.nexus.scm.SourceControlProvider;
+
 public class ApiUserRateLimitsDTO
 {
   public String user;
 
-  public Set<String> definingOwnerIds;
+  public SourceControlProvider provider;
 
-  public Set<String> associatedApplicationIds;
+  public Set<ApiOwnerDTO> definingOwners;
+
+  public Set<ApiOwnerDTO> associatedApplications;
 
   public List<ApiRateLimitDTO> rateLimits;
 }

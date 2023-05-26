@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
@@ -107,19 +108,23 @@ public class OwnerDAO
     return result;
   }
 
-  public Set<String> getDescendantOrSelfApplicationIds(Owner owner) {
-    Set<String> applicationIds = new HashSet<>();
-    addDescendantOrSelfApplicationIds(applicationIds, owner);
-    return applicationIds;
+  public Set<Application> getDescendantOrSelfApplications(Owner owner) {
+    Set<Application> applications = new HashSet<>();
+    addDescendantOrSelfApplications(applications, owner);
+    return applications;
   }
 
-  private void addDescendantOrSelfApplicationIds(Set<String> applicationIds, Owner owner) {
+  private void addDescendantOrSelfApplications(Set<Application> applications, Owner owner) {
     if (OwnerType.APPLICATION.equals(owner.getType())) {
-      applicationIds.add(owner.getId());
+      applications.add((Application) owner);
     }
     else {
-      getChildOwners(owner).forEach(childOwner -> addDescendantOrSelfApplicationIds(applicationIds, childOwner));
+      getChildOwners(owner).forEach(childOwner -> addDescendantOrSelfApplications(applications, childOwner));
     }
+  }
+
+  public Set<String> getDescendantOrSelfApplicationIds(Owner owner) {
+    return getDescendantOrSelfApplications(owner).stream().map(Owner::getId).collect(Collectors.toSet());
   }
 
   public Owner getParentOwner(Owner owner) {

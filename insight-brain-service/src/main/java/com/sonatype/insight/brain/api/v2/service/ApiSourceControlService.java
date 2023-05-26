@@ -15,6 +15,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -24,6 +25,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -502,36 +504,37 @@ public class ApiSourceControlService
     checkLicense();
     Owner owner = ownerDAO.getById(ownerId);
     Map<String, ApiUserRateLimitsDTO> rateLimitsByUser = new HashMap<>();
-    Map<String, Set<String>> definingOwnerIdsByToken = new HashMap<>();
-    ownerDAO.getDescendantOrSelfApplicationIds(owner)
-        .forEach(applicationId -> addRateLimits(rateLimitsByUser, definingOwnerIdsByToken, applicationId));
+    Map<String, Set<Owner>> definingOwnersByToken = new HashMap<>();
+    ownerDAO.getDescendantOrSelfApplications(owner)
+        .forEach(application -> addRateLimits(rateLimitsByUser, definingOwnersByToken, application));
     List<ApiUserRateLimitsDTO> rateLimits = new ArrayList<>(rateLimitsByUser.values());
     rateLimits.sort(Comparator.comparing(dto -> dto.user));
     ApiOwnerUserRateLimitsDTO result = new ApiOwnerUserRateLimitsDTO();
     result.ownerType = owner.getType().toString();
     result.ownerId = owner.getId();
     result.ownerPublicId = owner.getPublicId();
+    result.ownerName = owner.getName();
     result.userRateLimits = rateLimits;
     return result;
   }
 
   private void addRateLimits(
       Map<String, ApiUserRateLimitsDTO> rateLimitsByUser,
-      Map<String, Set<String>> definingOwnerIdsByToken,
-      String applicationId)
+      Map<String, Set<Owner>> definingOwnersByToken,
+      Application application)
   {
-    List<SourceControl> sourceControlsInHierarchy = getSourceControlsInHierarchy(applicationId);
+    List<SourceControl> sourceControlsInHierarchy = getSourceControlsInHierarchy(application.getId());
     SourceControl sourceControl = new SourceControl();
     sourceControlsInHierarchy.forEach(sc -> SourceControl.coalesce(sourceControl, sc));
     if (sourceControl.getToken() == null) {
       return;
     }
     decryptToken(sourceControl);
-    String definingOwnerId = getOwnerIdDefiningToken(sourceControlsInHierarchy);
-    definingOwnerIdsByToken.computeIfAbsent(sourceControl.getToken(), token -> new LinkedHashSet<>())
-        .add(definingOwnerId);
+    Owner definingOwner = getOwnerDefiningToken(sourceControlsInHierarchy);
+    definingOwnersByToken.computeIfAbsent(sourceControl.getToken(), token -> new LinkedHashSet<>())
+        .add(definingOwner);
     GitRepositoryInfo gitRepositoryInfo =
-        SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, applicationId);
+        SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, application.getId());
     if (gitRepositoryInfo == null) {
       return;
     }
@@ -539,30 +542,35 @@ public class ApiSourceControlService
       String user = getUser(gitRepositoryInfo);
       ApiUserRateLimitsDTO dto = rateLimitsByUser.get(user);
       if (dto != null) {
-        dto.definingOwnerIds.addAll(definingOwnerIdsByToken.get(sourceControl.getToken()));
-        dto.associatedApplicationIds.add(applicationId);
+        dto.definingOwners.addAll(
+            definingOwnersByToken.get(sourceControl.getToken()).stream().map(ApiOwnerDTO::fromOwner).collect(
+                Collectors.toSet()));
+        dto.associatedApplications.add(ApiOwnerDTO.fromOwner(application));
       }
       else {
         dto = new ApiUserRateLimitsDTO();
         dto.user = user;
-        dto.definingOwnerIds = new LinkedHashSet<>();
-        dto.definingOwnerIds.addAll(definingOwnerIdsByToken.get(sourceControl.getToken()));
-        dto.associatedApplicationIds = new LinkedHashSet<>();
-        dto.associatedApplicationIds.add(applicationId);
+        dto.provider = sourceControl.getProvider();
+        dto.definingOwners = new TreeSet<>();
+        dto.definingOwners.addAll(
+            definingOwnersByToken.get(sourceControl.getToken()).stream().map(ApiOwnerDTO::fromOwner).collect(
+                Collectors.toSet()));
+        dto.associatedApplications = new TreeSet<>();
+        dto.associatedApplications.add(ApiOwnerDTO.fromOwner(application));
         dto.rateLimits = getRateLimits(sourceControl).getRateLimitResponses().stream().map(ApiRateLimitDTO::convert)
             .sorted(Comparator.comparing(rateLimitDTO -> rateLimitDTO.category)).collect(Collectors.toList());
         rateLimitsByUser.put(user, dto);
       }
     }
     catch (Exception e) {
-      log.error("Unable to determine rate limits for application with ID {}.", applicationId, e);
+      log.error("Unable to determine rate limits for application with ID {}.", application.getId(), e);
     }
   }
 
-  private String getOwnerIdDefiningToken(List<SourceControl> sourceControlsInHierarchy) {
+  private Owner getOwnerDefiningToken(List<SourceControl> sourceControlsInHierarchy) {
     for (SourceControl sourceControl : sourceControlsInHierarchy) {
       if (sourceControl.getToken() != null) {
-        return sourceControl.getOwnerId();
+        return ownerDAO.getById(sourceControl.getOwnerId());
       }
     }
     return null;

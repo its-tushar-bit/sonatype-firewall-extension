@@ -90,6 +90,7 @@ import toastSlice from '../toastContainer/toastSlice';
 import vulnerabilityCustomizeSlice from 'MainRoot/vulnerabilityCustomize/vulnerabilityCustomizeSlice';
 import baseUrlConfigurationSlice from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
 import waivedComponentUpgradesConfigurationSlice from 'MainRoot/configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfigurationSlice';
+import sourceControlRateLimitsSlice from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimitsSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -178,4 +179,5 @@ export default combineReducers({
   toast: toastSlice,
   baseUrlConfiguration: baseUrlConfigurationSlice,
   waivedComponentUpgradesConfiguration: waivedComponentUpgradesConfigurationSlice,
+  sourceControlRateLimits: sourceControlRateLimitsSlice,
 });

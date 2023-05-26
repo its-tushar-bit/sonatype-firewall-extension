@@ -159,6 +159,7 @@
 @use '../../frontend/owner.manager/navigation/ownerDetailSidebar';
 @use '../firewallOnboarding/firewallOnboarding';
 @use '../configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfiguration';
+@use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

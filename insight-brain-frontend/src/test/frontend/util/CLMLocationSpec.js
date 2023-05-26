@@ -1223,4 +1223,12 @@ describe('CLMLocation.js', function () {
       );
     });
   });
+
+  describe('getSourceControlRateLimitsUrl', () => {
+    it('returns url for source control rate limits with the given owner type and owner id parameters', () => {
+      const expectedUrl = '/api/experimental/sourceControl/someType/someId/rateLimits';
+
+      expect(clmLocation.getSourceControlRateLimitsUrl('someType', 'someId')).toEqual(expectedUrl);
+    });
+  });
 });

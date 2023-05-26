@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -916,17 +917,27 @@ public abstract class DefaultPolicyEvaluatorTest
         "src/test/data/artifact.jar"
     );
 
-    withTestRunner(params).doPolicyEvaluationRun();
+    // This creates labels at root org level. We need to remove them after the test.
+    LabelDAO labelDAO = new LabelDAO();
+    Set<String> oldLabelIds = labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).stream().map(Label::getId)
+        .collect(Collectors.toSet());
+    try {
+      withTestRunner(params).doPolicyEvaluationRun();
 
-    Label label = new LabelDAO().getByLabelWithHierarchy("Security-Reachable", app.getId());
-    assertThat(label).isNotNull();
+      Label label = new LabelDAO().getByLabelWithHierarchy("Security-Reachable", app.getId());
+      assertThat(label).isNotNull();
 
-    if (label != null) {
-      ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-      try (TransactionContext tx = componentLabelDAO.createTransactionContext()) {
-        assertThat(componentLabelDAO.getByLabelIdAndOwnerIds(tx, label.getId(), Collections.singleton(app.getId())))
-            .isNotEmpty();
+      if (label != null) {
+        ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+        try (TransactionContext tx = componentLabelDAO.createTransactionContext()) {
+          assertThat(componentLabelDAO.getByLabelIdAndOwnerIds(tx, label.getId(), Collections.singleton(app.getId())))
+              .isNotEmpty();
+        }
       }
+    }
+    finally {
+      List<Label> labels = new LabelDAO().getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      labels.stream().filter(label -> !oldLabelIds.contains(label.getId())).forEach(labelDAO::delete);
     }
   }
 

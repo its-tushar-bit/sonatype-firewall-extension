@@ -146,9 +146,17 @@ public class ApplicationComponentLicenseDAO
   }
 
   public void deleteByApplicationComponentId(TransactionContext tx, String applicationComponentId) {
-    String sQuery = "DELETE FROM ApplicationComponentLicense entity" + //
-        " WHERE entity.applicationComponentId=?1";
-    createQuery(sQuery, applicationComponentId).executeUpdate(tx);
+    if (detectTestEntityLeaks()) {
+      // This is never executed in production
+      List<ApplicationComponentLicense> applicationComponentLicenses =
+          getByApplicationComponentId(tx, applicationComponentId);
+      applicationComponentLicenses.forEach(applicationComponentLicense -> delete(tx, applicationComponentLicense));
+    }
+    else {
+      String sQuery = "DELETE FROM ApplicationComponentLicense entity" + //
+          " WHERE entity.applicationComponentId=?1";
+      createQuery(sQuery, applicationComponentId).executeUpdate(tx);
+    }
   }
 
   public void deleteByApplicationComponentId(String applicationComponentId) {

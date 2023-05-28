@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.UriBuilder;
 
@@ -13,24 +16,35 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.git.dto.ImportResults;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganizationImportEventDAO;
+import com.sonatype.insight.brain.git.dto.ImportFailures;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationStatus;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationTicket;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent.ImportStatus;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.EXPERIMENTAL_ONBOARDING_RESOURCE_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class DefaultApiScmOnboardingResourceTest
     extends AbstractScmOnboardingResourceTest
 {
+  private static final Pattern STATUS_URL_PATTERN = Pattern.compile(
+      "api/experimental/onboarding/importRepositories/[a-f0-9]*/event/(?<eventId>[a-f0-9]*)");
+
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private SourceControlOrganizationImportEventDAO scmImportEventDao = new SourceControlOrganizationImportEventDAO();
 
   @Override
   protected HttpRequest restRequest() {
@@ -55,15 +69,22 @@ public class DefaultApiScmOnboardingResourceTest
         .body(importRequest)
         .post();
 
-    assertResponseStatus(200, response);
+    assertResponseStatus(202, response);
+    ImportScmOrganizationTicket importTicket = response.getBody(ImportScmOrganizationTicket.class);
+    assertThat(importTicket.statusUrl).matches(STATUS_URL_PATTERN);
+    String eventId = extractEventId(importTicket);
+
+    await().atMost(10, TimeUnit.SECONDS).until(() ->
+        ImportStatus.COMPLETE.equals(scmImportEventDao.getById(eventId).getImportStatus()));
 
     List<Organization> childOrgs = organizationDAO.getByParentOrganizationId(org.getId());
-    tempEntity.register(childOrgs.toArray(new Organization[0]));
     assertThat(childOrgs).hasSize(3);
+    tempEntity.register(childOrgs.toArray(new Organization[0]));
+    SourceControlOrganizationImportEvent importEvent = scmImportEventDao.getById(eventId);
+    assertThat(importEvent.getLastUpdatedTime()).isAfter(importEvent.getStartTime());
 
-    ImportResults importResults = response.getBody(ImportResults.class);
-    List<SCMRepository> importedRepoList = importResults.getImportedRepositories();
-    assertThat(importedRepoList).hasSize(13);
+    ImportFailures importResults = JsonUtils.parse(importEvent.getImportErrors().getBytes(), ImportFailures.class);
+    assertThat(importResults.failures).isEmpty();
 
     List<Integer> importedAppCountsPerOrg =
         childOrgs.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
@@ -89,10 +110,18 @@ public class DefaultApiScmOnboardingResourceTest
         .body(importRequest)
         .post();
 
-    assertResponseStatus(200, response);
-    ImportResults importResults = response.getBody(ImportResults.class);
-    List<SCMRepository> importedRepoList = importResults.getImportedRepositories();
-    assertThat(importedRepoList).hasSize(5);
+    assertResponseStatus(202, response);
+    ImportScmOrganizationTicket importTicket = response.getBody(ImportScmOrganizationTicket.class);
+    assertThat(importTicket.statusUrl).matches(STATUS_URL_PATTERN);
+    String eventId = extractEventId(importTicket);
+
+    await().atMost(10, TimeUnit.SECONDS).until(() ->
+        ImportStatus.COMPLETE.equals(scmImportEventDao.getById(eventId).getImportStatus()));
+    SourceControlOrganizationImportEvent importEvent = scmImportEventDao.getById(eventId);
+    assertThat(importEvent.getLastUpdatedTime()).isAfter(importEvent.getStartTime());
+
+    ImportFailures importResults = JsonUtils.parse(importEvent.getImportErrors().getBytes(), ImportFailures.class);
+    assertThat(importResults.failures).isEmpty();
 
     assertThat(applicationDAO.getByOrganizationId(org.getId())).hasSize(5);
   }
@@ -110,5 +139,89 @@ public class DefaultApiScmOnboardingResourceTest
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).contains("Cannot find organization with ID orgThatDoesNotExist");
+  }
+
+  @Test
+  public void testGetImportRepositoriesStatus_Completed() throws Exception {
+    mockRepoForPage(gitService, 1, getResourceAsString("/ScmOnboardingServiceTest/allRepos0.json"));
+    mockRepoForPage(gitService, 2, getResourceAsString("/ScmOnboardingServiceTest/emptyResponse.json"));
+
+    PasswordHandler pwHandler = getCLMServer().getInstance(PasswordHandler.class);
+    String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
+    tempEntity.newSourceControl(org.getId(), null, encryptedPwd, SourceControlProvider.GITHUB);
+
+    ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
+    importRequest.scmHostUrl = gitService.baseUrl();
+    importRequest.importLimit = 5;
+
+    HttpResponse submitResponse = restRequest()
+        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_PATH).build(org.getId()).toString())
+        .body(importRequest)
+        .post();
+
+    assertResponseStatus(202, submitResponse);
+    ImportScmOrganizationTicket importTicket = submitResponse.getBody(ImportScmOrganizationTicket.class);
+    assertThat(importTicket.statusUrl).matches(STATUS_URL_PATTERN);
+    String eventId = extractEventId(importTicket);
+
+    await().atMost(10, TimeUnit.SECONDS).until(() ->
+        ImportStatus.COMPLETE.equals(scmImportEventDao.getById(eventId).getImportStatus()));
+
+    HttpResponse statusResponse = restRequest()
+        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
+            .build(org.getId(), eventId).toString())
+        .get();
+
+    assertResponseStatus(200, statusResponse);
+
+    ImportScmOrganizationStatus importStatus = statusResponse.getBody(ImportScmOrganizationStatus.class);
+    assertThat(importStatus.status).isEqualTo(ImportStatus.COMPLETE.toString());
+    assertThat(importStatus.importSuccessCount).isEqualTo(5);
+    assertThat(importStatus.importFailureCount).isZero();
+    assertThat(importStatus.request.scmHostUrl).isEqualTo(gitService.baseUrl());
+    assertThat(importStatus.request.importLimit).isEqualTo(5);
+    assertThat(importStatus.lastUpdatedTimeAsDate()).isNotNull().isAfterOrEqualTo(importStatus.startTimeAsDate());
+    assertThat(importStatus.request.desiredSubOrganizationCount).isZero();
+
+    ImportFailures importResults = JsonUtils.parse(importStatus.errors.getBytes(), ImportFailures.class);
+    assertThat(importResults.failures).isEmpty();
+  }
+
+  @Test
+  public void testGetImportRepositoriesStatus_InProgress() throws Exception {
+    SourceControlOrganizationImportEvent importEvent =
+        tempEntity.newSourceControlOrganizationImportEvent(org.getId(), "scm-url", 5, 0);
+
+    HttpResponse statusResponse = restRequest()
+        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
+            .build(org.getId(), importEvent.getId()).toString())
+        .get();
+
+    assertResponseStatus(200, statusResponse);
+    ImportScmOrganizationStatus importStatus = statusResponse.getBody(ImportScmOrganizationStatus.class);
+    assertThat(importStatus.status).isEqualTo(ImportStatus.IN_PROGRESS.toString());
+    assertThat(importStatus.importSuccessCount).isZero();
+    assertThat(importStatus.importFailureCount).isZero();
+    assertThat(importStatus.request.scmHostUrl).isEqualTo("scm-url");
+    assertThat(importStatus.request.importLimit).isEqualTo(5);
+    assertThat(importStatus.lastUpdatedTimeAsDate()).isNotNull().isAfterOrEqualTo(importStatus.startTimeAsDate());
+    assertThat(importStatus.request.desiredSubOrganizationCount).isZero();
+    assertThat(importStatus.errors).isNull();
+  }
+
+  @Test
+  public void testGetImportRepositoriesStatus_NotFound() throws Exception {
+    HttpResponse statusResponse = restRequest()
+        .path(UriBuilder.fromPath(DefaultApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
+            .build(org.getId(), "nonExistentId").toString())
+        .get();
+
+    assertResponseStatus(404, statusResponse);
+  }
+
+  private static String extractEventId(final ImportScmOrganizationTicket importTicket) {
+    Matcher matcher = STATUS_URL_PATTERN.matcher(importTicket.statusUrl);
+    matcher.find();
+    return matcher.group("eventId");
   }
 }

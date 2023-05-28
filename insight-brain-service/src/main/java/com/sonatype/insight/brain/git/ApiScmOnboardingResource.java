@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
+import javax.ws.rs.core.Response;
 
-import com.sonatype.insight.brain.git.dto.ImportResults;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationStatus;
 
 public interface ApiScmOnboardingResource
 {
-  ImportResults importRepositories(String orgId, ImportScmOrganizationRequest importRequest) throws IOException;
+  Response importRepositories(String orgId, ImportScmOrganizationRequest importRequest);
+
+  ImportScmOrganizationStatus getImportRepositoriesStatus(String organizationId, String importEventId);
 }

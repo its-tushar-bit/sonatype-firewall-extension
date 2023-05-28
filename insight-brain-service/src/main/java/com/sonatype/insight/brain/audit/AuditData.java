@@ -12,6 +12,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -422,6 +423,15 @@ public abstract class AuditData
     if (successMetricsReport != null) {
       setData("reportId", successMetricsReport.getId());
       setData("reportName", successMetricsReport.getName());
+    }
+    return this;
+  }
+
+  public AuditData setScmImportEvent(final ImportScmOrganizationRequest importRequest) {
+    if (importRequest != null) {
+      setData("scmHostUrl", importRequest.scmHostUrl);
+      setData("desiredSubOrganizationCount", importRequest.desiredSubOrganizationCount);
+      setData("importLimit", importRequest.importLimit);
     }
     return this;
   }

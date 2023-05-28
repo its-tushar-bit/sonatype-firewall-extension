@@ -19,4 +19,19 @@ public class ImportScmOrganizationRequest
    * </ul>
    */
   public int importLimit = -1;
+
+  public ImportScmOrganizationRequest() {
+    //no-op
+  }
+
+  public ImportScmOrganizationRequest(
+      final String scmHostUrl,
+      final Integer importLimit,
+      final Integer desiredSubOrganizationCount)
+  {
+
+    this.scmHostUrl = scmHostUrl;
+    this.importLimit = importLimit;
+    this.desiredSubOrganizationCount = desiredSubOrganizationCount;
+  }
 }

@@ -112,6 +112,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigur
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganizationImportEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
@@ -235,6 +236,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
@@ -525,6 +527,9 @@ public class TemporaryEntity
   private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO =
       new SourceControlPullRequestResultDAO();
 
+  private final SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO =
+      new SourceControlOrganizationImportEventDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -633,6 +638,8 @@ public class TemporaryEntity
 
   private Collection<ProprietaryComponentNamePattern> proprietaryComponentNamePatterns;
 
+  private Collection<SourceControlOrganizationImportEvent> sourceControlOrganizationImportEvents;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -690,6 +697,7 @@ public class TemporaryEntity
     repositoryIdentifiedComponents = new ArrayList<>();
     sourceControlPullRequestResults = new ArrayList<>();
     proprietaryComponentNamePatterns = new ArrayList<>();
+    sourceControlOrganizationImportEvents = new ArrayList<>();
 
     // Disable search
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
@@ -751,6 +759,7 @@ public class TemporaryEntity
     delete(userFilters, userFilterDAO);
     delete(policyTags, policyTagDAO);
     delete(pullRequestCommentDAO.getAll(), pullRequestCommentDAO);
+    delete(sourceControlOrganizationImportEvents, sourceControlOrganizationImportEventDAO);
     delete(defaultBranchCommitHistoryDAO.getAll(), defaultBranchCommitHistoryDAO);
     orgs.forEach(org -> apps.addAll(appDAO.getByOrganizationId(org.getId())));
     delete(apps, appDAO);
@@ -1300,6 +1309,10 @@ public class TemporaryEntity
 
   public void register(VulnerabilityGroup... vulnerabilityGroup) {
     Collections.addAll(this.vulnerabilityGroups, vulnerabilityGroup);
+  }
+
+  public void register(SourceControlOrganizationImportEvent ... sourceControlOrganizationImportEvents) {
+    Collections.addAll(this.sourceControlOrganizationImportEvents, sourceControlOrganizationImportEvents);
   }
 
   public Application newApplicationWithParent() {
@@ -4440,5 +4453,29 @@ public class TemporaryEntity
     proprietaryComponentNamePatterns.add(proprietaryComponentNamePattern);
     return proprietaryComponentNamePattern;
   }
-}
 
+  public SourceControlOrganizationImportEvent newSourceControlOrganizationImportEvent(
+      String organizationId,
+      String scmUrl,
+      int importLimit,
+      int desiredSubOrganizationCount)
+  {
+    SourceControlOrganizationImportEvent event = new SourceControlOrganizationImportEvent()
+        .setOrganizationId(organizationId)
+        .setScmHostUrl(scmUrl)
+        .setImportLimit(importLimit)
+        .setDesiredSubOrganizationCount(desiredSubOrganizationCount);
+    sourceControlOrganizationImportEventDAO.insert(event);
+    sourceControlOrganizationImportEvents.add(event);
+    return event;
+  }
+
+  public SourceControlOrganizationImportEvent newSourceControlOrganizationImportEvent() {
+    SourceControlOrganizationImportEvent event = new SourceControlOrganizationImportEvent();
+    event.setOrganizationId(newOrganization().getId());
+    event.setScmHostUrl("https://scmhost/org/");
+    sourceControlOrganizationImportEventDAO.insert(event);
+    sourceControlOrganizationImportEvents.add(event);
+    return event;
+  }
+}

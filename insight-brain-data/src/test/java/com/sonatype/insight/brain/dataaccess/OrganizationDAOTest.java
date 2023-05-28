@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganizationImportEventDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
@@ -591,6 +592,15 @@ public class OrganizationDAOTest
     dao.delete(organization);
 
     assertThat(new SourceControlDAO().getById(sourceControl.getId())).isNull();
+  }
+
+  @Test
+  public void testCascadeDeleteToSourceControlOrganizationImportEvents() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newSourceControlOrganizationImportEvent(org.getId(), "scm-url", -1, 0);
+
+    dao.delete(org);
+    assertThat(new SourceControlOrganizationImportEventDAO().getByOrganizationId(org.getId())).isEmpty();
   }
 
   @Test

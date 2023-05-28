@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganizationImportEventDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -209,6 +211,12 @@ public class OrganizationDAO
     RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
     for (RepositoryConnection repositoryConnection : repositoryConnectionDAO.getByOwnerId(tx, organization.getId())) {
       repositoryConnectionDAO.delete(tx, repositoryConnection);
+    }
+
+    //Cascade to source control on-boarding events
+    SourceControlOrganizationImportEventDAO scmEventDao = new SourceControlOrganizationImportEventDAO();
+    for (SourceControlOrganizationImportEvent importEvent : scmEventDao.getByOrganizationId(tx, organization.getId())) {
+      scmEventDao.delete(tx, importEvent);
     }
 
     super.delete(tx, organization);

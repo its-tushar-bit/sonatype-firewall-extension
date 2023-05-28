@@ -62,6 +62,7 @@
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory</class>
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest</class>
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment</class>
+    <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent</class>
     <class>com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternal</class>
     <class>com.sonatype.insight.brain.model.security.UserToken</class>
     <class>com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration</class>

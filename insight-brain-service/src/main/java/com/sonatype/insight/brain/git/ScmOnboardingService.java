@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,19 +20,27 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlService;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganizationImportEventDAO;
 import com.sonatype.insight.brain.git.dto.ImportFailure;
+import com.sonatype.insight.brain.git.dto.ImportFailures;
 import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
 import com.sonatype.insight.brain.git.dto.ImportResults;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationStatus;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationTicket;
 import com.sonatype.insight.brain.git.dto.OnboardingOrganization;
 import com.sonatype.insight.brain.git.dto.SCMRepositories;
 import com.sonatype.insight.brain.git.dto.ValidationResponse;
@@ -42,6 +52,8 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent.ImportStatus;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -51,6 +63,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.GitApiClientFactory;
@@ -59,8 +72,10 @@ import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
+import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -80,7 +95,10 @@ import static java.util.stream.Collectors.counting;
  *
  * @since 1.98
  */
+@Named
+@Singleton
 public class ScmOnboardingService
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(ScmOnboardingService.class);
 
@@ -90,6 +108,8 @@ public class ScmOnboardingService
 
   public static final int INITIAL_RENAME_POSTFIX = 2;
 
+  private static final int IMPORT_EVENT_STATUS_UPDATE_THRESHOLD = 100;
+
   private final SourceControlDAO sourceControlDAO;
 
   private SourceControlEventPublisher sourceControlEventPublisher;
@@ -97,6 +117,8 @@ public class ScmOnboardingService
   private final ApplicationDAO appDAO;
 
   private final OrganizationDAO orgDAO;
+
+  private final SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO;
 
   private final ApplicationHelper applicationHelper;
 
@@ -116,12 +138,15 @@ public class ScmOnboardingService
 
   private SourceControlUtils sourceControlUtils;
 
+  private final SourceControlImportThreadPoolExecutor executor;
+
   @Inject
   public ScmOnboardingService(
       final SourceControlDAO sourceControlDAO,
       final SourceControlEventPublisher sourceControlEventPublisher,
       final ApplicationDAO appDAO,
       final OrganizationDAO orgDAO,
+      final SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO,
       final ApplicationHelper applicationHelper,
       final ApiSourceControlService apiSourceControlService,
       final ApiCompositeSourceControlService apiCompositeSourceControlService,
@@ -136,6 +161,7 @@ public class ScmOnboardingService
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
+    this.sourceControlOrganizationImportEventDAO = sourceControlOrganizationImportEventDAO;
     this.applicationHelper = applicationHelper;
     this.apiSourceControlService = apiSourceControlService;
     this.apiCompositeSourceControlService = apiCompositeSourceControlService;
@@ -145,6 +171,17 @@ public class ScmOnboardingService
     this.applicationNameConverter = applicationNameConverter;
     this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
+    executor = new SourceControlImportThreadPoolExecutor();
+  }
+
+  @Override
+  public void start() throws Exception {
+    //no-op
+  }
+
+  @Override
+  public void stop() throws Exception {
+    executor.shutdown();
   }
 
   @Authorize(permission = Permission.ADD_APPLICATION)
@@ -316,20 +353,64 @@ public class ScmOnboardingService
       throw new BadRequestException("SCM Repositories must not be null");
     }
 
+    return doImportRepositories(orgId, importReposRequest, null);
+  }
+
+  private ImportResults doImportRepositories(
+      final String orgId,
+      final ImportRepositoriesRequest importReposRequest,
+      final SourceControlOrganizationImportEvent importEvent)
+  {
     ArrayList<SCMRepository> importedRepos = new ArrayList<>();
     ArrayList<ImportFailure> failedRepos = new ArrayList<>();
+    MutableInt successCounter = new MutableInt(1);
+    MutableInt failureCounter = new MutableInt(0);
     for (SCMRepository scmRepository : importReposRequest.scmRepositories) {
       try {
         SCMRepository importResult = importRepositoryAndInitiatePolicyEvaluation(orgId, scmRepository);
         importedRepos.add(importResult);
+        successCounter.add(1);
       }
       catch (Exception e) {
         log.error("Unable to import repository {}", scmRepository, e);
         failedRepos.add(new ImportFailure(scmRepository, e.getMessage()));
+        failureCounter.add(1);
       }
+      //periodically update the event in the case of a large SCM import
+      updateImportEventIntermediateState(importEvent, successCounter, failureCounter);
     }
     sendImportTelemetry(importReposRequest);
     return new ImportResults(importedRepos, failedRepos);
+  }
+
+  private void updateImportEventIntermediateState(
+      final SourceControlOrganizationImportEvent importEvent,
+      final MutableInt successCount,
+      final MutableInt failureCount)
+  {
+    if (importEvent != null &&
+        (successCount.getValue() + failureCount.getValue()) >= IMPORT_EVENT_STATUS_UPDATE_THRESHOLD) {
+      updateImportEventIntermediateState(importEvent,
+          importEvent.getImportSuccessCount() + successCount.getValue(),
+          importEvent.getImportFailureCount() + failureCount.getValue());
+      successCount.setValue(1);
+      failureCount.setValue(0);
+    }
+  }
+
+  private void updateImportEventIntermediateState(
+      SourceControlOrganizationImportEvent event,
+      int successCount,
+      int failedCount)
+  {
+    event.setLastUpdatedTime(getTimeNow());
+    event.setImportSuccessCount(successCount);
+    event.setImportFailureCount(failedCount);
+    sourceControlOrganizationImportEventDAO.update(event);
+  }
+
+  private static Date getTimeNow() {
+    return Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
   }
 
   private void sendImportTelemetry(final ImportRepositoriesRequest importReposRequest) {
@@ -542,37 +623,62 @@ public class ScmOnboardingService
   }
 
   @Authorize(permission = Permission.ADD_APPLICATION)
-  public ImportResults importScmOrganization(
+  public ImportScmOrganizationStatus getImportScmOrganizationStatus(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String orgId,
+      final String eventId)
+  {
+    SourceControlOrganizationImportEvent event =
+        sourceControlOrganizationImportEventDAO.getByOrganizationAndEventId(orgId, eventId);
+    if (event == null) {
+      throw new NotFoundException("import event not found");
+    }
+    return createImportScmOrganizationStatusFrom(event);
+  }
+
+  private ImportScmOrganizationStatus createImportScmOrganizationStatusFrom(
+      final SourceControlOrganizationImportEvent event)
+  {
+    ImportScmOrganizationRequest request =
+        new ImportScmOrganizationRequest(event.getScmHostUrl(), event.getImportLimit(),
+            event.getDesiredSubOrganizationCount());
+    ImportScmOrganizationStatus status =
+        new ImportScmOrganizationStatus(request, event.getImportStatus().toString(), event.getImportSuccessCount(),
+            event.getImportFailureCount());
+    status.updateStartTime(event.getStartTime());
+    status.updateLastUpdatedTime(event.getLastUpdatedTime());
+    if (ImportStatus.COMPLETE.equals(event.getImportStatus()) || ImportStatus.ERROR.equals(event.getImportStatus())) {
+      status.errors = event.getImportErrors();
+    }
+    return status;
+  }
+
+  @Authorize(permission = Permission.ADD_APPLICATION)
+  public ImportScmOrganizationTicket importScmOrganization(
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String orgId,
       final ImportScmOrganizationRequest importRequest)
-      throws IOException
   {
+    AuditData.get().setScmImportEvent(importRequest);
     validateImportRequest(importRequest);
+    SourceControlOrganizationImportEvent importEvent = new SourceControlOrganizationImportEvent()
+        .setOrganizationId(orgId)
+        .setScmHostUrl(importRequest.scmHostUrl)
+        .setImportLimit(importRequest.importLimit)
+        .setLastUpdatedTime(getTimeNow())
+        .setDesiredSubOrganizationCount(importRequest.desiredSubOrganizationCount);
 
-    String limit = importRequest.importLimit > 0 ? String.valueOf(importRequest.importLimit) : "all";
-    log.debug("Onboarding {} scm repositories for org {} and hostUrl {}", limit, orgId, importRequest.scmHostUrl);
+    sourceControlOrganizationImportEventDAO.insert(importEvent);
+    ImportScmOrganizationTicket ticket = createImportTicketFor(importEvent);
+    AuditData.get().continueAsync(importTask(importEvent), executor::submit);
+    return ticket;
+  }
 
-    SCMRepositories scmRepositories = loadScmRepositories(orgId, importRequest.scmHostUrl);
-    if (CollectionUtils.isEmpty(scmRepositories.availableRepositories)) {
-      log.debug("No available scm repositories to onboard from {} total repositories",
-          scmRepositories.totalRepositories);
-      return new ImportResults(Collections.emptyList(), Collections.emptyList());
-    }
-
-    log.debug("{} repositories importable from {} available repositories", scmRepositories.availableRepositories.size(),
-        scmRepositories.totalRepositories);
-
-    if (importRequest.desiredSubOrganizationCount == 0) {
-      int numberOfReposToImport = determineNumberOfReposToImport(importRequest, scmRepositories);
-      List<SCMRepository> selectedReposToImport =
-          scmRepositories.getAvailableRepositories().stream().limit(numberOfReposToImport).collect(Collectors.toList());
-      ImportRepositoriesRequest importRepoRequest =
-          new ImportRepositoriesRequest(selectedReposToImport, scmRepositories.totalRepositories, 0);
-      return importRepositories(orgId, importRepoRequest);
-    }
-    else {
-      return createSubOrganizationsAndImportRepositories(orgId, importRequest, scmRepositories);
-    }
+  private ImportScmOrganizationTicket createImportTicketFor(final SourceControlOrganizationImportEvent importEvent) {
+    ImportScmOrganizationTicket ticket = new ImportScmOrganizationTicket();
+    ticket.statusUrl = PublicApiPaths.EXPERIMENTAL_ONBOARDING_RESOURCE_PATH + "/" +
+        DefaultApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH
+            .replace("{organizationId}", importEvent.getOrganizationId())
+            .replace("{eventId}", importEvent.getId());
+    return ticket;
   }
 
   private static void validateImportRequest(final ImportScmOrganizationRequest importRequest) {
@@ -587,31 +693,95 @@ public class ScmOnboardingService
     }
   }
 
+  private Runnable importTask(final SourceControlOrganizationImportEvent event) {
+    return () -> doScmOrganizationImport(event);
+  }
+  //visible for testing
+
+  void doScmOrganizationImport(final SourceControlOrganizationImportEvent event) {
+    String limit = event.getImportLimit() > 0 ? String.valueOf(event.getImportLimit()) : "all";
+    log.debug("Onboarding {} scm repositories for org {} and hostUrl {}", limit, event.getOrganizationId(),
+        event.getScmHostUrl());
+
+    try {
+      SCMRepositories scmRepositories = loadScmRepositories(event.getOrganizationId(), event.getScmHostUrl());
+
+      if (CollectionUtils.isEmpty(scmRepositories.availableRepositories)) {
+        log.debug("No available scm repositories to onboard from {} total repositories",
+            scmRepositories.totalRepositories);
+        ImportResults results = new ImportResults(emptyList(), emptyList());
+        completeImportEventWithResults(event, results);
+      }
+      else {
+        log.debug("{} repositories importable from {} available repositories",
+            scmRepositories.availableRepositories.size(),
+            scmRepositories.totalRepositories);
+
+        if (event.getDesiredSubOrganizationCount() == 0) {
+          int numberOfReposToImport = determineNumberOfReposToImport(event, scmRepositories);
+          List<SCMRepository> selectedReposToImport =
+              scmRepositories.getAvailableRepositories().stream().limit(numberOfReposToImport)
+                  .collect(Collectors.toList());
+          ImportRepositoriesRequest importRepoRequest =
+              new ImportRepositoriesRequest(selectedReposToImport, scmRepositories.totalRepositories, 0);
+          ImportResults results =
+              doImportRepositories(event.getOrganizationId(), importRepoRequest, event);
+          completeImportEventWithResults(event, results);
+        }
+        else {
+          ImportResults results = createSubOrganizationsAndImportRepositories(event, scmRepositories);
+          completeImportEventWithResults(event, results);
+        }
+      }
+    }
+    catch (IOException e) {
+      event.setImportStatus(ImportStatus.ERROR);
+      event.setImportErrors(ExceptionUtils.getStackTrace(e));
+      sourceControlOrganizationImportEventDAO.update(event);
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void completeImportEventWithResults(
+      final SourceControlOrganizationImportEvent event,
+      final ImportResults results)
+  {
+    event.setImportStatus(ImportStatus.COMPLETE);
+    event.setLastUpdatedTime(getTimeNow());
+    if (results != null) {
+      event.setImportErrors(JsonUtils.writeUnformatted(new ImportFailures(results.getFailedRepositories())));
+      event.setImportSuccessCount(results.getImportedRepositories().size());
+      event.setImportFailureCount(results.getFailedImportCount());
+    }
+    sourceControlOrganizationImportEventDAO.update(event);
+  }
+
   private ImportResults createSubOrganizationsAndImportRepositories(
-      final String orgId,
-      final ImportScmOrganizationRequest importRequest,
+      final SourceControlOrganizationImportEvent event,
       final SCMRepositories scmRepositories)
   {
-    int numberOfReposToImport = determineNumberOfReposToImport(importRequest, scmRepositories);
+    int numberOfReposToImport = determineNumberOfReposToImport(event, scmRepositories);
     List<SCMRepository> selectedReposToImport =
         scmRepositories.getAvailableRepositories().stream().limit(numberOfReposToImport).collect(Collectors.toList());
-    List<List<SCMRepository>> repoBatches = partition(selectedReposToImport, importRequest.desiredSubOrganizationCount);
+    List<List<SCMRepository>> repoBatches = partition(selectedReposToImport, event.getDesiredSubOrganizationCount());
     log.debug("importing {} repositories in to {} child organizations within organization [{}]", numberOfReposToImport,
-        repoBatches.size(), orgId);
+        repoBatches.size(), event.getOrganizationId());
 
-    Organization parentOrg = orgDAO.getByIdNotNull(orgId);
+    Organization parentOrg = orgDAO.getByIdNotNull(event.getOrganizationId());
     MutableInt prevImportedCount = new MutableInt(0);
     int totalRepoCount = scmRepositories.totalRepositories;
     List<SCMRepository> allImportedRepositories = new ArrayList<>();
     List<ImportFailure> allFailedRepositories = new ArrayList<>();
     for (int i = 0; i < repoBatches.size(); i++) {
-      importRepositoryBatch(repoBatches, parentOrg, prevImportedCount, totalRepoCount, allImportedRepositories,
+      importRepositoryBatch(event, repoBatches, parentOrg, prevImportedCount, totalRepoCount, allImportedRepositories,
           allFailedRepositories, i);
+      updateImportEventIntermediateState(event, allImportedRepositories.size(), allFailedRepositories.size());
     }
     return new ImportResults(allImportedRepositories, allFailedRepositories);
   }
 
   private void importRepositoryBatch(
+      final SourceControlOrganizationImportEvent event,
       final List<List<SCMRepository>> repoGroups,
       final Organization parentOrg,
       final MutableInt prevImportedCount,
@@ -622,26 +792,21 @@ public class ScmOnboardingService
   {
     List<SCMRepository> repoGroup = repoGroups.get(batchIndex);
     int indexForOrgName = batchIndex + 1;
-    try {
-      Organization childOrg = newChildOrganization(parentOrg, indexForOrgName);
-      ImportRepositoriesRequest importRepositoriesRequest =
-          new ImportRepositoriesRequest(repoGroup, totalRepoCount, prevImportedCount.getAndAdd(repoGroup.size()));
-      ImportResults importResults = importRepositories(childOrg.getId(), importRepositoriesRequest);
-      allImportedRepositories.addAll(importResults.getImportedRepositories());
-      allFailedRepositories.addAll(importResults.getFailedRepositories());
-    }
-    catch (Exception e) {
-      log.error("failed to import {} repositories in to organization [{}]", repoGroup.size(),
-          parentOrg.getName() + "-" + indexForOrgName, e);
-    }
+
+    Organization childOrg = newChildOrganization(parentOrg, indexForOrgName);
+    ImportRepositoriesRequest importRepositoriesRequest =
+        new ImportRepositoriesRequest(repoGroup, totalRepoCount, prevImportedCount.getAndAdd(repoGroup.size()));
+    ImportResults importResults = doImportRepositories(childOrg.getId(), importRepositoriesRequest, event);
+    allImportedRepositories.addAll(importResults.getImportedRepositories());
+    allFailedRepositories.addAll(importResults.getFailedRepositories());
   }
 
   private static int determineNumberOfReposToImport(
-      final ImportScmOrganizationRequest importRequest,
+      final SourceControlOrganizationImportEvent event,
       final SCMRepositories scmRepositories)
   {
     return Integer.min(scmRepositories.availableRepositories.size(),
-        importRequest.importLimit < 0 ? scmRepositories.availableRepositories.size() : importRequest.importLimit);
+        event.getImportLimit() < 0 ? scmRepositories.availableRepositories.size() : event.getImportLimit());
   }
 
   private <T> List<List<T>> partition(List<T> items, final int noOfChunks) {

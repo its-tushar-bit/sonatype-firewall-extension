@@ -5,19 +5,23 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.git.dto.ImportResults;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationStatus;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -32,7 +36,9 @@ import com.codahale.metrics.annotation.Timed;
 public class DefaultApiScmOnboardingResource
     implements ApiScmOnboardingResource
 {
-  static final String IMPORT_REPO_PATH = "importRepositories/{orgId}";
+  static final String IMPORT_REPO_PATH = "importRepositories/{organizationId}";
+
+  static final String IMPORT_REPO_STATUS_PATH = IMPORT_REPO_PATH + "/event/{eventId}";
 
   private final ScmOnboardingService scmOnboardingService;
 
@@ -46,10 +52,23 @@ public class DefaultApiScmOnboardingResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public ImportResults importRepositories(
-      @PathParam("orgId") String orgId,
-      final ImportScmOrganizationRequest importRequest) throws IOException
+  @Audited(AuditEvent.SOURCE_CONTROL_IMPORT)
+  public Response importRepositories(
+      @PathParam("organizationId") String organizationId,
+      final ImportScmOrganizationRequest importRequest)
   {
-    return scmOnboardingService.importScmOrganization(orgId, importRequest);
+    return Response.status(Status.ACCEPTED)
+        .entity(scmOnboardingService.importScmOrganization(organizationId, importRequest)).build();
+  }
+
+  @Override
+  @Path(IMPORT_REPO_STATUS_PATH)
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public ImportScmOrganizationStatus getImportRepositoriesStatus(
+      @PathParam("organizationId") String organizationId,
+      @PathParam("eventId") String eventId)
+  {
+    return scmOnboardingService.getImportScmOrganizationStatus(organizationId,eventId);
   }
 }

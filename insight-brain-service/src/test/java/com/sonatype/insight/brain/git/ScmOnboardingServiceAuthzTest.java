@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.git.dto.OnboardingOrganization;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -171,5 +172,26 @@ public class ScmOnboardingServiceAuthzTest
   public void testImportScmOrganization_Authorized() throws IOException {
     grantAddApplicationPermission(org.getId());
     scmOnboardingService.importScmOrganization(org.getId(), new ImportScmOrganizationRequest());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetImportScmOrganizationStatus_Unauthenticated() throws Exception {
+    SourceControlOrganizationImportEvent event = tempEntity.newSourceControlOrganizationImportEvent();
+    scmOnboardingService.getImportScmOrganizationStatus(org.getId(), event.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetImportScmOrganizationStatus_Unauthorized() throws Exception {
+    login();
+    SourceControlOrganizationImportEvent event = tempEntity.newSourceControlOrganizationImportEvent();
+    scmOnboardingService.getImportScmOrganizationStatus(org.getId(), event.getId());
+  }
+
+  @Test
+  public void testGetImportScmOrganizationStatus_Authorized() throws Exception {
+    grantAddApplicationPermission(org.getId());
+    SourceControlOrganizationImportEvent event =
+        tempEntity.newSourceControlOrganizationImportEvent(org.getId(), "url", -1, 0);
+    assertThat(scmOnboardingService.getImportScmOrganizationStatus(org.getId(), event.getId())).isNotNull();
   }
 }

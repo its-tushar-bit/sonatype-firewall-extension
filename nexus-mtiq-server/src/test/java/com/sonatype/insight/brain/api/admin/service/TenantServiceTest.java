@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +48,11 @@ public class TenantServiceTest
 
     when(operationalDataStore.getDataSource()).thenReturn(dataSource);
     OperationalDataStoreProvider.setInstance(operationalDataStore);
+  }
+
+  @After
+  public void after() {
+    OperationalDataStoreProvider.setInstance(null);
   }
 
   @Test

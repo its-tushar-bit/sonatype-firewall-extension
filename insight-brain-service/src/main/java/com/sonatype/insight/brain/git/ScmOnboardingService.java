@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.git.dto.SCMRepositories;
 import com.sonatype.insight.brain.git.dto.ValidationResponse;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -74,6 +75,7 @@ import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -463,9 +465,7 @@ public class ScmOnboardingService
     String name = applicationNameConverter.buildName(scmRepository);
     Application app = appDAO.getByPublicId(publicId);
     if (app == null) {
-      log.debug("Creating Application entry, name: [{}], publicId: [{}]", name, publicId);
-      app = new Application(publicId, name, orgId);
-      applicationHelper.addApplication(app);
+      app = createNewApplication(orgId, publicId, name);
     }
     else {
       // app with this ID exists! This may happen because two repos share project/app ID across different
@@ -498,6 +498,25 @@ public class ScmOnboardingService
     }
 
     return scmRepository;
+  }
+
+  //visible for testing
+  Application createNewApplication(final String orgId, final String publicId, final String name) {
+    log.debug("Creating Application entry, name: [{}], publicId: [{}]", name, publicId);
+    Application app = new Application(publicId, name, orgId);
+    try {
+      applicationHelper.addApplication(app);
+    }
+    catch (InvalidNameException e) {
+      //closely named repos potentially results in duplicate names in `name_lowercase_no_whitespace` column causing
+      // a duplicate name exception (due to normalization and stripping off special characters, etc.)
+      // Adding a randomization to improve uniqueness (just once)
+      log.debug("Resulted app name {} conflicts with an existing app. Randomizing name and retrying", name);
+      String newName = String.format("%s-%s", name, RandomStringUtils.randomAlphabetic(5));
+      app = new Application(publicId, newName, orgId);
+      applicationHelper.addApplication(app);
+    }
+    return app;
   }
 
   private String getAndSetDefaultBranch(

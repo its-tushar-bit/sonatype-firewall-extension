@@ -52,6 +52,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -113,6 +114,9 @@ public class ScmOnboardingServiceTest
   @Inject
   private ScmOnboardingService scmOnboardingService;
 
+  @Rule
+  public LogOutput logOutput = new LogOutput(ScmOnboardingService.class);
+
   private Application app;
 
   private Organization org;
@@ -142,6 +146,9 @@ public class ScmOnboardingServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private ScmApplicationNameConverter scmApplicationNameConverter;
 
   private static final String ENC = "CMMDwoV";
 
@@ -1333,6 +1340,21 @@ public class ScmOnboardingServiceTest
   public void testGetImportScmOrganizationStatus_NotFound() {
     SourceControlOrganizationImportEvent event = tempEntity.newSourceControlOrganizationImportEvent();
     scmOnboardingService.getImportScmOrganizationStatus("orgId", event.getId());
+  }
+
+  @Test
+  public void testCreateNewApplication_RetryOnDuplicateName() {
+    Application existingApp = tempEntity.newApplication("Pdf Extract - Iq Scm", "pdfextract__IQ-SCM", org.getId());
+    SCMRepository scmRepository = newSCMRepository("http://example.com", "pdf-extract", "IQ-SCM");
+    String publicId = scmApplicationNameConverter.buildPublicId(scmRepository);
+    String name = scmApplicationNameConverter.buildName(scmRepository);
+    Application app = scmOnboardingService.createNewApplication(org.getId(), publicId, name);
+
+    assertThat(logOutput).atDebugLevel().contains(
+        String.format("Resulted app name %s conflicts with an existing app. Randomizing name and retrying",
+            existingApp.getName()));
+    assertThat(app.getName().length()).isGreaterThan(existingApp.getName().length());
+    assertThat(app.getName()).startsWith(existingApp.getName());
   }
 
   private SCMRepository newSCMRepository(String scmUrl, String project, String namespace) {

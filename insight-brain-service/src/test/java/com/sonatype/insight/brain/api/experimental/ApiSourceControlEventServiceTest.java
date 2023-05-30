@@ -42,7 +42,7 @@ public class ApiSourceControlEventServiceTest
     ApiSourceControlEventFilterDTO filter = new ApiSourceControlEventFilterDTO();
     SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     sourceControlEventDAO.markEventInProgress(event.getId());
-    sourceControlEventDAO.markEventComplete(event.getId());
+    sourceControlEventDAO.markEventHasError(event.getId(), "error message", new RuntimeException());
     filter.setCreatedOnOrAfter(new Date(now - 1000));
     filter.setAscending(true);
     filter.setLimit(10);
@@ -59,6 +59,8 @@ public class ApiSourceControlEventServiceTest
     assertThat(result.get(0).getStartTime()).isEqualTo(event.getStartTime());
     assertThat(result.get(0).getType()).isEqualTo(event.getEventType());
     assertThat(result.get(0).getStatus()).isEqualTo(event.getEventStatus());
+    assertThat(result.get(0).getStatusDetails()).isEqualTo(event.getEventStatusDetails());
+    assertThat(result.get(0).getErrorDetails()).isEqualTo(event.getEventErrorDetails());
     assertThat(result.get(0).getUser()).isEqualTo(event.getScmUsername());
     assertThat(result.get(0).getTimeExecuting())
         .isEqualTo(event.getCompleteTime().getTime() - event.getStartTime().getTime());
@@ -79,7 +81,7 @@ public class ApiSourceControlEventServiceTest
     ApiSourceControlEventFilterDTO filter = new ApiSourceControlEventFilterDTO();
     SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
     sourceControlEventDAO.markEventInProgress(event.getId());
-    sourceControlEventDAO.markEventComplete(event.getId());
+    sourceControlEventDAO.markEventHasError(event.getId(), "error message", new RuntimeException());
     filter.setCreatedOnOrAfter(new Date(now - 1000));
     filter.setAscending(true);
     filter.setLimit(10);
@@ -96,6 +98,8 @@ public class ApiSourceControlEventServiceTest
     assertThat(result.get(0).getStartTime()).isEqualTo(event.getStartTime());
     assertThat(result.get(0).getType()).isEqualTo(event.getEventType());
     assertThat(result.get(0).getStatus()).isEqualTo(event.getEventStatus());
+    assertThat(result.get(0).getStatusDetails()).isEqualTo(event.getEventStatusDetails());
+    assertThat(result.get(0).getErrorDetails()).isEqualTo(event.getEventErrorDetails());
     assertThat(result.get(0).getUser()).isEqualTo(event.getScmUsername());
     assertThat(result.get(0).getTimeExecuting())
         .isEqualTo(event.getCompleteTime().getTime() - event.getStartTime().getTime());

@@ -21,6 +21,10 @@ public class ApiSourceControlEventDTO
 
   private String status;
 
+  private String statusDetails;
+
+  private String errorDetails;
+
   private Date createTime;
 
   private Date startTime;
@@ -79,6 +83,22 @@ public class ApiSourceControlEventDTO
     this.status = status;
   }
 
+  public String getStatusDetails() {
+    return statusDetails;
+  }
+
+  public void setStatusDetails(String statusDetails) {
+    this.statusDetails = statusDetails;
+  }
+
+  public String getErrorDetails() {
+    return errorDetails;
+  }
+
+  public void setErrorDetails(String errorDetails) {
+    this.errorDetails = errorDetails;
+  }
+
   public Date getCreateTime() {
     return createTime;
   }
@@ -121,18 +141,20 @@ public class ApiSourceControlEventDTO
 
   @Override
   public String toString() {
-    return "ApiSourceControlEvent{" +
+    return "ApiSourceControlEventDTO{" +
         "id='" + id + '\'' +
         ", user='" + user + '\'' +
         ", applicationId='" + applicationId + '\'' +
         ", type='" + type + '\'' +
         ", priority=" + priority +
         ", status='" + status + '\'' +
+        ", statusDetails='" + statusDetails + '\'' +
+        ", errorDetails='" + errorDetails + '\'' +
         ", createTime=" + createTime +
         ", startTime=" + startTime +
         ", completeTime=" + completeTime +
-        ", timeWaiting='" + timeWaiting + '\'' +
-        ", timeExecuting='" + timeExecuting + '\'' +
+        ", timeWaiting=" + timeWaiting +
+        ", timeExecuting=" + timeExecuting +
         '}';
   }
 }

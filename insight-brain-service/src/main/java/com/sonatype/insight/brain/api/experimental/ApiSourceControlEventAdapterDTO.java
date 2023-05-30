@@ -21,6 +21,8 @@ public final class ApiSourceControlEventAdapterDTO
     result.setType(sourceControlEvent.getEventType());
     result.setPriority(sourceControlEvent.getEventPriority());
     result.setStatus(sourceControlEvent.getEventStatus());
+    result.setStatusDetails(sourceControlEvent.getEventStatusDetails());
+    result.setErrorDetails(sourceControlEvent.getEventErrorDetails());
     result.setCreateTime(sourceControlEvent.getCreateTime());
     result.setStartTime(sourceControlEvent.getStartTime());
     result.setCompleteTime(sourceControlEvent.getCompleteTime());

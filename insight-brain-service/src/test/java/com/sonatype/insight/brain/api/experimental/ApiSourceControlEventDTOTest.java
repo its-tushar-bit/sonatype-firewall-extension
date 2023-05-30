@@ -23,6 +23,8 @@ public class ApiSourceControlEventDTOTest
     sourceControlEvent.setApplicationId("dtoTest");
     sourceControlEvent.setEventPriority(1);
     sourceControlEvent.setEventStatus("eventStatus");
+    sourceControlEvent.setEventStatusDetails("eventStatusDetails");
+    sourceControlEvent.setEventErrorDetails("eventErrorDetails");
     sourceControlEvent.setEventType("eventType");
     long now = System.currentTimeMillis();
     sourceControlEvent.setCreateTime(new Date(now - 10000));
@@ -37,6 +39,8 @@ public class ApiSourceControlEventDTOTest
     assertThat(actual.getType()).isEqualTo(sourceControlEvent.getEventType());
     assertThat(actual.getPriority()).isEqualTo(sourceControlEvent.getEventPriority());
     assertThat(actual.getStatus()).isEqualTo(sourceControlEvent.getEventStatus());
+    assertThat(actual.getStatusDetails()).isEqualTo(sourceControlEvent.getEventStatusDetails());
+    assertThat(actual.getErrorDetails()).isEqualTo(sourceControlEvent.getEventErrorDetails());
     assertThat(actual.getCreateTime()).isEqualTo(sourceControlEvent.getCreateTime());
     assertThat(actual.getStartTime()).isEqualTo(sourceControlEvent.getStartTime());
     assertThat(actual.getCompleteTime()).isEqualTo(sourceControlEvent.getCompleteTime());

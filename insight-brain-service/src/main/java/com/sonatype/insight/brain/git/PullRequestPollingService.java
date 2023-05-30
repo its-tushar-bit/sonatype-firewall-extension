@@ -227,6 +227,8 @@ public class PullRequestPollingService
 
       // skip repositories for which PR commenting is disabled
       if (!pullRequestCommentingEligibilityValidator.isPullRequestCommentingEnabled(gitRepositoryInfo)) {
+        sourceControl.setPullRequestPollTime(new Date());
+        sourceControlDAO.update(sourceControl);
         continue;
       }
 

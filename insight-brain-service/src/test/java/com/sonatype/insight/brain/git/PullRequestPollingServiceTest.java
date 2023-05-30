@@ -166,6 +166,42 @@ public class PullRequestPollingServiceTest
     // then: pull request is not persisted and no event emitted
     assertThat(sourceControlPullRequestDAO.getAll()).isEmpty();
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
+
+    SourceControl sourceControl = new SourceControlDAO().getAll().get(0);
+    assertThat(sourceControl.getPullRequestPollTime()).isNotNull().isCloseTo(new Date(), 2000);
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_SecondNotBlockedIfFirstDisabled() throws IOException {
+    // given:
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB)
+        .withApplication("app1", "main-branch", false)
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
+            "feature-commit-xyz-1", "base-commit")
+        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
+        .withPollingTime(pullRequestPollingTime).build();
+
+    // when: fetch and send
+    Date before = new Date();
+    pollingService.fetchAndSendPullRequestsForCommenting();
+    Date after = new Date();
+
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequests.get(0);
+    assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/testorg/testrepo", 10,
+        "feature-commit-xyz-1", "feature-branch",
+        "base-commit", "main-branch",
+        pullRequestCreateDate, before, after);
+
+    verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
+    assertThatLogMessagesContain(
+        info("Sent pull request discovered event for application 'app2' with PR# '10' and commit "
+            + "'feature-commit-xyz-1'"));
   }
 
   @Test

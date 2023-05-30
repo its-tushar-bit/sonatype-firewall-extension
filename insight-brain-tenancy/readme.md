@@ -458,8 +458,8 @@ Here is an example:
   "samlConfiguration": {
     "identityProviderName": "Auth0",
     "entityId": "https://cubs.dev-1.mtiq.cloudy.sonatype.dev/api/v2/config/saml/metadata",
-    "firstNameAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
-    "lastNameAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/lastname",
+    "firstNameAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname",
+    "lastNameAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname",
     "emailAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
     "usernameAttributeName": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
     "groupsAttributeName": "http://schemas.auth0.com/Roles",

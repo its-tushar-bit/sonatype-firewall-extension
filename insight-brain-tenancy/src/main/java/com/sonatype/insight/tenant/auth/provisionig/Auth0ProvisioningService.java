@@ -37,7 +37,14 @@ public class Auth0ProvisioningService
     String subdomain = parameters.getSubdomain();
 
     log.info(String.format("Creating new auth0 account for tenant=%s in %s", subdomain, resolveAuth0Domain()));
-    Client tenant = api.createTenant(subdomain, parameters.getDescription(), parameters.getLogoUrl());
+    String tenantUrl = getTenantUrl(subdomain);
+    Client tenant = api.createOrUpdateTenant(
+        subdomain,
+        tenantUrl,
+        parameters.getDescription(),
+        parameters.getLogoUrl(),
+        null
+    );
     log.info(String.format("Created new auth0 account for tenant=%s, clientId=%s", subdomain,
         tenant.getClientId()));
 
@@ -58,7 +65,11 @@ public class Auth0ProvisioningService
 
   //visible for testing
   Auth0ManagementAPI getManagementAPI() {
-    return new Auth0ManagementAPI(resolveAuth0Domain(), resolveAuth0ApiToken(), resolveMTIQSaaSBaseUrl());
+    return new Auth0ManagementAPI(resolveAuth0Domain(), resolveAuth0ApiToken());
+  }
+
+  private String getTenantUrl(final String tenantSubdomain) {
+    return StringUtils.replace(resolveMTIQSaaSBaseUrl(), "<tenant>", tenantSubdomain);
   }
 
   private String resolveMTIQSaaSBaseUrl() {

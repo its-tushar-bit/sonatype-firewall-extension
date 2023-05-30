@@ -59,7 +59,8 @@ public class Auth0ProvisioningServiceTest
     parameters.setSubdomain("tenant1");
 
     when(mockClient.getClientId()).thenReturn(mockClientId);
-    when(managementAPI.createTenant("tenant1", null, null)).thenReturn(mockClient);
+    when(managementAPI.createOrUpdateTenant("tenant1", "https://tenant1.mtiq.cloudy.sonatype.dev", null,
+        null, null)).thenReturn(mockClient);
     when(managementAPI.getSamlMetaDataFile(mockClientId)).thenReturn(tempFile);
 
     auth0ProvisioningService.provision(parameters);
@@ -90,7 +91,8 @@ public class Auth0ProvisioningServiceTest
 
     when(auth0ProvisioningService.getManagementAPI()).thenReturn(managementAPI);
     when(mockClient.getClientId()).thenReturn(mockClientId);
-    when(managementAPI.createTenant("tenant1", null, null)).thenReturn(mockClient);
+    when(managementAPI.createOrUpdateTenant("tenant1", "https://tenant1.mtiq.cloudy.sonatype.dev", null,
+        null, null)).thenReturn(mockClient);
     when(managementAPI.getSamlMetaDataFile(mockClientId)).thenReturn(null);
 
     auth0ProvisioningService.provision(parameters);

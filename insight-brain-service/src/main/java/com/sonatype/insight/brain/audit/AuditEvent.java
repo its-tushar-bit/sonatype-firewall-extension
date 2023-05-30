@@ -270,7 +270,8 @@ public enum AuditEvent
   UPDATE_TENANT_SECURITY(Domain.MTIQ_TENANT_SECURITY, Type.UPDATE),
   UPDATE_TENANT_CONFIGURATION(Domain.MTIQ_TENANT_CONFIGURATION, Type.UPDATE),
   GENERATE_TENANT_SUPPORT_INFO(Domain.MTIQ_TENANT_SUPPORT, Type.EXPORT),
-  SOURCE_CONTROL_IMPORT(Domain.GOVERNANCE_SOURCE_CONTROL, Type.IMPORT);
+  SOURCE_CONTROL_IMPORT(Domain.GOVERNANCE_SOURCE_CONTROL, Type.IMPORT),
+  UPDATE_TENANT_METADATA(Domain.MTIQ_TENANT_METADATA, Type.UPDATE);
 
   private final String domain;
 
@@ -520,6 +521,8 @@ public enum AuditEvent
     String MTIQ_TENANT_CONFIGURATION = join(MTIQ, join(TENANT, "configuration"));
 
     String MTIQ_TENANT_SUPPORT = join(MTIQ, join(TENANT, "support"));
+
+    String MTIQ_TENANT_METADATA = join(MTIQ, join(TENANT, "metadata"));
 
     static String join(String parent, String child) {
       return parent + "." + child;

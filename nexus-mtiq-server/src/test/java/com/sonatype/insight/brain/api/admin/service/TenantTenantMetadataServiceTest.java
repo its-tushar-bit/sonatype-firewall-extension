@@ -1,0 +1,124 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.admin.service;
+
+import com.sonatype.insight.brain.api.admin.dto.TenantMetadataDTO;
+import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
+import com.sonatype.insight.brain.model.security.TenantMetadata;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.brain.tenancy.TenantValidator;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import static junit.framework.TestCase.assertEquals;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class TenantTenantMetadataServiceTest
+    extends MultiTenantTestSupport
+{
+  public static final String APP_ID = "appId";
+
+  public static final String APP_NAME = "appName";
+
+  public static final String CONN_ID = "connId";
+
+  public static final String CONN_NAME = "connName";
+
+  @Mock
+  private TenantValidator tenantValidator;
+
+  @Mock
+  private TenantMetadataDAO tenantMetadataDAO;
+
+  private TenantMetadataConfigurationService underTest;
+
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    TenantUtil tenantUtil = new TenantUtil();
+    underTest = new TenantMetadataConfigurationService(tenantUtil, tenantValidator, tenantMetadataDAO);
+  }
+
+  @Test
+  public void shouldInsertAuth0Configuration() {
+    testAsNewTenant(tenant -> {
+      TenantMetadataDTO expected1 = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME);
+
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(tenantMetadataDAO.get()).thenReturn(null);
+
+      underTest.insertOrUpdateMetadata(expected1, tenant.tenantSlug);
+
+      verify(tenantMetadataDAO).get();
+
+      ArgumentCaptor<TenantMetadata> argument = ArgumentCaptor.forClass(TenantMetadata.class);
+      verify(tenantMetadataDAO).insert(argument.capture());
+      assertEquals(APP_ID, argument.getValue().getApplicationId());
+      assertEquals(APP_NAME, argument.getValue().getApplicationName());
+      assertEquals(CONN_ID, argument.getValue().getConnectionId());
+      assertEquals(CONN_NAME, argument.getValue().getConnectionName());
+    });
+  }
+
+  @Test
+  public void shouldUpdateAuth0Configuration() {
+    testAsNewTenant(tenant -> {
+      TenantMetadataDTO expected1 = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME);
+
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(tenantMetadataDAO.get()).thenReturn(TenantMetadataDTO.fromDTO(expected1));
+
+      underTest.insertOrUpdateMetadata(expected1, tenant.tenantSlug);
+
+      verify(tenantMetadataDAO).get();
+
+      ArgumentCaptor<TenantMetadata> argument = ArgumentCaptor.forClass(TenantMetadata.class);
+      verify(tenantMetadataDAO).update(argument.capture());
+      assertEquals(APP_ID, argument.getValue().getApplicationId());
+      assertEquals(APP_NAME, argument.getValue().getApplicationName());
+      assertEquals(CONN_ID, argument.getValue().getConnectionId());
+      assertEquals(CONN_NAME, argument.getValue().getConnectionName());
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_whenTenantDoesntExist() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      TenantMetadataDTO expected = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME);
+
+      assertThatThrownBy(
+          () -> underTest.insertOrUpdateMetadata(expected, tenant.tenantSlug))
+          .withFailMessage("Tenant doesn't exist")
+          .isInstanceOf(NotFoundException.class);
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_whenUsingGlobalTenant() {
+    TenantMetadataDTO expected = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME);
+
+    testAsGlobalTenant(tenant -> {
+      assertThatThrownBy(
+          () -> underTest.insertOrUpdateMetadata(expected, tenant.tenantSlug))
+          .withFailMessage("Invalid tenant")
+          .isInstanceOf(BadRequestException.class);
+    });
+  }
+}

@@ -43,7 +43,7 @@ public class AbstractMultiTenantBrainServiceTest
     return TenantTestHelper.createTenantName(testName);
   }
 
-  void setTenantSlug(String tenantSlug) {
+  protected void setTenantSlug(String tenantSlug) {
     MultiTenantBrainServiceTestHelper.setTenantBySlug(tenantSlug);
   }
 

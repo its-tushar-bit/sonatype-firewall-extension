@@ -122,6 +122,7 @@ import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReport
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -247,6 +248,7 @@ import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -527,6 +529,8 @@ public class TemporaryEntity
   private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO =
       new SourceControlPullRequestResultDAO();
 
+  private final DeletedTenantDAO deletedTenantDAO = new DeletedTenantDAO();
+
   private final SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO =
       new SourceControlOrganizationImportEventDAO();
 
@@ -640,6 +644,8 @@ public class TemporaryEntity
 
   private Collection<SourceControlOrganizationImportEvent> sourceControlOrganizationImportEvents;
 
+  private Collection<DeletedTenant> deletedTenants;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -698,6 +704,7 @@ public class TemporaryEntity
     sourceControlPullRequestResults = new ArrayList<>();
     proprietaryComponentNamePatterns = new ArrayList<>();
     sourceControlOrganizationImportEvents = new ArrayList<>();
+    deletedTenants = new ArrayList<>();
 
     // Disable search
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
@@ -810,6 +817,7 @@ public class TemporaryEntity
     delete(repositoryIdentifiedComponents, repositoryIdentifiedComponentDAO);
     delete(sourceControlPullRequestResults, sourceControlPullRequestResultDAO);
     delete(waivers, waiverDAO);
+    delete(deletedTenants, deletedTenantDAO);
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
@@ -1359,6 +1367,19 @@ public class TemporaryEntity
     appDAO.insert(app);
     apps.add(app);
     return app;
+  }
+
+  public DeletedTenant newDeletedTenant(String tenantSlug) {
+    return newDeletedTenant(tenantSlug, System.currentTimeMillis());
+  }
+
+  public DeletedTenant newDeletedTenant(String tenantSlug, Long createdTimestamp) {
+    DeletedTenant deletedTenant = new DeletedTenant(tenantSlug, createdTimestamp);
+
+    deletedTenantDAO.insert(deletedTenant);
+    deletedTenants.add(deletedTenant);
+
+    return deletedTenant;
   }
 
   /**
@@ -3194,7 +3215,7 @@ public class TemporaryEntity
       vulnerabilityCustomCvssSeverityTags.add(cvssSeverityTag);
     }
   }
-  
+
   public VulnerabilityCustomCvssSeverity newVulnerabilityCustomCvssSeverity(
       String ownerId,
       String refId,

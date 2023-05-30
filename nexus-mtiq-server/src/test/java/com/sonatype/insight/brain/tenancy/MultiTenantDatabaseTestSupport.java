@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import javax.inject.Provider;
 
+import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper.ConsumerWithException;
 import com.sonatype.insight.brain.test.MultiTenantDatabaseTestRule;
@@ -30,10 +31,11 @@ public class MultiTenantDatabaseTestSupport
     Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
     Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
     TenantValidator tenantValidator = new TenantValidator(multiTenantDatabaseTestRule.operationalDataStore);
+    DeletedTenantDAO deletedTenantDAO = new DeletedTenantDAO();
 
     tenantManager =
         new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
-            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator);
+            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator, deletedTenantDAO);
   }
 
   @Override

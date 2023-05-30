@@ -95,7 +95,7 @@
     <class>com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration</class>
     <class>com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection</class>
     <class>com.sonatype.insight.brain.model.jira.JiraConfiguration</class>
-    <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult</class> 
+    <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability</class>
     <class>com.sonatype.insight.brain.model.vulnerability.AbstractVulnerabilityCustomData</class>
@@ -108,6 +108,7 @@
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVectorTag</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverityTag</class>
+    <class>com.sonatype.insight.brain.model.tenancy.DeletedTenant</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

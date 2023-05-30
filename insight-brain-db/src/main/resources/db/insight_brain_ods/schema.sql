@@ -1440,3 +1440,12 @@ CREATE TABLE source_control_organization_import_event
     CONSTRAINT source_control_organization_import_event_id PRIMARY KEY (source_control_organization_import_event_id),
     CONSTRAINT source_control_organization_import_event_organization_fk FOREIGN KEY (organization_id) REFERENCES organization (organization_id)
 );
+
+-- Since 1.162
+CREATE TABLE deleted_tenant
+(
+  tenant_slug                varchar(61) NOT NULL,
+  delete_requested_timestamp bigint      NOT NULL,
+  CONSTRAINT deleted_tenant_pk PRIMARY KEY (tenant_slug)
+);
+

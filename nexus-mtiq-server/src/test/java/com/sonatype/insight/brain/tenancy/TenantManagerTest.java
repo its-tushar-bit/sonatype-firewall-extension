@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TenantLifecycle;
@@ -60,6 +61,9 @@ public class TenantManagerTest
   @Mock
   TenantValidator tenantValidator;
 
+  @Mock
+  DeletedTenantDAO deletedTenantDAO;
+
   List<TenantManaged> tenantManagedBeans;
 
   Tenant tenant = new Tenant(TENANT_NAME);
@@ -74,9 +78,12 @@ public class TenantManagerTest
     tenantManagedBeans = new ArrayList<>();
     tenantManagedBeans.add(job);
 
-    underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils, tenantValidator);
+    underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils,
+        tenantValidator, deletedTenantDAO);
 
     when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
+
+    when(deletedTenantDAO.isScheduledForDeletion(any())).thenReturn(false);
   }
 
   @Test
@@ -150,7 +157,8 @@ public class TenantManagerTest
   public void shouldNotRegister_allTenantsJobs() {
     tenantManagedBeans.add(allTenantsJob);
 
-    underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils, tenantValidator);
+    underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils,
+        tenantValidator, deletedTenantDAO);
 
     testAsNewTenant(t -> {
       when(tenantValidator.validateTenantExists(t)).thenReturn(true);
@@ -185,6 +193,18 @@ public class TenantManagerTest
     // Verify that the registration code wasn't called again
     verify(job, times(1)).register();
     verify(lifecycle, times(1)).bootTenant();
+  }
+
+  @Test
+  public void shouldNotRegisterTenantIfScheduledForDeletion() {
+    when(deletedTenantDAO.isScheduledForDeletion(any())).thenReturn(true);
+
+    // Call set tenant a second time
+    assertThatThrownBy(() -> underTest.setTenant(tenant)).isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Tenant doesn't exist");
+
+    verify(job, never()).register();
+    verify(lifecycle, never()).bootTenant();
   }
 
   @Test

@@ -5,13 +5,19 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
+import javax.ws.rs.core.HttpHeaders;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
+import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
+import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantProvisioningResourceTest
@@ -46,5 +52,60 @@ public class TenantProvisioningResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
+  }
+
+  @Test
+  public void shouldDeleteTenant() throws Exception {
+    String tenantName = generateTestTenantName();
+
+    HttpResponse createResponse = provisionTenant(tenantName);
+    assertResponseStatus(204, createResponse);
+
+    DeletedTenantDAO deletedTenantDAO = new DeletedTenantDAO();
+    assertThat(deletedTenantDAO.getTenantBySlug(tenantName)).isNull();
+
+    HttpResponse deleteResponse = deleteTenant(tenantName);
+    assertResponseStatus(204, deleteResponse);
+
+    //Deletion records should be stored globally and not per-tenant
+    testAs(GLOBAL_TENANT, t -> assertThat(deletedTenantDAO.getTenantBySlug(tenantName)).isNotNull());
+  }
+
+  @Test
+  public void shouldReturn400WhenTenantDoesntExist() throws Exception {
+    String tenantName = generateTestTenantName();
+
+    DeletedTenantDAO deletedTenantDAO = new DeletedTenantDAO();
+    assertThat(deletedTenantDAO.getTenantBySlug(tenantName)).isNull();
+
+    HttpResponse deleteResponse = deleteTenant(tenantName);
+    assertResponseStatus(400, deleteResponse);
+  }
+
+  @Test
+  public void shouldReturn400WhenGlobalTenantPassed() throws Exception {
+    HttpResponse deleteResponse = deleteTenant(GLOBAL_TENANT.tenantSlug);
+    assertResponseStatus(400, deleteResponse);
+  }
+
+  @Test
+  public void shouldReturn400_whenTenantAlreadyMarkedForDeletion() throws Exception {
+    String tenantName = generateTestTenantName();
+
+    HttpResponse createResponse = provisionTenant(tenantName);
+    assertResponseStatus(204, createResponse);
+
+    assertResponseStatus(204, deleteTenant(tenantName));
+    assertResponseStatus(400, deleteTenant(tenantName));
+  }
+
+  public HttpResponse deleteTenant(String tenantName) throws Exception {
+    setTenantSlug(tenantName);
+    return adminRequest()
+        .path("api/")
+        .path(ADMIN_TENANT_PROVISIONING_PATH)
+        .parameter(tenantName)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt())
+        .delete();
   }
 }

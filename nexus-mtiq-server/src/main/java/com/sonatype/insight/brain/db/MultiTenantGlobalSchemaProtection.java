@@ -36,7 +36,8 @@ public class MultiTenantGlobalSchemaProtection
       "license",
       "multi_license",
       "multi_license_license",
-      "mail_configuration"
+      "mail_configuration",
+      "deleted_tenant"
   );
 
   private static final String GLOBAL_SCHEMA_NAME = OperationalDataStoreProvider.getDatabaseSchema();

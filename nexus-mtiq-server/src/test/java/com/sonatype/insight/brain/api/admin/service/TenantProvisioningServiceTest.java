@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
+import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
+import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -38,6 +40,12 @@ public class TenantProvisioningServiceTest
   @Mock
   private TenantValidator tenantValidator;
 
+  @Mock
+  private TenantDeregistrationJob tenantDeregistrationJob;
+
+  @Mock
+  private DeletedTenantDAO deletedTenantDAO;
+
   private TenantUtil tenantUtil;
 
   private TenantProvisioningService underTest;
@@ -48,7 +56,7 @@ public class TenantProvisioningServiceTest
     super.setup();
     tenantUtil = new TenantUtil();
     underTest = new TenantProvisioningService(insightConfig, databaseProvisionUtils, tenantUtil,
-        tenantValidator);
+        tenantValidator, tenantDeregistrationJob, deletedTenantDAO);
   }
 
   @Test

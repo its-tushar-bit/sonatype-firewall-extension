@@ -14,6 +14,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TenantLifecycle;
@@ -54,18 +55,22 @@ public class TenantManager
 
   private final TenantValidator tenantValidator;
 
+  private final DeletedTenantDAO deletedTenantDAO;
+
   @Inject
   public TenantManager(
       final Collection<TenantManaged> tenantManagedBeans,
       final InsightConfig insightConfig,
       final Provider<TenantLifecycle> tenantLifecycle,
       final DatabaseProvisionUtils databaseProvisionUtils,
-      final TenantValidator tenantValidator)
+      final TenantValidator tenantValidator,
+      final DeletedTenantDAO deletedTenantDAO)
   {
     this.tenantManagedBeans = tenantManagedBeans;
     this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.tenantValidator = tenantValidator;
+    this.deletedTenantDAO = deletedTenantDAO;
 
     multiTenantDatabaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
   }
@@ -151,6 +156,11 @@ public class TenantManager
       log.debug("Tenant doesn't exist: {}", tenant.tenantSlug);
       throw new IllegalArgumentException("Tenant doesn't exist");
     }
+
+    if (deletedTenantDAO.isScheduledForDeletion(tenant.databaseSchema)) {
+      log.debug("Tenant has been scheduled for deletion and therefore cannot be used: {}", tenant.tenantSlug);
+      throw new IllegalArgumentException("Tenant doesn't exist");
+    }
   }
 
   private void setupTenantJobs() {
@@ -197,5 +207,21 @@ public class TenantManager
 
   List<String> getRegisteredTenants() {
     return registeredTenants.keySet().stream().map(t -> t.tenantSlug).collect(toList());
+  }
+
+  public void deregisterTenant(String tenantSlug) {
+    for (TenantManaged tenantManagedBean : tenantManagedBeans) {
+      TenantThreadLocal.runAs(new Tenant(tenantSlug), () -> {
+        try {
+          tenantManagedBean.deregister();
+        }
+        catch (Exception e) {
+          log.error("Failed to deregister managed bean {} for tenant {}", tenantManagedBean.getClass(), tenantSlug, e);
+        }
+        return null;
+      });
+    }
+
+    registeredTenants.remove(new Tenant(tenantSlug));
   }
 }

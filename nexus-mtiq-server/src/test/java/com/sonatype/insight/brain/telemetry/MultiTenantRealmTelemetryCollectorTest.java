@@ -13,6 +13,7 @@ import java.util.Collections;
 import javax.inject.Provider;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -46,10 +47,11 @@ public class MultiTenantRealmTelemetryCollectorTest
     Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
     Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
     TenantValidator tenantValidator = new TenantValidator(multiTenantDatabaseTestRule.operationalDataStore);
+    DeletedTenantDAO deletedTenantDAO = new DeletedTenantDAO();
 
     tenantManager =
         new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
-            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator);
+            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator, deletedTenantDAO);
 
     samlConfigurationDAO = new SamlConfigurationDAO();
     telemetryCollector = new RealmTelemetryCollector(samlConfigurationDAO);

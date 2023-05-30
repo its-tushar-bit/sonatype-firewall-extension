@@ -49,9 +49,15 @@ public class ProprietaryComponentNamePatternDAO
   }
 
   public void deleteByRepository(TransactionContext tx, String repositoryId) {
-    String sQuery = "DELETE FROM ProprietaryComponentNamePattern entity"
-        + " WHERE entity.repositoryId=?1";
-    createQuery(sQuery, repositoryId).executeUpdate(tx);
+    if (detectTestEntityLeaks()) {
+      // This is never executed in production
+      List<ProprietaryComponentNamePattern> patterns = getByRepositoryId(tx, repositoryId);
+      patterns.forEach(pattern -> delete(tx, pattern));
+    }
+    else {
+      String sQuery = "DELETE FROM ProprietaryComponentNamePattern entity" + " WHERE entity.repositoryId=?1";
+      createQuery(sQuery, repositoryId).executeUpdate(tx);
+    }
   }
 
   @Override

@@ -7,9 +7,7 @@
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
-import { REDUCER_NAME } from './firewallOnboardingSlice';
-
-export const selectFirewallOnboardingSlice = prop(REDUCER_NAME);
+export const selectFirewallOnboardingSlice = prop('firewallOnboarding');
 export const selectCurrentStep = createSelector(selectFirewallOnboardingSlice, prop('currentStep'));
 export const selectSelectedRepositories = createSelector(selectFirewallOnboardingSlice, prop('selectedRepositories'));
 export const selectUnconfiguredRepoManagersList = createSelector(
@@ -24,3 +22,5 @@ export const selectUnconfiguredRepoManager = createSelector(
     return unconfiguredRepoManagers.repoManagers[0] ?? null;
   }
 );
+export const selectRepositories = createSelector(selectFirewallOnboardingSlice, prop('repositories'));
+export const selectRepositoriesList = createSelector(selectRepositories, prop('list'));

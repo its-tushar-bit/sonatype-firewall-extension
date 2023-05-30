@@ -1235,6 +1235,9 @@ export const getRepositoryPolicyViolationUrl = (repositoryId, repositoryPolicyId
 
 export const getUnconfiguredRepositoriesManager = () => uriTemplate`/rest/repositories/repositoryManager/unconfigured`;
 
+export const getConfigureRepositoriesUrl = (repositoryManagerId) =>
+  uriTemplate`/rest/repositories/repositoryManager/${repositoryManagerId}/configureRepositories`;
+
 export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositories/proprietaryComponentNamePatterns`;
 
 export const getConfigurationUrl = () => {

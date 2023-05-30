@@ -10,7 +10,9 @@ import {
   selectSelectedRepositories,
   selectUnconfiguredRepoManagersList,
   selectUnconfiguredRepoManager,
+  selectRepositoriesList,
 } from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
+import { selectRepositories } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 
 describe('FirewallOnboardingSelectors', () => {
   describe('selectFirewallOnboardingSlice', () => {
@@ -84,6 +86,62 @@ describe('FirewallOnboardingSelectors', () => {
       const actualSelection = selectUnconfiguredRepoManager.resultFunc(slice);
 
       expect(actualSelection).toBe(slice.repoManagers[0]);
+    });
+  });
+
+  describe('selectRepositories', () => {
+    it('selects the repositories from firewall onboarding slice', () => {
+      const slice = {
+        repositories: {
+          loading: false,
+          loadError: null,
+          list: [
+            {
+              id: 'id',
+              repositoryManagerId: 'repoManagerId',
+              publicId: 'publicId',
+              repositoryType: 'proxy',
+              auditEnabled: true,
+              quarantineEnabled: true,
+              policyCompliantComponentSelectionEnabled: false,
+              namespaceConfusionProtectionEnabled: false,
+              format: 'maven',
+            },
+          ],
+        },
+      };
+
+      const actualSelection = selectRepositories.resultFunc(slice);
+
+      expect(actualSelection).toBe(slice.repositories);
+    });
+  });
+
+  describe('selectRepositoriesList', () => {
+    it('selects the repositories list from firewall onboarding slice', () => {
+      const slice = {
+        repositories: {
+          loading: false,
+          loadError: null,
+          list: [
+            {
+              id: 'id',
+              repositoryManagerId: 'repoManagerId',
+              publicId: 'publicId',
+              repositoryType: 'proxy',
+              auditEnabled: true,
+              quarantineEnabled: true,
+              policyCompliantComponentSelectionEnabled: false,
+              namespaceConfusionProtectionEnabled: false,
+              format: 'maven',
+            },
+          ],
+        },
+      };
+
+      const actualSelection = selectRepositoriesList.resultFunc(slice.repositories);
+
+      expect(actualSelection).toBe(slice.repositories.list);
     });
   });
 });

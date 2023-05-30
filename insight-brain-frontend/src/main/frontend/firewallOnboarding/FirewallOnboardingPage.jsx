@@ -21,9 +21,10 @@ export default function FirewallOnboardingPage() {
   const continueToNextStep = () => dispatch(actions.continueToNextStep());
   const goBackToPreviousStep = () => dispatch(actions.goBackToPreviousStep());
   const currentStep = useSelector(selectCurrentStep);
+  const saveRepositories = () => dispatch(actions.saveRepositories());
 
   const handleLaunch = () => {
-    // Do Launch Stuff
+    saveRepositories();
     setShowWelcomeModalToTrueInStore();
     dispatch(stateGo('firewall.firewallPage'));
   };

@@ -10,6 +10,9 @@ import { steps } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
 const LOAD_UNCONFIGURED_REPOMANAGER_REQUESTED = `${REDUCER_NAME}/loadUnconfiguredRepoManagers/pending`;
 const LOAD_UNCONFIGURED_REPOMANAGER_FULFILLED = `${REDUCER_NAME}/loadUnconfiguredRepoManagers/fulfilled`;
 const LOAD_UNCONFIGURED_REPOMANAGER_FAILED = `${REDUCER_NAME}/loadUnconfiguredRepoManagers/rejected`;
+const SAVE_REPOSITORIES_REQUESTED = `${REDUCER_NAME}/saveRepositories/pending`;
+const SAVE_REPOSITORIES_FULFILLED = `${REDUCER_NAME}/saveRepositories/fulfilled`;
+const SAVE_REPOSITORIES_FAILED = `${REDUCER_NAME}/saveRepositories/rejected`;
 
 describe('FirewallOnboardingReducer', () => {
   describe('unknown action', () => {
@@ -116,6 +119,92 @@ describe('FirewallOnboardingReducer', () => {
       expect(newState.unconfiguredRepoManagers.loading).toBe(false);
       expect(newState.unconfiguredRepoManagers.loadError).toBe(null);
       expect(newState.unconfiguredRepoManagers.repoManagers).toBe(repoManagers);
+    });
+  });
+
+  describe(SAVE_REPOSITORIES_REQUESTED, () => {
+    it('sets loading to true and clears error', () => {
+      const state = Object.freeze({
+        unconfiguredRepoManagers: {
+          repoManagers: [],
+          loading: false,
+          loadError: null,
+        },
+        repositories: {
+          loading: false,
+          loadError: null,
+          list: [
+            {
+              id: 'id',
+              repositoryManagerId: 'repoManagerId',
+              publicId: 'publicId',
+              repositoryType: 'proxy',
+              auditEnabled: true,
+              quarantineEnabled: true,
+              policyCompliantComponentSelectionEnabled: false,
+              namespaceConfusionProtectionEnabled: false,
+              format: 'maven',
+            },
+          ],
+        },
+      });
+
+      const newState = reduce(state, {
+        type: SAVE_REPOSITORIES_REQUESTED,
+      });
+
+      expect(newState.repositories.loading).toBe(true);
+      expect(newState.repositories.loadError).toBe(null);
+    });
+  });
+
+  describe(SAVE_REPOSITORIES_FAILED, () => {
+    it('clears loading state and sets a load error', () => {
+      const state = Object.freeze({
+        unconfiguredRepoManagers: {
+          repoManagers: [],
+          loading: false,
+          loadError: null,
+        },
+        repositories: {
+          loading: false,
+          loadError: null,
+          list: [],
+        },
+      });
+
+      const newState = reduce(state, {
+        type: SAVE_REPOSITORIES_FAILED,
+        payload: 'test error',
+      });
+
+      expect(newState.repositories.loading).toBe(false);
+      expect(newState.repositories.loadError).toBe('test error');
+    });
+  });
+
+  describe(SAVE_REPOSITORIES_FULFILLED, () => {
+    it('sets loading to false and clears load error', () => {
+      const state = Object.freeze({
+        unconfiguredRepoManagers: {
+          repoManagers: [],
+          loading: false,
+          loadError: null,
+        },
+        repositories: {
+          loading: false,
+          loadError: null,
+          list: [],
+        },
+      });
+
+      const newState = reduce(state, {
+        type: SAVE_REPOSITORIES_FULFILLED,
+        payload: state.saveRepositories,
+      });
+
+      expect(newState.repositories.loading).toBe(false);
+      expect(newState.repositories.loadError).toBe(null);
     });
   });
 });

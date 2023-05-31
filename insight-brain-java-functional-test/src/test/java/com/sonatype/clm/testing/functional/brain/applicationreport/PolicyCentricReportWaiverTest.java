@@ -274,7 +274,7 @@ public class PolicyCentricReportWaiverTest
   }
 
   private void assertWaiver(WaiverListRow waiver, String comment) {
-    waiver.dateCreated().shouldHave(text(new SimpleDateFormat("MM/dd/yyyy").format(new Date())));
+    waiver.dateCreated().shouldHave(text(new SimpleDateFormat("yyyy-MM-dd").format(new Date())));
     waiver.scope().shouldHave(text(app.getName()));
     waiver.comments().shouldHave(text(comment));
   }

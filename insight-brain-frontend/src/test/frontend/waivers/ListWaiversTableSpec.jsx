@@ -218,7 +218,7 @@ describe('ListWaiversTable', function () {
     expect(tableRows.length).toBe(4);
     assertWaiverTableRow(
       tableRows.at(0),
-      '10/07/2020',
+      '2020-10-07',
       'Application - test',
       violationDetailsMock,
       'Does not expire',
@@ -229,7 +229,7 @@ describe('ListWaiversTable', function () {
     );
     assertWaiverTableRow(
       tableRows.at(1),
-      '10/05/2020',
+      '2020-10-05',
       'Root Organization',
       null,
       'in 7 days',
@@ -240,7 +240,7 @@ describe('ListWaiversTable', function () {
     );
     assertWaiverTableRow(
       tableRows.at(2),
-      '10/18/2020',
+      '2020-10-18',
       'Organization - suborg',
       violationDetailsMock,
       'a month ago',
@@ -251,7 +251,7 @@ describe('ListWaiversTable', function () {
     );
     assertWaiverTableRow(
       tableRows.at(3),
-      '10/15/2020',
+      '2020-10-15',
       'Root Organization',
       violationDetailsMock,
       'a year ago',

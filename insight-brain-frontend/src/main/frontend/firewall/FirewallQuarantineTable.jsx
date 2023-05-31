@@ -24,6 +24,7 @@ import {
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { formatDate, STANDARD_DATE_FORMAT, FIREWALL_TIME_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 
 export default function FirewallQuarantineTable(props) {
   // actions
@@ -99,7 +100,7 @@ export default function FirewallQuarantineTable(props) {
       <header className="iq-firewall-table-header nx-page-title">
         <h2 className="nx-h2 iq-firewall-table-label">Quarantine</h2>
         <div className="iq-firewall-table__time visual-testing-ignore">
-          {lastUpdated && 'Updated ' + lastUpdated.toLocaleTimeString() + ' ' + lastUpdated.toLocaleDateString()}
+          {lastUpdated && 'Updated ' + formatDate(lastUpdated, FIREWALL_TIME_DATE_FORMAT)}
         </div>
         <div className="nx-btn-bar">
           <NxButton
@@ -191,7 +192,7 @@ export default function FirewallQuarantineTable(props) {
                       </NxOverflowTooltip>
                     </NxTableCell>
                     <NxTableCell className="visual-testing-ignore">
-                      {new Date(row.quarantineDate).toLocaleDateString()}
+                      {formatDate(row.quarantineDate, STANDARD_DATE_FORMAT)}
                     </NxTableCell>
                     <NxTableCell className="iq-firewall-quarantine-table__component-cell">
                       <NxOverflowTooltip title={row.componentDisplayText}>

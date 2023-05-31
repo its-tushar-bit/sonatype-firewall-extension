@@ -460,7 +460,7 @@ public class TransitiveViolationsTest
     componentWaiversPopover.componentWaiversPopoverTable().emptyTableMessage().shouldBe(Condition.visible);
     componentWaiversPopover.closePopoverButton().shouldBe(Condition.visible).click();
 
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy");
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     Policy appPolicy = tempEntity.newPolicy(application.getId(), "appPolicy");
     Policy orgPolicy = tempEntity.newPolicy(organization.getId(), "orgPolicy");
     Policy rootOrgPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "rootOrgPolicy");

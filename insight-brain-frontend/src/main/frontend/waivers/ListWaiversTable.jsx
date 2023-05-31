@@ -26,6 +26,7 @@ import { constraintViolationsPropType } from '../violation/PolicyViolationConstr
 import NxExternalLink from '../react/NxExternalLink';
 import { Messages } from '../utilAngular/CommonServices';
 import { waiverType, displayWaiverScope, isWaiverAllVersionsOrExact } from '../util/waiverUtils';
+import { STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 
 export default function ListWaiversTable(props) {
   const {
@@ -46,7 +47,9 @@ export default function ListWaiversTable(props) {
     const key = waiver.policyWaiverId;
     return (
       <NxTableRow className={rowClass} key={key}>
-        <NxTableCell className="visual-testing-ignore">{moment(waiver.createTime).format('MM/DD/YYYY')}</NxTableCell>
+        <NxTableCell className="visual-testing-ignore">
+          {moment(waiver.createTime).format(STANDARD_DATE_FORMAT)}
+        </NxTableCell>
         <NxTableCell className="iq-waivers-table--scope">{displayWaiverScope(waiver)}</NxTableCell>
         <NxTableCell className="iq-waivers-table--component-name">
           {isWaiverAllVersionsOrExact(waiver) ? (

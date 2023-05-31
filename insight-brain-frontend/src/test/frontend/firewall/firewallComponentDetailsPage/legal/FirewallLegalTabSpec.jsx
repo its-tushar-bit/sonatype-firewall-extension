@@ -601,7 +601,7 @@ describe('FirewallLegalTab', () => {
 
     expect(screen.queryAllByText(/Luis Policy/)[1]).toBeVisible();
     expect(screen.queryAllByText(/Apache 1 not allowed/)[1]).toBeVisible();
-    expect(screen.queryByText(/10\/07\/2022/)).toBeVisible();
+    expect(screen.queryByText(/2022-10-07/)).toBeVisible();
     expect(screen.queryByText(/Admin BuiltIn/)).toBeVisible();
     expect(screen.queryByText(/Repository - maven-central/)).toBeVisible();
     expect(screen.queryByText(/Comment/)).toBeVisible();

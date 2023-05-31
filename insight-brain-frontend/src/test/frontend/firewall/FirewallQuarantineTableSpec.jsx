@@ -15,6 +15,9 @@ import {
 } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
+import { formatDate, STANDARD_DATE_FORMAT, FIREWALL_TIME_DATE_FORMAT } from 'MainRoot/util/dateUtils';
+
+const DATE_TIME = '2018-09-30T03:10:35.754+0000';
 
 describe('FirewallQuarantineTable', function () {
   let minimalProps,
@@ -59,11 +62,12 @@ describe('FirewallQuarantineTable', function () {
       currentPage: 0,
       filterPolicy: 'initialPolicyId',
       filterComponentName: 'initialComponentName',
+      lastUpdated: DATE_TIME,
       quarantineList: [
         {
           componentDisplayText: 'test-component',
           repository: 'central',
-          quarantineDate: '2018-09-30T03:10:35.754+0000',
+          quarantineDate: DATE_TIME,
           dateCleared: null,
           quarantinePolicyViolations: [
             {
@@ -125,7 +129,8 @@ describe('FirewallQuarantineTable', function () {
       let component = getShallowComponent(),
         table = component.find(NxTable),
         tableBody = table.find(NxTableBody),
-        quarantineDate = new Date(minimalProps.quarantineList[0].quarantineDate).toLocaleDateString();
+        unFormattedQuarantineDate = minimalProps.quarantineList[0].quarantineDate,
+        quarantineDate = formatDate(unFormattedQuarantineDate, STANDARD_DATE_FORMAT);
 
       // then it contains the repository
       expect(
@@ -166,7 +171,7 @@ describe('FirewallQuarantineTable', function () {
             {
               componentDisplayText: 'test-component',
               repository: 'central',
-              quarantineDate: '2018-09-30T03:10:35.754+0000',
+              quarantineDate: DATE_TIME,
               dateCleared: null,
               quarantinePolicyViolations: [],
             },
@@ -174,7 +179,8 @@ describe('FirewallQuarantineTable', function () {
         }),
         table = component.find(NxTable),
         tableBody = table.find(NxTableBody),
-        quarantineDate = new Date(minimalProps.quarantineList[0].quarantineDate).toLocaleDateString();
+        unFormattedQuarantineDate = minimalProps.quarantineList[0].quarantineDate,
+        quarantineDate = formatDate(unFormattedQuarantineDate, STANDARD_DATE_FORMAT);
 
       // then it contains the repository
       expect(
@@ -210,16 +216,19 @@ describe('FirewallQuarantineTable', function () {
   });
 
   describe('Quarantine grid last updated', () => {
-    it('calls the loadQuarantineList when the refresh button is clicked', () => {
+    it('has the correct time and date format', () => {
       // when the results table is rendered
       let component = getShallowComponent(),
-        initialLabel = component.find('.iq-firewall-table__time').text(),
+        initialLabel = component.find('.iq-firewall-table__time').text();
+
+      expect(initialLabel).toEqual('Updated ' + formatDate(minimalProps.lastUpdated, FIREWALL_TIME_DATE_FORMAT));
+    });
+
+    it('calls the loadQuarantineList when the refresh button is clicked', () => {
+      let component = getShallowComponent(),
         refreshButton = component.find('#firewall-quarantine-table--refresh-button');
 
-      expect(initialLabel).toEqual('');
-
       refreshButton.simulate('click');
-
       expect(loadQuarantineList).toHaveBeenCalled();
     });
   });

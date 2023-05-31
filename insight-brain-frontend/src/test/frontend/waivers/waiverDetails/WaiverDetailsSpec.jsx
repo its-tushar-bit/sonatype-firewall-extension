@@ -4,7 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent, axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
+import {
+  render,
+  screen,
+  fireEvent,
+  axiosMockAdapter,
+  waitFor,
+  WAIVER_CREATE_TIME,
+  WAIVER_EXPIRATION_TIME,
+} from 'TestRoot/SpecUtil';
 import { getWaiverDetailsUrl, deleteWaiverUrl } from 'MainRoot/util/CLMLocation';
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import WaiverDetails from 'MainRoot/waivers/waiverDetails/WaiverDetails';
@@ -38,9 +46,9 @@ describe('When the WaiverDetailsPage', function () {
       constraintFacts: [
         { constraintName: 'test constraint', conditionFacts: [{ reason: 'reason 1' }, { reason: 'reason 2' }] },
       ],
-      createTime: '08/18/2022',
+      createTime: WAIVER_CREATE_TIME,
       creatorName: 'test creator',
-      expiryTime: '08/18/2023',
+      expiryTime: WAIVER_EXPIRATION_TIME,
       policyName: 'test policy',
       policyWaiverId: 'b0fb538f851d473090489436b96e7a16',
       scopeOwnerId: 'ROOT_ORGANIZATION',
@@ -157,8 +165,8 @@ describe('When the WaiverDetailsPage', function () {
       expect(await screen.findByText('reason 1')).toBeVisible();
       expect(await screen.findByText('reason 2')).toBeVisible();
       expect(await screen.findByText('Root Organization')).toBeVisible();
-      expect(await screen.findByText('08/18/2022')).toBeVisible();
-      expect(await screen.findByText('08/18/2023')).toBeVisible();
+      expect(await screen.findByText('2022-08-18')).toBeVisible();
+      expect(await screen.findByText('2023-08-18')).toBeVisible();
       expect(await screen.findByText('a comment')).toBeVisible();
       expect(await screen.findByText('test creator')).toBeVisible();
       expect(await screen.findByText('*Indicates the component name when the waiver was created')).toBeVisible();

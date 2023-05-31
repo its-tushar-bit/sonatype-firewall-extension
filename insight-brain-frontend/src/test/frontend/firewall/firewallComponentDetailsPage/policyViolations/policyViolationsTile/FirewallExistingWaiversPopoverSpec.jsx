@@ -7,6 +7,7 @@
 import React from 'react';
 import moment from 'moment';
 import { render, screen } from 'TestRoot/SpecUtil';
+import { STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 import FirewallExistingWaiversPopover from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/policyViolationsTile/FirewallExistingWaiversPopover';
 
 describe('FirewallExistingWaiversPopover', () => {
@@ -92,6 +93,8 @@ describe('FirewallExistingWaiversPopover', () => {
 
     expect(screen.getByRole('cell', { name: `Admin BuiltIn` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `Repository - maven-central` })).toBeVisible();
-    expect(screen.getByRole('cell', { name: moment.parseZone(expectedTime).format('MM/DD/YYYY') })).toBeVisible();
+    expect(
+      screen.getByRole('cell', { name: moment.parseZone(expectedTime).format(STANDARD_DATE_FORMAT) })
+    ).toBeVisible();
   });
 });

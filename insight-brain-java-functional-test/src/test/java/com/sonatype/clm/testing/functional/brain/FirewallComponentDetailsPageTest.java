@@ -163,7 +163,7 @@ public class FirewallComponentDetailsPageTest
 
   static final String dateTimeFormatMask = "yyyy-MM-dd HH:mm:ss";
 
-  static final String dateFormatMask = "MM/dd/yyyy";
+  static final String dateFormatMask = "yyyy-MM-dd";
 
   @BeforeClass
   public static void startup() {

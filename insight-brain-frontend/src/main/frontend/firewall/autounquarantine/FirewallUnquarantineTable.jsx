@@ -16,6 +16,8 @@ import {
   NxTableRow,
 } from '@sonatype/react-shared-components';
 
+import { formatDate, STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
+
 export default function FirewallUnquarantineTable(props) {
   // Actions
   const {
@@ -105,7 +107,7 @@ export default function FirewallUnquarantineTable(props) {
                     </NxOverflowTooltip>
                   </NxTableCell>
                   <NxTableCell className="visual-testing-ignore">
-                    {new Date(row.quarantineDate).toLocaleDateString()}
+                    {formatDate(row.quarantineDate, STANDARD_DATE_FORMAT)}
                   </NxTableCell>
                   <NxTableCell>
                     <NxOverflowTooltip title={row.repository}>
@@ -113,7 +115,7 @@ export default function FirewallUnquarantineTable(props) {
                     </NxOverflowTooltip>
                   </NxTableCell>
                   <NxTableCell className="visual-testing-ignore">
-                    {new Date(row.dateCleared).toLocaleDateString()}
+                    {formatDate(row.dateCleared, STANDARD_DATE_FORMAT)}
                   </NxTableCell>
                   <NxTableCell chevron />
                 </NxTableRow>

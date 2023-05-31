@@ -152,7 +152,7 @@ public class ListWaiversTest
   @Test
   public void testWaiverListTable() throws Exception {
     Instant now = Instant.now();
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy").withZone(ZoneId.systemDefault());
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
     String nowStr = formatter.format(now);
     Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
 
@@ -177,7 +177,7 @@ public class ListWaiversTest
 
     WaiverListRow row1 = waiverListTable.row(1);
     row1.shouldNotHave(cssClass("list-waivers-row--expired"));
-    row1.dateCreated().shouldHave(text("05/05/2020"));
+    row1.dateCreated().shouldHave(text("2020-05-05"));
     row1.scope().shouldHave(text("Organization - Org 1"));
     row1.components().shouldHave(text("All"));
     row1.waiverExpiration().shouldHave(text("Does not expire"));

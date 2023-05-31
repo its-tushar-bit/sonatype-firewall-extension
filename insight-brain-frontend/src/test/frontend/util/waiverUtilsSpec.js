@@ -9,6 +9,7 @@ import {
   formatWaiverDetails,
   waiverMatcherStrategy,
 } from 'MainRoot/util/waiverUtils';
+import { WAIVER_CREATE_TIME, WAIVER_EXPIRATION_TIME } from 'TestRoot/SpecUtil';
 
 describe('waiverUtils', function () {
   describe('dislayWaiverScope', () => {
@@ -107,9 +108,9 @@ describe('waiverUtils', function () {
         constraintFacts: [
           { constraintName: 'test constraint', conditionFacts: [{ reason: 'reason 1' }, { reason: 'reason 2' }] },
         ],
-        createTime: '08/18/2022',
+        createTime: WAIVER_CREATE_TIME,
         creatorName: 'test creator',
-        expiryTime: '08/18/2023',
+        expiryTime: WAIVER_EXPIRATION_TIME,
         policyName: 'test policy',
         policyWaiverId: '1234testid',
         scopeOwnerId: 'ROOT_ORGANIZATION',
@@ -128,11 +129,11 @@ describe('waiverUtils', function () {
         constraintName: 'test constraint',
         reasons: ['reason 1', 'reason 2'],
         waiverScope: 'Root Organization',
-        expiration: '08/18/2023',
+        expiration: WAIVER_EXPIRATION_TIME,
         comment: 'a comment',
         creatorName: 'test creator',
         vulnerabilityId: 'CVE-2013-7285',
-        dateCreated: '08/18/2022',
+        dateCreated: WAIVER_CREATE_TIME,
         component: {
           associatedPackageUrl: 'a/package/url',
           componentIdentifier: null,
@@ -149,7 +150,7 @@ describe('waiverUtils', function () {
         constraintFacts: [
           { constraintName: 'test constraint', conditionFacts: [{ reason: 'reason 1' }, { reason: 'reason 2' }] },
         ],
-        createTime: '08/18/2022',
+        createTime: WAIVER_CREATE_TIME,
         creatorName: 'test creator',
         policyName: 'test policy',
         policyWaiverId: '1234testid',
@@ -173,7 +174,7 @@ describe('waiverUtils', function () {
         comment: 'a comment',
         creatorName: 'test creator',
         vulnerabilityId: 'CVE-2013-7285',
-        dateCreated: '08/18/2022',
+        dateCreated: WAIVER_CREATE_TIME,
         component: {
           associatedPackageUrl: 'a/package/url',
           componentIdentifier: null,

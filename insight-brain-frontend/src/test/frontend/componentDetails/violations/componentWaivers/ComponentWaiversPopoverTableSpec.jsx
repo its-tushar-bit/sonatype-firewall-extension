@@ -11,16 +11,12 @@ import ComponentWaiversPopoverTable, {
 } from 'MainRoot/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopoverTable';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
+import { formatDate, STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 
 describe('ComponentWaiversPopover', function () {
   let minimalProps, getShallowComponent;
   const waiverCreateTime = new Date(1627942284167);
-  const waiverCreateDate =
-    (waiverCreateTime.getMonth() + 1).toString().padStart(2, '0') +
-    '/' +
-    waiverCreateTime.getDate().toString().padStart(2, '0') +
-    '/' +
-    waiverCreateTime.getFullYear();
+  const waiverCreateDate = formatDate(waiverCreateTime, STANDARD_DATE_FORMAT);
 
   beforeEach(function () {
     const waivers = [
@@ -34,7 +30,7 @@ describe('ComponentWaiversPopover', function () {
         componentMatchStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         hash: 'hash-1',
         constraintFacts: [{ constraintName: 'constraint-1' }],
-        createTime: waiverCreateTime.getTime(),
+        createTime: waiverCreateTime,
       },
       {
         policyId: 'policyId2',
@@ -46,7 +42,7 @@ describe('ComponentWaiversPopover', function () {
         componentMatchStrategy: waiverMatcherStrategy.ALL_COMPONENTS,
         hash: null,
         constraintFacts: [{ constraintName: 'constraint-2' }],
-        createTime: waiverCreateTime.getTime(),
+        createTime: waiverCreateTime,
         comment: 'Some comment',
       },
       {
@@ -59,7 +55,7 @@ describe('ComponentWaiversPopover', function () {
         componentMatchStrategy: waiverMatcherStrategy.ALL_VERSIONS,
         hash: 'hash-2',
         constraintFacts: [{ constraintName: 'constraint-3' }],
-        createTime: waiverCreateTime.getTime(),
+        createTime: waiverCreateTime,
         componentName: 'component name',
         creatorName: 'creator name',
       },

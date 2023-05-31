@@ -253,7 +253,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     Instant now = Instant.now();
     Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
     Instant threeDaysFromNow = now.plus(3, ChronoUnit.DAYS);
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy").withZone(ZoneId.systemDefault());
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
     String createdDate = formatter.format(twoDaysAgo);
     String expirationDate = formatter.format(threeDaysFromNow);
 

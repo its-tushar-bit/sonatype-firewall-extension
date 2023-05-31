@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
-const select = { id: 'select', index: 0, name: 'Select' };
-const protect = { id: 'protect', index: 1, name: 'Protect' };
+export const stepsIds = { SELECT: 'select', PROTECT: 'protect' };
+const select = { id: stepsIds.SELECT, index: 0, name: 'Select', title: 'Select proxy repositories' };
+const protect = { id: stepsIds.PROTECT, index: 1, name: 'Protect', title: 'Inspect and complete onboarding' };
 
 export const steps = [select, protect];
 

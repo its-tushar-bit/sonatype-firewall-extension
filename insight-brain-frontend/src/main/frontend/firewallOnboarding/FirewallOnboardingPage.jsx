@@ -5,29 +5,24 @@
  */
 
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { NxPageMain, NxTile } from '@sonatype/react-shared-components';
+import { useSelector } from 'react-redux';
+import { NxPageMain } from '@sonatype/react-shared-components';
 
 import LoadWrapper from '../react/LoadWrapper';
 import OnboardingSteps from './OnboardingSteps';
-import ActionsFooter from './ActionsFooter';
+import ProxyRepositoriesSelector from './ProxyRepositoriesSelector';
+import FirewallConfigurationOverview from './FirewallConfigurationOverview';
 import { selectCurrentStep } from './firewallOnboardingSelectors';
-import { actions } from './firewallOnboardingSlice';
-import { stateGo } from '../reduxUiRouter/routerActions';
-import { setShowWelcomeModalToTrueInStore } from '../firewall/firewallWelcomeModalStore';
+import { stepsIds } from './firewallOnboardingUtils';
+
+const content = {
+  [stepsIds.SELECT]: ProxyRepositoriesSelector,
+  [stepsIds.PROTECT]: FirewallConfigurationOverview,
+};
 
 export default function FirewallOnboardingPage() {
-  const dispatch = useDispatch();
-  const continueToNextStep = () => dispatch(actions.continueToNextStep());
-  const goBackToPreviousStep = () => dispatch(actions.goBackToPreviousStep());
   const currentStep = useSelector(selectCurrentStep);
-  const saveRepositories = () => dispatch(actions.saveRepositories());
-
-  const handleLaunch = () => {
-    saveRepositories();
-    setShowWelcomeModalToTrueInStore();
-    dispatch(stateGo('firewall.firewallPage'));
-  };
+  const Content = content[currentStep.id];
 
   return (
     <NxPageMain id="firewall-onboarding-page" className="firewall-onboarding-page">
@@ -37,17 +32,9 @@ export default function FirewallOnboardingPage() {
         </aside>
         <div className="content">
           <header className="nx-page-title">
-            <h1 className="nx-h1 iq-dependency-tree__title">Select proxy repositories</h1>
+            <h1 className="nx-h1 iq-dependency-tree__title">{currentStep.title}</h1>
           </header>
-          <NxTile>
-            <NxTile.Content>content</NxTile.Content>
-            <ActionsFooter
-              currentStep={currentStep}
-              onPrevious={goBackToPreviousStep}
-              onNext={continueToNextStep}
-              onLaunch={handleLaunch}
-            />
-          </NxTile>
+          <Content />
         </div>
       </LoadWrapper>
     </NxPageMain>

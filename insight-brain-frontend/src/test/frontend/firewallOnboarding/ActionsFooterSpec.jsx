@@ -8,22 +8,16 @@ import React from 'react';
 
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import ActionsFooter from 'MainRoot/firewallOnboarding/ActionsFooter';
-import { steps } from '../../../main/frontend/firewallOnboarding/firewallOnboardingUtils';
+import { actions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
+import { steps } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
 
 describe('ActionsFooter', function () {
-  let renderComponent;
-  let onNextSpy;
-  let onPreviousSpy;
-  let onLaunchSpy;
+  const renderComponent = (currentStep) => render(<ActionsFooter currentStep={currentStep} />);
 
-  beforeEach(() => {
-    onNextSpy = jasmine.createSpy('onNext');
-    onPreviousSpy = jasmine.createSpy('onPrevious');
-    onLaunchSpy = jasmine.createSpy('onLaunch');
-    renderComponent = (currentStep) =>
-      render(
-        <ActionsFooter currentStep={currentStep} onPrevious={onPreviousSpy} onNext={onNextSpy} onLaunch={onLaunchSpy} />
-      );
+  beforeAll(() => {
+    spyOn(actions, 'saveRepositories').and.callThrough();
+    spyOn(actions, 'continueToNextStep').and.callThrough();
+    spyOn(actions, 'goBackToPreviousStep').and.callThrough();
   });
 
   describe('when the current step is the first step', () => {
@@ -33,7 +27,7 @@ describe('ActionsFooter', function () {
 
       expect(continueButton).toBeVisible();
       fireEvent.click(continueButton);
-      expect(onNextSpy).toHaveBeenCalled();
+      expect(actions.continueToNextStep).toHaveBeenCalled();
     });
 
     it('does not render previous button', () => {
@@ -65,7 +59,7 @@ describe('ActionsFooter', function () {
 
       expect(previousButton).toBeVisible();
       fireEvent.click(previousButton);
-      expect(onPreviousSpy).toHaveBeenCalled();
+      expect(actions.goBackToPreviousStep).toHaveBeenCalled();
     });
 
     it('renders "launch firewall" button', () => {
@@ -74,7 +68,7 @@ describe('ActionsFooter', function () {
 
       expect(launchButton).toBeVisible();
       fireEvent.click(launchButton);
-      expect(onLaunchSpy).toHaveBeenCalled();
+      expect(actions.saveRepositories).toHaveBeenCalled();
     });
   });
 });

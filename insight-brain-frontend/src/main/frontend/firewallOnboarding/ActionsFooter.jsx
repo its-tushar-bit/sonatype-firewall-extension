@@ -5,25 +5,39 @@
  */
 
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import { NxButton, NxFooter } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
+import { actions } from './firewallOnboardingSlice';
 import { next, prev } from './firewallOnboardingUtils';
+import { stateGo } from '../reduxUiRouter/routerActions';
+import { setShowWelcomeModalToTrueInStore } from '../firewall/firewallWelcomeModalStore';
 
-export default function ActionsFooter({ currentStep = {}, onNext, onPrevious, onLaunch, ...otherProps }) {
+export default function ActionsFooter({ currentStep = {}, isNextButtonDisabled, ...otherProps }) {
+  const dispatch = useDispatch();
+
+  const continueToNextStep = () => dispatch(actions.continueToNextStep());
+  const goBackToPreviousStep = () => dispatch(actions.goBackToPreviousStep());
+  const launchFirewall = () => {
+    setShowWelcomeModalToTrueInStore();
+    dispatch(actions.saveRepositories());
+    dispatch(stateGo('firewall.firewallPage'));
+  };
+
   return (
     <NxFooter id="actions-footer" role="navigation" {...otherProps}>
       {!!prev(currentStep) && (
-        <NxButton variant="secondary" id="previous-button" onClick={onPrevious}>
+        <NxButton variant="secondary" id="previous-button" onClick={goBackToPreviousStep}>
           Previous
         </NxButton>
       )}
       {!!next(currentStep) ? (
-        <NxButton variant="primary" id="continue-button" onClick={onNext}>
+        <NxButton variant="primary" id="continue-button" disabled={isNextButtonDisabled} onClick={continueToNextStep}>
           Continue
         </NxButton>
       ) : (
-        <NxButton variant="primary" id="launch-button" onClick={onLaunch}>
+        <NxButton variant="primary" id="launch-button" onClick={launchFirewall}>
           Launch Firewall
         </NxButton>
       )}
@@ -32,9 +46,7 @@ export default function ActionsFooter({ currentStep = {}, onNext, onPrevious, on
 }
 
 ActionsFooter.propTypes = {
-  onPrevious: PropTypes.func,
-  onNext: PropTypes.func,
-  onLaunch: PropTypes.func,
+  isNextButtonDisabled: PropTypes.bool,
   currentStep: PropTypes.shape({
     id: PropTypes.string,
   }).isRequired,

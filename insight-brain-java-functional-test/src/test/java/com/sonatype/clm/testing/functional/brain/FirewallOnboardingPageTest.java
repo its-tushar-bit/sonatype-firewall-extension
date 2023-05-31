@@ -38,7 +38,7 @@ public class FirewallOnboardingPageTest
     page.shouldBe(Condition.visible);
     page.steps().shouldBe(Condition.visible);
     page.actionsFooter().shouldBe(Condition.visible);
-    page.shouldHave(Condition.text("content"));
+    page.shouldHave(Condition.text("Select proxy repositories"));
   }
 
   @Test

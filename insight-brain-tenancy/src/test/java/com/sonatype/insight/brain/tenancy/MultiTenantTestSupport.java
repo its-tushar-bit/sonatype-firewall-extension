@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tenancy;
 
 import com.sonatype.insight.brain.tenancy.TenantTestHelper.ConsumerWithException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -22,6 +23,11 @@ public abstract class MultiTenantTestSupport
   @Before
   public void setup() {
     TenantTestHelper.initMultiTenantMode();
+  }
+
+  @After
+  public void restoreSingleTenant() {
+    TenantTestHelper.setSingleTenant();
   }
 
   protected Tenant testAsNewTenant(ConsumerWithException<Tenant> test) {

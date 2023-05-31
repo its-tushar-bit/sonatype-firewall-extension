@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.git;
 import java.time.Duration;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -17,11 +19,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PullRequestPollingTaskTest
-    extends VerifiableLoggingTestBase
+    extends MultiTenantTestSupport
 {
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -32,53 +35,68 @@ public class PullRequestPollingTaskTest
   @Mock
   private IqForScmLicenseChecker licenseChecker;
 
-  public PullRequestPollingTaskTest() {
-    super(PullRequestPollingTask.class);
-  }
+  private PullRequestPollingTask underTest;
 
-  @Test
-  public void testPullRequestPollingTask_licensed() {
-    PullRequestPollingTask task =
-        new PullRequestPollingTask(taskSchedulerMock, pullRequestPollingService, licenseChecker, 2, 1);
-    when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
-
-    task.productLicenseChanged();
-
-    assertThatLogMessagesEqual(
-        info("Pull Request Monitoring is licensed"),
-        info("Scheduled monitoring of SCM pull requests every 1 second(s) starting in 2 second(s)")
-    );
-
-    task.deregister();
-  }
-
-  @Test
-  public void testPullRequestPollingTask_unlicensed() {
-    PullRequestPollingTask task =
-        new PullRequestPollingTask(taskSchedulerMock, pullRequestPollingService, licenseChecker, 2, 1);
-
-    task.productLicenseChanged();
-
-    assertThatLogMessagesEqual(
-        info("Pull Request Monitoring is not licensed"),
-        info("Stopped SCM pull request monitoring")
-    );
-
-    task.deregister();
+  @Before
+  @Override
+  public void setup() {
+    super.setup();
+    underTest = new PullRequestPollingTask(taskSchedulerMock, pullRequestPollingService, licenseChecker, 2, 1);
   }
 
   @Test
   public void testPullRequestPollingTask_register_deregister() {
-    PullRequestPollingTask task =
-        new PullRequestPollingTask(taskSchedulerMock, pullRequestPollingService, licenseChecker, 2, 1);
-    when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
+    testAsNewTenant(tenant -> {
+      when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
 
-    task.register();
+      underTest.register();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(eq(task), eq(Duration.ofSeconds(1)), any());
+      verify(taskSchedulerMock).schedulePeriodicTask(eq(underTest), eq(Duration.ofSeconds(1)), any());
 
-    task.deregister();
+      underTest.deregister();
 
-    verify(taskSchedulerMock).unscheduleTask(eq(task));
+      verify(taskSchedulerMock).unscheduleTask(underTest);
+    });
+  }
+
+  @Test
+  public void testPullRequestPollingTask_productLicenseChanged_shouldUnscheduleIfUnlicensed() {
+    testAsGlobalTenant(global -> {
+      underTest.productLicenseChanged();
+
+      verify(taskSchedulerMock).unscheduleTask(underTest);
+    });
+  }
+
+  @Test
+  public void testPullRequestPollingTask_productLicenseChanged_shouldScheduleForSingleTenant() {
+    testAsSingleTenant(single -> {
+      when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
+
+      underTest.productLicenseChanged();
+
+      verify(taskSchedulerMock).schedulePeriodicTask(eq(underTest), eq(Duration.ofSeconds(1)), any());
+    });
+  }
+
+  @Test
+  public void testPullRequestPollingTask_productLicenseChanged_shouldScheduleForGlobalTenant() {
+    testAsGlobalTenant(global -> {
+      when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
+
+      underTest.productLicenseChanged();
+
+      verify(taskSchedulerMock).schedulePeriodicTask(eq(underTest), eq(Duration.ofSeconds(1)), any());
+    });
+  }
+
+  @Test
+  public void testPullRequestPollingTask_productLicenseChanged_shouldNotScheduleForTenant() {
+    // should not run as tenant
+    testAsNewTenant(tenant -> {
+      underTest.productLicenseChanged();
+
+      verifyNoInteractions(taskSchedulerMock);
+    });
   }
 }

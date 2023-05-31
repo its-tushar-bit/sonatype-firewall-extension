@@ -95,23 +95,23 @@ public class PullRequestPollingTask
   }
 
   private void startPullRequestMonitoring() {
-    if (disableForTesting || !licenseChecker.isPullRequestCommentingSupported()) {
+    if (disableForTesting || !isLicensed()) {
       return;
     }
     Date startTime = Date.from(
         LocalDateTime.now().plusSeconds(pullRequestMonitoringDelaySeconds).atZone(ZoneId.systemDefault()).toInstant());
     taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(pullRequestMonitoringIntervalSeconds), startTime);
-    log.info("Scheduled monitoring of SCM pull requests every {} second(s) starting in {} second(s)",
+    log.info("Scheduled SCM pull request polling every {} second(s) starting in {} second(s)",
         pullRequestMonitoringIntervalSeconds, pullRequestMonitoringDelaySeconds);
   }
 
   @Override
   public void executeForTenant(JobExecutionContext context, Tenant tenant) {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      monitorPullRequestsForCommenting();
+      fetchAndSendPullRequestsForCommenting();
     }
     catch (Exception e) {
-      log.error("Failed to monitor pull requests: {}", e.getMessage(), e);
+      log.error("Failed to start pull request polling: {}", e.getMessage(), e);
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational
@@ -129,34 +129,40 @@ public class PullRequestPollingTask
 
   private void stopPullRequestMonitoring() {
     if (!disableForTesting) {
-      log.info("Stopped SCM pull request monitoring");
+      log.info("Stopped SCM pull request polling");
       taskScheduler.unscheduleTask(this);
     }
   }
 
-  private void monitorPullRequestsForCommenting() {
-    if (licenseChecker.isPullRequestCommentingSupported()) {
-      log.debug("Commencing pull request polling cycle");
+  private void fetchAndSendPullRequestsForCommenting() {
+    log.debug("Commencing pull request polling cycle");
 
-      try {
-        pullRequestPollingService.fetchAndSendPullRequestsForCommenting();
-      }
-      catch (Exception e) {
-        log.error(e.getMessage(), e);
-      }
-      log.debug("Pull request polling cycle complete");
+    try {
+      pullRequestPollingService.fetchAndSendPullRequestsForCommenting();
     }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
+
+    log.debug("Pull request polling cycle complete");
   }
 
   @Override
   public void productLicenseChanged() {
-    if (licenseChecker.isPullRequestCommentingSupported()) {
-      log.info("Pull Request Monitoring is licensed");
-      startPullRequestMonitoring();
+    if (tenantUtil.isSingleTenant() || tenantUtil.isGlobalTenant()) {
+      if (isLicensed()) {
+        log.debug("Pull request polling (automation) is licensed");
+        startPullRequestMonitoring();
+      }
+      else {
+        log.debug("Pull request polling (automation) is not licensed");
+        stopPullRequestMonitoring();
+      }
     }
-    else {
-      log.info("Pull Request Monitoring is not licensed");
-      stopPullRequestMonitoring();
-    }
+  }
+
+  @Override
+  public boolean isLicensed() {
+    return licenseChecker.isPullRequestCommentingSupported();
   }
 }

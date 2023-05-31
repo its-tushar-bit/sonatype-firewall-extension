@@ -181,6 +181,7 @@ For example, if you store the "isDirty" flag in the `addWaiver` reducer in a var
 - Every story should include functional testing.
 - If you're testing a React component —`.jsx` extension— make sure that your corresponding spec file is also using the `.jsx` extension.
 - Spec files should be named equal to the source file they’re testing and with the "Spec" suffix. i.e. for `Source.jsx` the corresponding spec file should be `SourceSpec.jsx` — this makes the files easier to find.
+- Spec files should go under `insight-brain-frontend/src/test/{mirrored-path-to-component}`. This is similar to how maven projects are set up.
 - Avoid using `setTimeout` in test files if possible, this increases test suite's runtime. The alternative is to use `jasmine's` `clock` for simulating time.
 
 ### Writing tests for React components

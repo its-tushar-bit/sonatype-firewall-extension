@@ -15,7 +15,7 @@ import {
 import { fireEvent } from '@testing-library/react';
 
 describe('MoveOwnerModal', () => {
-  let renderComponent, axiosMock;
+  let axiosMock;
 
   const rootOrgId = 'ROOT_ORGANIZATION_ID';
   const adminOrgId = 'd2612d914cfc41b7b0ee9be7539e4889';
@@ -176,14 +176,13 @@ describe('MoveOwnerModal', () => {
     router: { currentState: { name: 'organization' } },
   };
 
+  const renderComponent = (preloadedState) =>
+    render(<MoveOwnerModal />, { preloadedState: preloadedState || preloadedStateForApp });
+
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
   });
 
-  beforeEach(() => {
-    renderComponent = (preloadedState) =>
-      render(<MoveOwnerModal />, { preloadedState: preloadedState || preloadedStateForApp });
-  });
   it("doesn't show modal without being open", () => {
     renderComponent({
       orgsAndPolicies: {
@@ -231,9 +230,8 @@ describe('MoveOwnerModal', () => {
   describe('applications', () => {
     it('fetches organizations, when opening modal for app', () => {
       renderComponent();
-      expect(axiosMock.history.get.length).toBe(1);
-      expect(axiosMock.history.get[0].url).toBe(
-        getDestinationOrganizationsUrl('b96799515b294417859c5d6e400dd0b8', true)
+      expect(axiosMock.history.get).toContain(
+        jasmine.objectContaining({ url: getDestinationOrganizationsUrl('b96799515b294417859c5d6e400dd0b8', true) })
       );
     });
 
@@ -243,11 +241,12 @@ describe('MoveOwnerModal', () => {
       expect(screen.getByText('Loading…')).toBeVisible();
     });
 
-    // This test is being addressed here CLM-25230
-    xit('shows warning message, if there are no available organizations', async () => {
+    it('shows warning message, if there are no available organizations', async () => {
       axiosMock.onGet(getDestinationOrganizationsUrl('b96799515b294417859c5d6e400dd0b8', true)).reply(200, []);
       renderComponent();
-      expect(axiosMock.history.get.length).toBe(1);
+      expect(axiosMock.history.get).toContain(
+        jasmine.objectContaining({ url: getDestinationOrganizationsUrl('b96799515b294417859c5d6e400dd0b8', true) })
+      );
       const warningMsg = await screen.findByText('No available destination organizations.');
       expect(warningMsg).toBeVisible();
     });

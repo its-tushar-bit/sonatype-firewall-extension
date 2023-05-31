@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
@@ -27,6 +29,7 @@ import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Test;
 
@@ -285,42 +288,115 @@ public class SamlUserDAOTest
   }
 
   @Test
-  public void testFindUsersByName_Exact() {
+  public void testFindUsersByNameOrUsernameQuery_ExactName() {
     SamlUser samlUser = tempEntity.newSamlUser("userA", "bob", "smith", null, null);
     tempEntity.newSamlUser("other", "john", "smith", null, null);
 
-    assertThat(samlUserDAO.findUsersByNameQuery("BoB sMiTh")).usingRecursiveFieldByFieldElementComparator()
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("BoB sMiTh")).usingRecursiveFieldByFieldElementComparator()
         .containsExactly(samlUser);
   }
 
   @Test
-  public void testFindUsersByName_Prefix() {
+  public void testFindUsersByNameOrUsernameQuery_PrefixName() {
     SamlUser samlUser1 = tempEntity.newSamlUser("userA", "BOB", "smith", null, null);
     SamlUser samlUser2 = tempEntity.newSamlUser("userB", "bob", "doe", null, null);
     tempEntity.newSamlUser("other", "john", "smith", null, null);
 
-    assertThat(samlUserDAO.findUsersByNameQuery("BoB%")).usingRecursiveFieldByFieldElementComparator()
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("BoB%")).usingRecursiveFieldByFieldElementComparator()
         .containsExactly(samlUser1, samlUser2);
   }
 
   @Test
-  public void testFindUsersByName_Suffix() {
+  public void testFindUsersByNameOrUsernameQuery_SuffixName() {
     SamlUser samlUser1 = tempEntity.newSamlUser("userA", "bob", "SMITH", null, null);
     SamlUser samlUser2 = tempEntity.newSamlUser("userB", "john", "smith", null, null);
     tempEntity.newSamlUser("other", "john", "doe", null, null);
 
-    assertThat(samlUserDAO.findUsersByNameQuery("%SmItH")).usingRecursiveFieldByFieldElementComparator()
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("%SmItH")).usingRecursiveFieldByFieldElementComparator()
         .containsExactly(samlUser1, samlUser2);
   }
 
   @Test
-  public void testFindUsersByName_PrefixAndSuffix() {
+  public void testFindUsersByNameOrUsernameQuery_PrefixAndSuffixName() {
     SamlUser samlUser1 = tempEntity.newSamlUser("userA", "johnny", "smith", null, null);
     SamlUser samlUser2 = tempEntity.newSamlUser("userB", "bobby", "smithson", null, null);
     tempEntity.newSamlUser("other", "john", "doe", null, null);
 
-    assertThat(samlUserDAO.findUsersByNameQuery("%y SmItH%")).usingRecursiveFieldByFieldElementComparator()
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("%y SmItH%")).usingRecursiveFieldByFieldElementComparator()
         .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testFindUsersByNameOrUsernameQuery_LastNameNull() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", "johnny smith", null, null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", "bobby smithson", null, null, null);
+    tempEntity.newSamlUser("other", "john", "doe", null, null);
+
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("%SmItH%")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testFindUsersByNameOrUsernameQuery_ExactUserName() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", "johnny smith", null, null, null);
+    tempEntity.newSamlUser("userB", "bobby smithson", null, null, null);
+
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("userA")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1);
+  }
+
+  @Test
+  public void testFindUsersByNameOrUsernameQuery_PrefixUserName() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", "BOB", "smith", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", "bob", "doe", null, null);
+    tempEntity.newSamlUser("other", "john", "smith", null, null);
+
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("user%")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testFindUsersByNameOrUsernameQuery_SuffixUserName() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA-sonatype", "bob", "SMITH", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB-sonatype", "john", "smith", null, null);
+    tempEntity.newSamlUser("userC-sonatype-1", "john", "doe", null, null);
+
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("%-SoNaTypE")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testFindUsersByNameOrUsernameQuery_PrefixAndSuffixUserName() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA-sonatype-1", "johnny", "smith", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB-sonatype-2", "bobby", "smithson", null, null);
+    tempEntity.newSamlUser("other", "john", "doe", null, null);
+
+    assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("%-SoNaTypE%")).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testFindUsersByNameOrUsernameQuery_PrefixAndSuffixUserName_postgres() {
+    testInPostgres(() -> {
+      SamlUser samlUser1 = tempEntity.newSamlUser("userA-postgres-1", "johnny", "smith", null, null);
+      SamlUser samlUser2 = tempEntity.newSamlUser("userB-postgres-2", "bobby", "smithson", null, null);
+      tempEntity.newSamlUser("other", "john", "doe", null, null);
+
+      assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("%-PoStgREs%"))
+          .usingRecursiveFieldByFieldElementComparator()
+          .containsExactly(samlUser1, samlUser2);
+    });
+  }
+
+  private void testInPostgres(Runnable test) {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      test.run();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 
   private SamlUser createSamlUser() {

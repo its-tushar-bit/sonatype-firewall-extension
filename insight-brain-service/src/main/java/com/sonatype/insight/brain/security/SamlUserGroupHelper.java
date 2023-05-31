@@ -124,8 +124,8 @@ public class SamlUserGroupHelper
     return samlUserDAO.getByUsernames(usernames);
   }
 
-  public List<SamlUser> findSamlUsersByNameQuery(String nameQuery) {
-    return samlUserDAO.findUsersByNameQuery(nameQuery);
+  public List<SamlUser> findSamlUsersByNameOrUsernameQuery(String nameQuery) {
+    return samlUserDAO.findUsersByNameOrUsernameQuery(nameQuery);
   }
 
   public List<SamlGroup> findSamlGroupsByNameQuery(String nameQuery) {

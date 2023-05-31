@@ -60,10 +60,11 @@ public class SamlUserDAO
     return getList(sQuery, usernames);
   }
 
-  public List<SamlUser> findUsersByNameQuery(String nameQuery) {
+  public List<SamlUser> findUsersByNameOrUsernameQuery(String nameQuery) {
     nameQuery = nameQuery.trim().toLowerCase(Locale.ENGLISH);
-    String sQuery = "SELECT entity FROM SamlUser entity" + //
-        " WHERE lower(concat(entity.firstName, ' ', entity.lastName)) LIKE ?1" + //
+    String sQuery = "SELECT entity FROM SamlUser entity" +
+        " WHERE lower(concat(coalesce(entity.firstName,''), ' ', coalesce(entity.lastName,''))) LIKE ?1" +
+        " OR lower(entity.username) LIKE ?1" +
         " ORDER BY entity.username";
     return getList(sQuery, nameQuery);
   }

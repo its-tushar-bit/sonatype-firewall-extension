@@ -241,9 +241,9 @@ public class SamlUserGroupHelperTest
   public void testFindSamlUsersByNameQuery() {
     String nameQuery = "nameQuery";
 
-    samlUserGroupHelper.findSamlUsersByNameQuery(nameQuery);
+    samlUserGroupHelper.findSamlUsersByNameOrUsernameQuery(nameQuery);
 
-    verify(spySamlUserDAO).findUsersByNameQuery(nameQuery);
+    verify(spySamlUserDAO).findUsersByNameOrUsernameQuery(nameQuery);
   }
 
   @Test

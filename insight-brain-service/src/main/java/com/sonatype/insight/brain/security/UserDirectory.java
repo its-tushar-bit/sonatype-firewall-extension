@@ -391,7 +391,7 @@ public class UserDirectory
   {
     if (samlUserGroupHelper.isSamlConfigured()) {
       String nameQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
-      for (SamlUser samlUser : samlUserGroupHelper.findSamlUsersByNameQuery(nameQuery)) {
+      for (SamlUser samlUser : samlUserGroupHelper.findSamlUsersByNameOrUsernameQuery(nameQuery)) {
         Member member = new Member(MemberType.USER, samlUser.getUsername(), samlUser.calculateDisplayName(),
             samlUser.getEmail(), SamlRealm.ID);
         users.put(member.getInternalNameLowerCase(), member);

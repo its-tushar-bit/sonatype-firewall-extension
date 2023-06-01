@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -22,6 +23,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.Firewall
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -51,6 +53,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FirewallPageTest
     extends AbstractFunctionalTest
@@ -215,9 +218,18 @@ public class FirewallPageTest
 
   @Test
   public void testFirewallQuarantineTable_ComponentNameSearch() {
+    Long time = new RepositoryComponentDAO().getAllQuarantinedComponent().stream()
+        .map(RepositoryComponent::getQuarantineTime)
+        .map(Date::getTime)
+        .max(Comparator.naturalOrder())
+        .orElse(null);
+    assertThat(time).isNotNull();
+    Date date = new Date(time + 1);
     Repository repository = tempEntity.newRepository();
+    String pathname = tempEntity.uuid();
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        ComponentIdentifier.createMavenCoordinates("g", "b1", "v"), true);
+        pathname, pathname.substring(0, Math.min(pathname.length(), 20)),
+        ComponentIdentifier.createMavenCoordinates("g", "b1", "v"), date, date);
     Policy policy =
         tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "testFirewallQuarantineTable_ComponentNameSearch");
     tempEntity.newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), 5, repositoryComponent.getPathname(),

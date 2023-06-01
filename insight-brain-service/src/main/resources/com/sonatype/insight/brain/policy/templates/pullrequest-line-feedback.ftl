@@ -27,4 +27,13 @@ Threat (of 10) | Policy | Violation Details
 
 </#list>
 
+<#-- Remove provider check if possible. Depends on completion of
+https://sonatype.atlassian.net/browse/SDEV-147
+https://sonatype.atlassian.net/browse/SDEV-211
+https://sonatype.atlassian.net/browse/SDEV-207
+https://sonatype.atlassian.net/browse/SDEV-213
+-->
+<#if provider.name() == "GITHUB" && componentDetailsReportUrl?has_content>
+[Component detail 🔍](${componentDetailsReportUrl})
+</#if>
 </details>

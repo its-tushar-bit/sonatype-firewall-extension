@@ -20,6 +20,9 @@ public class UserInterfaceLinksHelper
 
   public static final String REPORT_PATH = "application/{applicationPublicId}/report/{scanId}";
 
+  public static final String COMPONENT_SCAN_REPORT_PATH =
+          "application/{applicationPublicId}/report/{scanId}/componentDetails/{componentScanHash}";
+
   public static final String EMBEDDABLE_REPORT_PATH = "application/{applicationPublicId}/report/{scanId}/embeddable";
 
   public static final String PDF_PATH = "application/{applicationPublicId}/report/{scanId}/pdf";

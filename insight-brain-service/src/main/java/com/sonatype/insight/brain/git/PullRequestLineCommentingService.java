@@ -84,7 +84,9 @@ public class PullRequestLineCommentingService
       final String applicationId,
       final String sourcePolicyEvaluationId,
       final String basePolicyEvaluationId,
-      final LocationDiscoveryResult locationDiscoveryResult)
+      final LocationDiscoveryResult locationDiscoveryResult,
+      final String featureBranchScanId
+      )
   {
     final PullRequestLineCommentCreationResult lineCommentCreationResult =
         new PullRequestLineCommentCreationResult();
@@ -111,8 +113,14 @@ public class PullRequestLineCommentingService
             // Build a list of line comments to be created
             buildLineCommentList(lineCommentCreationResult, diffPositionMap, violationList);
 
-            addMarkupToLineComments(lineCommentCreationResult.getPullRequestLineCommentDtoList(), remediationVersionMap,
-                gitRepositoryInfo.getProvider(), gitRepositoryInfo.getRepositoryUrl());
+            addMarkupToLineComments(
+                lineCommentCreationResult.getPullRequestLineCommentDtoList(),
+                remediationVersionMap,
+                gitRepositoryInfo.getProvider(),
+                gitRepositoryInfo.getRepositoryUrl(),
+                applicationId,
+                featureBranchScanId
+            );
 
             createLineComments(lineCommentCreationResult, gitApiClient, pullRequestId, commitHash,
                 sourcePolicyEvaluationId, basePolicyEvaluationId, applicationId);
@@ -210,7 +218,9 @@ public class PullRequestLineCommentingService
       final List<PullRequestLineCommentDTO> lineCommentList,
       final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final SourceControlProvider provider,
-      final String scmBaseUrl)
+      final String scmBaseUrl,
+      final String applicationId,
+      final String featureBranchScanId)
   {
     for (PullRequestLineCommentDTO lineCommentDTO : lineCommentList) {
       ComponentIdentifier componentIdentifier = lineCommentDTO.getComponentIdentifier();
@@ -218,7 +228,7 @@ public class PullRequestLineCommentingService
       //Create the line comment body, if possible
       Optional<String> markupOptional = pullRequestFeedbackMarkupService.createLineMarkup(
           lineCommentDTO.getPolicyViolations(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(),
-          remediationVersion, provider, scmBaseUrl);
+          remediationVersion, provider, scmBaseUrl, applicationId, featureBranchScanId);
       markupOptional.ifPresent(lineCommentDTO::setMarkup);
     }
   }

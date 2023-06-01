@@ -81,11 +81,19 @@ public class PullRequestFeedbackMarkupService
       final String componentNameAndVersion,
       final RemediationVersionDTO remediationVersion,
       final SourceControlProvider provider,
-      final String scmBaseUrl)
+      final String scmBaseUrl,
+      final String applicationId,
+      final String featureBranchScanId)
   {
-    PullRequestLineFeedback details =
-        new PullRequestLineFeedback(violations, componentNameAndVersion, iqBaseUrl.getConfigured(), remediationVersion,
-            scmBaseUrl);
+    String applicationPublicId = applicationDAO.getById(applicationId).getPublicId();
+    PullRequestLineFeedback details = new PullRequestLineFeedback(
+        violations,
+        componentNameAndVersion,
+        iqBaseUrl.getConfigured(),
+        remediationVersion,
+        scmBaseUrl,
+        applicationPublicId,
+        featureBranchScanId);
     return details.renderTemplateAndGetContents(provider);
   }
 }

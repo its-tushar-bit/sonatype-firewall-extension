@@ -95,6 +95,14 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkComponentScanReport() throws Exception {
+    assertThat(UserInterfaceLinksHelper.getReportUrl("my app id", "my scan id"))
+        .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/my%20app%20id/report/my%20scan%20id");
+    HttpResponse response = get(UserInterfaceLinksHelper.COMPONENT_SCAN_REPORT_PATH, "my app id", "my scan id", "my component scan hash");
+    assertRedirect(response, "assets/index.html#/applicationReport/my%20app%20id/my%20scan%20id/componentDetails/my%20component%20scan%20hash/overview");
+  }
+
+  @Test
   public void testLinkToSbom() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.LATEST_VERSION_SBOM_REPORT_PATH, "appId", "scanId");
     assertRedirect(response, "api/v2/cycloneDx/1.4/appId/reports/scanId");

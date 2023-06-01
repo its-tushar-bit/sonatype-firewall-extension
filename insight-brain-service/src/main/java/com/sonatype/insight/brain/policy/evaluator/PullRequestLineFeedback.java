@@ -14,6 +14,8 @@ import java.util.Optional;
 
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -21,9 +23,13 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import freemarker.template.Template;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Constructs a pull request line comment from the given values
@@ -43,12 +49,18 @@ public class PullRequestLineFeedback
 
   private final String scmBaseUrl;
 
+  private final String applicationPublicId;
+
+  private final String featureBranchScanId;
+
   public PullRequestLineFeedback(
       final List<PolicyViolation> violations,
       final String displayName,
       final String iqBaseUrl,
       final RemediationVersionDTO remediationVersionDTO,
-      final String scmBaseUrl)
+      final String scmBaseUrl,
+      final String applicationPublicId,
+      final String featureBranchScanId)
   {
     Preconditions.checkNotNull(violations, "violations is required and cannot be null");
     this.violations = violations;
@@ -57,6 +69,10 @@ public class PullRequestLineFeedback
     this.remediationVersionDTO = remediationVersionDTO;
     this.iqBaseUrl = iqBaseUrl;
     this.scmBaseUrl = scmBaseUrl;
+    Preconditions.checkNotNull(applicationPublicId, "applicationPublicId is required and cannot be null");
+    this.applicationPublicId = applicationPublicId;
+    Preconditions.checkNotNull(featureBranchScanId, "featureBranchScanId is required and cannot be null");
+    this.featureBranchScanId = featureBranchScanId;
   }
 
   private synchronized Template getLineFeedbackTemplate(final boolean includeEmbeddedHtml) throws IOException {
@@ -105,7 +121,7 @@ public class PullRequestLineFeedback
 
     //Get a map containing the values to be populated in the template for the component
     final Map<String, Object> componentFeedbackList =
-        getComponentFeedbackList(displayName, violations, iqBaseUrl, remediationVersionDTO, provider);
+        getComponentFeedbackList(displayName, violations, iqBaseUrl, remediationVersionDTO, provider, applicationPublicId, featureBranchScanId);
     return TemplateUtils
         .render(getLineFeedbackTemplate(provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl)), componentFeedbackList);
   }
@@ -125,7 +141,9 @@ public class PullRequestLineFeedback
       final List<PolicyViolation> violations,
       final String baseUrl,
       final RemediationVersionDTO remediationVersionDTO,
-      final SourceControlProvider provider)
+      final SourceControlProvider provider,
+      final String applicationPublicId,
+      final String featureBranchScanId)
   {
     int threatLevel = getHighestThreatLevel(violations);
     String threatImage = PullRequestFeedbackDetails.getImageForThreatLevel(threatLevel);
@@ -142,7 +160,7 @@ public class PullRequestLineFeedback
       }
     }
 
-    return ImmutableMap.<String, Object>builder()
+    Builder<String, Object> modelMapBuilder = ImmutableMap.<String, Object>builder()
         .put("componentNameAndVersion", displayName)
         .put("threatLevel", threatLevel)
         .put("threatImage", threatImage)
@@ -152,7 +170,22 @@ public class PullRequestLineFeedback
         .put("breakingChangesCount", breakingChangesCount)
         .put("policiesViolatedCount", violations.size())
         .put("date", new SimpleDateFormat("MMM dd, yyyy").format(new Date()))
-        .put("provider", provider)
-        .build();
+        .put("provider", provider);
+
+    findComponentReportUrl(baseUrl, violations, applicationPublicId, featureBranchScanId)
+        .ifPresent( url -> modelMapBuilder.put("componentDetailsReportUrl", url));
+
+    return modelMapBuilder.build();
+  }
+
+  private static Optional<String> findComponentReportUrl(String baseUrl, List<PolicyViolation> violations, String applicationPublicId, String featureBranchScanId ) {
+    String reportPath = UserInterfaceLinksHelper.getReportUrl(applicationPublicId, featureBranchScanId);
+    return extractComponentHash(violations)
+        .map(componentHash -> format("/componentDetails/%s?source=pr-line-commenting", componentHash))
+        .map(componentDetailsPath -> baseUrl + reportPath + componentDetailsPath);
+  }
+
+  private static Optional<String> extractComponentHash(List<PolicyViolation> violations) {
+    return violations.stream().map(AbstractPolicyViolation::getHash).findFirst();
   }
 }

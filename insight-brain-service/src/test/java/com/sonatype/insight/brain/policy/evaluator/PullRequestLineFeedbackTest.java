@@ -59,6 +59,9 @@ public class PullRequestLineFeedbackTest
 
   private static final String SCM_ON_PREM_BASE_URL = "https://scm.mycompany.com";
 
+  private static final String APPLICATION_PUBLIC_ID = "myApp";
+  private static final String FEATURE_BRANCH_SCAN_ID = "myScanId";
+
   private Map<String, PullRequestLineFeedback> testCases;
 
   @Before
@@ -67,25 +70,25 @@ public class PullRequestLineFeedbackTest
     String iqBaseUrl = lookup(DefaultBaseUrl.class).getConfigured();
     testCases = ImmutableMap.<String, PullRequestLineFeedback>builder()
         .put(MULTIPLE_NO_SUGGESTIONS, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
-            iqBaseUrl, null, SCM_ON_PREM_BASE_URL))
+            iqBaseUrl, null, SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID))
         .put(MULTIPLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 3),
-            SCM_ON_PREM_BASE_URL))
+            SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID))
         .put(MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION,
             new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component", iqBaseUrl,
                 new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, 3),
-                SCM_ON_PREM_BASE_URL))
+                SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID))
         .put(SINGLE_NO_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", iqBaseUrl,
-            null, SCM_ON_PREM_BASE_URL))
+            null, SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID))
         .put(SINGLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
-            SCM_ON_PREM_BASE_URL))
+            SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID))
         .put(SINGLE_WITH_SUGGESTION_AZCLOUD, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
             "http://dev.azure.com/foo/bar/_git/baz",
-            new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS), "http://dev.azure.com"))
+            new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS), "http://dev.azure.com", APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID))
         .put(SINGLE_WITH_SUGGESTION_AZONPREM, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
-            SCM_ON_PREM_BASE_URL))
+            SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID))
         .build();
   }
 
@@ -200,14 +203,14 @@ public class PullRequestLineFeedbackTest
     assertThatExceptionOfType(NullPointerException.class)
         .isThrownBy(
             () -> new PullRequestLineFeedback(null, "Test Component", lookup(DefaultBaseUrl.class).getConfigured(),
-                null, null)).withMessageContaining("violations is required and cannot be null");
+                null, null, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID)).withMessageContaining("violations is required and cannot be null");
   }
 
   @Test
   public void testPullRequestFeedback_emptyViolations() {
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
-            lookup(DefaultBaseUrl.class).getConfigured(), null, null)
+            lookup(DefaultBaseUrl.class).getConfigured(), null, null, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID)
             .renderTemplateAndGetContents(SourceControlProvider.GITHUB))
         .withMessageContaining("violations cannot be empty");
   }
@@ -217,7 +220,7 @@ public class PullRequestLineFeedbackTest
     assertThatExceptionOfType(NullPointerException.class)
         .isThrownBy(
             () -> new PullRequestLineFeedback(new ArrayList<>(), null, lookup(DefaultBaseUrl.class).getConfigured(),
-                null, null))
+                null, null, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID))
         .withMessageContaining("displayName is required and cannot be null");
   }
 

@@ -286,7 +286,6 @@ public class PullRequestFeedbackDetails
               .put("lineCommentLink",
                   getLineCommentLink(pullRequestLineComments, componentEntry.getValue(), gitRepositoryInfo, prNumber))
               .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true))
-              .put("componentScanHash", componentEntry.getValue().get(0).getHash())
               .build();
         })
         .sorted(
@@ -383,8 +382,6 @@ public class PullRequestFeedbackDetails
         .put("date", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(featureBranchEvaluation.getTime()))
         .put("featureBranchStage", StringUtils.capitalize(featureBranchEvaluation.getStageTypeId()))
         .put("baseBranchStage", StringUtils.capitalize(baseBranchEvaluation.getStageTypeId()))
-        .put("baseFeatureBranchURL", baseUrl +
-            UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()))
         .put("detailedFeatureBranchReportUrl", baseUrl +
             UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()) +
             "?source=pr-commenting")

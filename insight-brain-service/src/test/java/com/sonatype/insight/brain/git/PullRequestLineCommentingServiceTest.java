@@ -83,8 +83,6 @@ public class PullRequestLineCommentingServiceTest
 
   private final String markupContent = "markup content";
 
-  private final String featureBranchScanId = "myScanId";
-
   private final int scmId = 11;
 
   private LocationDiscoveryResult locationDiscoveryResult;
@@ -125,7 +123,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(1),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: one comment should be created
     List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
@@ -166,7 +164,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(2),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: two comments should be created
     List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
@@ -212,7 +210,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(2),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, branch, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: one comment should be created
     List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
@@ -234,7 +232,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(2),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: one comment should be created
     List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
@@ -257,7 +255,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(1),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: no comment should be created
     List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
@@ -278,7 +276,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(1),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: no comment should be created
     List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
@@ -296,7 +294,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(null,
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: one comment should be created
     verify(mockGitClientFactory, never()).createApiClient(any());
@@ -316,7 +314,7 @@ public class PullRequestLineCommentingServiceTest
 
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(
-        null, null, null, 1, null, null, null, null, null, featureBranchScanId);
+        null, null, null, 1, null, null, null, null, null);
 
     // then: no comment should be created
     verify(mockGitClientFactory, never()).createApiClient(any());
@@ -336,7 +334,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result =
         service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId,
-            commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+            commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: gitApiClient client should not be created, and delete should never be called on DAO
     verify(mockGitClientFactory, never()).createApiClient(any());
@@ -355,7 +353,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result =
         service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId,
-            commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+            commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: gitApiClient client should be created, and delete should be called on client and DAO for each
     verify(mockGitClientFactory).createApiClient(any());
@@ -376,7 +374,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result =
         service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId,
-        commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: delete should be called on API client for each, dao for all that were deleted on api
     verify(mockGitClientFactory).createApiClient(any());
@@ -398,7 +396,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result =
         service.createPullRequestLineComments(null, gitRepositoryInfo, remediationVersionMap, pullRequestId,
-            commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+            commitHash, applicationId, sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: processing of deletes should stop after exception
     verify(mockGitClientFactory).createApiClient(any());
@@ -422,7 +420,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(1),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: one comment should be created
     verify(mockGitClientFactory, atLeastOnce()).createApiClient(any());
@@ -445,7 +443,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(2),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: two comments should be created
     verify(mockGitClientFactory, atLeastOnce()).createApiClient(any());
@@ -475,7 +473,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(2),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
-        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: only one comment should be created
     verify(mockGitClientFactory, atLeastOnce()).createApiClient(any());
@@ -508,7 +506,7 @@ public class PullRequestLineCommentingServiceTest
     // when: try to create line comments
     PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(1),
         gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId, sourcePolicyEvaluationId,
-        basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+        basePolicyEvaluationId, locationDiscoveryResult);
 
     // then: two comments should be created
     List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
@@ -627,7 +625,7 @@ public class PullRequestLineCommentingServiceTest
         }
 
         Optional<String> markup = Optional.of(markupContent);
-        when(mockPullRequestFeedbackMarkupService.createLineMarkup(anyList(), any(), any(), any(), any(), any(), any()))
+        when(mockPullRequestFeedbackMarkupService.createLineMarkup(anyList(), any(), any(), any(), any()))
             .thenReturn(markup);
 
         CommentResponse response = new DefaultCommentResponse();

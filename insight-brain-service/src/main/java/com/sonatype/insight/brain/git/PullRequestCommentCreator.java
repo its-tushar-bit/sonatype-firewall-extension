@@ -128,8 +128,7 @@ public class PullRequestCommentCreator
             prPolicyEvaluationsDTO.getApplicationId(),
             featureBranchPolicyEvaluation.getId(),
             targetPolicyEvaluation.getId(),
-            locationDiscoveryResult,
-            featureBranchPolicyEvaluation.getScanId());
+            locationDiscoveryResult);
 
     try {
       List<PullRequestLineCommentDTO> pullRequestLineComments =

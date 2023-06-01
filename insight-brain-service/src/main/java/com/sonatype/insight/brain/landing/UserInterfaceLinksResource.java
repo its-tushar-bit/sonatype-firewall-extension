@@ -134,23 +134,6 @@ public class UserInterfaceLinksResource
     return linkToReport(applicationPublicId, scanId, false);
   }
 
-  @GET
-  @Path(COMPONENT_SCAN_REPORT_PATH)
-  public Response linkToComponentScanReport(
-          @PathParam("applicationPublicId") String applicationPublicId,
-          @PathParam("scanId") String scanId,
-          @PathParam("componentScanHash") String componentScanHash,
-          @QueryParam("source") String source)
-  {
-    Application application = applicationDAO.getByPublicId(applicationPublicId);
-    sendSourceTelemetryData(application != null ? application.getId() : applicationPublicId, scanId, source);
-    String fragmentTemplate =
-            "/applicationReport/{applicationPublicId}/{scanId}/componentDetails/{componentScanHash}/overview";
-    UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(fragmentTemplate);
-    return redirect(uriBuilder, applicationPublicId, scanId, componentScanHash);
-  }
-
   /**
    * @since 1.16
    */

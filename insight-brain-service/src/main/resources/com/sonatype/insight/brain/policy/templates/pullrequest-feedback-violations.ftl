@@ -35,15 +35,6 @@ ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint
 
 </#list>
 
-<#-- Remove provider check if possible. Depends on completion of
-https://sonatype.atlassian.net/browse/SDEV-208
-https://sonatype.atlassian.net/browse/SDEV-209
-https://sonatype.atlassian.net/browse/SDEV-210
-https://sonatype.atlassian.net/browse/SDEV-154
--->
-<#if provider.name() == "GITHUB" && component.componentScanHash?has_content >
-[Component detail 🔍](${baseFeatureBranchURL}/componentDetails/${component.componentScanHash}?source=pr-commenting)
-</#if>
 </details>
 
 </#list>
@@ -63,6 +54,7 @@ https://sonatype.atlassian.net/browse/SDEV-154
     <img alt="T${component.highestThreatLevel}" src="https://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}" width="4" <#if provider.name() == "GITLAB">height="16"<#else>height="14"</#if>> <#lt>
     <b>${component.highestThreatLevel}<#if ( component.highestThreatLevel < 10 )>&nbsp;&nbsp;</#if>&nbsp;${component.componentNameAndVersion}</b>&nbsp;&nbsp;:white_check_mark:</summary><#lt>
   <p></p><#lt>
+  
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
 <#list component.policiesViolated as policy>

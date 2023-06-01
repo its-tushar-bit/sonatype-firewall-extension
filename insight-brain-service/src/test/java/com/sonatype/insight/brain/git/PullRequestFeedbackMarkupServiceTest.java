@@ -166,10 +166,6 @@ public class PullRequestFeedbackMarkupServiceTest
 
   @Test
   public void testCreateLineMarkup() throws Exception {
-    // given: Evaluation in feature branch with new vulnerabilities
-    final String SCAN_ID = "myScanId";
-    Application app = tempEntity.newApplicationWithParent("TEST_APP_PUBLIC_ID", "TEST APP", "TEST ORG");
-
     // given: component introduce new policy violation for github
     final Condition condition = new Condition(MatchStateConditionType.ID, "is", "exact");
     final ConditionFact conditionFact = ComponentPolicyEvaluator.createConditionFact(condition,
@@ -180,8 +176,6 @@ public class PullRequestFeedbackMarkupServiceTest
 
     List<ConstraintFact> constraintFactList = Collections.singletonList(constraintFact);
     PolicyEvaluation evaluation = new PolicyEvaluation();
-    evaluation.setApplicationId(app.getId());
-    evaluation.setScanId(SCAN_ID);
     PolicyViolation policyViolation =
         new PolicyViolation(evaluation, "policy1", "Policy 1", 1,
             PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
@@ -194,7 +188,7 @@ public class PullRequestFeedbackMarkupServiceTest
     final Optional<String> contents =
         pullRequestFeedbackMarkupService.createLineMarkup(policyViolations, "Test Component",
             new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
-            SourceControlProvider.GITHUB, "https://scm.mycompany.com", evaluation.getApplicationId(), evaluation.getScanId());
+            SourceControlProvider.GITHUB, "https://scm.mycompany.com");
 
     // then: markup is generated
     final String expectedContent =

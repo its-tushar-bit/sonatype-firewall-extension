@@ -268,7 +268,7 @@ public class PullRequestCommentCreatorTest
           .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any(), any());
 
       doReturn(result).when(mockLineCommentingService)
-          .createPullRequestLineComments(any(), any(), any(), anyInt(), any(), any(), any(), any(), any(), any());
+          .createPullRequestLineComments(any(), any(), any(), anyInt(), any(), any(), any(), any(), any());
 
       doReturn(Optional.of(mock(CommentResponse.class))).when(mockCommentingClient)
           .createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());

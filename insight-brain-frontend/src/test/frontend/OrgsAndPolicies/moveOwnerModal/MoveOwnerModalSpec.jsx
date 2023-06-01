@@ -225,7 +225,8 @@ describe('MoveOwnerModal', () => {
     expect(orgMoveModalMessage).toBeVisible();
   });
 
-  // TODO: when the new endpoint for fetching organizations when moving an orgs is ready, implement the unit test for that request here
+  // TODO: when the new endpoint for fetching organizations when moving an orgs is ready,
+  // implement the unit test for that request here. See https://sonatype.atlassian.net/browse/CLM-26075.
 
   describe('applications', () => {
     it('fetches organizations, when opening modal for app', () => {

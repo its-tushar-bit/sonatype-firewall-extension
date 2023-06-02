@@ -1,0 +1,92 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.service;
+
+import java.io.File;
+import java.io.IOException;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
+
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.codehaus.plexus.util.FileUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+public class ApiSpdxServiceAuthzTest
+    extends AbstractServiceAuthzTest
+{
+  @Inject
+  private ApiSpdxService service;
+
+  @Inject
+  private InsightWork work;
+
+  private String scanId;
+
+  @Before
+  public void setup() {
+    scanId = tempEntity.uuid();
+    setBaseUrl("http://localhost:8070/");
+
+    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(true);
+  }
+
+  @After
+  public void teardown() {
+    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(false);
+  }
+
+  private void createReportAndPolicyEvaluation() throws IOException {
+    File reportFile = work.getReportFile(app.getId(), scanId);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/ApiSpdxServiceTest/report", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+  }
+
+  @Test
+  public void testGetByScanId_Authorized() throws Exception {
+    createReportAndPolicyEvaluation();
+    grantReadPermission(app.getId());
+    service.getByScanId(app.getId(), scanId, "json", false, "2.3");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetByScanId_Unauthorized() {
+    login();
+    service.getByScanId(app.getId(), scanId, "json", false, "2.3");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetByScanId_Unauthenticated() {
+    service.getByScanId("fakeappid", scanId, "json", false, "2.3");
+  }
+
+  @Test
+  public void testGetLatestForStage_Authorized() throws Exception {
+    createReportAndPolicyEvaluation();
+    grantReadPermission(app.getId());
+    service.getLatestForStage(app.getId(), BuildStageType.ID, "json", false, "2.3");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetLatestForStage_Unauthorized() {
+    login();
+    service.getLatestForStage(app.getId(), BuildStageType.ID, "json", false, "2.3");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetLatestForStage_Unauthenticated() {
+    service.getLatestForStage(app.getId(), BuildStageType.ID, "json", false, "2.3");
+  }
+}

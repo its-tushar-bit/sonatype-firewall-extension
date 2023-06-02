@@ -1,0 +1,45 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.4.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "5408e54a94044d1f1f21",
+    "url" : null,
+    "reference" : "sonatype-2019-0115",
+    "source" : "sonatype",
+    "score" : 9.8,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "jQuery",
+        "version" : "3.2.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0babbbd2c221d24484f5",
+    "url" : null,
+    "reference" : "sonatype-2019-0116",
+    "source" : "sonatype",
+    "score" : 9.8,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "similar",
+    "proprietary" : false
+  } ]
+}

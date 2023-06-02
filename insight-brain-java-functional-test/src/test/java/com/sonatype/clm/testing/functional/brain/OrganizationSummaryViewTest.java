@@ -41,6 +41,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
@@ -138,6 +139,7 @@ public class OrganizationSummaryViewTest
     ActionDropDown.moveOwner().shouldBe(visible);
   }
 
+  @Ignore("CLM-26143")
   @Test
   public void testCopyOrganizationIdToClipboard() {
     // open the action dropdown

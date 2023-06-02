@@ -10,6 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
@@ -25,6 +29,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
@@ -36,7 +41,15 @@ import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
 import org.spdx.library.DefaultModelStore;
 import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.library.Read;
+import org.spdx.library.SpdxConstants;
+import org.spdx.library.model.Checksum;
+import org.spdx.library.model.ExternalRef;
+import org.spdx.library.model.ModelObject;
 import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.SpdxPackage;
+import org.spdx.library.model.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.enumerations.ReferenceCategory;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 
@@ -107,6 +120,13 @@ public class ApiSpdxServiceTest
   }
 
   @Test
+  public void testGetByScanId_InvalidScanId() throws Exception {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getByScanId(application.getId(), "bogus", "xml", false, "2.3"))
+        .withMessageContaining("Could not find a report with ID bogus");
+  }
+
+  @Test
   public void testGetByScanId_invalidFormat() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getByScanId(application.getId(), scanId, "yaml", false, "2.3"))
@@ -140,6 +160,7 @@ public class ApiSpdxServiceTest
     SpdxDocument document = deserialize(response, format);
 
     assertMetadata(document, spdxVersion);
+    assertPackages(document);
   }
 
   @Test
@@ -150,6 +171,13 @@ public class ApiSpdxServiceTest
   @Test
   public void testGetLatestForStage_xml() throws Exception {
     testGetLatest("xml", false, "2.3");
+  }
+
+  @Test
+  public void testGetLatestForStage_InvalidStage() throws Exception {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.getLatestForStage(application.getId(), "bogus", "xml", false, "2.3"))
+        .withMessageContaining("Invalid stage: bogus.");
   }
 
   @Test
@@ -182,11 +210,18 @@ public class ApiSpdxServiceTest
   {
     when(versionService.getFullVersion()).thenReturn("1.0");
 
+    String stageId = BuildStageType.ID;
     Response response =
-        service.getLatestForStage(application.getId(), BuildStageType.ID, format, generateCycloneDx, spdxVersion);
+        service.getLatestForStage(application.getId(), stageId, format, generateCycloneDx, spdxVersion);
     SpdxDocument document = deserialize(response, format);
 
+    String contentHeader = response.getHeaderString("Content-Disposition");
+    String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
+    String expectedFilename = String.format("%s-%s-%s.spdx.%s", application.getPublicId(), stageId, scanId, format);
+
+    assertThat(actualFilename).isEqualTo(expectedFilename);
     assertMetadata(document, spdxVersion);
+    assertPackages(document);
   }
 
   private void assertMetadata(SpdxDocument document, String spdxVersion) throws Exception {
@@ -194,6 +229,41 @@ public class ApiSpdxServiceTest
     assertThat(document.getCreationInfo().getCreated()).isNotNull();
     assertThat(document.getCreationInfo().getCreators().stream().findFirst().get()).isEqualTo(
         "Tool: Sonatype IQ Server - 1.0");
+  }
+
+  private static final Set<String> expectedNames = ImmutableSet.of("jQuery", "knockout.validation");
+
+  private static final Set<String> expectedVersions = ImmutableSet.of("3.4.1", "3.2.1", "2.0.0-Pre");
+
+  private static final Set<String> expectedPurls =
+      ImmutableSet.of("pkg:nuget/jQuery@3.4.1", "pkg:nuget/jQuery@3.2.1", "pkg:a-name/knockout.validation@2.0.0-Pre");
+
+  private void assertPackages(SpdxDocument document) throws Exception {
+    List<? extends ModelObject> items =
+        Read.getAllItems(document.getModelStore(), document.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
+            .collect(Collectors.toList());
+
+    assertThat(items).hasSize(3);
+
+    for (ModelObject item : items) {
+      SpdxPackage spdxPackage = (SpdxPackage) item;
+      assertThat(spdxPackage.getId()).startsWith(ApiSpdxService.SPDX_REF_PREFIX);
+      assertThat(spdxPackage.getVersionInfo()).isPresent().get().isIn(expectedVersions);
+      assertThat(spdxPackage.getName()).isPresent().get().isIn(expectedNames);
+
+      Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
+      assertThat(externalRefs).hasSize(1);
+      for (ExternalRef externalRef : externalRefs) {
+        assertThat(externalRef.getReferenceCategory()).isEqualTo(ReferenceCategory.PACKAGE_MANAGER);
+        assertThat(externalRef.getReferenceLocator()).isIn(expectedPurls);
+      }
+
+      Collection<Checksum> checksums = spdxPackage.getChecksums();
+      for (Checksum checksum : checksums) {
+        assertThat(checksum.getAlgorithm()).isEqualTo(ChecksumAlgorithm.SHA256);
+        assertThat(checksum.getValue()).isEqualTo("2fa0ab71b154da29ac134097bc6bbacd90987dd4c4005516159e6494d1d52ea2");
+      }
+    }
   }
 
   private SpdxDocument deserialize(Response response, String format)

@@ -7,10 +7,15 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -19,12 +24,17 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
@@ -35,16 +45,25 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
 import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.library.model.Checksum;
+import org.spdx.library.model.ExternalRef;
+import org.spdx.library.model.ReferenceType;
 import org.spdx.library.model.SpdxCreatorInformation;
 import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.SpdxPackage.SpdxPackageBuilder;
+import org.spdx.library.model.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.enumerations.ReferenceCategory;
 
 @Named
 @Singleton
@@ -56,6 +75,10 @@ public class ApiSpdxService
 
   static final Set<String> SPDX_VERSIONS = ImmutableSet.of("2.3");
 
+  static final String SPDX_REF_PREFIX = "SPDXRef-";
+
+  private final ApiReportDataServiceV2 apiReportDataServiceV2;
+
   private final ApplicationHelper applicationHelper;
 
   private final BaseUrl baseUrl;
@@ -66,11 +89,13 @@ public class ApiSpdxService
 
   @Inject
   public ApiSpdxService(
+      ApiReportDataServiceV2 apiReportDataServiceV2,
       ApplicationHelper applicationHelper,
       BaseUrl baseUrl,
       PolicyEvaluationDAO policyEvaluationDAO,
       VersionService versionService)
   {
+    this.apiReportDataServiceV2 = apiReportDataServiceV2;
     this.applicationHelper = applicationHelper;
     this.baseUrl = baseUrl;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -107,6 +132,10 @@ public class ApiSpdxService
       throw new ConflictException("This API endpoint is currently disabled.");
     }
 
+    if (StageTypes.getById(stageId) == null) {
+      throw new BadRequestException("Invalid stage: " + stageId + ".");
+    }
+
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
     PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageId);
     if (evaluation == null) {
@@ -127,11 +156,19 @@ public class ApiSpdxService
     AuditData.get().setScanId(scanId);
 
     try {
+      ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
+
       String uri = getReportUrl(application.getPublicId(), scanId);
 
       final SpdxDocument document = createDocument(spdxVersion, uri);
 
-      return generateResponse(document, application, format, generateCycloneDx);
+      addPackages(data.components, document);
+
+      String appId = application.getId();
+      String stageId = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId).getStageTypeId();
+      String filename = String.format("%s-%s-%s.spdx", application.getPublicId(), stageId, scanId);
+
+      return generateResponse(document, filename, format, generateCycloneDx);
     }
     catch (IOException | InvalidSPDXAnalysisException e) {
       throw new RuntimeException("An error occurred while generating the SPDX file", e);
@@ -147,6 +184,75 @@ public class ApiSpdxService
       log.warn("IQ Server base URL is not configured", e);
     }
     return iqBaseUrl + UserInterfaceLinksHelper.getReportUrl(applicationPublicId, scanId);
+  }
+
+  private void addPackages(final List<ApiReportComponentDTOV2> reportComponents, final SpdxDocument document)
+      throws InvalidSPDXAnalysisException, UnsupportedEncodingException
+  {
+    for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
+      if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
+        addPackage(reportComponent, document);
+      }
+    }
+  }
+
+  private void addPackage(final ApiReportComponentDTOV2 reportComponent, final SpdxDocument document)
+      throws InvalidSPDXAnalysisException, UnsupportedEncodingException
+  {
+    String packageUrl = getPackageUrl(reportComponent);
+    if (packageUrl == null) {
+      log.warn("Cannot determine the package URL for component: {}", reportComponent.displayName);
+      return;
+    }
+
+    ExternalRef purlRef = document.createExternalRef(ReferenceCategory.PACKAGE_MANAGER,
+        new ReferenceType("purl"), packageUrl, null);
+
+    SpdxPackageBuilder packageBuilder = document.createPackage(
+            generateSpdxId(),
+            createSpdxNameFromPurl(packageUrl),
+            // correct license data will be added with CLM-25906
+            null, null, null)
+        .setFilesAnalyzed(false)
+        .addExternalRef(purlRef);
+
+    String version = reportComponent.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
+    if (StringUtils.isNotBlank(version)) {
+      packageBuilder.setVersionInfo(version);
+    }
+
+    if (StringUtils.isNotBlank(reportComponent.sha256)) {
+      final Checksum checksum = document.createChecksum(ChecksumAlgorithm.SHA256, reportComponent.sha256);
+      packageBuilder.setChecksums(ImmutableList.of(checksum));
+    }
+    packageBuilder.build();
+  }
+
+  private String getPackageUrl(final ApiReportComponentDTOV2 reportComponent) {
+    if (StringUtils.isNotBlank(reportComponent.packageUrl)) {
+      return reportComponent.packageUrl;
+    }
+    PackageUrlIdentifier purl =
+        PackageUrlIdentifier.fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier());
+    return purl == null ? null : purl.getPackageUrl();
+  }
+
+  private String generateSpdxId() {
+    return SPDX_REF_PREFIX + UUID.randomUUID().toString().replace("-", "");
+  }
+
+  /**
+   * Given a PURL like "{@code scheme:type/namespace/name@version?qualifiers#subpath}" it creates an SPDX name as
+   * "{@code namespace:name}", if the namespace element exists; otherwise it's the same as "{@code name}"
+   */
+  private String createSpdxNameFromPurl(String purl) throws UnsupportedEncodingException {
+    String name = URLDecoder.decode(purl, StandardCharsets.UTF_8.name());
+    name = name.substring(purl.indexOf('/') + 1);
+    int index = name.indexOf('@');
+    if (index > -1) {
+      name = name.substring(0, index);
+    }
+    return name.replace("/", ":");
   }
 
   private SpdxDocument createDocument(String spdxVersion, String uri) throws InvalidSPDXAnalysisException {
@@ -170,7 +276,7 @@ public class ApiSpdxService
 
   private Response generateResponse(
       final SpdxDocument document,
-      final Application application,
+      String filename,
       final String format,
       final boolean generateCycloneDx) throws IOException, InvalidSPDXAnalysisException
   {
@@ -190,11 +296,9 @@ public class ApiSpdxService
       content = out.toString("UTF-8");
     }
 
+    filename = filename + "." + type.getSubtype();
     return Response.ok(content, type)
-        .header(HttpHeaders.CONTENT_DISPOSITION,
-            HttpHeaderUtils.buildContentDispositionHeaderValue(
-                application.getPublicId() + ".spdx." + type.getSubtype()))
-        .build();
+        .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename)).build();
   }
 
   private String validateFormat(String format) {

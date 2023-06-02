@@ -276,7 +276,7 @@ public class ScanPolicyEvaluator
 
     sendGrandfatheredViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
 
-    postEvents(scanPolicyEvaluatorResults, application);
+    postEvents(scanPolicyEvaluatorResults, application, components);
 
     return scanPolicyEvaluatorResults;
   }
@@ -286,6 +286,7 @@ public class ScanPolicyEvaluator
       String scanId,
       String stageTypeId,
       boolean forMonitoring,
+      List<Component> components,
       List<PolicyViolation> violations)
   {
     boolean enableActions = productLicense.hasFeature(LicensedFeature.ENFORCEMENT);
@@ -293,18 +294,20 @@ public class ScanPolicyEvaluator
       log.debug("Ignoring actions in policy alerts for application {} and scan {} in stage {}, "
           + "license does not support enforcement.", applicationId, scanId, stageTypeId);
     }
-    return PolicyAlertUtil.createPolicyAlerts(violations, stageTypeId, applicationId, forMonitoring, enableActions);
+    return PolicyAlertUtil.createPolicyAlerts(components, violations, stageTypeId, applicationId, forMonitoring,
+        enableActions);
   }
 
   private void updateReportFiles(
       File reportFile,
       ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
       Stage stage,
-      boolean forMonitoring) throws IOException
+      boolean forMonitoring,
+      List<Component> components) throws IOException
   {
     List<PolicyAlert> alerts = createPolicyAlerts(scanPolicyEvaluatorResults.evaluation.getApplicationId(),
         scanPolicyEvaluatorResults.evaluation.getScanId(), stage.getStageTypeId(), forMonitoring,
-        scanPolicyEvaluatorResults.activeViolations);
+        components, scanPolicyEvaluatorResults.activeViolations);
     Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
 
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations);
@@ -567,7 +570,7 @@ public class ScanPolicyEvaluator
           policyResults.getActiveAlerts().size(), policyResults.getWaivedAlerts().size(), appId,
           stage.getStageTypeId(), System.currentTimeMillis() - start);
 
-      updateReportFiles(reportFile, results, stage, forMonitoring);
+      updateReportFiles(reportFile, results, stage, forMonitoring, components);
 
       return results;
     }
@@ -812,13 +815,22 @@ public class ScanPolicyEvaluator
       List<PolicyViolation> policyViolations,
       boolean createAlerts)
   {
+    return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts);
+  }
+
+  public PolicyEvaluationResult createPolicyEvaluationResult(
+      PolicyEvaluation policyEvaluation,
+      List<Component> components,
+      List<PolicyViolation> policyViolations,
+      boolean createAlerts)
+  {
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
     if (createAlerts) {
       List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations);
       List<PolicyAlert> policyAlerts = createPolicyAlerts(policyEvaluation.getApplicationId(),
           policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
-          activePolicyViolations);
+          components, activePolicyViolations);
       policyEvaluationResult.setAlerts(policyAlerts);
     }
     policyEvaluationResult.setTotalComponentCount(getTotalComponentCount(policyEvaluation));
@@ -834,7 +846,8 @@ public class ScanPolicyEvaluator
    */
   private void postEvents(
       ScanPolicyEvaluatorResults scanPolicyEvaluatorResults,
-      Application application)
+      Application application,
+      List<Component> components)
   {
     final PolicyEvaluation policyEvaluation = scanPolicyEvaluatorResults.evaluation;
     final List<PolicyViolation> activeViolations = scanPolicyEvaluatorResults.activeViolations;
@@ -843,15 +856,15 @@ public class ScanPolicyEvaluator
     String commitHash = policyEvaluation.getCommitHash();
 
     PolicyEvaluationResult policyEvaluationResult =
-        createPolicyEvaluationResult(policyEvaluation, activeViolations, true);
+        createPolicyEvaluationResult(policyEvaluation, components, activeViolations, true);
 
     List<PolicyAlert> waivedAlerts = createPolicyAlerts(policyEvaluation.getApplicationId(),
         policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
-        waivedViolations);
+        components, waivedViolations);
 
     List<PolicyAlert> fixedAlerts = createPolicyAlerts(policyEvaluation.getApplicationId(),
         policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
-        fixedViolations);
+        components, fixedViolations);
 
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, commitHash, application);
     policyAlertEventService

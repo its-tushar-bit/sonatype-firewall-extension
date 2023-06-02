@@ -5,8 +5,15 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -18,6 +25,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -30,11 +38,24 @@ public class PolicyAlertUtil
 {
   private static final OwnerDAO ownerDAO = new OwnerDAO();
 
-  public static List<PolicyAlert> createPolicyAlerts(List<PolicyViolation> policyViolations,
-                                                     String stageTypeId,
-                                                     String applicationId,
-                                                     boolean forMonitoring,
-                                                     boolean enableActions)
+  public static List<PolicyAlert> createPolicyAlerts(
+      List<PolicyViolation> policyViolations,
+      String stageTypeId,
+      String applicationId,
+      boolean forMonitoring,
+      boolean enableActions)
+  {
+    return createPolicyAlerts(Collections.emptyList(), policyViolations, stageTypeId, applicationId, forMonitoring,
+        enableActions);
+  }
+
+  public static List<PolicyAlert> createPolicyAlerts(
+      List<Component> components,
+      List<PolicyViolation> policyViolations,
+      String stageTypeId,
+      String applicationId,
+      boolean forMonitoring,
+      boolean enableActions)
   {
     Owner owner = ownerDAO.getById(applicationId);
     List<String> ownerIds = ownerDAO.getOwnerIds(owner);
@@ -59,6 +80,7 @@ public class PolicyAlertUtil
 
       ComponentFact componentFact = new ComponentFact(policyViolation.getComponentIdentifier(),
           policyViolation.getHash());
+      componentFact.addPathnames(new ArrayList<>(getPathnames(components, policyViolation)));
       ComponentFactUtil.injectDisplayName(componentFact);
       for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
         removeDataUnnecessaryForPolicyAlert(constraintFact);
@@ -68,6 +90,27 @@ public class PolicyAlertUtil
     }
 
     return result;
+  }
+
+  private static Set<String> getPathnames(List<Component> components, PolicyViolation policyViolation) {
+    return components.stream()
+        .filter(component -> componentMatchesPolicyViolation(component, policyViolation))
+        .flatMap(component -> component.getPathnames().stream())
+        .collect(Collectors.toCollection(TreeSet::new));
+  }
+
+  private static boolean componentMatchesPolicyViolation(Component component, PolicyViolation policyViolation) {
+    if (component == null || policyViolation == null) {
+      return false;
+    }
+    if (component.getHash() != null && component.getHash().equals(policyViolation.getHash())) {
+      return true;
+    }
+    if (component.getComponentIdentifier() != null &&
+        component.getComponentIdentifier().equals(policyViolation.getComponentIdentifier())) {
+      return true;
+    }
+    return false;
   }
 
   private static void removeDataUnnecessaryForPolicyAlert(ConstraintFact constraintFact) {

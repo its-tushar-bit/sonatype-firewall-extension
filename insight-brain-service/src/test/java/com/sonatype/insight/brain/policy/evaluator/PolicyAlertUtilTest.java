@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -15,14 +17,18 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -170,5 +176,148 @@ public class PolicyAlertUtilTest
     assertThat(alerts).hasSize(1);
     PolicyAlert alert = alerts.get(0);
     assertThat(alert.getActions()).isEmpty();
+  }
+
+  @Test
+  public void testCreatePolicyAlerts_Pathnames_ByHash() {
+    Application application = tempEntity.newApplicationWithParent();
+    String stageTypeId = StageTypes.BUILD.getId();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    Component component = new Component();
+    component.setHash("hash");
+    component.addPathname("a.jar");
+    component.addPathname("path/b.jar");
+
+    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(
+        Collections.singletonList(component),
+        Collections.singletonList(policyViolation),
+        stageTypeId,
+        application.getId(),
+        policyEvaluation.isForMonitoring(),
+        false
+    );
+
+    assertThat(policyAlerts).hasSize(1);
+    PolicyAlert policyAlert = policyAlerts.get(0);
+    assertThat(policyAlert).isNotNull();
+    PolicyFact policyFact = policyAlert.getTrigger();
+    assertThat(policyFact).isNotNull();
+    List<ComponentFact> componentFacts = policyFact.getComponentFacts();
+    assertThat(componentFacts).hasSize(1);
+    ComponentFact componentFact = componentFacts.get(0);
+    assertThat(componentFact).isNotNull();
+    assertThat(componentFact.getPathnames()).isEqualTo(component.getPathnames());
+  }
+
+  @Test
+  public void testCreatePolicyAlerts_Pathnames_ByHash_NoResult() {
+    Application application = tempEntity.newApplicationWithParent();
+    String stageTypeId = StageTypes.BUILD.getId();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    Component component = new Component();
+    component.setHash("otherHash");
+    component.addPathname("a.jar");
+    component.addPathname("path/b.jar");
+
+    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(
+        Collections.singletonList(component),
+        Collections.singletonList(policyViolation),
+        stageTypeId,
+        application.getId(),
+        policyEvaluation.isForMonitoring(),
+        false
+    );
+
+    assertThat(policyAlerts).hasSize(1);
+    PolicyAlert policyAlert = policyAlerts.get(0);
+    assertThat(policyAlert).isNotNull();
+    PolicyFact policyFact = policyAlert.getTrigger();
+    assertThat(policyFact).isNotNull();
+    List<ComponentFact> componentFacts = policyFact.getComponentFacts();
+    assertThat(componentFacts).hasSize(1);
+    ComponentFact componentFact = componentFacts.get(0);
+    assertThat(componentFact).isNotNull();
+    assertThat(componentFact.getPathnames()).isEmpty();
+  }
+
+  @Test
+  public void testCreatePolicyAlerts_Pathnames_ByComponentIdentifier() {
+    Application application = tempEntity.newApplicationWithParent();
+    String stageTypeId = StageTypes.BUILD.getId();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    policyViolation.setHash(null);
+    new PolicyViolationDAO().update(policyViolation);
+    Component component1 = new Component();
+    component1.setComponentIdentifier(policyViolation.getComponentIdentifier());
+    component1.addPathname("a.jar");
+    component1.addPathname("path/b.jar");
+    Component component2 = new Component();
+    component2.setComponentIdentifier(policyViolation.getComponentIdentifier());
+    component2.addPathname("path/b.jar");
+    component2.addPathname("other/path/c.jar");
+
+    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(
+        Arrays.asList(component1, component2),
+        Collections.singletonList(policyViolation),
+        stageTypeId,
+        application.getId(),
+        policyEvaluation.isForMonitoring(),
+        false
+    );
+
+    assertThat(policyAlerts).hasSize(1);
+    PolicyAlert policyAlert = policyAlerts.get(0);
+    assertThat(policyAlert).isNotNull();
+    PolicyFact policyFact = policyAlert.getTrigger();
+    assertThat(policyFact).isNotNull();
+    List<ComponentFact> componentFacts = policyFact.getComponentFacts();
+    assertThat(componentFacts).hasSize(1);
+    ComponentFact componentFact = componentFacts.get(0);
+    assertThat(componentFact).isNotNull();
+    assertThat(componentFact.getPathnames()).isEqualTo(
+        Stream.concat(component1.getPathnames().stream(), component2.getPathnames().stream())
+            .distinct().sorted().collect(Collectors.toList())
+    );
+  }
+
+  @Test
+  public void testCreatePolicyAlerts_Pathnames_ByComponentIdentifier_NoResult() {
+    Application application = tempEntity.newApplicationWithParent();
+    String stageTypeId = StageTypes.BUILD.getId();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    policyViolation.setHash(null);
+    new PolicyViolationDAO().update(policyViolation);
+    Component component = new Component();
+    component.setComponentIdentifier(policyViolation.getComponentIdentifier().createAlternativeVersion("v2"));
+    component.addPathname("a.jar");
+    component.addPathname("path/b.jar");
+
+    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(
+        Collections.singletonList(component),
+        Collections.singletonList(policyViolation),
+        stageTypeId,
+        application.getId(),
+        policyEvaluation.isForMonitoring(),
+        false
+    );
+
+    assertThat(policyAlerts).hasSize(1);
+    PolicyAlert policyAlert = policyAlerts.get(0);
+    assertThat(policyAlert).isNotNull();
+    PolicyFact policyFact = policyAlert.getTrigger();
+    assertThat(policyFact).isNotNull();
+    List<ComponentFact> componentFacts = policyFact.getComponentFacts();
+    assertThat(componentFacts).hasSize(1);
+    ComponentFact componentFact = componentFacts.get(0);
+    assertThat(componentFact).isNotNull();
+    assertThat(componentFact.getPathnames()).isEmpty();
   }
 }

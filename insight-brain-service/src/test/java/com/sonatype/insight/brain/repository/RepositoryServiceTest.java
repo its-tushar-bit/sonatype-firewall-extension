@@ -972,12 +972,57 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testConfigureRepositories_ExistingRepository() {
+  public void testConfigureRepositories_ProxyRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName", "npm");
-    repository.setQuarantineEnabled(true);
-    repository.setPolicyCompliantComponentSelectionEnabled(true);
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName", RepositoryType.proxy, "maven2");
+    repository.setAuditEnabled(false);
+    repository.setQuarantineEnabled(false);
+    repository.setPolicyCompliantComponentSelectionEnabled(false);
+    repositoryDAO.update(repository);
 
+    // Enable quarantine
+    repository.setQuarantineEnabled(true);
+    Date beforeConfig = new Date();
+    // Call the service
+    repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
+    Date afterConfig = new Date();
+
+    repository = repositoryDAO.getById(repository.getId());
+
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.isAuditEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
+    assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
+
+    // Disable quarantine
+    repository.setQuarantineEnabled(false);
+    beforeConfig = new Date();
+    // Call the service
+    repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
+    afterConfig = new Date();
+
+    repository = repositoryDAO.getById(repository.getId());
+
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.isAuditEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
+    assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
+  }
+
+  @Test
+  public void testConfigureRepositories_ProxyRepository_Npm() {
+    // npm is a special case because we have to enable/disable policy compliant component selection too.
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName", RepositoryType.proxy, "npm");
+    repository.setAuditEnabled(true);
+    repository.setQuarantineEnabled(false);
+    repository.setPolicyCompliantComponentSelectionEnabled(false);
+    repositoryDAO.update(repository);
+
+    // Enable quarantine
+    repository.setQuarantineEnabled(true);
     Date beforeConfig = new Date();
     // Call the service
     repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
@@ -989,6 +1034,55 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repository.isAuditEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
+    assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
+
+    // Disable quarantine
+    repository.setQuarantineEnabled(false);
+    beforeConfig = new Date();
+    // Call the service
+    repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
+    afterConfig = new Date();
+
+    repository = repositoryDAO.getById(repository.getId());
+
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.isAuditEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isFalse();
+    assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isFalse();
+    assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
+  }
+
+  @Test
+  public void testConfigureRepositories_HostedRepository() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName", RepositoryType.hosted, "npm");
+    repository.setNamespaceConfusionProtectionEnabled(false);
+    repositoryDAO.update(repository);
+
+    // Enable NamespaceConfusionProtection
+    repository.setNamespaceConfusionProtectionEnabled(true);
+    Date beforeConfig = new Date();
+    // Call the service
+    repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
+    Date afterConfig = new Date();
+
+    repository = repositoryDAO.getById(repository.getId());
+
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.isNamespaceConfusionProtectionEnabled()).isTrue();
+    assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
+
+    // Disable NamespaceConfusionProtection
+    repository.setNamespaceConfusionProtectionEnabled(false);
+    beforeConfig = new Date();
+    // Call the service
+    repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
+    afterConfig = new Date();
+
+    repository = repositoryDAO.getById(repository.getId());
+
+    assertThat(repository.getName()).isEqualTo("testRepoName");
+    assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
     assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
   }
 

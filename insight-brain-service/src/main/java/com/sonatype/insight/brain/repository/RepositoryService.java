@@ -556,32 +556,49 @@ public class RepositoryService
 
         boolean updated = false;
 
-        if (existingRepository.isAuditEnabled() != repository.isAuditEnabled()) {
-          updated = true;
-        }
-        if (existingRepository.isQuarantineEnabled() != repository.isQuarantineEnabled()) {
-          updated = true;
-        }
-        if (existingRepository.isPolicyCompliantComponentSelectionEnabled() != repository
-            .isPolicyCompliantComponentSelectionEnabled()) {
-          updated = true;
-        }
-        if (existingRepository.isNamespaceConfusionProtectionEnabled() !=
-            repository.isNamespaceConfusionProtectionEnabled()) {
-          updated = true;
+        switch (existingRepository.getRepositoryType()) {
+          case proxy:
+            if (existingRepository.isQuarantineEnabled() != repository.isQuarantineEnabled()) {
+              if (repository.isQuarantineEnabled()) {
+                existingRepository.setAuditEnabled(true);
+                existingRepository.setQuarantineEnabled(true);
+                if (ComponentIdentifier.FORMAT_NPM.equals(existingRepository.getFormat())) {
+                  existingRepository.setPolicyCompliantComponentSelectionEnabled(true);
+                }
+              }
+              else {
+                // Don't change the auditEnabld flag
+                existingRepository.setQuarantineEnabled(false);
+                existingRepository.setPolicyCompliantComponentSelectionEnabled(false);
+              }
+              updated = true;
+            }
+            break;
+          case hosted:
+            if (existingRepository.isNamespaceConfusionProtectionEnabled() != repository
+                .isNamespaceConfusionProtectionEnabled()) {
+              existingRepository
+                  .setNamespaceConfusionProtectionEnabled(repository.isNamespaceConfusionProtectionEnabled());
+              updated = true;
+            }
+            break;
+          default:
+            log.error("Unknown repository type '{}' for repository {}:{} ({})", existingRepository.getRepositoryType(),
+                existingRepository.getRepositoryManagerId(), existingRepository.getPublicId(),
+                existingRepository.getId());
         }
 
         if (updated) {
-          repository.setLastManualConfigureTime(new Date());
+          existingRepository.setLastManualConfigureTime(new Date());
           try {
-            repositoryDAO.update(repository);
-            auditConfigureRepository(repository, null /* errorMessage */);
+            repositoryDAO.update(existingRepository);
+            auditConfigureRepository(existingRepository, null /* errorMessage */);
           }
           catch (RuntimeException e) {
-            String errorMessage = String.format("Error updating repository %s (%s): %s", repository.getName(),
-                repository.getId(), e.getMessage());
+            String errorMessage = String.format("Error updating repository %s (%s): %s", existingRepository.getName(),
+                existingRepository.getId(), e.getMessage());
             log.error(errorMessage, e);
-            auditConfigureRepository(repository, errorMessage);
+            auditConfigureRepository(existingRepository, errorMessage);
           }
         }
       }

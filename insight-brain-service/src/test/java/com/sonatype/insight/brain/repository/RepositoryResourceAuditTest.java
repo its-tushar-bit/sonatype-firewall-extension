@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -29,6 +30,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryResourceAuditTest
     extends AbstractAuditTest
@@ -214,20 +217,23 @@ public class RepositoryResourceAuditTest
   @Test
   public void testConfigureRepositories_ExistingRepository() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven");
-    repository.setAuditEnabled(false);
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven");
+    repository.setQuarantineEnabled(true);
     configureRepositoriesRequest(repositoryManager.getId(), Collections.singletonList(repository)).put();
 
+    boolean foundRepositoryAuditData = false;
     List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
     for (AuditDTO auditDTO : auditDTOs) {
       assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
       assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
-      if (auditDTO.data.size() == 1) {
+      if (auditDTO.data.size() > 2) {
+        foundRepositoryAuditData = true;
         repository = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
             repository.getPublicId());
         assertRepositoryData(auditDTO, repository);
       }
     }
+    assertThat(foundRepositoryAuditData).isTrue();
   }
 
   private HttpRequest repositoryRequest(String repositoryId) {

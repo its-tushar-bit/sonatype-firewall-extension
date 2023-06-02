@@ -1218,6 +1218,70 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluation).extracting(PolicyEvaluation::getScanId).isEqualTo("scan-develop-1");
   }
 
+  @Test
+  public void testGetCountOfApplicationsWithCITriggeredEvaluations() {
+    Application application2 = tempEntity.newApplication(organization.getId());
+    Application application3 = tempEntity.newApplication(organization.getId());
+    Application application4 = tempEntity.newApplication(organization.getId());
+
+    // Add 2 policy evaluations with a scan trigger type of CI, 1 with a scan trigger type not CI, and 1 before the cut
+    // off time
+    Calendar now = Calendar.getInstance();
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
+        false, false, false, now.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
+    now.add(Calendar.MINUTE, 10);
+
+    tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "scan-build-2",
+        false, false, false, now.getTime(), "hash-2", ScanTriggerType.CONTINUOUS_INTEGRATION);
+    now.add(Calendar.MINUTE, 10);
+
+    tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_BUILD, "scan-build-3",
+        false, false, false, now.getTime(), "hash-3", ScanTriggerType.CLI);
+
+    // 05/17/2020
+    Date preCutOffDate = new Date(1589684400000L);
+    tempEntity.newPolicyEvaluation(application4.getId(), Stage.ID_BUILD, "scan-build-4",
+        false, false, false, preCutOffDate, "hash-4", ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+    // 05/17/2021
+    Date cutOffDate = new Date(1621220400000L);
+
+    int numAppsResult = dao.getCountOfApplicationsWithCITriggeredEvaluations(cutOffDate);
+    assertThat(numAppsResult).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetCountOfApplicationsWithCITriggeredEvaluations_WhenNoCITriggeredEvaluationsExist() {
+    Application application2 = tempEntity.newApplication(organization.getId());
+    Application application3 = tempEntity.newApplication(organization.getId());
+    Application application4 = tempEntity.newApplication(organization.getId());
+
+    // Add policy evaluations not matching the criteria for a CI/CD plugin evaluation
+    Calendar now = Calendar.getInstance();
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
+        true, false, false, now.getTime(), "hash-1", ScanTriggerType.IDE);
+    now.add(Calendar.MINUTE, 10);
+
+    tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "scan-build-2",
+        false, true, false, now.getTime(), "hash-2", ScanTriggerType.WEB_UI);
+    now.add(Calendar.MINUTE, 10);
+
+    tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_BUILD, "scan-build-3",
+        true, false, true, now.getTime(), "hash-3", ScanTriggerType.CLI);
+    now.add(Calendar.MINUTE, 10);
+
+    tempEntity.newPolicyEvaluation(application4.getId(), Stage.ID_BUILD, "scan-build-4",
+        true, false, true, now.getTime(), "hash-4", ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+    // 05/17/2021
+    Date sinceUtcDate = new Date(1621220400000L);
+
+    int numAppsResult = dao.getCountOfApplicationsWithCITriggeredEvaluations(sinceUtcDate);
+    assertThat(numAppsResult).isZero();
+  }
+
   @FunctionalInterface
   interface PolicyEvaluationChooser
   {

@@ -441,4 +441,18 @@ public class PolicyEvaluationDAO
     sQuery += "IN (?3) ORDER BY entity.time DESC";
     return createQuery(sQuery, commitHash, applicationId, ScanTriggerType.internalScanTypes).forceSingleResult().get();
   }
+
+  /**
+   * @since 1.162
+   */
+  public int getCountOfApplicationsWithCITriggeredEvaluations(final Date sinceUtcDate) {
+    String sQuery = "SELECT COUNT(DISTINCT entity.applicationId)" +
+        " FROM PolicyEvaluation entity" +
+        " WHERE entity.scanTriggerType = ?1" +
+        " AND entity.isReevaluation = false" +
+        " AND entity.isForMonitoring = false" +
+        " AND entity.isForObsoleteScan = false" +
+        " AND entity.time >= ?2";
+    return getSingle(Number.class, sQuery, ScanTriggerType.CONTINUOUS_INTEGRATION, sinceUtcDate).intValue();
+  }
 }

@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfiguratio
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
+import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -534,6 +535,8 @@ public class TemporaryEntity
   private final SourceControlOrganizationImportEventDAO sourceControlOrganizationImportEventDAO =
       new SourceControlOrganizationImportEventDAO();
 
+  private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -903,6 +906,7 @@ public class TemporaryEntity
         membershipMappingDAO.delete(membershipMapping);
       }
     });
+    userIdePolicyEvaluationDAO.getAll().forEach(userIdePolicyEvaluationDAO::delete);
 
     detectEntityLeaks();
   }
@@ -4498,5 +4502,11 @@ public class TemporaryEntity
     sourceControlOrganizationImportEventDAO.insert(event);
     sourceControlOrganizationImportEvents.add(event);
     return event;
+  }
+
+  public void newUserIdePolicyEvaluation(
+      String username)
+  {
+    userIdePolicyEvaluationDAO.upsert(username);
   }
 }

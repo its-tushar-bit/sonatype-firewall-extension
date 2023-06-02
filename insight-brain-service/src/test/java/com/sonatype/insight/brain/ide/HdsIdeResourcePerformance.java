@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
+import com.sonatype.insight.brain.security.CurrentUser;
 
 public class HdsIdeResourcePerformance
 {
@@ -81,7 +83,8 @@ public class HdsIdeResourcePerformance
 
     this.iterations = iterations * connections;
     resource = new IdeResource(null, HdsIdeResourcePerformanceUtils.createHdsClient(server),
-        new ComponentPolicyEvaluator(), HdsIdeResourcePerformanceUtils.createTelemetrySender());
+        new ComponentPolicyEvaluator(), HdsIdeResourcePerformanceUtils.createTelemetrySender(),
+        new UserIdePolicyEvaluationDAO(), new CurrentUser());
 
     // trigger db
     testApplication = new Application();

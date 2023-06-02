@@ -108,6 +108,7 @@
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVectorTag</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverityTag</class>
+    <class>com.sonatype.insight.brain.model.ide.UserIdePolicyEvaluation</class>
     <class>com.sonatype.insight.brain.model.tenancy.DeletedTenant</class>
     <class>com.sonatype.insight.brain.model.security.TenantMetadata</class>
     <properties>

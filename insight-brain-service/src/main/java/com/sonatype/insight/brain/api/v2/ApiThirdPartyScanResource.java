@@ -23,6 +23,7 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.api.v2.dto.IdeUsersOverviewDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -42,6 +43,10 @@ public class ApiThirdPartyScanResource
   public static final String SCAN_COMPONENTS = "{applicationId}/sources/{source}";
 
   public static final String SCAN_STATUS = "{applicationId}/status/{scanRequestId}";
+
+  public static final String IDE_USER_OVERVIEW = "ideUser/overview";
+
+  public static final String SINCE_UTC_TIMESTAMP = "sinceUtcTimestamp";
 
   private final ApiThirdPartyScanService thirdPartyScanService;
 
@@ -77,5 +82,14 @@ public class ApiThirdPartyScanResource
       @PathParam("scanRequestId") String scanRequestId)
   {
     return thirdPartyScanService.getScanStatus(applicationId, scanRequestId);
+  }
+
+  @GET
+  @Path(IDE_USER_OVERVIEW)
+  @Produces(MediaType.APPLICATION_JSON)
+  public IdeUsersOverviewDTO getIdeUsersOverview(
+      @QueryParam(SINCE_UTC_TIMESTAMP) final Long sinceUtcTimestamp)
+  {
+    return thirdPartyScanService.getIdeUsersOverview(sinceUtcTimestamp);
   }
 }

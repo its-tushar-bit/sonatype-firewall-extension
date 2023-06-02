@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
@@ -49,6 +50,7 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -85,17 +87,25 @@ public class IdeResource
 
   private final TelemetrySender telemetrySender;
 
+  private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDao;
+
+  private final CurrentUser currentUser;
+
   @Inject
   public IdeResource(
       BaseUrl baseUrl,
       HdsClient client,
       ComponentPolicyEvaluator componentPolicyEvaluator,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      UserIdePolicyEvaluationDAO userIdePolicyEvaluationDao,
+      CurrentUser currentUser)
   {
     this.baseUrl = baseUrl;
     this.client = client;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.telemetrySender = telemetrySender;
+    this.userIdePolicyEvaluationDao = userIdePolicyEvaluationDao;
+    this.currentUser = currentUser;
   }
 
   /**
@@ -118,6 +128,8 @@ public class IdeResource
       @QueryParam("proprietary") boolean proprietary,
       @Context HttpServletRequest req) throws IOException
   {
+    userIdePolicyEvaluationDao.upsert(currentUser.getUsername());
+
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
 
     MatchedComponent matchedComponent = client.relay(req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}",

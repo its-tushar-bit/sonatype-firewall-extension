@@ -1459,3 +1459,13 @@ CREATE TABLE IF NOT EXISTS tenant_metadata
   connection_name varchar(100) NOT NULL,
   CONSTRAINT tenant_metadata_pk PRIMARY KEY (tenant_metadata_id)
 );
+
+-- since 1.162
+-- SDEV-228 This table records the last timestamp of a user using IDE to initiate a policy evaluation
+CREATE TABLE user_ide_policy_evaluation (
+  user_ide_policy_evaluation_id varchar(50) NOT NULL,
+  username varchar(200) NOT NULL,
+  last_evaluation_time timestamp NOT NULL,
+  CONSTRAINT user_ide_policy_evaluation_pk PRIMARY KEY (user_ide_policy_evaluation_id),
+  CONSTRAINT username_uk UNIQUE (username)
+);

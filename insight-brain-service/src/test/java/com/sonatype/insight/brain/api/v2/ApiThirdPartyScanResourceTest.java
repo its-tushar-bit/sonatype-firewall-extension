@@ -9,6 +9,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.MediaType;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.api.v2.dto.IdeUsersOverviewDTO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
@@ -28,6 +30,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.ApiThirdPartyScanResource.SINCE_UTC_TIMESTAMP;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -54,6 +57,48 @@ public class ApiThirdPartyScanResourceTest
   @Test
   public void testScanComponentAndGetScanStatus_Cyclone_Xml_v1_3() throws Exception {
     testScanComponentAndGetScanStatus("valid_bom_1_3.xml", MediaType.APPLICATION_XML);
+  }
+
+  @Test
+  public void testGetIdeUsersOverview_RetrieveCorrectUserCountFromDbNoRange() throws Exception {
+    tempEntity.newUserIdePolicyEvaluation("Jan");
+    tempEntity.newUserIdePolicyEvaluation("Feb");
+    tempEntity.newUserIdePolicyEvaluation("Jan");
+
+    checkCountAtTimestamp(restRequest(), "IDE user count of all time", 2);
+  }
+
+  @Test
+  public void testGetIdeUsersOverview_RetrieveCorrectUserCountFromDbWithRanges() throws Exception {
+    final Date BEFORE_USERS = new Date();
+    tempEntity.newUserIdePolicyEvaluation("Jan");
+    final Date BETWEEN_USERS = new Date();
+    tempEntity.newUserIdePolicyEvaluation("Feb");
+    final Date AFTER_USERS = new Date();
+
+    checkCountAtTimestamp(restRequest()
+            .query(SINCE_UTC_TIMESTAMP, BEFORE_USERS.getTime()), "IDE user count since before both users recorded",
+        2);
+    checkCountAtTimestamp(restRequest()
+            .query(SINCE_UTC_TIMESTAMP, BETWEEN_USERS.getTime()), "IDE user count between two users recorded",
+        1);
+    checkCountAtTimestamp(restRequest()
+            .query(SINCE_UTC_TIMESTAMP, AFTER_USERS.getTime()), "IDE user count after both users recorded",
+        0);
+  }
+
+  private void checkCountAtTimestamp(
+      final HttpRequest restRequest,
+      final String description,
+      final int expectedCount) throws Exception
+  {
+    HttpRequest request = restRequest
+        .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyScanResource.IDE_USER_OVERVIEW)
+        .header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, "testClientUserAgent");
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(IdeUsersOverviewDTO.class).userCount)
+        .as(description).isEqualTo(expectedCount);
   }
 
   public void testScanComponentAndGetScanStatus(String fileName, String mediaType) throws Exception {

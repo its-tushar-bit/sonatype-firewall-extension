@@ -11,6 +11,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
+import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -615,6 +616,19 @@ public class UserDAOTest
 
     assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotification.getId())).isNull();
     assertThat(new UserViewedProductNotificationDAO().getById(userViewedProductNotificationLegacy.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_cascadeToUserIdePolicyEvaluation() {
+    String username = "testUsername";
+    User user = createUser(username);
+    tempEntity.newUserIdePolicyEvaluation(username);
+
+    assertThat(new UserIdePolicyEvaluationDAO().getByUsername(username)).isNotNull();
+
+    new UserDAO().delete(user);
+
+    assertThat(new UserIdePolicyEvaluationDAO().getByUsername(username)).isNull();
   }
 
   @Test

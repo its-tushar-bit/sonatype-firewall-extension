@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Date;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -25,8 +26,10 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.api.v2.dto.IdeUsersOverviewDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
+import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -42,6 +45,7 @@ import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.InvalidSbomException;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
@@ -78,6 +82,10 @@ public class ApiThirdPartyScanService
 
   private final StageTypeService stageTypeService;
 
+  private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDao;
+
+  private final CurrentUser currentUser;
+
   @Inject
   public ApiThirdPartyScanService(
       final Scanner scanner,
@@ -85,7 +93,9 @@ public class ApiThirdPartyScanService
       final InsightWork work,
       final PolicyEvaluateService policyEvaluateService,
       final ApplicationDAO applicationDAO,
-      StageTypeService stageTypeService)
+      final StageTypeService stageTypeService,
+      final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDao,
+      final CurrentUser currentUser)
   {
     this.scanner = scanner;
     this.proprietaryConfigService = proprietaryConfigService;
@@ -93,6 +103,8 @@ public class ApiThirdPartyScanService
     this.policyEvaluateService = policyEvaluateService;
     this.applicationDAO = applicationDAO;
     this.stageTypeService = stageTypeService;
+    this.userIdePolicyEvaluationDao = userIdePolicyEvaluationDao;
+    this.currentUser = currentUser;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -110,6 +122,8 @@ public class ApiThirdPartyScanService
     if (!stageTypeService.getLicensedStageTypes().contains(StageTypes.getById(stageTypeId))) {
       throw new InvalidLicenseException("Stage '" + stageTypeId + "' is not supported by your license.");
     }
+
+    userIdePolicyEvaluationDao.upsert(currentUser.getUsername());
 
     validateSbom(sbom, encodingType);
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
@@ -236,6 +250,12 @@ public class ApiThirdPartyScanService
 
   private ApiThirdPartyScanResultDTO failed(final PolicyEvaluationPollingResult policyEvaluationPollingResult) {
     return new ApiThirdPartyScanResultDTO(policyEvaluationPollingResult.getReason());
+  }
+
+  public IdeUsersOverviewDTO getIdeUsersOverview(final Long sinceUtcTimestamp) {
+    long count = sinceUtcTimestamp == null ? userIdePolicyEvaluationDao.getCount() :
+        userIdePolicyEvaluationDao.getCountSince(new Date(sinceUtcTimestamp));
+    return new IdeUsersOverviewDTO(count);
   }
 
   @VisibleForTesting

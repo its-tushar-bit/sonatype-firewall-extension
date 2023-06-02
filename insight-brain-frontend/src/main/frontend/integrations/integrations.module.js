@@ -23,13 +23,6 @@ export const SECTIONS = {
   OTHERS: 'others',
 };
 
-export const INTEGRATIONS_OVERVIEW = `integrations.${SECTIONS.OVERVIEW}`;
-export const INTEGRATIONS_CICD = `integrations.${SECTIONS.CICD}`;
-export const INTEGRATIONS_SCM = `integrations.${SECTIONS.SCM}`;
-export const INTEGRATIONS_ISSUE_TRACKING = `integrations.${SECTIONS.ISSUE_TRACKING}`;
-export const INTEGRATIONS_IDE = `integrations.${SECTIONS.IDE}`;
-export const INTEGRATIONS_OTHERS = `integrations.${SECTIONS.OTHERS}`;
-
 export default angular
   .module('integrationsModule', ['ngRedux'])
   .component('integrationsNavigation', iqReact2Angular(IntegrationsNavigation, [], ['$ngRedux', '$state']))
@@ -75,7 +68,7 @@ function routes($stateProvider) {
     })
     .state(`integrations.${SECTIONS.OTHERS}`, {
       url: '/others',
-      component: 'overview',
+      component: 'others',
       data: {},
     });
 }

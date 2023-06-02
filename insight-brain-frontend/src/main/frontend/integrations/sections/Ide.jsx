@@ -9,7 +9,7 @@ import React from 'react';
 
 export default function Ide() {
   return (
-    <div>
+    <div id="iq-integrations-ide-section">
       <NxH2>IDE Plugins</NxH2>
 
       <NxTile>

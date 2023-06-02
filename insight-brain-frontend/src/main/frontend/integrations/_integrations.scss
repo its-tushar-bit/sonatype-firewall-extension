@@ -30,3 +30,30 @@ a.nx-text-link.integrations-link.integrations-link-selected {
   background-color: var(--nx-swatch-blue-10);
   color: var(--nx-swatch-white);
 }
+
+.iq-integrations-card-logo {
+  height: 48px;
+}
+
+.iq-integrations-card--align-left {
+  text-align: left;
+}
+
+.iq-integrations__full-width-text,
+.iq-integrations__full-width-text {
+  &.nx-p {
+    max-width: unset;
+  }
+}
+
+.iq-integrations-card-container {
+  &.nx-card-container {
+    justify-content: flex-start;
+  }
+}
+
+.iq-integrations-card {
+  &.nx-card {
+    max-width: 474px;
+  }
+}

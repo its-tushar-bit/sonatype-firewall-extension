@@ -9,7 +9,7 @@ import React from 'react';
 
 export default function IssueTracking() {
   return (
-    <div>
+    <div id="iq-integrations-issue-tracking-section">
       <NxH2>Issue Tracking Integrations</NxH2>
 
       <NxTile>

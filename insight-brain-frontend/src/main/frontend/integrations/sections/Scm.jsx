@@ -9,7 +9,7 @@ import React from 'react';
 
 export default function Scm() {
   return (
-    <div>
+    <div id="iq-integrations-scm-section">
       <NxH2>SCM Integrations</NxH2>
 
       <NxTile>

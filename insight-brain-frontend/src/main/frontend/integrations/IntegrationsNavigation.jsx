@@ -20,39 +20,51 @@ export default function IntegrationsNavigation() {
 
       <ul className="nx-list">
         <li>
-          <IntegrationsLink sectionName={OVERVIEW}>Overview</IntegrationsLink>
+          <IntegrationsLink id="integrations-sidebar__overview-link" sectionName={OVERVIEW}>
+            Overview
+          </IntegrationsLink>
         </li>
 
         <li>
-          <IntegrationsLink sectionName={CICD}>CI System Integrations</IntegrationsLink>
+          <IntegrationsLink id="integrations-sidebar__cicd-link" sectionName={CICD}>
+            CI System Integrations
+          </IntegrationsLink>
         </li>
 
         <li>
-          <IntegrationsLink sectionName={SCM}>SCM</IntegrationsLink>
+          <IntegrationsLink id="integrations-sidebar__scm-link" sectionName={SCM}>
+            SCM
+          </IntegrationsLink>
         </li>
 
         <li>
-          <IntegrationsLink sectionName={ISSUE_TRACKING}>Issue Tracking</IntegrationsLink>
+          <IntegrationsLink id="integrations-sidebar__issue-tracking-link" sectionName={ISSUE_TRACKING}>
+            Issue Tracking
+          </IntegrationsLink>
         </li>
 
         <li>
-          <IntegrationsLink sectionName={IDE}>IDE</IntegrationsLink>
+          <IntegrationsLink id="integrations-sidebar__ide-link" sectionName={IDE}>
+            IDE
+          </IntegrationsLink>
         </li>
 
         <li>
-          <IntegrationsLink sectionName={OTHERS}>Others</IntegrationsLink>
+          <IntegrationsLink id="integrations-sidebar__others-link" sectionName={OTHERS}>
+            Others
+          </IntegrationsLink>
         </li>
       </ul>
     </>
   );
 }
 
-function IntegrationsLink({ sectionName, displayName, children }) {
+function IntegrationsLink({ sectionName, children, id }) {
   const selectedSectionName = useSelector(selectCurrentRouteName);
   const uiRouterState = useRouterState();
 
   return (
-    <NxTextLink href={getLink(sectionName)} className={getClassNames(sectionName)}>
+    <NxTextLink id={id} href={getLink(sectionName)} className={getClassNames(sectionName)}>
       {children}
     </NxTextLink>
   );

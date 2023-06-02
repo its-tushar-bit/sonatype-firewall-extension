@@ -5,16 +5,47 @@
  */
 
 import React from 'react';
-import { NxH2, NxTile } from '@sonatype/react-shared-components';
+import { NxCard, NxH2, NxP, NxTextLink } from '@sonatype/react-shared-components';
+import JenkinsLogo from '../../img/third-party-logos/Jenkins.png';
+import AzureDevOpsLogo from '../../img/third-party-logos/AzureDevOps.png';
+import IntegrationsCard from 'MainRoot/integrations/IntegrationsCard';
 
 export default function CiCd() {
   return (
-    <div>
-      <NxH2>CI System Integrations</NxH2>
+    <div id="iq-integrations-cicd-section">
+      <NxP className="iq-integrations__full-width-text">
+        Integrate your DevSecOps SDLC pipeline with Lifecycle using Sonatype integrations plug-ins for complete security
+        orchestration, automation and response. You can view the security risks and vulnerabilities for your
+        applications and determine steps for remediation.
+      </NxP>
 
-      <NxTile>
-        <NxTile.Content>Content...</NxTile.Content>
-      </NxTile>
+      <NxH2>CI/CD Integrations</NxH2>
+
+      <NxCard.Container className="iq-integrations-card-container">
+        <IntegrationsCard
+          title="Azure DevOps"
+          imgUrl={AzureDevOpsLogo}
+          description="Nexus IQ for Azure DevOps evaluates pipeline builds for all supported component types and presents policy results and widgets within Azure DevOps."
+          linkText="Click here for installation help."
+          linkUrl="https://links.sonatype.com/products/nxiq/doc/nexus-iq-for-azure-devops"
+        />
+
+        <IntegrationsCard
+          title="Plugin for Jenkins 2.x"
+          imgUrl={JenkinsLogo}
+          description="Nexus IQ for Jenkins 2.x plugin provides full component intelligence and the ability to run policy against your application."
+          linkText="Click here for installation help."
+          linkUrl="https://links.sonatype.com/products/nxiq/doc/nexus-platform-plugin-for-jenkins"
+        />
+      </NxCard.Container>
+
+      <NxP className="iq-integrations__full-width-text">
+        If you’re looking to create build automation on a CI system that is not listed above consider using our{' '}
+        <NxTextLink external href="https://help.sonatype.com/iqserver/integrations/nexus-iq-cli">
+          IQ CLI
+        </NxTextLink>{' '}
+        → with different flavors tailored to how your team builds software.
+      </NxP>
     </div>
   );
 }

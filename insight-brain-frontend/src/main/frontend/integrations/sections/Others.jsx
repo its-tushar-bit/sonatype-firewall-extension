@@ -9,7 +9,7 @@ import React from 'react';
 
 export default function Others() {
   return (
-    <div>
+    <div id="iq-integrations-others-section">
       <NxH2>Other Integration and Plugins</NxH2>
 
       <NxTile>

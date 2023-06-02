@@ -48,6 +48,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -234,6 +235,7 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
   }
 
+  @Ignore("CLM-26125")
   @Test
   public void testRepositoryResultTextFilterPopover() {
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));

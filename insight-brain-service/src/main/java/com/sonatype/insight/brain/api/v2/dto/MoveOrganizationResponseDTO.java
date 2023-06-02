@@ -33,8 +33,7 @@ public class MoveOrganizationResponseDTO
         "New parent org %s is already set and in use as the parent of org %s";
 
     public static final String INVALID_PARENT_HIERARCHY_MSG =
-        "New parent org %s specified here is currently set as child (lower in hierarchy) of %s" +
-            "The new parent org should be at the same hierarchical level as previous parent org.";
+        "The parent org cannot be a child of the current org";
 
     public static final String TAG_MISSING_MSG =
         "Missing application categories for new parent org %s: ";

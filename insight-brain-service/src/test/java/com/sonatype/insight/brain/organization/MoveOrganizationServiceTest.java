@@ -151,9 +151,7 @@ public class MoveOrganizationServiceTest
         .isThrownBy(
             () -> moveOrganizationService.moveOrganization(organizations.get(2).getId(), organizations.get(0).getId(),
                 true))
-        .withMessage(String.format(
-            "New parent org %s specified here is currently set as child (lower in hierarchy) of %s" +
-                "The new parent org should be at the same hierarchical level as previous parent org.",
+        .withMessage(String.format("The parent org cannot be a child of the current org",
             organizations.get(0).getName(), organizations.get(2).getName()));
 
     boolean failEarlyOnError = false;
@@ -168,9 +166,7 @@ public class MoveOrganizationServiceTest
     assertThat(validationError.type).isEqualTo(MoveOrganizationValidationErrorType.PARENT_HIERARCHY);
 
     assertThat(validationError.message)
-        .isEqualTo(String.format(
-            "New parent org %s specified here is currently set as child (lower in hierarchy) of %s" +
-                "The new parent org should be at the same hierarchical level as previous parent org.",
+        .isEqualTo(String.format("The parent org cannot be a child of the current org",
             organizations.get(0).getName(), organizations.get(2).getName()));
 
     assertThat(organizationDAO.getById(organizations.get(0).getId()).getParentOrganizationId())

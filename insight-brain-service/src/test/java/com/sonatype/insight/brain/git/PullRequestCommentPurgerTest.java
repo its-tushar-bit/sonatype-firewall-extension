@@ -84,7 +84,7 @@ public class PullRequestCommentPurgerTest
     SourceControlPullRequestComment comment1 = new SourceControlPullRequestComment(
         application.getId(), 1, 101, 3, "contentHash", sourcePolicyEvaluation.getId(),
         targetPolicyEvaluation.getId());
-    sourceControlPullRequestCommentDAO.insert(comment1);
+    tempEntity.newSourceControlPullRequestComment(comment1);
     pullRequestCommentPurger.purgeObsoleteRecords();
 
     // then: nothing is purged
@@ -98,7 +98,7 @@ public class PullRequestCommentPurgerTest
         targetPolicyEvaluation.getId());
     Date updateTime = Date.from(ZonedDateTime.now().minusMonths(12).toInstant());
     comment2.setUpdateTime(updateTime);
-    sourceControlPullRequestCommentDAO.insert(comment2);
+    tempEntity.newSourceControlPullRequestComment(comment2);
 
     pullRequestCommentPurger.purgeObsoleteRecords();
 

@@ -347,7 +347,8 @@ public class TemporaryEntity
 
   private final PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
-  private final SourceControlPullRequestCommentDAO pullRequestCommentDAO = new SourceControlPullRequestCommentDAO();
+  private final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO =
+      new SourceControlPullRequestCommentDAO();
 
   private final SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO =
       new SourceControlDefaultBranchCommitHistoryDAO();
@@ -615,6 +616,8 @@ public class TemporaryEntity
 
   private Collection<SourceControlPullRequest> sourceControlPullRequests;
 
+  private Collection<SourceControlPullRequestComment> sourceControlPullRequestComments;
+
   private Collection<SystemConfigurationProperty> systemConfigurationProperties;
 
   private Collection<ThirdPartyFile> thirdPartyFileConfigurations;
@@ -690,6 +693,7 @@ public class TemporaryEntity
     successMetricsReportDatas = new ArrayList<>();
     sourceControls = new ArrayList<>();
     sourceControlPullRequests = new ArrayList<>();
+    sourceControlPullRequestComments = new ArrayList<>();
     systemConfigurationProperties = new ArrayList<>();
     thirdPartyFileConfigurations = new ArrayList<>();
     thirdPartyVulnerabilities = new ArrayList<>();
@@ -768,7 +772,7 @@ public class TemporaryEntity
     delete(dashboardFilters, dashboardFilterDAO);
     delete(userFilters, userFilterDAO);
     delete(policyTags, policyTagDAO);
-    delete(pullRequestCommentDAO.getAll(), pullRequestCommentDAO);
+    delete(sourceControlPullRequestCommentDAO.getAll(), sourceControlPullRequestCommentDAO);
     delete(sourceControlOrganizationImportEvents, sourceControlOrganizationImportEventDAO);
     delete(defaultBranchCommitHistoryDAO.getAll(), defaultBranchCommitHistoryDAO);
     orgs.forEach(org -> apps.addAll(appDAO.getByOrganizationId(org.getId())));
@@ -818,6 +822,7 @@ public class TemporaryEntity
     delete(repositoryConnections, repositoryConnectionDAO);
     delete(artifactoryConnections, artifactoryConnectionDAO);
     delete(repositoryIdentifiedComponents, repositoryIdentifiedComponentDAO);
+    delete(sourceControlPullRequestComments, sourceControlPullRequestCommentDAO);
     delete(sourceControlPullRequestResults, sourceControlPullRequestResultDAO);
     delete(waivers, waiverDAO);
     delete(deletedTenants, deletedTenantDAO);
@@ -2065,6 +2070,14 @@ public class TemporaryEntity
   }
 
   public SourceControlPullRequestComment newSourceControlPullRequestComment(
+      SourceControlPullRequestComment sourceControlPullRequestComment)
+  {
+    sourceControlPullRequestCommentDAO.insert(sourceControlPullRequestComment);
+    sourceControlPullRequestComments.add(sourceControlPullRequestComment);
+    return sourceControlPullRequestComment;
+  }
+
+  public SourceControlPullRequestComment newSourceControlPullRequestComment(
       String applicationId,
       int pullRequestId,
       int pullRequestCommentId,
@@ -2082,8 +2095,7 @@ public class TemporaryEntity
         sourcePolicyEvaluationId,
         targetPolicyEvaluationId
     );
-    pullRequestCommentDAO.insert(pullRequestComment);
-    return pullRequestComment;
+    return newSourceControlPullRequestComment(pullRequestComment);
   }
 
   public SourceControlPullRequestComment newSourceControlPullRequestCommentForLine(
@@ -2106,8 +2118,7 @@ public class TemporaryEntity
         sourcePolicyEvaluationId,
         targetPolicyEvaluationId
     );
-    pullRequestCommentDAO.insert(pullRequestComment);
-    return pullRequestComment;
+    return newSourceControlPullRequestComment(pullRequestComment);
   }
 
   public SourceControlDefaultBranchCommitHistory newSourceControlDefaultBranchCommitHistory(

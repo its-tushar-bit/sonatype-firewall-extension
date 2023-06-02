@@ -13,13 +13,8 @@ import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.ide.UserIdePolicyEvaluation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class UserIdePolicyEvaluationDAO extends AbstractOperationalSqlDAO<UserIdePolicyEvaluation>
 {
-  private static final Logger log = LoggerFactory.getLogger(UserIdePolicyEvaluationDAO.class);
-
   @Override
   public UserIdePolicyEvaluation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM UserIdePolicyEvaluation entity WHERE entity.id=?1";

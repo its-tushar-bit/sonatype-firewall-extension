@@ -19,7 +19,6 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -27,7 +26,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -55,6 +53,7 @@ import com.sonatype.insight.util.SbomUtils;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -187,12 +186,12 @@ public class ApiCycloneDxServiceV2
       if (version.getVersion() >= 1.2) {
         PolicyEvaluation policyEvaluation =
             policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
-        ApiDependencyTreeNodeDTO dependenciesData = null;
+        ApiDependencyTreeNodeDTO dependenciesData =
+            apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
+        addMetadata(policyEvaluation, dependenciesData, bom, version, components);
         if (MapUtils.isNotEmpty(components)) {
-          dependenciesData = apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
           addDependencyTree(dependenciesData, bom, components);
         }
-        addMetadata(policyEvaluation, dependenciesData, bom, version);
       }
 
       return generateResponse(version, application, acceptType, bom);
@@ -255,7 +254,8 @@ public class ApiCycloneDxServiceV2
       final PolicyEvaluation policyEvaluation,
       final ApiDependencyTreeNodeDTO dependenciesData,
       final Bom bom,
-      final Version version)
+      final Version version,
+      final Map<String, Map<String, String>> components)
   {
     if (policyEvaluation != null) {
       Metadata metadata = new Metadata();
@@ -268,11 +268,19 @@ public class ApiCycloneDxServiceV2
       }
 
       metadata.setTimestamp(policyEvaluation.getTime());
-      if (dependenciesData != null && dependenciesData.getPackageUrl() != null) {
-        ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
-        component.packageUrl = dependenciesData.getPackageUrl();
-        Component parentComponent = createComponent(dependenciesData.getPackageUrl(), Type.APPLICATION, null);
-        metadata.setComponent(parentComponent);
+      if (dependenciesData != null) {
+        String parentPurl = dependenciesData.getPackageUrl();
+        if (parentPurl != null) {
+          ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
+          component.packageUrl = parentPurl;
+          String parentBomRef = createNewBomRef();
+          Component parentComponent =
+              createComponent(parentPurl, Type.APPLICATION, parentBomRef);
+          //Including metadata component also in the components list to generate the dependency tree correctly.
+          // the fake hash below is not used anywhere, but just to complete the Map.
+          components.put(parentPurl, ImmutableMap.of("fake-meta-component-hash", parentBomRef));
+          metadata.setComponent(parentComponent);
+        }
       }
       addToolVendorInfo(metadata);
       bom.setMetadata(metadata);
@@ -298,17 +306,30 @@ public class ApiCycloneDxServiceV2
       ApiDependencyTreeNodeDTO node,
       Map<String, Map<String, String>> components)
   {
-    Dependency dependency = new Dependency(node.getPackageUrl());
+    if (!components.containsKey(node.getPackageUrl())) {
+      log.debug("dependency component is missing in the bom components. skipping adding to dependency tree");
+      return null;
+    }
+    String componentRef = resolveComponentRef(node.getPackageUrl(), components);
+    Dependency dependency = new Dependency(componentRef);
     dependencies.add(dependency);
     if (node.getChildren() != null) {
       for (ApiDependencyTreeNodeDTO childNode : node.getChildren()) {
         Dependency childDependency = convert(dependencies, childNode, components);
-        if (components.containsKey(childNode.getPackageUrl())) {
+        if (childDependency != null && components.containsKey(childNode.getPackageUrl())) {
           dependency.addDependency(new Dependency(childDependency.getRef()));
         }
       }
     }
     return dependency;
+  }
+
+  private String resolveComponentRef(final String packageUrl, final Map<String, Map<String, String>> components) {
+    Map<String, String> hashToRefs = components.get(packageUrl);
+    // While it may be possible to have multiple components with the same identity in rare circumstances (CLM-24747)
+    // with different hashes the dependency tree has to be based on identities. So for the tree we can only pick
+    // one of the available values in case there are multiples.
+    return hashToRefs.entrySet().iterator().next().getValue();
   }
 
   //Visible for testing
@@ -466,7 +487,7 @@ public class ApiCycloneDxServiceV2
     Map<String, Map<String, String>> components = new HashMap<>();
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
       if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
-        Component component = createComponent(version, reportComponent, components, Type.LIBRARY);
+        Component component = createLibraryComponent(version, reportComponent, components);
         if (component != null) {
           bom.addComponent(component);
         }
@@ -502,26 +523,22 @@ public class ApiCycloneDxServiceV2
     return license;
   }
 
-  private static Component createComponent(
+  private static Component createLibraryComponent(
       final Version version,
       final ApiReportComponentDTOV2 reportComponent,
-      final Map<String, Map<String, String>> components,
-      final Type type)
+      final Map<String, Map<String, String>> components)
   {
-    ComponentIdentifier componentIdentifier;
     try {
       PackageUrlIdentifier purl;
       if (StringUtils.isNotBlank(reportComponent.packageUrl)) {
         purl = new PackageUrlIdentifier(reportComponent.packageUrl);
-        componentIdentifier = purl.toComponentIdentifier();
       }
       else {
-        componentIdentifier = reportComponent.componentIdentifier.toComponentIdentifier();
         purl =
             PackageUrlIdentifier.fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier());
       }
 
-      String bomRef = getBomRef(componentIdentifier, purl);
+      String bomRef = createNewBomRef();
 
       Map<String, String> componentInfo = components.get(purl.getPackageUrl());
 
@@ -544,7 +561,7 @@ public class ApiCycloneDxServiceV2
         }
       }
 
-      Component bomComponent = createComponent(purl.getPackageUrl(), type, bomRef);
+      Component bomComponent = createComponent(purl.getPackageUrl(), Type.LIBRARY, bomRef);
 
       if (Objects.nonNull(bomComponent)) {
         bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
@@ -560,13 +577,8 @@ public class ApiCycloneDxServiceV2
     return null;
   }
 
-  private static String getBomRef(final ComponentIdentifier componentIdentifier, final PackageUrlIdentifier purl) {
-    if (componentIdentifier.getFormat().equals(ComponentIdentifier.FORMAT_PECOFF)) {
-      return UUID.randomUUID().toString().replace("-", "");
-    }
-    else {
-      return purl.getPackageUrl();
-    }
+  private static String createNewBomRef() {
+    return UUID.randomUUID().toString();
   }
 
   private static Component createComponent(final String purl, final Type type, String bomRef) {

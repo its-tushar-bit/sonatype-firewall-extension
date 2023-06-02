@@ -9,11 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -46,9 +46,8 @@ import org.codehaus.plexus.util.FileUtils;
 import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.BomReference;
 import org.cyclonedx.model.Component;
-import org.cyclonedx.model.Component.Type;
-import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
@@ -74,6 +73,8 @@ import static org.mockito.Mockito.when;
 public class ApiCycloneDxServiceV2Test
     extends AbstractComponentTest
 {
+  private static final String UUID_REGEX = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
+
   @Inject
   private ApiCycloneDxServiceV2 service;
 
@@ -292,59 +293,43 @@ public class ApiCycloneDxServiceV2Test
     Parser parser = BomParserFactory.createParser(bytes);
     Bom bom = parser.parse(bytes);
 
-    Component metadataComponent = new Component();
-    metadataComponent.setName("insight-scanner");
-    metadataComponent.setGroup("com.sonatype.insight.scan");
-    metadataComponent.setVersion("2.36.19-SNAPSHOT");
-    metadataComponent.setPurl("pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom");
-    metadataComponent.setBomRef("pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom");
-    metadataComponent.setType(Type.APPLICATION);
-
-    Dependency parentDependency = new Dependency(
-        "pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom");
-    Dependency directDependencyA = new Dependency(
-        "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar");
-    Dependency directDependencyB = new Dependency(
-        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar");
-    parentDependency.setDependencies(Arrays.asList(directDependencyA, directDependencyB));
-
+    String parentBomRef = bom.getMetadata().getComponent().getBomRef();
     assertThat(bom.getDependencies().size()).isEqualTo(13);
-    assertThat(bom.getDependencies().get(0)).isEqualTo(parentDependency);
-    assertThat(bom.getDependencies().get(1)).isEqualTo(directDependencyA);
+    assertThat(bom.getDependencies().get(0).getRef()).isEqualTo(parentBomRef);
+    assertThat(bom.getDependencies().get(1).getRef()).isEqualTo(getBomRefOfComponent(bom,
+        "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar"));
+    assertThat(bom.getDependencies().get(2).getRef()).isEqualTo(getBomRefOfComponent(bom,
+        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar"));
+    assertThat(
+        bom.getDependencies().get(2).getDependencies().stream().map(BomReference::getRef)).containsExactlyInAnyOrder(
+        getBomRefOfComponent(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"),
+        getBomRefOfComponent(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar"),
+        getBomRefOfComponent(bom, "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar"),
+        getBomRefOfComponent(bom,
+            "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar"),
+        getBomRefOfComponent(bom, "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar"));
 
-    Dependency transitiveDependencyA = new Dependency("pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar");
-    Dependency transitiveDependencyB = new Dependency("pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar");
-    Dependency transitiveDependencyC = new Dependency("pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar");
-    Dependency transitiveDependencyD = new Dependency(
-        "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar");
-    Dependency transitiveDependencyE = new Dependency(
-        "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar");
-    directDependencyB.setDependencies(
-        Arrays.asList(
-            transitiveDependencyA,
-            transitiveDependencyB,
-            transitiveDependencyC,
-            transitiveDependencyD,
-            transitiveDependencyE));
-
-    assertThat(bom.getDependencies().get(2)).isEqualTo(directDependencyB);
-    assertThat(bom.getDependencies()).containsAll(Arrays.asList(transitiveDependencyA, transitiveDependencyB));
-    //The metadata component is the first dependency
-    assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo(bom.getDependencies().get(0).getRef());
     assertComponentsVsDependencies(bom);
     assertToolVendor(bom.getMetadata());
+  }
+
+  private String getBomRefOfComponent(final Bom bom, final String purl) {
+    Optional<Component> found =
+        bom.getComponents().stream().filter(component -> purl.equals(component.getPurl())).findFirst();
+    return found.map(Component::getBomRef).orElse(null);
   }
 
   private void assertComponentsVsDependencies(Bom bom) {
     List<Component> components = new ArrayList<>();
     bom.getDependencies().forEach(
-        dependency -> bom.getComponents().stream().filter(component -> component.getPurl().equals(dependency.getRef()))
+        dependency -> bom.getComponents().stream()
+            .filter(component -> component.getBomRef().equals(dependency.getRef()))
             .findFirst()
             .ifPresent(components::add));
     assertThat(components.size()).isEqualTo(bom.getDependencies().size() - 1);
     //The parent component is not in the components list
     assertThat(components.stream().filter(
-        component -> component.getPurl().equals(bom.getDependencies().get(0).getRef())).count()).isEqualTo(0);
+        component -> component.getBomRef().equals(bom.getDependencies().get(0).getRef())).count()).isEqualTo(0);
   }
 
   private void assertBom(Response response, Version version, boolean hasVulnerabilities) throws Exception {
@@ -373,7 +358,8 @@ public class ApiCycloneDxServiceV2Test
                 .withIgnoreCollectionOrder(true)
                 .withIgnoreAllExpectedNullFields(true)
                 .build())
-        .contains(component1, component2, component3);
+        .contains(component1, component2, component3)
+        .map(Component::getBomRef).allMatch(bomRef -> bomRef.matches(UUID_REGEX));
 
     if (hasVulnerabilities) {
       Vulnerability vulnerability = new Vulnerability();

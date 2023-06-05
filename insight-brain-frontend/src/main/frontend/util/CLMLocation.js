@@ -783,6 +783,10 @@ export function getUserUrl() {
   return uriTemplate`/rest/user`;
 }
 
+export function getMultiTenantUserUrl() {
+  return uriTemplate`/rest/mtiqUser`;
+}
+
 export function getSessionUrl() {
   return uriTemplate`/rest/user/session`;
 }

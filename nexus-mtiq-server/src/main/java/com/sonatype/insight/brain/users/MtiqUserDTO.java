@@ -11,11 +11,21 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 
 public class MtiqUserDTO
 {
+  private String username;
+
   private String firstName;
 
   private String lastName;
 
   private String email;
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(final String username) {
+    this.username = username;
+  }
 
   public String getFirstName() {
     return firstName;
@@ -61,6 +71,7 @@ public class MtiqUserDTO
 
   static MtiqUserDTO samlUserToMtiqUser(final SamlUser user) {
     MtiqUserDTO mtiqUser = new MtiqUserDTO();
+    mtiqUser.setUsername(user.getUsername());
     mtiqUser.setFirstName(user.getFirstName());
     mtiqUser.setLastName(user.getLastName());
     mtiqUser.setEmail(user.getEmail());
@@ -69,9 +80,9 @@ public class MtiqUserDTO
 
   static SamlUser samlUserFromMtiqUser(final MtiqUserDTO user) {
     SamlUser samlUser = new SamlUser();
+    samlUser.setUsername(user.getUsername());
     samlUser.setFirstName(user.getFirstName());
     samlUser.setLastName(user.getLastName());
-    samlUser.setUsername(user.getEmail());
     samlUser.setEmail(user.getEmail());
     return samlUser;
   }

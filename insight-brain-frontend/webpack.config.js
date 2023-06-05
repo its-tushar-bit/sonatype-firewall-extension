@@ -220,6 +220,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
       // makes misconfiguration of the backend easier to notice - without this, OSX will allow the backend to run on all
       // interfaces while this runs on just localhost, even if they're on the same port
       host: '0.0.0.0',
+      allowedHosts: ['localhost', '.localdomain', '.nexus.local'],
       static: {
         directory: path.join(__dirname, 'target', 'classes'),
         publicPath: '/',

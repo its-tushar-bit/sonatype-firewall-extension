@@ -98,9 +98,12 @@ public class MultiTenantUserServiceTest
 
   private MtiqUserDTO createMtiqUser(String first) {
     MtiqUserDTO user = new MtiqUserDTO();
+    String email = first + "@example.com";
+
     user.setFirstName(first);
     user.setLastName(testName.getMethodName());
-    user.setEmail(first + "@example.com");
+    user.setEmail(email);
+    user.setUsername(email);
     return user;
   }
 }

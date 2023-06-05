@@ -103,14 +103,18 @@ const selectIsMultiTenantEnabled = createSelector(selectProductFeatures, prop('m
 const SINGLE_TENANT = 'single-tenant';
 const MULTI_TENANT = 'multi-tenant';
 const UNKNOWN_TENANT = 'unknown-tenant';
-const selectTenantMode = createSelector(selectIsSingleTenantEnabled, selectIsMultiTenantEnabled, (single, multi) => {
-  if (single) {
-    return SINGLE_TENANT;
-  } else if (multi) {
-    return MULTI_TENANT;
+export const selectTenantMode = createSelector(
+  selectIsSingleTenantEnabled,
+  selectIsMultiTenantEnabled,
+  (single, multi) => {
+    if (single) {
+      return SINGLE_TENANT;
+    } else if (multi) {
+      return MULTI_TENANT;
+    }
+    return UNKNOWN_TENANT;
   }
-  return UNKNOWN_TENANT;
-});
+);
 
 export const selectIsShowVersionEnabled = createSelector(selectTenantMode, (mode) => {
   return mode === SINGLE_TENANT;

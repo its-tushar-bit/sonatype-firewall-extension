@@ -9,9 +9,17 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { Messages } from '../../utilAngular/CommonServices';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { checkPermissions } from '../../util/authorizationUtil';
-import { getUserUrl, getUserByIdUrl, getUserResetPasswordByIdUrl, getSessionUrl } from '../../util/CLMLocation';
+import {
+  getUserUrl,
+  getMultiTenantUserUrl,
+  getUserByIdUrl,
+  getUserResetPasswordByIdUrl,
+  getSessionUrl,
+} from '../../util/CLMLocation';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import userActions from '../../user/userActions';
+import { actions as productFeaturesActions } from '../../productFeatures/productFeaturesSlice';
+import { selectTenantMode } from '../../productFeatures/productFeaturesSelectors';
 
 export const USER_SET_FIRST_NAME = 'USER_SET_FIRST_NAME';
 export const USER_SET_LAST_NAME = 'USER_SET_LAST_NAME';
@@ -211,18 +219,22 @@ const loadListFailed = payloadParamActionCreator(USER_LIST_LOAD_FAILED);
 const loadListFulfilled = payloadParamActionCreator(USER_LIST_LOAD_FULFILLED);
 
 export function loadListPage() {
-  return (dispatch) => {
+  return async (dispatch, getState) => {
     dispatch(loadListRequested());
 
-    return checkPermissions(['CONFIGURE_SYSTEM'])
-      .then(() => {
-        const usersPromise = axios.get(getUserUrl());
-        const sessionPromise = axios.get(getSessionUrl());
-        return Promise.all([usersPromise, sessionPromise]);
-      })
-      .then(([{ data: users }, { data: session }]) => {
-        dispatch(loadListFulfilled({ users, currentUsername: session.username }));
-      })
-      .catch(compose(dispatch, loadListFailed, Messages.getHttpErrorMessage));
+    try {
+      await checkPermissions(['CONFIGURE_SYSTEM']);
+
+      await dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
+
+      const tenantMode = selectTenantMode(getState()),
+        usersUrl = tenantMode === 'multi-tenant' ? getMultiTenantUserUrl() : getUserUrl();
+
+      const [{ data: users }, { data: session }] = await Promise.all([axios.get(usersUrl), axios.get(getSessionUrl())]);
+
+      dispatch(loadListFulfilled({ users, currentUsername: session.username }));
+    } catch (e) {
+      dispatch(loadListFailed(Messages.getHttpErrorMessage(e)));
+    }
   };
 }

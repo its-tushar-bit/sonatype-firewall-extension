@@ -6,7 +6,9 @@
 import axios from 'axios';
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import {
+  getProductFeaturesUrl,
   getUserUrl,
+  getMultiTenantUserUrl,
   getUserByIdUrl,
   getUserResetPasswordByIdUrl,
   getSessionUrl,
@@ -42,7 +44,9 @@ const { initialState: initUserInput } = nxTextInputStateHelpers;
 describe('usersActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const userUrl = getUserUrl();
+  const multiTenantUserUrl = getMultiTenantUserUrl();
   const sessionUrl = getSessionUrl();
+  const productFeaturesUrl = getProductFeaturesUrl();
   let checkPermissionsSpy, save, loadCreateUserPage, loadUserById, update, deleteUser, resetPassword, loadListPage;
 
   beforeEach(() => {
@@ -122,6 +126,10 @@ describe('usersActions', () => {
         const store = SpecUtil.mockReduxStore();
         mockAxiosCalls({
           get: {
+            // should not be called in this case
+            [multiTenantUserUrl]: () => {
+              throw new Error();
+            },
             [userUrl]: Promise.resolve({ data: [] }),
             [sessionUrl]: Promise.resolve({ data: { username: 'admin' } }),
           },
@@ -130,13 +138,71 @@ describe('usersActions', () => {
         store.dispatch(loadListPage()).then(() => {
           const actions = store.getActions();
 
-          expect(actions.length).toBe(2);
           expect(actions).toHaveActionsInOrder([
             { type: USER_LIST_LOAD_REQUESTED },
             { type: USER_LIST_LOAD_FULFILLED, payload: { users: [], currentUsername: 'admin' } },
           ]);
           done();
         });
+      });
+
+      it('calls the multi-tenant user URL if the multi-tenant feature flag is set', (done) => {
+        const store = SpecUtil.mockReduxStore({
+          productFeatures: {
+            productFeatures: {
+              'multi-tenant': true,
+            },
+          },
+        });
+
+        mockAxiosCalls({
+          get: {
+            // should not be called in this case
+            [userUrl]: () => {
+              throw new Error();
+            },
+            [multiTenantUserUrl]: Promise.resolve({ data: [] }),
+            [sessionUrl]: Promise.resolve({ data: { username: 'admin' } }),
+          },
+        });
+
+        store.dispatch(loadListPage()).then(() => {
+          const actions = store.getActions();
+
+          expect(actions).toHaveActionsInOrder([
+            { type: USER_LIST_LOAD_REQUESTED },
+            { type: USER_LIST_LOAD_FULFILLED, payload: { users: [], currentUsername: 'admin' } },
+          ]);
+          done();
+        });
+      });
+
+      it('fetches the product features if needed', async () => {
+        const store = SpecUtil.mockReduxStore({
+          productFeatures: {
+            productFeatures: {
+              'multi-tenant': true,
+            },
+          },
+        });
+
+        mockAxiosCalls({
+          get: {
+            [userUrl]: Promise.resolve({ data: [] }),
+            [sessionUrl]: Promise.resolve({ data: { username: 'admin' } }),
+            [productFeaturesUrl]: Promise.resolve({ data: [] }),
+          },
+        });
+
+        await store.dispatch(loadListPage());
+        const actions = store.getActions();
+
+        expect(actions).toContain(
+          jasmine.objectContaining({ type: 'productFeatures/fetchProductFeaturesIfNeeded/pending' })
+        );
+        expect(actions).toContain(
+          jasmine.objectContaining({ type: 'productFeatures/fetchProductFeaturesIfNeeded/fulfilled' })
+        );
       });
     });
 

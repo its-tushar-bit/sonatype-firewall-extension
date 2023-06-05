@@ -72,15 +72,30 @@ const customMatchers = {
        * @param {Array} expectedActions the actions that should be inside `actions`
        */
       compare: function (actions, expectedActions) {
-        const actionsString = JSON.stringify(actions),
-          // convert to string but get rid of the array characters
-          expectedActionsString = JSON.stringify(expectedActions).slice(1, -1),
-          // compare the strings.
-          areActionsIncluded = actionsString.includes(expectedActionsString);
+        const remainingActions = [...actions],
+          remainingExpectedActions = [...expectedActions];
 
-        return areActionsIncluded
-          ? { pass: true }
-          : { pass: false, message: `Expected ${expectedActionsString} to be included in ${actionsString}` };
+        while (remainingExpectedActions.length) {
+          // stringify to deeply-remove properties with undefined values
+          while (
+            remainingActions.length &&
+            JSON.stringify(remainingActions[0]) !== JSON.stringify(remainingExpectedActions[0])
+          ) {
+            remainingActions.shift();
+          }
+
+          if (remainingActions.length) {
+            remainingExpectedActions.shift();
+          } else {
+            const currentActionString = JSON.stringify(remainingExpectedActions[0]);
+            return {
+              pass: false,
+              message: `Expected ${currentActionString} to be included in ${JSON.stringify(actions)}`,
+            };
+          }
+        }
+
+        return { pass: true };
       },
     };
   },

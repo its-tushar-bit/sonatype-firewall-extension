@@ -71,9 +71,9 @@ public class ApiThirdPartyScanResourceTest
   @Test
   public void testGetIdeUsersOverview_RetrieveCorrectUserCountFromDbWithRanges() throws Exception {
     final Date BEFORE_USERS = new Date();
-    tempEntity.newUserIdePolicyEvaluation("Jan");
+    newUserIdePolicyEvaluationWithASmallDelay("Jan");
     final Date BETWEEN_USERS = new Date();
-    tempEntity.newUserIdePolicyEvaluation("Feb");
+    newUserIdePolicyEvaluationWithASmallDelay("Feb");
     final Date AFTER_USERS = new Date();
 
     checkCountAtTimestamp(restRequest()
@@ -85,6 +85,13 @@ public class ApiThirdPartyScanResourceTest
     checkCountAtTimestamp(restRequest()
             .query(SINCE_UTC_TIMESTAMP, AFTER_USERS.getTime()), "IDE user count after both users recorded",
         0);
+  }
+
+  private void newUserIdePolicyEvaluationWithASmallDelay(String username) throws InterruptedException {
+    // This is to prevent test flakiness in the case that the timestamps being the same
+    TimeUnit.MILLISECONDS.sleep(5L);
+    tempEntity.newUserIdePolicyEvaluation(username);
+    TimeUnit.MILLISECONDS.sleep(5L);
   }
 
   private void checkCountAtTimestamp(

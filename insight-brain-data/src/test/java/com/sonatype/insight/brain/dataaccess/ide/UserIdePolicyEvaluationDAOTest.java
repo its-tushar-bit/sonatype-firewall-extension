@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.ide;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 
@@ -51,11 +52,9 @@ public class UserIdePolicyEvaluationDAOTest extends AbstractDbDAOTest
   @Test
   public void testGetCountSince_onlyCountUsersWithinRange() throws InterruptedException {
     final Date BEFORE_USERS = new Date();
-    userIdePolicyEvaluationDAO.upsert("Jan");
-    Thread.sleep(100L); // This is to prevent test flakiness in the case that the timestamps being the same
+    upsertUserIdePolicyEvaluationWithASmallDelay("Jan");
     final Date BETWEEN_USERS = new Date();
-    Thread.sleep(100L); // This is to prevent test flakiness in the case that the timestamps being the same
-    userIdePolicyEvaluationDAO.upsert("Feb");
+    upsertUserIdePolicyEvaluationWithASmallDelay("Feb");
     final Date AFTER_USERS = new Date();
 
     assertThat(userIdePolicyEvaluationDAO.getByUsername("Jan")).isNotNull();
@@ -64,5 +63,12 @@ public class UserIdePolicyEvaluationDAOTest extends AbstractDbDAOTest
     assertThat(userIdePolicyEvaluationDAO.getCountSince(BEFORE_USERS)).isEqualTo(2);
     assertThat(userIdePolicyEvaluationDAO.getCountSince(BETWEEN_USERS)).isEqualTo(1);
     assertThat(userIdePolicyEvaluationDAO.getCountSince(AFTER_USERS)).isEqualTo(0);
+  }
+
+  private void upsertUserIdePolicyEvaluationWithASmallDelay(String username) throws InterruptedException {
+    // This is to prevent test flakiness in the case that the timestamps being the same
+    TimeUnit.MILLISECONDS.sleep(5L);
+    userIdePolicyEvaluationDAO.upsert(username);
+    TimeUnit.MILLISECONDS.sleep(5L);
   }
 }

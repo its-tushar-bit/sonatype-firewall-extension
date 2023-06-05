@@ -22,7 +22,6 @@ describe('artifactoryRepositoryBaseConfigurationsSelectors', function () {
     selectValidationErrors,
     selectLoading,
     selectLoadError,
-    selectEditLink,
     selectArtifactoryRepositoriesEnabled;
   beforeEach(() => {
     const module = require('inject-loader!../../../../src/main/frontend/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsSelectors')(
@@ -44,7 +43,6 @@ describe('artifactoryRepositoryBaseConfigurationsSelectors', function () {
       selectValidationErrors,
       selectLoading,
       selectLoadError,
-      selectEditLink,
       selectArtifactoryRepositoriesEnabled,
     } = module);
   });
@@ -214,43 +212,6 @@ describe('artifactoryRepositoryBaseConfigurationsSelectors', function () {
         },
       };
       expect(selectLoadError(state)).toBe('error');
-    });
-  });
-
-  describe('selectEditLink', () => {
-    it('forms the editLink with application', () => {
-      const state = {
-        router: {
-          currentState: {
-            name: 'management.view.application',
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: 'id',
-            },
-          },
-        },
-      };
-      expect(selectEditLink(state)).toBe(`artifactoryRepositoryBaseConfigurations.application({applicationId:'id'})`);
-    });
-    it('forms the editLink with organization', () => {
-      const state = {
-        router: {
-          currentState: {
-            name: 'management.view.organization',
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: 'id',
-            },
-          },
-        },
-      };
-      expect(selectEditLink(state)).toBe(`artifactoryRepositoryBaseConfigurations.organization({organizationId:'id'})`);
     });
   });
 

@@ -15,11 +15,13 @@ import {
   toFormState,
   toServerData,
 } from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsUtil';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { pathSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { compose } from 'ramda';
+import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export const SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE = 'Saving Configuration';
-export const SUBMIT_MASK_TESTING_CONFIGURATION_MESSAGE = 'Testing Configuration';
 
 export const MUST_UPDATE_ENABLED_ADD_MESSAGE = 'Must update to Enable to add an artifactory connection.';
 export const MUST_UPDATE_ENABLED_EDIT_MESSAGE = 'Must update to Enable to edit an artifactory connection.';
@@ -125,6 +127,17 @@ function saveFailed(state, { payload }) {
   };
 }
 
+const goToEditPage = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const isOrganization = selectIsOrganization(state);
+    const ownerType = isOrganization ? 'organization' : 'application';
+    const ownerId = selectSelectedOwnerId(state);
+    const params = { [`${ownerType}Id`]: ownerId };
+    dispatch(stateGo(`artifactoryRepositoryBaseConfigurations.${ownerType}`, params));
+  };
+};
+
 function startSubmitMaskSuccessTimer(dispatch) {
   setTimeout(() => {
     dispatch(actions.submitMaskTimerDone());
@@ -172,4 +185,5 @@ export const actions = {
   ...artifactoryRepositoryBaseConfigurationsSlice.actions,
   load,
   save,
+  goToEditPage,
 };

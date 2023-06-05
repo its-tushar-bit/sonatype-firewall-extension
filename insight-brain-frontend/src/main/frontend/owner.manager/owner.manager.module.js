@@ -32,7 +32,6 @@ import summaryViewTemplate from './summary/owner.summary.view.html';
 import SourceControlService from './source.control/source.control.service';
 import RepositoriesSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesSummaryView';
 import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
-import artifactoryRepositoryModule from './artifactory.repository/module';
 import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGroupEditor/LicenseThreatGroupEditor';
 import LabelsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/labelsTile/LabelsTile';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
@@ -66,6 +65,7 @@ import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdo
 import OwnerDetailSidebar from 'MainRoot/owner.manager/navigation/OwnerDetailSidebar';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import RepositoriesPills from 'MainRoot/owner.manager/repositories/RepositoriesPills/RepositoriesPills';
+import ArtifactoryRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ArtifactoryRepositoryTile';
 
 export default angular
   .module('owner.manager.module', [
@@ -82,7 +82,6 @@ export default angular
     validatorsModule.name,
     roleMembershipModule.name,
     sourceControlModule.name,
-    artifactoryRepositoryModule.name,
   ])
   .component('ownerSideNav', iqReact2Angular(OwnerSideNav, [], ['$ngRedux', '$state']))
   .component('ownersTreePage', iqReact2Angular(OwnersTreePage, [], ['$ngRedux', '$state']))
@@ -122,6 +121,7 @@ export default angular
     iqReact2Angular(ContinuousMonitoringSummaryTile, [], ['$ngRedux', '$state'])
   )
   .component('innerSourceRepositoryTile', iqReact2Angular(InnerSourceRepositoryTile, [], ['$ngRedux']))
+  .component('artifactoryRepositoryTile', iqReact2Angular(ArtifactoryRepositoryTile, [], ['$ngRedux']))
   .component('deleteOwnerModal', iqReact2Angular(DeleteOwnerModal, [], ['$ngRedux']))
   .component('changeApplicationIdModal', iqReact2Angular(ChangeApplicationIdModal, [], ['$ngRedux']))
   .component('revokeGrandfatheringModal', iqReact2Angular(RevokeGrandfatheringModal, [], ['$ngRedux']))

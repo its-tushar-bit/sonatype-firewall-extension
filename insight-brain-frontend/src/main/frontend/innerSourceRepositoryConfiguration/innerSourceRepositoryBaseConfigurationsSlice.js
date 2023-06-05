@@ -26,7 +26,6 @@ import {
 import { selectOwnerTypeAndOwnerId } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSelectors';
 
 export const SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE = 'Saving Configuration';
-export const SUBMIT_MASK_TESTING_CONFIGURATION_MESSAGE = 'Testing Configuration';
 
 export const MUST_UPDATE_ENABLED_ADD_MESSAGE = 'Must update to Enable to add a repository connection.';
 export const MUST_UPDATE_ENABLED_EDIT_MESSAGE = 'Must update to Enable to edit a repository connection.';

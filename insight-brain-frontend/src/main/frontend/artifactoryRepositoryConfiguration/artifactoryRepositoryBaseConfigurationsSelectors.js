@@ -6,8 +6,6 @@
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import { NO_CHANGES_MESSAGE } from './artifactoryRepositoryConfigurationModalSlice';
-import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectArtifactoryRepositoryBaseConfigurationsSlice = prop('artifactoryRepositoryBaseConfigurations');
 
@@ -46,11 +44,6 @@ export const selectValidationErrors = createSelector(selectIsDirty, (isDirty) =>
     return NO_CHANGES_MESSAGE;
   }
   return null;
-});
-
-export const selectEditLink = createSelector(selectIsOrganization, selectSelectedOwnerId, (isOrganization, ownerId) => {
-  const ownerType = isOrganization ? 'organization' : 'application';
-  return `artifactoryRepositoryBaseConfigurations.${ownerType}({${ownerType}Id:'${ownerId}'})`;
 });
 
 export const selectArtifactoryRepositoriesEnabled = createSelector(

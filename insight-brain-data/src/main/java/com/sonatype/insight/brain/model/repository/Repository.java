@@ -172,4 +172,13 @@ public class Repository
   public void setLastManualConfigureTime(final Date lastManualConfigureTime) {
     this.lastManualConfigureTime = lastManualConfigureTime;
   }
+
+  @Override
+  public String toString() {
+    return "Repository [id=" + id + ", repositoryManagerId=" + repositoryManagerId + ", publicId=" + publicId
+        + ", repositoryType=" + repositoryType + ", format=" + format + ", auditEnabled=" + auditEnabled
+        + ", quarantineEnabled=" + quarantineEnabled + ", policyCompliantComponentSelectionEnabled="
+        + policyCompliantComponentSelectionEnabled + ", namespaceConfusionProtectionEnabled="
+        + namespaceConfusionProtectionEnabled + "]";
+  }
 }

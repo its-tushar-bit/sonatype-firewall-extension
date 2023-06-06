@@ -32,6 +32,7 @@ import org.cyclonedx.parsers.Parser;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.IQ_APP_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiCycloneDxResourceV2Test
@@ -354,8 +355,15 @@ public class ApiCycloneDxResourceV2Test
     Bom expectedBom = parser.parse(expectedBytes);
     assertThat(actualBom).usingRecursiveComparison()
         .ignoringFields("externalReferences", "serialNumber", "metadata.timestamp", "metadata.tools.version",
-            "metadata.properties.value")
+            "metadata.component", "metadata.properties.value")
         .isEqualTo(expectedBom);
+    Component rootComponent = actualBom.getMetadata().getComponent();
+    assertThat(rootComponent).satisfies(component -> {
+      assertThat(component.getName()).isEqualTo(IQ_APP_PREFIX + app.getName());
+      assertThat(component.getVersion()).isEqualTo(scanId);
+      assertThat(component.getPurl()).isEqualTo(
+          String.format("pkg:generic/sonatype/iq_application_%s@%s", app.getName(), scanId));
+    });
   }
 
   private void assertValidMavenResponse(HttpResponse response)

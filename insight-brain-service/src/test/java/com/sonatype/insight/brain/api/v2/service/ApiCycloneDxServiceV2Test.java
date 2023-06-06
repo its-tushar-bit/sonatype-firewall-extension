@@ -39,6 +39,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.util.SbomUtils;
 
+import com.github.packageurl.PackageURL;
+import com.github.packageurl.PackageURL.StandardTypes;
 import com.google.inject.Binder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
@@ -48,6 +50,7 @@ import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.BomReference;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
@@ -65,6 +68,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.IQ_APP_PREFIX;
+import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.SONATYPE_NAMESPACE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
@@ -248,6 +253,66 @@ public class ApiCycloneDxServiceV2Test
     Bom bom = parser.parse(bytes);
     assertThat(bom.getMetadata()).isNull();
     assertThat(bom.getDependencies()).isNull();
+  }
+
+  @Test
+  public void testGetByScanId_AddMissingParent_ForDependencyTree() throws Exception {
+    createReportAndPolicyEvaluation("missingParentTree");
+    Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_14);
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
+    assertThat(bom.getMetadata()).isNotNull();
+    Component rootComponent = bom.getMetadata().getComponent();
+    assertThat(rootComponent.getPurl()).satisfies(purl -> {
+      PackageURL packageURL = new PackageURL(purl);
+      assertThat(packageURL.getName()).isEqualTo(IQ_APP_PREFIX + application.getName());
+      assertThat(packageURL.getNamespace()).isEqualTo(SONATYPE_NAMESPACE);
+      assertThat(packageURL.getType()).isEqualTo(StandardTypes.GENERIC);
+      assertThat(packageURL.getVersion()).isEqualTo(scanId);
+    });
+    assertThat(bom.getComponents()).hasSize(4);
+    assertThat(bom.getComponents().stream().map(Component::getPurl)).containsExactlyInAnyOrder(
+        "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar",
+        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar",
+        "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar",
+        "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar"
+    );
+
+    assertThat(bom.getDependencies()).hasSize(5);
+    Dependency root = bom.getDependencies().get(0);
+    assertThat(root.getRef()).isEqualTo(rootComponent.getBomRef());
+    assertThat(root.getDependencies()).hasSize(2).extracting("ref")
+        .containsExactlyInAnyOrder(
+            bomRefOf(bom, "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar"),
+            bomRefOf(bom, "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar"));
+
+    Dependency d1 = bom.getDependencies().get(1);
+    assertThat(d1.getRef()).isEqualTo(bomRefOf(bom,
+        "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar"));
+    assertThat(CollectionUtils.isEmpty(d1.getDependencies())).isTrue();
+
+    Dependency d2 = bom.getDependencies().get(2);
+    assertThat(d2.getRef()).isEqualTo(bomRefOf(bom,
+        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar"));
+    assertThat(d2.getDependencies()).hasSize(2);
+    assertThat(d2.getDependencies()).extracting("ref").containsExactlyInAnyOrder(new String[]{
+        bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"),
+        bomRefOf(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar")
+    });
+
+    Dependency d3 = bom.getDependencies().get(3);
+    assertThat(d3.getRef()).isEqualTo(bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"));
+    assertThat(CollectionUtils.isEmpty(d3.getDependencies())).isTrue();
+
+    Dependency d4 = bom.getDependencies().get(4);
+    assertThat(d4.getRef()).isEqualTo(bomRefOf(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar"));
+    assertThat(CollectionUtils.isEmpty(d4.getDependencies())).isTrue();
+  }
+
+  private String bomRefOf(final Bom bom, final String purl) {
+    return bom.getComponents().stream()
+        .filter(c -> c.getPurl().equals(purl)).findFirst().map(Component::getBomRef).orElse(null);
   }
 
   @Test

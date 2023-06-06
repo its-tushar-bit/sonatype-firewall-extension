@@ -53,6 +53,8 @@ import com.sonatype.insight.util.SbomUtils;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
+import com.github.packageurl.PackageURL.StandardTypes;
+import com.github.packageurl.PackageURLBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
@@ -98,6 +100,10 @@ public class ApiCycloneDxServiceV2
   public static final String NVD = "NVD";
 
   public static final String CVE = "cve";
+
+  public static final String SONATYPE_NAMESPACE = "sonatype";
+
+  public static final String IQ_APP_PREFIX = "iq_application_";
 
   public static final Pattern CWE_REGEX = Pattern.compile("(?:cwe-)?(\\d+)", Pattern.CASE_INSENSITIVE);
 
@@ -189,7 +195,7 @@ public class ApiCycloneDxServiceV2
         ApiDependencyTreeNodeDTO dependenciesData =
             apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
         addMetadata(policyEvaluation, dependenciesData, bom, version, components);
-        if (MapUtils.isNotEmpty(components)) {
+        if (components.size() > 1) {
           addDependencyTree(dependenciesData, bom, components);
         }
       }
@@ -269,13 +275,10 @@ public class ApiCycloneDxServiceV2
 
       metadata.setTimestamp(policyEvaluation.getTime());
       if (dependenciesData != null) {
-        String parentPurl = dependenciesData.getPackageUrl();
+        String parentPurl = resolveParentPackageUrl(dependenciesData, policyEvaluation);
         if (parentPurl != null) {
-          ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
-          component.packageUrl = parentPurl;
           String parentBomRef = createNewBomRef();
-          Component parentComponent =
-              createComponent(parentPurl, Type.APPLICATION, parentBomRef);
+          Component parentComponent = createComponent(parentPurl, Type.APPLICATION, parentBomRef);
           //Including metadata component also in the components list to generate the dependency tree correctly.
           // the fake hash below is not used anywhere, but just to complete the Map.
           components.put(parentPurl, ImmutableMap.of("fake-meta-component-hash", parentBomRef));
@@ -284,6 +287,33 @@ public class ApiCycloneDxServiceV2
       }
       addToolVendorInfo(metadata);
       bom.setMetadata(metadata);
+    }
+  }
+
+  private String resolveParentPackageUrl(ApiDependencyTreeNodeDTO dependenciesData, PolicyEvaluation policyEvaluation) {
+    if (StringUtils.isNotBlank(dependenciesData.getPackageUrl())) {
+      return dependenciesData.getPackageUrl();
+    }
+    else {
+      // In the case where a dependency tree exists but is missing a parent component we construct a fake parent
+      // component so that we can output the dependency tree. The purl will be of the form
+      // pkg:generic/sonatype/<appName>@<scanId>
+      // Note that we do want not persist this parent purl back in the dependencies.json because
+      // it is done here only to get the sbom dependency tree.
+      Application app = applicationHelper.getApplicationByIdNotNull(policyEvaluation.getApplicationId());
+      try {
+        String purl = PackageURLBuilder.aPackageURL().withType(StandardTypes.GENERIC)
+            .withNamespace(SONATYPE_NAMESPACE)
+            .withName(IQ_APP_PREFIX + app.getName())
+            .withVersion(policyEvaluation.getScanId()).build().canonicalize();
+        dependenciesData.setPackageUrl(purl);
+        return purl;
+      }
+      catch (MalformedPackageURLException e) {
+        log.debug("Unable to construct a fake parent component url from appName:{} and scanId:{}", app.getName(),
+            policyEvaluation.getScanId());
+        return null;
+      }
     }
   }
 

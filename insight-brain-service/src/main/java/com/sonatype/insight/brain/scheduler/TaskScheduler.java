@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -210,6 +211,8 @@ public class TaskScheduler
   }
 
   public void schedulePeriodicTask(InsightJob insightJob, Duration interval, Date startTime) {
+    log.debug("Scheduling periodic task {} to run every {} starting at {}", insightJob.getJobName(), interval,
+        startTime);
     JobDetail job = newJob(insightJob) //
         .build();
     TriggerBuilder triggerBuilder = TriggerBuilder.newTrigger() //

@@ -45,10 +45,6 @@ public class IntegrationsPageTest
     sideIdeLink().shouldBe(visible).click();
     waitUntilUrl(IntegrationsPage.urlIde());
     ideSection().shouldBe(visible);
-
-    sideOthersLink().shouldBe(visible).click();
-    waitUntilUrl(IntegrationsPage.urlOthers());
-    othersSection().shouldBe(visible);
   }
 
   private SelenideElement sideNavigation() {
@@ -71,10 +67,6 @@ public class IntegrationsPageTest
     return $("#integrations-sidebar__ide-link");
   }
 
-  private SelenideElement sideOthersLink() {
-    return $("#integrations-sidebar__others-link");
-  }
-
   private SelenideElement ciCdSection() {
     return $("#iq-integrations-cicd-section");
   }
@@ -89,9 +81,5 @@ public class IntegrationsPageTest
 
   private SelenideElement ideSection() {
     return $("#iq-integrations-ide-section");
-  }
-
-  private SelenideElement othersSection() {
-    return $("#iq-integrations-others-section");
   }
 }

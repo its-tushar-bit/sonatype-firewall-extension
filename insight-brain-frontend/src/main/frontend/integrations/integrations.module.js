@@ -11,7 +11,6 @@ import Overview from './sections/Overview';
 import CiCd from './sections/CiCd';
 import Scm from './sections/Scm';
 import IssueTracking from './sections/IssueTracking';
-import Others from './sections/Others';
 import Ide from 'MainRoot/integrations/sections/Ide';
 
 export const SECTIONS = {
@@ -20,7 +19,6 @@ export const SECTIONS = {
   SCM: 'scm',
   ISSUE_TRACKING: 'issuetracking',
   IDE: 'ide',
-  OTHERS: 'others',
 };
 
 export default angular
@@ -31,7 +29,6 @@ export default angular
   .component('scm', iqReact2Angular(Scm, [], ['$ngRedux']))
   .component('issueTracking', iqReact2Angular(IssueTracking, [], ['$ngRedux']))
   .component('ide', iqReact2Angular(Ide, [], ['$ngRedux']))
-  .component('others', iqReact2Angular(Others, [], ['$ngRedux']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -64,11 +61,6 @@ function routes($stateProvider) {
     .state(`integrations.${SECTIONS.IDE}`, {
       url: '/ide',
       component: 'ide',
-      data: {},
-    })
-    .state(`integrations.${SECTIONS.OTHERS}`, {
-      url: '/others',
-      component: 'others',
       data: {},
     });
 }

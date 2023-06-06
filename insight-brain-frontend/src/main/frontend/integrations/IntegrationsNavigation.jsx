@@ -12,7 +12,7 @@ import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SECTIONS } from 'MainRoot/integrations/integrations.module';
 
 export default function IntegrationsNavigation() {
-  const { OVERVIEW, CICD, SCM, ISSUE_TRACKING, IDE, OTHERS } = SECTIONS;
+  const { OVERVIEW, CICD, SCM, ISSUE_TRACKING, IDE } = SECTIONS;
 
   return (
     <>
@@ -46,12 +46,6 @@ export default function IntegrationsNavigation() {
         <li>
           <IntegrationsLink id="integrations-sidebar__ide-link" sectionName={IDE}>
             IDE
-          </IntegrationsLink>
-        </li>
-
-        <li>
-          <IntegrationsLink id="integrations-sidebar__others-link" sectionName={OTHERS}>
-            Others
           </IntegrationsLink>
         </li>
       </ul>

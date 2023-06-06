@@ -4,17 +4,61 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxH2, NxTile } from '@sonatype/react-shared-components';
 import React from 'react';
+import { NxCard, NxH2, NxP } from '@sonatype/react-shared-components';
+import GithubLogo from 'MainRoot/img/third-party-logos/github.png';
+import GitlabLogo from 'MainRoot/img/third-party-logos/gitlab.png';
+import BitbucketLogo from 'MainRoot/img/third-party-logos/bitbucket.png';
+import IntegrationsCard from '../IntegrationsCard';
+
+const scmIntegrations = [
+  {
+    title: 'GitHub',
+    imgUrl: GithubLogo,
+    description:
+      'Lifecycle pushes component intelligence into GitHub where developers can view and respond to policy violations directly in pull requests.',
+    linkText: 'Click here for installation help.',
+    linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/github',
+  },
+  {
+    title: 'GitLab',
+    imgUrl: GitlabLogo,
+    description:
+      'Lifecycle pushes component intelligence into GitLab where developers can view and respond to policy violations without breaking a build.',
+    linkText: 'Click here for installation help.',
+    linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/gitlab',
+  },
+  {
+    title: 'Bitbucket',
+    imgUrl: BitbucketLogo,
+    description:
+      'Lifecycle pushes component intelligence into Bitbucket where developers can view and remediate policy violations with detailed Code Insights.',
+    linkText: 'Click here for installation help.',
+    linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/bitbucket',
+  },
+];
 
 export default function Scm() {
   return (
     <div id="iq-integrations-scm-section">
+      <NxP className="iq-integrations__full-width-text">
+        To use Nexus IQ for SCM, your IQ Server must be configured to allow access to your company&apos;s SCM platform.
+        To begin, you&apos;ll need to connect Nexus IQ to your SCM system repositories, which is best done by following
+        the steps in Easy SCM Onboarding. Following that, you will need to set up your source control configuration.
+      </NxP>
       <NxH2>SCM Integrations</NxH2>
-
-      <NxTile>
-        <NxTile.Content>Content...</NxTile.Content>
-      </NxTile>
+      <NxCard.Container className="iq-integrations-card-container">
+        {scmIntegrations.map(({ title, imgUrl, description, linkText, linkUrl }) => (
+          <IntegrationsCard
+            key={title}
+            title={title}
+            imgUrl={imgUrl}
+            description={description}
+            linkText={linkText}
+            linkUrl={linkUrl}
+          />
+        ))}
+      </NxCard.Container>
     </div>
   );
 }

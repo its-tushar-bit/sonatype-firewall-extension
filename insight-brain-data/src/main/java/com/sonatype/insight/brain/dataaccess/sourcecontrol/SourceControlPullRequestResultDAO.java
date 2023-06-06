@@ -45,9 +45,17 @@ public class SourceControlPullRequestResultDAO
   }
 
   public void deleteByApplicationId(TransactionContext tx, String applicationId) {
-    String sQuery = "DELETE FROM SourceControlPullRequestResult entity" + //
-        " WHERE entity.applicationId=?1";
-    createQuery(sQuery, applicationId).executeUpdate(tx);
+    if (detectTestEntityLeaks()) {
+      // This is never executed in production
+      List<SourceControlPullRequestResult> sourceControlPullRequestResults = getByApplicationId(tx, applicationId);
+      sourceControlPullRequestResults
+          .forEach(sourceControlPullRequestResult -> delete(tx, sourceControlPullRequestResult));
+    }
+    else {
+      String sQuery = "DELETE FROM SourceControlPullRequestResult entity" + //
+          " WHERE entity.applicationId=?1";
+      createQuery(sQuery, applicationId).executeUpdate(tx);
+    }
   }
 
   public void deleteByApplicationId(String applicationId) {
@@ -67,7 +75,15 @@ public class SourceControlPullRequestResultDAO
   }
 
   public void deleteAll(TransactionContext tx) {
-    String sQuery = "DELETE FROM SourceControlPullRequestResult entity";
-    createQuery(sQuery).executeUpdate(tx);
+    if (detectTestEntityLeaks()) {
+      // This is never executed in production
+      List<SourceControlPullRequestResult> sourceControlPullRequestResults = getAll(tx);
+      sourceControlPullRequestResults
+          .forEach(sourceControlPullRequestResult -> delete(tx, sourceControlPullRequestResult));
+    }
+    else {
+      String sQuery = "DELETE FROM SourceControlPullRequestResult entity";
+      createQuery(sQuery).executeUpdate(tx);
+    }
   }
 }

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestRe
 
 import org.junit.Test;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class SourceControlPullRequestResultDAOTest
@@ -25,7 +26,6 @@ public class SourceControlPullRequestResultDAOTest
     Application application = tempEntity.newApplicationWithParent();
     SourceControlPullRequestResult entity = new SourceControlPullRequestResult(application.getId(), "json");
     dao.insert(entity);
-    tempEntity.register(entity);
     assertThat(entity.getId()).isNotNull();
 
     // Read

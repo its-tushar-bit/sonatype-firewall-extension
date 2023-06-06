@@ -642,8 +642,6 @@ public class TemporaryEntity
 
   private Collection<RepositoryIdentifiedComponent> repositoryIdentifiedComponents;
 
-  private Collection<SourceControlPullRequestResult> sourceControlPullRequestResults;
-
   private Collection<PolicyWaiver> waivers;
 
   private Collection<ProprietaryComponentNamePattern> proprietaryComponentNamePatterns;
@@ -708,7 +706,6 @@ public class TemporaryEntity
     repositoryConnections = new ArrayList<>();
     artifactoryConnections = new ArrayList<>();
     repositoryIdentifiedComponents = new ArrayList<>();
-    sourceControlPullRequestResults = new ArrayList<>();
     proprietaryComponentNamePatterns = new ArrayList<>();
     sourceControlOrganizationImportEvents = new ArrayList<>();
     deletedTenants = new ArrayList<>();
@@ -823,7 +820,7 @@ public class TemporaryEntity
     delete(artifactoryConnections, artifactoryConnectionDAO);
     delete(repositoryIdentifiedComponents, repositoryIdentifiedComponentDAO);
     delete(sourceControlPullRequestComments, sourceControlPullRequestCommentDAO);
-    delete(sourceControlPullRequestResults, sourceControlPullRequestResultDAO);
+    sourceControlPullRequestResultDAO.deleteAll();
     delete(waivers, waiverDAO);
     delete(deletedTenants, deletedTenantDAO);
     productLicenseDAO.delete();
@@ -1318,10 +1315,6 @@ public class TemporaryEntity
 
   public void register(RepositoryIdentifiedComponent... repositoryIdentifiedComponents) {
     Collections.addAll(this.repositoryIdentifiedComponents, repositoryIdentifiedComponents);
-  }
-
-  public void register(SourceControlPullRequestResult... sourceControlPullRequestResults) {
-    Collections.addAll(this.sourceControlPullRequestResults, sourceControlPullRequestResults);
   }
 
   public void register(VulnerabilityGroup... vulnerabilityGroup) {
@@ -4463,7 +4456,6 @@ public class TemporaryEntity
     SourceControlPullRequestResult sourceControlPullRequestResult =
         new SourceControlPullRequestResult(applicationId, pullRequestResultJson);
     sourceControlPullRequestResultDAO.insert(sourceControlPullRequestResult);
-    sourceControlPullRequestResults.add(sourceControlPullRequestResult);
     return sourceControlPullRequestResult;
   }
 

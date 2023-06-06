@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics.Aggr
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics.ApplicationPRStats;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,11 +35,6 @@ public class SourceControlPullRequestMetricsTest
 
   @Inject
   private SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
-
-  @After
-  public void after() {
-    sourceControlPullRequestResultDAO.deleteAll();
-  }
 
   @Test
   public void test_computeStatsAndReset_noPRS() {

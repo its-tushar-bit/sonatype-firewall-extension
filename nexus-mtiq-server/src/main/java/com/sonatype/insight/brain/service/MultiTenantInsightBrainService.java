@@ -83,6 +83,10 @@ import org.eclipse.sisu.inject.BeanLocator;
 public class MultiTenantInsightBrainService
     extends InsightBrainService
 {
+  private static final String MULTI_TENANT_SERVER_NAME = "MTIQ Server";
+
+  private static final String MULTI_TENANT_BATCH_NAME = "MTIQ Server (Batch Mode)";
+
   public static final String ADMIN_BASE_PATH = "/api/*";
 
   public static final String NXIQ_ENABLE_LOCAL_JWK_PROVIDER_ENV_VAR = "NXIQ_ENABLE_LOCAL_JWK_PROVIDER";
@@ -135,9 +139,8 @@ public class MultiTenantInsightBrainService
   @Override
   String getServerInstanceMessage() {
     String build = new MultiTenantVersionService().getBuild();
-    return PRODUCT_NAME + " build " + build + //
-        " instance ID " + INSTANCE_ID + //
-        " on " + getLocalHostString() + ".";
+    String name = new TenantUtil().isMtiqBatchMode() ? MULTI_TENANT_BATCH_NAME : MULTI_TENANT_SERVER_NAME;
+    return name + " build " + build + " instance ID " + INSTANCE_ID + " on " + getLocalHostString() + ".";
   }
 
   @Override

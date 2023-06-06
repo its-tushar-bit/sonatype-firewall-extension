@@ -11,17 +11,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
-import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -107,14 +103,9 @@ public class MultiTenantDatabaseTestRule
 
   @Override
   protected void after() {
-    TenantTestHelper.setSingleTenant();
+    TenantTestHelper.resetAfterTest();
 
     postgresServer.close();
-
-    OperationalDataStoreProvider.setInstance(null);
-    AggregationDataStoreProvider.setInstance(null);
-    ThirdPartyScansProvider.setInstance(null);
-    DatamartProvider.setInstance(null);
   }
 
   public DatabaseConfig getDatabaseConfig() {

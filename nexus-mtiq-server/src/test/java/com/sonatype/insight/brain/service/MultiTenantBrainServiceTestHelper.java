@@ -8,17 +8,13 @@ package com.sonatype.insight.brain.service;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
-import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -199,10 +195,7 @@ public class MultiTenantBrainServiceTestHelper
       postgresServer = null;
     }
 
-    OperationalDataStoreProvider.setInstance(null);
-    AggregationDataStoreProvider.setInstance(null);
-    ThirdPartyScansProvider.setInstance(null);
-    DatamartProvider.setInstance(null);
+    TenantTestHelper.resetAfterTest();
 
     DatabaseContainer mtiqDatabaseContainer = MultiTenantBrainServiceTestService.getDatabaseContainer();
     if (mtiqDatabaseContainer != null) {
@@ -214,9 +207,6 @@ public class MultiTenantBrainServiceTestHelper
     MultiTenantBrainServiceTestService.resetTestInstances();
 
     tenantUtil.setTenantSlug(null);
-
-    // When MTIQ starts it sets the tenant to Global therefore it needs to be reset when MTIQ is shutdown
-    TenantTestHelper.setSingleTenant();
   }
 
   /**

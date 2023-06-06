@@ -8,14 +8,10 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.List;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,14 +43,6 @@ public class TenantUtilTest
 
   @Mock
   DataSource dataSource;
-
-  @AfterClass
-  public static void tearDown() {
-    OperationalDataStoreProvider.setInstance(null);
-    AggregationDataStoreProvider.setInstance(null);
-    ThirdPartyScansProvider.setInstance(null);
-    DatamartProvider.setInstance(null);
-  }
 
   @Before
   @Override

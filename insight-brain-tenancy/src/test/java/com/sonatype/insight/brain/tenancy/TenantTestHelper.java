@@ -7,6 +7,11 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.util.UUID;
 
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DatamartProvider;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+
 import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.TestName;
 
@@ -74,6 +79,19 @@ public class TenantTestHelper
 
   public static void setGlobalTenant() {
     TenantThreadLocal.setGlobalTenant();
+  }
+
+  public static void resetAfterTest() {
+    TenantTestHelper.setSingleTenant();
+
+    resetDataSourceProviders();
+  }
+
+  public static void resetDataSourceProviders() {
+    OperationalDataStoreProvider.setInstance(null);
+    AggregationDataStoreProvider.setInstance(null);
+    ThirdPartyScansProvider.setInstance(null);
+    DatamartProvider.setInstance(null);
   }
 
   @FunctionalInterface

@@ -9,18 +9,14 @@ import java.util.Arrays;
 import java.util.List;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,14 +59,6 @@ public class TenantMigratorTest
   public void setup() {
     super.setup();
     underTest = new TenantMigrator(databaseProvisionUtils, insightConfig);
-  }
-
-  @AfterClass
-  public static void tearDown() {
-    OperationalDataStoreProvider.setInstance(null);
-    AggregationDataStoreProvider.setInstance(null);
-    ThirdPartyScansProvider.setInstance(null);
-    DatamartProvider.setInstance(null);
   }
 
   @Test

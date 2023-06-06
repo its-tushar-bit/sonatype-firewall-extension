@@ -26,8 +26,8 @@ public abstract class MultiTenantTestSupport
   }
 
   @After
-  public void restoreSingleTenant() {
-    TenantTestHelper.setSingleTenant();
+  public void resetAfterTest() {
+    TenantTestHelper.resetAfterTest();
   }
 
   protected Tenant testAsNewTenant(ConsumerWithException<Tenant> test) {

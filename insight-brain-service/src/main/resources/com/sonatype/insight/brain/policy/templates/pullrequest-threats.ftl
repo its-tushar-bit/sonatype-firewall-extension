@@ -17,7 +17,7 @@ Threat (of 10) | Policy | Violation Details
   <b>${constraint.constraintName}:</b><#t>
   <ul><#t>
     <#list constraint.conditions as condition>
-      <li>${condition}</li><#t>
+      <li>${condition?replace("*", "\\*")}</li><#t>
     </#list>
   </ul><#t>
 </#list>

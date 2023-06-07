@@ -28,7 +28,7 @@
       | ${policy.threatLevel} | ${policy.name} | <#t>
       <#list policy.constraints as constraint><#t>
         **${constraint.constraintName}:** <#t>
-        <#list constraint.conditions as condition>${condition}. </#list><#t>
+        <#list constraint.conditions as condition>${condition?replace("*", "\\*")}. </#list><#t>
       </#list> |<#lt>
   </#list><#t>
 
@@ -56,7 +56,7 @@
     | ${policy.threatLevel} | ${policy.name} | <#t>
       <#list policy.constraints as constraint><#t>
         **${constraint.constraintName}:** <#t>
-          <#list constraint.conditions as condition>${condition}. </#list><#t>
+          <#list constraint.conditions as condition>${condition?replace("*", "\\*")}. </#list><#t>
       </#list> |<#lt>
   </#list>
 

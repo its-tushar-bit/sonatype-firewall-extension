@@ -28,7 +28,7 @@ Threat (of 10) | Policy | Violation Details
 ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint><#t>
   <b>${constraint.constraintName}:</b><ul><#t>
     <#list constraint.conditions as condition>
-      <li>${condition}</li><#t>
+      <li>${condition?replace("*", "\\*")}</li><#t>
     </#list>
     </ul><#t>
   </#list>
@@ -61,7 +61,7 @@ Threat (of 10) | Policy | Violation Details
 ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint><#t>
   <b>${constraint.constraintName}:</b><ul><#t>
     <#list constraint.conditions as condition>
-      <li>${condition}</li><#t>
+      <li>${condition?replace("*", "\\*")}</li><#t>
     </#list>
     </ul><#t>
   </#list>

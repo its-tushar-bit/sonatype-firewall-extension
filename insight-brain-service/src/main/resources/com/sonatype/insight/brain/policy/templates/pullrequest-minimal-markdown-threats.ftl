@@ -13,7 +13,7 @@
 | --- | --- | ---
 <#list threatList as threat>
 | ${threat.threat} | ${threat.policy} | <#list threat.constraints as constraint><#t>
-  **${constraint.constraintName}:** <#list constraint.conditions as condition>${condition}. </#list><#t>
+  **${constraint.constraintName}:** <#list constraint.conditions as condition>${condition?replace("*", "\\*")}. </#list><#t>
 </#list>
 
 </#list>

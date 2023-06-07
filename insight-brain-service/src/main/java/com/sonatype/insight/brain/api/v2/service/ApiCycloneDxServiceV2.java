@@ -195,7 +195,7 @@ public class ApiCycloneDxServiceV2
         ApiDependencyTreeNodeDTO dependenciesData =
             apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
         addMetadata(policyEvaluation, dependenciesData, bom, version, components);
-        if (components.size() > 1) {
+        if (hasDependenciesData(components, dependenciesData)) {
           addDependencyTree(dependenciesData, bom, components);
         }
       }
@@ -205,6 +205,14 @@ public class ApiCycloneDxServiceV2
     catch (IOException | GeneratorException e) {
       throw new InternalServerException("An error occurred generating report", e);
     }
+  }
+
+  private boolean hasDependenciesData(
+      final Map<String, Map<String, String>> components,
+      final ApiDependencyTreeNodeDTO dependenciesData)
+  {
+    return components.size() > 1 && dependenciesData != null &&
+        CollectionUtils.isNotEmpty(dependenciesData.getChildren());
   }
 
   private Response generateResponse(

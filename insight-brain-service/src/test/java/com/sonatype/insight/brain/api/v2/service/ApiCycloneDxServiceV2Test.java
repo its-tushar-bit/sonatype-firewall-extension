@@ -310,6 +310,29 @@ public class ApiCycloneDxServiceV2Test
     assertThat(CollectionUtils.isEmpty(d4.getDependencies())).isTrue();
   }
 
+  @Test
+  public void testGetByScanId_AddMissingParent_WithEmptyDependencyTree() throws Exception {
+    createReportAndPolicyEvaluation("emptyDependencies");
+    Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_14);
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
+    assertThat(bom.getMetadata()).isNotNull();
+    Component rootComponent = bom.getMetadata().getComponent();
+    assertThat(rootComponent.getPurl()).satisfies(purl -> {
+      PackageURL packageURL = new PackageURL(purl);
+      assertThat(packageURL.getName()).isEqualTo(IQ_APP_PREFIX + application.getName());
+      assertThat(packageURL.getNamespace()).isEqualTo(SONATYPE_NAMESPACE);
+      assertThat(packageURL.getType()).isEqualTo(StandardTypes.GENERIC);
+      assertThat(packageURL.getVersion()).isEqualTo(scanId);
+    });
+    assertThat(bom.getComponents()).hasSize(2);
+    assertThat(bom.getComponents().stream().map(Component::getPurl)).containsExactlyInAnyOrder(
+        "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar", "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar");
+
+    assertThat(bom.getDependencies()).isNull();
+  }
+
   private String bomRefOf(final Bom bom, final String purl) {
     return bom.getComponents().stream()
         .filter(c -> c.getPurl().equals(purl)).findFirst().map(Component::getBomRef).orElse(null);

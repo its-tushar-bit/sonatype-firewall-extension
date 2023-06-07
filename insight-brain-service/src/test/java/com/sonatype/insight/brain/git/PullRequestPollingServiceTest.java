@@ -262,6 +262,41 @@ public class PullRequestPollingServiceTest
   }
 
   @Test
+  public void testFetchAndSendPullRequestsForCommenting_MultipleAppsSameRepositoryUrlWithDifferentCase()
+      throws IOException
+  {
+    // given:
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app1", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
+            "feature-commit-xyz-1", "base-commit")
+        .forRepository("TESTORG/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
+        .withPollingTime(pullRequestPollingTime).build();
+
+    // when: fetch and send
+    Date before = new Date();
+    pollingService.fetchAndSendPullRequestsForCommenting();
+    Date after = new Date();
+
+    // then: one pull request is persisted and two events are emitted
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequests.get(0);
+    assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/testorg/testrepo", 10,
+        "feature-commit-xyz-1", "feature-branch",
+        "base-commit", "main-branch",
+        pullRequestCreateDate, before, after);
+
+    verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
+    assertThatLogMessagesContain(
+        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit "
+            + "'feature-commit-xyz-1'"));
+  }
+
+  @Test
   public void testFetchAndSendPullRequestsForCommenting_noPolicyEval() throws IOException {
     // given: PR without associated policy eval
     final Date pullRequestCreateDate = new Date();

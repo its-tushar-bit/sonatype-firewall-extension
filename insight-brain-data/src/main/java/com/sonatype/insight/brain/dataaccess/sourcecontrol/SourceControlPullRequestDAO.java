@@ -92,4 +92,10 @@ public class SourceControlPullRequestDAO
     super.delete(tx, entity);
     log.trace("Deleted SourceControlPullRequest: " + entity);
   }
+
+  public SourceControlPullRequest getByRepositoryUrlAndPullRequestId(String repositoryUrl, int pullRequestId) {
+    String sQuery =
+        "SELECT entity FROM SourceControlPullRequest entity WHERE entity.repositoryUrl=?1 AND entity.pullRequestId=?2";
+    return createQuery(sQuery, repositoryUrl, pullRequestId).forceSingleResult().get();
+  }
 }

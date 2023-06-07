@@ -118,7 +118,6 @@ public class PullRequestPollingService
     for (PullRequest pullRequest : pullRequests) {
       // we'll check all apps associated with the pull request's repository
       List<Application> applications = applicationDAO.getByRepositoryUrl(pullRequest.getRepository());
-      boolean pullRequestWasPersisted = false;
       for (Application app : applications) {
         GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
 
@@ -142,9 +141,10 @@ public class PullRequestPollingService
               gitRepositoryInfo.getRepositoryUrl(), pullRequest.getNumber(), app.getPublicId());
         }
         else {
-          if (!pullRequestWasPersisted) {
+          String repositoryUrl = gitRepositoryInfo.repositoryUrl;
+          int pullRequestId = pullRequest.getNumber();
+          if (sourceControlPullRequestDAO.getByRepositoryUrlAndPullRequestId(repositoryUrl, pullRequestId) == null) {
             persistPullRequest(pullRequest);
-            pullRequestWasPersisted = true;
           }
           createAndSendDiscoveredPullRequestEvent(app.getId(), pullRequest);
         }

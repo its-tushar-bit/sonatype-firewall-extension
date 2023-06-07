@@ -5,15 +5,17 @@
  */
 
 import axios from 'axios';
-import { head as first, prop } from 'ramda';
+import { head as first } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { next, prev, steps } from './firewallOnboardingUtils';
+import { next, prev, steps, updateRepositories } from './firewallOnboardingUtils';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getConfigureRepositoriesUrl, getUnconfiguredRepositoriesManager } from 'MainRoot/util/CLMLocation';
 import {
-  selectRepositoriesList,
-  selectUnconfiguredRepoManager,
-} from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
+  getUnconfiguredRepositoriesManager,
+  getRepositoryListUrl,
+  getSupportedRepositoriesFormat,
+  getConfigureRepositoriesUrl,
+} from 'MainRoot/util/CLMLocation';
+import { selectRepositoriesList, selectUnconfiguredRepoManager } from './firewallOnboardingSelectors';
 
 export const REDUCER_NAME = 'firewallOnboarding';
 
@@ -21,22 +23,13 @@ export const initialState = {
   loading: false,
   currentStep: first(steps),
   selectedRepositories: [],
+  supportedFormats: [],
   repositories: {
     loading: false,
     loadError: null,
-    list: [
-      {
-        id: 'id',
-        repositoryManagerId: 'repoManagerId',
-        publicId: 'publicId',
-        repositoryType: 'proxy',
-        auditEnabled: true,
-        quarantineEnabled: true,
-        policyCompliantComponentSelectionEnabled: false,
-        namespaceConfusionProtectionEnabled: false,
-        format: 'maven',
-      },
-    ],
+    saving: false,
+    saveError: null,
+    list: null,
   },
   unconfiguredRepoManagers: {
     repoManagers: [],
@@ -57,10 +50,20 @@ const goBackToPreviousStep = (state) => {
   }
 };
 
+const configureRepositories = (state, { payload: repositories }) => {
+  state.repositories.list = updateRepositories(state.repositories.list, repositories);
+};
+
 const loadUnconfiguredRepoManagers = createAsyncThunk(
   `${REDUCER_NAME}/loadUnconfiguredRepoManagers`,
-  (_, { rejectWithValue }) => {
-    return axios.get(getUnconfiguredRepositoriesManager()).then(prop('data')).catch(rejectWithValue);
+  (_, { dispatch, rejectWithValue }) => {
+    return axios
+      .get(getUnconfiguredRepositoriesManager())
+      .then(({ data }) => {
+        dispatch(actions.loadRepositories(data[0]));
+        return data;
+      })
+      .catch(rejectWithValue);
   }
 );
 
@@ -90,7 +93,28 @@ const loadUnconfiguredRepoManagersFailed = (state, { payload }) => ({
   },
 });
 
-const saveRepositoriesRequested = (state) => ({
+const loadRepositories = createAsyncThunk(
+  `${REDUCER_NAME}/loadRepositories`,
+  (unconfiguredRepoManager, { rejectWithValue }) => {
+    if (!unconfiguredRepoManager) {
+      const errorMessage = 'There is no unconfigured repository manager selected';
+      return rejectWithValue(errorMessage);
+    }
+
+    const promises = [
+      axios.get(getRepositoryListUrl(unconfiguredRepoManager.id)),
+      axios.get(getSupportedRepositoriesFormat()),
+    ];
+    return Promise.all(promises)
+      .then(([repositories, formats]) => ({
+        repositories: repositories.data,
+        supportedFormats: formats.data?.regexpsByRepositoryFormat || {},
+      }))
+      .catch(rejectWithValue);
+  }
+);
+
+const loadRepositoriesRequested = (state) => ({
   ...state,
   repositories: {
     ...state.repositories,
@@ -99,12 +123,52 @@ const saveRepositoriesRequested = (state) => ({
   },
 });
 
+const loadRepositoriesFulfilled = (state, { payload: { repositories, supportedFormats } }) => {
+  return {
+    ...state,
+    supportedFormats: Object.keys(supportedFormats),
+    repositories: {
+      ...state.repositories,
+      list: repositories.filter((repo) => repo.format != null),
+      loading: false,
+      loadError: null,
+    },
+  };
+};
+
+const loadRepositoriesFailed = (state, { payload }) => {
+  return {
+    ...state,
+    supportedFormats: [],
+    repositories: {
+      ...state.repositories,
+      loading: false,
+      loadError: Messages.getHttpErrorMessage(payload),
+    },
+  };
+};
+
+const saveRepositories = createAsyncThunk(`${REDUCER_NAME}/saveRepositories`, (_, { getState, rejectWithValue }) => {
+  const repoManager = selectUnconfiguredRepoManager(getState());
+  const repositories = selectRepositoriesList(getState());
+  return axios.put(getConfigureRepositoriesUrl(repoManager.id), repositories).catch(rejectWithValue);
+});
+
+const saveRepositoriesRequested = (state) => ({
+  ...state,
+  repositories: {
+    ...state.repositories,
+    saving: true,
+    saveError: null,
+  },
+});
+
 const saveRepositoriesFulfilled = (state) => ({
   ...state,
   repositories: {
     ...state.repositories,
-    loading: false,
-    loadError: null,
+    saving: false,
+    saveError: null,
   },
 });
 
@@ -112,18 +176,9 @@ const saveRepositoriesFailed = (state, { payload }) => ({
   ...state,
   repositories: {
     ...state.repositories,
-    loading: false,
-    loadError: Messages.getHttpErrorMessage(payload),
+    saving: false,
+    saveError: Messages.getHttpErrorMessage(payload),
   },
-});
-
-const saveRepositories = createAsyncThunk(`${REDUCER_NAME}/saveRepositories`, (_, { getState, rejectWithValue }) => {
-  const repoManager = selectUnconfiguredRepoManager(getState());
-  const repositories = selectRepositoriesList(getState());
-  return axios
-    .put(getConfigureRepositoriesUrl(repoManager.id), repositories)
-    .then(console.log('success!'))
-    .catch(rejectWithValue);
 });
 
 const firewallOnboardingSlice = createSlice({
@@ -132,11 +187,15 @@ const firewallOnboardingSlice = createSlice({
   reducers: {
     continueToNextStep,
     goBackToPreviousStep,
+    configureRepositories,
   },
   extraReducers: {
     [loadUnconfiguredRepoManagers.pending]: loadUnconfiguredRepoManagersRequested,
     [loadUnconfiguredRepoManagers.fulfilled]: loadUnconfiguredRepoManagersFulfilled,
     [loadUnconfiguredRepoManagers.rejected]: loadUnconfiguredRepoManagersFailed,
+    [loadRepositories.pending]: loadRepositoriesRequested,
+    [loadRepositories.fulfilled]: loadRepositoriesFulfilled,
+    [loadRepositories.rejected]: loadRepositoriesFailed,
     [saveRepositories.pending]: saveRepositoriesRequested,
     [saveRepositories.fulfilled]: saveRepositoriesFulfilled,
     [saveRepositories.rejected]: saveRepositoriesFailed,
@@ -146,6 +205,7 @@ const firewallOnboardingSlice = createSlice({
 export const actions = {
   ...firewallOnboardingSlice.actions,
   loadUnconfiguredRepoManagers,
+  loadRepositories,
   saveRepositories,
 };
 

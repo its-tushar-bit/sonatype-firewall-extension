@@ -5,12 +5,20 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.FirewallRepositoryList;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Selenide.$$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class FirewallOnboardingPage
     extends BasicElement<FirewallOnboardingPage>
@@ -47,5 +55,22 @@ public class FirewallOnboardingPage
 
   public SelenideElement actionsFooter() {
     return child("#actions-footer");
+  }
+
+  public List<FirewallRepositoryList> firewallRepositoryLists() {
+    ElementsCollection repositoriesByFormatElements = children(".firewall-repository-list");
+    List<FirewallRepositoryList> repositoriesFormatList = new ArrayList<>();
+
+    for (int i = 0; i < repositoriesByFormatElements.size(); i++) {
+      repositoriesFormatList
+              .add(new FirewallRepositoryList("."
+                      + repositoriesByFormatElements.get(i).attr("class") + nthChild(i + 1)));
+    }
+
+    return repositoriesFormatList;
+  }
+
+  public ElementsCollection repositoriesList() {
+    return $$(ROOT + " .firewall-repository-list");
   }
 }

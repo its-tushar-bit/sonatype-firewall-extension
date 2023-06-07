@@ -11,6 +11,9 @@ import {
   selectUnconfiguredRepoManagersList,
   selectUnconfiguredRepoManager,
   selectRepositoriesList,
+  selectSupportedFormats,
+  selectRepositoriesByType,
+  selectTotalEnabledRepositoriesByTypeAndProp,
 } from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
 import { selectRepositories } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 
@@ -142,6 +145,116 @@ describe('FirewallOnboardingSelectors', () => {
       const actualSelection = selectRepositoriesList.resultFunc(slice.repositories);
 
       expect(actualSelection).toBe(slice.repositories.list);
+    });
+  });
+
+  describe('selectSupportedFormats', () => {
+    it('selects the supported format list from firewall onboarding slice', () => {
+      const slice = {
+        supportedFormats: ['a', 'b', 'c'],
+      };
+
+      const actualSelection = selectSupportedFormats.resultFunc(slice);
+
+      expect(actualSelection).toEqual(slice.supportedFormats);
+    });
+  });
+
+  describe('selectTotalEnabledRepositoriesByTypeAndProp', () => {
+    it('should return the correct count of enabled repositories by type and prop', () => {
+      const repositories = [
+        { id: '1', repositoryType: 'type1', quarantineEnabled: true },
+        { id: '2', repositoryType: 'type1', quarantineEnabled: false },
+        { id: '3', repositoryType: 'type2', quarantineEnabled: true },
+        { id: '4', repositoryType: 'type2', quarantineEnabled: true },
+        { id: '5', repositoryType: 'type2', quarantineEnabled: false },
+      ];
+      const type = 'type1';
+      const propName = 'quarantineEnabled';
+
+      const result = selectTotalEnabledRepositoriesByTypeAndProp.resultFunc(repositories, type, propName);
+
+      expect(result).toBe(1);
+    });
+
+    it('should return 0 if no repositories match the type and prop', () => {
+      const repositories = [
+        { id: '1', repositoryType: 'type1', quarantineEnabled: false },
+        { id: '2', repositoryType: 'type1', quarantineEnabled: false },
+        { id: '3', repositoryType: 'type2', quarantineEnabled: false },
+        { id: '4', repositoryType: 'type2', quarantineEnabled: false },
+      ];
+
+      const type = 'type3';
+      const propName = 'quarantineEnabled';
+
+      const result = selectTotalEnabledRepositoriesByTypeAndProp.resultFunc(repositories, type, propName);
+
+      expect(result).toBe(0);
+    });
+
+    it('should default to propName "quarantineEnabled" if not provided', () => {
+      const repositories = [
+        { id: '1', repositoryType: 'type1', quarantineEnabled: true },
+        { id: '2', repositoryType: 'type1', quarantineEnabled: true },
+        { id: '3', repositoryType: 'type2', quarantineEnabled: false },
+        { id: '4', repositoryType: 'type2', quarantineEnabled: false },
+      ];
+      const type = 'type1';
+
+      const result = selectTotalEnabledRepositoriesByTypeAndProp.resultFunc(repositories, type);
+
+      expect(result).toBe(2);
+    });
+  });
+
+  describe('selectRepositoriesByType', () => {
+    it('should return the repositories of the specified type', () => {
+      const repositories = [
+        { id: '1', repositoryType: 'proxy', format: 'format1' },
+        { id: '2', repositoryType: 'proxy', format: 'format2' },
+        { id: '3', repositoryType: 'proxy', format: 'format3' },
+        { id: '4', repositoryType: 'proxy', format: 'format1' },
+        { id: '5', repositoryType: 'type1', format: 'format2' },
+      ];
+      const formats = ['format1', 'format2', 'format3'];
+      const repositoryType = 'proxy';
+
+      const result = selectRepositoriesByType.resultFunc(repositories, formats, repositoryType);
+
+      const expectedRepositories = [
+        {
+          format: 'format1',
+          repositories: [
+            { id: '1', repositoryType: 'proxy', format: 'format1' },
+            { id: '4', repositoryType: 'proxy', format: 'format1' },
+          ],
+        },
+        {
+          format: 'format2',
+          repositories: [{ id: '2', repositoryType: 'proxy', format: 'format2' }],
+        },
+        {
+          format: 'format3',
+          repositories: [{ id: '3', repositoryType: 'proxy', format: 'format3' }],
+        },
+      ];
+
+      expect(result).toEqual(expectedRepositories);
+    });
+
+    it('should return an empty array if no repositories match the type', () => {
+      const repositories = [
+        { id: '1', repositoryType: 'proxy', format: 'format1' },
+        { id: '2', repositoryType: 'proxy', format: 'format2' },
+        { id: '3', repositoryType: 'proxy', format: 'format3' },
+      ];
+      const formats = ['format1', 'format2', 'format3'];
+      const repositoryType = 'mytype';
+
+      const result = selectRepositoriesByType.resultFunc(repositories, formats, repositoryType);
+
+      expect(result).toEqual([]);
     });
   });
 });

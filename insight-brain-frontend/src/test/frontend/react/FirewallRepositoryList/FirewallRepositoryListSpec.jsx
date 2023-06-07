@@ -7,133 +7,166 @@ import React from 'react';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import FirewallRepositoryList from 'MainRoot/react/FirewallRepositoryList/FirewallRepositoryList';
 
-let renderComponent, minimalProps, repositories, title, emptyMessage, onChange;
-
+let renderComponent, repositories, title, onChangeMock, minimalProps;
 describe('FirewallRepositoryList', () => {
-  const getCheckboxName = (name) => `firewall ${name} repository item`;
-
-  beforeEach(function () {
+  beforeEach(() => {
     repositories = [
-      { id: 1, publicId: 'repo1' },
-      { id: 2, publicId: 'repo2' },
-      { id: 3, publicId: 'repo3' },
+      {
+        id: '1',
+        repositoryManagerId: 'rm1',
+        publicId: 'public1',
+        repositoryType: 'type1',
+        enabled: true,
+        quarantineEnabled: true,
+        policyCompliantComponentSelectionEnabled: false,
+        namespaceConfusionProtectionEnabled: true,
+        format: 'format1',
+      },
+      {
+        id: '2',
+        repositoryManagerId: 'rm2',
+        publicId: 'public2',
+        repositoryType: 'type2',
+        enabled: false,
+        quarantineEnabled: false,
+        policyCompliantComponentSelectionEnabled: true,
+        namespaceConfusionProtectionEnabled: false,
+        format: 'format2',
+      },
+      {
+        id: '3',
+        repositoryManagerId: 'rm3',
+        publicId: 'public3',
+        repositoryType: 'type3',
+        enabled: true,
+        quarantineEnabled: true,
+        policyCompliantComponentSelectionEnabled: true,
+        namespaceConfusionProtectionEnabled: false,
+        format: 'format3',
+      },
     ];
-    emptyMessage = 'No repositories available';
-    title = 'My Repositories';
-    onChange = () => {};
-    minimalProps = { title, repositories, emptyMessage, onChange };
+    title = 'Test Repositories';
+    onChangeMock = jasmine.createSpy('onChange');
+    minimalProps = {
+      title,
+      repositories,
+      onChange: onChangeMock,
+    };
     renderComponent = (additionalProps = {}) =>
       render(<FirewallRepositoryList {...minimalProps} {...additionalProps} />);
   });
 
-  it('renders the title and total number of repositories', () => {
+  it('renders the title', () => {
     renderComponent();
-    const titleElement = screen.getByText(title);
-    const totalReposElement = screen.getByText(`0 of ${repositories.length}`);
-
-    expect(titleElement).toBeInTheDocument();
-    expect(totalReposElement).toBeInTheDocument();
+    expect(screen.getByText('Test Repositories')).toBeInTheDocument();
   });
 
-  it('renders empty message if no repositories are passed', () => {
-    const repositories = [];
+  it('renders the repository items', () => {
+    renderComponent();
+    expect(screen.getByText('public1')).toBeInTheDocument();
+    expect(screen.getByText('public2')).toBeInTheDocument();
+    expect(screen.getByText('public3')).toBeInTheDocument();
+  });
+
+  it('displays the empty message when there are no repositories', () => {
+    const props = {
+      title: 'Test Repositories',
+      repositories: [],
+      emptyMessage: 'No list available',
+    };
+    renderComponent(props);
+
+    expect(screen.getByText('No list available')).toBeInTheDocument();
+  });
+
+  it('calls onChange with all items set to true when "Select All" checkbox is clicked and there is at least one item in false', () => {
+    renderComponent();
+    const selectAllCheckbox = screen.getByLabelText('firewall repository list check all');
+
+    fireEvent.click(selectAllCheckbox);
+
+    expect(onChangeMock).toHaveBeenCalledWith([
+      { id: '1', key: 'quarantineEnabled', value: true },
+      { id: '2', key: 'quarantineEnabled', value: true },
+      { id: '3', key: 'quarantineEnabled', value: true },
+    ]);
+  });
+
+  it('calls onChange with all items set to false when "Select All" checkbox is clicked and all items are set to true', () => {
+    repositories[0].quarantineEnabled = true;
+    repositories[1].quarantineEnabled = true;
+    repositories[2].quarantineEnabled = true;
     renderComponent({ repositories });
-    const emptyMessageElement = screen.getByText(emptyMessage);
-    expect(emptyMessageElement).toBeInTheDocument();
+
+    const selectAllCheckbox = screen.getByLabelText('firewall repository list check all');
+
+    fireEvent.click(selectAllCheckbox);
+
+    expect(onChangeMock).toHaveBeenCalledWith([
+      { id: '1', key: 'quarantineEnabled', value: false },
+      { id: '2', key: 'quarantineEnabled', value: false },
+      { id: '3', key: 'quarantineEnabled', value: false },
+    ]);
   });
 
-  it('selects/deselects all items when header checkbox is clicked', () => {
+  it('calls onChange with the clicked item when an item checkbox is clicked', () => {
     renderComponent();
+    const itemCheckbox = screen.getByLabelText('firewall public1 repository item');
+
+    fireEvent.click(itemCheckbox);
+
+    expect(onChangeMock).toHaveBeenCalledWith([{ id: '1', key: 'quarantineEnabled', value: false }]);
+  });
+
+  it('renders the correct number of total configured repositories', () => {
+    renderComponent();
+    expect(screen.getByText('2 of 3')).toBeInTheDocument();
+
     const headerCheckbox = screen.getByRole('checkbox', { name: 'firewall repository list check all' });
     fireEvent.click(headerCheckbox);
-    repositories.forEach((repo) => {
-      const itemCheckbox = screen.getByRole('checkbox', { name: getCheckboxName(repo.publicId) });
-      expect(itemCheckbox).toBeChecked();
-    });
-    fireEvent.click(headerCheckbox);
-    repositories.forEach((repo) => {
-      const itemCheckbox = screen.getByRole('checkbox', { name: getCheckboxName(repo.publicId) });
-      expect(itemCheckbox).not.toBeChecked();
-    });
+
+    expect(onChangeMock).toHaveBeenCalledWith([
+      { id: '1', key: 'quarantineEnabled', value: true },
+      { id: '2', key: 'quarantineEnabled', value: true },
+      { id: '3', key: 'quarantineEnabled', value: true },
+    ]);
   });
 
-  it('selects/deselects individual items when item checkbox is clicked', () => {
+  it('sorts items by name in ascending order when header cell is clicked once', () => {
     renderComponent();
-
-    const [repo1, repo2, repo3] = repositories;
-    const repo1Checkbox = screen.getByRole('checkbox', { name: getCheckboxName(repo1.publicId) });
-    const repo2Checkbox = screen.getByRole('checkbox', { name: getCheckboxName(repo2.publicId) });
-    const repo3Checkbox = screen.getByRole('checkbox', { name: getCheckboxName(repo3.publicId) });
-    fireEvent.click(repo1Checkbox);
-    expect(repo1Checkbox).toBeChecked();
-    expect(repo2Checkbox).not.toBeChecked();
-    expect(repo3Checkbox).not.toBeChecked();
-    fireEvent.click(repo2Checkbox);
-    expect(repo1Checkbox).toBeChecked();
-    expect(repo2Checkbox).toBeChecked();
-    expect(repo3Checkbox).not.toBeChecked();
-    fireEvent.click(repo1Checkbox);
-    fireEvent.click(repo2Checkbox);
-    fireEvent.click(repo3Checkbox);
-    expect(repo1Checkbox).not.toBeChecked();
-    expect(repo2Checkbox).not.toBeChecked();
-    expect(repo3Checkbox).toBeChecked();
-  });
-
-  it('should sort items asc first and then desc by name when name cell is clicked twice', () => {
-    renderComponent();
-
     const nameCell = screen.getByText('name');
 
     fireEvent.click(nameCell);
 
-    let items = screen.getAllByRole('row', { name: /repository item/i });
-    expect(items[0]).toHaveTextContent(repositories[0].publicId);
-    expect(items[1]).toHaveTextContent(repositories[1].publicId);
-    expect(items[2]).toHaveTextContent(repositories[2].publicId);
+    const sortItems = screen.getAllByRole('row', { name: /repository item/i });
+    expect(sortItems[0]).toHaveTextContent(repositories[0].publicId);
+    expect(sortItems[1]).toHaveTextContent(repositories[1].publicId);
+    expect(sortItems[2]).toHaveTextContent(repositories[2].publicId);
+  });
 
+  it('sorts items by name in descending order when header cell is clicked twice', () => {
+    renderComponent();
+    const nameHeaderCell = screen.getByText('name');
+
+    fireEvent.click(nameHeaderCell);
+    fireEvent.click(nameHeaderCell);
+
+    const sortItems = screen.getAllByRole('row', { name: /repository item/i });
+    expect(sortItems[0]).toHaveTextContent(repositories[2].publicId);
+    expect(sortItems[1]).toHaveTextContent(repositories[1].publicId);
+    expect(sortItems[2]).toHaveTextContent(repositories[0].publicId);
+  });
+
+  it('does not sort items when there is only one item', () => {
+    const props = {
+      repositories: [repositories[0]],
+    };
+    renderComponent(props);
+
+    const nameCell = screen.getByRole('checkbox', { name: 'firewall repository list check all' });
     fireEvent.click(nameCell);
 
-    items = screen.getAllByRole('row', { name: /repository item/i });
-    expect(items[0]).toHaveTextContent(repositories[2].publicId);
-    expect(items[1]).toHaveTextContent(repositories[1].publicId);
-    expect(items[2]).toHaveTextContent(repositories[0].publicId);
-  });
-
-  it('adds an item to selected items when checkbox is clicked', () => {
-    const onChange = jasmine.createSpy('onChange');
-    renderComponent({ onChange });
-
-    let totalReposElement = screen.getByText(`0 of ${repositories.length}`);
-    expect(totalReposElement).toBeInTheDocument();
-
-    const checkbox = screen.getByRole('checkbox', { name: getCheckboxName(repositories[0].publicId) });
-    fireEvent.click(checkbox);
-
-    expect(checkbox).toBeChecked();
-    expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith([repositories[0]]);
-
-    totalReposElement = screen.getByText(`1 of ${repositories.length}`);
-    expect(totalReposElement).toBeInTheDocument();
-  });
-
-  it('removes an item from selected items when checkbox is clicked again', () => {
-    const selectedRepositories = [repositories[0]];
-    const onChange = jasmine.createSpy('onChange');
-    renderComponent({ onChange, selectedRepositories });
-
-    let totalReposElement = screen.getByText(`1 of ${repositories.length}`);
-    expect(totalReposElement).toBeInTheDocument();
-
-    const checkbox = screen.getByRole('checkbox', { name: getCheckboxName(repositories[0].publicId) });
-    fireEvent.click(checkbox);
-
-    expect(checkbox).not.toBeChecked();
-    expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith([]);
-
-    totalReposElement = screen.getByText(`0 of ${repositories.length}`);
-    expect(totalReposElement).toBeInTheDocument();
+    const item = screen.getByText('public1');
+    expect(item).toBeInTheDocument();
   });
 });

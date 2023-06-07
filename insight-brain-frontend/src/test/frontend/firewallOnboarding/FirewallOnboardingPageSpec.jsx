@@ -11,17 +11,47 @@ import FirewallOnboardingPage from 'MainRoot/firewallOnboarding/FirewallOnboardi
 import { steps } from '../../../main/frontend/firewallOnboarding/firewallOnboardingUtils';
 
 const currentStep = steps[0];
-const firewallOnboardingPreloadedState = { firewallOnboarding: { currentStep } };
+let renderComponent, firewallOnboardingPreloadedState;
 
 describe('FirewallOnboardingPage', function () {
-  const renderComponent = (preloadedState = firewallOnboardingPreloadedState) =>
-    render(<FirewallOnboardingPage />, { preloadedState });
+  beforeEach(function () {
+    firewallOnboardingPreloadedState = {
+      firewallOnboarding: {
+        loading: false,
+        currentStep,
+        selectedRepositories: [],
+        supportedFormats: [],
+        repositories: {
+          loading: false,
+          loadError: null,
+          saving: false,
+          saveError: null,
+          list: [{ id: '1', repositoryType: 'proxy', quarantineEnabled: true }],
+        },
+        unconfiguredRepoManagers: {
+          repoManagers: [
+            { id: 'id', instanceId: 'instanceId', userAgent: 'userAgent', configured: false, configureTime: null },
+          ],
+          loading: false,
+          loadError: null,
+        },
+      },
+    };
+    renderComponent = (preloadedState = firewallOnboardingPreloadedState) =>
+      render(<FirewallOnboardingPage />, { preloadedState });
+  });
 
-  it('renders page with the correct text', () => {
-    renderComponent();
-    expect(screen.getByRole('complementary')).toBeVisible();
-    expect(screen.getByText(currentStep.title)).toBeVisible();
-    expect(screen.getByText('Proxy repositories selector')).toBeVisible();
-    expect(screen.getByRole('navigation')).toBeVisible();
+  steps.forEach((currentStep) => {
+    it(`renders ${currentStep.title} page with the correct text`, () => {
+      firewallOnboardingPreloadedState.firewallOnboarding.currentStep = currentStep;
+      renderComponent(firewallOnboardingPreloadedState);
+
+      expect(screen.getByRole('complementary')).toBeVisible();
+      expect(screen.getByText(currentStep.title)).toBeVisible();
+      if (currentStep.subTitle) {
+        expect(screen.getByText(currentStep.subTitle)).toBeVisible();
+      }
+      expect(screen.getByRole('navigation')).toBeVisible();
+    });
   });
 });

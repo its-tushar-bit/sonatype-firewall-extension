@@ -2706,6 +2706,23 @@ public class TemporaryEntity
     return repository;
   }
 
+  public Repository newRepository(
+          RepositoryManager repositoryManager,
+          String publicId,
+          RepositoryType repositoryType,
+          String format,
+          boolean quarantineEnabled)
+  {
+    Repository repository = new Repository(repositoryManager.getId(), publicId);
+    repository.setRepositoryType(repositoryType);
+    repository.setFormat(format);
+    repository.setAuditEnabled(RepositoryType.proxy.equals(repositoryType));
+    repository.setQuarantineEnabled(quarantineEnabled);
+    repositoryDAO.insert(repository);
+    repositories.add(repository);
+    return repository;
+  }
+
   public Repository newRepository(RepositoryManager repositoryManager, String publicId, String format) {
     return newRepository(repositoryManager, publicId, RepositoryType.proxy, format);
   }

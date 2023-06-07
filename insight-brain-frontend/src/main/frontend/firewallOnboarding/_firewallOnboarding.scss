@@ -44,6 +44,10 @@ firewall-onboarding-page {
       display: flex;
       flex-direction: column;
 
+      > .nx-page-title > p.nx-p.firewall-onboarding-page__subTitle {
+        grid-area: description;
+      }
+
       .nx-tile {
         flex: 1;
         display: flex;
@@ -52,6 +56,18 @@ firewall-onboarding-page {
 
       .nx-tile-content {
         flex: 1;
+
+        &.select-repositories-container {
+          align-items: flex-start;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+
+          .firewall-repository-list {
+            display: flex;
+            flex-flow: column;
+          }
+        }
       }
     }
 

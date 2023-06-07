@@ -25,14 +25,17 @@ export default function ActionsFooter({ currentStep = {}, isNextButtonDisabled, 
     dispatch(stateGo('firewall.firewallPage'));
   };
 
+  const isPrevAvailable = Boolean(prev(currentStep));
+  const isNextAvailable = Boolean(next(currentStep));
+
   return (
     <NxFooter id="actions-footer" role="navigation" {...otherProps}>
-      {!!prev(currentStep) && (
+      {isPrevAvailable && (
         <NxButton variant="secondary" id="previous-button" onClick={goBackToPreviousStep}>
           Previous
         </NxButton>
       )}
-      {!!next(currentStep) ? (
+      {isNextAvailable ? (
         <NxButton variant="primary" id="continue-button" disabled={isNextButtonDisabled} onClick={continueToNextStep}>
           Continue
         </NxButton>

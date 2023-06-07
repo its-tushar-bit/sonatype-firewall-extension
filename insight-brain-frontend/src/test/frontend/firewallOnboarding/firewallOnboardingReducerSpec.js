@@ -13,6 +13,9 @@ const LOAD_UNCONFIGURED_REPOMANAGER_FAILED = `${REDUCER_NAME}/loadUnconfiguredRe
 const SAVE_REPOSITORIES_REQUESTED = `${REDUCER_NAME}/saveRepositories/pending`;
 const SAVE_REPOSITORIES_FULFILLED = `${REDUCER_NAME}/saveRepositories/fulfilled`;
 const SAVE_REPOSITORIES_FAILED = `${REDUCER_NAME}/saveRepositories/rejected`;
+const LOAD_REPOSITORIES_REQUESTED = `${REDUCER_NAME}/loadRepositories/pending`;
+const LOAD_REPOSITORIES_FULFILLED = `${REDUCER_NAME}/loadRepositories/fulfilled`;
+const LOAD_REPOSITORIES_FAILED = `${REDUCER_NAME}/loadRepositories/rejected`;
 
 describe('FirewallOnboardingReducer', () => {
   describe('unknown action', () => {
@@ -60,151 +63,275 @@ describe('FirewallOnboardingReducer', () => {
     });
   });
 
-  describe(LOAD_UNCONFIGURED_REPOMANAGER_REQUESTED, () => {
-    it('sets loading to true and clears error', () => {
-      const state = Object.freeze({
-        unconfiguredRepoManagers: {
-          repoManagers: [],
-          loading: false,
-          loadError: 'error',
-        },
-      });
+  describe('loadUnconfiguredRepoManagers', () => {
+    describe(LOAD_UNCONFIGURED_REPOMANAGER_REQUESTED, () => {
+      it('sets loading to true and clears error', () => {
+        const state = Object.freeze({
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: 'error',
+          },
+        });
 
-      const newState = reduce(state, {
-        type: LOAD_UNCONFIGURED_REPOMANAGER_REQUESTED,
-      });
+        const newState = reduce(state, {
+          type: LOAD_UNCONFIGURED_REPOMANAGER_REQUESTED,
+        });
 
-      expect(newState.unconfiguredRepoManagers.loading).toBe(true);
-      expect(newState.unconfiguredRepoManagers.loadError).toBe(null);
+        expect(newState.unconfiguredRepoManagers.loading).toBe(true);
+        expect(newState.unconfiguredRepoManagers.loadError).toBe(null);
+      });
+    });
+
+    describe(LOAD_UNCONFIGURED_REPOMANAGER_FAILED, () => {
+      it('clears loading state and sets a load error', () => {
+        const state = Object.freeze({
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: true,
+            loadError: null,
+          },
+        });
+
+        const newState = reduce(state, {
+          type: LOAD_UNCONFIGURED_REPOMANAGER_FAILED,
+          payload: 'test error',
+        });
+
+        expect(newState.unconfiguredRepoManagers.loading).toBe(false);
+        expect(newState.unconfiguredRepoManagers.loadError).toBe('test error');
+      });
+    });
+
+    describe(LOAD_UNCONFIGURED_REPOMANAGER_FULFILLED, () => {
+      it('sets loading to false, clears load error, and sets unconfigured repo managers repoManagers', () => {
+        const state = Object.freeze({
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: true,
+            loadError: 'previous error',
+          },
+        });
+
+        const repoManagers = [1, 2, 3];
+
+        const newState = reduce(state, {
+          type: LOAD_UNCONFIGURED_REPOMANAGER_FULFILLED,
+          payload: repoManagers,
+        });
+
+        expect(newState.unconfiguredRepoManagers.loading).toBe(false);
+        expect(newState.unconfiguredRepoManagers.loadError).toBe(null);
+        expect(newState.unconfiguredRepoManagers.repoManagers).toBe(repoManagers);
+      });
     });
   });
 
-  describe(LOAD_UNCONFIGURED_REPOMANAGER_FAILED, () => {
-    it('clears loading state and sets a load error', () => {
-      const state = Object.freeze({
-        unconfiguredRepoManagers: {
-          repoManagers: [],
-          loading: true,
-          loadError: null,
-        },
-      });
+  describe('saveRepositories', () => {
+    describe(SAVE_REPOSITORIES_REQUESTED, () => {
+      it('sets loading to true and clears error', () => {
+        const state = Object.freeze({
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
+          },
+          repositories: {
+            loading: false,
+            loadError: null,
+            saving: false,
+            saveError: null,
+            list: [
+              {
+                id: 'id',
+                repositoryManagerId: 'repoManagerId',
+                publicId: 'publicId',
+                repositoryType: 'proxy',
+                auditEnabled: true,
+                quarantineEnabled: true,
+                policyCompliantComponentSelectionEnabled: false,
+                namespaceConfusionProtectionEnabled: false,
+                format: 'maven',
+              },
+            ],
+          },
+        });
 
-      const newState = reduce(state, {
-        type: LOAD_UNCONFIGURED_REPOMANAGER_FAILED,
-        payload: 'test error',
-      });
+        const newState = reduce(state, {
+          type: SAVE_REPOSITORIES_REQUESTED,
+        });
 
-      expect(newState.unconfiguredRepoManagers.loading).toBe(false);
-      expect(newState.unconfiguredRepoManagers.loadError).toBe('test error');
+        expect(newState.repositories.saving).toBe(true);
+        expect(newState.repositories.saveError).toBe(null);
+      });
+    });
+
+    describe(SAVE_REPOSITORIES_FAILED, () => {
+      it('clears loading state and sets a load error', () => {
+        const state = Object.freeze({
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
+          },
+          repositories: {
+            loading: false,
+            loadError: null,
+            saving: false,
+            saveError: null,
+            list: [],
+          },
+        });
+
+        const newState = reduce(state, {
+          type: SAVE_REPOSITORIES_FAILED,
+          payload: 'test error',
+        });
+
+        expect(newState.repositories.saving).toBe(false);
+        expect(newState.repositories.saveError).toBe('test error');
+      });
+    });
+
+    describe(SAVE_REPOSITORIES_FULFILLED, () => {
+      it('sets loading to false and clears load error', () => {
+        const state = Object.freeze({
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
+          },
+          repositories: {
+            loading: false,
+            loadError: null,
+            saving: false,
+            saveError: null,
+            list: [],
+          },
+        });
+
+        const newState = reduce(state, {
+          type: SAVE_REPOSITORIES_FULFILLED,
+          payload: state.saveRepositories,
+        });
+
+        expect(newState.repositories.saving).toBe(false);
+        expect(newState.repositories.saveError).toBe(null);
+      });
     });
   });
 
-  describe(LOAD_UNCONFIGURED_REPOMANAGER_FULFILLED, () => {
-    it('sets loading to false, clears load error, and sets unconfigured repo managers repoManagers', () => {
-      const state = Object.freeze({
-        unconfiguredRepoManagers: {
-          repoManagers: [],
-          loading: true,
-          loadError: 'previous error',
-        },
+  describe('loadRepositories', () => {
+    describe(LOAD_REPOSITORIES_REQUESTED, () => {
+      it('sets loading to true and clears error', () => {
+        const state = Object.freeze({
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
+          },
+          repositories: {
+            loading: false,
+            loadError: null,
+            saving: false,
+            saveError: null,
+            list: [
+              {
+                id: 'id',
+                repositoryManagerId: 'repoManagerId',
+                publicId: 'publicId',
+                repositoryType: 'proxy',
+                auditEnabled: true,
+                quarantineEnabled: true,
+                policyCompliantComponentSelectionEnabled: false,
+                namespaceConfusionProtectionEnabled: false,
+                format: 'maven',
+              },
+            ],
+          },
+        });
+
+        const newState = reduce(state, {
+          type: LOAD_REPOSITORIES_REQUESTED,
+        });
+
+        expect(newState.repositories.loading).toBe(true);
+        expect(newState.repositories.loadError).toBe(null);
       });
-
-      const repoManagers = [1, 2, 3];
-
-      const newState = reduce(state, {
-        type: LOAD_UNCONFIGURED_REPOMANAGER_FULFILLED,
-        payload: repoManagers,
-      });
-
-      expect(newState.unconfiguredRepoManagers.loading).toBe(false);
-      expect(newState.unconfiguredRepoManagers.loadError).toBe(null);
-      expect(newState.unconfiguredRepoManagers.repoManagers).toBe(repoManagers);
     });
-  });
 
-  describe(SAVE_REPOSITORIES_REQUESTED, () => {
-    it('sets loading to true and clears error', () => {
-      const state = Object.freeze({
-        unconfiguredRepoManagers: {
-          repoManagers: [],
-          loading: false,
-          loadError: null,
-        },
-        repositories: {
-          loading: false,
-          loadError: null,
-          list: [
-            {
-              id: 'id',
-              repositoryManagerId: 'repoManagerId',
-              publicId: 'publicId',
-              repositoryType: 'proxy',
-              auditEnabled: true,
-              quarantineEnabled: true,
-              policyCompliantComponentSelectionEnabled: false,
-              namespaceConfusionProtectionEnabled: false,
-              format: 'maven',
-            },
-          ],
-        },
+    describe(LOAD_REPOSITORIES_FAILED, () => {
+      it('clears loading state and sets a load error', () => {
+        const state = Object.freeze({
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
+          },
+          repositories: {
+            loading: true,
+            loadError: null,
+            saving: false,
+            saveError: null,
+            list: null,
+          },
+        });
+
+        const newState = reduce(state, {
+          type: LOAD_REPOSITORIES_FAILED,
+          payload: 'test error',
+        });
+
+        expect(newState.repositories.list).toBe(null);
+        expect(newState.repositories.loading).toBe(false);
+        expect(newState.repositories.loadError).toBe('test error');
       });
-
-      const newState = reduce(state, {
-        type: SAVE_REPOSITORIES_REQUESTED,
-      });
-
-      expect(newState.repositories.loading).toBe(true);
-      expect(newState.repositories.loadError).toBe(null);
     });
-  });
 
-  describe(SAVE_REPOSITORIES_FAILED, () => {
-    it('clears loading state and sets a load error', () => {
-      const state = Object.freeze({
-        unconfiguredRepoManagers: {
-          repoManagers: [],
-          loading: false,
-          loadError: null,
-        },
-        repositories: {
-          loading: false,
-          loadError: null,
-          list: [],
-        },
+    describe(LOAD_REPOSITORIES_FULFILLED, () => {
+      it('sets loading to false, clears load error and filter repositories with format set to null', () => {
+        const state = Object.freeze({
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
+          },
+          supportedFormats: [],
+          repositories: {
+            loading: true,
+            loadError: null,
+            saving: false,
+            saveError: 'error',
+            list: [],
+          },
+        });
+
+        const repositories = [
+          { id: '1', repositoryType: 'proxy', format: 'format1' },
+          { id: '2', repositoryType: 'proxy', format: 'format2' },
+          { id: '3', repositoryType: 'proxy', format: 'format3' },
+          { id: '5', repositoryType: 'proxy', format: null },
+          { id: '5', repositoryType: 'proxy', format: null },
+        ];
+        const supportedFormats = {
+          maven: [],
+          npm: [],
+          pypi: [],
+          go: [],
+        };
+        const newState = reduce(state, {
+          type: LOAD_REPOSITORIES_FULFILLED,
+          payload: {
+            repositories,
+            supportedFormats,
+          },
+        });
+
+        expect(newState.supportedFormats).toEqual(Object.keys(supportedFormats));
+        expect(newState.repositories.list).toEqual([repositories[0], repositories[1], repositories[2]]);
+        expect(newState.repositories.loading).toBe(false);
+        expect(newState.repositories.loadError).toBe(null);
       });
-
-      const newState = reduce(state, {
-        type: SAVE_REPOSITORIES_FAILED,
-        payload: 'test error',
-      });
-
-      expect(newState.repositories.loading).toBe(false);
-      expect(newState.repositories.loadError).toBe('test error');
-    });
-  });
-
-  describe(SAVE_REPOSITORIES_FULFILLED, () => {
-    it('sets loading to false and clears load error', () => {
-      const state = Object.freeze({
-        unconfiguredRepoManagers: {
-          repoManagers: [],
-          loading: false,
-          loadError: null,
-        },
-        repositories: {
-          loading: false,
-          loadError: null,
-          list: [],
-        },
-      });
-
-      const newState = reduce(state, {
-        type: SAVE_REPOSITORIES_FULFILLED,
-        payload: state.saveRepositories,
-      });
-
-      expect(newState.repositories.loading).toBe(false);
-      expect(newState.repositories.loadError).toBe(null);
     });
   });
 });

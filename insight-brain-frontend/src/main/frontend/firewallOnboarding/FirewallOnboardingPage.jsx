@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { NxPageMain } from '@sonatype/react-shared-components';
+import { NxH1, NxP, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
 
 import LoadWrapper from '../react/LoadWrapper';
 import OnboardingSteps from './OnboardingSteps';
@@ -31,9 +31,10 @@ export default function FirewallOnboardingPage() {
           <OnboardingSteps currentStep={currentStep} isRequired={{}} />
         </aside>
         <div className="content">
-          <header className="nx-page-title">
-            <h1 className="nx-h1 iq-dependency-tree__title">{currentStep.title}</h1>
-          </header>
+          <NxPageTitle>
+            <NxH1 className="firewall-onboarding-page__title">{currentStep.title}</NxH1>
+            {currentStep.subTitle && <NxP className="firewall-onboarding-page__subTitle">{currentStep.subTitle}</NxP>}
+          </NxPageTitle>
           <Content />
         </div>
       </LoadWrapper>

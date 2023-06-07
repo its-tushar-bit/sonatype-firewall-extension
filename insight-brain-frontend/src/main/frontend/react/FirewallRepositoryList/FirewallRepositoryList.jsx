@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxCheckbox, NxTable, NxH2, NxOverflowTooltip } from '@sonatype/react-shared-components';
 import { sortItemsByFields } from 'MainRoot/util/sortUtils';
@@ -12,41 +12,42 @@ function FirewallRepositoryList({
   title,
   onChange,
   repositories,
-  selectedRepositories = [],
   emptyMessage = 'No list available',
-  labelPropName = 'publicId',
-  checkPropName = 'id',
+  labelItemPropName = 'publicId',
+  checkItemPropName = 'quarantineEnabled',
 }) {
-  const [selectedItems, setSelectedItems] = useState(selectedRepositories);
   const [items, setItems] = useState([...repositories]);
   const [sortFields, setSortFields] = useState(null);
 
   const columnSortField = 'publicId';
   const tableAriaLabel = `repository list for ${title}`;
-  const isAllItemSelected = selectedItems.length === items.length;
+  const isAllItemSelected = items.every((item) => item[checkItemPropName]);
+
+  const totalConfiguredRepositories = () => {
+    const totalConfiguredRepos = items.filter((items) => items[checkItemPropName] === true).length;
+    return `${totalConfiguredRepos} of ${items.length}`;
+  };
+
+  useEffect(() => {
+    if (sortFields) {
+      setItems(sortItemsByFields([sortFields], repositories));
+    } else {
+      setItems(repositories);
+    }
+  }, [repositories]);
 
   const handleSelectAll = (event) => {
-    let updateSelectedItems = [];
-
-    if (event.target.checked) {
-      updateSelectedItems = [...items];
-    }
-
-    setSelectedItems(updateSelectedItems);
-    onChange(updateSelectedItems);
+    onChange(items.map(({ id }) => ({ id, key: checkItemPropName, value: event.target.checked })));
   };
 
   const handleSelectItem = (event, item) => {
-    let updateSelectedItems;
-
-    if (event.target.checked) {
-      updateSelectedItems = [...selectedItems, item];
-    } else {
-      updateSelectedItems = selectedItems.filter((itemSelected) => itemSelected[checkPropName] !== item[checkPropName]);
-    }
-
-    setSelectedItems(updateSelectedItems);
-    onChange(updateSelectedItems);
+    onChange([
+      {
+        id: item.id,
+        key: checkItemPropName,
+        value: !item[checkItemPropName],
+      },
+    ]);
   };
 
   const getSortDir = () => {
@@ -79,23 +80,23 @@ function FirewallRepositoryList({
     </NxTable.Cell>
   );
 
-  const renderItemRow = (item) => {
-    const isChecked = selectedItems.some((selectedItem) => selectedItem[checkPropName] === item[checkPropName]);
-    const ariaLabel = `firewall ${item[labelPropName]} repository item`;
+  const renderItemRow = (repo, index) => {
+    const isChecked = repo[checkItemPropName];
+    const ariaLabel = `firewall ${repo[labelItemPropName]} repository item`;
 
     return (
-      <NxTable.Row key={item[checkPropName]}>
-        <NxTable.Cell className="firewall-repository-list__item">
+      <NxTable.Row key={index}>
+        <NxTable.Cell className="firewall-repository-list__item-check">
           <NxCheckbox
-            name={item[labelPropName]}
+            name={repo[labelItemPropName]}
             aria-label={ariaLabel}
             isChecked={isChecked}
-            onChange={(event) => handleSelectItem(event, item)}
+            onChange={(event) => handleSelectItem(event, repo)}
           ></NxCheckbox>
         </NxTable.Cell>
-        <NxTable.Cell>
+        <NxTable.Cell className="firewall-repository-list__item-name">
           <NxOverflowTooltip>
-            <div className="nx-truncate-ellipsis">{item[labelPropName]}</div>
+            <div className="nx-truncate-ellipsis">{repo[labelItemPropName]}</div>
           </NxOverflowTooltip>
         </NxTable.Cell>
       </NxTable.Row>
@@ -107,7 +108,7 @@ function FirewallRepositoryList({
       <NxH2 className="firewall-repository-list__title">
         {title}
         <span className="firewall-repository-list__total-repos nx-counter nx-counter--active">
-          {`${selectedItems.length} of ${items.length}`}
+          {totalConfiguredRepositories()}
         </span>
       </NxH2>
       <div className="firewall-repository-list__table-container nx-scrollable nx-table-container nx-viewport-sized__scrollable">
@@ -131,11 +132,23 @@ function FirewallRepositoryList({
 
 FirewallRepositoryList.propTypes = {
   title: PropTypes.string.isRequired,
-  repositories: PropTypes.array.isRequired,
+  repositories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      repositoryManagerId: PropTypes.string,
+      publicId: PropTypes.string,
+      repositoryType: PropTypes.string,
+      enabled: PropTypes.bool,
+      quarantineEnabled: PropTypes.bool,
+      policyCompliantComponentSelectionEnabled: PropTypes.bool,
+      namespaceConfusionProtectionEnabled: PropTypes.bool,
+      format: PropTypes.string,
+    })
+  ).isRequired,
   selectedRepositories: PropTypes.array,
   onChange: PropTypes.func.isRequired,
-  checkPropName: PropTypes.string,
-  labelPropName: PropTypes.string,
+  checkItemPropName: PropTypes.string,
+  labelItemPropName: PropTypes.string,
   emptyMessage: PropTypes.string,
 };
 

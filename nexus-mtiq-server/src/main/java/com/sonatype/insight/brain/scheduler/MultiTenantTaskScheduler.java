@@ -144,7 +144,7 @@ public class MultiTenantTaskScheduler
 
         boolean unscheduled = false;
         for (String tenantSlug : tenantSlugs) {
-          boolean result = unscheduleTask(toJobKey(insightJob, tenantSlug));
+          boolean result = unscheduleTask(toJobKey(insightJob, tenantSlug), insightJob);
 
           if (result) {
             unscheduled = true;
@@ -158,7 +158,7 @@ public class MultiTenantTaskScheduler
       }
     }
     else {
-      return unscheduleTask(toJobKey(insightJob));
+      return unscheduleTask(toJobKey(insightJob), insightJob);
     }
   }
 
@@ -180,6 +180,33 @@ public class MultiTenantTaskScheduler
   @Override
   protected TriggerKey toTriggerKey(InsightJob insightJob) {
     return TriggerKey.triggerKey(insightJob.getJobName(), tenantManager.getTenant().tenantSlug);
+  }
+
+  @Override
+  public void clear() throws Exception {
+    clearScheduler(getScheduler());
+    clearScheduler(getScheduler(getMtiqBatchSchedulerName()));
+  }
+
+  @Override
+  public void standby() throws Exception {
+    standbyScheduler(getScheduler());
+    standbyScheduler(getScheduler(getMtiqBatchSchedulerName()));
+  }
+
+  @Override
+  public boolean isSchedulerInitialized() {
+    return getScheduler() != null && getScheduler(getMtiqBatchSchedulerName()) != null;
+  }
+
+  @Override
+  public Scheduler getScheduler(InsightJob insightJob) {
+    return getSchedulerForJobType(insightJob.getClass());
+  }
+
+  @Override
+  protected boolean unscheduleTask(JobKey jobKey, InsightJob insightJob) {
+    return super.unscheduleTask(jobKey, getSchedulerForJobType(insightJob.getClass()));
   }
 
   private Scheduler getSchedulerForJobType(Class<? extends Job> jobType) {

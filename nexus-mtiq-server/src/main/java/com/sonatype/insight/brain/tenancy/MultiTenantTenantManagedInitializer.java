@@ -48,7 +48,7 @@ public class MultiTenantTenantManagedInitializer
     // startup in multi-tenant mode
     for (TenantManaged tenantLifecycle : tenantLifecycles) {
       if (tenantLifecycle instanceof GlobalTenantJob
-          || (tenantLifecycle instanceof MtiqBatchJob && tenantUtil.isMtiqBatchMode())
+          || (tenantLifecycle instanceof AllTenantsJob && tenantUtil.isMtiqBatchMode())
           || tenantLifecycle.includeGlobalTenantDuringRegistration()) {
         TenantThreadLocal.runAsGlobal(() -> {
           tenantLifecycle.register();

@@ -184,4 +184,8 @@ public class TenantUtil
   private String getTenantNameFromSchema(String schema) {
     return schema.replaceFirst("t_", "").replace('_', '-');
   }
+
+  public boolean isCustomerTenantInBatchMode() {
+    return isMtiqBatchMode() && !isGlobalTenant();
+  }
 }

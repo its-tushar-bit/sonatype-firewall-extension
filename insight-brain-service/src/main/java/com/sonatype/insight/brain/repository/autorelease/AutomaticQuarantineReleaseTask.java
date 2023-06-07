@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
 
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
@@ -27,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class AutomaticQuarantineReleaseTask
     extends Task
-    implements InsightJob
+    implements InsightJob, MtiqBatchJob
 {
   public static final String NAME = "AutomaticQuarantineReleaseTask";
 
@@ -55,7 +56,7 @@ public class AutomaticQuarantineReleaseTask
     execute(automaticQuarantineRelease::run, log, "Error executing automatic quarantine release");
     log.info("Next automatic quarantine release execution scheduled for {}", context.getNextFireTime());
   }
-  
+
   @Override
   public String getJobName() {
     return NAME;

@@ -136,7 +136,7 @@ public class TaskScheduler
 
   public void triggerTaskNow(InsightJob insightJob, Map<String, String> parameters) {
     try {
-      getScheduler().triggerJob(toJobKey(insightJob), parameters != null ? new JobDataMap(parameters) : null);
+      getScheduler(insightJob).triggerJob(toJobKey(insightJob), parameters != null ? new JobDataMap(parameters) : null);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);
@@ -194,7 +194,7 @@ public class TaskScheduler
 
   public boolean isJobTriggered(InsightJob insightJob, Map<String, Object> data) {
     try {
-      for (Trigger trigger : getScheduler().getTriggersOfJob(toJobKey(insightJob))) {
+      for (Trigger trigger : getScheduler(insightJob).getTriggersOfJob(toJobKey(insightJob))) {
         if (data.equals(trigger.getJobDataMap().getWrappedMap())) {
           return true;
         }
@@ -285,7 +285,7 @@ public class TaskScheduler
   }
 
   protected void scheduleTask(JobDetail job, InsightJob insightJob, Trigger... triggers) {
-    scheduleTask(job, insightJob, getScheduler(), triggers);
+    scheduleTask(job, insightJob, getScheduler(insightJob), triggers);
   }
 
   protected void scheduleTask(JobDetail job, InsightJob insightJob, Scheduler scheduler, Trigger... triggers) {
@@ -298,12 +298,17 @@ public class TaskScheduler
   }
 
   public boolean unscheduleTask(InsightJob insightJob) {
-    return unscheduleTask(toJobKey(insightJob));
+    return unscheduleTask(toJobKey(insightJob), insightJob);
   }
 
-  protected boolean unscheduleTask(JobKey jobKey) {
+  protected boolean unscheduleTask(JobKey jobKey, InsightJob insightJob) {
+    Scheduler scheduler = getScheduler(insightJob);
+    return unscheduleTask(jobKey, scheduler);
+  }
+
+  protected boolean unscheduleTask(JobKey jobKey, Scheduler scheduler) {
     try {
-      return getScheduler().deleteJob(jobKey);
+      return scheduler.deleteJob(jobKey);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);
@@ -311,12 +316,12 @@ public class TaskScheduler
   }
 
   public Date getNextExecutionTime(InsightJob insightJob) {
-    return getTrigger(toTriggerKey(insightJob)).getNextFireTime();
+    return getTrigger(toTriggerKey(insightJob), insightJob).getNextFireTime();
   }
 
-  private Trigger getTrigger(TriggerKey triggerKey) {
+  private Trigger getTrigger(TriggerKey triggerKey, InsightJob insightJob) {
     try {
-      return getScheduler().getTrigger(triggerKey);
+      return getScheduler(insightJob).getTrigger(triggerKey);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);
@@ -336,6 +341,15 @@ public class TaskScheduler
     }
   }
 
+  /**
+   *
+   * @param insightJob - this is not used by TaskScheduler but is passed for usage by subclasses of TaskScheduler
+   * @return Scheduler
+   */
+  protected Scheduler getScheduler(InsightJob insightJob) {
+    return getScheduler();
+  }
+
   public Scheduler getScheduler() {
     return getScheduler(schedulerName);
   }
@@ -351,7 +365,10 @@ public class TaskScheduler
 
   // Visible for testing
   public void clear() throws Exception {
-    Scheduler scheduler = getScheduler();
+    clearScheduler(getScheduler());
+  }
+
+  protected void clearScheduler(Scheduler scheduler) throws SchedulerException {
     if (scheduler != null) {
       scheduler.clear();
     }
@@ -359,7 +376,10 @@ public class TaskScheduler
 
   // Visible for testing
   public void standby() throws Exception {
-    Scheduler scheduler = getScheduler();
+    standbyScheduler(getScheduler());
+  }
+
+  protected void standbyScheduler(Scheduler scheduler) throws SchedulerException {
     if (scheduler != null) {
       scheduler.standby();
     }
@@ -370,12 +390,12 @@ public class TaskScheduler
   }
 
   public boolean isTaskScheduled(InsightJob insightJob) {
-    return isTaskScheduled(toJobKey(insightJob));
+    return isTaskScheduled(toJobKey(insightJob), insightJob);
   }
 
-  private boolean isTaskScheduled(JobKey jobKey) {
+  private boolean isTaskScheduled(JobKey jobKey, InsightJob insightJob) {
     try {
-      return getScheduler().checkExists(jobKey);
+      return getScheduler(insightJob).checkExists(jobKey);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);

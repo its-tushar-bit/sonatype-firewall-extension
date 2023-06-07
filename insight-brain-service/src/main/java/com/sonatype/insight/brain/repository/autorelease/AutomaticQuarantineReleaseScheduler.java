@@ -18,7 +18,9 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class AutomaticQuarantineReleaseScheduler
-    implements TenantManaged, ProductLicenseListener
+    implements TenantManaged, ProductLicenseListener, MtiqBatchJob
 {
   private static final Logger log = LoggerFactory.getLogger(AutomaticQuarantineReleaseScheduler.class);
 
@@ -41,6 +43,8 @@ public class AutomaticQuarantineReleaseScheduler
 
   private final AutomaticQuarantineReleaseTask automaticQuarantineReleaseTask;
 
+  private final TenantUtil tenantUtil;
+
   public boolean disableForTesting;
 
   @Inject
@@ -48,12 +52,14 @@ public class AutomaticQuarantineReleaseScheduler
       Configuration configuration,
       ProductLicense productLicense,
       TaskScheduler taskScheduler,
-      AutomaticQuarantineReleaseTask automaticQuarantineReleaseTask)
+      AutomaticQuarantineReleaseTask automaticQuarantineReleaseTask,
+      TenantUtil tenantUtil)
   {
     this.configuration = configuration;
     this.productLicense = productLicense;
     this.taskScheduler = taskScheduler;
     this.automaticQuarantineReleaseTask = automaticQuarantineReleaseTask;
+    this.tenantUtil = tenantUtil;
   }
 
   private synchronized void startAutomaticQuarantineRelease() {
@@ -90,13 +96,15 @@ public class AutomaticQuarantineReleaseScheduler
 
   @Override
   public void productLicenseChanged() {
-    if (AutomaticQuarantineRelease.isLicensedForFirewall(productLicense)) {
-      log.info("Licensed for Firewall Automatic Quarantine Release.");
-      startAutomaticQuarantineRelease();
-    }
-    else {
-      log.info("Not Licensed for Firewall Automatic Quarantine Release.");
-      stopAutomaticQuarantineRelease();
+    if (tenantUtil.isSingleTenant() || tenantUtil.isCustomerTenantInBatchMode()) {
+      if (AutomaticQuarantineRelease.isLicensedForFirewall(productLicense)) {
+        log.info("Licensed for Firewall Automatic Quarantine Release.");
+        startAutomaticQuarantineRelease();
+      }
+      else {
+        log.info("Not Licensed for Firewall Automatic Quarantine Release.");
+        stopAutomaticQuarantineRelease();
+      }
     }
   }
 

@@ -157,14 +157,21 @@ for quartz. They can be scaled up or down separately to the standard MTIQ instan
 
 Mtiq Batch Instances should not accept outside traffic as they are run in a "privileged" state and are able to loop
 through tenants. The ability to loop through tenants reduces the number of jobs and triggers that need to be created and
-managed by quartz as we only need one job per job type for all tenants.
+managed by quartz as we only need one job per job type for all tenants<sup>1</sup>.
+
+
+<sup>1</sup> <sup><sub>If a Job implements AllTenantsJob but is also a DropWizard Task (meaning it extends Task and can
+therefore be run
+manually) a manual run will only happen for the tenant specified in the URL. This is intentional so that a given
+tenant cannot run the Task for all tenants by making an API call.</sub></sup>
 
 To put an MTIQ instance into Mtiq Batch mode set the environment variable IS_MTIQ_BATCH=true.
 
 **Mtiq Batch Instance**: Executes all jobs. Jobs that implement AllTenantsJob are executed in a separate Quartz 
-Scheduler
+Scheduler.
 
 **Normal Instance**: Executes all jobs that do not implement AllTenantsJob. Only uses a single Quartz Scheduler
+
 
 ```mermaid
 C4Component
@@ -203,6 +210,8 @@ C4Component
 
     }
 ```
+
+
 
 #### Telemetry
 

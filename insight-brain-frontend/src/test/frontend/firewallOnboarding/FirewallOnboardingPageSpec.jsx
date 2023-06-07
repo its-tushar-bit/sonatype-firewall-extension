@@ -17,9 +17,9 @@ describe('FirewallOnboardingPage', function () {
   beforeEach(function () {
     firewallOnboardingPreloadedState = {
       firewallOnboarding: {
+        incompleteConfigurationModal: { showModal: false },
         loading: false,
         currentStep,
-        selectedRepositories: [],
         supportedFormats: [],
         repositories: {
           loading: false,

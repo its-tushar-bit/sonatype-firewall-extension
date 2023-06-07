@@ -32,6 +32,10 @@ public class FirewallOnboardingPage
   public static String url() {
     return BaseUrl.resolvePageUrl("/firewallOnboarding");
   }
+  
+  public Button cancelButton() {
+    return new Button(childSelector("#cancel-button"));
+  }
 
   public Button continueButton() {
     return new Button(childSelector("#continue-button"));
@@ -55,6 +59,10 @@ public class FirewallOnboardingPage
 
   public SelenideElement actionsFooter() {
     return child("#actions-footer");
+  }
+
+  public IncompleteConfigurationModal incompleteConfigurationModal() {
+    return new IncompleteConfigurationModal(ROOT);
   }
 
   public List<FirewallRepositoryList> firewallRepositoryLists() {

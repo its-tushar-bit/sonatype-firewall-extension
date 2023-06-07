@@ -10,7 +10,6 @@ import { groupRepositoriesByTypes, groupAndSortByFormat } from './firewallOnboar
 
 export const selectFirewallOnboardingSlice = prop('firewallOnboarding');
 export const selectCurrentStep = createSelector(selectFirewallOnboardingSlice, prop('currentStep'));
-export const selectSelectedRepositories = createSelector(selectFirewallOnboardingSlice, prop('selectedRepositories'));
 export const selectUnconfiguredRepoManagersList = createSelector(
   selectFirewallOnboardingSlice,
   prop('unconfiguredRepoManagers')
@@ -22,6 +21,10 @@ export const selectUnconfiguredRepoManager = createSelector(
     // can give support for multiples unconfigured repo managers
     return unconfiguredRepoManagers.repoManagers[0] ?? null;
   }
+);
+export const selectIncompleteConfigurationModal = createSelector(
+  selectFirewallOnboardingSlice,
+  prop('incompleteConfigurationModal')
 );
 
 export const selectRepositories = createSelector(selectFirewallOnboardingSlice, prop('repositories'));

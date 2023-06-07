@@ -26,7 +26,6 @@ function routes($stateProvider) {
         title: 'Firewall Onboarding',
       },
       params: {
-        noLeftNavLayout: true,
         embeddable: false,
       },
     });

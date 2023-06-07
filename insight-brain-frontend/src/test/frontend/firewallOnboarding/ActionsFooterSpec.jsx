@@ -18,9 +18,19 @@ describe('ActionsFooter', function () {
     spyOn(actions, 'saveRepositories').and.callThrough();
     spyOn(actions, 'continueToNextStep').and.callThrough();
     spyOn(actions, 'goBackToPreviousStep').and.callThrough();
+    spyOn(actions, 'openIncompleteConfigurationModal').and.callThrough();
   });
 
   describe('when the current step is the first step', () => {
+    it('renders cancel button', () => {
+      renderComponent(steps[0]);
+      const cancelButton = screen.getByRole('button', { name: /cancel/i });
+
+      expect(cancelButton).toBeVisible();
+      fireEvent.click(cancelButton);
+      expect(actions.openIncompleteConfigurationModal).toHaveBeenCalled();
+    });
+
     it('renders continue button', () => {
       renderComponent(steps[0]);
       const continueButton = screen.getByRole('button', { name: /continue/i });
@@ -46,6 +56,15 @@ describe('ActionsFooter', function () {
   });
 
   describe('when the current step is the last step', () => {
+    it('renders cancel button', () => {
+      renderComponent(steps[0]);
+      const cancelButton = screen.getByRole('button', { name: /cancel/i });
+
+      expect(cancelButton).toBeVisible();
+      fireEvent.click(cancelButton);
+      expect(actions.openIncompleteConfigurationModal).toHaveBeenCalled();
+    });
+
     it('does not render continue button', () => {
       renderComponent(steps[1]);
       const continueButton = screen.queryByRole('button', { name: /continue/i });

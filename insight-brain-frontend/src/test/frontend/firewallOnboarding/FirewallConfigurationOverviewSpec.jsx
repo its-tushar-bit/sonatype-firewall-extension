@@ -15,7 +15,6 @@ const firewallOnboardingPreloadedState = {
   firewallOnboarding: {
     loading: false,
     currentStep,
-    selectedRepositories: [],
     supportedFormats: [],
     repositories: {
       loading: false,

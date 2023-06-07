@@ -20,9 +20,12 @@ import { selectRepositoriesList, selectUnconfiguredRepoManager } from './firewal
 export const REDUCER_NAME = 'firewallOnboarding';
 
 export const initialState = {
+  incompleteConfigurationModal: {
+    showModal: false,
+    href: null,
+  },
   loading: false,
   currentStep: first(steps),
-  selectedRepositories: [],
   supportedFormats: [],
   repositories: {
     loading: false,
@@ -37,6 +40,22 @@ export const initialState = {
     loadError: null,
   },
 };
+
+const openIncompleteConfigurationModal = (state, { payload }) => ({
+  ...state,
+  incompleteConfigurationModal: {
+    showModal: true,
+    href: payload,
+  },
+});
+
+const closeIncompleteConfigurationModal = (state) => ({
+  ...state,
+  incompleteConfigurationModal: {
+    showModal: false,
+    href: null,
+  },
+});
 
 const continueToNextStep = (state) => {
   if (next(state.currentStep)) {
@@ -187,6 +206,8 @@ const firewallOnboardingSlice = createSlice({
   reducers: {
     continueToNextStep,
     goBackToPreviousStep,
+    openIncompleteConfigurationModal,
+    closeIncompleteConfigurationModal,
     configureRepositories,
   },
   extraReducers: {

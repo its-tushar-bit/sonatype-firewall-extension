@@ -48,11 +48,61 @@ public class FirewallOnboardingPageTest
   public void testFirewallOnboardingPageLayout() {
     refreshOrOpen(FirewallOnboardingPage.url());
 
-    SidebarNavigation.container().shouldBe(Condition.hidden);
+    SidebarNavigation.container().shouldBe(Condition.visible);
     page.shouldBe(Condition.visible);
     page.steps().shouldBe(Condition.visible);
     page.actionsFooter().shouldBe(Condition.visible);
     page.shouldHave(Condition.text("Select proxy repositories"));
+  }
+
+  @Test
+  public void testClickingSidebarNavigationOpensIncompleteConfigurationModal() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
+
+    SidebarNavigation.container().shouldBe(Condition.visible);
+    SidebarNavigation.legalNavigationButton().click();
+
+    page.incompleteConfigurationModal().shouldBe(Condition.visible);
+
+    eyesWatcher.eyesCheck("Incomplete Configuration Modal");
+
+    page.incompleteConfigurationModal().continueButton().click();
+    page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
+
+    page.shouldBe(Condition.visible);
+
+    SidebarNavigation.dashboardNavigationButton().click();
+    page.incompleteConfigurationModal().exitButton().click();
+
+    waitUntilUrl(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldBe(Condition.visible);
+  }
+
+  @Test
+  public void testCancelButtonOpensIncompleteConfigurationModal() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
+
+    page.cancelButton().shouldBe(Condition.visible).click();
+
+    page.incompleteConfigurationModal().shouldBe(Condition.visible);
+    page.incompleteConfigurationModal().continueButton().click();
+    page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
+
+    page.shouldBe(Condition.visible);
+
+    page.cancelButton().shouldBe(Condition.visible).click();
+    page.incompleteConfigurationModal().shouldBe(Condition.visible);
+    page.incompleteConfigurationModal().exitButton().click();
+    page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
+
+    waitUntilUrl(FirewallPage.url());
+
+    FirewallPage firewallPage = new FirewallPage();
+    firewallPage.shouldBe(Condition.visible);
   }
 
   @Test
@@ -66,7 +116,7 @@ public class FirewallOnboardingPageTest
       loginAsAdmin();
 
       waitUntilUrl(FirewallOnboardingPage.url());
-      SidebarNavigation.container().shouldBe(Condition.hidden);
+      SidebarNavigation.container().shouldBe(Condition.visible);
 
       page.continueButton().shouldBe(Condition.visible);
       page.previousButton().shouldNotBe(Condition.visible);

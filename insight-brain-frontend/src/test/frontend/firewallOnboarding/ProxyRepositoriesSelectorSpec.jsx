@@ -116,7 +116,6 @@ describe('ProxyRepositoriesSelector', function () {
       firewallOnboarding: {
         loading: false,
         currentStep: steps[0],
-        selectedRepositories: [],
         supportedFormats: [],
         repositories: {
           loading: false,

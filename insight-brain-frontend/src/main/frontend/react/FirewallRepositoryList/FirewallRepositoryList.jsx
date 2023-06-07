@@ -145,7 +145,6 @@ FirewallRepositoryList.propTypes = {
       format: PropTypes.string,
     })
   ).isRequired,
-  selectedRepositories: PropTypes.array,
   onChange: PropTypes.func.isRequired,
   checkItemPropName: PropTypes.string,
   labelItemPropName: PropTypes.string,

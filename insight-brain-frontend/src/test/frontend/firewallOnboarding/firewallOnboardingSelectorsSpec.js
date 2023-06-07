@@ -7,9 +7,9 @@
 import {
   selectFirewallOnboardingSlice,
   selectCurrentStep,
-  selectSelectedRepositories,
   selectUnconfiguredRepoManagersList,
   selectUnconfiguredRepoManager,
+  selectIncompleteConfigurationModal,
   selectRepositoriesList,
   selectSupportedFormats,
   selectRepositoriesByType,
@@ -29,27 +29,33 @@ describe('FirewallOnboardingSelectors', () => {
     });
   });
 
+  describe('selectIncompleteConfigurationModal', () => {
+    it('selects the incompleteConfiguration from the firewall onboarding slice', () => {
+      const incompleteConfigurationModal = {
+        showModal: false,
+        href: null,
+      };
+      const state = {
+        firewallOnboarding: {
+          incompleteConfigurationModal,
+        },
+      };
+      const actualSelection = selectIncompleteConfigurationModal(state);
+      expect(actualSelection).toBe(incompleteConfigurationModal);
+    });
+  });
+
   describe('selectCurrentStep', () => {
     it('is composed from the following selector', () => {
       expect(selectCurrentStep.dependencies).toEqual([selectFirewallOnboardingSlice]);
     });
 
-    it('selects the curren step from firewall onboarding slice', () => {
+    it('selects the current step from firewall onboarding slice', () => {
       const slice = { currentStep: { id: 'select', name: 'Select' } };
 
       const actualSelection = selectCurrentStep.resultFunc(slice);
 
       expect(actualSelection).toBe(slice.currentStep);
-    });
-  });
-
-  describe('selectSelectedRepositories', () => {
-    it('selects the selectedRepositories from firewall onboarding slice', () => {
-      const slice = { selectedRepositories: [1, 2, 3, 4] };
-
-      const actualSelection = selectSelectedRepositories.resultFunc(slice);
-
-      expect(actualSelection).toBe(slice.selectedRepositories);
     });
   });
 

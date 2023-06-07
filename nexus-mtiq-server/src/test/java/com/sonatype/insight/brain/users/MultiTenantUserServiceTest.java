@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.users;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ApiSupplier;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
@@ -19,6 +21,7 @@ import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,11 +34,16 @@ public class MultiTenantUserServiceTest
 
   private final TenantMetadataDAO tenantMetadataDAO = new TenantMetadataDAO();
 
-  private final TestMultiTenantAuth0ManagementService auth0ManagementService
-      = new TestMultiTenantAuth0ManagementService();
+  private TestMultiTenantAuth0ManagementService auth0ManagementService;
 
-  private final MtiqUserService underTest = new MultiTenantUserService(samlUserDAO, tenantMetadataDAO,
-      auth0ManagementService);
+  private MtiqUserService underTest;
+
+  @Before
+  public void setUp() throws Exception {
+    auth0ManagementService = new TestMultiTenantAuth0ManagementService();
+    underTest = new MultiTenantUserService(samlUserDAO, tenantMetadataDAO,
+        auth0ManagementService);
+  }
 
   @Test
   public void test_canListUsers() {
@@ -89,7 +97,7 @@ public class MultiTenantUserServiceTest
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
       createTenantMetadata(tenant);
-      
+
       underTest.inviteUser(user3);
 
       List<SamlUser> allUsers = samlUserDAO.getAll();
@@ -122,22 +130,60 @@ public class MultiTenantUserServiceTest
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
+      TenantMetadata tenantMetadata = createTenantMetadata(tenant);
+
       samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
       samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
 
-      underTest.deleteByUser(user2);
+      underTest.deleteByUsername(user2.getEmail());
 
-      assertThat(samlUserDAO.getByUsername(user2.getFirstName() + user2.getLastName())).isNull();
+      assertThat(samlUserDAO.getByUsername(user2.getEmail())).isNull();
+      auth0ManagementService.contains(user2.getEmail(), tenantMetadata.getConnectionId());
     });
   }
 
-  private void createTenantMetadata(final Tenant tenant) {
+  @Test
+  public void test_deletionFailsIfUserDoesNotExist() {
+    MtiqUserDTO user1 = createMtiqUser("foo");
+    MtiqUserDTO user2 = createMtiqUser("bar");
+
+    TenantTestHelper.testAsNewTenant(testName, tenant -> {
+      provisionTenant(tenant.tenantSlug);
+      TenantMetadata tenantMetadata = createTenantMetadata(tenant);
+      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
+      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
+
+      underTest.deleteByUsername("random@email.com");
+
+      assertThat(samlUserDAO.getByUsername("random@email.com")).isNull();
+      auth0ManagementService.contains("random@email.com", tenantMetadata.getConnectionId());
+    });
+  }
+
+  @Test
+  public void test_deletionFailsIfTenantMetadataDoesNotExist() {
+    MtiqUserDTO user1 = createMtiqUser("foo");
+    MtiqUserDTO user2 = createMtiqUser("bar");
+
+    TenantTestHelper.testAsNewTenant(testName, tenant -> {
+      provisionTenant(tenant.tenantSlug);
+      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
+      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
+
+      assertThatThrownBy(() -> underTest.deleteByUsername("random@email.com"))
+          .isInstanceOf(RuntimeException.class);
+    });
+  }
+
+  private TenantMetadata createTenantMetadata(final Tenant tenant) {
     TenantMetadata tenantMetadata = new TenantMetadata();
-    tenantMetadata.setApplicationId("appId-" + tenant.tenantSlug);
-    tenantMetadata.setApplicationName("appName-" + tenant.tenantSlug);
-    tenantMetadata.setConnectionId("conId-" + tenant.tenantSlug);
-    tenantMetadata.setConnectionName("conName-" + tenant.tenantSlug);
+    String tempName = tenant.tenantSlug.substring(tenant.tenantSlug.length() - 20);
+    tenantMetadata.setApplicationId("appId-" + tempName);
+    tenantMetadata.setApplicationName("appName-" + tempName);
+    tenantMetadata.setConnectionId("conId-" + tempName);
+    tenantMetadata.setConnectionName("conName-" + tempName);
     tenantMetadataDAO.insert(tenantMetadata);
+    return tenantMetadata;
   }
 
   private MtiqUserDTO createMtiqUser(String first) {
@@ -151,9 +197,43 @@ public class MultiTenantUserServiceTest
     return user;
   }
 
+  private class VerificationEntity
+  {
+    String email;
+
+    String identifier;
+
+    public VerificationEntity(
+        final String email,
+        final String identifier)
+    {
+      this.email = email;
+      this.identifier = identifier;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      VerificationEntity that = (VerificationEntity) o;
+      return Objects.equals(email, that.email) && Objects.equals(identifier, that.identifier);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(email, identifier);
+    }
+  }
+
   private class TestMultiTenantAuth0ManagementService
       extends MultiTenantAuth0ManagementService
   {
+    private final List<VerificationEntity> entities = new ArrayList<>();
+
     public TestMultiTenantAuth0ManagementService() {
       super(new TestMultiTenantInsightConfig(), new MultiTenantAuth0ApiSupplier());
     }
@@ -163,9 +243,24 @@ public class MultiTenantUserServiceTest
         final String email,
         final String firstName,
         final String lastName,
-        final String connectionName, final String connectionId)
+        final String connectionName,
+        final String applicationId,
+        final String connectionId)
     {
-      //no-op
+      entities.add(new VerificationEntity(email, applicationId));
+    }
+
+    @Override
+    public void deleteUser(final String email, final String id) {
+      entities.add(new VerificationEntity(email, id));
+    }
+
+    public void contains(final String email, final String id) {
+      assertThat(entities).contains(new VerificationEntity(email, id));
+    }
+
+    public void doesNotContain(final String email, final String id) {
+      assertThat(entities).doesNotContain(new VerificationEntity(email, id));
     }
   }
 

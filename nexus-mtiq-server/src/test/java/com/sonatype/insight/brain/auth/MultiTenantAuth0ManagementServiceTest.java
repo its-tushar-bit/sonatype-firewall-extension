@@ -39,6 +39,8 @@ public class MultiTenantAuth0ManagementServiceTest
 
   public static final String APPLICATION_ID = "applicationId";
 
+  private static final String CONNECTION_ID = "connectionId";
+
   @Mock
   private MultiTenantAuth0ApiSupplier auth0ApiSupplier;
 
@@ -77,7 +79,7 @@ public class MultiTenantAuth0ManagementServiceTest
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
 
-    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID);
+    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID);
 
     verify(authApi).requestToken(any());
     verify(managementApi).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);
@@ -92,7 +94,7 @@ public class MultiTenantAuth0ManagementServiceTest
         .thenThrow(new RuntimeException("user creation failed"));
 
     assertThatThrownBy(() -> {
-      underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID);
+      underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID);
     }).isInstanceOf(RuntimeException.class).hasMessageContaining("user creation failed");
 
     verify(authApi).requestToken(any());
@@ -108,14 +110,15 @@ public class MultiTenantAuth0ManagementServiceTest
     when(managementApi.userExists(any(), any())).thenReturn(false);
 
     assertThatThrownBy(
-        () -> underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID))
+        () -> underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME,
+            APPLICATION_ID, CONNECTION_ID))
         .isInstanceOf(RuntimeException.class)
         .hasMessageContaining("Password reset failed");
 
     verify(authApi).requestToken(any());
     verify(managementApi).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);
     verify(authApi).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID);
-    verify(managementApi).deleteUserByEmail(EMAIL, CONNECTION_NAME);
+    verify(managementApi).deleteUserByEmailFromConnection(EMAIL, CONNECTION_ID);
   }
 
   @Test
@@ -124,7 +127,7 @@ public class MultiTenantAuth0ManagementServiceTest
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
     when(managementApi.userExists(any(), any())).thenReturn(true);
 
-    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID);
+    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID);
 
     verify(authApi).requestToken(any());
     verify(managementApi, never()).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);

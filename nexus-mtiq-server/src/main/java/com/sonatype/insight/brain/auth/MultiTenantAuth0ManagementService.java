@@ -46,15 +46,10 @@ public class MultiTenantAuth0ManagementService
                                  final String firstName,
                                  final String lastName,
                                  final String connectionName,
-                                 final String applicationId)
+                                 final String applicationId,
+                                 final String connectionId)
   {
-    if (!isApiTokenValid()) {
-      this.apiToken = requestApiToken();
-      if (this.apiToken != null) {
-        auth0ManagementAPI =
-            auth0ApiSupplier.getManagementApi(auth0Config.getDomain(), this.apiToken.getAccessToken());
-      }
-    }
+    refreshManagementApiToken();
 
     if (auth0ManagementAPI == null) {
       throw new RuntimeException("Unable to initialise Auth0 Management API");
@@ -71,19 +66,42 @@ public class MultiTenantAuth0ManagementService
 
     if (!userExists) {
       auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName);
-      sendResetPassword(email, connectionName, applicationId);
+      sendResetPassword(email, connectionName, connectionId, applicationId);
     }
   }
 
-  private void sendResetPassword(final String email, final String connectionName, final String applicationId) {
+  private void sendResetPassword(final String email, final String connectionName,
+                                 final String connectionId, final String applicationId)
+  {
     try {
       getAuthApiLazily(auth0Config).resetPassword(email, connectionName, applicationId);
+      log.info("User has been created/updated for applicationId {}", applicationId);
     }
     catch (RuntimeException e) {
       log.warn("Unable to send reset password");
-      auth0ManagementAPI.deleteUserByEmail(email, connectionName);
+      auth0ManagementAPI.deleteUserByEmailFromConnection(email, connectionId);
       throw new RuntimeException(e);
     }
+  }
+
+  private void refreshManagementApiToken() {
+    if (!isApiTokenValid()) {
+      log.debug("Refreshing api token");
+      this.apiToken = requestApiToken();
+      if (this.apiToken != null) {
+        log.debug("Updating management api with the new api token");
+        auth0ManagementAPI =
+            auth0ApiSupplier.getManagementApi(auth0Config.getDomain(), this.apiToken.getAccessToken());
+      }
+    }
+  }
+
+  public void deleteUser(final String username, final String connectionId) {
+    refreshManagementApiToken();
+
+    log.debug("Deleting auth0 user");
+    // Note: username and email are both stored as the email for mtiq (username does not exist in the ui)
+    auth0ManagementAPI.deleteUserByEmailFromConnection(username, connectionId);
   }
 
   private Auth0AuthAPI getAuthApiLazily(final Auth0Config auth0Config) {

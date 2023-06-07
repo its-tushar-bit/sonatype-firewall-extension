@@ -277,6 +277,23 @@ public class Auth0ManagementAPI
     }
   }
 
+  public void deleteUserByEmailFromConnection(String email, String connectionId) {
+    if (StringUtils.isBlank(email)) {
+      throw new IllegalArgumentException("Email cannot be blank");
+    }
+
+    if (StringUtils.isBlank(connectionId)) {
+      throw new IllegalArgumentException("Connection id cannot be blank");
+    }
+
+    try {
+      connections().deleteUser(connectionId, email).execute();
+    }
+    catch (Auth0Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public boolean userExists(String email, String connectionName) throws Auth0Exception {
     return findUserByEmail(email, connectionName) != null;
 

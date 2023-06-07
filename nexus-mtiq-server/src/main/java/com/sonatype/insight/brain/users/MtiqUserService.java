@@ -13,5 +13,5 @@ public interface MtiqUserService
 
   void inviteUser(MtiqUserDTO user);
 
-  void deleteByUser(MtiqUserDTO user);
+  void deleteByUsername(String username);
 }

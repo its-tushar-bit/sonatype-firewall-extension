@@ -56,14 +56,15 @@ public class MultiTenantUserService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
   public void inviteUser(final MtiqUserDTO user) {
-    TenantMetadata tenantMetadata = tenantMetadataDAO.get();
+    TenantMetadata tenantMetadata = getTenantMetadata();
 
     if (tenantMetadata == null) {
       throw new RuntimeException("Tenant metadata not found");
     }
 
     multiTenantAuth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(),
-        user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId());
+        user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
+        tenantMetadata.getConnectionId());
     log.debug("user created on Auth0 service successfully");
     samlUserDAO.upsertByUsername(MtiqUserDTO.samlUserFromMtiqUser(user));
     log.info("Auth0 user created successfully");
@@ -71,8 +72,24 @@ public class MultiTenantUserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
-  public void deleteByUser(final MtiqUserDTO user) {
-    SamlUser samlUser = samlUserDAO.getByUsernameNotNull(user.getEmail());
-    samlUserDAO.delete(samlUser);
+  public void deleteByUsername(final String username) {
+    TenantMetadata tenantMetadata = getTenantMetadata();
+
+    log.debug("Deleting Auth0 user");
+    multiTenantAuth0ManagementService.deleteUser(username, tenantMetadata.getConnectionId());
+
+    SamlUser samlUser = samlUserDAO.getByUsername(username);
+    if (samlUser != null) {
+      samlUserDAO.delete(samlUser);
+    }
+  }
+
+  private TenantMetadata getTenantMetadata() {
+    TenantMetadata tenantMetadata = tenantMetadataDAO.get();
+
+    if (tenantMetadata == null) {
+      throw new RuntimeException("Tenant metadata not found");
+    }
+    return tenantMetadata;
   }
 }

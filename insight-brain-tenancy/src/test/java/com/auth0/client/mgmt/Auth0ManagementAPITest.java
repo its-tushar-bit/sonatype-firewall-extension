@@ -318,7 +318,7 @@ public class Auth0ManagementAPITest
   @Test
   public void testCreateUser_validateEmail_Empty() {
     assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> auth0ManagementAPI.createOrUpdateUser("", "John", "Smith", "connection-name"))
+        .isThrownBy(() -> auth0ManagementAPI.createOrGetUser("", "John", "Smith", "connection-name"))
         .withMessage("Email cannot be blank");
   }
 
@@ -326,14 +326,14 @@ public class Auth0ManagementAPITest
   public void testCreateUser_validateEmail_Null() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(
-            () -> auth0ManagementAPI.createOrUpdateUser(null, "John", "Smith", "connection-name"))
+            () -> auth0ManagementAPI.createOrGetUser(null, "John", "Smith", "connection-name"))
         .withMessage("Email cannot be blank");
   }
 
   @Test
   public void testCreateUser_validateConnectionName_Empty() {
     assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> auth0ManagementAPI.createOrUpdateUser("email", "John", "Smith", ""))
+        .isThrownBy(() -> auth0ManagementAPI.createOrGetUser("email", "John", "Smith", ""))
         .withMessage("Connection name cannot be blank");
   }
 
@@ -341,7 +341,7 @@ public class Auth0ManagementAPITest
   public void testCreateUser_validateConnectionName_Null() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(
-            () -> auth0ManagementAPI.createOrUpdateUser("email", "John", "Smith", null))
+            () -> auth0ManagementAPI.createOrGetUser("email", "John", "Smith", null))
         .withMessage("Connection name cannot be blank");
   }
 
@@ -358,7 +358,7 @@ public class Auth0ManagementAPITest
     User mockUser = mockUser(email, firstName, lastName, connectionName);
     when(createUserMockRequest.execute()).thenReturn(mockUser);
 
-    User user = auth0ManagementAPI.createOrUpdateUser(email, firstName, lastName, connectionName);
+    User user = auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName);
     assertThat(user).isEqualTo(mockUser);
     verifyCreateUserRequestWasSent(email, firstName, lastName);
   }
@@ -376,7 +376,7 @@ public class Auth0ManagementAPITest
     mockAuth0ListUsersRequest();
     when(listUsersMockRequest.execute()).thenReturn(mockUsers);
 
-    User user = auth0ManagementAPI.createOrUpdateUser(email, firstName, lastName, connectionName);
+    User user = auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName);
 
     verify(user).getIdentities();
     verify(user.getIdentities().get(0)).getConnection();

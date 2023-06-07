@@ -33,6 +33,10 @@ public class MultiTenantInsightConfig
   @JsonProperty
   private String auth0Domain;
 
+  @Valid
+  @JsonProperty(value = "auth0")
+  private Auth0Config auth0Config;
+
   @Override
   public File getSonatypeWork() {
     return new File(sonatypeWork, TenantThreadLocal.getTenant().tenantSlug);
@@ -89,5 +93,13 @@ public class MultiTenantInsightConfig
 
   public void setAuth0Domain(final String auth0Domain) {
     this.auth0Domain = auth0Domain;
+  }
+
+  public Auth0Config getAuth0Config() {
+    return auth0Config;
+  }
+
+  public void setAuth0Config(final Auth0Config auth0Config) {
+    this.auth0Config = auth0Config;
   }
 }

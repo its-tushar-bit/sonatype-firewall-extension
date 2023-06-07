@@ -231,7 +231,7 @@ public class Auth0ManagementAPI
     return connection;
   }
 
-  public User createOrUpdateUser(String email, String firstName, String lastName, String connectionName) {
+  public User createOrGetUser(String email, String firstName, String lastName, String connectionName) {
     if (StringUtils.isBlank(email)) {
       throw new IllegalArgumentException("Email cannot be blank");
     }
@@ -275,6 +275,11 @@ public class Auth0ManagementAPI
     catch (Auth0Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public boolean userExists(String email, String connectionName) throws Auth0Exception {
+    return findUserByEmail(email, connectionName) != null;
+
   }
 
   private User findUserByEmail(String email, String connectionName) throws Auth0Exception {

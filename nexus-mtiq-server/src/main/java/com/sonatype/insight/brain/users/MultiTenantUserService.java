@@ -11,21 +11,38 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
+import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.security.Authorize;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class MultiTenantUserService
     implements MtiqUserService
 {
+  private static final Logger log = LoggerFactory.getLogger(MultiTenantUserService.class.getName());
+
   private final SamlUserDAO samlUserDAO;
 
+  private final TenantMetadataDAO tenantMetadataDAO;
+
+  private final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService;
+
   @Inject
-  public MultiTenantUserService(final SamlUserDAO samlUserDAO) {
+  public MultiTenantUserService(final SamlUserDAO samlUserDAO,
+                                final TenantMetadataDAO tenantMetadataDAO,
+                                final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService)
+  {
     this.samlUserDAO = samlUserDAO;
+    this.tenantMetadataDAO = tenantMetadataDAO;
+    this.multiTenantAuth0ManagementService = multiTenantAuth0ManagementService;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -39,7 +56,17 @@ public class MultiTenantUserService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
   public void inviteUser(final MtiqUserDTO user) {
-    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user));
+    TenantMetadata tenantMetadata = tenantMetadataDAO.get();
+
+    if (tenantMetadata == null) {
+      throw new RuntimeException("Tenant metadata not found");
+    }
+
+    multiTenantAuth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(),
+        user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId());
+    log.debug("user created on Auth0 service successfully");
+    samlUserDAO.upsertByUsername(MtiqUserDTO.samlUserFromMtiqUser(user));
+    log.info("Auth0 user created successfully");
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

@@ -13,9 +13,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -26,6 +27,7 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -55,15 +57,19 @@ import org.slf4j.LoggerFactory;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
+import org.spdx.library.DefaultModelStore;
 import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.model.Checksum;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ReferenceType;
+import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxCreatorInformation;
 import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.SpdxPackage.SpdxPackageBuilder;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
+import org.spdx.library.model.enumerations.RelationshipType;
 
 @Named
 @Singleton
@@ -161,8 +167,16 @@ public class ApiSpdxService
       String uri = getReportUrl(application.getPublicId(), scanId);
 
       final SpdxDocument document = createDocument(spdxVersion, uri);
+      final Map<String, SpdxPackage> purlElementMap = new HashMap<>();
 
-      addPackages(data.components, document);
+      addPackages(data.components, document, purlElementMap);
+
+      ApiDependencyTreeNodeDTO rootNodeDTO =
+          apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
+      if (rootNodeDTO != null) {
+        addRootPackage(rootNodeDTO, document, purlElementMap);
+        addDependencyRelationships(rootNodeDTO, document, purlElementMap, true);
+      }
 
       String appId = application.getId();
       String stageId = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId).getStageTypeId();
@@ -173,6 +187,50 @@ public class ApiSpdxService
     catch (IOException | InvalidSPDXAnalysisException e) {
       throw new RuntimeException("An error occurred while generating the SPDX file", e);
     }
+  }
+
+  private void addRootPackage(
+      final ApiDependencyTreeNodeDTO rootNodeDTO,
+      final SpdxDocument document,
+      final Map<String, SpdxPackage> purlElementMap)
+      throws UnsupportedEncodingException, InvalidSPDXAnalysisException
+  {
+    String packageUrl = rootNodeDTO.getPackageUrl();
+    if (packageUrl != null && !purlElementMap.containsKey(packageUrl)) {
+      String version = getSpdxVersionFromPurl(packageUrl);
+      addPackage(packageUrl, version, null, document, purlElementMap);
+    }
+  }
+
+  private void addDependencyRelationships(
+      final ApiDependencyTreeNodeDTO nodeDTO,
+      final SpdxDocument document,
+      final Map<String, SpdxPackage> purlElementMap,
+      final boolean isRootNode) throws InvalidSPDXAnalysisException
+  {
+    SpdxPackage spdxPackage = getSpdxPackageForNode(nodeDTO, purlElementMap);
+    if (spdxPackage == null) {
+      return;
+    }
+
+    if (isRootNode) {
+      document.getDocumentDescribes().add(spdxPackage);
+    }
+
+    for (ApiDependencyTreeNodeDTO childNode : nodeDTO.getChildren()) {
+      SpdxPackage childSpdxPackage = getSpdxPackageForNode(childNode, purlElementMap);
+      if (childSpdxPackage != null) {
+        Relationship relationship =
+            document.createRelationship(childSpdxPackage, RelationshipType.DEPENDS_ON, null);
+        spdxPackage.addRelationship(relationship);
+      }
+      addDependencyRelationships(childNode, document, purlElementMap, false);
+    }
+  }
+
+  private SpdxPackage getSpdxPackageForNode(ApiDependencyTreeNodeDTO nodeDTO, Map<String, SpdxPackage> purlElementMap) {
+    String packageUrl = nodeDTO.getPackageUrl();
+    return packageUrl == null ? null : purlElementMap.get(packageUrl);
   }
 
   private String getReportUrl(String applicationPublicId, String scanId) {
@@ -186,17 +244,21 @@ public class ApiSpdxService
     return iqBaseUrl + UserInterfaceLinksHelper.getReportUrl(applicationPublicId, scanId);
   }
 
-  private void addPackages(final List<ApiReportComponentDTOV2> reportComponents, final SpdxDocument document)
+  private void addPackages(final List<ApiReportComponentDTOV2> reportComponents, final SpdxDocument document,
+                           final Map<String, SpdxPackage> purlElementMap)
       throws InvalidSPDXAnalysisException, UnsupportedEncodingException
   {
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
       if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
-        addPackage(reportComponent, document);
+        addPackage(reportComponent, document, purlElementMap);
       }
     }
   }
 
-  private void addPackage(final ApiReportComponentDTOV2 reportComponent, final SpdxDocument document)
+  private void addPackage(
+      final ApiReportComponentDTOV2 reportComponent,
+      final SpdxDocument document,
+      final Map<String, SpdxPackage> purlElementMap)
       throws InvalidSPDXAnalysisException, UnsupportedEncodingException
   {
     String packageUrl = getPackageUrl(reportComponent);
@@ -204,28 +266,45 @@ public class ApiSpdxService
       log.warn("Cannot determine the package URL for component: {}", reportComponent.displayName);
       return;
     }
+    String version = reportComponent.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
+    String sha256 = reportComponent.sha256;
+
+    addPackage(packageUrl, version, sha256, document, purlElementMap);
+  }
+
+  private void addPackage(
+      final String packageUrl,
+      final String version,
+      final String sha256,
+      final SpdxDocument document,
+      final Map<String, SpdxPackage> purlElementMap)
+      throws InvalidSPDXAnalysisException, UnsupportedEncodingException
+  {
+    if (purlElementMap.containsKey(packageUrl)) {
+      return; // avoids duplicates
+    }
 
     ExternalRef purlRef = document.createExternalRef(ReferenceCategory.PACKAGE_MANAGER,
         new ReferenceType("purl"), packageUrl, null);
 
     SpdxPackageBuilder packageBuilder = document.createPackage(
-            generateSpdxId(),
+            generateSpdxId(packageUrl),
             createSpdxNameFromPurl(packageUrl),
             // correct license data will be added with CLM-25906
             null, null, null)
         .setFilesAnalyzed(false)
         .addExternalRef(purlRef);
 
-    String version = reportComponent.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
     if (StringUtils.isNotBlank(version)) {
       packageBuilder.setVersionInfo(version);
     }
 
-    if (StringUtils.isNotBlank(reportComponent.sha256)) {
-      final Checksum checksum = document.createChecksum(ChecksumAlgorithm.SHA256, reportComponent.sha256);
+    if (StringUtils.isNotBlank(sha256)) {
+      final Checksum checksum = document.createChecksum(ChecksumAlgorithm.SHA256, sha256);
       packageBuilder.setChecksums(ImmutableList.of(checksum));
     }
-    packageBuilder.build();
+    SpdxPackage spdxPackage = packageBuilder.build();
+    purlElementMap.put(packageUrl, spdxPackage);
   }
 
   private String getPackageUrl(final ApiReportComponentDTOV2 reportComponent) {
@@ -237,8 +316,14 @@ public class ApiSpdxService
     return purl == null ? null : purl.getPackageUrl();
   }
 
-  private String generateSpdxId() {
-    return SPDX_REF_PREFIX + UUID.randomUUID().toString().replace("-", "");
+  private String generateSpdxId(final String packageUrl) throws UnsupportedEncodingException {
+    String spdxId = URLDecoder.decode(packageUrl, StandardCharsets.UTF_8.name()).substring(4);
+    int index = spdxId.indexOf('?');
+    if (index > -1) {
+      spdxId = spdxId.substring(0, index);
+    }
+    spdxId = spdxId.replaceAll("[^a-zA-Z0-9.]+", "-");
+    return SPDX_REF_PREFIX + spdxId;
   }
 
   /**
@@ -255,7 +340,21 @@ public class ApiSpdxService
     return name.replace("/", ":");
   }
 
+  private String getSpdxVersionFromPurl(String purl) {
+    int index = purl.indexOf('@');
+    if (index == -1) {
+      return null;
+    }
+    String version = purl.substring(index + 1);
+    index = version.indexOf('?');
+    if (index >  -1) {
+      version = version.substring(0, index);
+    }
+    return version;
+  }
+
   private SpdxDocument createDocument(String spdxVersion, String uri) throws InvalidSPDXAnalysisException {
+    DefaultModelStore.reset();
     SpdxDocument spdxDocument = new SpdxDocument(uri);
     spdxDocument.setSpecVersion("SPDX-" + spdxVersion);
 

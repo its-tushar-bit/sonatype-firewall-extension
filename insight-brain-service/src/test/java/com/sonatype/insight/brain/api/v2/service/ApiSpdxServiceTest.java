@@ -46,10 +46,12 @@ import org.spdx.library.SpdxConstants;
 import org.spdx.library.model.Checksum;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ModelObject;
+import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
+import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 
@@ -222,6 +224,16 @@ public class ApiSpdxServiceTest
     assertThat(actualFilename).isEqualTo(expectedFilename);
     assertMetadata(document, spdxVersion);
     assertPackages(document);
+    assertTopLevelRelationship(document);
+  }
+
+  private void assertTopLevelRelationship(SpdxDocument document) throws InvalidSPDXAnalysisException {
+    Collection<Relationship> relationships = document.getRelationships();
+    assertThat(relationships).hasSize(1);
+    Relationship relationship = relationships.stream().findFirst().get();
+    assertThat(relationship.getRelationshipType()).isEqualTo(RelationshipType.DESCRIBES);
+    assertThat(relationship.getRelatedSpdxElement().get().getName().get()).isEqualTo(
+        "com.sonatype.testing:pr-comment-02");
   }
 
   private void assertMetadata(SpdxDocument document, String spdxVersion) throws Exception {
@@ -231,19 +243,29 @@ public class ApiSpdxServiceTest
         "Tool: Sonatype IQ Server - 1.0");
   }
 
-  private static final Set<String> expectedNames = ImmutableSet.of("jQuery", "knockout.validation");
+  private static final Set<String> expectedNames = ImmutableSet.of(
+      "org.apache.logging.log4j:log4j-core", "org.apache.logging.log4j:log4j-api",
+      "com.fasterxml.jackson.core:jackson-databind", "com.fasterxml.jackson.core:jackson-annotations",
+      "com.fasterxml.jackson.core:jackson-core", "com.sonatype.testing:pr-comment-02"
+  );
 
-  private static final Set<String> expectedVersions = ImmutableSet.of("3.4.1", "3.2.1", "2.0.0-Pre");
+  private static final Set<String> expectedVersions = ImmutableSet.of("2.14.0", "2.16.0", "1.0-SNAPSHOT");
 
-  private static final Set<String> expectedPurls =
-      ImmutableSet.of("pkg:nuget/jQuery@3.4.1", "pkg:nuget/jQuery@3.2.1", "pkg:a-name/knockout.validation@2.0.0-Pre");
+  private static final Set<String> expectedPurls = ImmutableSet.of(
+      "pkg:maven/org.apache.logging.log4j/log4j-core@2.16.0?type=jar",
+      "pkg:maven/org.apache.logging.log4j/log4j-api@2.16.0?type=jar",
+      "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.0?type=jar",
+      "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.14.0?type=jar",
+      "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.0?type=jar",
+      "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar"
+  );
 
   private void assertPackages(SpdxDocument document) throws Exception {
     List<? extends ModelObject> items =
         Read.getAllItems(document.getModelStore(), document.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
             .collect(Collectors.toList());
 
-    assertThat(items).hasSize(3);
+    assertThat(items).hasSize(6);
 
     for (ModelObject item : items) {
       SpdxPackage spdxPackage = (SpdxPackage) item;
@@ -263,6 +285,27 @@ public class ApiSpdxServiceTest
         assertThat(checksum.getAlgorithm()).isEqualTo(ChecksumAlgorithm.SHA256);
         assertThat(checksum.getValue()).isEqualTo("2fa0ab71b154da29ac134097bc6bbacd90987dd4c4005516159e6494d1d52ea2");
       }
+
+      assertRelationships(spdxPackage);
+    }
+  }
+
+  private static final Set<String> expectedRelationships = ImmutableSet.of(
+      "com.sonatype.testing:pr-comment-02 -> com.fasterxml.jackson.core:jackson-databind",
+      "com.sonatype.testing:pr-comment-02 -> org.apache.logging.log4j:log4j-core",
+      "org.apache.logging.log4j:log4j-core -> org.apache.logging.log4j:log4j-api",
+      "com.fasterxml.jackson.core:jackson-databind -> com.fasterxml.jackson.core:jackson-annotations",
+      "com.fasterxml.jackson.core:jackson-databind -> com.fasterxml.jackson.core:jackson-core"
+  );
+
+  private void assertRelationships(SpdxPackage spdxPackage) throws Exception {
+    final Collection<Relationship> relationships = spdxPackage.getRelationships();
+
+    for (Relationship relationship : relationships) {
+      assertThat(relationship.getRelationshipType()).isEqualTo(RelationshipType.DEPENDS_ON);
+      String relStr = String.format("%s -> %s",
+          spdxPackage.getName().get(), relationship.getRelatedSpdxElement().get().getName().get());
+      assertThat(relStr).isIn(expectedRelationships);
     }
   }
 

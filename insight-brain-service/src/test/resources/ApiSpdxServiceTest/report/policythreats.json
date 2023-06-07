@@ -1,0 +1,280 @@
+{
+  "version" : 5,
+  "aaData" : [ {
+    "hash" : "ca12fb3902ecfcba1e13",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "policyId" : "69d5da64bd3d475e99265996861d248c",
+    "policyName" : "Security-Critical",
+    "policyThreatLevel" : 10,
+    "activeViolations" : [ {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyViolationId" : "64522bd5ccdd4ef882f27750de512b72",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"4fb2011c19a142b29a07e928b7558186\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability CVE-2021-44832 with severity >= 4 (severity = 6.6)\",\"reference\":{\"value\":\"CVE-2021-44832\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-44832\\\",\\\"severity\\\":6.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability CVE-2021-44832 with severity < 7 (severity = 6.6)\",\"reference\":{\"value\":\"CVE-2021-44832\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-44832\\\",\\\"severity\\\":6.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability CVE-2021-44832 with severity >= 4 (severity = 6.6)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-44832",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability CVE-2021-44832 with severity < 7 (severity = 6.6)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-44832",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyViolationId" : "7e0dc3668d63408abe9c08ddaaa7375f",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"4fb2011c19a142b29a07e928b7558186\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability CVE-2021-45105 with severity >= 4 (severity = 5.9)\",\"reference\":{\"value\":\"CVE-2021-45105\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-45105\\\",\\\"severity\\\":5.9}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability CVE-2021-45105 with severity < 7 (severity = 5.9)\",\"reference\":{\"value\":\"CVE-2021-45105\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-45105\\\",\\\"severity\\\":5.9}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability CVE-2021-45105 with severity >= 4 (severity = 5.9)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-45105",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability CVE-2021-45105 with severity < 7 (severity = 5.9)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-45105",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyViolationId" : "79d7622770924904807d2f9ec123dfb6",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b5b616cd8adb4f04ac0d14b80298f301\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability CVE-2021-44228 with severity >= 9 (severity = 10.0)\",\"reference\":{\"value\":\"CVE-2021-44228\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-44228\\\",\\\"severity\\\":10.0}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability CVE-2021-44228 with severity >= 9 (severity = 10.0)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-44228",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyViolationId" : "64522bd5ccdd4ef882f27750de512b72",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"4fb2011c19a142b29a07e928b7558186\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability CVE-2021-44832 with severity >= 4 (severity = 6.6)\",\"reference\":{\"value\":\"CVE-2021-44832\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-44832\\\",\\\"severity\\\":6.6}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability CVE-2021-44832 with severity < 7 (severity = 6.6)\",\"reference\":{\"value\":\"CVE-2021-44832\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-44832\\\",\\\"severity\\\":6.6}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability CVE-2021-44832 with severity >= 4 (severity = 6.6)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-44832",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability CVE-2021-44832 with severity < 7 (severity = 6.6)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-44832",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "595c90125d9145cfbdfbc6e99f25a46d",
+      "policyViolationId" : "7e0dc3668d63408abe9c08ddaaa7375f",
+      "policyName" : "Security-Medium",
+      "policyThreatLevel" : 7,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"4fb2011c19a142b29a07e928b7558186\",\"constraintName\":\"Medium risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 4\",\"reason\":\"Found security vulnerability CVE-2021-45105 with severity >= 4 (severity = 5.9)\",\"reference\":{\"value\":\"CVE-2021-45105\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-45105\\\",\\\"severity\\\":5.9}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 7\",\"reason\":\"Found security vulnerability CVE-2021-45105 with severity < 7 (severity = 5.9)\",\"reference\":{\"value\":\"CVE-2021-45105\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-45105\\\",\\\"severity\\\":5.9}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "4fb2011c19a142b29a07e928b7558186",
+        "constraintName" : "Medium risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 4",
+          "conditionReason" : "Found security vulnerability CVE-2021-45105 with severity >= 4 (severity = 5.9)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-45105",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 7",
+          "conditionReason" : "Found security vulnerability CVE-2021-45105 with severity < 7 (severity = 5.9)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-45105",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    }, {
+      "policyId" : "69d5da64bd3d475e99265996861d248c",
+      "policyViolationId" : "79d7622770924904807d2f9ec123dfb6",
+      "policyName" : "Security-Critical",
+      "policyThreatLevel" : 10,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"b5b616cd8adb4f04ac0d14b80298f301\",\"constraintName\":\"Critical risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 9\",\"reason\":\"Found security vulnerability CVE-2021-44228 with severity >= 9 (severity = 10.0)\",\"reference\":{\"value\":\"CVE-2021-44228\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"CVE-2021-44228\\\",\\\"severity\\\":10.0}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "b5b616cd8adb4f04ac0d14b80298f301",
+        "constraintName" : "Critical risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 9",
+          "conditionReason" : "Found security vulnerability CVE-2021-44228 with severity >= 9 (severity = 10.0)",
+          "conditionTriggerReference" : {
+            "value" : "CVE-2021-44228",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ]
+  }, {
+    "hash" : "49d219171d6af643e061",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+    "policyName" : "Security-High",
+    "policyThreatLevel" : 9,
+    "activeViolations" : [ {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyViolationId" : "bc72fc5299b34aeeb8548a4aa03b9cd1",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"630f3e2665df463790d3255ca2d8344a\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability sonatype-2022-6438 with severity >= 7 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2022-6438\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2022-6438\\\",\\\"severity\\\":7.5}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability sonatype-2022-6438 with severity < 9 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2022-6438\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2022-6438\\\",\\\"severity\\\":7.5}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability sonatype-2022-6438 with severity >= 7 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2022-6438",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability sonatype-2022-6438 with severity < 9 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2022-6438",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "ef4bb01991ba4634972d8f58e80dff98",
+      "policyViolationId" : "bc72fc5299b34aeeb8548a4aa03b9cd1",
+      "policyName" : "Security-High",
+      "policyThreatLevel" : 9,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"630f3e2665df463790d3255ca2d8344a\",\"constraintName\":\"High risk CVSS score\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":0,\"summary\":\"Security Vulnerability Severity >= 7\",\"reason\":\"Found security vulnerability sonatype-2022-6438 with severity >= 7 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2022-6438\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":0,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2022-6438\\\",\\\"severity\\\":7.5}}\"},{\"conditionTypeId\":\"SecurityVulnerabilitySeverity\",\"conditionIndex\":1,\"summary\":\"Security Vulnerability Severity < 9\",\"reason\":\"Found security vulnerability sonatype-2022-6438 with severity < 9 (severity = 7.5)\",\"reference\":{\"value\":\"sonatype-2022-6438\",\"type\":\"SECURITY_VULNERABILITY_REFID\"},\"triggerJson\":\"{\\\"conditionIndex\\\":1,\\\"trigger\\\":{\\\"refId\\\":\\\"sonatype-2022-6438\\\",\\\"severity\\\":7.5}}\"}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "630f3e2665df463790d3255ca2d8344a",
+        "constraintName" : "High risk CVSS score",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity >= 7",
+          "conditionReason" : "Found security vulnerability sonatype-2022-6438 with severity >= 7 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2022-6438",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        }, {
+          "conditionType" : "SecurityVulnerabilitySeverity",
+          "conditionSummary" : "Security Vulnerability Severity < 9",
+          "conditionReason" : "Found security vulnerability sonatype-2022-6438 with severity < 9 (severity = 7.5)",
+          "conditionTriggerReference" : {
+            "value" : "sonatype-2022-6438",
+            "type" : "SECURITY_VULNERABILITY_REFID"
+          }
+        } ]
+      } ],
+      "policyThreatCategory" : "SECURITY"
+    } ]
+  } ]
+}

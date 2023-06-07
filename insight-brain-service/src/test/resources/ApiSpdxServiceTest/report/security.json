@@ -1,45 +1,183 @@
 {
   "aaData" : [ {
     "componentIdentifier" : {
-      "format" : "nuget",
+      "format" : "maven",
       "coordinates" : {
-        "packageId" : "jQuery",
-        "version" : "3.4.1"
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
       }
     },
-    "groupId" : null,
-    "artifactId" : null,
-    "version" : null,
-    "hash" : "5408e54a94044d1f1f21",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.14.0",
+    "hash" : "49d219171d6af643e061",
     "url" : null,
-    "reference" : "sonatype-2019-0115",
+    "reference" : "sonatype-2022-6438",
     "source" : "sonatype",
-    "score" : 9.8,
-    "cwe" : "20",
-    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "score" : 7.5,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
     "cvssVectorSource" : "sonatype_cvss_3",
     "matchState" : "exact",
-    "proprietary" : false
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2022-6438" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.14.0"
+      } ],
+      "name" : "jackson-core"
+    }
   }, {
     "componentIdentifier" : {
-      "format" : "nuget",
+      "format" : "maven",
       "coordinates" : {
-        "packageId" : "jQuery",
-        "version" : "3.2.1"
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
       }
     },
-    "groupId" : null,
-    "artifactId" : null,
-    "version" : null,
-    "hash" : "0babbbd2c221d24484f5",
-    "url" : null,
-    "reference" : "sonatype-2019-0116",
-    "source" : "sonatype",
-    "score" : 9.8,
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-core",
+    "version" : "2.16.0",
+    "hash" : "ca12fb3902ecfcba1e13",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228",
+    "reference" : "CVE-2021-44228",
+    "source" : "cve",
+    "score" : 10.0,
+    "cwe" : "917",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-44228" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.logging.log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.16.0"
+      } ],
+      "name" : "log4j-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-core",
+    "version" : "2.16.0",
+    "hash" : "ca12fb3902ecfcba1e13",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44832",
+    "reference" : "CVE-2021-44832",
+    "source" : "cve",
+    "score" : 6.6,
     "cwe" : "20",
-    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-    "cvssVectorSource" : "sonatype_cvss_3",
-    "matchState" : "similar",
-    "proprietary" : false
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-44832" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.logging.log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.16.0"
+      } ],
+      "name" : "log4j-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-core",
+    "version" : "2.16.0",
+    "hash" : "ca12fb3902ecfcba1e13",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45105",
+    "reference" : "CVE-2021-45105",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-45105" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.logging.log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.16.0"
+      } ],
+      "name" : "log4j-core"
+    }
   } ]
 }

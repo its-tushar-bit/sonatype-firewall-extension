@@ -1,79 +1,233 @@
 {
   "aaData" : [ {
     "componentIdentifier" : {
-      "format" : "nuget",
+      "format" : "maven",
       "coordinates" : {
-        "packageId" : "jQuery",
-        "version" : "3.4.1"
+        "artifactId" : "log4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
       }
     },
-    "groupId" : null,
-    "artifactId" : null,
-    "version" : null,
-    "hash" : "5408e54a94044d1f1f21",
-    "declaredLicenses" : [ "CC0-1.0", "MIT" ],
-    "observedLicenses" : [ "CDDL-1.1" ],
-    "effectiveLicenses" : [ "CC0-1.0", "MIT" ],
-    "securityCounters" : {
-      "Critical" : 1,
-      "Severe" : 0,
-      "Moderate" : 0
-    },
-    "effectiveLicenseThreat" : null,
-    "matchState" : "exact",
-    "proprietary" : false,
-    "securityThreatLevel" : 9.8,
-    "catalogDate" : 1556821287254
-  }, {
-    "componentIdentifier" : {
-      "format" : "a-name",
-      "coordinates" : {
-        "name" : "knockout.validation",
-        "qualifier" : "",
-        "version" : "2.0.0-Pre"
-      }
-    },
-    "groupId" : null,
-    "artifactId" : null,
-    "version" : null,
-    "hash" : "7c9933a349f37d5f3131",
-    "declaredLicenses" : [ "Apache-1.0", "Apache-1.1", "Apache-2.0", "LGPL-2.1", "MPL-1.1" ],
-    "observedLicenses" : [ "Apache-2.0 or LGPL-2.1+ or MPL-1.1" ],
-    "effectiveLicenses" : [ "LGPL-2.1", "MPL-1.1" ],
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-api",
+    "version" : "2.16.0",
+    "hash" : "4727d93a76616ffc4149",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
     "securityCounters" : {
       "Critical" : 0,
       "Severe" : 0,
       "Moderate" : 0
     },
-    "effectiveLicenseThreat" : null,
+    "effectiveLicenseThreat" : 0,
     "matchState" : "exact",
     "proprietary" : false,
+    "matchedByCoordinates" : false,
     "securityThreatLevel" : null,
-    "catalogDate" : 1383585090000
+    "catalogDate" : 1639374059000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.logging.log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.16.0"
+      } ],
+      "name" : "log4j-api"
+    }
   }, {
     "componentIdentifier" : {
-      "format" : "nuget",
+      "format" : "maven",
       "coordinates" : {
-        "packageId" : "jQuery",
-        "version" : "3.2.1"
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
       }
     },
-    "groupId" : null,
-    "artifactId" : null,
-    "version" : null,
-    "hash" : "0babbbd2c221d24484f5",
-    "declaredLicenses" : [ "CC0-1.0", "MIT" ],
-    "observedLicenses" : [ "CDDL-1.1" ],
-    "effectiveLicenses" : [ "CC0-1.0", "MIT" ],
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.14.0",
+    "hash" : "49d219171d6af643e061",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0", "MIT" ],
+    "effectiveLicenses" : [ "Apache-2.0", "MIT" ],
     "securityCounters" : {
       "Critical" : 1,
       "Severe" : 0,
       "Moderate" : 0
     },
-    "effectiveLicenseThreat" : null,
-    "matchState" : "similar",
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
     "proprietary" : false,
-    "securityThreatLevel" : 9.8,
-    "catalogDate" : 1505410495144
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 1667680688000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.14.0"
+      } ],
+      "name" : "jackson-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.14.0",
+    "hash" : "513b8ca3fea0352ceebe",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1667680775000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.14.0"
+      } ],
+      "name" : "jackson-databind"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-core",
+    "version" : "2.16.0",
+    "hash" : "ca12fb3902ecfcba1e13",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 2,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 10.0,
+    "catalogDate" : 1639374092000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.logging.log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.16.0"
+      } ],
+      "name" : "log4j-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-annotations",
+    "version" : "2.14.0",
+    "hash" : "fb7afb3c9c8ea363a9c8",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Apache-2.0" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1667679383000,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-annotations"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.14.0"
+      } ],
+      "name" : "jackson-annotations"
+    }
   } ]
 }

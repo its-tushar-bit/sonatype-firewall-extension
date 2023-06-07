@@ -69,6 +69,8 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
@@ -193,6 +195,12 @@ public class MultiTenantInsightBrainService
     super.initialize(bootstrap);
     bootstrap.addCommand(new MtiqDbMigrationCommand(databaseContainer));
     bootstrap.addBundle(adminResourceBundle);
+  }
+
+  @Override
+  protected void configureObjectMapperDeserializationFeature(ObjectMapper objectMapper) {
+    // Disable for MTIQ, allow unknown properties in Insight Config
+    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
 
   @Override

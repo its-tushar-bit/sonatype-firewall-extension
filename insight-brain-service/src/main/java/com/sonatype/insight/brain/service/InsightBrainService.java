@@ -366,7 +366,8 @@ public class InsightBrainService
 
   @Override
   public void initialize(final Bootstrap<InsightConfig> bootstrap) {
-    bootstrap.getObjectMapper().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    configureObjectMapperDeserializationFeature(bootstrap.getObjectMapper());
+
     bootstrap.addBundle(new MultiPartBundle());
 
     bootstrap.addBundle(new AssetsBundle("/assets/", BRAIN_ASSET_PATH, "index.html", "assets"));
@@ -403,6 +404,8 @@ public class InsightBrainService
       protected ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
         super.configureObjectMapper(objectMapper);
 
+        configureObjectMapperDeserializationFeature(objectMapper);
+
         // Workaround to let us detect an unset syslog log format
         objectMapper.registerModule(new InsightSyslogAppenderFactory.Module());
 
@@ -417,6 +420,10 @@ public class InsightBrainService
 
     bootstrap.setConfigurationSourceProvider(new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
         new EnvironmentVariableSubstitutor(false, true)));
+  }
+
+  protected void configureObjectMapperDeserializationFeature(ObjectMapper objectMapper) {
+    objectMapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
 
   protected <T extends ObjectMapper> T configureObjectMapper(T objectMapper) {

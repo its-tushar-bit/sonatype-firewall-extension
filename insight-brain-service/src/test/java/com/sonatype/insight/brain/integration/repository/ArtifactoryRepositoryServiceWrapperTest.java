@@ -14,11 +14,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.test.LogOutput;
 
 import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,37 +25,25 @@ import static org.mockito.Mockito.verify;
 public class ArtifactoryRepositoryServiceWrapperTest
     extends AbstractComponentTest
 {
-  @Rule
-  public LogOutput logOutput = new LogOutput(ArtifactoryRepositoryServiceWrapper.class);
-
-  @Inject
-  public ArtifactoryRepositoryService artifactoryRepositoryService;
-
   @Inject
   public RepositoryManagerDAO repositoryManagerDAO;
 
   @Inject
   public RepositoryDAO repositoryDAO;
 
+  @Inject
   private ArtifactoryRepositoryServiceWrapper wrapper;
-
-  @Before
-  public void before() {
-    wrapper = new ArtifactoryRepositoryServiceWrapper(artifactoryRepositoryService);
-  }
 
   @After
   public void after() {
-    // since we are changing ID values we have to manually clean up after ourselves
-    tempEntity.after();
-    repositoryDAO.getAll().forEach(a -> repositoryDAO.delete(a));
+    // The migration may create repository managers, so we need to delete them here.
     repositoryManagerDAO.getAll().forEach(a -> repositoryManagerDAO.delete(a));
   }
 
   @Test
   public void testAllDelegatedServiceMethodsInvoked() {
     // need a mock service for this test, all we want to verify is that the delegate is invoked
-    artifactoryRepositoryService = mock(ArtifactoryRepositoryService.class);
+    ArtifactoryRepositoryService artifactoryRepositoryService = mock(ArtifactoryRepositoryService.class);
     wrapper = new ArtifactoryRepositoryServiceWrapper(artifactoryRepositoryService);
 
     String repositoryManagerInstanceId = "foo";

@@ -110,7 +110,7 @@ public class ReportService
       FileUtils.rename(tempFile, reportFile);
     }
 
-    Report.applyChanges(app, reportFile, repositoryMatcher, telemetrySender);
+    Report.applyChanges(app, reportFile, repositoryMatcher, telemetrySender, configuration);
 
     return reportFile;
   }

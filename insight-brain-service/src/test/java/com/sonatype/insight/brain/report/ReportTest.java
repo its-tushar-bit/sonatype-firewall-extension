@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -24,6 +25,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
@@ -125,6 +127,56 @@ public class ReportTest
     assertThat(bomJson).isNotEqualTo(bomJsonAugmented);
     assertThat(bomJsonAugmented.get("aaData").get(0).has("modified")).isFalse();
     assertThat(bomJsonAugmented.get("aaData").get(1).has("modified")).isTrue();
+  }
+
+  @Test
+  public void testHideObservedLicenses_ObservedLicenseEnabled_NonMaven() throws Exception {
+    JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
+    LicenseDAO licenseDAO = new LicenseDAO();
+    License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("package1", "version1");
+    ObjectNode bomObjectAugmented = (ObjectNode) bomJson.get("aaData").get(1);
+    Report.hideObservedLicenses(componentIdentifier, bomObjectAugmented, true, notSupportedLicense);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ArrayNode observedLicensesArray = mapper.createArrayNode();
+    observedLicensesArray.add("EPL-1.0");
+
+    assertThat(bomObjectAugmented.get("observedLicenses")).isEqualTo(observedLicensesArray);
+    assertThat(bomObjectAugmented.get("hiddenObservedLicenses").asText()).isEqualTo("false");
+  }
+
+  @Test
+  public void testHideObservedLicenses_ObservedLicenseDisabled_NonMaven() throws Exception {
+    JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/bom.json"));
+    LicenseDAO licenseDAO = new LicenseDAO();
+    License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("package1", "version1");
+    ObjectNode bomObjectAugmented = (ObjectNode) bomJson.get("aaData").get(1);
+    Report.hideObservedLicenses(componentIdentifier, bomObjectAugmented, false, notSupportedLicense);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ArrayNode arrayNode = mapper.createArrayNode();
+
+    assertThat(bomObjectAugmented.get("observedLicenses"))
+        .isEqualTo(arrayNode.add(licenseDAO.getById(License.NOT_SUPPORTED_ID).getShortDisplayName()));
+    assertThat(bomObjectAugmented.get("hiddenObservedLicenses").asText()).isEqualTo("true");
+  }
+
+  @Test
+  public void testHideObservedLicenses_ObservedLicenseDisabled_Maven() throws Exception {
+    JsonNode bomJson = new ObjectMapper().readTree(getClass().getResource("/ReportTest/dependencies.json"));
+    LicenseDAO licenseDAO = new LicenseDAO();
+    License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("group1", "package1", "version1");
+    ObjectNode bomObjectAugmented = (ObjectNode) bomJson.get("componentDepths").get(0);
+    Report.hideObservedLicenses(componentIdentifier, bomObjectAugmented, false, notSupportedLicense);
+
+    assertThat(bomObjectAugmented.get("hiddenObservedLicenses").asText()).isEqualTo("false");
   }
 
   @Test

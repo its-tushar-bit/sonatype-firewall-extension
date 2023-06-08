@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -57,6 +59,7 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.collections4.CollectionUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,6 +101,15 @@ public final class Report
   {
     FULL, ERROR
   }
+
+  private static final Set<String> HIDDEN_OBSERVED_ECOSYSTEMS = new HashSet<>(Arrays.asList(
+      ComponentIdentifier.FORMAT_NUGET,
+      ComponentIdentifier.FORMAT_RUBYGEMS,
+      ComponentIdentifier.FORMAT_NPM,
+      ComponentIdentifier.FORMAT_PYPI,
+      ComponentIdentifier.FORMAT_RPM,
+      ComponentIdentifier.FORMAT_COMPOSER
+  ));
 
   public static ReportEntry getEntry(final File reportFile, final String name) throws IOException {
     if (name.contains("../") || name.contains("..\\")) {
@@ -181,7 +193,8 @@ public final class Report
       final Application application,
       final File reportFile,
       final RepositoryMatcher repositoryMatcher,
-      final TelemetrySender telemetrySender)
+      final TelemetrySender telemetrySender,
+      final Configuration configuration)
       throws IOException
   {
     long start = System.currentTimeMillis();
@@ -215,6 +228,7 @@ public final class Report
     final int[] licenseCounts = new int[11];
 
     int insecureArtifactCount = 0;
+    boolean isALPObservedLicenseEnabled = configuration.isALPObservedLicenseDetectionEnabled();
 
     final ArrayList<int[]> securityPunchCard = new ArrayList<>();
     final ArrayList<int[]> licensePunchCard = new ArrayList<>();
@@ -236,8 +250,18 @@ public final class Report
       }
     }
 
+    LicenseDAO licenseDAO = new LicenseDAO();
+    License notSupportedLicense = licenseDAO.getById(License.NOT_SUPPORTED_ID);
+
     ComponentDAO componentDAO = new ComponentDAO(application);
     for (JsonNode licenseJsonNode : licenses.get("aaData")) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
+
+      hideObservedLicenses(componentIdentifier,
+          (ObjectNode) licenseJsonNode,
+          isALPObservedLicenseEnabled,
+          notSupportedLicense);
+
       final Component component = componentDAO.getComponent(licenseJsonNode);
       ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
       Integer threatLevel = component.getLicenseThreatLevel();
@@ -260,8 +284,9 @@ public final class Report
     for (JsonNode licenseJsonNode : partialMatched.get("aaData")) {
       final ArrayNode matchedComponentNodes = (ArrayNode) licenseJsonNode.get("matchDetails");
       for (JsonNode matchedComponentJsonNode : matchedComponentNodes) {
-        final Component matchedComponent = componentDAO.getComponent(matchedComponentJsonNode);
         ObjectNode matchedComponentNode = (ObjectNode) matchedComponentJsonNode;
+
+        final Component matchedComponent = componentDAO.getComponent(matchedComponentJsonNode);
         matchedComponentNode.put("effectiveLicenseThreat", matchedComponent.getLicenseThreatLevel());
         if (matchedComponent.isLicenseOverridden()) {
           matchedComponentNode.put("overriddenLicenseThreat", matchedComponent.getLicenseThreatLevel());
@@ -282,6 +307,38 @@ public final class Report
     saveReportEntry(reportFile, DATA_JSON_FILENAME, data);
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
+  }
+
+  @VisibleForTesting
+  static void hideObservedLicenses(ComponentIdentifier matchedComponent,
+                                              ObjectNode matchedComponentNode,
+                                              boolean isALPObservedLicenseEnabled,
+                                              License notSupportedLicense)
+  {
+    // we do no replacement for empty or only "Not-Supported" entry
+    Set<String> currentObservedLicenses = JsonUtils.getStringSetFromArray(matchedComponentNode.get("observedLicenses"));
+    if (CollectionUtils.isNotEmpty(currentObservedLicenses) &&
+        !currentObservedLicenses.equals(Collections.singleton(notSupportedLicense.getShortDisplayName()))) {
+      if (!isALPObservedLicenseEnabled && HIDDEN_OBSERVED_ECOSYSTEMS.contains(matchedComponent.getFormat())) {
+        matchedComponentNode.putArray("observedLicenses")
+            .add(notSupportedLicense.getShortDisplayName());
+        matchedComponentNode.put("hiddenObservedLicenses", true);
+
+        ArrayNode effectiveLicensesNode = matchedComponentNode.putArray("effectiveLicenses");
+        JsonNode declaredLicenses = matchedComponentNode.get("declaredLicenses");
+        if (declaredLicenses != null) {
+          for (String declaredLicense : JsonUtils.getStringSetFromArray(declaredLicenses)) {
+            effectiveLicensesNode.add(declaredLicense);
+          }
+        }
+      }
+      else {
+        matchedComponentNode.put("hiddenObservedLicenses", false);
+      }
+    }
+    else {
+      matchedComponentNode.put("hiddenObservedLicenses", false);
+    }
   }
 
   public static void updateSecurityCounts(final double severity, int[] securityCounts) {

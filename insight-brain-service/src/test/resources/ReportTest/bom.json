@@ -49,6 +49,7 @@
     "matchState" : "exact",
     "scanError" : false,
     "proprietary" : false,
+    "observedLicenses" : [ "EPL-1.0" ],
     "hash" : "87cd491f9b46e4e2aeac",
     "relativePopularity" : null,
     "createTime" : 1378066960000,

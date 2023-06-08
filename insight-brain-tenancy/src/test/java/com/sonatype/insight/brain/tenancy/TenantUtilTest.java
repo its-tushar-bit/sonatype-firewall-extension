@@ -169,4 +169,19 @@ public class TenantUtilTest
       assertThat(allTenants).containsExactly(tenant1, tenant2);
     }
   }
+
+  @Test
+  public void testValidateThrowsException_whenAllTenantJob_andNotGlobal() {
+    Tenant tenant = new Tenant("not-global");
+
+    assertThatThrownBy(() -> new TenantUtil().validateTenantForType(TestAllTenantsJob.class, tenant))
+        .isInstanceOf(TenantUtil.InvalidTenantForJobTypeException.class)
+        .hasMessage("AllTenantJob(s) cannot be created against a non-global tenant. " +
+            "Type=" + TestAllTenantsJob.class.getSimpleName() + ", Tenant=" + tenant);
+    ;
+  }
+
+  private interface TestAllTenantsJob extends AllTenantsJob
+  {
+  }
 }

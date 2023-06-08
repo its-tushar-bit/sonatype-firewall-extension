@@ -75,7 +75,7 @@ public class TenantContextJobListener
   private void registerAllTenants() {
     List<String> allTenants = tenantUtil.getAllTenants();
 
-    runForAllTenants(allTenants, "Ensure all tenants are registered before AllTenantsJob",
+    runForAllTenants(allTenants, "registerAllTenants",
         t -> {
           log.trace("Setting tenant {} for quartz job execution", t);
           try {

@@ -84,6 +84,10 @@ public class TenantUtil
     else if (!GlobalTenantJob.class.isAssignableFrom(clazz) && !TenantManaged.class.isAssignableFrom(clazz)) {
       logTenancyIssue("Class specified for tenancy validation but no validation exists: " + clazz);
     }
+    else if (AllTenantsJob.class.isAssignableFrom(clazz) && !GLOBAL_TENANT.equals(tenant)) {
+      throw new InvalidTenantForJobTypeException("AllTenantJob(s) cannot be created against a non-global tenant. " +
+          "Type=" + clazz.getSimpleName() + ", Tenant=" + tenant);
+    }
 
     return tenant;
   }
@@ -187,5 +191,12 @@ public class TenantUtil
 
   public boolean isCustomerTenantInBatchMode() {
     return isMtiqBatchMode() && !isGlobalTenant();
+  }
+
+  static class InvalidTenantForJobTypeException extends RuntimeException
+  {
+    public InvalidTenantForJobTypeException(String message) {
+      super(message);
+    }
   }
 }

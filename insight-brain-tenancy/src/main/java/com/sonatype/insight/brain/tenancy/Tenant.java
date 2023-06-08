@@ -33,16 +33,20 @@ public class Tenant
   // Database schema version of the slug
   public final String databaseSchema;
 
+  private final String createdByThreadName;
+
   private boolean valid = true;
 
   Tenant(String tenantSlug) {
     this.tenantSlug = tenantSlug;
     this.databaseSchema = setDbSchemaSlug(tenantSlug);
+    this.createdByThreadName = Thread.currentThread().getName();
   }
 
   Tenant(String tenantSlug, String databaseSchema) {
     this.tenantSlug = tenantSlug;
     this.databaseSchema = databaseSchema;
+    this.createdByThreadName = Thread.currentThread().getName();
   }
 
   private String setDbSchemaSlug(final String tenantSlug) {
@@ -68,6 +72,8 @@ public class Tenant
   public String toString() {
     return new StringJoiner(", ", Tenant.class.getSimpleName() + "[", "]")
         .add("tenantSlug='" + tenantSlug + "'")
+        .add("createdByThread='" + createdByThreadName + "'")
+        .add("valid='" + valid + "'")
         .toString();
   }
 

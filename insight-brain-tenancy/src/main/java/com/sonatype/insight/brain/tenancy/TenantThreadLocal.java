@@ -89,7 +89,8 @@ public class TenantThreadLocal
 
     // Once a tenant has been invalidated it should never be used again
     if (tenant.isInvalid()) {
-      throw new InvalidTenantOperationException("Attempting to use a tenant from a previous request/process");
+      throw new InvalidTenantOperationException(
+          "Attempting to use a tenant from a previous request/process." + tenantInfo(tenant));
     }
 
     // No need to perform further validation if this is essentially a no-op, can always re-set the current tenant or go
@@ -102,7 +103,7 @@ public class TenantThreadLocal
     // cannot be reused.
     if (!GLOBAL_TENANT.equals(currentTenant) && !currentTenant.isInvalid()) {
       throw new InvalidTenantOperationException(
-          "Cannot transition from one valid tenant to another. This is to prevent data leakage");
+          "Cannot transition from one valid tenant to another. This is to prevent data leakage." + tenantInfo(tenant));
     }
 
     // Cannot use the global tenant to transition from a valid tenant to another valid tenant. First the valid tenant
@@ -114,8 +115,17 @@ public class TenantThreadLocal
     {
       throw new InvalidTenantOperationException(
           "Cannot transition from one valid tenant to another via Global. This is to prevent " +
-              "data leakage");
+              "data leakage." + tenantInfo(tenant));
     }
+  }
+
+  private static String tenantInfo(Tenant tenant) {
+    Tenant currentTenant = tenantThreadLocal.get().current;
+    Tenant previousTenant = tenantThreadLocal.get().previous;
+
+    String format = " currentTenant=%s, previousTenant=%s, newTenant=%s";
+
+    return String.format(format, currentTenant, previousTenant, tenant);
   }
 
   /**

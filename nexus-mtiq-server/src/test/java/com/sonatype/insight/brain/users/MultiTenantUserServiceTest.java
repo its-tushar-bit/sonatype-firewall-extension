@@ -15,17 +15,21 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBrainServiceTest;
 import com.sonatype.insight.brain.service.Auth0Config;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 public class MultiTenantUserServiceTest
     extends AbstractMultiTenantBrainServiceTest
@@ -36,13 +40,15 @@ public class MultiTenantUserServiceTest
 
   private TestMultiTenantAuth0ManagementService auth0ManagementService;
 
+  private final CurrentUser currentUser = Mockito.mock(CurrentUser.class);
+
   private MtiqUserService underTest;
 
   @Before
   public void setUp() throws Exception {
     auth0ManagementService = new TestMultiTenantAuth0ManagementService();
     underTest = new MultiTenantUserService(samlUserDAO, tenantMetadataDAO,
-        auth0ManagementService);
+        auth0ManagementService, currentUser);
   }
 
   @Test
@@ -172,6 +178,17 @@ public class MultiTenantUserServiceTest
 
       assertThatThrownBy(() -> underTest.deleteByUsername("random@email.com"))
           .isInstanceOf(RuntimeException.class);
+    });
+  }
+
+  @Test
+  public void test_deletionFailsIfUserIsLoggedInUser() {
+    when(currentUser.getUsername()).thenReturn("random@email.com");
+    TenantTestHelper.testAsNewTenant(testName, tenant -> {
+      provisionTenant(tenant.tenantSlug);
+
+      assertThatThrownBy(() -> underTest.deleteByUsername("random@email.com"))
+          .isInstanceOf(BadRequestException.class);
     });
   }
 

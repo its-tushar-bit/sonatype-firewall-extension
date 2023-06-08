@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
@@ -18,12 +17,13 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-@Singleton
 public class MultiTenantUserService
     implements MtiqUserService
 {
@@ -35,14 +35,18 @@ public class MultiTenantUserService
 
   private final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public MultiTenantUserService(final SamlUserDAO samlUserDAO,
                                 final TenantMetadataDAO tenantMetadataDAO,
-                                final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService)
+                                final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService,
+                                final CurrentUser currentUser)
   {
     this.samlUserDAO = samlUserDAO;
     this.tenantMetadataDAO = tenantMetadataDAO;
     this.multiTenantAuth0ManagementService = multiTenantAuth0ManagementService;
+    this.currentUser = currentUser;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -73,6 +77,7 @@ public class MultiTenantUserService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
   public void deleteByUsername(final String username) {
+    shouldNotDeleteLoggedInUser(username);
     TenantMetadata tenantMetadata = getTenantMetadata();
 
     log.debug("Deleting Auth0 user");
@@ -81,6 +86,12 @@ public class MultiTenantUserService
     SamlUser samlUser = samlUserDAO.getByUsername(username);
     if (samlUser != null) {
       samlUserDAO.delete(samlUser);
+    }
+  }
+
+  private void shouldNotDeleteLoggedInUser(final String username) {
+    if (username.equals(currentUser.getUsername())) {
+      throw new BadRequestException("A user who is logged in cannot delete themself.");
     }
   }
 

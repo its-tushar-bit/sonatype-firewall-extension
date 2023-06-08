@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.LockModeType;
 
@@ -62,5 +63,11 @@ public class PerpetualLockDAO
   public int reservePerpetualLock(String perpetualLockId, String owner, Date expiration) {
     Date currentTime = new Date();
     return createQuery(RESERVE_QUERY, perpetualLockId, owner, expiration, currentTime).executeUpdate();
+  }
+
+  public List<PerpetualLock> getAll() {
+    Query<PerpetualLock> sQuery = createQuery("SELECT entity FROM PerpetualLock entity");
+
+    return sQuery.getList();
   }
 }

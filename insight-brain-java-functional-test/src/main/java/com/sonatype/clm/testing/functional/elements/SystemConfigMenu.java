@@ -74,6 +74,10 @@ public class SystemConfigMenu
     return child("#system-configuration-base-url");
   }
 
+  public SelenideElement samlConfiguration() {
+    return child("#system-configuration-saml");
+  }
+
   public SelenideElement dataInsights() {
     return child("#system-labs-data-insights");
   }

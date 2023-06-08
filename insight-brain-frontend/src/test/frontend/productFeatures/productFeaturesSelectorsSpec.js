@@ -227,7 +227,7 @@ describe('productFeaturesSelectors', () => {
 
   describe('selectIsBaseUrlConfigurationEnabled', () => {
     it('returns false in multi-tenant mode', () => {
-      mockState.productFeatures.productFeatures['single-tenant'] = false;
+      mockState.productFeatures.productFeatures['multi-tenant'] = true;
       expect(selectIsBaseUrlConfigurationEnabled(mockState)).toBeFalse();
     });
 

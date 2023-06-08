@@ -27,7 +27,6 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 
 public class SystemConfigurationMenuTest
     extends AbstractFunctionalTest
@@ -79,6 +78,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
     systemConfigMenu.baseUrlConfiguration().shouldBe(visible);
+    systemConfigMenu.samlConfiguration().shouldBe(visible);
   }
 
   @Test
@@ -104,6 +104,7 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
     systemConfigMenu.baseUrlConfiguration().shouldBe(visible);
+    systemConfigMenu.samlConfiguration().shouldBe(visible);
     eyesWatcher.eyesCheck();
   }
 
@@ -183,16 +184,5 @@ public class SystemConfigurationMenuTest
     webhookConfigurationPage.shouldNotBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
-  }
-
-  @Test
-  public void testProductFeatureAwareness_NoBaseUrlConfigurationForMultiTenant() {
-    testAsNewTenant(testName, t1 -> {
-      refreshOrOpen(ReportListPage.url());
-      loginAsAdmin();
-
-      systemConfigMenu.shouldBe(visible);
-      systemConfigMenu.baseUrlConfiguration().shouldBe(hidden);
-    });
   }
 }

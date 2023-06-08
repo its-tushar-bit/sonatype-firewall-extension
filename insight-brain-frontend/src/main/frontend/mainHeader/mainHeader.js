@@ -22,6 +22,7 @@ import {
   selectIsShowNotificationMenuEnabled,
   selectIsBaseUrlConfigurationEnabled,
   selectIsMonitoringSupported,
+  selectTenantMode,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
@@ -101,6 +102,7 @@ export const mapStateToThis = (state) => ({
   isAdvancedSearchConfigurationEnabled: selectIsAdvancedSearchConfigurationEnabled(state),
   isShowNotificationMenuEnabled: selectIsShowNotificationMenuEnabled(state),
   isBaseUrlConfigurationEnabled: selectIsBaseUrlConfigurationEnabled(state),
+  isSamlConfigurationEnabled: selectTenantMode(state) === 'single-tenant',
   isMonitoringSupported: selectIsMonitoringSupported(state),
 });
 

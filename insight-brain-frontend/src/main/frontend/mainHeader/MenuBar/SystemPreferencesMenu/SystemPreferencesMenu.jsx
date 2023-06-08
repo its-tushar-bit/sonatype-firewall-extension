@@ -24,6 +24,7 @@ export const SystemPreferencesMenu = ({
   isAutomaticScmConfigurationEnabled = false,
   isAdvancedSearchConfigurationEnabled = false,
   isBaseUrlConfigurationEnabled = false,
+  isSamlConfigurationEnabled = false,
   isMonitoringSupported = false,
 }) => {
   const {
@@ -59,7 +60,7 @@ export const SystemPreferencesMenu = ({
       >
         LDAP
       </NavLink>
-      <NavLink stateName="saml" showIf={CONFIGURE_SYSTEM}>
+      <NavLink stateName="saml" id="system-configuration-saml" showIf={CONFIGURE_SYSTEM && isSamlConfigurationEnabled}>
         SAML
       </NavLink>
       <NavLink
@@ -169,6 +170,7 @@ SystemPreferencesMenu.propTypes = {
   isAdvancedSearchConfigurationEnabled: PropTypes.bool,
   isBaseUrlConfigurationEnabled: PropTypes.bool,
   isMonitoringSupported: PropTypes.bool,
+  isSamlConfigurationEnabled: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

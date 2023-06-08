@@ -82,7 +82,7 @@ describe('sourceControlRateLimitsSliceReducer', () => {
       expect(newState.serverData.userRateLimits[0].rateLimits[1].timeUntilReset).toEqual(
         moment(newState.serverData.userRateLimits[0].rateLimits[1].resetEpochTime * 1000).from(now, true)
       );
-      expect(newState.lastUpdated).toEqual(new Date(now));
+      expect(newState.lastUpdated.toString()).toEqual(new Date(now).toString());
     });
   });
 

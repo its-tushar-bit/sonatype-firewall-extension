@@ -23,6 +23,7 @@ import {
   CREATE_USER_SAVE_FULFILLED,
   CREATE_USER_SAVE_FAILED,
   USER_FORM_SUBMIT_MASK_TIMER_DONE,
+  USER_FORM_DELETE_MASK_TIMER_DONE,
   USER_SET_FIRST_NAME,
   USER_SET_LAST_NAME,
   USER_SET_EMAIL,
@@ -328,6 +329,7 @@ const reducerActionMap = {
   [USER_LIST_LOAD_FULFILLED]: loadFulfilled,
   [USER_LIST_LOAD_FAILED]: loadFailed,
   [USER_FORM_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
+  [USER_FORM_DELETE_MASK_TIMER_DONE]: propSetConst('deleteMaskState', null),
   [USER_RESET_FORM]: always(initialState),
 };
 

@@ -14,10 +14,10 @@ import {
 } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
-import { MODAL_MODES } from './modals/modalModes';
-import DeleteModal from './modals/DeleteModal';
-import ResetPasswordModal from './modals/ResetPasswordModal';
-import CopyToClipboard from './modals/CopyToClipboard';
+import { MODAL_MODES } from '../modals/modalModes';
+import DeleteModal from '../modals/DeleteModal';
+import ResetPasswordModal from '../modals/ResetPasswordModal';
+import CopyToClipboard from '../modals/CopyToClipboard';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 
 const getValidationMessage = ({ isDirty, validationError }) => {
@@ -77,7 +77,12 @@ export default function UserEdit({
   function getModal() {
     switch (mode) {
       case MODAL_MODES.DELETE:
-        return <DeleteModal {...{ userId, username, deleteUser, deleteError, deleteMaskState, setMode }} />;
+        return (
+          <DeleteModal
+            {...{ userId, username, deleteUser, deleteError, deleteMaskState }}
+            onCancel={() => setMode(MODAL_MODES.DEFAULT)}
+          />
+        );
       case MODAL_MODES.RESET:
         return <ResetPasswordModal {...{ userId, username, resetPassword, resetError, resetMaskState, setMode }} />;
       case MODAL_MODES.COPY_TO_CLIPBOARD:

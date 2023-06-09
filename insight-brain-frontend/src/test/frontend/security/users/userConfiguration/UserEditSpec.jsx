@@ -7,9 +7,9 @@ import { NxStatefulForm, nxTextInputStateHelpers } from '@sonatype/react-shared-
 import * as enzymeUtils from '../../../enzymeUtils';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import UserEdit from 'MainRoot/security/users/userConfiguration/UserEdit';
-import DeleteModal from 'MainRoot/security/users/userConfiguration/modals/DeleteModal';
-import ResetPasswordModal from 'MainRoot/security/users/userConfiguration/modals/ResetPasswordModal';
-import CopyToClipboard from 'MainRoot/security/users/userConfiguration/modals/CopyToClipboard';
+import DeleteModal from 'MainRoot/security/users/modals/DeleteModal';
+import ResetPasswordModal from 'MainRoot/security/users/modals/ResetPasswordModal';
+import CopyToClipboard from 'MainRoot/security/users/modals/CopyToClipboard';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;

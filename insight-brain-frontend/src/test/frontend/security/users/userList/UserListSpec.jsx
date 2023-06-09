@@ -49,6 +49,29 @@ describe('UserList', () => {
 
       expect(userItems.length).toBe(2);
     });
+
+    it('sets the UserListItems as editable if the tenantMode is not multi-tenant', function () {
+      const defaultComponent = getShallowComponent(),
+        defaultUserItems = defaultComponent.find(UserListItem);
+
+      defaultUserItems.forEach((item) => {
+        expect(item).toHaveProp('editable', true);
+      });
+
+      const singleTenantComponent = getShallowComponent({ tenantMode: 'single-tenant' }),
+        singleTenantUserItems = singleTenantComponent.find(UserListItem);
+
+      singleTenantUserItems.forEach((item) => {
+        expect(item).toHaveProp('editable', true);
+      });
+
+      const multiTenantComponent = getShallowComponent({ tenantMode: 'multi-tenant' }),
+        multiTenantUserItems = multiTenantComponent.find(UserListItem);
+
+      multiTenantUserItems.forEach((item) => {
+        expect(item).toHaveProp('editable', false);
+      });
+    });
   });
 
   describe('on initial load', () => {

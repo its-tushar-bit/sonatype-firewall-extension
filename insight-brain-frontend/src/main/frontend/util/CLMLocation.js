@@ -831,6 +831,10 @@ export function getUserByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}`;
 }
 
+export function getMultiTenantUserByIdUrl(userId) {
+  return uriTemplate`/rest/mtiqUser/${userId}`;
+}
+
 export function getFindUsersUrl(query) {
   return uriTemplate`/rest/user/global/global/query?q=${query}`;
 }

@@ -10,6 +10,7 @@ import {
   getUserUrl,
   getMultiTenantUserUrl,
   getUserByIdUrl,
+  getMultiTenantUserByIdUrl,
   getUserResetPasswordByIdUrl,
   getSessionUrl,
 } from '../../../../main/frontend/util/CLMLocation';
@@ -21,6 +22,7 @@ import {
   CREATE_USER_SAVE_FULFILLED,
   CREATE_USER_SAVE_FAILED,
   USER_FORM_SUBMIT_MASK_TIMER_DONE,
+  USER_FORM_DELETE_MASK_TIMER_DONE,
   EDIT_USER_LOAD_REQUESTED,
   EDIT_USER_LOAD_FAILED,
   EDIT_USER_LOAD_FULFILLED,
@@ -38,6 +40,7 @@ import {
   USER_LIST_LOAD_FULFILLED,
 } from '../../../../main/frontend/security/users/usersActions';
 import { STATE_GO } from '../../../../main/frontend/reduxUiRouter/routerActions';
+import { mergeDeepRight } from 'ramda';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -464,49 +467,106 @@ describe('usersActions', () => {
   describe('deleteUser', () => {
     let store;
 
-    beforeEach(() => {
-      const state = {
-        selectedUserServerData: {
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john@doe.com',
-          id: '201',
-          password: '#~FAKE~PASSWORD~#',
-          username: 'johnDoe',
-          usernameLowercase: 'johndoe',
-        },
-        inputFields: {
-          firstName: initUserInput('Jane'),
-          lastName: initUserInput('Doe'),
-          email: initUserInput('jane@doe.com'),
-        },
-      };
+    const initialState = {
+      selectedUserServerData: {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@doe.com',
+        id: '201',
+        password: '#~FAKE~PASSWORD~#',
+        username: 'johnDoe',
+        usernameLowercase: 'johndoe',
+      },
+      inputFields: {
+        firstName: initUserInput('Jane'),
+        lastName: initUserInput('Doe'),
+        email: initUserInput('jane@doe.com'),
+      },
+    };
 
-      store = SpecUtil.mockReduxStore({ userConfiguration: state });
+    beforeEach(() => {
+      store = SpecUtil.mockReduxStore({ userConfiguration: initialState });
     });
 
-    it('fires DELETE_USER_REQUESTED, DELETE_USER_FULFILLED, USER_FORM_SUBMIT_MASK_TIMER_DONE and STATE_GO actions on success', (done) => {
+    it(
+      'fires DELETE_USER_REQUESTED, DELETE_USER_FULFILLED, USER_FORM_DELETE_MASK_TIMER_DONE and STATE_GO actions ' +
+        'on success',
+      (done) => {
+        mockAxiosCalls({
+          del: {
+            // not called in this case
+            [getMultiTenantUserByIdUrl('201')]: () => {
+              throw new Error();
+            },
+            [getUserByIdUrl('201')]: Promise.resolve({ data: 'success' }),
+          },
+        });
+        jasmine.clock().install();
+
+        store.dispatch(deleteUser('201')).then(() => {
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          expect(store.getActions()).toHaveActionsInOrder([
+            { type: DELETE_USER_REQUESTED },
+            { type: DELETE_USER_FULFILLED },
+            { type: USER_FORM_DELETE_MASK_TIMER_DONE },
+            {
+              type: STATE_GO,
+              payload: {
+                to: 'users',
+                params: undefined,
+                options: { reload: true },
+              },
+            },
+          ]);
+          done();
+        });
+      }
+    );
+
+    it('calls the mtiqUser delete URL when "multi-tenant" is present in the product features', (done) => {
+      const store = SpecUtil.mockReduxStore({
+        productFeatures: {
+          productFeatures: {
+            'multi-tenant': true,
+          },
+        },
+
+        // for MTIQ realism, use email as username and id
+        userConfiguration: mergeDeepRight(initialState, {
+          selectedUserServerData: {
+            id: 'john@doe.com',
+            username: 'john@doe.com',
+          },
+        }),
+      });
+
       mockAxiosCalls({
         del: {
-          [getUserByIdUrl('201')]: Promise.resolve({ data: 'success' }),
+          // not called in this case
+          [getUserByIdUrl('john@doe.com')]: () => {
+            throw new Error();
+          },
+          [getMultiTenantUserByIdUrl('john@doe.com')]: Promise.resolve({ data: 'success' }),
         },
       });
       jasmine.clock().install();
 
-      store.dispatch(deleteUser('201')).then(() => {
+      store.dispatch(deleteUser('john@doe.com')).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         jasmine.clock().uninstall();
 
         expect(store.getActions()).toHaveActionsInOrder([
           { type: DELETE_USER_REQUESTED },
           { type: DELETE_USER_FULFILLED },
-          { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+          { type: USER_FORM_DELETE_MASK_TIMER_DONE },
           {
             type: STATE_GO,
             payload: {
               to: 'users',
               params: undefined,
-              options: undefined,
+              options: { reload: true },
             },
           },
         ]);
@@ -528,6 +588,43 @@ describe('usersActions', () => {
         ]);
         done();
       });
+    });
+
+    it('fetches the product features if needed', async () => {
+      const store = SpecUtil.mockReduxStore({
+        productFeatures: {
+          productFeatures: {
+            'multi-tenant': true,
+          },
+        },
+
+        // for MTIQ realism, use email as username and id
+        userConfiguration: mergeDeepRight(initialState, {
+          selectedUserServerData: {
+            id: 'john@doe.com',
+            username: 'john@doe.com',
+          },
+        }),
+      });
+
+      mockAxiosCalls({
+        get: {
+          [productFeaturesUrl]: Promise.resolve({ data: [] }),
+        },
+        del: {
+          [getMultiTenantUserByIdUrl('john@doe.com')]: Promise.resolve({ data: 'success' }),
+        },
+      });
+
+      await store.dispatch(deleteUser('john@doe.com'));
+      const actions = store.getActions();
+
+      expect(actions).toContain(
+        jasmine.objectContaining({ type: 'productFeatures/fetchProductFeaturesIfNeeded/pending' })
+      );
+      expect(actions).toContain(
+        jasmine.objectContaining({ type: 'productFeatures/fetchProductFeaturesIfNeeded/fulfilled' })
+      );
     });
   });
 

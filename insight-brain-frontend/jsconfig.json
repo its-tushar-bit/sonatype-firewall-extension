@@ -6,6 +6,7 @@
 {
   "compilerOptions": {
     "checkJs": true,
+    "jsx": "react",
     "baseUrl": ".",
     "paths": {
       "MainRoot/*": ["./src/main/frontend/*"],

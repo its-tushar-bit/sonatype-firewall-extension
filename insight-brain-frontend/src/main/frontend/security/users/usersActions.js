@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { compose, mapObjIndexed, prop, pick, find } from 'ramda';
+import { compose, mapObjIndexed, prop, pick, find, map } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { Messages } from '../../utilAngular/CommonServices';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
@@ -13,6 +13,7 @@ import {
   getUserUrl,
   getMultiTenantUserUrl,
   getUserByIdUrl,
+  getMultiTenantUserByIdUrl,
   getUserResetPasswordByIdUrl,
   getSessionUrl,
 } from '../../util/CLMLocation';
@@ -65,6 +66,7 @@ export const CREATE_USER_SAVE_FULFILLED = 'CREATE_USER_SAVE_FULFILLED';
 export const CREATE_USER_SAVE_FAILED = 'CREATE_USER_SAVE_FAILED';
 
 export const USER_FORM_SUBMIT_MASK_TIMER_DONE = 'USER_FORM_SUBMIT_MASK_TIMER_DONE';
+export const USER_FORM_DELETE_MASK_TIMER_DONE = 'USER_FORM_DELETE_MASK_TIMER_DONE';
 
 const saveRequested = noPayloadActionCreator(CREATE_USER_SAVE_REQUESTED);
 const saveFulfilled = noPayloadActionCreator(CREATE_USER_SAVE_FULFILLED);
@@ -74,6 +76,13 @@ function startSubmitMaskSuccessTimer(dispatch) {
   setTimeout(() => {
     dispatch({ type: USER_FORM_SUBMIT_MASK_TIMER_DONE });
     dispatch(stateGo('users'));
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
+function startDeleteMaskSuccessTimer(dispatch) {
+  setTimeout(() => {
+    dispatch({ type: USER_FORM_DELETE_MASK_TIMER_DONE });
+    dispatch(stateGo('users', undefined, { reload: true }));
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
@@ -170,16 +179,22 @@ const deleteFulfilled = noPayloadActionCreator(DELETE_USER_FULFILLED);
 const deleteFailed = payloadParamActionCreator(DELETE_USER_FAILED);
 
 export function deleteUser(userId) {
-  return (dispatch) => {
+  return async (dispatch, getState) => {
     dispatch(deleteRequested());
 
-    return axios
-      .delete(getUserByIdUrl(userId))
-      .then(() => {
-        dispatch(deleteFulfilled());
-        startSubmitMaskSuccessTimer(dispatch);
-      })
-      .catch(compose(dispatch, deleteFailed, Messages.getHttpErrorMessage));
+    try {
+      await dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
+
+      const tenantMode = selectTenantMode(getState()),
+        urlFn = tenantMode === 'multi-tenant' ? getMultiTenantUserByIdUrl : getUserByIdUrl;
+
+      await axios.delete(urlFn(userId));
+
+      dispatch(deleteFulfilled());
+      startDeleteMaskSuccessTimer(dispatch);
+    } catch (e) {
+      dispatch(deleteFailed(Messages.getHttpErrorMessage(e)));
+    }
   };
 }
 
@@ -228,13 +243,23 @@ export function loadListPage() {
       await dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
 
       const tenantMode = selectTenantMode(getState()),
-        usersUrl = tenantMode === 'multi-tenant' ? getMultiTenantUserUrl() : getUserUrl();
+        usersPromise = tenantMode === 'multi-tenant' ? fetchMtiqUsers() : fetchOnPremUsers();
 
-      const [{ data: users }, { data: session }] = await Promise.all([axios.get(usersUrl), axios.get(getSessionUrl())]);
+      const [users, { data: session }] = await Promise.all([usersPromise, axios.get(getSessionUrl())]);
 
       dispatch(loadListFulfilled({ users, currentUsername: session.username }));
     } catch (e) {
       dispatch(loadListFailed(Messages.getHttpErrorMessage(e)));
     }
   };
+}
+
+async function fetchOnPremUsers() {
+  const response = await axios.get(getUserUrl());
+  return response.data;
+}
+
+async function fetchMtiqUsers() {
+  const response = await axios.get(getMultiTenantUserUrl());
+  return map((user) => ({ ...user, id: user.username }), response.data);
 }

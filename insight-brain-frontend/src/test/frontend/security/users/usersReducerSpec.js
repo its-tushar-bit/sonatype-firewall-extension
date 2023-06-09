@@ -13,6 +13,7 @@ import {
   CREATE_USER_SAVE_FULFILLED,
   CREATE_USER_SAVE_FAILED,
   USER_FORM_SUBMIT_MASK_TIMER_DONE,
+  USER_FORM_DELETE_MASK_TIMER_DONE,
   USER_SET_FIRST_NAME,
   USER_SET_LAST_NAME,
   USER_SET_EMAIL,
@@ -191,6 +192,20 @@ describe('usersReducer', () => {
       const { submitMaskState, other } = reduce(state, { type: USER_FORM_SUBMIT_MASK_TIMER_DONE });
 
       expect(submitMaskState).toBe(null);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${USER_FORM_DELETE_MASK_TIMER_DONE} action`, () => {
+    it('resets deleteMaskState', () => {
+      const state = {
+        deleteMaskState: true,
+        other: otherObject,
+      };
+
+      const { deleteMaskState, other } = reduce(state, { type: USER_FORM_DELETE_MASK_TIMER_DONE });
+
+      expect(deleteMaskState).toBe(null);
       expect(other).toBe(otherObject);
     });
   });

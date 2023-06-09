@@ -3,36 +3,69 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
-import { useRouterState } from '../../../react/RouterStateContext';
+import { NxButton, NxFontAwesomeIcon, NxList } from '@sonatype/react-shared-components';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
-export default function UserListItem({ user, currentUsername }) {
-  const { id, username, firstName, lastName } = user;
-  const history = useRouterState();
+import { useRouterState } from '../../../react/RouterStateContext';
+import DeleteModal from '../modals/DeleteModal';
+
+export default function UserListItem({ user, currentUsername, editable, deleteUser, deleteError, deleteMaskState }) {
+  const { id: userId, username, firstName, lastName } = user;
   const isCurrentUser = currentUsername === username;
 
+  const history = useRouterState();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const ListItem = editable ? NxList.LinkItem : NxList.Item;
+  const listItemProps = editable ? { href: history.href('editUser', { userId }) } : null;
+
   return (
-    <li className="nx-list__item nx-list__item--link" tabIndex={0}>
-      <a className="nx-list__link" href={history.href('editUser', { userId: id })}>
-        <span className="nx-list__text">
-          {username} ({firstName} {lastName}){' '}
-          {isCurrentUser && <span className="iq-user-list-item-current">Current User</span>}
-        </span>
-        <NxFontAwesomeIcon icon={faAngleRight} className="nx-chevron" />
-      </a>
-    </li>
+    <ListItem {...listItemProps}>
+      <NxList.Text>
+        {username} ({firstName} {lastName})
+        {isCurrentUser && (
+          <>
+            {' '}
+            <span className="iq-user-list-item-current">Current User</span>
+          </>
+        )}
+      </NxList.Text>
+      {!editable && (
+        <>
+          <NxList.Actions>
+            <NxButton
+              variant="icon-only"
+              className={isCurrentUser ? 'disabled' : undefined}
+              onClick={isCurrentUser ? undefined : () => setShowDeleteModal(true)}
+              title={isCurrentUser ? 'Current user cannot be deleted' : 'Delete user'}
+            >
+              <NxFontAwesomeIcon icon={faTrashAlt} />
+            </NxButton>
+          </NxList.Actions>
+          {showDeleteModal && (
+            <DeleteModal
+              {...{ userId, username, deleteUser, deleteError, deleteMaskState }}
+              onCancel={() => setShowDeleteModal(false)}
+            />
+          )}
+        </>
+      )}
+    </ListItem>
   );
 }
 
 UserListItem.propTypes = {
   currentUsername: PropTypes.string,
   user: PropTypes.shape({
-    id: PropTypes.string.isRequired,
+    id: PropTypes.string,
     username: PropTypes.string.isRequired,
     firstName: PropTypes.string.isRequired,
     lastName: PropTypes.string.isRequired,
   }).isRequired,
+  editable: PropTypes.bool.isRequired,
+  deleteUser: PropTypes.func.isRequired,
+  deleteError: PropTypes.string,
+  deleteMaskState: PropTypes.bool,
 };

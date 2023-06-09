@@ -5,7 +5,7 @@
  */
 import { NxStatefulForm, NxModal } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../../enzymeUtils';
-import CopyToClipboard from '../../../../../../main/frontend/security/users/userConfiguration/modals/CopyToClipboard';
+import CopyToClipboard from 'MainRoot/security/users/modals/CopyToClipboard';
 
 describe('User CopyToClipboard', () => {
   let getShallowComponent, containerModal;

@@ -5,12 +5,25 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxList } from '@sonatype/react-shared-components';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import LoadWrapper from '../../../react/LoadWrapper';
 import UserListItem from './UserListItem';
 
-export default function UserList({ stateGo, loadListPage, users, loading, loadError, currentUsername }) {
+export default function UserList(props) {
+  const {
+    stateGo,
+    loadListPage,
+    deleteUser,
+    users,
+    loading,
+    loadError,
+    deleteError,
+    deleteMaskState,
+    currentUsername,
+    tenantMode,
+  } = props;
+
   useEffect(() => {
     loadListPage();
   }, []);
@@ -38,11 +51,17 @@ export default function UserList({ stateGo, loadListPage, users, loading, loadEr
             </div>
           </header>
           <div className="nx-tile-content">
-            <ul className="nx-list nx-list--clickable">
+            <NxList emptyMessage="There are no users configured. Click the Invite button to add more users.">
               {users.map((user) => (
-                <UserListItem user={user} key={user.id} currentUsername={currentUsername} />
+                <UserListItem
+                  key={user.id}
+                  user={user}
+                  currentUsername={currentUsername}
+                  editable={tenantMode !== 'multi-tenant'}
+                  {...{ deleteUser, deleteError, deleteMaskState }}
+                />
               ))}
-            </ul>
+            </NxList>
           </div>
         </section>
       </LoadWrapper>
@@ -56,6 +75,7 @@ UserList.propTypes = {
   loadError: PropTypes.string,
   currentUsername: PropTypes.string,
   loading: PropTypes.bool,
+  tenantMode: PropTypes.string,
   users: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
@@ -64,4 +84,7 @@ UserList.propTypes = {
       lastName: PropTypes.string.isRequired,
     })
   ),
+  deleteUser: PropTypes.func.isRequired,
+  deleteError: PropTypes.string,
+  deleteMaskState: PropTypes.bool,
 };

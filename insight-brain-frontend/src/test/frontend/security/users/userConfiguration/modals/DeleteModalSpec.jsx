@@ -5,18 +5,17 @@
  */
 import { NxStatefulForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../../enzymeUtils';
-import DeleteModal from '../../../../../../main/frontend/security/users/userConfiguration/modals/DeleteModal';
+import DeleteModal from 'MainRoot/security/users/modals/DeleteModal';
 
 describe('User DeleteModal', () => {
   let getShallowComponent, containerModal;
   const deleteUserMock = jasmine.createSpy('deleteUser');
-  const setModeMock = jasmine.createSpy('setMode');
 
   const minimalProps = {
     username: 'Aragorn',
     userId: '325sdf',
     deleteUser: deleteUserMock,
-    setMode: setModeMock,
+    onCancel: () => {},
     deleteError: null,
   };
 
@@ -45,11 +44,15 @@ describe('User DeleteModal', () => {
     expect(deleteUserMock).toHaveBeenCalledWith(minimalProps.userId);
   });
 
-  it('calls setMode with DEFAULT mode when canceled', () => {
-    const modal = getShallowComponent().find(NxStatefulForm);
+  it('calls onCancel when canceled', () => {
+    const onCancel = jasmine.createSpy('onCancel'),
+      modal = getShallowComponent({ onCancel }).find(NxStatefulForm);
+
+    expect(onCancel).not.toHaveBeenCalled();
+
     modal.simulate('cancel');
 
-    expect(setModeMock).toHaveBeenCalledWith('');
+    expect(onCancel).toHaveBeenCalled();
   });
 
   it('renders delete alert message', () => {

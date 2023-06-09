@@ -5,7 +5,7 @@
  */
 import { NxStatefulForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../../enzymeUtils';
-import ResetPasswordModal from '../../../../../../main/frontend/security/users/userConfiguration/modals/ResetPasswordModal';
+import ResetPasswordModal from 'MainRoot/security/users/modals/ResetPasswordModal';
 
 describe('User ResetPasswordModal', () => {
   let getShallowComponent, containerModal;

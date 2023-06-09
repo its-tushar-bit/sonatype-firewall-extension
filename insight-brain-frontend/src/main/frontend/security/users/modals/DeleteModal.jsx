@@ -7,16 +7,15 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxStatefulForm, NxFontAwesomeIcon, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
-import { MODAL_MODES } from './modalModes';
 
-export default function DeleteModal({ userId, username, deleteUser, deleteError, deleteMaskState, setMode }) {
+export default function DeleteModal({ userId, username, deleteUser, deleteError, deleteMaskState, onCancel }) {
   return (
-    <NxModal onClose={() => setMode(MODAL_MODES.DEFAULT)} variant="narrow" id="delete-user-modal">
+    <NxModal onCancel={onCancel} variant="narrow" id="delete-user-modal">
       <NxStatefulForm
         className="nx-form"
         onSubmit={() => deleteUser(userId)}
         submitMaskState={deleteMaskState}
-        onCancel={() => setMode(MODAL_MODES.DEFAULT)}
+        onCancel={onCancel}
         submitBtnText="Continue"
         submitError={deleteError}
       >
@@ -35,7 +34,7 @@ export default function DeleteModal({ userId, username, deleteUser, deleteError,
 }
 
 DeleteModal.propTypes = {
-  setMode: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
   userId: PropTypes.string,
   username: PropTypes.string.isRequired,
   deleteError: PropTypes.string,

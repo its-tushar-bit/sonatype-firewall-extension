@@ -6,15 +6,20 @@
 package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper.ConsumerWithException;
 
 import org.junit.BeforeClass;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ENABLE_SSO_ONLY;
+
 public class AbstractMultiTenantBrainServiceTest
     extends AbstractBrainServiceTest
 {
+  private final SystemConfigurationPropertyDAO configurationPropertyDAO = new SystemConfigurationPropertyDAO();
+
   /**
    * beforeAllTests initializes MultiTenantBrainServiceTestHelper this sets up AbstractBrainServiceTest
    * ready for use with MTIQ registering before, after and afterClass handlers.
@@ -25,13 +30,25 @@ public class AbstractMultiTenantBrainServiceTest
   }
 
   /**
+   * afterDatabaseReset performs further TemporaryEntity cleanup action after TemporaryEntity has reset the database
+   */
+  @Override
+  protected void afterDatabaseReset() {
+    // Reset Global tenant temp entity system props
+    configurationPropertyDAO.set(ENABLE_SSO_ONLY, Boolean.toString(true));
+  }
+
+  /**
    * getTestTenant returns the pre provisioned tenant ready for use in test
    */
   protected static Tenant getTestTenant() {
     return MultiTenantBrainServiceTestHelper.getTestTenant();
   }
 
-  protected static void testAsTenant(ConsumerWithException<Tenant> test) {
+  /**
+   * testAsTestTenant run the test as the current the pre provisioned tenant
+   */
+  protected static void testAsTestTenant(ConsumerWithException<Tenant> test) {
     TenantTestHelper.testAs(getTestTenant(), test);
   }
 

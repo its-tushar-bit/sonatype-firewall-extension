@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service.banning;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -59,6 +60,8 @@ public class MTIQFeatureService
   public static final Set<Feature> ENABLED_FEATURES = Stream.concat(ImmutableSet.of(
               DASHBOARD_CAN_BE_ENABLED,
               MULTI_TENANT,
+              ENABLE_SSO_ONLY,
+              ENABLE_MANAGED_IDP_SSO,
               LOGOUT_AUTH0_ON_LOGOUT,
               WEBHOOK_CONFIGURATION,
               ADVANCED_SEARCH_CONFIGURATION,
@@ -68,8 +71,7 @@ public class MTIQFeatureService
               PR_LINE_COMMENTING,
               EMAIL_CONFIGURATION,
               REPORTS_LIST_CAN_BE_ENABLED,
-              REPORTS_LIST,
-              ENABLE_SSO_ONLY).stream(),
+              REPORTS_LIST).stream(),
 
           // Add all LicensedFeatures.
           // This is an allow list, whether they are enabled or not depends on the License used.
@@ -78,6 +80,13 @@ public class MTIQFeatureService
               .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS)))
 
       .collect(toSet());
+
+  /**
+   * This is the list of features that are always enabled in MTIQ.
+   */
+  private static final List<SystemConfigurationPropertyFeature> MTIQ_FEATURES = Arrays.asList(
+      ENABLE_SSO_ONLY,
+      LOGOUT_AUTH0_ON_LOGOUT);
 
   private final ApiConfigFeaturesService service;
 
@@ -142,12 +151,6 @@ public class MTIQFeatureService
         .anyMatch(id -> id.equals(feature));
   }
 
-  private boolean enabledFeaturesContainsFeatureWithName(String feature) {
-    return ENABLED_FEATURES.stream()
-        .map(Feature::name)
-        .anyMatch(name -> name.equals(feature));
-  }
-
   @Override
   public void register() {
     for (SystemConfigurationPropertyFeature feature : SystemConfigurationPropertyFeature.values()) {
@@ -176,19 +179,14 @@ public class MTIQFeatureService
   }
 
   private void set(String key, boolean value) {
-    if (!enabledFeaturesContainsFeatureWithName(key)) {
-      String operation = value ? "Enabling" : "Disabling";
-      log.info("{} user configurable feature {} for tenant {}", operation, key, getTenant());
-      systemConfigurationPropertyDAO.set(key, Boolean.toString(value));
-    }
-    else {
-      log.trace("Unable to modify the feature {} as it is already enabled", key);
-    }
+    String operation = value ? "Enabling" : "Disabling";
+    log.info("{} user configurable feature {} for tenant {}", operation, key, getTenant());
+    systemConfigurationPropertyDAO.set(key, Boolean.toString(value));
   }
 
   private void toggleFeature(SystemConfigurationPropertyFeature feature) {
     try {
-      if (ENABLED_FEATURES.contains(feature)) {
+      if (ENABLED_FEATURES.contains(feature) && (feature.isEnabled() || MTIQ_FEATURES.contains(feature))) {
         log.info("Enabling feature {} for tenant {}", feature.getPropertyName(), getTenant());
 
         service.enableFeatureNoAuthz(feature.getPropertyName());

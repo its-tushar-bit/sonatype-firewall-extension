@@ -91,7 +91,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId()
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
+        SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId()
     );
   }
 
@@ -114,7 +115,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId()
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
+        SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId()
     );
   }
 
@@ -123,7 +125,7 @@ public class ConfigFeaturesResourceTest
     testAsGlobal(global -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
-    testAsTenant(tenant -> {
+    testAsTestTenant(tenant -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
@@ -135,7 +137,7 @@ public class ConfigFeaturesResourceTest
     testAsGlobal(global -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
-    testAsTenant(tenant -> {
+    testAsTestTenant(tenant -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
@@ -148,7 +150,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId()
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
+        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
     };
 
     response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug).get();
@@ -164,7 +167,7 @@ public class ConfigFeaturesResourceTest
 
   @Test
   public void testDeleteFeature_asTenant() throws Exception {
-    testAsTenant(tenant -> {
+    testAsTestTenant(tenant -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
@@ -172,7 +175,7 @@ public class ConfigFeaturesResourceTest
         .path("dashboard").delete();
     assertResponseStatus(204, response);
 
-    testAsTenant(tenant -> {
+    testAsTestTenant(tenant -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
@@ -214,7 +217,7 @@ public class ConfigFeaturesResourceTest
     testAsGlobal(global -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
-    testAsTenant(tenant -> {
+    testAsTestTenant(tenant -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
@@ -226,7 +229,7 @@ public class ConfigFeaturesResourceTest
     testAsGlobal(global -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
-    testAsTenant(tenant -> {
+    testAsTestTenant(tenant -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 
@@ -243,7 +246,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId()
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
+        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
     );
 
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
@@ -271,7 +275,7 @@ public class ConfigFeaturesResourceTest
         .delete();
     assertResponseStatus(204, response);
 
-    testAsTenant(tenant -> {
+    testAsTestTenant(tenant -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
@@ -280,7 +284,7 @@ public class ConfigFeaturesResourceTest
         .post();
     assertResponseStatus(204, response);
 
-    testAsTenant(tenant -> {
+    testAsTestTenant(tenant -> {
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNull();
     });
 

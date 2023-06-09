@@ -138,6 +138,7 @@ public class ApiConfigFeaturesService
         return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
       }
     },
+
     API_PAGE(SystemConfigurationProperty.API_PAGE, false),
     SCAN_POM_FILES_IN_META_INF_DIRECTORY(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY, false),
 
@@ -163,9 +164,14 @@ public class ApiConfigFeaturesService
     LOGOUT_AUTH0_ON_LOGOUT(SystemConfigurationProperty.LOGOUT_AUTH0_ON_LOGOUT, false, false),
 
     /**
+     * If configured the UI will show the Sonatype managed IDP Auth0 user management pages
+     */
+    ENABLE_MANAGED_IDP_SSO(SystemConfigurationProperty.ENABLE_MANAGED_IDP_SSO, false, false),
+    /**
      * If enabled SBOMs can be exported in the SPDX format as well
      */
     SPDX_EXPORT(SystemConfigurationProperty.SPDX_EXPORT, false, false);
+
 
     private final String propertyName;
 

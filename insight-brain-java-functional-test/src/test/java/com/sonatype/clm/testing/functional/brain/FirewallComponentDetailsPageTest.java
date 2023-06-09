@@ -35,6 +35,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
@@ -53,6 +54,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTableRow;
+import com.sonatype.clm.testing.functional.pages.CustomizeVulnerabilityDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
@@ -97,6 +99,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -3224,5 +3227,55 @@ public class FirewallComponentDetailsPageTest
     waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
     waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
     waiversForViolationPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+  }
+
+  @Test
+  public void testSecurityTabLoadByTabClick_customizeButton() {
+    String vulnerabilityId = "sonatype-2017-0507";
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+
+    mockHdsResponsesForVulnerabilityDetails();
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    waitUntilSpinnersGone();
+
+    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
+    tabs.get(0).shouldHave(cssClass("active"));
+
+    tabs.get(2).click();
+    waitUntilSpinnersGone();
+    tabs.get(2).shouldHave(cssClass("active"));
+    assertThat(getWebDriver().getCurrentUrl()).contains("/security?");
+
+    firewallComponentDetailsPage.getSecurityTabContainer().shouldBe(visible);
+
+    VulnerabilitiesTable vulnerabilitiesTable =
+        VulnerabilitiesTable.getVulnerabilitiesTableForParent(FirewallComponentDetailsPage.ROOT);
+    vulnerabilitiesTable.shouldBe(visible);
+
+    vulnerabilitiesTable.getRow(1).click();
+    ElementsCollection vulnerabilityRow1Cells = vulnerabilitiesTable.getCellsByNthRow(1);
+    vulnerabilityRow1Cells.shouldHaveSize(4);
+    vulnerabilityRow1Cells.get(0).shouldHave(text("9"));
+    vulnerabilityRow1Cells.get(1).shouldHave(text(vulnerabilityId));
+    vulnerabilityRow1Cells.get(2).shouldHave(text("Open"));
+    vulnerabilityRow1Cells.get(3).shouldBe(empty);
+    VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
+    vulnerabilityDetailsPopover.shouldBe(visible);
+
+    SelenideElement customizeButton = vulnerabilityDetailsPopover.getCustomizeButton();
+    customizeButton.shouldBe(visible);
+    customizeButton.click();
+
+    CustomizeVulnerabilityDetailsPage.refIdTitle().shouldBe(visible);
+    CustomizeVulnerabilityDetailsPage.refIdTitle().shouldBe(text(vulnerabilityId));
+
+    NxBackButton backButton = CustomizeVulnerabilityDetailsPage.backButton();
+    backButton.shouldBe(visible);
+    backButton.shouldHave(text("Back to Firewall Vulnerability Details"));
+    backButton.click();
+
+    Duration d = Duration.ofHours(2);
+    Selenide.Wait().withTimeout(d);
   }
 }

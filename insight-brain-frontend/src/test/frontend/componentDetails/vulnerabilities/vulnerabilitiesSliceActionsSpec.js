@@ -426,6 +426,140 @@ describe('vulnerabilitiesSliceActions', () => {
       }
     );
 
+    it(
+      'dispatches a componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action with ' +
+        'hasEditIqPermission=true and ownerType=repository after successful requests for application ' +
+        'components',
+      (done) => {
+        state.router.currentParams = {
+          ...state.router.currentParams,
+          repositoryId: 'repo123',
+          componentHash: 'testHash',
+        };
+
+        const applicationVulnerabilityOverrideUrl = getVulnerabilityOverrideUrl(
+          'repository',
+          state.router.currentParams.repositoryId,
+          state.router.currentParams.componentHash,
+          vulnerabilityObj
+        );
+
+        const extraQueryParameters = {
+          ownerType: 'repository',
+          ownerId: 'repo123',
+        };
+
+        const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
+          '2',
+          expectedComponentIdentifier,
+          extraQueryParameters
+        );
+
+        const urlPermissionRequest = getPermissionContextTestUrl('repository', state.router.currentParams.repositoryId);
+        mockAxiosCalls({
+          get: {
+            [vulnerabilityJsonDetailUrl]: Promise.resolve({
+              data: {
+                ...vulnerabilityDetails,
+              },
+            }),
+            [applicationVulnerabilityOverrideUrl]: Promise.resolve({
+              data: {
+                comment,
+              },
+            }),
+          },
+          put: {
+            [urlPermissionRequest]: Promise.resolve({
+              data: ['WRITE'],
+            }),
+          },
+        });
+
+        const expectedPendingAction = {
+          type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/pending',
+        };
+        const expectedFulfilledAction = {
+          type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
+          payload: { ...vulnerabilityDetails, comment, hasEditIqPermission: true },
+        };
+
+        store.dispatch(loadVulnerabilityDetails()).then(() => {
+          const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+
+          expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
+          done();
+        });
+      }
+    );
+
+    it(
+      'dispatches a componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action with ' +
+        'no hasEditIqPermission in the result and ownerType=repository after successful ' +
+        'requests for application components',
+      (done) => {
+        state.router.currentParams = {
+          ...state.router.currentParams,
+          repositoryId: 'repo123',
+          componentHash: 'testHash',
+        };
+
+        const applicationVulnerabilityOverrideUrl = getVulnerabilityOverrideUrl(
+          'repository',
+          state.router.currentParams.repositoryId,
+          state.router.currentParams.componentHash,
+          vulnerabilityObj
+        );
+
+        const extraQueryParameters = {
+          ownerType: 'repository',
+          ownerId: 'repo123',
+        };
+
+        const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
+          '2',
+          expectedComponentIdentifier,
+          extraQueryParameters
+        );
+
+        const urlPermissionRequest = getPermissionContextTestUrl('repository', state.router.currentParams.repositoryId);
+        mockAxiosCalls({
+          get: {
+            [vulnerabilityJsonDetailUrl]: Promise.resolve({
+              data: {
+                ...vulnerabilityDetails,
+              },
+            }),
+            [applicationVulnerabilityOverrideUrl]: Promise.resolve({
+              data: {
+                comment,
+              },
+            }),
+          },
+          put: {
+            [urlPermissionRequest]: Promise.resolve({
+              data: [],
+            }),
+          },
+        });
+
+        const expectedPendingAction = {
+          type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/pending',
+        };
+        const expectedFulfilledAction = {
+          type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
+          payload: { ...vulnerabilityDetails, comment },
+        };
+
+        store.dispatch(loadVulnerabilityDetails()).then(() => {
+          const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+
+          expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
+          done();
+        });
+      }
+    );
+
     it('dispatches a componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action after successful requests for repository components', (done) => {
       const customState = {
         ...state,

@@ -94,6 +94,7 @@ export const initialState = Object.freeze({
     violationDetails: [],
     isLoadViolationDetails: false,
     violationDetailsError: null,
+    hasEditIqPermission: false,
   }),
   viewState: Object.freeze({
     isShowConfigurationModal: false,
@@ -663,6 +664,7 @@ const loadViolationDetailFulfilled = (payload, state) => ({
     violationDetails: payload,
     isLoadViolationDetails: false,
     violationDetailsError: null,
+    hasEditIqPermission: payload?.hasEditIqPermission,
   },
 });
 

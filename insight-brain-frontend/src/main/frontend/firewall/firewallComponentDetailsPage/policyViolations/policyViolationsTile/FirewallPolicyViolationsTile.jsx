@@ -31,6 +31,7 @@ export default function FirewallPolicyViolationsTile({ title, violations }) {
   const componentNameWithoutVersion = useSelector(selectComponentNameWithoutVersion);
   const waivers = useSelector(selectWaivers);
   const waiverToDelete = useSelector(selectWaiverToDelete);
+  const componentDetails = useSelector(selectFirewallComponentDetailsPageRouteParams);
 
   return (
     <NxTile>
@@ -58,6 +59,9 @@ export default function FirewallPolicyViolationsTile({ title, violations }) {
             waivers={waivers}
             waiverToDelete={waiverToDelete}
             setWaiverToDelete={setWaiverToDelete}
+            componentHash={componentDetails?.componentHash}
+            tabId={componentDetails?.tabId}
+            repositoryId={componentDetails?.repositoryId}
           />
         </NxLoadWrapper>
       </NxTile.Content>

@@ -38,6 +38,7 @@ describe('firewallReducer', function () {
       violationDetails: [],
       isLoadViolationDetails: false,
       violationDetailsError: null,
+      hasEditIqPermission: false,
     }),
     viewState: Object.freeze({
       isShowConfigurationModal: false,
@@ -1268,6 +1269,7 @@ describe('firewallReducer', function () {
           violationDetails: { data: 'payload' },
           isLoadViolationDetails: false,
           violationDetailsError: null,
+          hasEditIqPermission: undefined,
         },
       });
     });

@@ -103,6 +103,15 @@ function routes($stateProvider) {
       data: {
         title: 'Add Waiver',
       },
+    })
+    .state('firewall.vulnerabilityCustomize', {
+      url:
+        '/firewall/vulnerabilities/{ownerType}/{ownerId}/customize/{refId}?pathname&componentDisplayName&' +
+        'componentIdentifier&repositoryId&matchState&componentHash&tabId&isFirewall',
+      component: 'vulnerabilityCustomize',
+      data: {
+        title: 'Customize Vulnerability Details',
+      },
     });
 
   $stateProvider
@@ -168,6 +177,15 @@ function routes($stateProvider) {
       component: 'addWaiverPage',
       data: {
         title: 'Add Waiver',
+      },
+    })
+    .state('repository.vulnerabilityCustomize', {
+      url:
+        '/repository/vulnerabilities/{ownerType}/{ownerId}/customize/{refId}?pathname&componentDisplayName&' +
+        'repositoryId&matchState&componentHash&tabId&isRepository&componentIdentifier',
+      component: 'vulnerabilityCustomize',
+      data: {
+        title: 'Customize Vulnerability Details',
       },
     });
 }

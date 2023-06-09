@@ -195,6 +195,9 @@ describe('FirewallPolicyViolationsTile component', () => {
         waivers: originalSelectWaivers(minState),
         waiverToDelete: null,
         setWaiverToDelete: jasmine.any(Function),
+        componentHash: undefined,
+        tabId: undefined,
+        repositoryId: undefined,
       }, // params
       {} // state
     );

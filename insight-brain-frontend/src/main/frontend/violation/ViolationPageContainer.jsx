@@ -10,29 +10,55 @@ import { loadViolation, loadVulnerabilityDetails, loadFirewallPolicyVulnerabilit
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
-import { selectSelectedViolationId } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+import {
+  selectComponentDetailsViolationsSlice,
+  selectSelectedViolationId,
+} from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { onGoToRepositoryComponentWaiversPage, loadFirewallViolationDetails } from '../firewall/firewallActions';
 import { loadApplicableWaivers } from 'MainRoot/waivers/waiverActions';
 import { selectComponentDetails } from 'MainRoot/componentDetails/componentDetailsSelectors';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsFirewall,
+  selectRouterCurrentParams,
+  selectIsFirewallOrRepository,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
+
+import {
+  selectFirewallComponentDetailsPage,
+  selectFirewallComponentDetailsPageRouteParams,
+} from 'MainRoot/firewall/firewallSelectors';
 
 function mapStateToProps(state, showViolationsDetailPopover) {
-  const { stages, violation, firewall } = state;
-  const { componentDetailsPage } = firewall;
+  const { stages, violation } = state;
+  const isFirewall = selectIsFirewall(state);
+  const isFirewallOrRepository = selectIsFirewallOrRepository(state);
+  const firewallComponentDetailsPage = selectFirewallComponentDetailsPage(state);
+  const { hasEditIqPermission: firewallHasEditIqPermission } = firewallComponentDetailsPage;
+  const applicationHasEditPermission = pick(['hasEditIqPermission'], violation)?.hasEditIqPermission;
+
   const stageData = stages.dashboard;
   const isShowViolationsDetailPopover = showViolationsDetailPopover.showViolationsDetailPopover;
   const selectPolicyId = showViolationsDetailPopover.selectPolicyId;
-  const policyViolations = componentDetailsPage.policyViolations;
-  const componentDetails = selectComponentDetails(state);
+  const firewallPolicyViolations = firewallComponentDetailsPage.policyViolations;
+  const applicationPolicyViolations = selectComponentDetailsViolationsSlice(state);
+  const componentApplicationDetails = selectComponentDetails(state);
   const { tabId } = selectRouterCurrentParams(state);
+  const firewallComponentDetailsPageParams = selectFirewallComponentDetailsPageRouteParams(state);
+
+  const getFirewallOrRepositoryViolationDetails = () =>
+    !Array.isArray(firewallComponentDetailsPage?.violationDetails)
+      ? firewallComponentDetailsPage?.violationDetails
+      : null;
+  const violationDetails = isFirewallOrRepository
+    ? getFirewallOrRepositoryViolationDetails()
+    : violation?.violationDetails;
 
   return {
     ...pick(
       [
         'loading',
         'violationDetailsError',
-        'violationDetails',
         'vulnerabilityDetailsLoading',
         'vulnerabilityDetails',
         'vulnerabilityDetailsError',
@@ -41,18 +67,25 @@ function mapStateToProps(state, showViolationsDetailPopover) {
         'addWaiverPermissionLoading',
         'addWaiverPermissionError',
         'hasPermissionForAppWaivers',
-        'hasEditIqPermission',
       ],
       violation
     ),
+    violationDetails,
+    hasEditIqPermission: isFirewallOrRepository ? firewallHasEditIqPermission : applicationHasEditPermission,
     stageTypes: stageData.stageTypes,
     stageTypesError: stageData.error,
     selectedViolationId: selectSelectedViolationId(state),
     isFirewallContext: isShowViolationsDetailPopover,
-    policyViolations: policyViolations,
+    policyViolations: isFirewallOrRepository ? firewallPolicyViolations : applicationPolicyViolations,
     selectPolicyId: selectPolicyId,
-    componentHash: componentDetails?.hash,
+    componentHash: isFirewallOrRepository
+      ? firewallComponentDetailsPage?.componentDetails?.hash
+      : componentApplicationDetails?.hash,
     tabId,
+    repositoryId: isFirewallOrRepository ? firewallComponentDetailsPageParams.repositoryId : null,
+    matchState: isFirewallOrRepository ? firewallComponentDetailsPageParams.matchState : null,
+    pathname: isFirewallOrRepository ? firewallComponentDetailsPageParams.pathname : null,
+    isFirewall,
   };
 }
 

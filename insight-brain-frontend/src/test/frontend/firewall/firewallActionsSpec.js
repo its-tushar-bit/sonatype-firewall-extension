@@ -108,6 +108,7 @@ import {
 } from '../../../main/frontend/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
+import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 
 describe('firewallActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
@@ -1744,6 +1745,30 @@ describe('firewallActions', function () {
         expect(actions[1].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FAILED);
         expect(actions[1].payload).toBe('error');
       });
+      let actions = store.getActions();
+      expect(actions.length).toBe(1);
+    });
+
+    it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED action after successfully requests with hasEditIqPermission=true', (done) => {
+      const urlPermissionRequest = getPermissionContextTestUrl('repository', state.router.currentParams.repositoryId);
+      mockAxiosCalls({
+        put: {
+          [urlPermissionRequest]: Promise.resolve({
+            data: ['WRITE'],
+          }),
+        },
+      });
+
+      store.dispatch(loadFirewallViolationDetails('policyViolationId')).then(() => {
+        actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
+        expect(actions[0].payload).toBeUndefined();
+        expect(actions[1].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
+        expect(actions[1].payload.hasEditIqPermission).toEqual(true);
+        done();
+      });
+
       let actions = store.getActions();
       expect(actions.length).toBe(1);
     });

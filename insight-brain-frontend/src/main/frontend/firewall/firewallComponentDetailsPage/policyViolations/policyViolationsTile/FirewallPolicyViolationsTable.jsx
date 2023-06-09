@@ -29,15 +29,19 @@ export default function FirewallPolicyViolationsTable({
   componentNameWithoutVersion,
   waivers,
   waiverToDelete,
+  componentHash,
+  tabId,
+  repositoryId,
 }) {
   const mutatedViolations = mapApplicableWaiversToViolations(waivers, violations);
   const orderedViolations = violations ? sortPolicyByThreat(mutatedViolations) : [];
   const [showViolationsDetailPopover, showPopover] = useState(false);
   const [selectPolicyId, savePolicyId] = useState('');
   const dispatch = useDispatch();
-  const boundSetWaiverToDelete = useMemo(() => bindActionCreators(WaiverActionCreators.setWaiverToDelete, dispatch), [
-    dispatch,
-  ]);
+  const boundSetWaiverToDelete = useMemo(
+    () => bindActionCreators(WaiverActionCreators.setWaiverToDelete, dispatch),
+    [dispatch]
+  );
 
   return (
     <>
@@ -72,6 +76,9 @@ export default function FirewallPolicyViolationsTable({
           selectPolicyId={selectPolicyId}
           savePolicyId={savePolicyId}
           showPopover={showPopover}
+          componentHash={componentHash}
+          tabId={tabId}
+          repositoryId={repositoryId}
         />
       )}
       {showPolicyWaiversPopover && (
@@ -98,4 +105,7 @@ FirewallPolicyViolationsTable.propTypes = {
   waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   waiverToDelete: PropTypes.shape(waiverType),
   setWaiverToDelete: PropTypes.func,
+  componentHash: PropTypes.string,
+  tabId: PropTypes.string,
+  repositoryId: PropTypes.string,
 };

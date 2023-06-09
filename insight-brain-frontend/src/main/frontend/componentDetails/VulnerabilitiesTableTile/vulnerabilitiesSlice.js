@@ -126,8 +126,15 @@ const loadVulnerabilityDetails = createAsyncThunk(
             .catch(() => {
               return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment };
             });
+        } else {
+          return checkPermissions(['WRITE'], 'repository', ownerId)
+            .then((_) => {
+              return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment, hasEditIqPermission: true, _ };
+            })
+            .catch(() => {
+              return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment };
+            });
         }
-        return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment };
       })
       .catch(rejectWithValue);
   }

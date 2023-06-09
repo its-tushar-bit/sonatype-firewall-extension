@@ -41,6 +41,10 @@ export default function ViolationPage(props) {
     loadApplicableWaivers,
     componentHash,
     tabId,
+    repositoryId,
+    matchState,
+    pathname,
+    isFirewall,
   } = props;
 
   const error = props.violationDetailsError || props.stageTypesError;
@@ -119,11 +123,15 @@ export default function ViolationPage(props) {
             retryLoad={loadVulnerabilityDetails}
             componentName={violationDetails ? getComponentName(violationDetails) : null}
             componentIdentifier={violationDetails?.componentIdentifier}
-            ownerType={isFirewallContext ? null : 'application'}
-            ownerId={violationDetails?.applicationPublicId}
+            ownerType={isFirewallContext ? 'organization' : 'application'}
+            ownerId={isFirewallContext ? 'ROOT_ORGANIZATION_ID' : violationDetails?.applicationPublicId}
             hasEditIqPermission={hasEditIqPermission}
             componentHash={componentHash}
             tabId={tabId}
+            repositoryId={repositoryId}
+            matchState={matchState}
+            pathname={pathname}
+            isFirewall={isFirewall}
           />
         )}
       </LoadWrapper>
@@ -165,6 +173,10 @@ export const violationPageTypes = {
   hasPermissionForAppWaivers: PropTypes.bool,
   componentHash: PropTypes.string,
   tabId: PropTypes.string,
+  repositoryId: PropTypes.string,
+  matchState: PropTypes.string,
+  pathname: PropTypes.string,
+  isFirewall: PropTypes.bool,
 };
 
 ViolationPage.propTypes = violationPageTypes;

@@ -31,6 +31,7 @@ import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoo
 import { selectRepositoryId, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
+import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { getShowWelcomeModalFromStore, removeShowWelcomeModalFromStore } from './firewallWelcomeModalStore';
 
 export const FIREWALL_SET_SHOW_WELCOME_MODAL = 'FIREWALL_SET_SHOW_WELCOME_MODAL';
@@ -608,15 +609,25 @@ export function onGoToRepositoryComponentWaiversPage(violationId) {
     dispatch(isShowManageWaiverPage(true));
   };
 }
-
+function checkEditIqPermission(repositoryId) {
+  return checkPermissions(['WRITE'], 'repository', repositoryId);
+}
 export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, getState) => {
   dispatch(loadViolationDetailRequested());
   const repositoryId = selectRepositoryId(getState());
+
   return axios
     .get(getRepositoryPolicyViolationUrl(repositoryId, policyViolationId))
     .then(({ data }) => {
       const convertData = convertToWaiverViolationFormat(data);
-      dispatch(loadViolationDetailFulfilled(convertData));
+
+      return checkEditIqPermission(repositoryId)
+        .then((_) => {
+          dispatch(loadViolationDetailFulfilled({ ...convertData, hasEditIqPermission: true, _ }));
+        })
+        .catch(() => {
+          dispatch(loadViolationDetailFulfilled(convertData));
+        });
     })
     .catch((error) => {
       dispatch(loadViolationDetailFailed(Messages.getHttpErrorMessage(error)));

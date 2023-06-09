@@ -6,6 +6,8 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 
 describe('ViolationPageContainer', function () {
   let ViolationPageContainer,
@@ -173,6 +175,7 @@ describe('ViolationPageContainer', function () {
   });
 
   it('maps the state slice "policyViolations" to ViolationPageContainer props', () => {
+    spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(true);
     let wrapper = shallow(vdom).dive();
 
     expect(wrapper).toHaveProp('policyViolations', []);
@@ -203,5 +206,21 @@ describe('ViolationPageContainer', function () {
     let wrapper = shallow(vdom).dive();
 
     expect(wrapper).toHaveProp('selectPolicyId', undefined);
+  });
+
+  it('maps state props for repository to ViolationPageContainer props', () => {
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPage').and.returnValue({
+      componentDetails: {
+        hash: 'testHash',
+      },
+      violationDetails: 'fwViolation',
+      policyViolations: 'fwPolicyViolation',
+    });
+    spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(true);
+    let wrapper = shallow(vdom).dive();
+
+    expect(wrapper).toHaveProp('componentHash', 'testHash');
+    expect(wrapper).toHaveProp('violationDetails', 'fwViolation');
+    expect(wrapper).toHaveProp('policyViolations', 'fwPolicyViolation');
   });
 });

@@ -169,6 +169,7 @@ describe('ViolationPage', function () {
       hasPermissionForAppWaivers: true,
       activeWaivers: [],
       expiredWaivers: [],
+      matchExact: null,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ViolationPage, minimalProps);

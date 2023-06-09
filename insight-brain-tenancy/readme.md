@@ -390,13 +390,54 @@ run the next command to provision a new tenant:
 
 #### For Local Development
 ```bash
-curl -X POST http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}
+curl -H 'Authorization: Bearer <access-token>' -X POST http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}
 
 # Here is an example
 
-curl -X POST http://127.0.0.1:8071/api/admin/tenants/cubs
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X POST http://127.0.0.1:8071/api/admin/tenants/cubs
 
 # This will provision tenant with name "cubs"
+```
+
+### Delete Tenant
+
+For MTIQ we need a proper way to handle lifecycle of the tenants, from creation to the deletion. That is why we also
+have an admin endpoint to delete a tenant. Essentially this endpoint puts the tenant into an "archived" state while it
+is waiting to be deleted. Tenants are not deleted at this stage because deleting the DB schema is a destructive 
+operation, and therefore we need to prevent accidental deletion. You can run the next command to delete a tenant:
+
+#### For Local Development
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X DELETE http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}
+
+# Here is an example
+
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X DELETE http://127.0.0.1:8071/api/admin/tenants/cubs
+
+# This will delete tenant with name "cubs"
+```
+
+### List All Tenants
+
+For issue troubleshooting and facilitating the management of different tenants by MTQ, we need a proper way
+to know all the tenants that a particular MTIQ instance is managing. For that purpose we have an admin endpoint that
+will give us a list of all the tenants that a MTIQ instance knows. It will return only the tenant names. You can run 
+the next command to get the list of tenants for a particular MTIQ instance:
+
+#### For Local Development
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X GET http://{mtiq-ip-address}:8071/api/admin/list-tenants
+
+# Here is an example
+
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X GET http://127.0.0.1:8071/api/admin/list-tenants
+
+# This will return a list of the tenant names the MTIQ instance knows
+```
+
+#### Response Details
+```json
+["tenant-1", "tenant-2", "tenant-3"]
 ```
 
 ### Install/Update Tenant License
@@ -410,16 +451,17 @@ command to install/update a license for a tenant:
 
 #### For Local Development
 ```bash
-curl -X PUT -F file="@/path/to/license.lic" http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/license
+curl -H 'Authorization: Bearer <access-token>' -X PUT -F file="@/path/to/license.lic" http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/license
 
 # Here is an example
 
-curl -X PUT -F file="@sonatype.lic" http://127.0.0.1:8071/api/admin/tenants/cubs/license
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X PUT -F file="@sonatype.lic" http://127.0.0.1:8071/api/admin/tenants/cubs/license
 
 # This will install/update the license for the tenant "cubs"
 ```
 
 ### Update Security Configuration For A Tenant
+
 For MTIQ the plan is to leverage Auth0 for authentication/authorization of the different endpoints. In order to achieve
 this we need to configure SAML for MTIQ considering the Auth0 SAML metadata and the fields mappings needed to ensure
 the customers can login and have access to MTIQ. 
@@ -430,11 +472,11 @@ configuration for a tenant:
 
 #### For Local Development
 ```bash
-curl -X PUT -H 'Content-Type: application/json' -d "@request.json" http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/security
+curl -H 'Authorization: Bearer <access-token>' -X PUT -H 'Content-Type: application/json' -d "@request.json" http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/security
 
 # Here is an example
 
-curl -X PUT -H 'Content-Type: application/json' -d "@request.json" http://127.0.0.1:8071/api/admin/tenants/cubs/security
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X PUT -H 'Content-Type: application/json' -d "@request.json" http://127.0.0.1:8071/api/admin/tenants/cubs/security
 
 # This will update security configuration for the tenant "cubs"
 ```
@@ -483,6 +525,7 @@ can find more details in
 [Configure SAML Integration](https://help.sonatype.com/iqserver/automating/rest-apis/saml-rest-api---v2#SAMLRESTAPIv2-ConfigureSAMLIntegration).
 
 ### Get Schema Versions For A Tenant
+
 For MTIQ we also need a proper way to know what are the different database schema versions a tenant has to be able to 
 diagnose/troubleshoot issues related to database and to ensure our tenants are in the right schema versions. For that 
 reason we are adding and admin endpoint that will let us get the schema versions for all the different data stores.
@@ -490,13 +533,13 @@ You can run the next command to get the tenant schema versions:
 
 #### For Local Development
 ```bash
-curl -X GET http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/schema
+curl -H 'Authorization: Bearer <access-token>' -X GET http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/schema
 
 # Here is an example
 
-curl -X GET http://127.0.0.1:8071/api/admin/tenants/cubs/schema
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X GET http://127.0.0.1:8071/api/admin/tenants/cubs/schema
 
-# This will ge the schema versions for the tenant "cubs"
+# This will get the schema versions for the tenant "cubs"
 ```
 
 #### Response Details
@@ -521,6 +564,7 @@ Here is an example:
 ```
 
 ### Migrate Tenant To The Latest Schema Versions
+
 For MTIQ we need a proper way to migrate a tenant to the latest schema versions for the different data stores to
 ensure our tenants are in the right schema versions. For that reason we are adding and admin endpoint that will let us 
 migrate a tenant to the latest schema versions for all the different data stores. You can run the next command to 
@@ -528,43 +572,190 @@ migrate the tenant to the latest schema versions:
 
 #### For Local Development
 ```bash
-curl -X PUT http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/schema
+curl -H 'Authorization: Bearer <access-token>' -X PUT http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/schema
 
 # Here is an example
 
-curl -X PUT http://127.0.0.1:8071/api/admin/tenants/cubs/schema
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X PUT http://127.0.0.1:8071/api/admin/tenants/cubs/schema
 
 # This will migrate the "cubs" tenant to the latest schema versions
 ```
 
 ### Update Tenant Configuration
+
 For MTIQ we need a way to set/update some general configurations that apply to a tenant. To be more specific we need 
 the ability to set/update some properties in SystemConfigurationProperty, like the base URL. That is why we also have
 an admin endpoint for that purpose. You can run the next command to update the configuration for a tenant:
 
 #### For Local Development
 ```bash
-curl -X PUT -H 'Content-Type: application/json' -d '{"baseUrl":"<The base URL for the tenant>"}' http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/config
+curl -H 'Authorization: Bearer <access-token>' -X PUT -H 'Content-Type: application/json' -d '{"baseUrl":"<The base URL for the tenant>"}' http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/config
 
 # Here is an example
 
-curl -X PUT -H 'Content-Type: application/json' -d '{"baseUrl":"https://cubs.sonatype.app/iq"}' http://127.0.0.1:8071/api/admin/tenants/cubs/config
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X PUT -H 'Content-Type: application/json' -d '{"baseUrl":"https://cubs.sonatype.app/iq"}' http://127.0.0.1:8071/api/admin/tenants/cubs/config
 
 # This will update the base URL configuration for the tenant "cubs"
 ```
 
 ### Get Support Info For A Tenant
+
 For MTIQ we need a proper way to get the support information for a tenant, so we are adding an admin endpoint that will
 help to generate a `zip` file with all the needed support information. You can run the next command to get a zip file
 with most relevant support information about a Tenant:
 
 #### For Local Development
 ```bash
-curl -X GET http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/supportInfo --output support.zip
+curl -H 'Authorization: Bearer <access-token>' -X GET http://{mtiq-ip-address}:8071/api/admin/tenants/{tenant-slug}/supportInfo --output support.zip
 
 # Here is an example
 
-curl -X GET http://127.0.0.1:8071/api/admin/tenants/cubs/supportInfo --output support.zip
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X GET http://127.0.0.1:8071/api/admin/tenants/cubs/supportInfo --output support.zip
 
 # This will ge the support information zip for the tenant "cubs"
+```
+
+### Update Tenant Metadata
+
+As part of the tenant onboarding process, there are some steps that are done outside MTIQ, mainly related to Auth0 and initial setup 
+for a new tenant. That information may be needed at some point in MTIQ to be able to troubleshoot problems or perform 
+some extra configuration, so we also have an admin endpoint we can use to set/update this metadata for future use. You 
+can run the next command to set/update the tenant metadata:
+
+#### For Local Development
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X PUT -H 'Content-Type: application/json' -d "@request.json" http://localhost:8071/api/admin/tenants/{tenant-slug}/metadata
+
+# Here is an example
+
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X PUT -H 'Content-Type: application/json' -d "@request.json" http://127.0.0.1:8071/api/admin/tenants/cubs/metadata
+
+# This will set/update the tenant metadata for the tenant "cubs"
+```
+
+#### Request Details
+```json
+{
+  "applicationId": "<Auth0 application id>",
+  "applicationName": "<Auth0 application name>",
+  "connectionId": "<Auth0 connection id>",
+  "connectionName": "<Auth0 connection name>"
+}
+```
+
+Here is an example:
+
+```json
+{
+  "applicationId": "5hFls0e5nNZnZ0e0KiRE1bTJ9tGJplwV",
+  "applicationName": "Sonatype SaaS",
+  "connectionId": "con_UnSXleKEAHBac444",
+  "connectionName": "mtiq-sonatype-saas-5hFls0e5nNZnZ0e0KiRE1bTJ9tGJplwV-db"
+}
+```
+
+### Get List Of Supported Features For Tenant
+
+For MTIQ we need a proper way to know what are the feature flags supported for a tenant, so we can later decide what 
+feature flags to enable or disable. We have an admin endpoint that will help you to get that information, it will list
+only the supported features for a particular tenant. You can run the next command to list the supported features for
+a tenant:
+
+#### For Local Development
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X GET http://{mtiq-ip-address}:8071/api/admin/tenants/{tenantSlug}/config/features/all
+
+# Here is an example
+
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X GET http://127.0.0.1:8071/api/admin/tenants/cubs/config/features/all
+
+# This will get the list of supported features for the tenant "cubs"
+```
+
+#### Response Details
+```json
+[
+  "enable-managed-idp-sso",
+  "logout-auth0-on-logout",
+  "webhook-configuration",
+  "automatic-scm-configuration",
+  "enable-sso-only",
+  "dashboard-can-be-enabled",
+  "reports-list-can-be-enabled",
+  "email-configuration",
+  "pr-commenting",
+  "advanced-search-configuration",
+  "pr-line-commenting",
+  "internal-firewall-onboarding-enabled",
+  "default-branch-monitoring"
+]
+```
+
+### Get List Of Enabled Features For Tenant
+
+For MTIQ we need a proper way to know what are the feature flags that are enabled for a tenant, so we can check the
+current status of a tenant. We have an admin endpoint that will help you to get that information, it will list
+only the enabled features for a particular tenant. You can run the next command to list the enabled features for
+a tenant:
+
+#### For Local Development
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X GET http://{mtiq-ip-address}:8071/api/admin/tenants/{tenantSlug}/config/features
+
+# Here is an example
+
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X GET http://127.0.0.1:8071/api/admin/tenants/cubs/config/features
+
+# This will get the list of enabled features for the tenant "cubs"
+```
+
+#### Response Details
+```json
+[
+  "logout-auth0-on-logout",
+  "reports-list-can-be-enabled",
+  "webhook-configuration",
+  "automatic-scm-configuration",
+  "enable-sso-only",
+  "dashboard-can-be-enabled",
+  "email-configuration",
+  "pr-commenting",
+  "advanced-search-configuration",
+  "pr-line-commenting",
+  "default-branch-monitoring"
+]
+```
+
+### Enabled Feature For Tenant
+
+For MTIQ we need a proper way to enable a feature flag for a tenant, so we can customize the experience of a customer. 
+We have an admin endpoint that will help you to enable a feature by its name. You can run the next command to enable a 
+feature for a tenant:
+
+#### For Local Development
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X POST http://{mtiq-ip-address}:8071/api/admin/tenants/{tenantSlug}/config/features/{feature}
+
+# Here is an example
+
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X POST http://127.0.0.1:8071/api/admin/tenants/cubs/config/features/internal-firewall-onboarding-enabled
+
+# This will enable the feature "internal-firewall-onboarding-enabled" for the tenant "cubs"
+```
+
+### Disable Feature For Tenant
+
+For MTIQ we need a proper way to disable a feature flag for a tenant, so we can customize the experience of a customer.
+We have an admin endpoint that will help you to disable a feature by its name. You can run the next command to disable a
+feature for a tenant:
+
+#### For Local Development
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X DELETE http://{mtiq-ip-address}:8071/api/admin/tenants/{tenantSlug}/config/features/{feature}
+
+# Here is an example
+
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X DELETE http://127.0.0.1:8071/api/admin/tenants/cubs/config/features/internal-firewall-onboarding-enabled
+
+# This will disable the feature "internal-firewall-onboarding-enabled" for the tenant "cubs"
 ```

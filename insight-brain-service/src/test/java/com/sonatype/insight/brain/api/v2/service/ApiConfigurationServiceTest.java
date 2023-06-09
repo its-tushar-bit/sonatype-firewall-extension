@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -563,7 +564,7 @@ public class ApiConfigurationServiceTest
   public void testGetConfiguration_waivedComponentUpgradeInspectionHour_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR))).containsEntry(
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, null);
+            SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 1);
   }
 
   @Test

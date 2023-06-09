@@ -286,7 +286,7 @@ import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
@@ -618,8 +618,6 @@ public class TemporaryEntity
 
   private Collection<SourceControlPullRequestComment> sourceControlPullRequestComments;
 
-  private Collection<SystemConfigurationProperty> systemConfigurationProperties;
-
   private Collection<ThirdPartyFile> thirdPartyFileConfigurations;
 
   private Collection<ThirdPartyVulnerability> thirdPartyVulnerabilities;
@@ -649,6 +647,8 @@ public class TemporaryEntity
   private Collection<SourceControlOrganizationImportEvent> sourceControlOrganizationImportEvents;
 
   private Collection<DeletedTenant> deletedTenants;
+
+  private List<SystemConfigurationProperty> systemConfigurationPropertiesBefore;
 
   @Override
   public void before() {
@@ -692,7 +692,6 @@ public class TemporaryEntity
     sourceControls = new ArrayList<>();
     sourceControlPullRequests = new ArrayList<>();
     sourceControlPullRequestComments = new ArrayList<>();
-    systemConfigurationProperties = new ArrayList<>();
     thirdPartyFileConfigurations = new ArrayList<>();
     thirdPartyVulnerabilities = new ArrayList<>();
     userTokens = new ArrayList<>();
@@ -709,6 +708,8 @@ public class TemporaryEntity
     proprietaryComponentNamePatterns = new ArrayList<>();
     sourceControlOrganizationImportEvents = new ArrayList<>();
     deletedTenants = new ArrayList<>();
+
+    systemConfigurationPropertiesBefore = systemConfigurationPropertyDAO.getAll();
 
     // Disable search
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
@@ -763,7 +764,6 @@ public class TemporaryEntity
   public void after() {
     automaticApplicationsConfigurationDAO.setEnabled(false);
     automaticApplicationsConfigurationDAO.setOrganizationId("");
-    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty("SUCCESS_METRICS_ENABLED", "true"));
     delete(innerSourceComponents, innerSourceComponentDAO);
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
@@ -810,7 +810,6 @@ public class TemporaryEntity
     delete(successMetricsReports, successMetricsReportDAO);
     delete(sourceControls, sourceControlDAO);
     delete(sourceControlPullRequests, sourceControlPullRequestDAO);
-    delete(systemConfigurationProperties, systemConfigurationPropertyDAO);
     samlConfigurationDAO.delete();
     delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
     delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
@@ -854,40 +853,9 @@ public class TemporaryEntity
       proxyServerConfigurationDAO.set(savedProxyServerConfiguration);
     }
 
-    // Disable search
-    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
-
-    String[] names = new String[]{
-        DASHBOARD_DISABLED, REPORTS_LIST_DISABLED, BUILT_FROM_SOURCE, CROWD_INTEGRATION, BASE_URL, FORCE_BASE_URL,
-        HDS_URL, CDN_URL, SUPPORT_READ_LIMIT_BYTES, EVENT_BUS_MAX_THREAD_POOL_SIZE, CSRF_PROTECTION, USER_AGENT_SUFFIX,
-        CSP_ENABLED, BLOCK_SEMICOLON_IN_PATH, BLOCK_BACKSLASH_IN_PATH, BLOCK_NON_ASCII_IN_PATH,
-        RELEASE_GRAPH_CACHE_SIZE, LICENSE_LEGAL_HDS_REQUEST_LIMIT, MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD,
-        MAX_ADVANCED_SEARCH_CLAUSE_COUNT, ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, CONNECT_TIMEOUT_IN_SECONDS,
-        SOCKET_TIMEOUT_IN_SECONDS, REPORT_TIMEOUT_IN_SECONDS, NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
-        ENABLE_DEFAULT_PASSWORD_WARNING, POLICY_MONITORING_HOUR, DB_BACKUP_DIR, WEBHOOK_SECRET_PASSPHRASE,
-        EXTERNAL_HYPERLINKS_ALLOWED, CODE_INSIGHTS, COMPONENT_SEARCH_API_WITH_INNERSOURCE, DEFAULT_BRANCH_MONITORING,
-        DEPENDENCY_DATA_IN_API, INNER_SOURCE_TRANSITIVE_WAIVER, INNER_SOURCE_REPOSITORY_INTEGRATION, PR_COMMENTING,
-        PR_LINE_COMMENTING, ENABLE_UNAUTHENTICATED_PAGES, ENABLE_SSO_ONLY, INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
-        MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, SCHEMA_MIGRATION_ENABLED, API_PAGE,
-        BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, BFS_COMPONENT_QUERY_LIMIT,
-        BFS_REPOSITORIES, SUPPORT_CLUSTER_LOG_FILE_REGEX, SCAN_POM_FILES_IN_META_INF_DIRECTORY,
-        SCAN_NPM_DEV_AND_OPT_DEPENDENCIES, AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
-        WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, ENABLE_MANAGED_IDP_SSO
-    };
-    for (String name : names) {
-      SystemConfigurationProperty property = systemConfigurationPropertyDAO.getByName(name);
-      if (property != null) {
-        systemConfigurationPropertyDAO.delete(property);
-      }
-    }
-    // Disable Security Vulnerability Source Policy Condition by adding the property that indicates it's disabled
-    if (systemConfigurationPropertyDAO
-        .getByName(SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED) == null) {
-      systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(
-          SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, "true"));
-    }
-    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(
-        SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, "true"));
+    systemConfigurationPropertyDAO.getAll().forEach(property -> systemConfigurationPropertyDAO.delete(property));
+    systemConfigurationPropertiesBefore.forEach(property -> detachEntity(property));
+    systemConfigurationPropertiesBefore.forEach(property -> systemConfigurationPropertyDAO.insert(property));
 
     componentObligationAttributionDAO.getAll().forEach(componentObligationAttributionDAO::delete);
     componentObligationDAO.getAll().forEach(componentObligationDAO::delete);
@@ -3706,7 +3674,6 @@ public class TemporaryEntity
   public SystemConfigurationProperty newSystemConfigurationProperty(String name, String value) {
     SystemConfigurationProperty scp = new SystemConfigurationProperty(name, value);
     systemConfigurationPropertyDAO.insert(scp);
-    systemConfigurationProperties.add(scp);
     return scp;
   }
 

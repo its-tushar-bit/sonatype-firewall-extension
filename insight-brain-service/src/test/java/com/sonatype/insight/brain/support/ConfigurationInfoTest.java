@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.support;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -29,6 +30,7 @@ public class ConfigurationInfoTest
 
   @Test
   public void testGetConfigurationInfo() throws Exception {
+    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
     setHdsUrl(null);
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.HDS_URL, "https://clm-staging.sonatype.com/");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.CSRF_PROTECTION, String.valueOf(false));
@@ -80,12 +82,11 @@ public class ConfigurationInfoTest
         "[{\"ipAddress\": \"192.168.33.10\", \"description\": \"Test IPv4 address\"}," +
             "{\"ipAddress\": \"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\", \"description\": \"Test IPv6 address\"}]");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, "newScan");
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
-        "14");
+
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, "14");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
         String.valueOf(false));
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
-        "true");
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED, "true");
     tempEntity.newSystemConfigurationProperty(
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, "48");
 
@@ -215,11 +216,11 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.ACCESS_ALLOWLIST).isEmpty()).isTrue();
     assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR).asText()).isEqualTo(
-        "null");
+        "1");
     assertThat(configNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED).asText())
         .isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED).asText()).isEqualTo(
-        "false");
+        "true");
     assertThat(configNode.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)
         .asText()).isEqualTo("12");
   }

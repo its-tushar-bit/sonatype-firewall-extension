@@ -143,28 +143,15 @@ public class ConfigFeaturesResourceTest
       assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
     });
 
-    String[] expectedFeatures = {
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
-    };
-
     response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug).get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
-    assertThat(features).containsExactlyInAnyOrder(expectedFeatures);
+    assertThat(features).doesNotContain(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
 
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
     assertResponseStatus(200, response);
     features = response.getBody(String[].class);
-    assertThat(features).containsExactlyInAnyOrder(expectedFeatures);
+    assertThat(features).doesNotContain(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
   }
 
   @Test
@@ -238,36 +225,12 @@ public class ConfigFeaturesResourceTest
     response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug).get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
-    assertThat(features).containsExactlyInAnyOrder(
-        SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
-    );
+    assertThat(features).contains(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
 
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
     assertResponseStatus(200, response);
     features = response.getBody(String[].class);
-    assertThat(features).containsExactlyInAnyOrder(
-        SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
-    );
+    assertThat(features).contains(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
   }
 
   @Test

@@ -71,6 +71,15 @@ firewall-onboarding-page {
       }
     }
 
+    .logo-container {
+      display: flex;
+      justify-content: center;
+
+      img {
+        margin-top: var(--nx-spacing-12x);
+      }
+    }
+
     .nx-footer {
       display: flex;
       align-items: center;

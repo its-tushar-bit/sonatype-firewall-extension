@@ -12,6 +12,7 @@ import { NxH2, NxTile } from '@sonatype/react-shared-components';
 import ActionsFooter from './ActionsFooter';
 import { steps } from './firewallOnboardingUtils';
 import { selectTotalEnabledRepositoriesByTypeAndProp } from './firewallOnboardingSelectors';
+import logo from '../img/inspect_and_complete_page_image.svg';
 
 const step = last(steps);
 
@@ -30,6 +31,9 @@ export default function FirewallConfigurationOverview() {
       <NxTile.Content>
         Once you launch Firewall, <b>malicious blocking</b> will be enabled for{' '}
         <b data-testid="proxy-repositories-count">{totalEnabledProxyRepositories}</b> proxy repositories.
+        <div className="logo-container">
+          <img src={logo} alt="Inspect and complete logo" />
+        </div>
       </NxTile.Content>
       <ActionsFooter currentStep={step} />
     </NxTile>

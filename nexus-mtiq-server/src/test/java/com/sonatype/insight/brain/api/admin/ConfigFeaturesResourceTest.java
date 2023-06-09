@@ -92,7 +92,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
         SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId()
+        SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId(),
+        SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId()
     );
   }
 
@@ -116,7 +117,8 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
         SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId()
+        SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId(),
+        SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId()
     );
   }
 

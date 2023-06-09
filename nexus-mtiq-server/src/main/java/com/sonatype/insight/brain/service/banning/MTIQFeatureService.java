@@ -70,6 +70,7 @@ public class MTIQFeatureService
               PR_COMMENTING,
               PR_LINE_COMMENTING,
               EMAIL_CONFIGURATION,
+              INTERNAL_FIREWALL_ONBOARDING_ENABLED,
               REPORTS_LIST_CAN_BE_ENABLED,
               REPORTS_LIST).stream(),
 

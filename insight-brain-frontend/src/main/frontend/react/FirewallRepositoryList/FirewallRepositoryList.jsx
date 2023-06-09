@@ -40,7 +40,7 @@ function FirewallRepositoryList({
     onChange(items.map(({ id }) => ({ id, key: checkItemPropName, value: event.target.checked })));
   };
 
-  const handleSelectItem = (event, item) => {
+  const handleSelectItem = (item) => {
     onChange([
       {
         id: item.id,
@@ -91,7 +91,7 @@ function FirewallRepositoryList({
             name={repo[labelItemPropName]}
             aria-label={ariaLabel}
             isChecked={isChecked}
-            onChange={(event) => handleSelectItem(event, repo)}
+            onChange={() => handleSelectItem(repo)}
           ></NxCheckbox>
         </NxTable.Cell>
         <NxTable.Cell className="firewall-repository-list__item-name">

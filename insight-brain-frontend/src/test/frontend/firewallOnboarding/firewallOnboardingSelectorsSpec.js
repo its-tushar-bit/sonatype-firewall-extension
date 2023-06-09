@@ -169,46 +169,60 @@ describe('FirewallOnboardingSelectors', () => {
   describe('selectTotalEnabledRepositoriesByTypeAndProp', () => {
     it('should return the correct count of enabled repositories by type and prop', () => {
       const repositories = [
-        { id: '1', repositoryType: 'type1', quarantineEnabled: true },
-        { id: '2', repositoryType: 'type1', quarantineEnabled: false },
-        { id: '3', repositoryType: 'type2', quarantineEnabled: true },
-        { id: '4', repositoryType: 'type2', quarantineEnabled: true },
-        { id: '5', repositoryType: 'type2', quarantineEnabled: false },
+        { id: '1', repositoryType: 'type1', format: 'npm', quarantineEnabled: true },
+        { id: '2', repositoryType: 'type1', format: 'npm', quarantineEnabled: false },
+        { id: '3', repositoryType: 'type2', format: 'npm', quarantineEnabled: true },
+        { id: '4', repositoryType: 'type2', format: 'npm', quarantineEnabled: true },
+        { id: '5', repositoryType: 'type2', format: 'npm', quarantineEnabled: false },
+        { id: '5', repositoryType: 'type2', format: 'unsupportedFormat', quarantineEnabled: true },
       ];
+      const supportedFormats = ['npm'];
       const type = 'type1';
       const propName = 'quarantineEnabled';
 
-      const result = selectTotalEnabledRepositoriesByTypeAndProp.resultFunc(repositories, type, propName);
+      const result = selectTotalEnabledRepositoriesByTypeAndProp.resultFunc(
+        repositories,
+        supportedFormats,
+        type,
+        propName
+      );
 
       expect(result).toBe(1);
     });
 
     it('should return 0 if no repositories match the type and prop', () => {
       const repositories = [
-        { id: '1', repositoryType: 'type1', quarantineEnabled: false },
-        { id: '2', repositoryType: 'type1', quarantineEnabled: false },
-        { id: '3', repositoryType: 'type2', quarantineEnabled: false },
-        { id: '4', repositoryType: 'type2', quarantineEnabled: false },
+        { id: '1', repositoryType: 'type1', format: 'npm', quarantineEnabled: false },
+        { id: '2', repositoryType: 'type1', format: 'npm', quarantineEnabled: false },
+        { id: '3', repositoryType: 'type2', format: 'npm', quarantineEnabled: false },
+        { id: '4', repositoryType: 'type2', format: 'npm', quarantineEnabled: false },
       ];
+      const supportedFormats = ['npm'];
 
       const type = 'type3';
       const propName = 'quarantineEnabled';
 
-      const result = selectTotalEnabledRepositoriesByTypeAndProp.resultFunc(repositories, type, propName);
+      const result = selectTotalEnabledRepositoriesByTypeAndProp.resultFunc(
+        repositories,
+        supportedFormats,
+        type,
+        propName
+      );
 
       expect(result).toBe(0);
     });
 
     it('should default to propName "quarantineEnabled" if not provided', () => {
       const repositories = [
-        { id: '1', repositoryType: 'type1', quarantineEnabled: true },
-        { id: '2', repositoryType: 'type1', quarantineEnabled: true },
-        { id: '3', repositoryType: 'type2', quarantineEnabled: false },
-        { id: '4', repositoryType: 'type2', quarantineEnabled: false },
+        { id: '1', repositoryType: 'type1', format: 'npm', quarantineEnabled: true },
+        { id: '2', repositoryType: 'type1', format: 'npm', quarantineEnabled: true },
+        { id: '3', repositoryType: 'type2', format: 'npm', quarantineEnabled: false },
+        { id: '4', repositoryType: 'type2', format: 'npm', quarantineEnabled: false },
       ];
+      const supportedFormats = ['npm'];
       const type = 'type1';
 
-      const result = selectTotalEnabledRepositoriesByTypeAndProp.resultFunc(repositories, type);
+      const result = selectTotalEnabledRepositoriesByTypeAndProp.resultFunc(repositories, supportedFormats, type);
 
       expect(result).toBe(2);
     });

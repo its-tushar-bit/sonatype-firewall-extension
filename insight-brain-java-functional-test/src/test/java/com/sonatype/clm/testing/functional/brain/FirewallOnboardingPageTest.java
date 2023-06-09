@@ -325,6 +325,115 @@ public class FirewallOnboardingPageTest
     }
   }
 
+  @Test
+  public void testLastStepDisplaysCorrectNumberOfEnabledProxyRepositories() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+    logout();
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+
+    try {
+      RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId3", "nexusTest3");
+
+      List<Repository> maven2Repositories = createProxyRepositories(5, repositoryManager, "maven2");
+      createProxyRepositories(4, repositoryManager, "pypi");
+      createProxyRepositories(3, repositoryManager, "npm");
+      List<Repository> goRepositories = createProxyRepositories(2, repositoryManager, "go");
+      new ArrayList<>(goRepositories).addAll(maven2Repositories);
+
+      List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm", "go");
+      mockComponentSupportedFormats(supportedFormats);
+
+      loginAsAdmin();
+
+      waitUntilUrl(FirewallOnboardingPage.url());
+
+      page.shouldBe(Condition.visible);
+      page.shouldHave(Condition.text("Select proxy repositories"));
+      page.shouldHave(Condition.text(
+              "Choose which proxy repositories you would like to apply your protection rules to."));
+
+      ElementsCollection repositoriesLists = page.repositoriesList();
+      repositoriesLists.shouldHaveSize(4);
+      repositoriesLists.get(0).shouldHave(Condition.text("maven2\n" + "3 of 5"));
+      repositoriesLists.get(1).shouldHave(Condition.text("pypi\n" + "2 of 4"));
+      repositoriesLists.get(2).shouldHave(Condition.text("npm\n" + "2 of 3"));
+      repositoriesLists.get(3).shouldHave(Condition.text("other\n" + "1 of 2"));
+
+      List<FirewallRepositoryList> firewallRepositoryLists = page.firewallRepositoryLists();
+
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Inspect and complete onboarding"));
+      page.shouldHave(Condition.text("Congratulations, you’re all set!"));
+      page.shouldHave(
+          Condition.text("Once you launch Firewall, malicious blocking will be enabled for 8 proxy repositories.")
+      );
+
+      eyesWatcher.eyesCheck("Firewall onboarding: inspect and complete onboarding step");
+
+      page.previousButton().click();
+      firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
+      page.continueButton().click();
+      page.shouldHave(
+          Condition.text("Once you launch Firewall, malicious blocking will be enabled for 10 proxy repositories.")
+      );
+
+      page.previousButton().click();
+      firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
+      page.continueButton().click();
+      page.shouldHave(
+          Condition.text("Once you launch Firewall, malicious blocking will be enabled for 5 proxy repositories.")
+      );
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testLastStepDisplaysNumberOfSupportedEnabledProxyRepositoriesOnly() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+    logout();
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+
+    try {
+      RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId3", "nexusTest3");
+
+      createProxyRepositories(4, repositoryManager, "maven2");
+      createProxyRepositories(4, repositoryManager, "pypi");
+      createProxyRepositories(4, repositoryManager, "npm");
+
+      // Unsupported repositories, should not be counted:
+      createProxyRepositories(4, repositoryManager, "nugget");
+
+      List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm");
+      mockComponentSupportedFormats(supportedFormats);
+
+      loginAsAdmin();
+
+      waitUntilUrl(FirewallOnboardingPage.url());
+
+      page.shouldBe(Condition.visible);
+      page.shouldHave(Condition.text("Select proxy repositories"));
+
+      ElementsCollection repositoriesLists = page.repositoriesList();
+      repositoriesLists.shouldHaveSize(3);
+      repositoriesLists.get(0).shouldHave(Condition.text("maven2\n" + "2 of 4"));
+      repositoriesLists.get(1).shouldHave(Condition.text("npm\n" + "2 of 4"));
+      repositoriesLists.get(2).shouldHave(Condition.text("pypi\n" + "2 of 4"));
+
+      page.firewallRepositoryLists();
+
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Inspect and complete onboarding"));
+      page.shouldHave(
+          Condition.text("Once you launch Firewall, malicious blocking will be enabled for 6 proxy repositories.")
+      );
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+    }
+  }
+
   private void checkFirewallRepositoryListByFormat(
           FirewallRepositoryList firewallRepositoryList,
           List<Repository> repositoriesListByFormat)

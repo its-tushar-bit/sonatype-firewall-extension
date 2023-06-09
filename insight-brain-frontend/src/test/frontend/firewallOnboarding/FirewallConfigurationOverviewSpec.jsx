@@ -15,18 +15,19 @@ const firewallOnboardingPreloadedState = {
   firewallOnboarding: {
     loading: false,
     currentStep,
-    supportedFormats: [],
+    supportedFormats: ['npm'],
     repositories: {
       loading: false,
       loadError: null,
       saving: false,
       saveError: null,
       list: [
-        { id: '1', repositoryType: 'proxy', quarantineEnabled: true },
-        { id: '2', repositoryType: 'proxy', quarantineEnabled: true },
-        { id: '3', repositoryType: 'type2', quarantineEnabled: true },
-        { id: '4', repositoryType: 'type2', quarantineEnabled: true },
-        { id: '5', repositoryType: 'type2', quarantineEnabled: false },
+        { id: '1', repositoryType: 'proxy', format: 'npm', quarantineEnabled: true },
+        { id: '2', repositoryType: 'proxy', format: 'npm', quarantineEnabled: true },
+        { id: '3', repositoryType: 'type2', format: 'npm', quarantineEnabled: true },
+        { id: '4', repositoryType: 'type2', format: 'npm', quarantineEnabled: true },
+        { id: '5', repositoryType: 'type2', format: 'npm', quarantineEnabled: false },
+        { id: '6', repositoryType: 'type2', format: 'unsupportedFormat', quarantineEnabled: true },
       ],
     },
     unconfiguredRepoManagers: {

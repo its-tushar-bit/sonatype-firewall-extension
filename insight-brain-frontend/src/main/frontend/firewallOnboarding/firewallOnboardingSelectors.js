@@ -48,11 +48,12 @@ export const selectRepositoriesByType = createSelector(
 
 export const selectTotalEnabledRepositoriesByTypeAndProp = createSelector(
   selectRepositoriesList,
+  selectSupportedFormats,
   (_, type) => type,
   (_, __, propName) => propName,
-  (list, type, propName = 'quarantineEnabled') => {
+  (list, supportedFormats, type, propName = 'quarantineEnabled') => {
     return list.reduce((count, repo) => {
-      if (repo[propName] && repo.repositoryType === type) {
+      if (repo[propName] && repo.repositoryType === type && supportedFormats.includes(repo.format)) {
         return count + 1;
       }
       return count;

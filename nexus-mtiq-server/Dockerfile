@@ -42,6 +42,7 @@ ENTRYPOINT ["/usr/bin/java", \
              "-javaagent:/opt/datadog/dd-java-agent.jar", \
              "-XX:InitialRAMPercentage=75.0", \
              "-XX:MaxRAMPercentage=75.0", \
+             "-XX:+AlwaysPreTouch", \
              "-XX:+CrashOnOutOfMemoryError", \
              "-XshowSettings:vm", \
              "-jar"]

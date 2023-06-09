@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.users;
 
-import java.util.Set;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.DELETE;
@@ -34,7 +34,7 @@ public class MtiqUserResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Set<MtiqUserDTO> getAllMtiqUsers() {
+  public List<MtiqUserDTO> getAllMtiqUsers() {
     return userService.getAllUsers();
   }
 

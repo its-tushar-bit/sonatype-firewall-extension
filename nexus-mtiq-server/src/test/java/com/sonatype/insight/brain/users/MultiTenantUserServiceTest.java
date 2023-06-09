@@ -63,6 +63,22 @@ public class MultiTenantUserServiceTest
   }
 
   @Test
+  public void test_listUsersIsOrderedByEmail() {
+    MtiqUserDTO user1 = createMtiqUser("zebra");
+    MtiqUserDTO user2 = createMtiqUser("ant");
+    MtiqUserDTO user3 = createMtiqUser("monkey");
+    MtiqUserDTO user4 = createMtiqUser("horse");
+
+    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
+    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
+    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user3));
+    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user4));
+
+    List<MtiqUserDTO> allUsers = underTest.getAllUsers();
+    assertThat(allUsers).containsSequence(user2, user4, user3, user1);
+  }
+
+  @Test
   public void test_canInviteAUser() {
     MtiqUserDTO user = createMtiqUser("foo");
 

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.users;
 
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -51,10 +51,10 @@ public class MultiTenantUserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
-  public Set<MtiqUserDTO> getAllUsers() {
+  public List<MtiqUserDTO> getAllUsers() {
     return samlUserDAO.getAll().stream()
         .map(MtiqUserDTO::samlUserToMtiqUser)
-        .collect(Collectors.toSet());
+        .collect(Collectors.toList());
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

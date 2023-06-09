@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.users;
 
-import java.util.Set;
+import java.util.List;
 
 public interface MtiqUserService
 {
-  Set<MtiqUserDTO> getAllUsers();
+  List<MtiqUserDTO> getAllUsers();
 
   void inviteUser(MtiqUserDTO user);
 

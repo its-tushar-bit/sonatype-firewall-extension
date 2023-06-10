@@ -166,19 +166,22 @@ public class ComponentObligationDAO
   }
 
   public List<ComponentObligation> getByOwnerIdAndComponentIdentifierWithHierarchy(
-      TransactionContext tx,
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
     Map<String, ComponentObligation> nameToObligationMap = new HashMap<>();
     OwnerDAO ownerDAO = new OwnerDAO();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      List<ComponentObligation> componentObligations =
-          getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
-      for (ComponentObligation componentObligation : componentObligations) {
-        nameToObligationMap.putIfAbsent(componentObligation.getObligationName(), componentObligation);
+
+    try (TransactionContext tx = createTransactionContext()) {
+      for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
+        List<ComponentObligation> componentObligations =
+            getByOwnerIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
+        for (ComponentObligation componentObligation : componentObligations) {
+          nameToObligationMap.putIfAbsent(componentObligation.getObligationName(), componentObligation);
+        }
       }
     }
+
     return new ArrayList<>(nameToObligationMap.values());
   }
 

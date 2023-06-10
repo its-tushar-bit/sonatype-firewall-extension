@@ -42,9 +42,11 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.experimental.legal.ComponentLegalService;
 import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
@@ -2892,6 +2894,50 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseLegalComponentReport.component).isNotNull();
     assertThat(licenseLegalComponentReport.component.licenseLegalData).isNotNull();
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights).isEmpty();
+  }
+
+  @Test
+  public void testGetLicenseLegalMultiApplicationReport_HdsgetLicenseMetadataCalledOnceWhenLicenseRepeated() {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+
+    ApiReportRawDataDTOV2 reportDto1 = new ApiReportRawDataDTOV2();
+    ApiReportComponentDTOV2 componentDto1 = new ApiReportComponentDTOV2();
+    componentDto1.hash = "hash1";
+    componentDto1.componentIdentifier =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createNpmCoordinates("p1", "v1"));
+    componentDto1.licenseData = new ApiLicenseDataDTOV2();
+    componentDto1.licenseData.effectiveLicenses.add(new ApiLicenseDTO("MIT", "MIT"));
+    reportDto1.components.add(componentDto1);
+
+    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    doReturn(reportDto1).when(apiLicenseLegalServiceSpy).getApiReportRawDataForMultiApplicationReport(app1,
+        BuildStageType.ID);
+
+    ApiReportRawDataDTOV2 reportDto2 = new ApiReportRawDataDTOV2();
+    ApiReportComponentDTOV2 componentDto2 = new ApiReportComponentDTOV2();
+    componentDto2.hash = "hash2";
+    componentDto2.componentIdentifier =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(ComponentIdentifier.createNpmCoordinates("p2", "v2"));
+    componentDto2.licenseData = new ApiLicenseDataDTOV2();
+    componentDto2.licenseData.effectiveLicenses.add(new ApiLicenseDTO("MIT", "MIT"));
+    reportDto2.components.add(componentDto2);
+
+    doReturn(reportDto2).when(apiLicenseLegalServiceSpy).getApiReportRawDataForMultiApplicationReport(app2,
+        BuildStageType.ID);
+
+    List<String> licenses = Collections.singletonList("MIT");
+    List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(licenses);
+
+    doReturn(licenseMetadataDTOs).when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
+
+    Set<Optional<ApiLicenseLegalApplicationReportDTO>> optionalResult =
+        apiLicenseLegalServiceSpy.getLicenseLegalMultiApplicationReport(Arrays.asList(app1, app2),
+            Arrays.asList(BuildStageType.ID, BuildStageType.ID), false, false);
+
+    assertThat(optionalResult).isNotEmpty();
+    verify(mockApiLicenseLegalHdsService).getLicenseMetadata(new HashSet<>(licenses));
   }
 
   private NamedComponentDetails createNamedComponentDetails() {

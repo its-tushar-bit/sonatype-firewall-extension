@@ -22,8 +22,11 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -107,7 +110,9 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.tenancy.TenantAwareRunnable;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -125,7 +130,9 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.StringUtils;
@@ -153,6 +160,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
  */
 @Named
 public class ApiLicenseLegalService
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(ApiLicenseLegalService.class);
 
@@ -209,6 +217,8 @@ public class ApiLicenseLegalService
   private final LegalDashboardsService legalDashboardService;
 
   private final ComponentLegalService componentLegalService;
+
+  private final ForkJoinPool attributionReportForkJoinPool;
 
   private static final Set<String> SONATYPE_SPECIAL_LICENSES = new HashSet<>(Arrays.asList(
       UNSPECIFIED_ID,
@@ -281,6 +291,14 @@ public class ApiLicenseLegalService
     this.innerSourceComponentDAO = innerSourceComponentDAO;
     this.legalDashboardService = legalDashboardService;
     this.componentLegalService = componentLegalService;
+
+    attributionReportForkJoinPool =
+        ExecutorThreadPools.getInstance().createThreadPool(1, 20, 200, "insight.threads.attribution.report");
+  }
+
+  @Override
+  public void stop() throws Exception {
+    attributionReportForkJoinPool.shutdown();
   }
 
   public ApiLicenseLegalApplicationDashboardResultDTO getLicenseLegalApplicationsDashboard(
@@ -583,6 +601,17 @@ public class ApiLicenseLegalService
       throw new BadRequestException("Size of parameters are not the same to generate multi application report");
     }
 
+    Map<String, List<ApiReportRawDataDTOV2>> reportsByApplicationId = new HashMap<>();
+    for (int i = 0; i < applications.size(); i++) {
+      String applicationId = applications.get(i).getId();
+      List<ApiReportRawDataDTOV2> reports = Lists.newArrayList(latestRawReports.get(i));
+
+      reportsByApplicationId.merge(applicationId, reports, (existing, newValue) -> {
+        existing.addAll(newValue);
+        return existing;
+      });
+    }
+
     if (!includeSonatypeSpecialLicenses) {
       for (ApiReportRawDataDTOV2 apiReportRawDataDTOV2 : latestRawReports) {
         filterSonatypeSpecialLicensesComponents(apiReportRawDataDTOV2);
@@ -598,7 +627,7 @@ public class ApiLicenseLegalService
     Set<ApiLicenseDTO> allMultiLicenses = latestRawReports.stream().map(this::getReportMultiLicenses)
         .flatMap(m -> m.entrySet().stream())
         .flatMap(e -> e.getValue().stream())
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(dto -> dto.licenseId))));
 
     Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense =
         buildMultiLicenseToSingleLicenseMap(allMultiLicenses);
@@ -608,43 +637,64 @@ public class ApiLicenseLegalService
     }
 
     CompletableFuture<Map<String, LicenseMetadataDTO>> licenseMetadataById =
-        CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> multiLicenseToSingleLicense.values().stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet())))
-            .thenApply(allSingleLicenses -> allMultiLicenses.isEmpty()
-                ? Collections.emptyMap()
-                : applications.stream().map(app -> getLicenseMetadata(allSingleLicenses, app.getId()))
-                .flatMap(m -> m.entrySet().stream())
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (prev, next) -> next)));
+        CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> {
+          if (multiLicenseToSingleLicense.isEmpty()) {
+            return Collections.emptyMap();
+          }
 
-    final Set<ApiReportComponentDTOV2> apiReportComponentDTOV2s =
-        latestRawReports.stream().flatMap(rawReport -> rawReport.components.stream()).collect(
-            Collectors.toSet());
+          List<LicenseMetadataDTO> licenseMetadataDTOS =
+              apiLicenseLegalHdsService.getLicenseMetadata(multiLicenseToSingleLicense.values().stream()
+                  .flatMap(Collection::stream)
+                  .map(License::getId)
+                  .collect(Collectors.toCollection(LinkedHashSet::new)));
+
+          Map<String, LicenseMetadataDTO> metadataByLicenseId = licenseMetadataDTOS.isEmpty() ? Collections.emptyMap()
+              : applications.stream()
+                  .map(app -> getLicenseMetadata(licenseMetadataDTOS, app.getId()))
+                  .flatMap(m -> m.entrySet().stream())
+                  .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (prev, next) -> next));
+          return metadataByLicenseId;
+        }), attributionReportForkJoinPool);
 
     CompletableFuture<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>> componentIdentifierToLegalData =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            (Supplier<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>>) () -> applications.stream()
-                .map(app -> fetchApiReportComponentDTOV2ToLegalData(app, apiReportComponentDTOV2s,
-                    multiLicenseToSingleLicense))
+            (Supplier<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>>) () -> reportsByApplicationId.keySet()
+                .stream().map(appId -> {
+                  Collection<ApiReportComponentDTOV2> components = reportsByApplicationId.get(appId).stream()
+                      .flatMap(rawReport -> rawReport.components.stream())
+                      .collect(Collectors.toSet());
+                  return fetchApiReportComponentDTOV2ToLegalData(appId, components, multiLicenseToSingleLicense);
+                })
                 .flatMap(m -> m.entrySet().stream())
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (prev, next) -> next))));
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (prev, next) -> next))),
+            attributionReportForkJoinPool);
 
     CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>>>
         componentLegalCommentsByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            () -> getComponentLegalCommentsByComponentIdentifier(latestRawReports)));
+            () -> getComponentLegalCommentsByComponentIdentifier(latestRawReports)), attributionReportForkJoinPool);
 
     CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalFileDTO>>> componentLegalFilesByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            () -> getComponentLegalFilesByComponentIdentifier(latestRawReports)));
+            () -> getComponentLegalFilesByComponentIdentifier(latestRawReports)), attributionReportForkJoinPool);
 
     CompletableFuture<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>> sourceLinksByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            (Supplier<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>>) () -> applications.stream()
-                    .map(app -> getSourceLinksByComponentIdentifier(app, latestRawReports))
-                .flatMap(m -> m.entrySet().stream())
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                    (prev, next) -> Stream.concat(prev.stream(), next.stream()).collect(Collectors.toSet())))));
+            (Supplier<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>>) () -> {
+
+              Set<ComponentIdentifier> componentIdentifiersFromRawReports = getComponentIdentifiers(latestRawReports);
+              Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinksByComponent = apiLicenseLegalHdsService
+                  .getSourceLinksFromComponentIdentifierSet(componentIdentifiersFromRawReports);
+
+              return reportsByApplicationId.keySet().stream().map(appId -> {
+                List<ApiReportRawDataDTOV2> reportsForApp = reportsByApplicationId.get(appId);
+                return getSourceLinksByComponentIdentifier(appId, getComponentIdentifiers(reportsForApp),
+                    sourceLinksByComponent);
+              }).flatMap(m -> m.entrySet().stream())
+                  .collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+                      (prev, next) -> Stream.concat(prev.stream(), next.stream()).collect(Collectors.toSet())));
+            }),
+            attributionReportForkJoinPool);
 
     CompletableFuture.allOf(componentLegalCommentsByComponentIdentifier, componentLegalFilesByComponentIdentifier,
         sourceLinksByComponentIdentifier, licenseMetadataById, componentIdentifierToLegalData).join();
@@ -790,7 +840,7 @@ public class ApiLicenseLegalService
 
     ComponentIdentifierLegalData componentIdentifierLegalData =
         fetchApiReportComponentDTOV2ToLegalData(
-            owner,
+            owner.getId(),
             Collections.singleton(apiReportComponentDTOV2),
             multiLicenseToSingleLicense
         ).entrySet().iterator().next().getValue();
@@ -818,12 +868,12 @@ public class ApiLicenseLegalService
       ComponentIdentifier compIdentifier,
       Owner owner)
   {
-    return mergeLegalSourceLinkAndSourceLinkOverride(compIdentifier, owner, null);
+    return mergeLegalSourceLinkAndSourceLinkOverride(compIdentifier, owner.getId(), null);
   }
 
   private Set<LegalSourceLinkDTO> mergeLegalSourceLinkAndSourceLinkOverride(
       ComponentIdentifier compIdentifier,
-      Owner owner,
+      String ownerId,
       Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinksByComponent)
   {
     Set<LegalSourceLinkDTO> sourceLinks;
@@ -834,7 +884,7 @@ public class ApiLicenseLegalService
       sourceLinks = sourceLinksByComponent.getOrDefault(compIdentifier, Collections.emptySet());
     }
     Set<LegalSourceLinkDTO> sourceLinkOverrides =
-        componentLegalService.getSourceLinksOverridesFromComponentIdentifier(owner.getId(), compIdentifier);
+        componentLegalService.getSourceLinksOverridesFromComponentIdentifier(ownerId, compIdentifier);
     sourceLinks = sourceLinks.stream()
         .filter(sourceLinkHDS -> sourceLinkOverrides.stream()
             .noneMatch(customSourceLink -> customSourceLink.originalContent.equals(sourceLinkHDS.originalContent)))
@@ -857,6 +907,20 @@ public class ApiLicenseLegalService
             .map(License::getId)
             .collect(Collectors.toCollection(LinkedHashSet::new)));
 
+    return getLicenseMetadata(licenseMetadataDTOS, ownerId);
+  }
+
+  /**
+   * Given a set of {@link licenseMetadataDTOS}s and the ownerId, return map of LicenseId to LicenseMetadataDTO.
+   *
+   * @param licenseMetadataDTOS set of {@link LicenseMetadataDTO}
+   * @param ownerId ownerId
+   * @return map of license id to licenseMetadataDto
+   */
+  private Map<String, LicenseMetadataDTO> getLicenseMetadata(
+      List<LicenseMetadataDTO> licenseMetadataDTOS,
+      String ownerId)
+  {
     Map<String, LicenseMetadataDTO> licenseMetadataMap = new HashMap<>();
 
     try (TransactionContext tx = applicationComponentDAO.createTransactionContext()) {
@@ -886,7 +950,7 @@ public class ApiLicenseLegalService
             Function.identity(),
             m -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(m.licenseId),
             (prev, next) -> next,
-            HashMap::new
+            () -> new TreeMap<ApiLicenseDTO, Set<License>>(Comparator.comparing(dto -> dto.licenseId))
         ));
   }
 
@@ -915,10 +979,13 @@ public class ApiLicenseLegalService
   }
 
   private ApiLicenseThreatDTOV2 getHighestLicenseThreatGroupWithHierarchy(
-      TransactionContext tx, String ownerId, Set<String> licenseIds)
+      TransactionContext tx,
+      String ownerId,
+      Set<String> licenseIds)
   {
     LicenseThreatGroup result =
-        licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(tx, ownerId, licenseIds);
+        tx != null ? licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(tx, ownerId, licenseIds)
+            : licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(ownerId, licenseIds);
     return result == null ? null : new ApiLicenseDataAdapter().convert(result);
   }
 
@@ -1196,28 +1263,26 @@ public class ApiLicenseLegalService
   }
 
   private Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> getSourceLinksByComponentIdentifier(
-      final Owner owner,
-      final Collection<ApiReportRawDataDTOV2> rawReports)
+      final String ownerId,
+      final Set<ComponentIdentifier> componentIdentifiersFromRawReports,
+      final Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinksByComponent)
   {
-    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> result = new HashMap<>();
+    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> result = new ConcurrentHashMap<>();
 
-    Set<ComponentIdentifier> componentIdentifiersFromRawReports = getComponentIdentifiers(rawReports);
-    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinksByComponent =
-        apiLicenseLegalHdsService.getSourceLinksFromComponentIdentifierSet(componentIdentifiersFromRawReports);
+    attributionReportForkJoinPool.submit(new TenantAwareRunnable(
+        () -> componentIdentifiersFromRawReports.parallelStream().forEach(componentIdentifier -> {
+          Set<LegalSourceLinkDTO> links =
+              mergeLegalSourceLinkAndSourceLinkOverride(componentIdentifier, ownerId, sourceLinksByComponent).stream()
+                  .filter(link -> link.status == ComponentLegalPartStatus.ENABLED)
+                  .collect(Collectors.toCollection(() -> new TreeSet<>(LEGAL_SOURCE_LINK_COMPARATOR)));
+          ComponentIdentifier simpleIdentifier =
+              LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier);
 
-    for (ComponentIdentifier componentIdentifier : componentIdentifiersFromRawReports) {
-      Set<LegalSourceLinkDTO> links =
-          mergeLegalSourceLinkAndSourceLinkOverride(componentIdentifier, owner, sourceLinksByComponent).stream()
-              .filter(link -> link.status == ComponentLegalPartStatus.ENABLED)
-              .collect(Collectors.toCollection(() -> new TreeSet<>(LEGAL_SOURCE_LINK_COMPARATOR)));
-      ComponentIdentifier simpleIdentifier =
-          LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier);
-
-      result.merge(simpleIdentifier, links, (existing, newValue) -> {
-        existing.addAll(newValue);
-        return existing;
-      });
-    }
+          result.merge(simpleIdentifier, links, (existing, newValue) -> {
+            existing.addAll(newValue);
+            return existing;
+          });
+        }))).join();
 
     return result;
   }
@@ -1394,73 +1459,63 @@ public class ApiLicenseLegalService
   }
 
   private Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> fetchApiReportComponentDTOV2ToLegalData(
-      Owner owner,
-      Collection<ApiReportComponentDTOV2> apiReportComponentDTOV2s,
+      String ownerId,
+      Collection<ApiReportComponentDTOV2> components,
       Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense)
   {
-
-    String ownerId = owner.getId();
-
     Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> componentIdentifierLegalDataMap =
-        new HashMap<>(apiReportComponentDTOV2s.size());
+        new ConcurrentHashMap<>(components.size());
 
-    try (final TransactionContext tx = componentCopyrightDAO.createTransactionContext()) {
-      for (ApiReportComponentDTOV2 apiReportComponentDTOV2 : apiReportComponentDTOV2s) {
-        if (apiReportComponentDTOV2.componentIdentifier == null) {
-          continue;
-        }
-        ComponentIdentifier componentIdentifier = apiReportComponentDTOV2.componentIdentifier.toComponentIdentifier();
-        ComponentIdentifierLegalData componentIdentifierLegalData =
-            new ComponentIdentifierLegalData(
-                LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier));
-
-        componentIdentifierLegalData.getCopyrightOverrides().addAll(
-            copyrightOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier));
-
-        componentIdentifierLegalData.setComponentCopyrights(
-            componentCopyrightDAO.getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier));
-
-        componentIdentifierLegalData.setLicenseOverrides(legalFileOverrideDAO
-            .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(tx, ownerId, componentIdentifier,
-                LegalFileType.LICENSE));
-
-        componentIdentifierLegalData.setComponentLicense(
-            componentIdentifierLegalData.getLicenseOverrides().isEmpty() ? null :
-                componentLegalFileDAO
-                    .getById(tx, componentIdentifierLegalData.getLicenseOverrides().get(0).getComponentLegalFileId()));
-
-        componentIdentifierLegalData.setNoticeOverrides(legalFileOverrideDAO
-            .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(tx, ownerId, componentIdentifier,
-                LegalFileType.NOTICE));
-
-        componentIdentifierLegalData.setComponentNotice(
-            componentIdentifierLegalData.getNoticeOverrides().isEmpty() ? null :
-                componentLegalFileDAO
-                    .getById(tx, componentIdentifierLegalData.getNoticeOverrides().get(0).getComponentLegalFileId()));
-
-        componentIdentifierLegalData.setObligations(componentObligationDAO
-            .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier));
-
-        componentIdentifierLegalData.setAttributions(componentObligationAttributionDAO
-            .getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier));
-
-        componentIdentifierLegalDataMap
-            .put(apiReportComponentDTOV2, componentIdentifierLegalData);
-
-        Set<String> componentMultiLicenses = apiReportComponentDTOV2.licenseData.effectiveLicenses.stream()
-            .map(l -> l.licenseId)
-            .collect(Collectors.toSet());
-
-        Set<String> componentSingleLicense = multiLicenseToSingleLicense.entrySet().stream()
-            .filter(e -> componentMultiLicenses.contains(e.getKey().licenseId))
-            .flatMap(e -> e.getValue().stream())
-            .map(License::getId)
-            .collect(Collectors.toSet());
-
-        componentIdentifierLegalData.setHighestEffectiveLicenseThreatGroup(
-            getHighestLicenseThreatGroupWithHierarchy(tx, owner.getId(), componentSingleLicense));
+    attributionReportForkJoinPool.submit(new TenantAwareRunnable(() -> components.parallelStream().forEach(dto -> {
+      if (dto.componentIdentifier == null) {
+        return;
       }
-    }
+      ComponentIdentifier componentIdentifier = dto.componentIdentifier.toComponentIdentifier();
+      ComponentIdentifierLegalData componentIdentifierLegalData = new ComponentIdentifierLegalData(
+          LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier));
+
+      componentIdentifierLegalData.getCopyrightOverrides()
+          .addAll(copyrightOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(ownerId, componentIdentifier));
+
+      componentIdentifierLegalData.setComponentCopyrights(
+          componentCopyrightDAO.getByOwnerIdAndComponentIdentifier(ownerId, componentIdentifier));
+
+      componentIdentifierLegalData.setLicenseOverrides(legalFileOverrideDAO
+          .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(ownerId, componentIdentifier, LegalFileType.LICENSE));
+
+      componentIdentifierLegalData
+          .setComponentLicense(componentIdentifierLegalData.getLicenseOverrides().isEmpty() ? null
+              : componentLegalFileDAO
+                  .getById(componentIdentifierLegalData.getLicenseOverrides().get(0).getComponentLegalFileId()));
+
+      componentIdentifierLegalData.setNoticeOverrides(legalFileOverrideDAO
+          .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(ownerId, componentIdentifier, LegalFileType.NOTICE));
+
+      componentIdentifierLegalData.setComponentNotice(componentIdentifierLegalData.getNoticeOverrides().isEmpty() ? null
+          : componentLegalFileDAO
+              .getById(componentIdentifierLegalData.getNoticeOverrides().get(0).getComponentLegalFileId()));
+
+      componentIdentifierLegalData.setObligations(
+          componentObligationDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(ownerId, componentIdentifier));
+
+      componentIdentifierLegalData.setAttributions(componentObligationAttributionDAO
+          .getByOwnerIdAndComponentIdentifierWithHierarchy(ownerId, componentIdentifier));
+
+      componentIdentifierLegalDataMap.put(dto, componentIdentifierLegalData);
+
+      Set<String> componentMultiLicenses = dto.licenseData.effectiveLicenses.stream()
+          .map(l -> l.licenseId)
+          .collect(Collectors.toSet());
+
+      Set<String> componentSingleLicense = multiLicenseToSingleLicense.entrySet().stream()
+          .filter(e -> componentMultiLicenses.contains(e.getKey().licenseId))
+          .flatMap(e -> e.getValue().stream())
+          .map(License::getId)
+          .collect(Collectors.toSet());
+
+      componentIdentifierLegalData.setHighestEffectiveLicenseThreatGroup(
+          getHighestLicenseThreatGroupWithHierarchy(null, ownerId, componentSingleLicense));
+    }))).join();
     return componentIdentifierLegalDataMap;
   }
 

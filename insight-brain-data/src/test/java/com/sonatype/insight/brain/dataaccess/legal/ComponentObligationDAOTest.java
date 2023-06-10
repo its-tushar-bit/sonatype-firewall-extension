@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -276,6 +277,30 @@ public class ComponentObligationDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
         componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(c1App, c2Org, c3App);
+  }
+
+  @Test
+  public void testGetByOwnerIdAndComponentIdentifierWithHierarchy() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    ComponentObligation obligationOrg = tempEntity.newComponentObligation(componentIdentifier, organization.getId(),
+        "name1", "comment1", ObligationStatus.OPEN, "hash1");
+
+    List<ComponentObligation> result =
+        dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier);
+    assertThat(result)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+        .containsExactly(obligationOrg);
+
+    ComponentObligation obligationApp1 = tempEntity.newComponentObligation(componentIdentifier, application.getId(),
+        "name2", "comment2", ObligationStatus.FULFILLED, "hash2");
+    ComponentObligation obligationApp2 = tempEntity.newComponentObligation(componentIdentifier, application.getId(),
+        "name3", "comment3", ObligationStatus.FLAGGED, "hash3");
+
+    result = dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier);
+    assertThat(result)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+        .containsExactlyInAnyOrder(obligationOrg, obligationApp1, obligationApp2);
   }
 
   @Test

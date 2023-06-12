@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -42,8 +43,17 @@ public class BaseUrlTest
     when(httpRequest.getQueryString()).thenReturn(queryParams);
   }
 
+  @Before
+  public void before() {
+    // Always start with baseUrl unconfigured
+    resetBaseUrl();
+    // Sanity check
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> baseUrl.getConfigured())
+        .withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+  }
+
   @After
-  public void exit() {
+  public void after() {
     baseUrl.release();
   }
 

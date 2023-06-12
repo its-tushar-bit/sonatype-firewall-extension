@@ -20,12 +20,14 @@ import com.sonatype.insight.brain.api.v2.dto.ApiMailConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.DefaultBaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.IOUtil;
+import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
@@ -43,6 +45,18 @@ public class ApiMailConfigurationServiceTest
 
   @Inject
   private InsightMail insightMail;
+
+  @Inject
+  private BaseUrl baseUrl;
+
+  @Before
+  public void before() {
+    // Always start with baseUrl unconfigured
+    resetBaseUrl();
+    // Sanity check
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> baseUrl.getConfigured())
+        .withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+  }
 
   @Test
   public void testGetConfiguration() {

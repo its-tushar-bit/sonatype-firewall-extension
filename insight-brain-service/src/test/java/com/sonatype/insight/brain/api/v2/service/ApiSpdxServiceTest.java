@@ -53,6 +53,9 @@ import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
 import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.library.model.license.AnyLicenseInfo;
+import org.spdx.library.model.license.ConjunctiveLicenseSet;
+import org.spdx.library.model.license.DisjunctiveLicenseSet;
+import org.spdx.library.model.license.SimpleLicensingInfo;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 
@@ -162,8 +165,21 @@ public class ApiSpdxServiceTest
     Response response = service.getByScanId(application.getId(), scanId, format, generateCycloneDx, spdxVersion);
     SpdxDocument document = deserialize(response, format);
 
+    assertFilename(response, "build", format);
+    assertDocument(document, spdxVersion);
+  }
+
+  private void assertFilename(Response response, String stageId, String format) {
+    String contentHeader = response.getHeaderString("Content-Disposition");
+    String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
+    String expectedFilename = String.format("%s-%s-%s.spdx.%s", application.getPublicId(), stageId, scanId, format);
+    assertThat(actualFilename).isEqualTo(expectedFilename);
+  }
+
+  private void assertDocument(final SpdxDocument document, final String spdxVersion) throws Exception {
     assertMetadata(document, spdxVersion);
     assertPackages(document);
+    assertTopLevelRelationship(document);
   }
 
   @Test
@@ -218,14 +234,8 @@ public class ApiSpdxServiceTest
         service.getLatestForStage(application.getId(), stageId, format, generateCycloneDx, spdxVersion);
     SpdxDocument document = deserialize(response, format);
 
-    String contentHeader = response.getHeaderString("Content-Disposition");
-    String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
-    String expectedFilename = String.format("%s-%s-%s.spdx.%s", application.getPublicId(), stageId, scanId, format);
-
-    assertThat(actualFilename).isEqualTo(expectedFilename);
-    assertMetadata(document, spdxVersion);
-    assertPackages(document);
-    assertTopLevelRelationship(document);
+    assertFilename(response, stageId, format);
+    assertDocument(document, spdxVersion);
   }
 
   private void assertTopLevelRelationship(SpdxDocument document) throws InvalidSPDXAnalysisException {
@@ -280,11 +290,21 @@ public class ApiSpdxServiceTest
       assertThat(spdxPackage.getName()).isPresent().get().isIn(expectedNames);
 
       Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
-      assertThat(externalRefs).hasSize(1);
+      assertThat(externalRefs).isNotEmpty();
+      boolean purlRefFound = false;
+      int securityRefCount = 0;
       for (ExternalRef externalRef : externalRefs) {
-        assertThat(externalRef.getReferenceCategory()).isEqualTo(ReferenceCategory.PACKAGE_MANAGER);
-        assertThat(externalRef.getReferenceLocator()).isIn(expectedPurls);
+        if (externalRef.getReferenceCategory() == ReferenceCategory.PACKAGE_MANAGER) {
+          purlRefFound = true;
+          assertThat(externalRef.getReferenceLocator()).isIn(expectedPurls);
+        }
+        if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
+          securityRefCount++;
+        }
       }
+      assertThat(purlRefFound).isTrue();
+      String secCountStr = String.format("%s -> %d", spdxPackage.getName().get(), securityRefCount);
+      assertThat(secCountStr).isIn(expectedSecurityRefs);
 
       Collection<Checksum> checksums = spdxPackage.getChecksums();
       for (Checksum checksum : checksums) {
@@ -297,25 +317,75 @@ public class ApiSpdxServiceTest
     }
   }
 
+  private static final Set<String> expectedSecurityRefs = ImmutableSet.of(
+      "com.sonatype.testing:pr-comment-02 -> 0",
+      "org.apache.logging.log4j:log4j-core -> 3",
+      "org.apache.logging.log4j:log4j-api -> 0",
+      "org.slf4j:slf4j-api -> 0",
+      "com.fasterxml.jackson.core:jackson-core -> 1",
+      "com.fasterxml.jackson.core:jackson-databind -> 0",
+      "com.fasterxml.jackson.core:jackson-annotations -> 0",
+      "net.sf.ehcache:ehcache -> 66",
+      "net.sf.ehcache:sizeof-agent -> 0"
+  );
+
   private static final Set<String> expectedLicenses = ImmutableSet.of(
       "NOASSERTION", "Apache-2.0", "MIT", "(Apache-2.0 AND MIT)",
       "(Apache-2.0 AND COMMERCIAL)", "(Apache-2.0 AND COMMERCIAL AND No-Source-License)",
-      "(EPL-1.0 AND (CDDL-UNSPECIFIED OR GPL-2.0-with-classpath-exception) AND (EPL-1.0 OR Apache-2.0) AND " +
-          "See-License-Clause AND Apache-2.0 AND CC0-1.0 AND MIT AND " +
-          "(LGPL-2.1 OR LGPL-3.0 OR MPL-1.1 OR Apache-2.0) AND PUBLIC-DOMAIN)",
-      "((LGPL-2.1 OR LGPL-3.0 OR MPL-1.1 OR Apache-2.0) AND EPL-1.0 AND (EPL-1.0 OR Apache-2.0) AND " +
-          "See-License-Clause AND Apache-2.0 AND CC0-1.0 AND MIT AND " +
-          "(CDDL-UNSPECIFIED OR GPL-2.0-with-classpath-exception) AND PUBLIC-DOMAIN)"
+      "((Apache-2.0 OR EPL-1.0) AND (Apache-2.0 OR LGPL-2.1 OR LGPL-3.0 OR MPL-1.1) AND " +
+          "(CDDL-UNSPECIFIED OR GPL-2.0-with-classpath-exception) AND Apache-2.0 AND CC0-1.0 AND " +
+          "EPL-1.0 AND MIT AND PUBLIC-DOMAIN AND See-License-Clause)"
   );
 
   private void assertLicenses(final SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
     AnyLicenseInfo licenseDeclared = spdxPackage.getLicenseDeclared();
     assertThat(licenseDeclared).isNotNull();
-    assertThat(licenseDeclared.toString()).isIn(expectedLicenses);
+    assertThat(getSortedLicenseString(licenseDeclared)).isIn(expectedLicenses);
 
     AnyLicenseInfo licenseConcluded = spdxPackage.getLicenseConcluded();
     assertThat(licenseConcluded).isNotNull();
-    assertThat(licenseConcluded.toString()).isIn(expectedLicenses);
+    assertThat(getSortedLicenseString(licenseConcluded)).isIn(expectedLicenses);
+  }
+
+  /**
+   * This is needed because the order of the license IDs in the conjunctive or disjunctive sets is not fixed or
+   * predictable, and it can vary between runs, which may lead to flaky tests.
+   */
+  private String getSortedLicenseString(AnyLicenseInfo licenseInfo) {
+    if (licenseInfo instanceof SimpleLicensingInfo) {
+      return ((SimpleLicensingInfo) licenseInfo).getLicenseId();
+    }
+    if (licenseInfo instanceof ConjunctiveLicenseSet) {
+      ConjunctiveLicenseSet licenseSet = (ConjunctiveLicenseSet) licenseInfo;
+      StringBuilder sb = new StringBuilder("(");
+
+      final Collection<AnyLicenseInfo> members;
+      try {
+        members = licenseSet.getMembers();
+      }
+      catch (InvalidSPDXAnalysisException e) {
+        throw new RuntimeException(e); // should not happen
+      }
+      members.stream().map(this::getSortedLicenseString).sorted().forEach(l -> sb.append(l).append(" AND "));
+      int cutoff = sb.length() - 5;
+      return sb.substring(0, cutoff) + ")";
+    }
+    if (licenseInfo instanceof DisjunctiveLicenseSet) {
+      DisjunctiveLicenseSet licenseSet = (DisjunctiveLicenseSet) licenseInfo;
+      StringBuilder sb = new StringBuilder("(");
+
+      final Collection<AnyLicenseInfo> members;
+      try {
+        members = licenseSet.getMembers();
+      }
+      catch (InvalidSPDXAnalysisException e) {
+        throw new RuntimeException(e); // should not happen
+      }
+      members.stream().map(this::getSortedLicenseString).sorted().forEach(l -> sb.append(l).append(" OR "));
+      int cutoff = sb.length() - 4;
+      return sb.substring(0, cutoff) + ")";
+    }
+    return "NOASSERTION";
   }
 
   private static final Set<String> expectedRelationships = ImmutableSet.of(
@@ -357,13 +427,13 @@ public class ApiSpdxServiceTest
   }
 
   private SpdxDocument deserialize(Response response, String format)
-      throws IOException, InvalidSPDXAnalysisException
+      throws Exception
   {
     String uri;
     IModelStore modelStore = new InMemSpdxStore();
-    MultiFormatStore multiFormatStore =
-        new MultiFormatStore(modelStore, "json".equals(format) ? Format.JSON : Format.XML, Verbose.COMPACT);
-    try (InputStream in = new ByteArrayInputStream(response.getEntity().toString().getBytes(StandardCharsets.UTF_8))) {
+    try (MultiFormatStore multiFormatStore =
+             new MultiFormatStore(modelStore, "json".equals(format) ? Format.JSON : Format.XML, Verbose.COMPACT);
+         InputStream in = new ByteArrayInputStream(response.getEntity().toString().getBytes(StandardCharsets.UTF_8))) {
       uri = multiFormatStore.deSerialize(in, true);
     }
     return new SpdxDocument(modelStore, uri, DefaultModelStore.getDefaultCopyManager(), true);

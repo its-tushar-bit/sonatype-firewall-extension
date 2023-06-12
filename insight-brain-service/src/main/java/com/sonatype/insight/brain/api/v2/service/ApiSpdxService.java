@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -14,9 +13,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -56,6 +58,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +95,10 @@ public class ApiSpdxService
   static final Set<String> SPDX_VERSIONS = ImmutableSet.of("2.3");
 
   static final String SPDX_REF_PREFIX = "SPDXRef-";
+
+  static final String NVD = "NVD";
+
+  static final String CVE = "cve";
 
   private final ApiReportDataServiceV2 apiReportDataServiceV2;
 
@@ -198,7 +205,10 @@ public class ApiSpdxService
 
       return generateResponse(document, filename, format, generateCycloneDx);
     }
-    catch (IOException | InvalidSPDXAnalysisException e) {
+    catch (RuntimeException e) {
+      throw e;
+    }
+    catch (Exception e) {
       throw new RuntimeException("An error occurred while generating the SPDX file", e);
     }
   }
@@ -218,7 +228,8 @@ public class ApiSpdxService
     if (packageUrl != null && !purlElementMap.containsKey(packageUrl)) {
       String version = getSpdxVersionFromPurl(packageUrl);
       SpdxNoAssertionLicense noAssertionLicense = new SpdxNoAssertionLicense();
-      addPackage(packageUrl, version, null, noAssertionLicense, noAssertionLicense, document, purlElementMap);
+      addPackage(packageUrl, version, null, noAssertionLicense, noAssertionLicense, Collections.emptyList(),
+          document, purlElementMap);
     }
   }
 
@@ -309,7 +320,33 @@ public class ApiSpdxService
     }
     AnyLicenseInfo concludedLicenseInfo = createLicenseInfo(licenses, document);
 
-    addPackage(packageUrl, version, sha256, declaredLicenseInfo, concludedLicenseInfo, document, purlElementMap);
+    List<ExternalRef> additionalExternalRefs = addVulnerabilities(reportComponent, document);
+
+    addPackage(packageUrl, version, sha256, declaredLicenseInfo, concludedLicenseInfo, additionalExternalRefs,
+        document, purlElementMap);
+  }
+
+  private List<ExternalRef> addVulnerabilities(ApiReportComponentDTOV2 component, SpdxDocument document)
+      throws InvalidSPDXAnalysisException
+  {
+    if (component.securityData == null || CollectionUtils.isEmpty(component.securityData.securityIssues)) {
+      return Collections.emptyList();
+    }
+    List<ExternalRef> externalRefs = new ArrayList<>();
+    for (ApiSecurityIssueDTO securityIssue : component.securityData.securityIssues) {
+      String securityUrl = securityIssue.url;
+      if (StringUtils.isNotBlank(securityUrl)) {
+        String comment = null;
+        if (StringUtils.isNotBlank(securityIssue.source)) {
+          comment = CVE.equals(securityIssue.source) ? "source: " + NVD :
+              "source: " + securityIssue.source.toUpperCase(Locale.ROOT);
+        }
+        ExternalRef externalRef = document.createExternalRef(ReferenceCategory.SECURITY,
+            new ReferenceType("advisory"), securityUrl, comment);
+        externalRefs.add(externalRef);
+      }
+    }
+    return externalRefs;
   }
 
   private AnyLicenseInfo createLicenseInfo(Set<AnyLicenseInfo> licenses, SpdxDocument document)
@@ -348,6 +385,7 @@ public class ApiSpdxService
       final String sha256,
       final AnyLicenseInfo declaredLicenseInfo,
       final AnyLicenseInfo concludedLicenseInfo,
+      final List<ExternalRef> additionalExternalRefs,
       final SpdxDocument document,
       final Map<String, SpdxPackage> purlElementMap)
       throws InvalidSPDXAnalysisException, UnsupportedEncodingException
@@ -365,6 +403,10 @@ public class ApiSpdxService
             concludedLicenseInfo, null, declaredLicenseInfo)
         .setFilesAnalyzed(false)
         .addExternalRef(purlRef);
+
+    for (ExternalRef externalRef : additionalExternalRefs) {
+      packageBuilder.addExternalRef(externalRef);
+    }
 
     if (StringUtils.isNotBlank(version)) {
       packageBuilder.setVersionInfo(version);
@@ -448,7 +490,7 @@ public class ApiSpdxService
       final SpdxDocument document,
       String filename,
       final String format,
-      final boolean generateCycloneDx) throws IOException, InvalidSPDXAnalysisException
+      final boolean generateCycloneDx) throws Exception
   {
     String content;
     MediaType type;
@@ -460,8 +502,9 @@ public class ApiSpdxService
     }
 
     Format spdxFormat = "json".equals(format) ? Format.JSON_PRETTY : Format.XML;
-    MultiFormatStore multiFormatStore = new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
-    try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+    try (MultiFormatStore multiFormatStore =
+             new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
+         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       multiFormatStore.serialize(document.getDocumentUri(), out);
       content = out.toString("UTF-8");
     }

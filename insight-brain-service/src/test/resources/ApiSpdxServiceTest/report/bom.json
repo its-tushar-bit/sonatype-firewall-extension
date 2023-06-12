@@ -268,6 +268,203 @@
     "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/net.sf.ehcache/ehcache@2.10.7?type=jar",
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "filenames" : [ "ehcache-2.10.7.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/net.sf.ehcache:ehcache:jar:2.10.7" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "relativePopularity" : 0.0,
+    "createTime" : 1619098558000,
+    "lastModifiedTime" : 1682009852000,
+    "lastModifiedEntryTime" : 1619112954000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 37,
+      "path" : "Data Management/Caching"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.25"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.25?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.7.25",
+    "filenames" : [ "slf4j-api-1.7.25.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.testing:pr-comment-02:jar:1.0-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.25" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "da76ca59f6a57ee3102f",
+    "relativePopularity" : 0.65,
+    "createTime" : 1490681189000,
+    "lastModifiedTime" : 1681495874000,
+    "lastModifiedEntryTime" : 1489700192000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "slf4j-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.7.25"
+      } ],
+      "name" : "slf4j-api"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/net.sf.ehcache/ehcache@2.10.7?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "sizeof-agent",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "1.0.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar",
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "sizeof-agent",
+    "version" : "1.0.1",
+    "filenames" : [ "sizeof-agent.jar" ],
+    "pathnames" : [ "ehcache-2.10.7.jar/net/sf/ehcache/pool/sizeof/sizeof-agent.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e86399a80ae6a6c7a563",
+    "relativePopularity" : 0.0,
+    "createTime" : 1462984049000,
+    "lastModifiedTime" : 1619112950000,
+    "lastModifiedEntryTime" : 1327508558000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 37,
+      "path" : "Data Management/Caching"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "sizeof-agent"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.1"
+      } ],
+      "name" : "sizeof-agent"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
         "artifactId" : "jackson-annotations",
         "classifier" : "",
         "extension" : "jar",
@@ -331,32 +528,23 @@
     "innerSource" : false,
     "parentComponentPurls" : [ "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.0?type=jar" ]
   }, {
-    "componentIdentifier" : {
-      "format" : "maven",
-      "coordinates" : {
-        "artifactId" : "pr-comment-02",
-        "classifier" : "",
-        "extension" : "jar",
-        "groupId" : "com.sonatype.testing",
-        "version" : "1.0-SNAPSHOT"
-      }
-    },
-    "groupId" : "com.sonatype.testing",
-    "artifactId" : "pr-comment-02",
-    "version" : "1.0-SNAPSHOT",
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
     "filenames" : [ "pr-comment-02-1.0-SNAPSHOT.jar" ],
     "pathnames" : [ "target/pr-comment-02-1.0-SNAPSHOT.jar" ],
     "aggregateFiles" : [ ],
-    "matchState" : "exact",
+    "matchState" : "unknown",
     "scanError" : false,
     "proprietary" : false,
-    "hash" : "2d664c670542a7fc952c",
+    "hash" : "cefaf26c4e2a74baf403",
     "relativePopularity" : null,
     "createTime" : null,
-    "lastModifiedTime" : 1685730102000,
-    "lastModifiedEntryTime" : 1685730102000,
+    "lastModifiedTime" : 1686142870000,
+    "lastModifiedEntryTime" : 1686142732000,
     "website" : null,
-    "identificationSource" : "Manual",
+    "identificationSource" : null,
     "componentCategories" : [ ],
     "hygieneRating" : null,
     "analyzerFeatures" : {
@@ -369,25 +557,12 @@
       "manifestContentType" : null
     },
     "integrityRating" : null,
-    "classifier" : "",
-    "extension" : "jar",
-    "comment" : "Claimed by me",
     "displayName" : {
       "parts" : [ {
-        "field" : "Group",
-        "value" : "com.sonatype.testing"
-      }, {
-        "value" : " : "
-      }, {
-        "field" : "Artifact",
-        "value" : "pr-comment-02"
-      }, {
-        "value" : " : "
-      }, {
-        "field" : "Version",
-        "value" : "1.0-SNAPSHOT"
+        "field" : "Filename",
+        "value" : "pr-comment-02-1.0-SNAPSHOT.jar"
       } ],
-      "name" : "pr-comment-02"
+      "name" : "pr-comment-02-1.0-SNAPSHOT.jar"
     }
   } ],
   "dependencyDataIncluded" : true

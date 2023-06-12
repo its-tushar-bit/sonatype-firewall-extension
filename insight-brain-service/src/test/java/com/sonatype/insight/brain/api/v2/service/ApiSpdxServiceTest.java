@@ -52,6 +52,7 @@ import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
 import org.spdx.library.model.enumerations.RelationshipType;
+import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 
@@ -246,10 +247,12 @@ public class ApiSpdxServiceTest
   private static final Set<String> expectedNames = ImmutableSet.of(
       "org.apache.logging.log4j:log4j-core", "org.apache.logging.log4j:log4j-api",
       "com.fasterxml.jackson.core:jackson-databind", "com.fasterxml.jackson.core:jackson-annotations",
-      "com.fasterxml.jackson.core:jackson-core", "com.sonatype.testing:pr-comment-02"
+      "com.fasterxml.jackson.core:jackson-core", "com.sonatype.testing:pr-comment-02",
+      "net.sf.ehcache:ehcache", "org.slf4j:slf4j-api", "net.sf.ehcache:sizeof-agent"
   );
 
-  private static final Set<String> expectedVersions = ImmutableSet.of("2.14.0", "2.16.0", "1.0-SNAPSHOT");
+  private static final Set<String> expectedVersions = ImmutableSet.of(
+      "2.14.0", "2.16.0", "1.7.25", "1.0.1", "2.10.7", "1.0-SNAPSHOT");
 
   private static final Set<String> expectedPurls = ImmutableSet.of(
       "pkg:maven/org.apache.logging.log4j/log4j-core@2.16.0?type=jar",
@@ -257,7 +260,10 @@ public class ApiSpdxServiceTest
       "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.0?type=jar",
       "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.14.0?type=jar",
       "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.0?type=jar",
-      "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar"
+      "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar",
+      "pkg:maven/net.sf.ehcache/ehcache@2.10.7?type=jar",
+      "pkg:maven/org.slf4j/slf4j-api@1.7.25?type=jar",
+      "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar"
   );
 
   private void assertPackages(SpdxDocument document) throws Exception {
@@ -265,7 +271,7 @@ public class ApiSpdxServiceTest
         Read.getAllItems(document.getModelStore(), document.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
             .collect(Collectors.toList());
 
-    assertThat(items).hasSize(6);
+    assertThat(items).hasSize(9);
 
     for (ModelObject item : items) {
       SpdxPackage spdxPackage = (SpdxPackage) item;
@@ -286,8 +292,30 @@ public class ApiSpdxServiceTest
         assertThat(checksum.getValue()).isEqualTo("2fa0ab71b154da29ac134097bc6bbacd90987dd4c4005516159e6494d1d52ea2");
       }
 
+      assertLicenses(spdxPackage);
       assertRelationships(spdxPackage);
     }
+  }
+
+  private static final Set<String> expectedLicenses = ImmutableSet.of(
+      "NOASSERTION", "Apache-2.0", "MIT", "(Apache-2.0 AND MIT)",
+      "(Apache-2.0 AND COMMERCIAL)", "(Apache-2.0 AND COMMERCIAL AND No-Source-License)",
+      "(EPL-1.0 AND (CDDL-UNSPECIFIED OR GPL-2.0-with-classpath-exception) AND (EPL-1.0 OR Apache-2.0) AND " +
+          "See-License-Clause AND Apache-2.0 AND CC0-1.0 AND MIT AND " +
+          "(LGPL-2.1 OR LGPL-3.0 OR MPL-1.1 OR Apache-2.0) AND PUBLIC-DOMAIN)",
+      "((LGPL-2.1 OR LGPL-3.0 OR MPL-1.1 OR Apache-2.0) AND EPL-1.0 AND (EPL-1.0 OR Apache-2.0) AND " +
+          "See-License-Clause AND Apache-2.0 AND CC0-1.0 AND MIT AND " +
+          "(CDDL-UNSPECIFIED OR GPL-2.0-with-classpath-exception) AND PUBLIC-DOMAIN)"
+  );
+
+  private void assertLicenses(final SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
+    AnyLicenseInfo licenseDeclared = spdxPackage.getLicenseDeclared();
+    assertThat(licenseDeclared).isNotNull();
+    assertThat(licenseDeclared.toString()).isIn(expectedLicenses);
+
+    AnyLicenseInfo licenseConcluded = spdxPackage.getLicenseConcluded();
+    assertThat(licenseConcluded).isNotNull();
+    assertThat(licenseConcluded.toString()).isIn(expectedLicenses);
   }
 
   private static final Set<String> expectedRelationships = ImmutableSet.of(
@@ -295,7 +323,10 @@ public class ApiSpdxServiceTest
       "com.sonatype.testing:pr-comment-02 -> org.apache.logging.log4j:log4j-core",
       "org.apache.logging.log4j:log4j-core -> org.apache.logging.log4j:log4j-api",
       "com.fasterxml.jackson.core:jackson-databind -> com.fasterxml.jackson.core:jackson-annotations",
-      "com.fasterxml.jackson.core:jackson-databind -> com.fasterxml.jackson.core:jackson-core"
+      "com.fasterxml.jackson.core:jackson-databind -> com.fasterxml.jackson.core:jackson-core",
+      "com.sonatype.testing:pr-comment-02 -> net.sf.ehcache:ehcache",
+      "com.sonatype.testing:pr-comment-02 -> net.sf.ehcache:sizeof-agent",
+      "net.sf.ehcache:ehcache -> org.slf4j:slf4j-api"
   );
 
   private void assertRelationships(SpdxPackage spdxPackage) throws Exception {
@@ -307,6 +338,22 @@ public class ApiSpdxServiceTest
           spdxPackage.getName().get(), relationship.getRelatedSpdxElement().get().getName().get());
       assertThat(relStr).isIn(expectedRelationships);
     }
+  }
+
+  @Test
+  public void testGetByScanId_AddMissingParent_ForDependencyTree() throws Exception {
+    createReportAndPolicyEvaluation("missingParentTree");
+
+    Response response = service.getByScanId(application.getId(), scanId, "json", false, "2.3");
+    SpdxDocument document = deserialize(response, "json");
+
+    // assert top level relationship
+    Collection<Relationship> relationships = document.getRelationships();
+    assertThat(relationships).hasSize(1);
+    Relationship relationship = relationships.stream().findFirst().get();
+    assertThat(relationship.getRelationshipType()).isEqualTo(RelationshipType.DESCRIBES);
+    assertThat(relationship.getRelatedSpdxElement().get().getName().get()).startsWith(
+        "sonatype:iq_application_Test App");
   }
 
   private SpdxDocument deserialize(Response response, String format)

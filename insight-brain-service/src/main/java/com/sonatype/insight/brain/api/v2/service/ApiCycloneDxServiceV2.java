@@ -303,25 +303,33 @@ public class ApiCycloneDxServiceV2
       return dependenciesData.getPackageUrl();
     }
     else {
-      // In the case where a dependency tree exists but is missing a parent component we construct a fake parent
-      // component so that we can output the dependency tree. The purl will be of the form
-      // pkg:generic/sonatype/<appName>@<scanId>
-      // Note that we do want not persist this parent purl back in the dependencies.json because
-      // it is done here only to get the sbom dependency tree.
       Application app = applicationHelper.getApplicationByIdNotNull(policyEvaluation.getApplicationId());
-      try {
-        String purl = PackageURLBuilder.aPackageURL().withType(StandardTypes.GENERIC)
-            .withNamespace(SONATYPE_NAMESPACE)
-            .withName(IQ_APP_PREFIX + app.getName())
-            .withVersion(policyEvaluation.getScanId()).build().canonicalize();
-        dependenciesData.setPackageUrl(purl);
-        return purl;
-      }
-      catch (MalformedPackageURLException e) {
-        log.debug("Unable to construct a fake parent component url from appName:{} and scanId:{}", app.getName(),
-            policyEvaluation.getScanId());
-        return null;
-      }
+      return buildFakeParentPackageUrl(dependenciesData, app.getName(), policyEvaluation.getScanId());
+    }
+  }
+
+  public static String buildFakeParentPackageUrl(
+      ApiDependencyTreeNodeDTO dependenciesData,
+      String applicationName,
+      String scanId)
+  {
+    // In the case where a dependency tree exists but is missing a parent component we construct a fake parent
+    // component so that we can output the dependency tree. The purl will be of the form
+    // pkg:generic/sonatype/<appName>@<scanId>
+    // Note that we do want not persist this parent purl back in the dependencies.json because
+    // it is done here only to get the sbom dependency tree.
+    try {
+      String purl = PackageURLBuilder.aPackageURL().withType(StandardTypes.GENERIC)
+          .withNamespace(SONATYPE_NAMESPACE)
+          .withName(IQ_APP_PREFIX + applicationName)
+          .withVersion(scanId).build().canonicalize();
+      dependenciesData.setPackageUrl(purl);
+      return purl;
+    }
+    catch (MalformedPackageURLException e) {
+      log.debug("Unable to construct a fake parent component url from appName:{} and scanId:{}", applicationName,
+          scanId);
+      return null;
     }
   }
 

@@ -1,7 +1,7 @@
 {
   "exceededRowLimit" : false,
-  "reportTime" : 1685731046595,
-  "scannerVersion" : "2.46.0-01",
-  "knownArtifactCount" : 6,
-  "totalArtifactCount" : 6
+  "reportTime" : 1686142878814,
+  "scannerVersion" : "2.46.1-SNAPSHOT",
+  "knownArtifactCount" : 8,
+  "totalArtifactCount" : 9
 }

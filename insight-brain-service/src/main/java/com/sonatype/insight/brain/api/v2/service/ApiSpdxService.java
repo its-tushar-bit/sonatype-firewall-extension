@@ -13,7 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,13 +30,16 @@ import javax.ws.rs.core.Response;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -70,6 +75,11 @@ import org.spdx.library.model.SpdxPackage.SpdxPackageBuilder;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
 import org.spdx.library.model.enumerations.RelationshipType;
+import org.spdx.library.model.license.AnyLicenseInfo;
+import org.spdx.library.model.license.SpdxListedLicense;
+import org.spdx.library.model.license.SpdxNoAssertionLicense;
+
+import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.buildFakeParentPackageUrl;
 
 @Named
 @Singleton
@@ -91,6 +101,8 @@ public class ApiSpdxService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
+  private final MultiLicenseDAO multiLicenseDAO;
+
   private final VersionService versionService;
 
   @Inject
@@ -99,12 +111,14 @@ public class ApiSpdxService
       ApplicationHelper applicationHelper,
       BaseUrl baseUrl,
       PolicyEvaluationDAO policyEvaluationDAO,
+      MultiLicenseDAO multiLicenseDAO,
       VersionService versionService)
   {
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
     this.applicationHelper = applicationHelper;
     this.baseUrl = baseUrl;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.multiLicenseDAO = multiLicenseDAO;
     this.versionService = versionService;
   }
 
@@ -174,7 +188,7 @@ public class ApiSpdxService
       ApiDependencyTreeNodeDTO rootNodeDTO =
           apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
       if (rootNodeDTO != null) {
-        addRootPackage(rootNodeDTO, document, purlElementMap);
+        addRootPackage(rootNodeDTO, document, purlElementMap, application.getName(), scanId);
         addDependencyRelationships(rootNodeDTO, document, purlElementMap, true);
       }
 
@@ -192,13 +206,19 @@ public class ApiSpdxService
   private void addRootPackage(
       final ApiDependencyTreeNodeDTO rootNodeDTO,
       final SpdxDocument document,
-      final Map<String, SpdxPackage> purlElementMap)
+      final Map<String, SpdxPackage> purlElementMap,
+      final String applicationName,
+      final String scanId)
       throws UnsupportedEncodingException, InvalidSPDXAnalysisException
   {
     String packageUrl = rootNodeDTO.getPackageUrl();
+    if (StringUtils.isBlank(packageUrl)) {
+      packageUrl = buildFakeParentPackageUrl(rootNodeDTO, applicationName, scanId);
+    }
     if (packageUrl != null && !purlElementMap.containsKey(packageUrl)) {
       String version = getSpdxVersionFromPurl(packageUrl);
-      addPackage(packageUrl, version, null, document, purlElementMap);
+      SpdxNoAssertionLicense noAssertionLicense = new SpdxNoAssertionLicense();
+      addPackage(packageUrl, version, null, noAssertionLicense, noAssertionLicense, document, purlElementMap);
     }
   }
 
@@ -269,13 +289,65 @@ public class ApiSpdxService
     String version = reportComponent.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
     String sha256 = reportComponent.sha256;
 
-    addPackage(packageUrl, version, sha256, document, purlElementMap);
+    // SPDX declared-license-field combines Sonatype's declared and observed license sets
+    Set<AnyLicenseInfo> licenses = new LinkedHashSet<>();
+    for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.declaredLicenses) {
+      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document);
+      licenses.add(licenseInfo);
+    }
+    for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.observedLicenses) {
+      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document);
+      licenses.add(licenseInfo);
+    }
+    AnyLicenseInfo declaredLicenseInfo = createLicenseInfo(licenses, document);
+
+    // SPDX concluded-license-field is the same as Sonatype's effective license set
+    licenses = new LinkedHashSet<>();
+    for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.effectiveLicenses) {
+      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document);
+      licenses.add(licenseInfo);
+    }
+    AnyLicenseInfo concludedLicenseInfo = createLicenseInfo(licenses, document);
+
+    addPackage(packageUrl, version, sha256, declaredLicenseInfo, concludedLicenseInfo, document, purlElementMap);
+  }
+
+  private AnyLicenseInfo createLicenseInfo(Set<AnyLicenseInfo> licenses, SpdxDocument document)
+      throws InvalidSPDXAnalysisException
+  {
+    if (licenses.isEmpty()) {
+      return new SpdxNoAssertionLicense();
+    }
+    if (licenses.size() == 1) {
+      return licenses.iterator().next();
+    }
+    return document.createConjunctiveLicenseSet(licenses);
+  }
+
+  private AnyLicenseInfo createLicenseInfo(ApiLicenseDTO apiLicense, SpdxDocument document)
+      throws InvalidSPDXAnalysisException
+  {
+    final Set<License> licenseSet = multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId);
+    if (licenseSet.isEmpty()) {
+      return new SpdxNoAssertionLicense();
+    }
+    if (licenseSet.size() == 1) {
+      String licenseId = licenseSet.iterator().next().getId();
+      return new SpdxListedLicense(licenseId);
+    }
+    List<AnyLicenseInfo> members = new ArrayList<>();
+    for (License license : licenseSet) {
+      members.add(new SpdxListedLicense(license.getId()));
+    }
+    return document.createDisjunctiveLicenseSet(members);
   }
 
   private void addPackage(
       final String packageUrl,
       final String version,
       final String sha256,
+      final AnyLicenseInfo declaredLicenseInfo,
+      final AnyLicenseInfo concludedLicenseInfo,
       final SpdxDocument document,
       final Map<String, SpdxPackage> purlElementMap)
       throws InvalidSPDXAnalysisException, UnsupportedEncodingException
@@ -290,8 +362,7 @@ public class ApiSpdxService
     SpdxPackageBuilder packageBuilder = document.createPackage(
             generateSpdxId(packageUrl),
             createSpdxNameFromPurl(packageUrl),
-            // correct license data will be added with CLM-25906
-            null, null, null)
+            concludedLicenseInfo, null, declaredLicenseInfo)
         .setFilesAnalyzed(false)
         .addExternalRef(purlRef);
 

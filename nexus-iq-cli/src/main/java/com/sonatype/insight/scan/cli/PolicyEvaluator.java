@@ -86,8 +86,8 @@ public abstract class PolicyEvaluator<P extends Parameters>
   protected void saveErrorData(Parameters params, CLIError error, RestClient restClient) throws ExitException {
     if (params.getResultFile() != null) {
       try {
-        restClient.saveErrorData(
-            params.getApplicationId(), params.getResultFile(), error.getErrorMessage(), error.isSystemError());
+        restClient.saveErrorData(params.getApplicationId(), params.getResultFile(),
+            error.getErrorMessage(), error.isSystemError(), error.isScanningError());
       }
       catch (IOException e) {
         log.error("The policy evaluation error data could not be exported to {}", params.getResultFile(), e);

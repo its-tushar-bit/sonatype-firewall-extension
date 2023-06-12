@@ -168,6 +168,20 @@ public class RestClientFactory
     }
 
     /**
+     * @since 1.163.0
+     */
+    public void saveErrorData(
+        String appId,
+        File resultFile,
+        String errorMessage,
+        boolean isSystemError,
+        boolean isScanningError)
+        throws IOException
+    {
+      new ScanClient(config, appId).saveErrorData(resultFile, errorMessage, isSystemError, isScanningError);
+    }
+
+    /**
      * @since 1.50
      */
     public void validateServerVersion(String minimalServerVersionRequiredAsString) throws IOException {

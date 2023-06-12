@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.signature.ComponentWithSignatures;
 import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
 import com.sonatype.clm.dto.model.signature.FunctionSignature;
 import com.sonatype.clm.dto.model.signature.Signature;
+import com.sonatype.insight.brain.client.ErrorData;
 import com.sonatype.insight.brain.client.ResultData;
 import com.sonatype.insight.brain.client.UnsupportedServerVersionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -192,6 +193,24 @@ public abstract class DefaultPolicyEvaluatorTest
     withTestRunner(params)
         .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
         .doPolicyEvaluationRun();
+  }
+
+  @Test
+  public void testRun_ContainerTargetIsNotCheckedForFileExists_ScanningFailure() throws Exception {
+    tempEntity.newApplicationWithParent("the-app-id");
+    File jsonFile = new File(tempDir.getRoot(), "not-yet-existent/results.json");
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(),
+        "-r", jsonFile.getAbsolutePath(), "container:registry/image:tag");
+    withTestRunner(params)
+        .expectFailExit(2) // due to a scanning error
+        .doPolicyEvaluationRun();
+
+    ErrorData resultData = JsonUtils.parse(Files.readAllBytes(jsonFile.toPath()), ErrorData.class);
+    assertThat(resultData.isScanningError).isTrue();
+    assertThat(resultData.isSystemError).isFalse();
+    assertThat(resultData.errorMessage).isEqualTo("Scanning errors encountered");
   }
 
   @Test

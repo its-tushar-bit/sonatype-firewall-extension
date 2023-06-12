@@ -7,21 +7,28 @@ package com.sonatype.insight.scan.cli;
 
 public class CLIError
 {
-  private String errorMessage;
+  private final String errorMessage;
 
-  private boolean systemError;
+  private final boolean systemError;
 
-  private CLIError(String errorMessage, boolean systemError) {
+  private final boolean scanningError;
+
+  private CLIError(String errorMessage, boolean systemError, boolean scanningError) {
     this.errorMessage = errorMessage;
     this.systemError = systemError;
+    this.scanningError = scanningError;
   }
 
   public static CLIError forSystemError(String errorMessage) {
-    return new CLIError(errorMessage, true);
+    return new CLIError(errorMessage, true, false);
+  }
+
+  public static CLIError forScanningError(String errorMessage) {
+    return new CLIError(errorMessage, false, true);
   }
 
   public static CLIError forConfigurationError(String errorMessage) {
-    return new CLIError(errorMessage, false);
+    return new CLIError(errorMessage, false, false);
   }
 
   public String getErrorMessage() {
@@ -30,5 +37,9 @@ public class CLIError
 
   public boolean isSystemError() {
     return this.systemError;
+  }
+
+  public boolean isScanningError() {
+    return this.scanningError;
   }
 }

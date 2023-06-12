@@ -15,4 +15,6 @@ public class ErrorData
   public String errorMessage;
 
   public boolean isSystemError;
+
+  public boolean isScanningError;
 }

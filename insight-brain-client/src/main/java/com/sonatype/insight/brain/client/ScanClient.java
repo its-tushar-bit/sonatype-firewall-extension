@@ -73,9 +73,21 @@ public class ScanClient
    * @since 1.72.0
    */
   public void saveErrorData(File errorFile, String errorMessage, boolean isSystemError) throws IOException {
+    saveErrorData(errorFile, errorMessage, isSystemError, false);
+  }
+
+  /**
+   * Exports error information to the specified output JSON file for use by 3rd-party tools.
+   *
+   * @since 1.163.0
+   */
+  public void saveErrorData(File errorFile, String errorMessage, boolean isSystemError, boolean isScanningError)
+      throws IOException
+  {
     ErrorData errorData = new ErrorData();
     errorData.errorMessage = errorMessage;
     errorData.isSystemError = isSystemError;
+    errorData.isScanningError = isScanningError;
     JsonUtils.write(errorFile, errorData);
   }
 

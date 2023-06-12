@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.git.dto.ImportRepositoriesRequest;
@@ -169,7 +169,7 @@ public class ScmOnboardingServiceAuthzTest
   }
 
   @Test(expected = BadRequestException.class)
-  public void testImportScmOrganization_Authorized() throws IOException {
+  public void testImportScmOrganization_Authorized() {
     grantAddApplicationPermission(org.getId());
     scmOnboardingService.importScmOrganization(org.getId(), new ImportScmOrganizationRequest());
   }

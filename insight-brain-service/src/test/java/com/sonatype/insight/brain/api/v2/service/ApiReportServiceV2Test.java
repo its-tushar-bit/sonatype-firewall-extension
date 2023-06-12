@@ -254,7 +254,7 @@ public class ApiReportServiceV2Test
   }
 
   @Test
-  public void testGetReportHistoryForApplication_InvalidStage() throws IOException, URISyntaxException {
+  public void testGetReportHistoryForApplication_InvalidStage() {
     Application app = tempEntity.newApplicationWithParent("application");
     grantReadPermission(app.getId());
     grantEvaluateApplicationPermission(app.getId());
@@ -264,7 +264,7 @@ public class ApiReportServiceV2Test
   }
 
   @Test
-  public void testGetReportHistoryForApplication_InvalidLimit() throws IOException, URISyntaxException {
+  public void testGetReportHistoryForApplication_InvalidLimit() {
     Application app = tempEntity.newApplicationWithParent("application");
     grantReadPermission(app.getId());
     grantEvaluateApplicationPermission(app.getId());

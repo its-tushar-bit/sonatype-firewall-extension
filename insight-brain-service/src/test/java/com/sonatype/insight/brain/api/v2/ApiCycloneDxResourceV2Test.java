@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
@@ -366,9 +367,7 @@ public class ApiCycloneDxResourceV2Test
     });
   }
 
-  private void assertValidMavenResponse(HttpResponse response)
-      throws URISyntaxException, IOException, ParseException
-  {
+  private void assertValidMavenResponse(HttpResponse response) throws ParseException {
     assertResponseStatus(200, response);
     byte[] actualBytes = response.getBodyText().getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(actualBytes);

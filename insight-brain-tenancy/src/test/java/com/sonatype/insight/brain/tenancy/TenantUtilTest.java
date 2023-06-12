@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.tenancy;
 
 import java.util.List;
+
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
@@ -178,7 +179,6 @@ public class TenantUtilTest
         .isInstanceOf(TenantUtil.InvalidTenantForJobTypeException.class)
         .hasMessage("AllTenantJob(s) cannot be created against a non-global tenant. " +
             "Type=" + TestAllTenantsJob.class.getSimpleName() + ", Tenant=" + tenant);
-    ;
   }
 
   private interface TestAllTenantsJob extends AllTenantsJob

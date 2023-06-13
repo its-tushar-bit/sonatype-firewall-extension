@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.version;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
 import javax.inject.Named;
 
-import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,20 +118,16 @@ public class DefaultVersionService
   }
 
   private static void loadProperties() {
-    InputStream is = VersionService.class.getResourceAsStream(FILE_NAME);
-    if (is != null) {
-      try {
+    try (InputStream is = VersionService.class.getResourceAsStream(FILE_NAME)) {
+      if (is != null) {
         FILE_PROPERTIES.load(is);
       }
-      catch (IOException e) {
-        log.error(e.getMessage(), e);
-      }
-      finally {
-        IOUtil.close(is);
+      else {
+        log.error("Missing properties file {}", FILE_NAME);
       }
     }
-    else {
-      log.error("Missing properties file {}", FILE_NAME);
+    catch (IOException e) {
+      log.error(e.getMessage(), e);
     }
   }
 

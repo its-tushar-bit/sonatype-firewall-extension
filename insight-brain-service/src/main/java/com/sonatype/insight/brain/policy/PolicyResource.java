@@ -58,7 +58,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -352,10 +352,10 @@ public class PolicyResource
   private PolicyExportResult readPolicyExportResult(InputStream stream) throws IOException {
     byte[] importBytes;
     try {
-      importBytes = IOUtil.toByteArray(stream);
+      importBytes = IOUtils.toByteArray(stream);
     }
     finally {
-      IOUtil.close(stream);
+      IOUtils.close(stream);
     }
     PolicyExportResult policyExportResult;
     try {

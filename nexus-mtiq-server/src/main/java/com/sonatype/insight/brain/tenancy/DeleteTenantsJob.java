@@ -9,7 +9,9 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
+import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
@@ -27,6 +30,8 @@ import org.apache.commons.io.FileUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.JobKey;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +68,7 @@ public class DeleteTenantsJob
   private final TenantUtil tenantUtil;
 
   @Inject
-  public DeleteTenantsJob(TaskScheduler taskScheduler,
+  public DeleteTenantsJob(MultiTenantTaskScheduler taskScheduler,
                           SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
                           DeletedTenantDAO deletedTenantDAO,
                           InsightConfig config,
@@ -128,19 +133,35 @@ public class DeleteTenantsJob
 
     log.info("Permanently deleting tenant {}", tenant.getId());
 
+    boolean successfulJobsDeleted = deleteJobs(tenant);
+
     boolean successfulSchemaDrop = deleteDatabaseSchema(tenant);
 
     boolean successfulFilesDeleted = deleteFilesOnDisk(tenant);
 
     // Only remove the scheduled deletion if all parts were successful
-    if (successfulSchemaDrop && successfulFilesDeleted) {
+    if (successfulSchemaDrop && successfulFilesDeleted && successfulJobsDeleted) {
       deletedTenantDAO.delete(tenant);
     }
   }
 
+  private boolean deleteJobs(DeletedTenant tenant) {
+    try {
+      Set<JobKey> jobKeys = taskScheduler.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(tenant.getId()));
+
+      return taskScheduler.getScheduler().deleteJobs(new ArrayList<>(jobKeys));
+    }
+    catch (Exception e) {
+      log.error("Failed to delete quartz jobs for tenant {}", tenant.getId(), e);
+    }
+
+    return false;
+  }
+
   private boolean deleteDatabaseSchema(DeletedTenant tenant) {
     try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
-         Statement statement = connection.createStatement()) {
+         Statement statement = connection.createStatement())
+    {
       connection.setAutoCommit(true);
 
       String tenantSchema = new Tenant(tenant.getId()).databaseSchema;

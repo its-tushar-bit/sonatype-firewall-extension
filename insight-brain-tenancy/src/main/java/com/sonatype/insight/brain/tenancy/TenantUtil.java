@@ -67,11 +67,17 @@ public class TenantUtil
     }
 
     // Skip validation if clazz can be used in either a per-tenant or global context
-    if (GlobalTenantJob.class.isAssignableFrom(clazz) && TenantManaged.class.isAssignableFrom(clazz)) {
+    if (GlobalTenantJob.class.isAssignableFrom(clazz)
+        && TenantManaged.class.isAssignableFrom(clazz)
+        && !AllTenantsJob.class.isAssignableFrom(clazz)) {
       return tenant;
     }
 
-    if (GlobalTenantJob.class.isAssignableFrom(clazz) && !GLOBAL_TENANT.equals(tenant)) {
+    if (AllTenantsJob.class.isAssignableFrom(clazz) && !GLOBAL_TENANT.equals(tenant)) {
+      throw new InvalidTenantForJobTypeException("AllTenantJob(s) cannot be created against a non-global tenant. " +
+          "Type=" + clazz.getSimpleName() + ", Tenant=" + tenant);
+    }
+    else if (GlobalTenantJob.class.isAssignableFrom(clazz) && !GLOBAL_TENANT.equals(tenant)) {
       logTenancyIssue("GlobalTenantJob was invoked which expects a global tenant to be set but instead a specific " +
           "tenant was set: " + clazz);
     }
@@ -83,10 +89,6 @@ public class TenantUtil
     }
     else if (!GlobalTenantJob.class.isAssignableFrom(clazz) && !TenantManaged.class.isAssignableFrom(clazz)) {
       logTenancyIssue("Class specified for tenancy validation but no validation exists: " + clazz);
-    }
-    else if (AllTenantsJob.class.isAssignableFrom(clazz) && !GLOBAL_TENANT.equals(tenant)) {
-      throw new InvalidTenantForJobTypeException("AllTenantJob(s) cannot be created against a non-global tenant. " +
-          "Type=" + clazz.getSimpleName() + ", Tenant=" + tenant);
     }
 
     return tenant;

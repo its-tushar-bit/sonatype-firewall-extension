@@ -15,10 +15,11 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runForAllTenants;
 
 /**
- * This tells Quartz that this particular job should loop through and attempt to run for all tenants. Jobs that loop
- * through all tenants should only be run on a Mtiq Batch instance.
+ * This tells Quartz to only create a single instance of this job, against the global tenant, but when that job
+ * runs it should loop through, and run, for all tenants. Jobs that loop through all tenants should only be run on a
+ * Mtiq Batch instance, to prevent any data leakage during a request.
  */
-public interface AllTenantsJob extends Job, TenantManaged, MtiqBatchJob
+public interface AllTenantsJob extends Job, TenantManaged, MtiqBatchJob, GlobalTenantJob
 {
   Logger log = LoggerFactory.getLogger(AllTenantsJob.class);
 

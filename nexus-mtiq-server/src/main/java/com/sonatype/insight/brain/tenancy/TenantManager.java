@@ -157,7 +157,7 @@ public class TenantManager
       throw new IllegalArgumentException("Tenant doesn't exist");
     }
 
-    if (deletedTenantDAO.isScheduledForDeletion(tenant.databaseSchema)) {
+    if (deletedTenantDAO.isScheduledForDeletion(tenant.tenantSlug)) {
       log.debug("Tenant has been scheduled for deletion and therefore cannot be used: {}", tenant.tenantSlug);
       throw new IllegalArgumentException("Tenant doesn't exist");
     }
@@ -169,10 +169,9 @@ public class TenantManager
         .collect(toList());
 
     for (TenantManaged tenantManaged : prioritizedBeans) {
-      if (tenantManaged instanceof GlobalTenantJob || tenantManaged instanceof MtiqBatchJob) {
+      if (tenantManaged instanceof GlobalTenantJob) {
         /*
-          GlobalTenantJob and AllTenantsJob are initialized on startup by MultiTenantTenantManagedInitializer rather
-          than per tenant.
+          GlobalTenantJob are initialized on startup by MultiTenantTenantManagedInitializer rather than per tenant.
          */
         continue;
       }

@@ -44,12 +44,15 @@ public class MultiTenantTenantManagedInitializer
 
   @Override
   public void start() throws Exception {
-    // Global lifecycle jobs and jobs that are intended to run for all tenants (AllTenantsJob) are initialized on
-    // startup in multi-tenant mode
+    // Global lifecycle jobs are initialized on startup in multi-tenant mode
     for (TenantManaged tenantLifecycle : tenantLifecycles) {
-      if (tenantLifecycle instanceof GlobalTenantJob
-          || (tenantLifecycle instanceof AllTenantsJob && tenantUtil.isMtiqBatchMode())
-          || tenantLifecycle.includeGlobalTenantDuringRegistration()) {
+
+      // MtiqBatchJobs must only be created on a server running in Batch Mode
+      if (tenantLifecycle instanceof MtiqBatchJob && !tenantUtil.isMtiqBatchMode()) {
+        continue;
+      }
+
+      if (tenantLifecycle instanceof GlobalTenantJob || tenantLifecycle.includeGlobalTenantDuringRegistration()) {
         TenantThreadLocal.runAsGlobal(() -> {
           tenantLifecycle.register();
           return null;

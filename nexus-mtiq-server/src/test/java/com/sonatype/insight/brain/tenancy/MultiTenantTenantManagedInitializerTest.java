@@ -12,7 +12,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantTenantManagedInitializerTest
@@ -126,7 +130,7 @@ public class MultiTenantTenantManagedInitializerTest
     when(job2.includeGlobalTenantDuringRegistration()).thenReturn(false);
 
     MultiTenantTenantManagedInitializer initializer =
-            new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2), tenantUtil);
+        new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2), tenantUtil);
 
     initializer.start();
 
@@ -134,9 +138,27 @@ public class MultiTenantTenantManagedInitializerTest
     verify(job2, never()).register();
   }
 
+  @Test
+  public void shouldNotRegister_whenBatchJob_butNotBatchNode() throws Exception {
+    when(tenantUtil.isMtiqBatchMode()).thenReturn(false);
+
+    TenantManaged job = mock(MockGlobalBatchTenantManaged.class);
+    MultiTenantTenantManagedInitializer initializer =
+        new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
+
+    initializer.start();
+
+    verify(job, never()).register();
+
+  }
+
   private static class MockTenantManaged
       implements TenantManaged, GlobalTenantJob
   {
-    // We need a mock that implements GlobalTenantJob and TenantManaged
+  }
+
+  private static class MockGlobalBatchTenantManaged
+      implements TenantManaged, MtiqBatchJob, GlobalTenantJob
+  {
   }
 }

@@ -9,17 +9,25 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.Set;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
+import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.JobKey;
+import org.quartz.impl.matchers.GroupMatcher;
 
 import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.JOB_FREQUENCY_IN_HOURS;
 import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.TENANT_RETENTION_PERIOD_CONFIG_KEY;
@@ -43,12 +51,15 @@ public class DeleteTenantsJobTest
 
   DeletedTenantDAO deletedTenantDAO;
 
+  TaskScheduler taskScheduler;
+
   @Before
   public void setup() {
     tenantManager = super.getTestCLMServer().getCLMServer().getInstance(TenantManager.class);
     deleteTenantsJob = super.getTestCLMServer().getCLMServer().getInstance(DeleteTenantsJob.class);
     config = super.getTestCLMServer().getCLMServer().getInstance(InsightConfig.class);
     dataStore = super.getTestCLMServer().getCLMServer().getInstance(OperationalDataStore.class);
+    taskScheduler = super.getTestCLMServer().getCLMServer().getInstance(MultiTenantTaskScheduler.class);
     deletedTenantDAO = new DeletedTenantDAO();
   }
 
@@ -108,7 +119,7 @@ public class DeleteTenantsJobTest
 
   @Test
   public void testRegistration() {
-    TaskScheduler taskScheduler = mock(TaskScheduler.class);
+    MultiTenantTaskScheduler taskScheduler = mock(MultiTenantTaskScheduler.class);
 
     deleteTenantsJob = new DeleteTenantsJob(taskScheduler, null, null, null, null);
 
@@ -116,6 +127,47 @@ public class DeleteTenantsJobTest
 
     verify(taskScheduler).schedulePeriodicTask(any(DeleteTenantsJob.class),
         eq(Duration.ofHours(JOB_FREQUENCY_IN_HOURS)));
+  }
+
+  @Test
+  public void testDeleteTenantDeletesQuartzJobs() {
+    testAsNewTenant(testName, t -> {
+      provisionTenant(t.tenantSlug);
+
+      tenantManager.setTenant(t);
+
+      long beforeDefaultRetentionPeriod =
+          System.currentTimeMillis() - (60 * 1000 * (DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS + 1));
+
+      deletedTenantDAO.insert(new DeletedTenant(t.tenantSlug, beforeDefaultRetentionPeriod));
+
+      for (int i = 0; i < 10; i++) {
+        taskScheduler.schedulePeriodicTask(newJob(), Duration.ofHours(1L));
+      }
+
+      Set<JobKey> jobs = taskScheduler.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(t.tenantSlug));
+      assertThat(jobs.size()).isNotZero();
+
+      deleteTenantsJob.execute(null);
+
+      jobs = taskScheduler.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(t.tenantSlug));
+      assertThat(jobs.size()).isZero();
+    });
+  }
+
+  private InsightJob newJob() {
+    return new InsightJob()
+    {
+      @Override
+      public String getJobName() {
+        return UUID.randomUUID().toString();
+      }
+
+      @Override
+      public void execute(JobExecutionContext context) throws JobExecutionException {
+        //no-op
+      }
+    };
   }
 
   private void initializeTenantDirectories() throws IOException {

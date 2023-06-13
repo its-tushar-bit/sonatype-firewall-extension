@@ -285,6 +285,16 @@ public class TenantManagerTest
     assertThat(underTest.isRegistered()).isFalse();
   }
 
+  @Test
+  public void shouldThrowException_whenTenantScheduledForDeletion() {
+    when(deletedTenantDAO.isScheduledForDeletion(tenant.tenantSlug)).thenReturn(true);
+
+    assertThatThrownBy(this::setTenantAndAssertRegistration).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Tenant doesn't exist");
+
+    assertThat(underTest.isRegistered()).isFalse();
+  }
+
   private void setTenantAndAssertRegistration() throws Exception {
     doAnswer(invocationOnMock -> {
       assertTenantSet(tenant);

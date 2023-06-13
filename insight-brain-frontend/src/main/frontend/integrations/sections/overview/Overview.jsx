@@ -5,16 +5,17 @@
  */
 
 import React from 'react';
-import { NxH2, NxTile } from '@sonatype/react-shared-components';
+import { NxH2, NxCard } from '@sonatype/react-shared-components';
+import IdeIntegrationsCard from './ideIntegrationsCard/IdeIntegrationsCard';
 
 export default function Overview() {
   return (
-    <div>
+    <div id="iq-integrations-overview-section">
       <NxH2>Overview</NxH2>
 
-      <NxTile>
-        <NxTile.Content>Content...</NxTile.Content>
-      </NxTile>
+      <NxCard.Container>
+        <IdeIntegrationsCard />
+      </NxCard.Container>
     </div>
   );
 }

@@ -9,25 +9,24 @@ package com.sonatype.clm.testing.functional;
 import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
 
 import com.codeborne.selenide.SelenideElement;
-import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
-public class IntegrationsPageTest
-    extends AbstractFunctionalTest
+public class IntegrationsPageTest extends AbstractFunctionalTest
 {
-  @After
-  public void after() {
-    logout();
+  @BeforeClass
+  public static void beforeClass() {
+    refreshOrOpen(IntegrationsPage.urlOverview());
+    loginAsAdmin();
   }
 
   @Test
   public void testNavigation() {
     refreshOrOpen(IntegrationsPage.urlOverview());
-    loginAsAdmin();
-
     sideNavigation().shouldBe(visible);
 
     sideCiCdLink().shouldBe(visible).click();
@@ -45,6 +44,26 @@ public class IntegrationsPageTest
     sideIdeLink().shouldBe(visible).click();
     waitUntilUrl(IntegrationsPage.urlIde());
     ideSection().shouldBe(visible);
+  }
+
+  @Test
+  public void testIdeUsersCount() {
+    // Imitate one user that has an IDE integration
+    tempEntity.newUserIdePolicyEvaluation("test_user");
+
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    overviewSection().shouldBe(visible);
+
+    ideUserCount().shouldBe(visible).shouldHave(text("1"));
+
+    // Imitate another user that has an IDE integration
+    tempEntity.newUserIdePolicyEvaluation("test_user_2");
+
+    refresh();
+    ideUserCount().shouldBe(visible).shouldHave(text("2"));
+
+    eyesWatcher.eyesCheck();
   }
 
   private SelenideElement sideNavigation() {
@@ -67,6 +86,10 @@ public class IntegrationsPageTest
     return $("#integrations-sidebar__ide-link");
   }
 
+  private SelenideElement overviewSection() {
+    return $("#iq-integrations-overview-section");
+  }
+
   private SelenideElement ciCdSection() {
     return $("#iq-integrations-cicd-section");
   }
@@ -81,5 +104,9 @@ public class IntegrationsPageTest
 
   private SelenideElement ideSection() {
     return $("#iq-integrations-ide-section");
+  }
+
+  private SelenideElement ideUserCount() {
+    return overviewSection().$(".nx-card__call-out");
   }
 }

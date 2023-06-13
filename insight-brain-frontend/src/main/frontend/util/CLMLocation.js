@@ -1263,6 +1263,8 @@ export const getRepositoryComponentNamePatternUpdateUrl = () =>
 export const getSourceControlRateLimitsUrl = (ownerType, ownerId) =>
   uriTemplate`/api/experimental/sourceControl/${ownerType}/${ownerId}/rateLimits`;
 
+export const getIdeIntegratedUserCount = () => uriTemplate`/api/v2/scan/applications/ideUser/overview`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

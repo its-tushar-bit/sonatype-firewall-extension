@@ -91,6 +91,7 @@ import vulnerabilityCustomizeSlice from 'MainRoot/vulnerabilityCustomize/vulnera
 import baseUrlConfigurationSlice from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
 import waivedComponentUpgradesConfigurationSlice from 'MainRoot/configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfigurationSlice';
 import sourceControlRateLimitsSlice from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimitsSlice';
+import integrationsSlice from 'MainRoot/integrations/integrationsSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -180,4 +181,5 @@ export default combineReducers({
   baseUrlConfiguration: baseUrlConfigurationSlice,
   waivedComponentUpgradesConfiguration: waivedComponentUpgradesConfigurationSlice,
   sourceControlRateLimits: sourceControlRateLimitsSlice,
+  integrations: integrationsSlice,
 });

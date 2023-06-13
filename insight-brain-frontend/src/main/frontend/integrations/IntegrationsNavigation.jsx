@@ -9,13 +9,13 @@ import { NxH2, NxTextLink } from '@sonatype/react-shared-components';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { useSelector } from 'react-redux';
 import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { SECTIONS } from 'MainRoot/integrations/integrations.module';
+import { SECTIONS } from 'MainRoot/integrations/module';
 
 export default function IntegrationsNavigation() {
   const { OVERVIEW, CICD, SCM, ISSUE_TRACKING, IDE } = SECTIONS;
 
   return (
-    <>
+    <div className="nx-viewport-sized__container">
       <NxH2>Integrations</NxH2>
 
       <ul className="nx-list">
@@ -49,7 +49,7 @@ export default function IntegrationsNavigation() {
           </IntegrationsLink>
         </li>
       </ul>
-    </>
+    </div>
   );
 }
 

@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -31,9 +32,16 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.exactTextCaseSensitive;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.textCaseSensitive;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
+import static java.util.stream.Collectors.toSet;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DataRetentionEditorTest
     extends AbstractFunctionalTest
@@ -75,12 +83,22 @@ public class DataRetentionEditorTest
   @After
   public void after() {
     DataRetentionPolicyDAO dao = new DataRetentionPolicyDAO();
-    dao.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values().forEach(dao::delete);
+
+    // Delete any DataRetentionPolicy created by the tests for the root org.
+    Set<String> rootOrgDataRetentionPolicyIds =
+        rootOrgDataRetentionPolicies.stream().map(DataRetentionPolicy::getId).collect(toSet());
+    dao.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values().stream()
+        .filter(dataRetentionPolicy -> !rootOrgDataRetentionPolicyIds.contains(dataRetentionPolicy.getId()))
+        .forEach(dao::delete);
+
+    // Restore any standard root org DataRetentionPolicy changed by the tests.
     for (DataRetentionPolicy rootOrgDataRetentionPolicy : rootOrgDataRetentionPolicies) {
-      DataRetentionPolicy copy = new DataRetentionPolicy(rootOrgDataRetentionPolicy.getOwnerId(),
-          rootOrgDataRetentionPolicy.getContextId(), rootOrgDataRetentionPolicy.isPurgingEnabled(),
-          rootOrgDataRetentionPolicy.getMaxCount(), rootOrgDataRetentionPolicy.getMaxAgeInDays());
-      dao.insert(copy);
+      if (dao.getById(rootOrgDataRetentionPolicy.getId()) == null) {
+        dao.insert(rootOrgDataRetentionPolicy);
+      }
+      else {
+        dao.update(rootOrgDataRetentionPolicy);
+      }
     }
   }
 

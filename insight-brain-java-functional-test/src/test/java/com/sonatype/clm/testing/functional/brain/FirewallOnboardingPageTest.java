@@ -45,10 +45,25 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
-  public void testFirewallOnboardingPageLayout() {
+  public void testFirewallOnboardingPageWelcomeLayout() {
+    String welcomeDescription =
+        "Protect against 3rd party malicious attacks, dependency confusion and investigate existing threats and risks"
+            +  " in your repositories.";
     refreshOrOpen(FirewallOnboardingPage.url());
 
-    SidebarNavigation.container().shouldBe(Condition.visible);
+    eyesWatcher.eyesCheck("Firewall onboarding: Welcome Screen");
+
+    page.welcomeTitle().shouldHave(Condition.text("Welcome to Repository Firewall"));
+    page.welcomeSubtitle().shouldHave(Condition.text("Start step-by-step configuration"));
+    page.welcomeDescription().shouldHave(Condition.text(welcomeDescription));
+    page.getStartedButton().shouldHave(Condition.text("Get Started"));
+  }
+
+  @Test
+  public void testFirewallOnboardingPageOnboardingLayout() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.getStartedButton().click();
     page.shouldBe(Condition.visible);
     page.steps().shouldBe(Condition.visible);
     page.actionsFooter().shouldBe(Condition.visible);
@@ -56,17 +71,41 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
-  public void testClickingSidebarNavigationOpensIncompleteConfigurationModal() {
+  public void testClickingSidebarNavigationOpensIncompleteConfigurationModalOnWelcomeScreen() {
     refreshOrOpen(FirewallOnboardingPage.url());
 
     page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
 
     SidebarNavigation.container().shouldBe(Condition.visible);
     SidebarNavigation.legalNavigationButton().click();
-
     page.incompleteConfigurationModal().shouldBe(Condition.visible);
 
-    eyesWatcher.eyesCheck("Incomplete Configuration Modal");
+    eyesWatcher.eyesCheck("Incomplete Configuration Modal: Welcome Screen");
+
+    page.incompleteConfigurationModal().continueButton().click();
+    page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
+
+    page.shouldBe(Condition.visible);
+
+    SidebarNavigation.dashboardNavigationButton().click();
+    page.incompleteConfigurationModal().exitButton().click();
+
+    waitUntilUrl(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldBe(Condition.visible);
+  }
+
+  @Test
+  public void testClickingSidebarNavigationOpensIncompleteConfigurationModalOnOnboardingScreen() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
+
+    page.getStartedButton().click();
+    SidebarNavigation.container().shouldBe(Condition.visible);
+    SidebarNavigation.legalNavigationButton().click();
+    page.incompleteConfigurationModal().shouldBe(Condition.visible);
+
+    eyesWatcher.eyesCheck("Incomplete Configuration Modal: Onboarding Screen");
 
     page.incompleteConfigurationModal().continueButton().click();
     page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
@@ -84,6 +123,7 @@ public class FirewallOnboardingPageTest
   public void testCancelButtonOpensIncompleteConfigurationModal() {
     refreshOrOpen(FirewallOnboardingPage.url());
 
+    page.getStartedButton().click();
     page.incompleteConfigurationModal().shouldNotBe(Condition.visible);
 
     page.cancelButton().shouldBe(Condition.visible).click();
@@ -117,7 +157,7 @@ public class FirewallOnboardingPageTest
 
       waitUntilUrl(FirewallOnboardingPage.url());
       SidebarNavigation.container().shouldBe(Condition.visible);
-
+      page.getStartedButton().click();
       page.continueButton().shouldBe(Condition.visible);
       page.previousButton().shouldNotBe(Condition.visible);
       page.launchFirewallButton().shouldNotBe(Condition.visible);
@@ -146,6 +186,7 @@ public class FirewallOnboardingPageTest
 
       waitUntilUrl(FirewallOnboardingPage.url());
 
+      page.getStartedButton().click();
       page.continueButton().click();
       page.launchFirewallButton().shouldBe(Condition.visible).click();
 
@@ -265,6 +306,7 @@ public class FirewallOnboardingPageTest
       waitUntilUrl(FirewallOnboardingPage.url());
 
       page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
       page.shouldHave(Condition.text("Select proxy repositories"));
       page.shouldHave(Condition.text(
               "Choose which proxy repositories you would like to apply your protection rules to."));
@@ -311,6 +353,7 @@ public class FirewallOnboardingPageTest
 
       waitUntilUrl(FirewallOnboardingPage.url());
       page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
       page.shouldHave(Condition.text("Select proxy repositories"));
       page.shouldHave(text("There are no proxy repositories to apply your protection rules."));
 
@@ -348,6 +391,7 @@ public class FirewallOnboardingPageTest
       waitUntilUrl(FirewallOnboardingPage.url());
 
       page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
       page.shouldHave(Condition.text("Select proxy repositories"));
       page.shouldHave(Condition.text(
               "Choose which proxy repositories you would like to apply your protection rules to."));
@@ -413,6 +457,7 @@ public class FirewallOnboardingPageTest
       waitUntilUrl(FirewallOnboardingPage.url());
 
       page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
       page.shouldHave(Condition.text("Select proxy repositories"));
 
       ElementsCollection repositoriesLists = page.repositoriesList();

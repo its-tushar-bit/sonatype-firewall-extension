@@ -10,6 +10,10 @@ firewall-onboarding-page {
 
   #firewall-onboarding-page {
     padding: 0;
+  }
+
+  .onboarding-screen-wrapper {
+    padding: 0;
     gap: 0px;
     display: grid;
     grid-template-columns: 272px 1fr;
@@ -84,6 +88,51 @@ firewall-onboarding-page {
       display: flex;
       align-items: center;
       justify-content: flex-end;
+    }
+  }
+
+  .welcome-screen-wrapper {
+    background: 12% 95% no-repeat url('firewall-logo-white.png'), 88% 97% no-repeat url('products-icons.png'),
+      url('welcome-bg.png') center / cover;
+    display: grid;
+    grid-template-columns: 10% 623px;
+    grid-template-areas: 'margin content';
+    align-items: center;
+    padding: 0;
+    height: 100%;
+    min-height: 600px;
+    width: 100%;
+
+    .nx-page-title {
+      margin: 0 0 var(--nx-spacing-8x) 0;
+
+      .nx-h1 {
+        color: var(--nx-swatch-white);
+        font-size: 60px;
+        line-height: 120%;
+        white-space: unset;
+      }
+    }
+
+    .nx-h2 {
+      color: var(--nx-swatch-white);
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .nx-h3 {
+      color: var(--nx-swatch-white);
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: var(--nx-spacing-12x);
+    }
+
+    .welcome-screen-content {
+      grid-area: content;
+    }
+
+    .nx-btn {
+      margin: 0;
     }
   }
 }

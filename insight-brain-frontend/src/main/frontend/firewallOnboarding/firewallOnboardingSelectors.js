@@ -10,6 +10,7 @@ import { groupRepositoriesByTypes, groupAndSortByFormat } from './firewallOnboar
 
 export const selectFirewallOnboardingSlice = prop('firewallOnboarding');
 export const selectCurrentStep = createSelector(selectFirewallOnboardingSlice, prop('currentStep'));
+export const selectShowWelcomeScreen = createSelector(selectFirewallOnboardingSlice, prop('showWelcomeScreen'));
 export const selectUnconfiguredRepoManagersList = createSelector(
   selectFirewallOnboardingSlice,
   prop('unconfiguredRepoManagers')

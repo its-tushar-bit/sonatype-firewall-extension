@@ -7,6 +7,7 @@
 import {
   selectFirewallOnboardingSlice,
   selectCurrentStep,
+  selectShowWelcomeScreen,
   selectUnconfiguredRepoManagersList,
   selectUnconfiguredRepoManager,
   selectIncompleteConfigurationModal,
@@ -56,6 +57,16 @@ describe('FirewallOnboardingSelectors', () => {
       const actualSelection = selectCurrentStep.resultFunc(slice);
 
       expect(actualSelection).toBe(slice.currentStep);
+    });
+  });
+
+  describe('selectShowWelcomeScreen', () => {
+    it('selects showWelcomeScreen from firewall onboarding slice', () => {
+      const slice = { showWelcomeScreen: true };
+
+      const actualSelection = selectShowWelcomeScreen.resultFunc(slice);
+
+      expect(actualSelection).toBe(slice.showWelcomeScreen);
     });
   });
 

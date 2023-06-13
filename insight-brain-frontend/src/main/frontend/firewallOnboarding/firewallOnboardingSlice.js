@@ -26,6 +26,7 @@ export const initialState = {
   },
   loading: false,
   currentStep: first(steps),
+  showWelcomeScreen: true,
   supportedFormats: [],
   repositories: {
     loading: false,
@@ -68,6 +69,11 @@ const goBackToPreviousStep = (state) => {
     state.currentStep = prev(state.currentStep);
   }
 };
+
+const hideWelcomeScreen = (state) => ({
+  ...state,
+  showWelcomeScreen: false,
+});
 
 const configureRepositories = (state, { payload: repositories }) => {
   state.repositories.list = updateRepositories(state.repositories.list, repositories);
@@ -206,6 +212,7 @@ const firewallOnboardingSlice = createSlice({
   reducers: {
     continueToNextStep,
     goBackToPreviousStep,
+    hideWelcomeScreen,
     openIncompleteConfigurationModal,
     closeIncompleteConfigurationModal,
     configureRepositories,

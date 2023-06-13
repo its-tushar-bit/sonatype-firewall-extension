@@ -6,52 +6,48 @@
 
 import React from 'react';
 
-import { render, screen } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import FirewallOnboardingPage from 'MainRoot/firewallOnboarding/FirewallOnboardingPage';
 import { steps } from '../../../main/frontend/firewallOnboarding/firewallOnboardingUtils';
 
-const currentStep = steps[0];
-let renderComponent, firewallOnboardingPreloadedState;
+const firewallOnboardingPreloadedState = {
+  firewallOnboarding: {
+    showWelcomeScreen: true,
+    currentStep: steps[0],
+    incompleteConfigurationModal: {
+      showModal: false,
+    },
+    repositories: {
+      loading: false,
+      loadError: null,
+    },
+    unconfiguredRepoManagers: {
+      repoManagers: [],
+      loading: false,
+      loadError: null,
+    },
+  },
+};
+const firstOnboardingStepTitle = steps[0].title;
+const WELCOME_SCREEN_TITLE = 'Welcome to Repository Firewall';
 
 describe('FirewallOnboardingPage', function () {
-  beforeEach(function () {
-    firewallOnboardingPreloadedState = {
-      firewallOnboarding: {
-        incompleteConfigurationModal: { showModal: false },
-        loading: false,
-        currentStep,
-        supportedFormats: [],
-        repositories: {
-          loading: false,
-          loadError: null,
-          saving: false,
-          saveError: null,
-          list: [{ id: '1', repositoryType: 'proxy', quarantineEnabled: true }],
-        },
-        unconfiguredRepoManagers: {
-          repoManagers: [
-            { id: 'id', instanceId: 'instanceId', userAgent: 'userAgent', configured: false, configureTime: null },
-          ],
-          loading: false,
-          loadError: null,
-        },
-      },
-    };
-    renderComponent = (preloadedState = firewallOnboardingPreloadedState) =>
-      render(<FirewallOnboardingPage />, { preloadedState });
+  const renderComponent = (preloadedState = firewallOnboardingPreloadedState) =>
+    render(<FirewallOnboardingPage />, { preloadedState });
+
+  it('renders the welcome screen when a user arrives on the page', () => {
+    renderComponent();
+
+    expect(screen.getByText(WELCOME_SCREEN_TITLE)).toBeVisible();
+    expect(screen.queryByText(firstOnboardingStepTitle)).not.toBeInTheDocument();
   });
 
-  steps.forEach((currentStep) => {
-    it(`renders ${currentStep.title} page with the correct text`, () => {
-      firewallOnboardingPreloadedState.firewallOnboarding.currentStep = currentStep;
-      renderComponent(firewallOnboardingPreloadedState);
+  it('renders the onboarding screen after the user clicks the "Get Started" button', () => {
+    renderComponent();
+    const getStartedBtn = screen.getByRole('button', { name: 'Get Started' });
 
-      expect(screen.getByRole('complementary')).toBeVisible();
-      expect(screen.getByText(currentStep.title)).toBeVisible();
-      if (currentStep.subTitle) {
-        expect(screen.getByText(currentStep.subTitle)).toBeVisible();
-      }
-      expect(screen.getByRole('navigation')).toBeVisible();
-    });
+    fireEvent.click(getStartedBtn);
+    expect(screen.getByText(firstOnboardingStepTitle)).toBeVisible();
+    expect(screen.queryByText(WELCOME_SCREEN_TITLE)).not.toBeInTheDocument();
   });
 });

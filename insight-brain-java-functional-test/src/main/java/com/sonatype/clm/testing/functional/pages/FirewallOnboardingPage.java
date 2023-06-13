@@ -37,6 +37,22 @@ public class FirewallOnboardingPage
     return new Button(childSelector("#cancel-button"));
   }
 
+  public Button getStartedButton() {
+    return new Button(childSelector("#get-started-button"));
+  }
+  
+  public SelenideElement welcomeTitle() {
+    return child(".welcome-screen-content .nx-h1");
+  }
+
+  public SelenideElement welcomeSubtitle() {
+    return child(".welcome-screen-content .nx-h2");
+  }
+
+  public SelenideElement welcomeDescription() {
+    return child(".welcome-screen-content .nx-h3");
+  }
+
   public Button continueButton() {
     return new Button(childSelector("#continue-button"));
   }

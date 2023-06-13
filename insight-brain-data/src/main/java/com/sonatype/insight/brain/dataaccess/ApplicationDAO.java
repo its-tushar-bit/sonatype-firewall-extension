@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -38,6 +40,7 @@ import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -466,6 +469,36 @@ public class ApplicationDAO
 
   public static String normalizePublicId(String publicId) {
     return publicId.trim().toLowerCase(Locale.ENGLISH);
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<String> getApplicationsWithoutCITriggeredEvaluations(final Date sinceUtcDate) {
+    /*
+    Apps without CI can be defined as:
+      Apps with evaluations != CI but not if having at least 1 eval == CI
+    + Apps with no evaluations
+    = Apps without CI integration
+
+    Get a list of applications that are not found in the list of applications with CI evals
+     */
+    final String appsWithoutCIQuery = "SELECT DISTINCT app.application_id" +
+        " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application app" +
+        " LEFT JOIN (" +
+        "    SELECT DISTINCT peci.application_id" +
+        "    FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".policy_evaluation peci" +
+        "    WHERE peci.scan_trigger_type = ?1" +
+        "    AND peci.reevaluation = false" +
+        "    AND peci.for_monitoring = false" +
+        "    AND peci.for_obsolete_scan = false" +
+        "    AND peci.time >= ?2" +
+        ") pe ON app.application_id = pe.application_id" +
+        " WHERE pe.application_id IS NULL";
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createNativeQuery(appsWithoutCIQuery);
+      query.setParameter(1, ScanTriggerType.CONTINUOUS_INTEGRATION.name());
+      query.setParameter(2, sinceUtcDate);
+      return query.getResultList();
+    }
   }
 
   @Override

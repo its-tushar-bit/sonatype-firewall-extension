@@ -13,7 +13,9 @@ import java.util.LinkedHashSet;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.CIApplicationDTO;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.CIApplicationFilter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -39,6 +41,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApplicationRiskServiceTest
     extends AbstractComponentTest
@@ -510,6 +513,81 @@ public class ApplicationRiskServiceTest
     assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> applicationRiskService
         .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, Integer.MAX_VALUE))
         .withMessage("The dashboard feature has been disabled.");
+  }
+
+  @Test
+  public void testGetCIApplicationRisks() {
+    final CIApplicationFilter filter = new CIApplicationFilter(0, 100, new Date(1569553200000L));
+    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+
+    assertThat(results.numResults).isEqualTo(2);
+    assertThat(results.dashboardResults.get(0).applicationName)
+        .isEqualTo(app1.getName());
+    assertThat(results.dashboardResults.get(1).applicationName)
+        .isEqualTo(app2.getName());
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_GetPages() {
+    final CIApplicationFilter filterPage1 = new CIApplicationFilter(0, 1, new Date(1569553200000L));
+    final DashboardResultsDTO<CIApplicationDTO> resultsPage1 =
+        applicationRiskService.getCIApplicationRisk(filterPage1);
+
+    final CIApplicationFilter filterPage2 = new CIApplicationFilter(1, 1, new Date(1569553200000L));
+    final DashboardResultsDTO<CIApplicationDTO> resultsPage2 =
+        applicationRiskService.getCIApplicationRisk(filterPage2);
+
+    assertThat(resultsPage1.numResults).isEqualTo(2);
+    assertThat(resultsPage2.numResults).isEqualTo(2);
+
+    assertThat(resultsPage1.dashboardResults).hasSize(1);
+    assertThat(resultsPage2.dashboardResults).hasSize(1);
+
+    assertThat(resultsPage1.dashboardResults.get(0).applicationName)
+        .isEqualTo(app1.getName());
+    assertThat(resultsPage2.dashboardResults.get(0).applicationName)
+        .isEqualTo(app2.getName());
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_NonExistentPage() {
+    final CIApplicationFilter filter = new CIApplicationFilter(1000, 100, new Date(1569553200000L));
+    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+
+    assertThat(results.numResults).isEqualTo(2);
+    assertThat(results.dashboardResults).isEmpty();
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_InvalidPage() {
+    final CIApplicationFilter filter = new CIApplicationFilter(-1, 1, new Date(1569553200000L));
+    assertThatThrownBy(() -> applicationRiskService.getCIApplicationRisk(filter))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Page and page size must be greater than 0");
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_InvalidPageSize() {
+    final CIApplicationFilter filter = new CIApplicationFilter(0, -1, new Date(1569553200000L));
+    assertThatThrownBy(() -> applicationRiskService.getCIApplicationRisk(filter))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Page and page size must be greater than 0");
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_IncludeZeroRiskApps() {
+    final Organization org = tempEntity.newOrganization();
+    final Application app3 = tempEntity.newApplication(org.getId());
+
+    // Adds an evaluation with a scan trigger type of CLI (same as 2 apps set up in @Before)
+    // Do not add any policy violations so that risk = 0
+    tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "test scan app1 id",
+        new Date(System.currentTimeMillis()));
+
+    final CIApplicationFilter filter = new CIApplicationFilter(1000, 100, new Date(1569553200000L));
+    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+
+    assertThat(results.numResults).isEqualTo(3);
   }
 
   private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk, int lowRisk, int netRisk) {

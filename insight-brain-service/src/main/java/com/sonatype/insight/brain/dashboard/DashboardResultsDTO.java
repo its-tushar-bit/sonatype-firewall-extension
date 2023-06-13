@@ -17,4 +17,12 @@ public class DashboardResultsDTO<T>
   public List<T> dashboardResults;
 
   public int numResults;
+
+  public DashboardResultsDTO() {
+  }
+
+  public DashboardResultsDTO(final List<T> dashboardResults, final int numResults) {
+    this.dashboardResults = dashboardResults;
+    this.numResults = numResults;
+  }
 }

@@ -6,13 +6,17 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.Collections;
-
+import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.CIApplicationFilter;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -86,6 +90,35 @@ public class ApplicationRiskServiceAuthzTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result =
         applicationRiskService.getApplicationRisks(Collections.singleton(app.getParentOwnerId()), null, null, null,
             null, null, null, "-TOTAL_RISK", 0, 100);
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetCIApplicationRisks_Unauthenticated() {
+    final CIApplicationFilter filter = new CIApplicationFilter(0, 100, new Date(1569553200000L));
+    final DashboardResultsDTO<?> result = applicationRiskService.getCIApplicationRisk(filter);
+
+    assertThat(result.dashboardResults).isEmpty();
+    assertThat(result.numResults).isZero();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetCIApplicationRisks_Unauthorized() {
+    login();
+    final CIApplicationFilter filter = new CIApplicationFilter(0, 100, new Date(1569553200000L));
+    final DashboardResultsDTO<?> result = applicationRiskService.getCIApplicationRisk(filter);
+
+    assertThat(result.dashboardResults).isEmpty();
+    assertThat(result.numResults).isZero();
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_Authorized() {
+    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
+    final CIApplicationFilter filter = new CIApplicationFilter(0, 100, new Date(1569553200000L));
+    final DashboardResultsDTO<?> result = applicationRiskService.getCIApplicationRisk(filter);
+
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
   }

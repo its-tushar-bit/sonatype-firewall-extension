@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -64,6 +65,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -1246,5 +1248,44 @@ public class ApplicationDAOTest
         .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
     applicationDAO.delete(application);
     assertThat(vulnerabilityCustomCvssSeverityDAO.getByOwnerId(application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsWithoutCITriggeredEvaluations() {
+    final Application application2 = tempEntity.newApplication(organization.getId());
+    final Application application3 = tempEntity.newApplication(organization.getId());
+    final Application application4 = tempEntity.newApplication(organization.getId());
+    final Application application5 = tempEntity.newApplication(organization.getId());
+
+    // app and app2: CI evals
+    // app3 and app4: non-CI evals (1 before cut off)
+    // app5: no evals
+    final Calendar now = Calendar.getInstance();
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
+        false, false, false, now.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
+    now.add(Calendar.MINUTE, 10);
+
+    tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "scan-build-2",
+        false, false, false, now.getTime(), "hash-2", ScanTriggerType.CONTINUOUS_INTEGRATION);
+    now.add(Calendar.MINUTE, 10);
+
+    tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_BUILD, "scan-build-3",
+        false, false, false, now.getTime(), "hash-3", ScanTriggerType.CLI);
+
+    // 09/27/2010
+    final Date preSinceUtcDate = new Date(1285556400000L);
+    tempEntity.newPolicyEvaluation(application4.getId(), Stage.ID_BUILD, "scan-build-4",
+        false, false, false, preSinceUtcDate, "hash-4", ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // 09/27/2019
+    final Date sinceUtcDate = new Date(1569553200000L);
+
+    final List<String> expectedAppsWithoutCI =
+        Arrays.asList(application3.getId(), application4.getId(), application5.getId());
+    final List<String> actualAppsWithoutCI =
+        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(sinceUtcDate);
+
+    assertThat(actualAppsWithoutCI)
+        .hasSameElementsAs(expectedAppsWithoutCI);
   }
 }

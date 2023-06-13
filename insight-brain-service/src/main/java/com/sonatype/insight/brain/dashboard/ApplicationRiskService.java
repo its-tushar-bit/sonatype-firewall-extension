@@ -7,31 +7,43 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.dto.CIApplicationDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditUtils;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.CIApplicationFilter;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -46,6 +58,8 @@ public class ApplicationRiskService
 
   private final OrganizationDAO organizationDAO;
 
+  private final ApplicationDAO applicationDAO;
+
   private final PolicyViolationLoader policyViolationLoader;
 
   private final DashboardUtils dashboardUtils;
@@ -53,11 +67,13 @@ public class ApplicationRiskService
   @Inject
   public ApplicationRiskService(ApplicationService applicationService,
                                 OrganizationDAO organizationDAO,
+                                ApplicationDAO applicationDAO,
                                 PolicyViolationLoader policyViolationLoader,
                                 DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
+    this.applicationDAO = applicationDAO;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
   }
@@ -77,13 +93,54 @@ public class ApplicationRiskService
       int page,
       int pageSize)
   {
+    return getApplicationRisks(organizationIds, applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
+        policyThreatLevelFilter, policyViolationStateFilter, orderBy, page, pageSize, true, true);
+  }
+
+  public DashboardResultsDTO<CIApplicationDTO> getCIApplicationRisk(final CIApplicationFilter filter) {
+    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+
+    if (filter.getPage() < 0 || filter.getPageSize() <= 0) {
+      throw new BadRequestException("Page and page size must be greater than 0");
+    }
+
+    final List<String> appsWithoutCI =
+        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(filter.getSinceUtcTimestamp());
+    final DashboardResultsDTO<ApplicationRiskScoreDTO> fullResults =
+        getApplicationRisks(Collections.emptySet(), new HashSet<>(appsWithoutCI), Collections.emptySet(),
+            Collections.emptySet(), new PolicyThreatCategoryFilter(), new PolicyThreatLevelFilter(0, 10),
+            new PolicyViolationStateFilter(), "-TOTAL_RISK", filter.getPage(), filter.getPageSize(), false, false);
+    final List<CIApplicationDTO> totalRiskResults = fullResults.dashboardResults.stream().map(applicationRiskScoreDTO ->
+        new CIApplicationDTO(applicationRiskScoreDTO.applicationId, applicationRiskScoreDTO.applicationName,
+            applicationRiskScoreDTO.totalApplicationRisk.totalRisk)).collect(Collectors.toList());
+
+    return new DashboardResultsDTO<>(totalRiskResults, fullResults.numResults);
+  }
+
+  private DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(
+      final Set<String> organizationIds,
+      final Set<String> applicationIds,
+      final Set<String> stageIds,
+      final Set<String> tagIds,
+      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      final PolicyThreatLevelFilter policyThreatLevelFilter,
+      final PolicyViolationStateFilter policyViolationStateFilter,
+      final String orderBy,
+      int page,
+      int pageSize,
+      boolean excludeZeroRisk,
+      boolean requireApplicationAuth)
+  {
     dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
 
     long start = System.currentTimeMillis();
 
     ApplicationRiskScoreDTOComparator applicationRiskComparator = new ApplicationRiskScoreDTOComparator(orderBy);
-    List<Application> appsToSearch = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
-        applicationIds, tagIds);
+    List<Application> appsToSearch =
+        requireApplicationAuth ? applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
+            applicationIds, tagIds) :
+            applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(organizationIds,
+                applicationIds, tagIds);
     log.debug("Loaded {} applications", appsToSearch.size());
 
     AuditData.get() //
@@ -99,7 +156,7 @@ public class ApplicationRiskService
         policyViolationLoader.getViolations(appsToSearch, stageTypes, false, policyThreatLevelFilter,
             policyThreatCategoryFilter, policyViolationStateFilter);
 
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews);
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews, excludeZeroRisk);
     applicationRiskScoreDTOs.sort(applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
     result.numResults = applicationRiskScoreDTOs.size();
@@ -119,7 +176,10 @@ public class ApplicationRiskService
     return result;
   }
 
-  private List<ApplicationRiskScoreDTO> createApplicationRiskScores(Collection<ApplicationView> appViews) {
+  private List<ApplicationRiskScoreDTO> createApplicationRiskScores(
+      Collection<ApplicationView> appViews,
+      boolean excludeZeroRisk)
+  {
     Map<String, String> orgNames = new HashMap<>();
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>(appViews.size());
     for (ApplicationView appView : appViews) {
@@ -134,7 +194,7 @@ public class ApplicationRiskService
           appView.getApplication().getName(), appView.getApplication().getPublicId());
 
       updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
-      if (applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {
+      if (excludeZeroRisk && applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {
         continue;
       }
       applicationRiskScores.add(applicationRiskScore);
@@ -201,5 +261,12 @@ public class ApplicationRiskService
       risk.lowRisk += threatLevel;
     }
     risk.totalRisk += threatLevel;
+  }
+
+  @Authorize(permission = Permission.READ)
+  void checkReadPermission(
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
+  {
   }
 }

@@ -56,6 +56,12 @@ public class UserViewedProductNotificationDAO
     return getList(tx, sQuery);
   }
 
+  public List<UserViewedProductNotification> getAll() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAll(tx);
+    }
+  }
+
   @Override
   public void insert(TransactionContext tx, UserViewedProductNotification entity) {
     if (StringUtils.isBlank(entity.getRealmId())) {

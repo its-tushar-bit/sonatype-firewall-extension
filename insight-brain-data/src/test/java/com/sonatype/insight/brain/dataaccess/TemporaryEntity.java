@@ -562,8 +562,6 @@ public class TemporaryEntity
 
   private Collection<UserFilter> userFilters;
 
-  private Collection<UserViewedProductNotification> userViewedProductNotifications;
-
   private Collection<Policy> policies;
 
   private Collection<PolicyTag> policyTags;
@@ -663,7 +661,6 @@ public class TemporaryEntity
     claimedComponents = new ArrayList<>();
     dashboardFilters = new ArrayList<>();
     userFilters = new ArrayList<>();
-    userViewedProductNotifications = new ArrayList<>();
     policies = new ArrayList<>();
     policyTags = new ArrayList<>();
     tags = new ArrayList<>();
@@ -796,7 +793,7 @@ public class TemporaryEntity
     delete(roles, roleDAO);
     delete(ldapServers, ldapServerDAO);
     delete(claimedComponents, hashComponentIdentifierDAO);
-    delete(userViewedProductNotifications, userViewedProductNotificationDAO);
+    delete(userViewedProductNotificationDAO.getAll(), userViewedProductNotificationDAO);
     delete(policies, entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
     delete(labels, labelDAO);
     delete(tags, tagDAO);
@@ -2543,7 +2540,6 @@ public class TemporaryEntity
         new UserViewedProductNotification(username, realmId, notificationId);
 
     userViewedProductNotificationDAO.insert(userViewedProductNotification);
-    userViewedProductNotifications.add(userViewedProductNotification);
     return userViewedProductNotification;
   }
 
@@ -2591,7 +2587,6 @@ public class TemporaryEntity
       throw new RuntimeException(e);
     }
     UserViewedProductNotification userViewedProductNotification = userViewedProductNotificationDAO.getById(id);
-    userViewedProductNotifications.add(userViewedProductNotification);
     return userViewedProductNotification;
   }
 

@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,10 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -126,6 +131,11 @@ public class ApiSpdxServiceTest
   }
 
   @Test
+  public void testGetByScanId_json_cycloneDx() throws Exception {
+    testGetByScanId("json", true, "2.3");
+  }
+
+  @Test
   public void testGetByScanId_InvalidScanId() throws Exception {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.getByScanId(application.getId(), "bogus", "xml", false, "2.3"))
@@ -163,16 +173,60 @@ public class ApiSpdxServiceTest
     when(versionService.getFullVersion()).thenReturn("1.0");
 
     Response response = service.getByScanId(application.getId(), scanId, format, generateCycloneDx, spdxVersion);
-    SpdxDocument document = deserialize(response, format);
+    SpdxDocument document;
+    if (generateCycloneDx) {
+      document = deserialize(extractSpdxContentFromArchive(response), format);
+    }
+    else {
+      document = deserialize(response.getEntity().toString(), format);
+    }
 
-    assertFilename(response, "build", format);
+    assertFilename(response, "build", format, generateCycloneDx);
     assertDocument(document, spdxVersion);
   }
 
-  private void assertFilename(Response response, String stageId, String format) {
+  private String extractSpdxContentFromArchive(Response response) throws IOException {
+    String spdxContent = null;
+    String spdxFilename = null;
+    String cdxContent = null;
+    String cdxFilename = null;
+    File inFile = (File) response.getEntity();
+    try (InputStream inputStream = Files.newInputStream(inFile.toPath());
+         GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(inputStream);
+         TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
+      TarArchiveEntry tarEntry = tarIn.getNextTarEntry();
+      assertThat(tarEntry).isNotNull();
+      if (tarEntry.getName().contains(".spdx.")) {
+        spdxContent = IOUtils.toString(tarIn, StandardCharsets.UTF_8);
+        spdxFilename = tarEntry.getName();
+      }
+      else {
+        cdxContent = IOUtils.toString(tarIn, StandardCharsets.UTF_8);
+        cdxFilename = tarEntry.getName();
+      }
+      tarEntry = tarIn.getNextTarEntry();
+      assertThat(tarEntry).isNotNull();
+      if (tarEntry.getName().contains(".spdx.")) {
+        spdxContent = IOUtils.toString(tarIn, StandardCharsets.UTF_8);
+        spdxFilename = tarEntry.getName();
+      }
+      else {
+        cdxContent = IOUtils.toString(tarIn, StandardCharsets.UTF_8);
+        cdxFilename = tarEntry.getName();
+      }
+    }
+    assertThat(spdxContent).isNotEmpty();
+    assertThat(spdxContent).contains("file://" + cdxFilename);
+    assertThat(cdxContent).isNotEmpty();
+    assertThat(cdxContent).contains("file://" + spdxFilename);
+    return spdxContent;
+  }
+
+  private void assertFilename(Response response, String stageId, String format, boolean generateCycloneDx) {
     String contentHeader = response.getHeaderString("Content-Disposition");
     String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
-    String expectedFilename = String.format("%s-%s-%s.spdx.%s", application.getPublicId(), stageId, scanId, format);
+    String suffix = generateCycloneDx ? "tar.gz" : format.equals("json") ? "spdx.json" : "spdx.xml";
+    String expectedFilename = String.format("%s-%s-%s.%s", application.getPublicId(), stageId, scanId, suffix);
     assertThat(actualFilename).isEqualTo(expectedFilename);
   }
 
@@ -190,6 +244,11 @@ public class ApiSpdxServiceTest
   @Test
   public void testGetLatestForStage_xml() throws Exception {
     testGetLatest("xml", false, "2.3");
+  }
+
+  @Test
+  public void testGetLatestForStage_json_cycloneDx() throws Exception {
+    testGetLatest("json", true, "2.3");
   }
 
   @Test
@@ -232,9 +291,15 @@ public class ApiSpdxServiceTest
     String stageId = BuildStageType.ID;
     Response response =
         service.getLatestForStage(application.getId(), stageId, format, generateCycloneDx, spdxVersion);
-    SpdxDocument document = deserialize(response, format);
+    SpdxDocument document;
+    if (generateCycloneDx) {
+      document = deserialize(extractSpdxContentFromArchive(response), format);
+    }
+    else {
+      document = deserialize(response.getEntity().toString(), format);
+    }
 
-    assertFilename(response, stageId, format);
+    assertFilename(response, stageId, format, generateCycloneDx);
     assertDocument(document, spdxVersion);
   }
 
@@ -298,7 +363,9 @@ public class ApiSpdxServiceTest
           purlRefFound = true;
           assertThat(externalRef.getReferenceLocator()).isIn(expectedPurls);
         }
-        if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
+        if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY &&
+            (!externalRef.getComment().isPresent() || !"type: CycloneDX".equals(externalRef.getComment().get()))
+        ) {
           securityRefCount++;
         }
       }
@@ -415,7 +482,7 @@ public class ApiSpdxServiceTest
     createReportAndPolicyEvaluation("missingParentTree");
 
     Response response = service.getByScanId(application.getId(), scanId, "json", false, "2.3");
-    SpdxDocument document = deserialize(response, "json");
+    SpdxDocument document = deserialize(response.getEntity().toString(), "json");
 
     // assert top level relationship
     Collection<Relationship> relationships = document.getRelationships();
@@ -426,14 +493,14 @@ public class ApiSpdxServiceTest
         "sonatype:iq_application_Test App");
   }
 
-  private SpdxDocument deserialize(Response response, String format)
+  private SpdxDocument deserialize(String content, String format)
       throws Exception
   {
     String uri;
     IModelStore modelStore = new InMemSpdxStore();
     try (MultiFormatStore multiFormatStore =
              new MultiFormatStore(modelStore, "json".equals(format) ? Format.JSON : Format.XML, Verbose.COMPACT);
-         InputStream in = new ByteArrayInputStream(response.getEntity().toString().getBytes(StandardCharsets.UTF_8))) {
+         InputStream in = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))) {
       uri = multiFormatStore.deSerialize(in, true);
     }
     return new SpdxDocument(modelStore, uri, DefaultModelStore.getDefaultCopyManager(), true);

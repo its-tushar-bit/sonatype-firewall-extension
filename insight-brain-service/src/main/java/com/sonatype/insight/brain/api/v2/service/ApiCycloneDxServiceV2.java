@@ -161,6 +161,16 @@ public class ApiCycloneDxServiceV2
   }
 
   private Response getByScanId(Application application, String scanId, String acceptType, Version version) {
+    return getByScanId(application, scanId, acceptType, version, null);
+  }
+
+  Response getByScanId(
+      Application application,
+      String scanId,
+      String acceptType,
+      Version version,
+      String linkedSpdxUrl)
+  {
     AuditData.get().setReportId(scanId);
     if (MediaType.APPLICATION_JSON.equals(acceptType) && version.getVersion() < 1.2) {
       throw new NotAcceptableException("CycloneDX json schema does not support versions less than 1.2");
@@ -181,6 +191,9 @@ public class ApiCycloneDxServiceV2
         url = UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
       }
       bom.addExternalReference(createExternalReference(url, "IQ Report", ExternalReference.Type.BOM));
+      if (linkedSpdxUrl != null) {
+        bom.addExternalReference(createExternalReference(linkedSpdxUrl, "SPDX BOM", ExternalReference.Type.BOM));
+      }
 
       Map<String, Map<String, String>> components = createBomComponents(version, data.components, bom);
 

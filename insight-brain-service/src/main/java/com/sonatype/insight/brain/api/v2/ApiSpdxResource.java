@@ -50,7 +50,7 @@ public class ApiSpdxResource
 
   @GET
   @Path(GET_BY_STAGE_PATH)
-  @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
   public Response getLatestForStage(
       @PathParam("applicationId") String applicationId,
@@ -64,7 +64,7 @@ public class ApiSpdxResource
 
   @GET
   @Path(GET_BY_REPORT_PATH)
-  @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
   public Response getByScanId(
       @PathParam("applicationId") String applicationId,

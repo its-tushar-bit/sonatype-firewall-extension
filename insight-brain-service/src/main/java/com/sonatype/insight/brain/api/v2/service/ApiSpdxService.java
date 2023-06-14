@@ -6,13 +6,18 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -59,7 +64,11 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.cyclonedx.CycloneDxSchema.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spdx.jacksonstore.MultiFormatStore;
@@ -73,6 +82,7 @@ import org.spdx.library.model.ReferenceType;
 import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxCreatorInformation;
 import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.SpdxElement;
 import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.SpdxPackage.SpdxPackageBuilder;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
@@ -112,9 +122,12 @@ public class ApiSpdxService
 
   private final VersionService versionService;
 
+  private final ApiCycloneDxServiceV2 apiCycloneDxService;
+
   @Inject
   public ApiSpdxService(
       ApiReportDataServiceV2 apiReportDataServiceV2,
+      ApiCycloneDxServiceV2 apiCycloneDxService,
       ApplicationHelper applicationHelper,
       BaseUrl baseUrl,
       PolicyEvaluationDAO policyEvaluationDAO,
@@ -122,6 +135,7 @@ public class ApiSpdxService
       VersionService versionService)
   {
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
+    this.apiCycloneDxService = apiCycloneDxService;
     this.applicationHelper = applicationHelper;
     this.baseUrl = baseUrl;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -199,11 +213,7 @@ public class ApiSpdxService
         addDependencyRelationships(rootNodeDTO, document, purlElementMap, true);
       }
 
-      String appId = application.getId();
-      String stageId = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId).getStageTypeId();
-      String filename = String.format("%s-%s-%s.spdx", application.getPublicId(), stageId, scanId);
-
-      return generateResponse(document, filename, format, generateCycloneDx);
+      return generateResponse(document, application, scanId, format, generateCycloneDx);
     }
     catch (RuntimeException e) {
       throw e;
@@ -488,30 +498,93 @@ public class ApiSpdxService
 
   private Response generateResponse(
       final SpdxDocument document,
-      String filename,
+      final Application application,
+      final String scanId,
       final String format,
       final boolean generateCycloneDx) throws Exception
   {
-    String content;
-    MediaType type;
+    MediaType type = "json".equals(format) ? MediaType.APPLICATION_JSON_TYPE : MediaType.APPLICATION_XML_TYPE;
+    String spdxFilename = createFileName(application, scanId, ".spdx") + "." + type.getSubtype();
+    String cdxFilename = createFileName(application, scanId, ".bom") + "." + type.getSubtype();
+
     if (generateCycloneDx) {
-      type = MediaType.APPLICATION_OCTET_STREAM_TYPE;
-    }
-    else {
-      type = "json".equals(format) ? MediaType.APPLICATION_JSON_TYPE : MediaType.APPLICATION_XML_TYPE;
+      addCycloneDxExternalRef(document, cdxFilename);
     }
 
+    String spdxContent;
     Format spdxFormat = "json".equals(format) ? Format.JSON_PRETTY : Format.XML;
     try (MultiFormatStore multiFormatStore =
              new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
          ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       multiFormatStore.serialize(document.getDocumentUri(), out);
-      content = out.toString("UTF-8");
+      spdxContent = out.toString("UTF-8");
     }
 
-    filename = filename + "." + type.getSubtype();
-    return Response.ok(content, type)
-        .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename)).build();
+    if (generateCycloneDx) {
+      Response response = apiCycloneDxService.getByScanId(
+          application, scanId, "application/" + format, Version.VERSION_14, "file://" + spdxFilename);
+      String cdxContent = response.getEntity().toString();
+
+      String filename = createFileName(application, scanId, "") + ".tar.gz";
+      File outputFile = createTarGzFromContent(spdxContent, spdxFilename, cdxContent, cdxFilename);
+      return Response.ok(outputFile, MediaType.APPLICATION_OCTET_STREAM)
+          .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename))
+          .build();
+    }
+    else {
+      return Response.ok(spdxContent, type)
+          .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(spdxFilename))
+          .build();
+    }
+  }
+
+  private File createTarGzFromContent(
+      String spdxContent,
+      String spdxFilename,
+      String cdxContent,
+      String cdxFilename) throws IOException
+  {
+    File outputFile = Files.createTempFile("spdx-", ".tar.gz").toFile();
+    outputFile.deleteOnExit();
+    try (OutputStream outputStream = Files.newOutputStream(outputFile.toPath());
+         GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(outputStream);
+         TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut)) {
+      // SPDX entry
+      TarArchiveEntry spdxEntry = new TarArchiveEntry(spdxFilename);
+      spdxEntry.setSize(spdxContent.length());
+      tarOut.putArchiveEntry(spdxEntry);
+      tarOut.write(spdxContent.getBytes(StandardCharsets.UTF_8));
+      tarOut.closeArchiveEntry();
+      // CycloneDX entry
+      TarArchiveEntry cdxEntry = new TarArchiveEntry(cdxFilename);
+      cdxEntry.setSize(cdxContent.length());
+      tarOut.putArchiveEntry(cdxEntry);
+      tarOut.write(cdxContent.getBytes(StandardCharsets.UTF_8));
+      tarOut.closeArchiveEntry();
+
+      tarOut.finish();
+    }
+    return outputFile;
+  }
+
+  private void addCycloneDxExternalRef(final SpdxDocument document, final String cdxFilename)
+      throws InvalidSPDXAnalysisException
+  {
+    Collection<SpdxElement> documentDescribes = document.getDocumentDescribes();
+    if (!documentDescribes.isEmpty()) {
+      SpdxElement spdxElement = documentDescribes.iterator().next();
+      if (spdxElement instanceof SpdxPackage) {
+        ExternalRef externalRef = document.createExternalRef(ReferenceCategory.SECURITY,
+            new ReferenceType("advisory"), "file://" + cdxFilename, "type: CycloneDX");
+        ((SpdxPackage) spdxElement).addExternalRef(externalRef);
+      }
+    }
+  }
+
+  private String createFileName(Application application, String scanId, String suffix) {
+    String appId = application.getId();
+    String stageId = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId).getStageTypeId();
+    return String.format("%s-%s-%s%s", application.getPublicId(), stageId, scanId, suffix);
   }
 
   private String validateFormat(String format) {

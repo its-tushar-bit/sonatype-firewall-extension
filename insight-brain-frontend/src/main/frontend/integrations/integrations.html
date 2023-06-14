@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+  ~ Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+  ~ "Sonatype" is a trademark of Sonatype, Inc.
+  -->
+
+<div id="integrations-sidebar" class="nx-page-sidebar nx-viewport-sized">
+  <integrations-navigation class="nx-viewport-sized__container" />
+</div>
+
+<div id="integrations-main" class="nx-page-main" ng-class="{ 'nx-viewport-sized': $state.$current.data.viewportSized }">
+  <div class="nx-page-title">
+    <h1 class="nx-h1">Integrations</h1>
+  </div>
+  <ui-view />
+</div>

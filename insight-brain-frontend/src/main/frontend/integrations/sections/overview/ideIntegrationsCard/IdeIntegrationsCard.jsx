@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './ideIntegrationsSlice';
 import { selectIdeIntegrationsSlice } from './integrationsSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { SECTIONS } from 'MainRoot/integrations/module';
+import { SECTIONS } from 'MainRoot/integrations/integrations.module';
 
 export default function IdeIntegrationsCard() {
   const uiRouterState = useRouterState();

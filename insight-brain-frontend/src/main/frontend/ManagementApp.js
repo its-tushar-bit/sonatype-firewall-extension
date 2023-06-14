@@ -36,7 +36,7 @@ import apiModule from './api/module';
 import baseUrlConfigurationModule from './configuration/baseUrl/module';
 import baseUrlNotSetNoticeModule from 'MainRoot/configuration/baseUrl/baseUrlNotSetNotice/module';
 import sourceControlRateLimitsModule from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/module';
-import integrationsModule from 'MainRoot/integrations/module';
+import integrationsModule from 'MainRoot/integrations/integrations.module';
 
 export default angular
   .module('managementApp', [

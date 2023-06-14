@@ -38,7 +38,7 @@ public class ConfigFeaturesService
   }
 
   /**
-   * Gets a list of all features supported by this server instance
+   * Gets a list of all SystemConfigurationPropertyFeature supported by MTIQ server
    */
   public Set<Feature> getAllFeatures(String tenantSlug) {
     if (!tenantValidator.validateTenantExists(tenantSlug)) {
@@ -47,7 +47,7 @@ public class ConfigFeaturesService
     }
 
     Set<Feature> features = Arrays.stream(SystemConfigurationPropertyFeature.values())
-        .filter(mtiqFeatureService::isEnabled)
+        .filter(feature -> !mtiqFeatureService.isBanned(feature))
         .collect(Collectors.toSet());
 
     log.debug("Found all features: {}", features);
@@ -55,7 +55,7 @@ public class ConfigFeaturesService
   }
 
   /**
-   * Gets a list of enabled features for the tenant
+   * Gets a list of enabled SystemConfigurationPropertyFeature for the tenant
    */
   public Set<Feature> getFeatures(String tenantSlug) {
     if (!tenantValidator.validateTenantExists(tenantSlug)) {
@@ -64,7 +64,6 @@ public class ConfigFeaturesService
     }
 
     Set<Feature> features = Arrays.stream(SystemConfigurationPropertyFeature.values())
-        .filter(SystemConfigurationPropertyFeature::isEnabled)
         .filter(mtiqFeatureService::isEnabled)
         .collect(Collectors.toSet());
 

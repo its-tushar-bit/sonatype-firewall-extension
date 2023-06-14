@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Stream;
 import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -30,25 +34,42 @@ public class ConfigFeaturesResourceTest
     return super.adminRequest().path("api/").path(path);
   }
 
+  /**
+   * SystemConfigurationPropertyFeature that are enabled by default in MTIQ should be added to this list
+   * Before adding new SystemConfigurationPropertyFeature into these lists check that the feature should be
+   * allowed in MTIQ, if the feature should not be allowed for MTIQ please add to be MTIQ_BANNED_FEATURES
+   */
+  private final String[] defaultEnabledFeatures = new String[]{
+      SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
+      SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
+      SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
+      SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
+      SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
+      SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
+      SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
+      SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
+      SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
+      SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
+      SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
+  };
+
+  /**
+   * SystemConfigurationPropertyFeature that are allowed to be used in MTIQ should be added to this list
+   */
+  private final String[] allFeatures = Stream.concat(Arrays.stream(defaultEnabledFeatures), Arrays.stream(
+      new String[]{
+          SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
+          SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId()
+      }
+  )).toArray(String[]::new);
+
   @Test
   public void testFeatures_asGlobal() throws Exception {
     HttpResponse response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug).get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
-    assertThat(features).containsExactlyInAnyOrder(
-        SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
-    );
+    assertThat(features).containsExactlyInAnyOrder(defaultEnabledFeatures);
   }
 
   @Test
@@ -58,19 +79,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
-    assertThat(features).containsExactlyInAnyOrder(
-        SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
-    );
+    assertThat(features).containsExactlyInAnyOrder(defaultEnabledFeatures);
   }
 
   @Test
@@ -80,21 +89,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
-    assertThat(features).containsExactlyInAnyOrder(
-        SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
-        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId(),
-        SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId()
-    );
+    assertThat(features).containsExactlyInAnyOrder(allFeatures);
   }
 
   @Test
@@ -105,21 +100,7 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
-    assertThat(features).containsExactlyInAnyOrder(
-        SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
-        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId(),
-        SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId()
-    );
+    assertThat(features).containsExactlyInAnyOrder(allFeatures);
   }
 
   @Test
@@ -172,18 +153,10 @@ public class ConfigFeaturesResourceTest
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
-    assertThat(features).containsExactlyInAnyOrder(
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
-    );
+    List<String> expected = new LinkedList<>(Arrays.asList(defaultEnabledFeatures));
+    expected.remove(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
+
+    assertThat(features).containsExactlyInAnyOrder(expected.toArray(new String[0]));
   }
 
   @Test
@@ -256,19 +229,8 @@ public class ConfigFeaturesResourceTest
     response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug).get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
-    assertThat(features).containsExactlyInAnyOrder(
-        SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-        SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId()
-    );
+
+    assertThat(features).containsExactlyInAnyOrder(defaultEnabledFeatures);
   }
 
   @Test

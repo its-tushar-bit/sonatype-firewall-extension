@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.service.banning;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -26,19 +25,16 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.*;
-import static com.sonatype.insight.brain.features.NonLicensedFeature.REPORTS_LIST;
 import static com.sonatype.insight.brain.features.TenantFeature.MULTI_TENANT;
 import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS;
 import static com.sonatype.insight.brain.successmetrics.SuccessMetricsService.PROPERTY_ENABLED;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.getTenant;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * Configures which features are available to an MTIQ deployment.
@@ -57,37 +53,41 @@ public class MTIQFeatureService
    * filter that is applied on top of the license. We decided to go with a list of "enabled" rather than "disabled"
    * features so that any new features don't automatically get released in MTIQ.
    */
-  public static final Set<Feature> ENABLED_FEATURES = Stream.concat(ImmutableSet.of(
-              DASHBOARD_CAN_BE_ENABLED,
-              MULTI_TENANT,
-              ENABLE_SSO_ONLY,
-              ENABLE_MANAGED_IDP_SSO,
-              LOGOUT_AUTH0_ON_LOGOUT,
-              WEBHOOK_CONFIGURATION,
-              ADVANCED_SEARCH_CONFIGURATION,
-              AUTOMATIC_SCM_CONFIGURATION,
-              DEFAULT_BRANCH_MONITORING,
-              PR_COMMENTING,
-              PR_LINE_COMMENTING,
-              EMAIL_CONFIGURATION,
-              INTERNAL_FIREWALL_ONBOARDING_ENABLED,
-              REPORTS_LIST_CAN_BE_ENABLED,
-              REPORTS_LIST).stream(),
-
-          // Add all LicensedFeatures.
-          // This is an allow list, whether they are enabled or not depends on the License used.
-          // Excluding DATA_INSIGHTS for now
-          Arrays.stream(LicensedFeature.values())
-              .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS)))
-
-      .collect(toSet());
 
   /**
    * This is the list of features that are always enabled in MTIQ.
    */
-  private static final List<SystemConfigurationPropertyFeature> MTIQ_FEATURES = Arrays.asList(
+  private static final List<SystemConfigurationPropertyFeature> MTIQ_ENABLED_FEATURES = Arrays.asList(
       ENABLE_SSO_ONLY,
       LOGOUT_AUTH0_ON_LOGOUT);
+
+  /**
+   * This is the list of features that are never enabled in MTIQ.
+   */
+  private static final List<Feature> MTIQ_BANNED_FEATURES = Arrays.asList(
+      LicensedFeature.DATA_INSIGHTS,
+      SystemConfigurationPropertyFeature.API_PAGE,
+      SUCCESS_METRICS_CONFIGURATION,
+      AUTOMATIC_APPLICATION_CONFIGURATION,
+      INNER_SOURCE_TRANSITIVE_WAIVER,
+      PRODUCT_LICENSE_CONFIGURATION,
+      SYSTEM_NOTICE_CONFIGURATION,
+      ENABLE_UNAUTHENTICATED_PAGES,
+      PROXY_CONFIGURATION,
+      DEPENDENCY_DATA_IN_API,
+      CROWD_INTEGRATION,
+      COMPONENT_SEARCH_API_WITH_INNERSOURCE,
+      INNER_SOURCE_REPOSITORY_INTEGRATION,
+      CODE_INSIGHTS,
+      LDAP_CONFIGURATION,
+      SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
+      SPDX_EXPORT,
+      TRANSITIVE_SOLVER,
+      SCAN_POM_FILES_IN_META_INF_DIRECTORY,
+      VULNERABILITY_SOURCE,
+      BUILT_FROM_SOURCE,
+      INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS
+  );
 
   private final ApiConfigFeaturesService service;
 
@@ -105,31 +105,24 @@ public class MTIQFeatureService
 
   @Override
   public Set<Feature> getFeatures() {
-    Set<Feature> baseFeatures = getBaseFeatures();
+    Set<Feature> features = getBaseFeatures();
 
-    return baseFeatures.stream().filter(this::isEnabled).collect(toSet());
-  }
-
-  //Visible for testing
-  Set<Feature> getBaseFeatures() {
-    Set<Feature> features = super.getFeatures();
     features.remove(SINGLE_TENANT);
     features.add(MULTI_TENANT);
+
+    MTIQ_BANNED_FEATURES.forEach(feature -> {
+      features.remove(feature);
+    });
+
     return features;
   }
 
-  public boolean isEnabled(Feature feature) {
-    boolean enabled = ENABLED_FEATURES.contains(feature);
-
-    if (!enabled && log.isTraceEnabled()) {
-      log.trace("Feature {} is hard disabled for MTIQ. See FeatureService.java for more info.", feature.getId());
-    }
-
-    return enabled;
+  Set<Feature> getBaseFeatures() {
+    return super.getFeatures();
   }
 
   public void enableFeature(String feature) {
-    if (enabledFeaturesContainsFeatureWithId(feature)) {
+    if (!isBannedMTIQFeatureWithId(feature)) {
       service.enableFeatureNoAuthz(feature);
     }
     else {
@@ -137,8 +130,14 @@ public class MTIQFeatureService
     }
   }
 
+  private boolean isBannedMTIQFeatureWithId(String feature) {
+    return MTIQ_BANNED_FEATURES.stream()
+        .map(Feature::getId)
+        .anyMatch(id -> id.equals(feature));
+  }
+
   public void disableFeature(String feature) {
-    if (enabledFeaturesContainsFeatureWithId(feature)) {
+    if (!isMTIQFeatureWithId(feature)) {
       service.disableFeatureNoAuthz(feature);
     }
     else {
@@ -146,10 +145,15 @@ public class MTIQFeatureService
     }
   }
 
-  private boolean enabledFeaturesContainsFeatureWithId(String feature) {
-    return ENABLED_FEATURES.stream()
+  private boolean isMTIQFeatureWithId(String feature) {
+    return MTIQ_ENABLED_FEATURES.stream()
         .map(Feature::getId)
         .anyMatch(id -> id.equals(feature));
+  }
+
+  @Override
+  public boolean includeGlobalTenantDuringRegistration() {
+    return true;
   }
 
   @Override
@@ -161,33 +165,9 @@ public class MTIQFeatureService
     setConfigurationBasedFeatures();
   }
 
-  @Override
-  public boolean includeGlobalTenantDuringRegistration() {
-    return true;
-  }
-
-  /**
-   * Certain features are "user controlled" and system admins can decide whether the feature is on or off. We've
-   * disabled the ability to configure these settings. This method make sure the features themselves are all switched
-   * off.
-   */
-  private void setConfigurationBasedFeatures() {
-    log.info("Enabling/Disabling user configurable features for tenant {}", getTenant());
-
-    set(PROPERTY_ENABLED, false);
-    set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, true);
-    set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, false);
-  }
-
-  private void set(String key, boolean value) {
-    String operation = value ? "Enabling" : "Disabling";
-    log.info("{} user configurable feature {} for tenant {}", operation, key, getTenant());
-    systemConfigurationPropertyDAO.set(key, Boolean.toString(value));
-  }
-
   private void toggleFeature(SystemConfigurationPropertyFeature feature) {
     try {
-      if (ENABLED_FEATURES.contains(feature) && (feature.isEnabled() || MTIQ_FEATURES.contains(feature))) {
+      if (isEnabled(feature)) {
         log.info("Enabling feature {} for tenant {}", feature.getPropertyName(), getTenant());
 
         service.enableFeatureNoAuthz(feature.getPropertyName());
@@ -204,5 +184,47 @@ public class MTIQFeatureService
     catch (FeatureAlreadyEnabledException e) {
       log.trace("Attempting to enable a feature that is already enabled", e);
     }
+  }
+
+  public boolean isEnabled(SystemConfigurationPropertyFeature feature) {
+    if (isBanned(feature)) {
+      return false;
+    }
+    else if (MTIQ_ENABLED_FEATURES.contains(feature)) {
+      return true;
+    }
+
+    return feature.isEnabled();
+  }
+
+  public boolean isBanned(SystemConfigurationPropertyFeature feature) {
+    if (MTIQ_BANNED_FEATURES.contains(feature)) {
+      if (log.isTraceEnabled()) {
+        log.trace("Feature {} is hard disabled for MTIQ. See MTIQFeatureService.java for more info.", feature.getId());
+      }
+
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * setConfigurationBasedFeatures used for setting SystemConfigurationProperty based features.
+   * Certain features are "user controlled" and system admins can decide whether the feature is on or off. We've
+   * disabled the ability to configure these settings. This method make sure the features themselves are all switched
+   * on or off for MTIQ.
+   */
+  private void setConfigurationBasedFeatures() {
+    log.info("Enabling/Disabling user configurable features for tenant {}", getTenant());
+
+    set(PROPERTY_ENABLED, false);
+    set(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, true);
+    set(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, false);
+  }
+
+  private void set(String key, boolean value) {
+    String operation = value ? "Enabling" : "Disabling";
+    log.info("{} user configurable feature {} for tenant {}", operation, key, getTenant());
+    systemConfigurationPropertyDAO.set(key, Boolean.toString(value));
   }
 }

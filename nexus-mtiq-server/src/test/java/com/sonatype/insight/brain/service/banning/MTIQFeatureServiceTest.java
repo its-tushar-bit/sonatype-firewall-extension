@@ -93,7 +93,9 @@ public class MTIQFeatureServiceTest
   public void testGetFeatures_onlyIncludesAllowedLicenseFeatures() {
     Set<Feature> features = underTest.getFeatures();
 
-    Feature[] expectedFeatures = concat(ImmutableSet.of(DASHBOARD,
+    Feature[] expectedFeatures = concat(ImmutableSet.of(
+            MULTI_TENANT,
+            DASHBOARD,
             DASHBOARD_CAN_BE_ENABLED,
             HYGIENE,
             WEBHOOKS_FOR_REPOSITORIES,
@@ -134,7 +136,7 @@ public class MTIQFeatureServiceTest
 
   @Test
   public void testEnableFeature_throwsExceptionForUnsupportedFeature() {
-    String featureName = SystemConfigurationPropertyFeature.API_PAGE.getPropertyName();
+    String featureName = SystemConfigurationPropertyFeature.API_PAGE.getId();
 
     assertThatThrownBy(() -> underTest.enableFeature(featureName))
         .isInstanceOf(BadRequestException.class)
@@ -152,7 +154,7 @@ public class MTIQFeatureServiceTest
 
   @Test
   public void testDisableFeature_throwsExceptionForUnsupportedFeature() {
-    String featureName = SystemConfigurationPropertyFeature.API_PAGE.getPropertyName();
+    String featureName = SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId();
 
     assertThatThrownBy(() -> underTest.disableFeature(featureName))
         .isInstanceOf(BadRequestException.class)
@@ -215,6 +217,7 @@ public class MTIQFeatureServiceTest
       Set<Feature> features = stream(LicensedFeature.values())
           .collect(toSet());
 
+      features.add(SINGLE_TENANT);
       features.add(DASHBOARD_CAN_BE_ENABLED);
 
       return features;

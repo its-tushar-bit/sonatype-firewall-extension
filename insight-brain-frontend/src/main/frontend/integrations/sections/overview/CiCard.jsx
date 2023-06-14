@@ -1,0 +1,102 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
+import { actions } from 'MainRoot/integrations/sections/overview/ciUsageSlice';
+import { selectCiUsageSlice } from 'MainRoot/integrations/integrationsSelectors';
+import { NxBinaryDonutChart, NxCard, NxH3, NxLoadWrapper, NxP, NxTextLink } from '@sonatype/react-shared-components';
+import { SECTIONS } from 'MainRoot/integrations/integrations.module';
+import useGetIntegrationsLink from 'MainRoot/integrations/useGetIntegrationsLink';
+import { isNil } from 'ramda';
+
+export default function CiCard() {
+  const { loading, loadError, result: ciUsage, reload } = useLoadCiUsage({ sinceUtcTimestamp: getThreeMonthsAgo() });
+  const ciUrl = useGetIntegrationsLink(SECTIONS.CICD);
+
+  return (
+    <NxCard className="nx-card--equal">
+      <NxCard.Header className="iq-integrations-card--align-left">
+        <NxH3>Apps Without CI System Integrations</NxH3>
+      </NxCard.Header>
+      <NxCard.Content className="iq-integrations-cicard__content iq-integrations-card--align-left nx-card__content--columns">
+        <div className="iq-integrations-cicard__left">{/* Content will be added in SDEV-186 */}</div>
+
+        <div className="iq-integrations-cicard__right">
+          <NxLoadWrapper loading={loading} error={loadError} retryHandler={reload}>
+            <div className="iq-integrations-cicard__donut-wrapper">
+              <NxBinaryDonutChart
+                data-testid="iq-integrations-cicard__donut"
+                className="iq-integrations-cicard__donut"
+                value={percentAppsWithoutCiCd()}
+              />
+
+              <div className="iq-integrations-cicard__donut-col iq-integrations-cicard__donut-caption">
+                {percentAppsWithoutCiCd()}% of your apps are not integrated with CI
+              </div>
+            </div>
+          </NxLoadWrapper>
+
+          <NxH3>What are Sonatype CI Integrations used for?</NxH3>
+
+          <NxP>
+            Lifecycle's CI integrations perform{' '}
+            <NxTextLink
+              external
+              href="https://links.sonatype.com/products/nxiq/doc/integrations/overrides/cicd/ABFAdvancedBinaryFingerprinting"
+            >
+              binary scanning
+            </NxTextLink>{' '}
+            at multiple stages of your deployment. You can reduce disruption by warning of risk during the CI build
+            while blocking critical issues from automatically deploying to production.
+          </NxP>
+
+          <NxP>
+            Analyzing manifests alone could miss changes made during a build and end up in production. Sonatype's binary
+            fingerprint scanning, run during your CI builds, provides a more accurate assessment of open-source risk.
+          </NxP>
+
+          <NxP>
+            Learn more <NxTextLink href={ciUrl}>about our CI systems integrations</NxTextLink>.
+          </NxP>
+        </div>
+      </NxCard.Content>
+    </NxCard>
+  );
+
+  function percentAppsWithoutCiCd() {
+    if (isNil(ciUsage)) {
+      return null;
+    }
+
+    const { numAppsWithoutCITriggeredEvals, numTotalApps } = ciUsage;
+
+    if (numTotalApps === 0) {
+      return 0;
+    }
+
+    return Math.round((numAppsWithoutCITriggeredEvals / numTotalApps) * 100);
+  }
+
+  function getThreeMonthsAgo() {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 3);
+
+    return date.getTime();
+  }
+}
+
+function useLoadCiUsage({ sinceUtcTimestamp }) {
+  const dispatch = useDispatch();
+
+  const doLoad = () => dispatch(actions.loadCiUsage({ sinceUtcTimestamp }));
+
+  useEffect(() => {
+    doLoad();
+  }, []);
+
+  return { ...useSelector(selectCiUsageSlice), reload: doLoad };
+}

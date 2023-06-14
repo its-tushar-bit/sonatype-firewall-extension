@@ -4,8 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { combineReducers } from 'redux';
+import ciUsageRequestSlice from './sections/overview/ciUsageSlice';
 import ideIntegrationsSlice from './sections/overview/ideIntegrationsCard/ideIntegrationsSlice';
 
+export const INTEGRATIONS = 'integrations';
+export const CI_USAGE = 'ciUsage';
+
 export default combineReducers({
+  [CI_USAGE]: ciUsageRequestSlice,
   ideIntegrations: ideIntegrationsSlice,
 });

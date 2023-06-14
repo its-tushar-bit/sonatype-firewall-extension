@@ -6,10 +6,10 @@
 
 import React from 'react';
 import { NxH2, NxTextLink } from '@sonatype/react-shared-components';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { useSelector } from 'react-redux';
 import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SECTIONS } from 'MainRoot/integrations/integrations.module';
+import useGetIntegrationsLink from 'MainRoot/integrations/useGetIntegrationsLink';
 
 export default function IntegrationsNavigation() {
   const { OVERVIEW, CICD, SCM, ISSUE_TRACKING, IDE } = SECTIONS;
@@ -55,17 +55,14 @@ export default function IntegrationsNavigation() {
 
 function IntegrationsLink({ sectionName, children, id }) {
   const selectedSectionName = useSelector(selectCurrentRouteName);
-  const uiRouterState = useRouterState();
+
+  const url = useGetIntegrationsLink(sectionName);
 
   return (
-    <NxTextLink id={id} href={getLink(sectionName)} className={getClassNames(sectionName)}>
+    <NxTextLink id={id} href={url} className={getClassNames(sectionName)}>
       {children}
     </NxTextLink>
   );
-
-  function getLink(sectionName) {
-    return uiRouterState.href(`integrations.${sectionName}`);
-  }
 
   function isSelected(sectionName) {
     return selectedSectionName === `integrations.${sectionName}`;

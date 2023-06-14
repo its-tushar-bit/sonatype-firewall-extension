@@ -24,7 +24,7 @@ export const SECTIONS = {
 const integrationsModule = angular
   .module('integrationsModule', ['ngRedux'])
   .component('integrationsNavigation', iqReact2Angular(IntegrationsNavigation, [], ['$ngRedux', '$state']))
-  .component('overview', iqReact2Angular(Overview, [], ['$ngRedux']))
+  .component('overview', iqReact2Angular(Overview, [], ['$ngRedux', '$state']))
   .component('ciCd', iqReact2Angular(CiCd, [], ['$ngRedux']))
   .component('scm', iqReact2Angular(Scm, [], ['$ngRedux']))
   .component('issueTracking', iqReact2Angular(IssueTracking, [], ['$ngRedux']))

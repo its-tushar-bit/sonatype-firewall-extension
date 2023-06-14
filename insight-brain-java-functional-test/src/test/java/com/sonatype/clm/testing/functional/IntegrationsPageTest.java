@@ -9,19 +9,29 @@ package com.sonatype.clm.testing.functional;
 import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
 
 import com.codeborne.selenide.SelenideElement;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 
 public class IntegrationsPageTest extends AbstractFunctionalTest
 {
-  @BeforeClass
-  public static void beforeClass() {
+  private static final String DONUT_TEST_ID = "iq-integrations-cicard__donut";
+
+  private static final String CI_USAGE_PERCENT_SELECTOR = ".iq-integrations-cicard__donut-col";
+
+  @Before
+  public void before() {
     refreshOrOpen(IntegrationsPage.urlOverview());
     loginAsAdmin();
+  }
+
+  @After
+  public void after() {
+    logout();
   }
 
   @Test
@@ -44,6 +54,14 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     sideIdeLink().shouldBe(visible).click();
     waitUntilUrl(IntegrationsPage.urlIde());
     ideSection().shouldBe(visible);
+  }
+
+  @Test
+  public void testCiUsageIsShown() {
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    ciUsageDonut().shouldBe(visible);
+    ciUsagePercentMessage().shouldHave(text("0% of your apps are not integrated with CI"));
   }
 
   @Test
@@ -104,6 +122,18 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement ideSection() {
     return $("#iq-integrations-ide-section");
+  }
+
+  private SelenideElement othersSection() {
+    return $("#iq-integrations-others-section");
+  }
+
+  private SelenideElement ciUsageDonut() {
+    return $(String.format("[data-testid='%s']", DONUT_TEST_ID));
+  }
+
+  private SelenideElement ciUsagePercentMessage() {
+    return $(CI_USAGE_PERCENT_SELECTOR);
   }
 
   private SelenideElement ideUserCount() {

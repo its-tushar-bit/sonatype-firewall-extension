@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
+import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -329,14 +331,14 @@ public class PolicyViolationDAO
     // has additional filter criteria like the fix_time), doing an expensive table scan instead.
     // So we make one query per app to ensure the index is used (and all the fixed violations aren't scanned).
 
-    return CompletableFuture.supplyAsync(() -> {
-      return applicationIds.stream().parallel().map(applicationId -> {
+    return CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> {
+      return applicationIds.stream().parallel().map(new TenantAwareFunction<>(applicationId -> {
         Object[] parameters = new Object[otherParameters.length + 1];
         System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
         parameters[0] = applicationId;
         return getList(sQuery, parameters);
-      }).flatMap(Collection::stream).collect(toList());
-    }, ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.DAO)).join();
+      })).flatMap(Collection::stream).collect(toList());
+    }), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.DAO)).join();
   }
 
   public List<PolicyViolation> getActiveByApplicationIdAndStageIdsAndTimeRange(String appId,

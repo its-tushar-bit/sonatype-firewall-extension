@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { always, any, compose, find, isEmpty, pick, test, propEq, clone } from 'ramda';
+import { always, any, compose, find, isEmpty, pick, test, propEq, clone, keys } from 'ramda';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import { pathSet, propSet } from '../../util/jsUtil';
@@ -47,7 +47,6 @@ import {
   USER_LIST_LOAD_REQUESTED,
   USER_LIST_LOAD_FAILED,
   USER_LIST_LOAD_FULFILLED,
-  fullTextFields,
 } from './usersActions';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
@@ -79,14 +78,14 @@ export const initialState = Object.freeze({
 
 const clearedErrors = pick(['loadError', 'saveError', 'deleteError', 'resetError'], initialState);
 const editFormFields = ['firstName', 'lastName', 'email'];
+const inviteFormFields = pick(['firstName', 'lastName', 'email'], initialState.inputFields);
 
 const updatedComputedProps = compose(computeIsDirty, computeValidationError);
 
 function computeIsDirty(state) {
   const { inputFields, selectedUserServerData } = state;
-
   const isDirty = isEmpty(selectedUserServerData)
-    ? any((prop) => !isEmpty(inputFields[prop].value), fullTextFields)
+    ? any((prop) => !isEmpty(inputFields[prop].value), keys(inputFields))
     : any((prop) => inputFields[prop].trimmedValue !== selectedUserServerData[prop], editFormFields);
 
   return propSet('isDirty', isDirty, state);
@@ -169,6 +168,7 @@ function loadFulfilled(payload, state) {
     loading: false,
     users: payload.users,
     currentUsername: payload.currentUsername,
+    inputFields: payload.inviteMode ? inviteFormFields : initialState.inputFields,
     ...clearedErrors,
   };
 }

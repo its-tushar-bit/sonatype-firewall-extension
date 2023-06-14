@@ -11,8 +11,8 @@ import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/re
 import { checkPermissions } from '../../util/authorizationUtil';
 import {
   getUserUrl,
-  getMultiTenantUserUrl,
   getUserByIdUrl,
+  getMultiTenantUserUrl,
   getMultiTenantUserByIdUrl,
   getUserResetPasswordByIdUrl,
   getSessionUrl,
@@ -48,16 +48,23 @@ const loadFailed = payloadParamActionCreator(CREATE_USER_LOAD_FAILED);
 const loadFulfilled = payloadParamActionCreator(CREATE_USER_LOAD_FULFILLED);
 
 export function loadCreateUserPage() {
-  return (dispatch) => {
+  return async (dispatch, getState) => {
     dispatch(loadRequested());
 
-    return checkPermissions(['CONFIGURE_SYSTEM'])
-      .then(() => {
-        return axios.get(getUserUrl()).then(({ data }) => {
-          dispatch(loadFulfilled({ users: data, currentUsername: null }));
-        });
-      })
-      .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
+    try {
+      await checkPermissions(['CONFIGURE_SYSTEM']);
+      await dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
+
+      const tenantMode = selectTenantMode(getState()),
+        inviteMode = tenantMode === 'multi-tenant',
+        usersUrl = inviteMode ? getMultiTenantUserUrl() : getUserUrl();
+
+      await axios.get(usersUrl).then(({ data }) => {
+        dispatch(loadFulfilled({ users: data, currentUsername: null, inviteMode }));
+      });
+    } catch (e) {
+      dispatch(loadFailed(Messages.getHttpErrorMessage(e)));
+    }
   };
 }
 
@@ -107,8 +114,12 @@ export function save() {
     const textInputs = mapObjIndexed(prop('trimmedValue'), textState);
     const passwordInputs = mapObjIndexed(prop('value'), passwordState);
 
+    const tenantMode = selectTenantMode(getState()),
+      usersUrl = tenantMode === 'multi-tenant' ? getMultiTenantUserUrl() : getUserUrl(),
+      multitenantUsername = tenantMode === 'multi-tenant' ? { username: textInputs.email } : null;
+
     return axios
-      .post(getUserUrl(), { ...textInputs, ...passwordInputs })
+      .post(usersUrl, { ...textInputs, ...passwordInputs, ...multitenantUsername })
       .then(() => {
         dispatch(saveFulfilled());
         startSubmitMaskSuccessTimer(dispatch);

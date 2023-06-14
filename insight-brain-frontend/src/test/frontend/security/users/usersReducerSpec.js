@@ -89,6 +89,58 @@ describe('usersReducer', () => {
       expect(loadError).toBe(null);
       expect(other).toBe(otherObject);
     });
+
+    it('sets all inputFields when inviteMode is set to false', () => {
+      const state = {
+        users: [],
+        loading: true,
+      };
+
+      const payload = {
+        users: [],
+        inviteMode: false,
+      };
+
+      const { inputFields } = reduce(state, {
+        type: CREATE_USER_LOAD_FULFILLED,
+        payload,
+      });
+
+      expect(inputFields).toEqual({
+        firstName: textInputStateHelpers.initialState(''),
+        lastName: textInputStateHelpers.initialState(''),
+        email: textInputStateHelpers.initialState(''),
+        username: textInputStateHelpers.initialState(''),
+        password: textInputStateHelpers.initialState(''),
+        matchPassword: textInputStateHelpers.initialState(''),
+      });
+    });
+
+    it('sets only necessary inputFields when inviteMode is set to true', () => {
+      const state = {
+        users: [],
+        loading: true,
+      };
+
+      const payload = {
+        users: [],
+        inviteMode: true,
+      };
+
+      const { inputFields } = reduce(state, {
+        type: CREATE_USER_LOAD_FULFILLED,
+        payload,
+      });
+
+      expect(inputFields).toEqual({
+        firstName: textInputStateHelpers.initialState(''),
+        lastName: textInputStateHelpers.initialState(''),
+        email: textInputStateHelpers.initialState(''),
+      });
+      expect(inputFields.username).toBe(undefined);
+      expect(inputFields.password).toBe(undefined);
+      expect(inputFields.matchPassword).toBe(undefined);
+    });
   });
 
   describe(`${CREATE_USER_LOAD_FAILED} action`, () => {

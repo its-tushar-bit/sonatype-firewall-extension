@@ -23,6 +23,7 @@ export default function UserList(props) {
     currentUsername,
     tenantMode,
   } = props;
+  const isMultiTenant = tenantMode === 'multi-tenant';
 
   useEffect(() => {
     loadListPage();
@@ -44,10 +45,17 @@ export default function UserList(props) {
               <h2 className="nx-h2">Configure Users</h2>
             </div>
             <div className="nx-tile__actions">
-              <NxButton variant="tertiary" id="create-user" onClick={createUser}>
-                <NxFontAwesomeIcon icon={faPlus} />
-                <span>Create User</span>
-              </NxButton>
+              {isMultiTenant ? (
+                <NxButton id="invite-user" onClick={createUser}>
+                  <NxFontAwesomeIcon icon={faPlus} />
+                  <span>Invite User</span>
+                </NxButton>
+              ) : (
+                <NxButton variant="tertiary" id="create-user" onClick={createUser}>
+                  <NxFontAwesomeIcon icon={faPlus} />
+                  <span>Create User</span>
+                </NxButton>
+              )}
             </div>
           </header>
           <div className="nx-tile-content">

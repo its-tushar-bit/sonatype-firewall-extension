@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxStatefulForm, NxTextInput, NxFormGroup } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxTextInput, NxFormGroup, NxFormRow } from '@sonatype/react-shared-components';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
@@ -17,26 +17,31 @@ const getValidationMessage = ({ isDirty, validationError }) => {
   return validationError;
 };
 
-export default function UserAdd({
-  loading,
-  loadError,
-  submitMaskState,
-  saveError,
-  isDirty,
-  validationError,
-  inputFields,
-  loadCreateUserPage,
-  save,
-  setFirstName,
-  setLastName,
-  setEmail,
-  setUserName,
-  setPassword,
-  setMatchPassword,
-  resetForm,
-  stateGo,
-}) {
-  const { firstName, lastName, email, username, password, matchPassword } = inputFields;
+export default function UserAdd(props) {
+  const {
+    loading,
+    loadError,
+    submitMaskState,
+    saveError,
+    isDirty,
+    validationError,
+    inputFields,
+    loadCreateUserPage,
+    save,
+    setFirstName,
+    setLastName,
+    setEmail,
+    setUserName,
+    setPassword,
+    setMatchPassword,
+    resetForm,
+    stateGo,
+    tenantMode,
+  } = props;
+
+  const { firstName, lastName, email, username, password, matchPassword } = inputFields,
+    isSingleTenant = tenantMode !== 'multi-tenant',
+    pageTitle = isSingleTenant ? 'Add New User' : 'Invite User';
 
   useEffect(() => {
     loadCreateUserPage();
@@ -51,7 +56,7 @@ export default function UserAdd({
       <MenuBarBackButton stateName="users" />
       <div className="nx-page-title">
         <h1 className="nx-h1" id="user-title">
-          Add New User
+          {pageTitle}
         </h1>
       </div>
       <section className="nx-tile">
@@ -75,7 +80,7 @@ export default function UserAdd({
             </div>
           </header>
           <div className="nx-tile-content">
-            <div className="iq-input-group-wrapper">
+            <NxFormRow>
               <NxFormGroup label="First Name" isRequired>
                 <NxTextInput
                   {...firstName}
@@ -98,7 +103,7 @@ export default function UserAdd({
                   aria-required={true}
                 />
               </NxFormGroup>
-            </div>
+            </NxFormRow>
             <NxFormGroup label="Email" isRequired>
               <NxTextInput
                 {...email}
@@ -110,45 +115,49 @@ export default function UserAdd({
                 aria-required={true}
               />
             </NxFormGroup>
-            <NxFormGroup label="Username" isRequired>
-              <NxTextInput
-                {...username}
-                onChange={setUserName}
-                validatable={true}
-                className="nx-text-input"
-                id="username"
-                placeholder="Enter Username"
-                aria-required={true}
-                autoComplete="new-password"
-              />
-            </NxFormGroup>
-            <div className="iq-input-group-wrapper">
-              <NxFormGroup label="Password" isRequired>
-                <NxTextInput
-                  {...password}
-                  onChange={setPassword}
-                  validatable={true}
-                  className="nx-text-input"
-                  id="password"
-                  type="password"
-                  placeholder="Enter Password"
-                  aria-required={true}
-                  autoComplete="new-password"
-                />
-              </NxFormGroup>
-              <NxFormGroup label="Validate Password" isRequired>
-                <NxTextInput
-                  {...matchPassword}
-                  validatable={true}
-                  onChange={setMatchPassword}
-                  className="nx-text-input"
-                  type="password"
-                  id="passwordValidate"
-                  placeholder="Enter Password"
-                  aria-required={true}
-                />
-              </NxFormGroup>
-            </div>
+            {isSingleTenant && (
+              <>
+                <NxFormGroup label="Username" isRequired>
+                  <NxTextInput
+                    {...username}
+                    onChange={setUserName}
+                    validatable={true}
+                    className="nx-text-input"
+                    id="username"
+                    placeholder="Enter Username"
+                    aria-required={true}
+                    autoComplete="new-password"
+                  />
+                </NxFormGroup>
+                <NxFormRow>
+                  <NxFormGroup label="Password" isRequired>
+                    <NxTextInput
+                      {...password}
+                      onChange={setPassword}
+                      validatable={true}
+                      className="nx-text-input"
+                      id="password"
+                      type="password"
+                      placeholder="Enter Password"
+                      aria-required={true}
+                      autoComplete="new-password"
+                    />
+                  </NxFormGroup>
+                  <NxFormGroup label="Validate Password" isRequired>
+                    <NxTextInput
+                      {...matchPassword}
+                      validatable={true}
+                      onChange={setMatchPassword}
+                      className="nx-text-input"
+                      type="password"
+                      id="passwordValidate"
+                      placeholder="Enter Password"
+                      aria-required={true}
+                    />
+                  </NxFormGroup>
+                </NxFormRow>
+              </>
+            )}
           </div>
         </NxStatefulForm>
       </section>
@@ -183,4 +192,5 @@ UserAdd.propTypes = {
   resetForm: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   inputFields: inputFieldsTypes,
+  tenantMode: PropTypes.string,
 };

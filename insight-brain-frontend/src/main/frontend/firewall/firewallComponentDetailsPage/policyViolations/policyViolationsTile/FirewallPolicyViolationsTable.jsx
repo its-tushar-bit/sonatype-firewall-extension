@@ -38,10 +38,9 @@ export default function FirewallPolicyViolationsTable({
   const [showViolationsDetailPopover, showPopover] = useState(false);
   const [selectPolicyId, savePolicyId] = useState('');
   const dispatch = useDispatch();
-  const boundSetWaiverToDelete = useMemo(
-    () => bindActionCreators(WaiverActionCreators.setWaiverToDelete, dispatch),
-    [dispatch]
-  );
+  const boundSetWaiverToDelete = useMemo(() => bindActionCreators(WaiverActionCreators.setWaiverToDelete, dispatch), [
+    dispatch,
+  ]);
 
   return (
     <>

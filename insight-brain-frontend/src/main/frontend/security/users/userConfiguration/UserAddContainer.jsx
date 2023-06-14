@@ -4,8 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { prop } from 'ramda';
+import { pick } from 'ramda';
 import { stateGo } from '../../../reduxUiRouter/routerActions';
+import { selectTenantMode } from '../../../productFeatures/productFeaturesSelectors';
 import {
   loadCreateUserPage,
   save,
@@ -19,15 +20,28 @@ import {
 } from '../usersActions';
 import UserAdd from './UserAdd';
 
-export default connect(prop('userConfiguration'), {
-  loadCreateUserPage,
-  save,
-  setFirstName,
-  setLastName,
-  setEmail,
-  setUserName,
-  setPassword,
-  setMatchPassword,
-  resetForm,
-  stateGo,
-})(UserAdd);
+export default connect(
+  (state) => {
+    const { userConfiguration } = state,
+      tenantMode = selectTenantMode(state);
+    return {
+      tenantMode,
+      ...pick(
+        ['loading', 'loadError', 'saveError', 'submitMaskState', 'isDirty', 'validationError', 'inputFields'],
+        userConfiguration
+      ),
+    };
+  },
+  {
+    loadCreateUserPage,
+    save,
+    setFirstName,
+    setLastName,
+    setEmail,
+    setUserName,
+    setPassword,
+    setMatchPassword,
+    resetForm,
+    stateGo,
+  }
+)(UserAdd);

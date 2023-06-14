@@ -75,9 +75,14 @@ describe('usersActions', () => {
       });
 
       it('fires CREATE_USER_LOAD_FULFILLED action on success', (done) => {
-        const store = SpecUtil.mockReduxStore();
+        const store = SpecUtil.mockReduxStore({});
+
         mockAxiosCalls({
           get: {
+            // should not be called in this case
+            [multiTenantUserUrl]: () => {
+              throw new Error();
+            },
             [userUrl]: Promise.resolve({ data: [] }),
           },
         });
@@ -85,13 +90,69 @@ describe('usersActions', () => {
         store.dispatch(loadCreateUserPage()).then(() => {
           const actions = store.getActions();
 
-          expect(actions.length).toBe(2);
           expect(actions).toHaveActionsInOrder([
             { type: CREATE_USER_LOAD_REQUESTED },
-            { type: CREATE_USER_LOAD_FULFILLED, payload: { users: [], currentUsername: null } },
+            { type: CREATE_USER_LOAD_FULFILLED, payload: { users: [], currentUsername: null, inviteMode: false } },
           ]);
           done();
         });
+      });
+
+      it('fires CREATE_USER_LOAD_FULFILLED action on success if the multi-tenant feature flag is set', (done) => {
+        const store = SpecUtil.mockReduxStore({
+          productFeatures: {
+            productFeatures: {
+              'multi-tenant': true,
+            },
+          },
+        });
+
+        mockAxiosCalls({
+          get: {
+            // should not be called in this case
+            [userUrl]: () => {
+              throw new Error();
+            },
+            [multiTenantUserUrl]: Promise.resolve({ data: [] }),
+          },
+        });
+
+        store.dispatch(loadCreateUserPage()).then(() => {
+          const actions = store.getActions();
+
+          expect(actions).toHaveActionsInOrder([
+            { type: CREATE_USER_LOAD_REQUESTED },
+            { type: CREATE_USER_LOAD_FULFILLED, payload: { users: [], currentUsername: null, inviteMode: true } },
+          ]);
+          done();
+        });
+      });
+
+      it('fetches the product features if needed', async () => {
+        const store = SpecUtil.mockReduxStore({
+          productFeatures: {
+            productFeatures: {
+              'multi-tenant': true,
+            },
+          },
+        });
+
+        mockAxiosCalls({
+          get: {
+            [userUrl]: Promise.resolve({ data: [] }),
+            [productFeaturesUrl]: Promise.resolve({ data: [] }),
+          },
+        });
+
+        await store.dispatch(loadCreateUserPage());
+        const actions = store.getActions();
+
+        expect(actions).toContain(
+          jasmine.objectContaining({ type: 'productFeatures/fetchProductFeaturesIfNeeded/pending' })
+        );
+        expect(actions).toContain(
+          jasmine.objectContaining({ type: 'productFeatures/fetchProductFeaturesIfNeeded/fulfilled' })
+        );
       });
     });
 
@@ -296,6 +357,66 @@ describe('usersActions', () => {
         expect(actions).toHaveActionsInOrder([
           { type: CREATE_USER_SAVE_REQUESTED },
           { type: CREATE_USER_SAVE_FAILED, payload: 'cannot save' },
+        ]);
+        done();
+      });
+    });
+
+    it('fires CREATE_USER_SAVE_FULFILLED, USER_FORM_SUBMIT_MASK_TIMER_DONE actions on success when multi-tenant flag is present', (done) => {
+      const state = {
+        users: [],
+        inputFields: {
+          firstName: initUserInput('John'),
+          lastName: initUserInput('Doe'),
+          email: initUserInput('john@doe.com'),
+        },
+      };
+
+      const store = SpecUtil.mockReduxStore({
+        userConfiguration: state,
+        productFeatures: {
+          productFeatures: {
+            'multi-tenant': true,
+          },
+        },
+      });
+
+      mockAxiosCalls({
+        post: {
+          [userUrl]: () => {
+            throw new Error();
+          },
+          [multiTenantUserUrl]: Promise.resolve(),
+        },
+      });
+
+      jasmine.clock().install();
+
+      store.dispatch(save()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        expect(axios.post).toHaveBeenCalledWith(multiTenantUserUrl, {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@doe.com',
+          username: 'john@doe.com',
+        });
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(4);
+        expect(actions).toHaveActionsInOrder([
+          { type: CREATE_USER_SAVE_REQUESTED },
+          { type: CREATE_USER_SAVE_FULFILLED },
+          { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'users',
+              params: undefined,
+              options: undefined,
+            },
+          },
         ]);
         done();
       });

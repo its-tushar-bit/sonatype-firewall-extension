@@ -59,7 +59,7 @@ public class ConfigFeaturesResourceTest
   private final String[] allFeatures = Stream.concat(Arrays.stream(defaultEnabledFeatures), Arrays.stream(
       new String[]{
           SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.ENABLE_MANAGED_IDP_SSO.getId()
+          SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId()
       }
   )).toArray(String[]::new);
 

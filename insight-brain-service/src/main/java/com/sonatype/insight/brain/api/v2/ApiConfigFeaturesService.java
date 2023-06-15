@@ -166,7 +166,7 @@ public class ApiConfigFeaturesService
     /**
      * If configured the UI will show the Sonatype managed IDP Auth0 user management pages
      */
-    ENABLE_MANAGED_IDP_SSO(SystemConfigurationProperty.ENABLE_MANAGED_IDP_SSO, false, false),
+    SSO_IDP_MANAGED_BY_SONATYPE(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE, false, false),
     /**
      * If enabled SBOMs can be exported in the SPDX format as well
      */

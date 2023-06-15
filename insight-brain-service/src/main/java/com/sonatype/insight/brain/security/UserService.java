@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
@@ -34,11 +33,7 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.session.Session;
-import org.apache.shiro.session.mgt.DefaultSessionKey;
-import org.apache.shiro.session.mgt.DelegatingSession;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
-import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 public class UserService
+    extends AbstractUserService
 {
   private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -59,8 +55,6 @@ public class UserService
 
   private final PasswordService passwordService;
 
-  private final SessionDAO sessionDAO;
-
   private final UserDirectory userDirectory;
 
   private final Configuration configuration;
@@ -68,10 +62,6 @@ public class UserService
   private final UserDAO userDAO;
 
   private final SamlUserDAO samlUserDAO;
-
-  private final CurrentUser currentUser;
-
-  private final DefaultWebSessionManager defaultWebSessionManager;
 
   @Inject
   public UserService(
@@ -85,15 +75,13 @@ public class UserService
       CurrentUser currentUser,
       DefaultWebSessionManager defaultWebSessionManager)
   {
+    super(sessionDAO, defaultWebSessionManager, currentUser, samlUserDAO);
     this.clmRealm = clmRealm;
     this.passwordService = passwordService;
-    this.sessionDAO = sessionDAO;
     this.userDAO = userDAO;
     this.samlUserDAO = samlUserDAO;
     this.userDirectory = userDirectory;
     this.configuration = configuration;
-    this.currentUser = currentUser;
-    this.defaultWebSessionManager = defaultWebSessionManager;
   }
 
   // Authorization is checked in findMembersForNonGlobalRoles and findMembersForGlobalRoles
@@ -171,10 +159,9 @@ public class UserService
   }
 
   /**
-   * Updates the data for an internal user.
-   * This method cannot be used to update:
-   * - the password - the password is changed via the {@link UserService#resetPassword(String)} method;
-   * - the username - the username is used as an ID in {@link MembershipMapping}s.
+   * Updates the data for an internal user. This method cannot be used to update: - the password - the password is
+   * changed via the {@link UserService#resetPassword(String)} method; - the username - the username is used as an ID in
+   * {@link MembershipMapping}s.
    */
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   User updateUser(User user) {
@@ -219,53 +206,11 @@ public class UserService
 
   private void deleteSamlUser(SamlUser samlUser) {
     validateUserToDeleteIsNotCurrentlyLoggedIn(SamlUser.SAML_REALM_ID, samlUser.getUsername());
-    samlUserDAO.delete(samlUser);
-    auditUser(samlUser);
-    logoutUser(SamlUser.SAML_REALM_ID, samlUser.getUsername());
-  }
-
-  private void validateUserToDeleteIsNotCurrentlyLoggedIn(String realmId, String username) {
-    if (areUsernamesEqual(realmId, currentUser.getUsername(), username)) {
-      throw new BadRequestException("A user who is logged in cannot delete themself.");
-    }
-  }
-
-  private boolean areUsernamesEqual(String realmId, String username1, String username2) {
-    if (SamlUser.SAML_REALM_ID.equals(realmId)) {
-      return username1.equals(username2);
-    }
-    return username1.equalsIgnoreCase(username2);
-  }
-
-  private void logoutUser(String realmId, String username) {
-    for (Session session : sessionDAO.getActiveSessions()) {
-      // Use a delegating session to ensure the session manager handles and persists session changes
-      DelegatingSession delegatingSession =
-          new DelegatingSession(defaultWebSessionManager, new DefaultSessionKey(session.getId()));
-      Subject subject = new Subject.Builder().session(delegatingSession).buildSubject();
-      Object principal = subject.getPrincipal();
-      // if the principal is null, then session either has an anonymous Subject,
-      // or the subject has already been invalidated by shiro
-      if (principal != null && areUsernamesEqual(realmId, username, principal.toString())) {
-        subject.logout();
-      }
-    }
-  }
-
-  private void auditUser(SamlUser user) {
-    auditUser(SamlUser.SAML_REALM_ID, user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail());
+    deleteUser(samlUser);
   }
 
   private void auditUser(User user) {
     auditUser(User.INTERNAL_REALM_ID, user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail());
-  }
-
-  private void auditUser(String realmId, String username, String firstName, String lastName, String email) {
-    AuditData.get() //
-        .setData("username", username) //
-        .setData("firstName", firstName).setData("lastName", lastName) //
-        .setData("emailAddress", email)
-        .setData("realm", realmId);
   }
 
   void changeMyPassword(ChangePasswordDTO password) {

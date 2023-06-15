@@ -23,6 +23,8 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.shiro.session.mgt.eis.SessionDAO;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -42,12 +44,16 @@ public class MultiTenantUserServiceTest
 
   private final CurrentUser currentUser = Mockito.mock(CurrentUser.class);
 
+  private final DefaultWebSessionManager webSessionManager = Mockito.mock(DefaultWebSessionManager.class);
+
+  private final SessionDAO sessionDAO = Mockito.mock(SessionDAO.class);
+
   private MtiqUserService underTest;
 
   @Before
   public void setUp() throws Exception {
     auth0ManagementService = new TestMultiTenantAuth0ManagementService();
-    underTest = new MultiTenantUserService(samlUserDAO, tenantMetadataDAO,
+    underTest = new MultiTenantUserService(webSessionManager, sessionDAO, samlUserDAO, tenantMetadataDAO,
         auth0ManagementService, currentUser);
   }
 
@@ -154,6 +160,7 @@ public class MultiTenantUserServiceTest
       provisionTenant(tenant.tenantSlug);
       TenantMetadata tenantMetadata = createTenantMetadata(tenant);
 
+      when(currentUser.getUsername()).thenReturn("random@email.com");
       samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
       samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
 
@@ -172,6 +179,8 @@ public class MultiTenantUserServiceTest
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
       TenantMetadata tenantMetadata = createTenantMetadata(tenant);
+
+      when(currentUser.getUsername()).thenReturn("admin@email.com");
       samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
       samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
 

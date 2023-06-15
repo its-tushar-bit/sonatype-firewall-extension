@@ -16,6 +16,7 @@ import com.auth0.client.auth.Auth0AuthAPI;
 import com.auth0.client.mgmt.Auth0ManagementAPI;
 import com.auth0.exception.Auth0Exception;
 import com.auth0.json.auth.TokenHolder;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,9 +25,9 @@ public class MultiTenantAuth0ManagementService
 {
   private static final Logger log = LoggerFactory.getLogger(MultiTenantAuth0ManagementService.class);
 
-  private final MultiTenantAuth0ApiSupplier auth0ApiSupplier;
+  private MultiTenantAuth0ApiSupplier auth0ApiSupplier;
 
-  private final Auth0Config auth0Config;
+  private Auth0Config auth0Config;
 
   private Auth0AuthAPI authAPI;
 
@@ -40,6 +41,11 @@ public class MultiTenantAuth0ManagementService
   {
     this.auth0Config = multiTenantInsightConfig.getAuth0Config();
     this.auth0ApiSupplier = auth0ApiSupplier;
+  }
+
+  @VisibleForTesting
+  public MultiTenantAuth0ManagementService() {
+    //no-op
   }
 
   public void createOrUpdateUser(final String email,

@@ -16,37 +16,37 @@ import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
+import com.sonatype.insight.brain.security.AbstractUserService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.shiro.session.mgt.eis.SessionDAO;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 public class MultiTenantUserService
+    extends AbstractUserService
     implements MtiqUserService
 {
   private static final Logger log = LoggerFactory.getLogger(MultiTenantUserService.class.getName());
-
-  private final SamlUserDAO samlUserDAO;
 
   private final TenantMetadataDAO tenantMetadataDAO;
 
   private final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService;
 
-  private final CurrentUser currentUser;
-
   @Inject
-  public MultiTenantUserService(final SamlUserDAO samlUserDAO,
+  public MultiTenantUserService(final DefaultWebSessionManager webSessionManager,
+                                final SessionDAO sessionDAO,
+                                final SamlUserDAO samlUserDAO,
                                 final TenantMetadataDAO tenantMetadataDAO,
                                 final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService,
                                 final CurrentUser currentUser)
   {
-    this.samlUserDAO = samlUserDAO;
+    super(sessionDAO, webSessionManager, currentUser, samlUserDAO);
     this.tenantMetadataDAO = tenantMetadataDAO;
     this.multiTenantAuth0ManagementService = multiTenantAuth0ManagementService;
-    this.currentUser = currentUser;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -62,10 +62,6 @@ public class MultiTenantUserService
   public void inviteUser(final MtiqUserDTO user) {
     TenantMetadata tenantMetadata = getTenantMetadata();
 
-    if (tenantMetadata == null) {
-      throw new RuntimeException("Tenant metadata not found");
-    }
-
     multiTenantAuth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(),
         user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
         tenantMetadata.getConnectionId());
@@ -77,7 +73,7 @@ public class MultiTenantUserService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
   public void deleteByUsername(final String username) {
-    shouldNotDeleteLoggedInUser(username);
+    validateUserToDeleteIsNotCurrentlyLoggedIn(SamlUser.SAML_REALM_ID, username);
     TenantMetadata tenantMetadata = getTenantMetadata();
 
     log.debug("Deleting Auth0 user");
@@ -85,13 +81,7 @@ public class MultiTenantUserService
 
     SamlUser samlUser = samlUserDAO.getByUsername(username);
     if (samlUser != null) {
-      samlUserDAO.delete(samlUser);
-    }
-  }
-
-  private void shouldNotDeleteLoggedInUser(final String username) {
-    if (username.equals(currentUser.getUsername())) {
-      throw new BadRequestException("A user who is logged in cannot delete themself.");
+      deleteUser(samlUser);
     }
   }
 

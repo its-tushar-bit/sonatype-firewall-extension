@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -66,11 +65,6 @@ public class MoveOrganizationTest
 
     refreshOrOpen(OwnerSummaryPage.url(childOrg));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(childOrg.getName()));
-  }
-
-  @After
-  public void syncOrgHierarchy() {
-    tempEntity.synchronizeOrganizationTemporaryEntities();
   }
 
   @Test

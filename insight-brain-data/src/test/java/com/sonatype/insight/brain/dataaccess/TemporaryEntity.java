@@ -544,8 +544,6 @@ public class TemporaryEntity
 
   private Collection<Application> apps;
 
-  private List<Organization> orgs;
-
   private Collection<LicenseOverride> licenseOverrides;
 
   private Collection<User> users;
@@ -652,7 +650,6 @@ public class TemporaryEntity
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
     apps = new ArrayList<>();
-    orgs = new ArrayList<>();
     licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
     usernames = new ArrayList<>();
@@ -769,6 +766,8 @@ public class TemporaryEntity
     delete(sourceControlPullRequestCommentDAO.getAll(), sourceControlPullRequestCommentDAO);
     delete(sourceControlOrganizationImportEvents, sourceControlOrganizationImportEventDAO);
     delete(defaultBranchCommitHistoryDAO.getAll(), defaultBranchCommitHistoryDAO);
+    List<Organization> orgs = orgDAO.getAll().stream()
+        .filter(org -> !Organization.ROOT_ORGANIZATION_ID.equals(org.getId())).collect(toList());
     orgs.forEach(org -> apps.addAll(appDAO.getByOrganizationId(org.getId())));
     delete(apps, appDAO);
     orgs = sortNLevelOrgsWithLeafNodesOnTop(orgs);
@@ -1013,17 +1012,6 @@ public class TemporaryEntity
     return newOrganization("Test Org " + uuid(), parentOrg);
   }
 
-  /*
-   * We use local variables for removing mock data after test.
-   * When DB data is modified during test then we can receive an exception because data in db and in local
-   * variables is inconsistent. In that case we need to get data from db to synchronize it. ROOT ORGANIZATION ID
-   * is ignored because we don't delete it.
-   */
-  public void synchronizeOrganizationTemporaryEntities() {
-    orgs = orgDAO.getAll().stream().filter(organization -> !organization.getId().equals("ROOT_ORGANIZATION_ID"))
-        .collect(toList());
-  }
-
   public Organization newOrganization(String name) {
     return newOrganization(name, null /* parentOrg */);
   }
@@ -1034,7 +1022,6 @@ public class TemporaryEntity
       org.setParentOrganizationId(parentOrg.getId());
     }
     orgDAO.insert(org);
-    orgs.add(0, org);
     return org;
   }
 
@@ -1051,7 +1038,6 @@ public class TemporaryEntity
     }
 
     orgDAO.insert(org);
-    orgs.add(0, org);
     return org;
   }
 
@@ -1065,7 +1051,6 @@ public class TemporaryEntity
     }
 
     orgDAO.insert(org);
-    orgs.add(0, org);
     return org;
   }
 
@@ -1230,12 +1215,6 @@ public class TemporaryEntity
 
   public void register(Application... applications) {
     Collections.addAll(apps, applications);
-  }
-
-  public void register(Organization... organizations) {
-    for (Organization organization: organizations) {
-      orgs.add(0, organization);
-    }
   }
 
   public void register(Policy... policiesToDelete) {

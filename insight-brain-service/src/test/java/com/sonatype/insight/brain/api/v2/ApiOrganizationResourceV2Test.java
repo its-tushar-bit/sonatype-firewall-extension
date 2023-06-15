@@ -129,7 +129,6 @@ public class ApiOrganizationResourceV2Test
     assertThat(responseBody.id).isNotEmpty();
 
     Organization organization = organizationDAO.getByIdNotNull(responseBody.id);
-    tempEntity.register(organization);
 
     assertThat(responseBody.name).isEqualTo(requestBody.name);
     assertThat(responseBody.tags).isEmpty();
@@ -142,22 +141,14 @@ public class ApiOrganizationResourceV2Test
     List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
     Organization organization = tempEntity.newOrganization();
 
-    try {
-      HttpResponse response = restRequest()
-          .path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
-          .parameter(organizations.get(0).getId(), organization.getId())
-          .query("failEarlyOnError", true)
-          .put();
+    HttpResponse response = restRequest().path(DefaultApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
+        .parameter(organizations.get(0).getId(), organization.getId()).query("failEarlyOnError", true).put();
 
-      assertResponseStatus(HttpStatus.SC_OK, response);
-      assertThat(response.getBodyBytes()).isNotNull();
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    assertThat(response.getBodyBytes()).isNotNull();
 
-      MoveOrganizationResponseDTO moveOrganizationResponseDTO = response.getBody(MoveOrganizationResponseDTO.class);
-      assertThat(moveOrganizationResponseDTO).isNotNull();
-    }
-    finally {
-      tempEntity.synchronizeOrganizationTemporaryEntities();
-    }
+    MoveOrganizationResponseDTO moveOrganizationResponseDTO = response.getBody(MoveOrganizationResponseDTO.class);
+    assertThat(moveOrganizationResponseDTO).isNotNull();
   }
 
   @Test

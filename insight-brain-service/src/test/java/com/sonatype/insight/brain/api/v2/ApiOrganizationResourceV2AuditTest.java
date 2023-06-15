@@ -38,7 +38,6 @@ public class ApiOrganizationResourceV2AuditTest
     ApiOrganizationDTO organizationDto = new ApiOrganizationDTO(null, "new-organization");
     organizationApiRequest().body(organizationDto).post();
     Organization organization = new OrganizationDAO().getByName(organizationDto.name);
-    tempEntity.register(organization);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_ORGANIZATION, null);
     assertOrganizationData(auditDTO, organization);

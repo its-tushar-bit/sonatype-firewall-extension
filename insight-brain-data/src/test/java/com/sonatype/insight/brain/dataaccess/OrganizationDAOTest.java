@@ -113,7 +113,6 @@ public class OrganizationDAOTest
     assertThat(organization.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
 
     dao.insert(organization);
-    tempEntity.register(organization);
     organization = dao.getById(organization.getId());
     assertThat(organization.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
   }
@@ -246,7 +245,6 @@ public class OrganizationDAOTest
     assertThatThrownBy(() -> {
       dao.update(organization);
     }).isInstanceOf(BadRequestException.class).hasMessage("Parent organization id cant be null.");
-    tempEntity.synchronizeOrganizationTemporaryEntities();
   }
 
   @Test

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Organization;
@@ -52,8 +53,7 @@ public class OrganizationServiceAuthzTest
     grantWritePermission(Organization.ROOT_ORGANIZATION_ID);
 
     Organization orgToAdd = new Organization("MyOrg");
-    final Organization addedOrg = organizationService.addOrganization(orgToAdd);
-    tempEntity.register(addedOrg);
+    organizationService.addOrganization(orgToAdd);
   }
 
   @Test(expected = UnauthenticatedException.class)

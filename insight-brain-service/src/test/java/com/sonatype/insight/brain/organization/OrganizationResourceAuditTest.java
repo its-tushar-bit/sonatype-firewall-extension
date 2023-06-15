@@ -37,7 +37,6 @@ public class OrganizationResourceAuditTest
     Organization organization = new Organization("orgName");
 
     organization = organizationRequest().body(organization).post().getBody(Organization.class);
-    tempEntity.register(organization);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_ORGANIZATION, null);
     assertOrganizationData(auditDTO, organization);

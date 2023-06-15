@@ -37,7 +37,6 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.ConflictException;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
@@ -67,13 +66,6 @@ public class MoveOrganizationServiceTest
   private AsyncEventBus eventBus;
 
   private final boolean failEarlyOnError = false;
-
-  @After
-  public void syncOrgHierarchy() {
-    // always sync org hierarchy before going to clean up in TemporaryEntity.
-    // any failure in assertions after successful move op will fail all other sub-sequent tests if sync was missed.
-    tempEntity.synchronizeOrganizationTemporaryEntities();
-  }
 
   @Test
   public void testMoveOrganization() {
@@ -405,7 +397,6 @@ public class MoveOrganizationServiceTest
 
     // this policy should be ignored as the rootChild is a common parent.
     tempEntity.newPolicy(rootChild);
-    tempEntity.synchronizeOrganizationTemporaryEntities();
 
     // fail early case
     assertThatExceptionOfType(ConflictException.class)

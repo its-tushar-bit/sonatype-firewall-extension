@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -57,6 +58,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
+
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -1051,7 +1053,6 @@ public class ScmOnboardingServiceTest
 
     List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
     assertThat(childOrgsAfterImport).hasSize(3);
-    tempEntity.register(childOrgsAfterImport.toArray(new Organization[0]));
 
     List<Integer> importedAppCountsPerOrg =
         childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
@@ -1102,7 +1103,6 @@ public class ScmOnboardingServiceTest
     assertThat(importFailures.failures).isEmpty();
 
     List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
-    tempEntity.register(childOrgsAfterImport.toArray(new Organization[0]));
 
     assertThat(childOrgsAfterImport).hasSize(3);
     List<Integer> importedAppCountsPerOrg =
@@ -1258,7 +1258,6 @@ public class ScmOnboardingServiceTest
     assertThat(importFailures.failures).isEmpty();
 
     List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
-    tempEntity.register(childOrgsAfterImport.toArray(new Organization[0]));
 
     assertThat(childOrgsAfterImport).hasSize(13);
     List<Integer> importedAppCountsPerOrg =

@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -79,7 +80,6 @@ public class DefaultApiScmOnboardingResourceTest
 
     List<Organization> childOrgs = organizationDAO.getByParentOrganizationId(org.getId());
     assertThat(childOrgs).hasSize(3);
-    tempEntity.register(childOrgs.toArray(new Organization[0]));
     SourceControlOrganizationImportEvent importEvent = scmImportEventDao.getById(eventId);
     assertThat(importEvent.getLastUpdatedTime()).isAfter(importEvent.getStartTime());
 

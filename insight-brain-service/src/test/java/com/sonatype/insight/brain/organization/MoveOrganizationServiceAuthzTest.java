@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,12 +22,7 @@ public class MoveOrganizationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  MoveOrganizationService moveOrganizationService;
-
-  @After
-  public void syncOrgHierarchy() {
-    tempEntity.synchronizeOrganizationTemporaryEntities();
-  }
+  private MoveOrganizationService moveOrganizationService;
 
   @Test(expected = UnauthenticatedException.class)
   public void testMoveOrganization_Unauthenticated() {

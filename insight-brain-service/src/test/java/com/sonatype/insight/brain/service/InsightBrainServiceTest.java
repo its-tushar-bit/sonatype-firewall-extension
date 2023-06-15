@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.DefaultTelemetryScheduler;
 import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PolicyStatusOverrideTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
@@ -45,7 +47,6 @@ import com.sonatype.insight.brain.telemetry.RestEndpointTelemetry;
 import com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.SourceControlRateLimitTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
-import com.sonatype.insight.brain.telemetry.DefaultTelemetryScheduler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.version.DefaultVersionService;
@@ -119,7 +120,6 @@ public class InsightBrainServiceTest
     initServer(config -> config.setCreateSampleData(true));
 
     Organization sampleOrg = new OrganizationDAO().getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
-    tempEntity.register(sampleOrg);
     Application sampleApp = new ApplicationDAO().getByName(SampleDataCreator.SAMPLE_APPLICATION_NAME);
 
     assertThat(sampleOrg).isNotNull();

@@ -330,14 +330,15 @@ public class PolicyViolationDAO
     // H2 won't utilize the index for the application id when the query uses an IN operator with multiple values (and
     // has additional filter criteria like the fix_time), doing an expensive table scan instead.
     // So we make one query per app to ensure the index is used (and all the fixed violations aren't scanned).
-
+    TenantAwareFunction<String, List<PolicyViolation>> tenantAwareFunction =
+        new TenantAwareFunction<>(applicationId -> {
+          Object[] parameters = new Object[otherParameters.length + 1];
+          System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
+          parameters[0] = applicationId;
+          return getList(sQuery, parameters);
+        });
     return CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> {
-      return applicationIds.stream().parallel().map(new TenantAwareFunction<>(applicationId -> {
-        Object[] parameters = new Object[otherParameters.length + 1];
-        System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
-        parameters[0] = applicationId;
-        return getList(sQuery, parameters);
-      })).flatMap(Collection::stream).collect(toList());
+      return applicationIds.stream().parallel().map(tenantAwareFunction).flatMap(Collection::stream).collect(toList());
     }), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.DAO)).join();
   }
 

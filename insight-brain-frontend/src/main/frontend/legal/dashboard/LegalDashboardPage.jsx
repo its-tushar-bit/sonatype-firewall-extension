@@ -64,7 +64,6 @@ export default function LegalDashboardPage(props) {
   };
 
   const cancelGenerateReport = () => setShowMultiAppAttributionReportModal(false);
-  const attributionReportFormUrl = uiRouterState.href('legal.attributionReportMultiApp');
 
   return (
     <main id="legal-dashboard-container" className="nx-page-main">
@@ -132,14 +131,17 @@ export default function LegalDashboardPage(props) {
                     >
                       Back
                     </NxButton>
-                    <a
+                    <NxButton
+                      type="button"
                       id="create-report-generate-report-button"
-                      onClick={() => setShowMultiAppAttributionReportModal(false)}
-                      className="nx-btn nx-btn--primary"
-                      href={attributionReportFormUrl}
+                      onClick={() => {
+                        setShowMultiAppAttributionReportModal(false);
+                        stateGo('legal.attributionReportMultiApp');
+                      }}
+                      variant="primary"
                     >
                       Generate Report
-                    </a>
+                    </NxButton>
                   </div>
                 </div>
               </NxModal>

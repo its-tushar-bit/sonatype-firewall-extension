@@ -211,15 +211,15 @@ describe('LegalDashboardPage', function () {
     createAttribReportButton.simulate('click');
     expect(wrapper.find(NxModal)).toExist();
 
-    const generateAttribReportButton = wrapper.find('#create-report-generate-report-button');
-    expect(generateAttribReportButton).toExist();
-    generateAttribReportButton.simulate('click');
-
-    createAttribReportButton.simulate('click');
     const cancelAttribReportButton = wrapper.find('#create-report-cancel-button');
     expect(cancelAttribReportButton).toExist();
     cancelAttribReportButton.simulate('click');
-
     expect(wrapper.find(NxModal)).not.toExist();
+
+    createAttribReportButton.simulate('click');
+    const generateAttribReportButton = wrapper.find('#create-report-generate-report-button');
+    expect(generateAttribReportButton).toExist();
+    generateAttribReportButton.simulate('click');
+    expect(stateGoSpy).toHaveBeenCalledWith('legal.attributionReportMultiApp');
   });
 });

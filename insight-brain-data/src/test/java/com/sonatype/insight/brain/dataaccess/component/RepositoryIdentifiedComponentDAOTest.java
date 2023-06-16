@@ -39,7 +39,6 @@ public class RepositoryIdentifiedComponentDAOTest
     RepositoryIdentifiedComponent repositoryIdentifiedComponent = new RepositoryIdentifiedComponent("hash",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), new Date(0), new Date(1));
     dao.insert(repositoryIdentifiedComponent);
-    tempEntity.register(repositoryIdentifiedComponent);
 
     // Read
     RepositoryIdentifiedComponent storedRepositoryIdentifiedComponent =

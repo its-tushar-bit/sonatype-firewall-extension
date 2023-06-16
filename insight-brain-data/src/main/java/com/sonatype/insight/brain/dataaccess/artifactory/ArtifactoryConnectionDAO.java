@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.artifactory;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -28,5 +30,10 @@ public class ArtifactoryConnectionDAO
   public ArtifactoryConnection getByIdAndOwnerId(String artifactoryConnectionId, String ownerId) {
     String sQuery = SELECT_ENTITY + "WHERE entity.id=?1 AND entity.ownerId=?2";
     return get(sQuery, artifactoryConnectionId, ownerId);
+  }
+
+  public List<ArtifactoryConnection> getAll() {
+    String sQuery = "SELECT entity FROM ArtifactoryConnection entity";
+    return getList(sQuery);
   }
 }

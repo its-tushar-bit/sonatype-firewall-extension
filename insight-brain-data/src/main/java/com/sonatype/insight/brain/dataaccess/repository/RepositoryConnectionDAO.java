@@ -72,4 +72,9 @@ public class RepositoryConnectionDAO
     String sQuery = "DELETE FROM RepositoryConnection entity";
     createQuery(sQuery).executeUpdate();
   }
+
+  public List<RepositoryConnection> getAll() {
+    String sQuery = "SELECT entity FROM RepositoryConnection entity";
+    return getList(sQuery);
+  }
 }

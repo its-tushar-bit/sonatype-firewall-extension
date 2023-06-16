@@ -24,7 +24,6 @@ public class ArtifactoryConnectionDAOTest
     ArtifactoryConnection artifactoryConnection =
         new ArtifactoryConnection("ownerId", "baseUrl", "username", "password".toCharArray());
     dao.insert(artifactoryConnection);
-    tempEntity.register(artifactoryConnection);
     assertThat(artifactoryConnection.getId()).isNotNull();
 
     // Read

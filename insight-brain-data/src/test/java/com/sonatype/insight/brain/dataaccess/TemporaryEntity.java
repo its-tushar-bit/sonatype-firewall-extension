@@ -628,12 +628,6 @@ public class TemporaryEntity
 
   private Collection<QuarantinedComponentAccess> quarantinedComponentAccesses;
 
-  private Collection<RepositoryConnection> repositoryConnections;
-
-  private Collection<ArtifactoryConnection> artifactoryConnections;
-
-  private Collection<RepositoryIdentifiedComponent> repositoryIdentifiedComponents;
-
   private Collection<PolicyWaiver> waivers;
 
   private Collection<ProprietaryComponentNamePattern> proprietaryComponentNamePatterns;
@@ -693,9 +687,6 @@ public class TemporaryEntity
     initializePersistedUserSessions();
     innerSourceComponents = new ArrayList<>();
     quarantinedComponentAccesses = new ArrayList<>();
-    repositoryConnections = new ArrayList<>();
-    artifactoryConnections = new ArrayList<>();
-    repositoryIdentifiedComponents = new ArrayList<>();
     proprietaryComponentNamePatterns = new ArrayList<>();
     sourceControlOrganizationImportEvents = new ArrayList<>();
     deletedTenants = new ArrayList<>();
@@ -807,9 +798,9 @@ public class TemporaryEntity
     delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
     delete(componentLabels, componentLabelDAO);
     delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
-    delete(repositoryConnections, repositoryConnectionDAO);
-    delete(artifactoryConnections, artifactoryConnectionDAO);
-    delete(repositoryIdentifiedComponents, repositoryIdentifiedComponentDAO);
+    delete(repositoryConnectionDAO.getAll(), repositoryConnectionDAO);
+    delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
+    delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
     delete(sourceControlPullRequestComments, sourceControlPullRequestCommentDAO);
     sourceControlPullRequestResultDAO.deleteAll();
     delete(waivers, waiverDAO);
@@ -1243,14 +1234,6 @@ public class TemporaryEntity
 
   public void register(LdapServer... ldapServers) {
     Collections.addAll(this.ldapServers, ldapServers);
-  }
-
-  public void register(ArtifactoryConnection... artifactoryConnections) {
-    Collections.addAll(this.artifactoryConnections, artifactoryConnections);
-  }
-
-  public void register(RepositoryIdentifiedComponent... repositoryIdentifiedComponents) {
-    Collections.addAll(this.repositoryIdentifiedComponents, repositoryIdentifiedComponents);
   }
 
   public void register(VulnerabilityGroup... vulnerabilityGroup) {
@@ -4203,7 +4186,6 @@ public class TemporaryEntity
   {
     RepositoryConnection connection = new RepositoryConnection(ownerId, baseUrl, format, username, password);
     repositoryConnectionDAO.insert(connection);
-    repositoryConnections.add(connection);
     return connection;
   }
 
@@ -4258,7 +4240,6 @@ public class TemporaryEntity
   {
     ArtifactoryConnection artifactoryConnection = new ArtifactoryConnection(ownerId, baseUrl, username, password);
     artifactoryConnectionDAO.insert(artifactoryConnection);
-    artifactoryConnections.add(artifactoryConnection);
     return artifactoryConnection;
   }
 
@@ -4295,7 +4276,6 @@ public class TemporaryEntity
     RepositoryIdentifiedComponent repositoryIdentifiedComponent =
         new RepositoryIdentifiedComponent(hash, componentIdentifier, createTime, lastAccessTime);
     repositoryIdentifiedComponentDAO.insert(repositoryIdentifiedComponent);
-    repositoryIdentifiedComponents.add(repositoryIdentifiedComponent);
     return repositoryIdentifiedComponent;
   }
 

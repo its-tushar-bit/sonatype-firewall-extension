@@ -3635,9 +3635,8 @@ public class TemporaryEntity
   }
 
   public SystemConfigurationProperty newSystemConfigurationProperty(String name, String value) {
-    SystemConfigurationProperty scp = new SystemConfigurationProperty(name, value);
-    systemConfigurationPropertyDAO.insert(scp);
-    return scp;
+    systemConfigurationPropertyDAO.set(name, value);
+    return systemConfigurationPropertyDAO.getByName(name);
   }
 
   public SamlConfiguration newSamlConfiguration() {

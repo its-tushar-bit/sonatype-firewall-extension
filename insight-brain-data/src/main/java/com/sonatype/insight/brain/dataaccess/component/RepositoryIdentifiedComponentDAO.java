@@ -33,15 +33,9 @@ public class RepositoryIdentifiedComponentDAO
     return get(tx, sQuery, hash);
   }
 
-  public List<RepositoryIdentifiedComponent> getAll(TransactionContext tx) {
-    String sQuery = "SELECT entity FROM RepositoryIdentifiedComponent entity";
-    return getList(tx, sQuery);
-  }
-
   public List<RepositoryIdentifiedComponent> getAll() {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getAll(tx);
-    }
+    String sQuery = "SELECT entity FROM RepositoryIdentifiedComponent entity";
+    return getList(sQuery);
   }
 
   public RepositoryIdentifiedComponent getByHashNotNullAndUpdateLastAccessTime(String hash) {

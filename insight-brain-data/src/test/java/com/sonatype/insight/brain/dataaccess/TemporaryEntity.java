@@ -542,8 +542,6 @@ public class TemporaryEntity
 
   private Collection<MigrationTracker> migrationTrackers;
 
-  private Collection<Application> apps;
-
   private Collection<LicenseOverride> licenseOverrides;
 
   private Collection<User> users;
@@ -649,7 +647,6 @@ public class TemporaryEntity
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
-    apps = new ArrayList<>();
     licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
     usernames = new ArrayList<>();
@@ -768,8 +765,7 @@ public class TemporaryEntity
     delete(defaultBranchCommitHistoryDAO.getAll(), defaultBranchCommitHistoryDAO);
     List<Organization> orgs = orgDAO.getAll().stream()
         .filter(org -> !Organization.ROOT_ORGANIZATION_ID.equals(org.getId())).collect(toList());
-    orgs.forEach(org -> apps.addAll(appDAO.getByOrganizationId(org.getId())));
-    delete(apps, appDAO);
+    delete(appDAO.getAll(), appDAO);
     orgs = sortNLevelOrgsWithLeafNodesOnTop(orgs);
     delete(orgs, orgDAO);
     delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
@@ -1213,10 +1209,6 @@ public class TemporaryEntity
     this.savedProxyServerConfiguration = savedProxyServerConfiguration;
   }
 
-  public void register(Application... applications) {
-    Collections.addAll(apps, applications);
-  }
-
   public void register(Policy... policiesToDelete) {
     Collections.addAll(policies, policiesToDelete);
   }
@@ -1311,7 +1303,6 @@ public class TemporaryEntity
       app.setOrganizationId(org.getId());
     }
     appDAO.insert(app);
-    apps.add(app);
     return app;
   }
 
@@ -1347,7 +1338,6 @@ public class TemporaryEntity
     Application app = new Application(publicId, name, orgId);
     app.setContactInternalName(contactInternalName);
     appDAO.insert(app);
-    apps.add(app);
     return app;
   }
 
@@ -1355,7 +1345,6 @@ public class TemporaryEntity
     Application app = new Application(publicId, name, orgId);
     app.setId(id);
     appDAO.insert(app);
-    apps.add(app);
     return app;
   }
 

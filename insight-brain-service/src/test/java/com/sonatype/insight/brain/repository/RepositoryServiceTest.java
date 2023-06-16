@@ -964,7 +964,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     // Call the service
     repositoryService.configureRepositories(repositoryManager.getId(), Collections.singletonList(repository));
 
-    // No updates in DB
+    // No other updates in DB
     Repository repositoryInDB =
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
             repository.getPublicId());
@@ -1111,5 +1111,18 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
     assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
+  }
+
+  @Test
+  public void testConfigureRepositories_RepositoryManagerConfiguredStatus() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Date beforeConfig = new Date();
+    // Call the service
+    repositoryService.configureRepositories(repositoryManager.getId(), Collections.emptyList());
+    Date afterConfig = new Date();
+
+    repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManager.getInstanceId());
+    assertThat(repositoryManager.isConfigured()).isTrue();
+    assertThat(repositoryManager.getConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
   }
 }

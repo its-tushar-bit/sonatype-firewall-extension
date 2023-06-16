@@ -347,6 +347,11 @@ public class RepositoryResourceTest
     Date afterConfig = new Date();
 
     assertResponseStatus(204, response);
+
+    repositoryManager = new RepositoryManagerDAO().getByInstanceIdNotNull(repositoryManager.getInstanceId());
+    assertThat(repositoryManager.isConfigured()).isEqualTo(true);
+    assertThat(repositoryManager.getConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
+
     repository = new RepositoryDAO().getById(repository.getId());
     assertThat(repository.getName()).isEqualTo("testRepoName");
     assertThat(repository.isAuditEnabled()).isTrue();

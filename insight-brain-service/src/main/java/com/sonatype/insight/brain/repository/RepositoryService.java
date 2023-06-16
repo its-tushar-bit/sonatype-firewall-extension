@@ -534,6 +534,18 @@ public class RepositoryService
       throw new NotFoundException("Cannot find a repository manager with ID " + repositoryManagerId + ".");
     }
 
+    try {
+      repositoryManager.setConfigured(true);
+      repositoryManager.setConfigureTime(new Date());
+      repositoryManagerDAO.update(repositoryManager);
+    }
+    catch (RuntimeException e) {
+      String errorMessage = String.format("Error updating repository manager with instance ID %s (%s): %s",
+          repositoryManager.getInstanceId(), repositoryManager.getId(), e.getMessage());
+      log.error(errorMessage, e);
+      AuditData.get().setError(errorMessage);
+    }
+
     if (repositories == null) {
       repositories = Collections.emptyList();
     }

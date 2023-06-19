@@ -159,4 +159,9 @@ public class UserFilterDAO
         " ORDER BY entity.name";
     return getList(tx, sQuery, username, realmId);
   }
+
+  public List<UserFilter> getAll() {
+    String sQuery = "SELECT entity FROM UserFilter entity";
+    return getList(sQuery);
+  }
 }

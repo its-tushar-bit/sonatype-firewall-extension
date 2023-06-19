@@ -556,8 +556,6 @@ public class TemporaryEntity
 
   private Collection<DashboardFilter> dashboardFilters;
 
-  private Collection<UserFilter> userFilters;
-
   private Collection<Policy> policies;
 
   private Collection<PolicyTag> policyTags;
@@ -642,7 +640,6 @@ public class TemporaryEntity
     ldapServers = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     dashboardFilters = new ArrayList<>();
-    userFilters = new ArrayList<>();
     policies = new ArrayList<>();
     policyTags = new ArrayList<>();
     tags = new ArrayList<>();
@@ -740,7 +737,7 @@ public class TemporaryEntity
     delete(innerSourceComponents, innerSourceComponentDAO);
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilters, dashboardFilterDAO);
-    delete(userFilters, userFilterDAO);
+    delete(userFilterDAO.getAll(), userFilterDAO);
     delete(policyTags, policyTagDAO);
     delete(sourceControlPullRequestCommentDAO.getAll(), sourceControlPullRequestCommentDAO);
     delete(sourceControlOrganizationImportEvents, sourceControlOrganizationImportEventDAO);
@@ -977,7 +974,6 @@ public class TemporaryEntity
     userFilter.setFilter(filter);
     userFilter.setBasedOnFilterName(basedOn);
     userFilterDAO.insert(userFilter);
-    userFilters.add(userFilter);
     return userFilter;
   }
 

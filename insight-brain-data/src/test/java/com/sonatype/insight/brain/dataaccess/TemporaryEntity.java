@@ -622,8 +622,6 @@ public class TemporaryEntity
 
   private Collection<PolicyWaiver> waivers;
 
-  private Collection<ProprietaryComponentNamePattern> proprietaryComponentNamePatterns;
-
   private Collection<SourceControlOrganizationImportEvent> sourceControlOrganizationImportEvents;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -675,7 +673,6 @@ public class TemporaryEntity
     initializePersistedUserSessions();
     innerSourceComponents = new ArrayList<>();
     quarantinedComponentAccesses = new ArrayList<>();
-    proprietaryComponentNamePatterns = new ArrayList<>();
     sourceControlOrganizationImportEvents = new ArrayList<>();
     deletedTenants = new ArrayList<>();
 
@@ -732,6 +729,12 @@ public class TemporaryEntity
 
   @Override
   public void after() {
+    // Entities deleted via cascaded deletes
+    // - ProprietaryComponentNamePattern: cascaded from Repository
+    // - Repository: cascaded from RepositoryManager
+    // - RepositoryComponent: cascaded from Repository
+    // - RepositoryMigration: cascaded from Repository
+    // - RepositoryPolicyViolation: cascaded from Repository
     automaticApplicationsConfigurationDAO.setEnabled(false);
     automaticApplicationsConfigurationDAO.setOrganizationId("");
     delete(innerSourceComponents, innerSourceComponentDAO);
@@ -796,7 +799,6 @@ public class TemporaryEntity
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
     persistedScanTicketDAO.getAll().forEach(persistedScanTicketDAO::delete);
-    repositoryMigrationDAO.getAll().forEach(repositoryMigrationDAO::delete);
 
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     if (config != null) {
@@ -840,7 +842,6 @@ public class TemporaryEntity
     reverseProxyAuthenticationConfigurationDAO.delete();
     jiraConfigurationDAO.delete();
     sourceControlConfigurationDAO.delete();
-    delete(proprietaryComponentNamePatterns, proprietaryComponentNamePatternDAO);
     membershipMappingDAO.getAll().forEach(membershipMapping -> {
       if (!membershipMapping.getMemberName().contains(User.ADMIN_USERNAME)) {
         membershipMappingDAO.delete(membershipMapping);
@@ -4381,7 +4382,6 @@ public class TemporaryEntity
             .withNamespacePattern(namespacePattern);
     proprietaryComponentNamePattern.setEnabled(enabled);
     proprietaryComponentNamePatternDAO.insert(proprietaryComponentNamePattern);
-    proprietaryComponentNamePatterns.add(proprietaryComponentNamePattern);
     return proprietaryComponentNamePattern;
   }
 

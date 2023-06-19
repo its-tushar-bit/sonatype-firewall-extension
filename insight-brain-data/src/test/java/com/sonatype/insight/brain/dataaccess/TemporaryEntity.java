@@ -566,8 +566,6 @@ public class TemporaryEntity
 
   private Collection<Label> labels;
 
-  private Collection<LicenseThreatGroup> licenseThreatGroups;
-
   private Collection<PolicyMonitoring> policyMonitorings;
 
   private Collection<RepositoryManager> repositoryManagers;
@@ -653,7 +651,6 @@ public class TemporaryEntity
     policyTags = new ArrayList<>();
     tags = new ArrayList<>();
     labels = new ArrayList<>();
-    licenseThreatGroups = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
     repositoryManagers = new ArrayList<>();
     repositories = new ArrayList<>();
@@ -783,7 +780,7 @@ public class TemporaryEntity
     delete(policies, entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
     delete(labels, labelDAO);
     delete(tags, tagDAO);
-    delete(licenseThreatGroups, licenseThreatGroupDAO);
+    delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
     delete(policyMonitorings, policyMonitoringDAO);
     delete(repositories, repositoryDAO);
     delete(repositoryManagers, repositoryManagerDAO);
@@ -1506,7 +1503,6 @@ public class TemporaryEntity
       ltg.setId(id);
     }
     licenseThreatGroupDAO.insert(ltg);
-    licenseThreatGroups.add(ltg);
 
     for (String licenseId : licenseIds) {
       newLicenseThreatGroupLicense(ownerId, ltg.getId(), licenseId);

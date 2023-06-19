@@ -5,16 +5,12 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.repository.ComponentNameMatcher;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 
 /**
@@ -29,13 +25,10 @@ public class DefaultComponentDetailsLoader
 
   private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
 
-  private final Map<String, ComponentNameMatcher> matchersByFormat;
-
   DefaultComponentDetailsLoader(Owner owner, ProprietaryComponentNameDetector proprietaryComponentNameDetector) {
     componentDAO = new ComponentDAO(owner);
     this.proprietaryComponentNameDetector =
         OwnerType.REPOSITORY.equals(owner.getType()) ? proprietaryComponentNameDetector : null;
-    matchersByFormat = new HashMap<>();
   }
 
   @Override
@@ -43,8 +36,7 @@ public class DefaultComponentDetailsLoader
     Component component = componentDAO.getComponent(componentDetails);
     if (proprietaryComponentNameDetector != null) {
       component.setConflictingProprietaryName(
-          proprietaryComponentNameDetector.findProprietaryComponentName(matchersByFormat,
-              component.getComponentIdentifier()));
+          proprietaryComponentNameDetector.findProprietaryComponentName(component.getComponentIdentifier()));
     }
 
     if (componentDetails.getAnalyzerFeatures() != null) {

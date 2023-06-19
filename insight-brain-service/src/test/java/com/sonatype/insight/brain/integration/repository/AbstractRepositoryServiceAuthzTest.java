@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.inject.Binder;
@@ -41,6 +42,9 @@ public abstract class AbstractRepositoryServiceAuthzTest
   @Mock
   private DbQuarantinedComponentAccessManager quarantinedComponentAccessManager;
 
+  @Mock
+  private TaskScheduler mockTaskScheduler;
+
   @After
   public void cleanup() {
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
@@ -51,9 +55,10 @@ public abstract class AbstractRepositoryServiceAuthzTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(RepositoryPolicyEvaluator.class).toInstance(repositoryPolicyEvaluator);
     binder.bind(DbQuarantinedComponentAccessManager.class).toInstance(quarantinedComponentAccessManager);
+    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
+    super.configure(binder);
   }
 
   @Test

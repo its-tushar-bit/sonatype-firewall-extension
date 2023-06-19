@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -80,6 +81,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RepositoryServiceTest extends AbstractComponentTest
@@ -96,6 +98,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   @Inject
   private RepositoryService repositoryService;
+
+  @Inject
+  private ProprietaryComponentNameDetector proprietaryComponentNameDetector;
 
   private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
@@ -115,11 +120,15 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Mock
   private FirewallQuarantineHdsClient quarantineHdsClient;
 
+  @Mock
+  private TaskScheduler mockTaskScheduler;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
     binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
     binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
+    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
   }
 
@@ -874,6 +883,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repositoryService.updateProprietaryComponentNamePattern(proprietaryComponentNamePatternDTO);
     pattern = proprietaryComponentNamePatternDAO.getById(pattern.getId());
     assertThat(pattern.isEnabled()).isFalse();
+
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(proprietaryComponentNameDetector);
   }
 
   @Test

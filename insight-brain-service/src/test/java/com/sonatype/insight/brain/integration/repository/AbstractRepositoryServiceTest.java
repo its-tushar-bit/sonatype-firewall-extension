@@ -80,6 +80,7 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyAlertEmailer;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
@@ -177,6 +178,9 @@ public abstract class AbstractRepositoryServiceTest
   @Mock
   private CurrentUser currentUser;
 
+  @Mock
+  private TaskScheduler mockTaskScheduler;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
@@ -185,6 +189,7 @@ public abstract class AbstractRepositoryServiceTest
     binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
     binder.bind(DbQuarantinedComponentAccessManager.class).toInstance(quarantinedComponentAccessManager);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
   }
 

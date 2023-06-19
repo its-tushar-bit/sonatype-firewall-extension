@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.Collection;
-import java.util.Map;
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -18,44 +18,91 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class ProprietaryComponentNameDetector
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ProprietaryComponentNameDetector.class);
 
   private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
+  private final ConcurrentMap<String, ComponentNameMatcher> matchersByFormat = new ConcurrentHashMap<>();
+
+  private final ConcurrentMap<String, Object> locksByFormat = new ConcurrentHashMap<>();
+
+  // Visible for testing
+  static final String TASK_NAME = "InvalidateComponentNameMatchers";
+
+  private final TaskScheduler taskScheduler;
+
   @Inject
-  public ProprietaryComponentNameDetector(ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO) {
+  public ProprietaryComponentNameDetector(
+      ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO,
+      TaskScheduler taskScheduler)
+  {
     this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
+    this.taskScheduler = taskScheduler;
   }
 
-  public ProprietaryComponentName findProprietaryComponentName(
-      Map<String, ComponentNameMatcher> matchersByFormat,
-      ComponentIdentifier componentIdentifier)
-  {
+  public ProprietaryComponentName findProprietaryComponentName(ComponentIdentifier componentIdentifier) {
     if (componentIdentifier == null) {
       return null;
     }
     PackageUrlIdentifier purlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
     String namespace = purlIdentifier.getNamespace();
     String name = purlIdentifier.getName();
-    return matchersByFormat.computeIfAbsent(componentIdentifier.getFormat(), this::getMatcher)
-        .findMatch(namespace, name);
+    return findProprietaryComponentName(componentIdentifier.getFormat(), namespace, name);
+  }
+
+  private ProprietaryComponentName findProprietaryComponentName(String format, String namespace, String name) {
+    return getMatcher(format).findMatch(namespace, name);
   }
 
   private ComponentNameMatcher getMatcher(String format) {
-    return new ComponentNameMatcher(format, proprietaryComponentNamePatternDAO.getEnabledByFormat(format));
+    ComponentNameMatcher matcher = matchersByFormat.get(format);
+    if (isMatcherStale(matcher)) {
+      synchronized (locksByFormat.computeIfAbsent(format, key -> new Object())) {
+        matcher = matchersByFormat.get(format);
+        if (isMatcherStale(matcher)) {
+          long start = System.currentTimeMillis();
+          Collection<ProprietaryComponentNamePattern> patterns =
+              proprietaryComponentNamePatternDAO.getEnabledByFormat(format);
+          matcher = new ComponentNameMatcher(format, patterns);
+          log.debug("Created matcher for {} proprietary component names ({}) in {} ms", patterns.size(), format,
+              System.currentTimeMillis() - start);
+          matchersByFormat.put(format, matcher);
+        }
+      }
+    }
+    return matcher;
+  }
+
+  private boolean isMatcherStale(ComponentNameMatcher matcher) {
+    if (matcher == null) {
+      return true;
+    }
+    if (!proprietaryComponentNamePatternDAO.isDatabaseEmbedded()
+        && System.currentTimeMillis() - matcher.getCreateTime() > 60_000 * 3) {
+      return true;
+    }
+    return false;
   }
 
   private ComponentNameMatcher getMatcherWithDisabledPatterns(String format) {
-    return new ComponentNameMatcher(format, proprietaryComponentNamePatternDAO.getByFormat(format));
+    ComponentNameMatcher componentNameMatcher =
+        new ComponentNameMatcher(format, proprietaryComponentNamePatternDAO.getByFormat(format));
+
+    return componentNameMatcher;
   }
 
   /**
@@ -82,11 +129,34 @@ public class ProprietaryComponentNameDetector
         throw e;
       }
     }
+    if (inserted > 0) {
+      invalidateMatchersOnOtherNodes();
+    }
     return inserted;
   }
 
   public void removePatterns(String repositoryId) {
     log.debug("Deleting proprietary component names from repository ID {}", repositoryId);
     proprietaryComponentNamePatternDAO.deleteByRepository(repositoryId);
+    invalidateMatchers();
+    invalidateMatchersOnOtherNodes();
+  }
+
+  public void invalidateMatchersOnOtherNodes() {
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this);
+  }
+
+  @Override
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    execute(this::invalidateMatchers, log, "Failed to invalidate proprietary component name matchers.");
+  }
+
+  void invalidateMatchers() {
+    matchersByFormat.clear();
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

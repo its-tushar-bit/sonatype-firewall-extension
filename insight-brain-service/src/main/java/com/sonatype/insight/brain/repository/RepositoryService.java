@@ -98,13 +98,17 @@ public class RepositoryService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
+
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      PolicyViolationLoggerFactory policyViolationLoggerFactory)
+      PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      ProprietaryComponentNameDetector proprietaryComponentNameDetector)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
   }
 
   /**
@@ -442,6 +446,8 @@ public class RepositoryService
     // Only the enabled flag can be updated
     proprietaryComponentNamePattern.setEnabled(proprietaryComponentNamePatternDTO.enabled);
     proprietaryComponentNamePatternDAO.update(proprietaryComponentNamePattern);
+    proprietaryComponentNameDetector.invalidateMatchers();
+    proprietaryComponentNameDetector.invalidateMatchersOnOtherNodes();
   }
 
   List<Repository> getRepositoriesByRepositoryManagerId(String repositoryManagerId) {

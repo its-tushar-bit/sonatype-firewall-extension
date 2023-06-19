@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -19,12 +17,24 @@ import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import com.google.inject.Binder;
+import org.apache.log4j.MDC;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.quartz.JobExecutionContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class ProprietaryComponentNameDetectorTest
     extends AbstractComponentTest
@@ -39,13 +49,18 @@ public class ProprietaryComponentNameDetectorTest
 
   private Repository repo;
 
-  private Map<String, ComponentNameMatcher> matchersByFormat;
+  @Mock
+  private TaskScheduler mockTaskScheduler;
 
   @Before
   public void init() {
     repoManager = tempEntity.newRepositoryManager();
-    
-    matchersByFormat = new HashMap<>();
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
+    super.configure(binder);
   }
 
   private void assertMatch(ProprietaryComponentName conflict, String namePattern) {
@@ -60,17 +75,13 @@ public class ProprietaryComponentNameDetectorTest
     tempEntity.newProprietaryComponentNamePattern(repo, "@sonatype", null);
 
     assertMatch(proprietaryComponentNameDetector
-        .findProprietaryComponentName(matchersByFormat,
-            ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
     assertMatch(proprietaryComponentNameDetector
-        .findProprietaryComponentName(matchersByFormat,
-            ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999")), "@sonatype/*");
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999")), "@sonatype/*");
     assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(matchersByFormat,
-            ComponentIdentifier.createNpmCoordinates("NOTsonatype-cli", "99"))).isNull();
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("NOTsonatype-cli", "99"))).isNull();
     assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(matchersByFormat,
-            ComponentIdentifier.createNpmCoordinates("@NOTsonatype/cli", "99"))).isNull();
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("@NOTsonatype/cli", "99"))).isNull();
   }
 
   @Test
@@ -78,7 +89,7 @@ public class ProprietaryComponentNameDetectorTest
     repo =
         tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_MAVEN);
     tempEntity.newProprietaryComponentNamePattern(repo, "org.sonatype", null);
-    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(matchersByFormat,
+    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(
         ComponentIdentifier.createMavenCoordinates("org.sonatype", "test", "1.0", "", "jar")), "org.sonatype/*");
   }
 
@@ -86,7 +97,7 @@ public class ProprietaryComponentNameDetectorTest
   public void testFindProprietaryComponentName_Namespacing_Npm() {
     repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
     tempEntity.newProprietaryComponentNamePattern(repo, "@sonatype", null);
-    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(matchersByFormat,
+    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(
         ComponentIdentifier.createNpmCoordinates("@sonatype/test", "1.0")), "@sonatype/*");
   }
 
@@ -95,13 +106,13 @@ public class ProprietaryComponentNameDetectorTest
     repo =
         tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NUGET);
     tempEntity.newProprietaryComponentNamePattern(repo, null, "Sonatype.*");
-    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(matchersByFormat,
+    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(
         ComponentIdentifier.createNugetCoordinates("Sonatype.Type", "1.0")), "sonatype.*");
   }
 
   @Test
   public void testFindProprietaryComponentName_NullIdentifier() {
-    assertThat(proprietaryComponentNameDetector.findProprietaryComponentName(matchersByFormat, null)).isNull();
+    assertThat(proprietaryComponentNameDetector.findProprietaryComponentName(null)).isNull();
   }
 
   @Test
@@ -116,21 +127,24 @@ public class ProprietaryComponentNameDetectorTest
         proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM, Arrays.asList(pattern1, pattern2)))
         .isEqualTo(2);
 
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(proprietaryComponentNameDetector);
+    Mockito.reset(mockTaskScheduler);
+
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM))
         .extracting(ProprietaryComponentNamePattern::getId)
         .containsExactlyInAnyOrder(pattern1.getId(), pattern2.getId());
 
     assertMatch(proprietaryComponentNameDetector
-        .findProprietaryComponentName(matchersByFormat,
+        .findProprietaryComponentName(
             ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
     assertMatch(proprietaryComponentNameDetector
-        .findProprietaryComponentName(matchersByFormat,
+        .findProprietaryComponentName(
             ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999")), "@sonatype/*");
     assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(matchersByFormat,
+        .findProprietaryComponentName(
             ComponentIdentifier.createNpmCoordinates("NOTsonatype-cli", "99"))).isNull();
     assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(matchersByFormat,
+        .findProprietaryComponentName(
             ComponentIdentifier.createNpmCoordinates("@NOTsonatype/cli", "99"))).isNull();
 
     assertThat(proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM,
@@ -141,6 +155,8 @@ public class ProprietaryComponentNameDetectorTest
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM))
         .extracting(ProprietaryComponentNamePattern::getId)
         .containsExactlyInAnyOrder(pattern1.getId(), pattern2.getId());
+
+    verify(mockTaskScheduler, never()).scheduleOneTimeTaskForAllOtherNodes(proprietaryComponentNameDetector);
   }
 
   @Test
@@ -177,9 +193,50 @@ public class ProprietaryComponentNameDetectorTest
   public void testRemovePatterns_ForSpecificRepo() {
     repo = tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
     tempEntity.newProprietaryComponentNamePattern(repo, null, "sonatype*");
+    assertMatch(proprietaryComponentNameDetector
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
 
     proprietaryComponentNameDetector.removePatterns(repo.getId());
 
+    assertThat(proprietaryComponentNameDetector
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999"))).isNull();
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM)).isEmpty();
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(proprietaryComponentNameDetector);
+  }
+
+  @Test
+  public void testExecute() throws Exception {
+    ProprietaryComponentNameDetector spy = spy(proprietaryComponentNameDetector);
+    doAnswer(invocationOnMock -> {
+      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
+      return null;
+    }).when(spy).invalidateMatchers();
+
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      spy.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(spy).invalidateMatchers();
+  }
+
+  @Test
+  public void testInvalidateMatchers() {
+    repo =
+        tempEntity.newRepository(repoManager, "testPublicId1", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    ProprietaryComponentNamePattern proprietaryComponentNamePattern1 =
+        tempEntity.newProprietaryComponentNamePattern(repo, null, "sonatype*");
+    Repository repo2 =
+        tempEntity.newRepository(repoManager, "testPublicId2", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    ProprietaryComponentNamePattern proprietaryComponentNamePattern2 =
+        tempEntity.newProprietaryComponentNamePattern(repo2, "@sonatype", null);
+    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(
+        ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
+    proprietaryComponentNamePatternDAO.delete(proprietaryComponentNamePattern1);
+    proprietaryComponentNamePatternDAO.delete(proprietaryComponentNamePattern2);
+
+    proprietaryComponentNameDetector.invalidateMatchers();
+
+    assertThat(proprietaryComponentNameDetector.findProprietaryComponentName(
+        ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999"))).isNull();
   }
 }

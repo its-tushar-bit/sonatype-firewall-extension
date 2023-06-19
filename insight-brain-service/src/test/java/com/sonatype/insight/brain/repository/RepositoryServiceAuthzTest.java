@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -58,6 +59,9 @@ public class RepositoryServiceAuthzTest
   @Mock
   private HdsClient hdsClientMock;
 
+  @Mock
+  private TaskScheduler mockTaskScheduler;
+
   @After
   public void cleanup() {
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
@@ -68,9 +72,10 @@ public class RepositoryServiceAuthzTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(RepositoryPolicyEvaluator.class).toInstance(repositoryPolicyEvaluator);
+    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
+    super.configure(binder);
   }
 
   @Test

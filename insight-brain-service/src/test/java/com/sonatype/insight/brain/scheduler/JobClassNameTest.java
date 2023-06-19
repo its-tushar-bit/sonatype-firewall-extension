@@ -88,6 +88,8 @@ public class JobClassNameTest
         "com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService", "SourceControlConfiguration");
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeTask", "WaivedComponentUpgradeTask");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector", "InvalidateComponentNameMatchers");
   }
 
   @Inject

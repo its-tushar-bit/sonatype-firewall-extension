@@ -242,7 +242,8 @@ public class SupportServiceTest
         "licenseThreatGroupLicense",
         "policy",
         "policyMonitoring",
-        "sourceControl"
+        "sourceControl",
+        "reverseProxyAuthenticationConfiguration"
     };
     final File[] expectedFiles = createExpectedFiles(workDir, basenames);
     assertThat(workDir.listFiles()).containsExactlyInAnyOrder(expectedFiles);

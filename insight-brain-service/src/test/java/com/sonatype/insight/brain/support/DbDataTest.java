@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -155,6 +156,19 @@ public class DbDataTest
     //then: embedded username is stripped from the value included in support information
     assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
         .containsOnly("https://****:****@example.com/scm/project/repo");
+  }
+
+  @Test
+  public void testGetReverseProxyAuthenticationConfiguration() {
+    tempEntity.newReverseProxyAuthenticationConfiguration(true, "header", true, "logoutUrl");
+
+    ReverseProxyAuthenticationConfiguration configuration
+        = (ReverseProxyAuthenticationConfiguration) dbData.getReverseProxyAuthenticationConfiguration().getValue();
+
+    assertThat(configuration.isEnabled()).isTrue();
+    assertThat(configuration.getUsernameHeader()).isEqualTo("header");
+    assertThat(configuration.isCsrfProtectionDisabled()).isTrue();
+    assertThat(configuration.getLogoutUrl()).isEqualTo("logoutUrl");
   }
 
   @Test

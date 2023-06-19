@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
@@ -123,6 +124,8 @@ class DbData
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
+  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+
   @Inject
   DbData(final RepositoryManagerDAO repositoryManagerDAO,
          final RepositoryDAO repositoryDAO,
@@ -153,7 +156,8 @@ class DbData
          final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
          final SourceControlDAO sourceControlDAO,
          final RepositoryComponentDAO repositoryComponentDAO,
-         final PolicyWaiverDAO policyWaiverDAO)
+         final PolicyWaiverDAO policyWaiverDAO,
+         final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -185,6 +189,7 @@ class DbData
     this.sourceControlDAO = sourceControlDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.policyWaiverDAO = policyWaiverDAO;
+    this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
   }
 
   Entry<String, Object> getRepositoryManager() {
@@ -337,6 +342,10 @@ class DbData
     }
 
     return wrapEntry("systemConfiguration", systemConfigurationPropertyList);
+  }
+
+  Entry<String, Object> getReverseProxyAuthenticationConfiguration() {
+    return wrapEntry("reverseProxyAuthenticationConfiguration", reverseProxyAuthenticationConfigurationDAO.get());
   }
 
   private static Entry<String, Object> wrapEntry(final String entryName, final Object objectToPut) {

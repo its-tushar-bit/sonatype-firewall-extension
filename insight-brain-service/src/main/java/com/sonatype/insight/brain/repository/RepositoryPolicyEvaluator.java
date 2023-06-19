@@ -225,8 +225,9 @@ public class RepositoryPolicyEvaluator
     }
 
     // Evaluate the policies
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(repository.getId());
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(), new Stage(ProxyStageType.ID),
-        components.stream().filter(Objects::nonNull).collect(Collectors.toList()), false /* forMonitoring */);
+        policies, components.stream().filter(Objects::nonNull).collect(Collectors.toList()), false /* forMonitoring */);
 
     // Only notify new component evaluation policy violations
     boolean shouldSendNotifications =
@@ -239,7 +240,7 @@ public class RepositoryPolicyEvaluator
       if (component != null) {
         if (persistEvaluationResults) {
           RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
-              policyResults, withQuarantine, shouldSendNotifications, forMonitoring);
+              policyResults, policies, withQuarantine, shouldSendNotifications, forMonitoring);
           repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
         }
         else {
@@ -285,6 +286,7 @@ public class RepositoryPolicyEvaluator
       Date evaluationTime,
       Component component,
       PolicyResults policyResults,
+      List<Policy> policies,
       boolean canBeQuarantined,
       boolean isNotificationsToBeSent,
       boolean forMonitoring)
@@ -301,7 +303,8 @@ public class RepositoryPolicyEvaluator
           policyViolationLoggerFactory.newLogger(evaluationTime, repository);
 
       // The order of the following calls are important and must not be changed. See: CLM-13853
-      persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
+      persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policies,
+          policyViolationLogger);
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
           canBeQuarantined, policyResults, isNotificationsToBeSent, forMonitoring);
 
@@ -427,6 +430,7 @@ public class RepositoryPolicyEvaluator
       Date evaluationTime,
       Component component,
       PolicyResults policyResults,
+      List<Policy> policies,
       RepositoryPolicyViolationLogger policyViolationLogger)
   {
     String pathname = component.getPathnames().get(0);
@@ -446,7 +450,13 @@ public class RepositoryPolicyEvaluator
       if (componentFact == null) {
         continue;
       }
-      RepositoryPolicyViolation policyViolation = createRepositoryPolicyViolation(policyAlert, componentFact, pathname,
+
+      Policy policy = policies.stream()
+          .filter(p -> p.getId().equals(policyAlert.getTrigger().getPolicyId()))
+          .findFirst().get();
+
+      RepositoryPolicyViolation policyViolation = createRepositoryPolicyViolation(policyAlert, policy, componentFact,
+          pathname,
           repository, evaluationTime, policyResults.getPolicyWaiver(componentFact));
       repositoryPolicyViolationDAO.insert(tx, policyViolation);
       newPolicyViolations.add(policyViolation);
@@ -503,6 +513,7 @@ public class RepositoryPolicyEvaluator
   }
 
   private RepositoryPolicyViolation createRepositoryPolicyViolation(PolicyAlert policyAlert,
+                                                                    Policy policy,
                                                                     ComponentFact componentFact,
                                                                     String pathname,
                                                                     Repository repository,
@@ -510,7 +521,6 @@ public class RepositoryPolicyEvaluator
                                                                     PolicyWaiver policyWaiver)
   {
     PolicyFact policyFact = policyAlert.getTrigger();
-    Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
     PolicyThreatCategory threatCategory = policy.getThreatCategory();
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repository.getId(), pathname,
         evaluationTime, policy.getId(), policy.getName(), policyFact.getThreatLevel(), threatCategory,

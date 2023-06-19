@@ -20,66 +20,6 @@ pipeline {
     shortVersion = "${params.releaseVersion.split('-')[0]}"
   }
   stages {
-    stage('Update IQ Server Test Instance') {
-      steps {
-        build(
-            job: 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
-            parameters: [
-                string(name: 'BASE_IMAGE', value: "${sonatypeDockerRegistryId()}/sonatype/nexus-iq-server:${env.shortVersion}"),
-                string(name: 'TARGET_IMAGE', value: "${sonatypeDockerRegistryId()}/iq/staging:${params.releaseVersion}")
-            ]
-        )
-
-        build(
-            job: 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
-            parameters: [
-                string(name: 'environment', value: 'Staging'),
-                string(name:'imageUrl', value: "${sonatypeDockerRegistryId()}/iq/staging:${params.releaseVersion}")
-            ]
-        )
-      }
-    }
-    stage('Verify IQ Server was deployed to Staging') {
-      steps {
-        build(
-            job: 'insight/insight-brain/verifyIQServerDeployment',
-            parameters: [
-                string(name: 'version', value: params.releaseVersion),
-                string(name: 'iqInstance', value: 'https://test.iq.sonatype.dev')
-            ]
-        )
-      }
-    }
-    stage('Update IQ Server Production Instance') {
-      steps {
-        build(
-            job: 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/production',
-            parameters: [
-                string(name: 'BASE_IMAGE', value: "${sonatypeDockerRegistryId()}/sonatype/nexus-iq-server:${env.shortVersion}"),
-                string(name: 'TARGET_IMAGE', value: "${sonatypeDockerRegistryId()}/iq/prod:${params.releaseVersion}")
-            ]
-        )
-
-        build(
-            job: 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/production',
-            parameters: [
-                string(name: 'environment', value: 'Production'),
-                string(name:'imageUrl', value: "${sonatypeDockerRegistryId()}/iq/prod:${params.releaseVersion}")
-            ]
-        )
-      }
-    }
-    stage('Verify IQ Server was deployed to Production') {
-      steps {
-        build(
-            job: 'insight/insight-brain/verifyIQServerDeployment',
-            parameters: [
-                string(name: 'version', value: params.releaseVersion),
-                string(name: 'iqInstance', value: 'https://iq.sonatype.dev')
-            ]
-        )
-      }
-    }
     stage('Prepare IQ Server HA Helm Chart') {
       steps {
         build(

@@ -568,10 +568,6 @@ public class TemporaryEntity
 
   private Collection<PolicyMonitoring> policyMonitorings;
 
-  private Collection<RepositoryManager> repositoryManagers;
-
-  private Collection<Repository> repositories;
-
   private Collection<SecurityVulnerabilityOverride> securityVulnerabilityOverrides;
 
   private Collection<VulnerabilityGroup> vulnerabilityGroups;
@@ -652,8 +648,6 @@ public class TemporaryEntity
     tags = new ArrayList<>();
     labels = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
-    repositoryManagers = new ArrayList<>();
-    repositories = new ArrayList<>();
     securityVulnerabilityOverrides = new ArrayList<>();
     vulnerabilityGroups = new ArrayList<>();
     vulnerabilityGroupsVulnerability = new ArrayList<>();
@@ -782,8 +776,7 @@ public class TemporaryEntity
     delete(tags, tagDAO);
     delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
     delete(policyMonitorings, policyMonitoringDAO);
-    delete(repositories, repositoryDAO);
-    delete(repositoryManagers, repositoryManagerDAO);
+    delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
     delete(webhooks, webhookDAO);
     delete(policyViolationAggregations, policyViolationAggregationDAO);
     delete(successMetricsReportDatas, successMetricsReportDataDAO);
@@ -2556,7 +2549,6 @@ public class TemporaryEntity
     RepositoryManager repositoryManager = new RepositoryManager();
     repositoryManager.setInstanceId(instanceId);
     repositoryManagerDAO.insert(repositoryManager);
-    repositoryManagers.add(repositoryManager);
     return repositoryManager;
   }
 
@@ -2565,7 +2557,6 @@ public class TemporaryEntity
     repositoryManager.setInstanceId(instanceId);
     repositoryManager.setUserAgent(userAgent);
     repositoryManagerDAO.insert(repositoryManager);
-    repositoryManagers.add(repositoryManager);
     return repositoryManager;
   }
 
@@ -2581,7 +2572,6 @@ public class TemporaryEntity
   public Repository newRepository(RepositoryManager repositoryManager, String publicId) {
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repositoryDAO.insert(repository);
-    repositories.add(repository);
     return repository;
   }
 
@@ -2594,7 +2584,6 @@ public class TemporaryEntity
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setFormat(format);
     repositoryDAO.insert(repository);
-    repositories.add(repository);
     return repository;
   }
 
@@ -2612,7 +2601,6 @@ public class TemporaryEntity
     repository.setAuditEnabled(auditEnabled);
     repository.setQuarantineEnabled(quarantineEnabled);
     repositoryDAO.insert(repository);
-    repositories.add(repository);
     return repository;
   }
 
@@ -2629,7 +2617,6 @@ public class TemporaryEntity
     repository.setAuditEnabled(RepositoryType.proxy.equals(repositoryType));
     repository.setQuarantineEnabled(quarantineEnabled);
     repositoryDAO.insert(repository);
-    repositories.add(repository);
     return repository;
   }
 
@@ -2648,7 +2635,6 @@ public class TemporaryEntity
     repository.setFormat(format);
     repository.setAuditEnabled(RepositoryType.proxy.equals(repositoryType));
     repositoryDAO.insert(repository);
-    repositories.add(repository);
     return repository;
   }
 
@@ -2665,7 +2651,6 @@ public class TemporaryEntity
     repository.setAuditEnabled(RepositoryType.proxy.equals(repositoryType));
     repository.setLastManualConfigureTime(lastManualConfigureTime);
     repositoryDAO.insert(repository);
-    repositories.add(repository);
     return repository;
   }
 

@@ -88,4 +88,8 @@ public class SidebarNavigation
   public static MainHeaderNavigationButton dataInsightsNavigationButton() {
     return new MainHeaderNavigationButton("#data-insights-navigation-button");
   }
+
+  public static MainHeaderNavigationButton integrationsNavigationButton() {
+    return new MainHeaderNavigationButton("#integrations-navigation-button");
+  }
 }

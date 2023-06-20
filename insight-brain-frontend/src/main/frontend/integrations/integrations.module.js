@@ -37,6 +37,9 @@ function routes($stateProvider) {
       url: '/integrations',
       template: integrationsTemplate,
       redirectTo: `integrations.${SECTIONS.OVERVIEW}`,
+      data: {
+        title: 'Integrations',
+      },
     })
     .state(`integrations.${SECTIONS.OVERVIEW}`, {
       url: '/overview',

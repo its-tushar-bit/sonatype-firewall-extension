@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars, faStars, faWrench } from '@fortawesome/pro-regular-svg-icons';
 import {
   faChartArea,
   faFileChartLine,
@@ -150,6 +150,21 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('icon', faStars);
       expect(navLink).toHaveProp('text', 'API');
       expect(navLink).toHaveProp('href', 'href-api');
+      expect(navLink).toHaveProp('isSelected', false);
+    });
+
+    it('renders an NxGlobalSidebarNavigationLink for the integrations page if allowed', function () {
+      expect(getShallowComponent({}).find('#integrations-navigation-button')).not.toExist();
+      expect(getShallowComponent({ isLoggedIn: true }).find('#integrations-navigation-button')).not.toExist();
+      expect(
+        getShallowComponent({ isIntegrationsPageEnabled: true }).find('#integrations-navigation-button')
+      ).not.toExist();
+      const component = getShallowComponent({ isLoggedIn: true, isIntegrationsPageEnabled: true });
+      const navLink = component.find('#integrations-navigation-button');
+      expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
+      expect(navLink).toHaveProp('icon', faWrench);
+      expect(navLink).toHaveProp('text', 'Integrations');
+      expect(navLink).toHaveProp('href', 'href-integrations');
       expect(navLink).toHaveProp('isSelected', false);
     });
 
@@ -364,6 +379,7 @@ describe('IqSidebarNav', function () {
           isLegalEnabled: true,
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
+          isIntegrationsPageEnabled: true,
         });
       });
 
@@ -395,6 +411,7 @@ describe('IqSidebarNav', function () {
           isLegalEnabled: true,
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
+          isIntegrationsPageEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'violations');
         expect(renderAllLinks().find('#reporting-navigation-button')).toHaveProp('isSelected', true);
@@ -413,6 +430,7 @@ describe('IqSidebarNav', function () {
           isLegalEnabled: true,
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
+          isIntegrationsPageEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'labs');
         expect(renderAllLinks().find('#labs-navigation-button')).toHaveProp('isSelected', true);
@@ -456,6 +474,7 @@ describe('IqSidebarNav', function () {
           isLegalEnabled: true,
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
+          isIntegrationsPageEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'legal');
         expect(renderAllLinks().find('#advanced-legal-navigation-button')).toHaveProp('isSelected', true);

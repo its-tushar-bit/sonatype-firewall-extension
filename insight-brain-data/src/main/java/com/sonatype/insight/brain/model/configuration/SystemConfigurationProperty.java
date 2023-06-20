@@ -159,6 +159,8 @@ public class SystemConfigurationProperty
 
   public static final String API_PAGE = "API_PAGE";
 
+  public static final String INTEGRATIONS_PAGE = "INTEGRATIONS_PAGE";
+
   public static final String SESSION_TIMEOUT_MINUTES = "sessionTimeout";
 
   public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX = "bfs.artifactoryExpiredTokenRegex";
@@ -177,7 +179,7 @@ public class SystemConfigurationProperty
 
   public static final String AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES =
       "automaticQuarantineReleaseTimeIntervalInMinutes";
-      
+
   public static final String WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR = "waivedComponentUpgradeInspectionHour";
 
   public static final String LOGOUT_AUTH0_ON_LOGOUT = "logoutAuth0OnLogout";

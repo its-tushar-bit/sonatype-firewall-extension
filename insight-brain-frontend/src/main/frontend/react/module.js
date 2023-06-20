@@ -58,6 +58,7 @@ export default angular
         'isDataInsightsEnabled',
         'isShowVersionEnabled',
         'isFirewallOnlyLicense',
+        'isIntegrationsPageEnabled',
       ],
       ['$state']
     )

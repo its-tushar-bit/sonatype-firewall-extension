@@ -130,3 +130,5 @@ export const selectIsShowEmailStoppedEnabled = createSelector(selectTenantMode, 
 export const selectIsBaseUrlConfigurationEnabled = createSelector(selectTenantMode, (mode) => {
   return mode === SINGLE_TENANT;
 });
+
+export const selectIsIntegrationsPageEnabled = createSelector(selectProductFeatures, prop('integrations-page'));

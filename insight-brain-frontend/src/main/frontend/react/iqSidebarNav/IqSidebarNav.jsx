@@ -11,7 +11,7 @@ import {
   NxGlobalSidebarNavigationLink,
   useToggle,
 } from '@sonatype/react-shared-components';
-import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars, faStars, faWrench } from '@fortawesome/pro-regular-svg-icons';
 import {
   faChartArea,
   faFileChartLine,
@@ -49,6 +49,7 @@ function IqSidebarNav(props) {
     isDataInsightsEnabled,
     isShowVersionEnabled,
     isFirewallOnlyLicense,
+    isIntegrationsPageEnabled,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -65,6 +66,7 @@ function IqSidebarNav(props) {
   const firewallHref = uiRouterState.href('firewall.firewallPage');
   const legalHref = uiRouterState.href('legal.dashboard');
   const dataInsightsHref = uiRouterState.href('dataInsights');
+  const integrationsHref = uiRouterState.href('integrations');
 
   const isSelected = (entryName) => {
     return uiRouterState.includes(entryName);
@@ -191,6 +193,15 @@ function IqSidebarNav(props) {
               href={dataInsightsHref}
             />
           )}
+          {isIntegrationsPageEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('integrations')}
+              id="integrations-navigation-button"
+              icon={faWrench}
+              text="Integrations"
+              href={integrationsHref}
+            />
+          )}
         </NxGlobalSidebarNavigation>
       )}
       {productEdition && releaseVersion && (
@@ -216,5 +227,6 @@ IqSidebarNav.propTypes = {
   isDataInsightsEnabled: PropTypes.bool,
   isShowVersionEnabled: PropTypes.bool,
   isFirewallOnlyLicense: PropTypes.bool,
+  isIntegrationsPageEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

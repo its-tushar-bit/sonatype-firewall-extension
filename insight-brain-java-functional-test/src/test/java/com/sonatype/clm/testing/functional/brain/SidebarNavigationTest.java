@@ -9,16 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
-import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
-import com.sonatype.clm.testing.functional.pages.ApiPage;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.FirewallPage;
-import com.sonatype.clm.testing.functional.pages.LabsDataInsightsPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
-import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
-import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.clm.testing.functional.pages.*;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -250,6 +241,26 @@ public class SidebarNavigationTest
     refresh();
     SidebarNavigation.apiNavigationButton().click();
     waitUntilUrl(ApiPage.url());
+  }
+
+  @Test
+  public void testIntegrationsNavigation_ShowWhenEnabled() {
+    SystemConfigurationPropertyFeature.INTEGRATIONS_PAGE.setEnabled(true);
+    refresh();
+    SidebarNavigation.integrationsNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testIntegrationsNavigation_HiddenWhenDisabled() {
+    SidebarNavigation.integrationsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testIntegrationsNavigation_toDataInsights() {
+    SystemConfigurationPropertyFeature.INTEGRATIONS_PAGE.setEnabled(true);
+    refresh();
+    SidebarNavigation.integrationsNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(IntegrationsPage.urlOverview());
   }
 
   @Test

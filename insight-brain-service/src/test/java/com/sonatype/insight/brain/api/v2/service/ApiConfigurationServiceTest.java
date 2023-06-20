@@ -1484,6 +1484,30 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testSetConfiguration_QuarantinedItemCustomMessage() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, "Test Message"));
+
+    assertThat(dao.get(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE)).isEqualTo("Test Message");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(
+            SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE))).containsEntry(
+        SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, "Test Message");
+  }
+
+  @Test
+  public void testSetConfiguration_QuarantinedItemCustomMessage_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(
+            SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE))).containsEntry(
+        SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, null);
+  }
+
+  @Test
   public void testGetConfiguration_AutomaticQuarantineReleaseTimeIntervalInMinutesNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(

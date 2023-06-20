@@ -189,6 +189,8 @@ public class SystemConfigurationProperty
   public static final String QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS =
       "quarantinedComponentReportExpirationTimeInHours";
 
+  public static final String QUARANTINED_ITEM_CUSTOM_MESSAGE = "quarantinedItemCustomMessage";
+
   /**
    * Internal feature flag to enable Firewall Onboarding. It will be removed right before we release Firewall
    * Onboarding for external customers.

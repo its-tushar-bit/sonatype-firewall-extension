@@ -363,4 +363,18 @@ public class ConfigurationUtilsTest
     assertThat(ConfigurationUtils.purgeScanFiles(ConfigurationUtils.WITH_REPORTS))
             .isEqualTo(ConfigurationUtils.WITH_REPORTS);
   }
+  
+  @Test
+  public void testValidateCustomMessage_Null() {
+    assertThat(ConfigurationUtils.validateCustomMessage(null)).isNull();
+  }
+
+  @Test
+  public void testValidateCustomMessage_MaxLength() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> ConfigurationUtils.validateCustomMessage(
+        StringUtils.repeat("a", ConfigurationUtils.MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE + 1)
+    )).withMessageContaining(
+        String.format(ConfigurationUtils.LONG_QUARANTINED_ITEM_CUSTOM_MESSAGE_ERROR_MSG,
+            ConfigurationUtils.MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE));
+  }
 }

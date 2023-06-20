@@ -56,6 +56,11 @@ public class ConfigurationUtils
   public static final String INVALID_PURGE_SCAN_FILES_VALUE_MSG = "Provided value: [%s] " +
           "for property purgeScanFiles is invalid";
 
+  public static final int MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE = 500;
+
+  public static final String LONG_QUARANTINED_ITEM_CUSTOM_MESSAGE_ERROR_MSG =
+      "The quarantined item custom message cannot exceed %s characters.";
+
   public static final String NONE_VALUE = "'none'";
 
   public static final String WITH_REPORTS = "withReports";
@@ -298,5 +303,17 @@ public class ConfigurationUtils
     else {
       throw new BadRequestException(String.format(INVALID_PURGE_SCAN_FILES_VALUE_MSG, purgeScan));
     }
+  }
+
+  public static String validateCustomMessage(Object customMessage) {
+    if (customMessage == null) {
+      return null;
+    }
+    String customMessageValue = customMessage.toString();
+    if (customMessageValue.length() > MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE) {
+      throw new BadRequestException(
+          String.format(LONG_QUARANTINED_ITEM_CUSTOM_MESSAGE_ERROR_MSG, MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE));
+    }
+    return customMessageValue;
   }
 }

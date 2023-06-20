@@ -166,6 +166,9 @@ public class ConfigurationProperty
           Boolean.class,
           (p, s) -> Boolean.parseBoolean(s),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, String.class,
+          (p, s) -> s,
+          (p, o) -> ConfigurationUtils.validateCustomMessage(o)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

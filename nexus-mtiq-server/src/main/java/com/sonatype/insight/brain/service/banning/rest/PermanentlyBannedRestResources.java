@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiDataRetentionPolicyResource;
 import com.sonatype.insight.brain.api.v2.ApiExternalTelemetryResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiSamlConfigurationResource;
+import com.sonatype.insight.brain.api.v2.DefaultApiConfigurationResource;
 import com.sonatype.insight.brain.security.UserResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
 import com.sonatype.insight.brain.support.SupportResource;
@@ -32,6 +33,7 @@ public class PermanentlyBannedRestResources
       ApiConfigFeaturesResource.class,
       SupportResource.class,
       ApiSamlConfigurationResource.class,
+      DefaultApiConfigurationResource.class,
       UserResource.class
   );
 

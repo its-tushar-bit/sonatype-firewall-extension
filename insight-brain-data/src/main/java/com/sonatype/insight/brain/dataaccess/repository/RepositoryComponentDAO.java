@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -24,6 +26,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
@@ -66,6 +69,20 @@ public class RepositoryComponentDAO
         " WHERE entity.repositoryId=?1" + //
         " AND entity.pathname=?2";
     return get(tx, sQuery, repositoryId, pathname);
+  }
+
+  public List<RepositoryComponent> getByRepositoryIdAndPathnames(
+      String repositoryId,
+      List<String> pathnames)
+  {
+    String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.pathname IN (?2)";
+    List<List<String>> partitions = Lists.partition(pathnames, getInOperatorThreshold());
+    return partitions.stream()
+        .map(partition -> getList(sQuery, repositoryId, partition))
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
   }
 
   public List<RepositoryComponent> getByRepositoryIdAndHash(String repositoryId, String hash) {

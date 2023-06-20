@@ -11,9 +11,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -233,6 +233,11 @@ public class RepositoryPolicyEvaluator
     boolean shouldSendNotifications =
         RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT.equals(componentEvaluationDataRequestList.cause);
 
+    Map<String, RepositoryComponent> repositoryComponents = Collections.emptyMap();
+    if (withQuarantine) {
+      repositoryComponents = getRepositoryComponents(repository, components);
+    }
+
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationData repositoryComponentEvaluationResult = new RepositoryComponentEvaluationData();
       repositoryComponentEvaluationResult.requestIndex = requestIndex;
@@ -246,8 +251,10 @@ public class RepositoryPolicyEvaluator
         else {
           repositoryComponentEvaluationResult.policyAlerts = getPolicyAlerts(policyResults, component);
           if (withQuarantine) {
+            RepositoryComponent repositoryComponent =
+                repositoryComponents.getOrDefault(component.getPathnames().get(0), null);
             repositoryComponentEvaluationResult.quarantine =
-                canQuarantine(repository, repositoryComponentEvaluationResult.policyAlerts, component);
+                canQuarantine(repositoryComponentEvaluationResult.policyAlerts, repositoryComponent, component);
           }
         }
       }
@@ -261,14 +268,28 @@ public class RepositoryPolicyEvaluator
     return componentEvaluationResultList;
   }
 
+  private Map<String, RepositoryComponent> getRepositoryComponents(
+      final Repository repository,
+      final List<Component> components)
+  {
+    List<String> pathnames = components.stream()
+        .filter(Objects::nonNull)
+        .map(component -> component.getPathnames().get(0))
+        .collect(Collectors.toList());
+
+    return repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), pathnames).stream()
+        .collect(Collectors.toMap(RepositoryComponent::getPathname, Function.identity()));
+  }
+
   /**
-   * If the specified component exists in the db, then return its existing quarantine status.
-   * Otherwise, return quarantine status based on policy alerts.
+   * If the specified component exists in the db, then return its existing quarantine status. Otherwise, return
+   * quarantine status based on policy alerts.
    */
-  private boolean canQuarantine(Repository repository, List<PolicyAlert> policyAlerts, Component component) {
-    String pathname = component.getPathnames().get(0);
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
+  private boolean canQuarantine(
+      List<PolicyAlert> policyAlerts,
+      RepositoryComponent repositoryComponent,
+      Component component)
+  {
     if (repositoryComponent != null && repositoryComponent.getHash().equals(component.getHash())) {
       return repositoryComponent.isQuarantined();
     }
@@ -350,7 +371,7 @@ public class RepositoryPolicyEvaluator
       Date quarantineTime = quarantine ? evaluationTime : null;
       repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime, component.getHash(),
           component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()
-              .getId(), evaluationTime);
+          .getId(), evaluationTime);
       repositoryComponent.setQuarantineTime(quarantineTime);
       repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
       if (repositoryComponentId == null) {
@@ -512,13 +533,14 @@ public class RepositoryPolicyEvaluator
     }
   }
 
-  private RepositoryPolicyViolation createRepositoryPolicyViolation(PolicyAlert policyAlert,
-                                                                    Policy policy,
-                                                                    ComponentFact componentFact,
-                                                                    String pathname,
-                                                                    Repository repository,
-                                                                    Date evaluationTime,
-                                                                    PolicyWaiver policyWaiver)
+  private RepositoryPolicyViolation createRepositoryPolicyViolation(
+      PolicyAlert policyAlert,
+      Policy policy,
+      ComponentFact componentFact,
+      String pathname,
+      Repository repository,
+      Date evaluationTime,
+      PolicyWaiver policyWaiver)
   {
     PolicyFact policyFact = policyAlert.getTrigger();
     PolicyThreatCategory threatCategory = policy.getThreatCategory();

@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -147,8 +149,64 @@ public class RepositoryComponentDAOTest
     assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId())).isEqualTo(0);
 
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "jar"));
     assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId())).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetByRepositoryIdAndPathnames_GetsSingleRepositoryComponent() {
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "jar"));
+
+    ArrayList<String> pathnames = new ArrayList<>();
+    pathnames.add(repositoryComponent.getPathname());
+
+    List<RepositoryComponent> repositoryComponents =
+        dao.getByRepositoryIdAndPathnames(repository.getId(), pathnames);
+
+    assertThat(repositoryComponents).hasSize(1);
+    assertRepositoryComponent(repositoryComponent.getRepositoryId(), repositoryComponent.getPathname(),
+        repositoryComponent.getTime(),
+        repositoryComponent.getHash(), repositoryComponent.getComponentIdentifier(),
+        repositoryComponent.getMatchStateId(), repositoryComponent.getIdentificationSourceId(),
+        repositoryComponent.getLastEvaluationTime(), repositoryComponents.get(0), null);
+  }
+
+  @Test
+  public void testGetByRepositoryIdAndPathnames_GetsRepositoryComponentInBatches() {
+    List<RepositoryComponent> components = new ArrayList<>();
+    for (int i = 0; i < TestRepositoryComponentDAO.PARTITION_THRESHOLD + 1; i++) {
+      components.add(tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+          ComponentIdentifier.createMavenCoordinates("g", "a", "v" + i, "c", "jar")));
+    }
+
+    List<String> pathnames = components.stream()
+        .map(RepositoryComponent::getPathname)
+        .collect(Collectors.toList());
+
+    List<RepositoryComponent> repositoryComponents =
+        dao.getByRepositoryIdAndPathnames(repository.getId(), pathnames);
+
+    assertThat(components).hasSize(TestRepositoryComponentDAO.PARTITION_THRESHOLD + 1);
+    assertThat(repositoryComponents).hasSize(TestRepositoryComponentDAO.PARTITION_THRESHOLD + 1);
+    for (RepositoryComponent expected : components) {
+      assertIsContainedIn(expected, repositoryComponents);
+    }
+  }
+
+  private void assertIsContainedIn(RepositoryComponent expected, List<RepositoryComponent> in) {
+    Optional<RepositoryComponent> optionalRepositoryComponent = in.stream()
+        .filter(component -> component.getPathname().equals(expected.getPathname()))
+        .findFirst();
+    assertThat(optionalRepositoryComponent.isPresent()).isTrue();
+    assertRepositoryComponent(optionalRepositoryComponent.get(), expected);
+  }
+
+  private void assertRepositoryComponent(RepositoryComponent expected, RepositoryComponent actual) {
+    assertRepositoryComponent(expected.getRepositoryId(), expected.getPathname(), expected.getTime(),
+        expected.getHash(), expected.getComponentIdentifier(), expected.getMatchStateId(),
+        expected.getIdentificationSourceId(), expected.getLastEvaluationTime(), actual,
+        expected.getAnalyzerFeaturesJson());
   }
 
   private void assertRepositoryComponent(
@@ -822,5 +880,16 @@ public class RepositoryComponentDAOTest
     assertThat(component.getQuarantineTime()).isEqualTo(quarantineTime);
     assertThat(component.getUnquarantineTime()).isEqualTo(unquarantineTime);
     assertThat(component.getAutoUnquarantined()).isEqualTo(autoUnquarantined);
+  }
+
+  private static class TestRepositoryComponentDAO
+      extends RepositoryComponentDAO
+  {
+    public static final int PARTITION_THRESHOLD = 2;
+
+    @Override
+    public int getInOperatorThreshold() {
+      return PARTITION_THRESHOLD;
+    }
   }
 }

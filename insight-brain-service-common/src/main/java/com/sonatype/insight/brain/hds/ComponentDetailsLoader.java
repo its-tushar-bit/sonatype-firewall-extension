@@ -241,6 +241,7 @@ public abstract class ComponentDetailsLoader
    */
   public Component augmentComponentDetails(ComponentDetails componentDetails) {
     Component component = getComponent(componentDetails);
+    componentDetails.setObservedLicenses(loadLicenses(component.getObservedMultiLicenseIds()));
 
     // Use CLM data to populate the component details
     for (String licenseId : component.getLicenseOverrideIds()) {

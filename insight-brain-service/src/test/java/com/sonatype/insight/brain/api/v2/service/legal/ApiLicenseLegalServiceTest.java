@@ -105,6 +105,7 @@ import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
@@ -236,14 +237,19 @@ public class ApiLicenseLegalServiceTest
   @Mock
   private RepositoryQueryService repositoryQueryService;
 
+  @Mock
+  private Configuration configurationMock;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     apiLicenseDataAdapterSpy = spy(new DefaultApiLicenseDataAdapter(new MultiLicenseDAO()));
     binder.bind(ApiLicenseDataAdapter.class).toInstance(apiLicenseDataAdapterSpy);
-    componentInfoServiceSpy = spy(new ComponentInfoService(null, null, new ComponentDetailsLoaderFactory(null), null,
-        mockThirdPartyComponentDAO, repositoryQueryService, multiLicenseDAO));
+    lenient().when(configurationMock.isALPObservedLicenseDetectionEnabled()).thenReturn(true);
+    componentInfoServiceSpy =
+        spy(new ComponentInfoService(null, null, new ComponentDetailsLoaderFactory(null, configurationMock), null,
+            mockThirdPartyComponentDAO, repositoryQueryService, multiLicenseDAO));
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceSpy);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(mockThirdPartyComponentDAO);
     binder.bind(ComponentLegalService.class).toInstance(mockComponentLegalService);

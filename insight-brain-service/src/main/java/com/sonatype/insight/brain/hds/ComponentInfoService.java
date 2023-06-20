@@ -862,13 +862,16 @@ public class ComponentInfoService
     ComponentDetails componentDetails =
         getUnaugmentedComponentDetails(owner, componentIdentifier, httpRequest, identificationSource, scanId);
 
-    augmentComponentDetails(owner, componentDetails);
+    Component component = augmentComponentDetails(owner, componentDetails);
 
     result.declaredLicenses = getMultiLicenseWithThreatLevels(owner, componentDetails.getDeclaredLicenses());
     result.observedLicenses = getMultiLicenseWithThreatLevels(owner, componentDetails.getObservedLicenses());
     result.effectiveLicenses = getMultiLicenseWithThreatLevels(owner, componentDetails.getEffectiveLicenses());
     result.selectableLicenses = new ArrayList<>(
         getSelectableLicenses(componentDetails.getDeclaredLicenses(), componentDetails.getObservedLicenses()));
+    result.hiddenObservedLicenses = component.isHiddenObservedLicenses();
+    result.supportAlpObservedLicenses = com.sonatype.insight.brain.model.license.License
+        .isAlpObservedLicenseEcosystemHidden(componentIdentifier.getFormat());
     return result;
   }
 
@@ -1081,6 +1084,10 @@ public class ComponentInfoService
     public List<MultiLicenseWithThreatLevel> effectiveLicenses;
 
     public List<License> selectableLicenses;
+
+    public boolean hiddenObservedLicenses;
+
+    public boolean supportAlpObservedLicenses;
   }
 
   /**

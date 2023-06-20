@@ -36,6 +36,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
@@ -85,6 +86,7 @@ import com.sonatype.insight.brain.repository.RepositoryComponentResult;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -107,6 +109,8 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED;
+import static com.sonatype.insight.brain.model.license.License.NOT_SUPPORTED_ID;
 import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -163,6 +167,12 @@ public class ComponentInfoServiceTest
 
   @Mock
   private RepositoryQueryService repositoryQueryService;
+
+  @Inject
+  private ApiConfigurationService configurationService;
+
+  @Inject
+  private Configuration configuration;
 
   @Override
   public void configure(Binder binder) {
@@ -357,6 +367,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertMultiLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
   }
 
   @Test
@@ -396,6 +408,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertMultiLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertThat(licenses.selectableLicenses).isEmpty();
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
   }
 
   private void testGetLicenses(final OwnerType ownerType, final String ownerId) throws Exception {
@@ -445,6 +459,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertMultiLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertThat(licenses.selectableLicenses).isEmpty();
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
 
     String privateOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -471,6 +487,8 @@ public class ComponentInfoServiceTest
         tuple("BSD-3-Clause", "BSD-3-Clause", 5));
     assertThat(licenses.selectableLicenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-2.0",
         "LGPL-2.0", "MPL-1.1", "GPL-2.0", "BSD-3-Clause", "AFL-2.1");
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
   }
 
   @Test
@@ -539,6 +557,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.observedLicenses, tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
         tuple("BSD-3-Clause", "BSD-3-Clause", 5));
     assertMultiLicenses(licenses.effectiveLicenses, tuple("BSD-3-Clause", "BSD-3-Clause", 5));
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
   }
 
   @Test
@@ -580,6 +600,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.declaredLicenses, tuple("Not-Declared", "Not Declared", 5));
     assertMultiLicenses(licenses.observedLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
     assertMultiLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
   }
 
   @Test
@@ -621,6 +643,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.declaredLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
     assertMultiLicenses(licenses.observedLicenses, tuple("No-Sources", "No Sources", 5));
     assertMultiLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
   }
 
   @Test
@@ -662,6 +686,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.declaredLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
     assertMultiLicenses(licenses.observedLicenses, tuple("No-Source-License", "No Source License", 5));
     assertMultiLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
   }
 
   @Test
@@ -710,6 +736,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.observedLicenses, tuple("No-Source-License", "No Source License", 5));
     assertMultiLicenses(licenses.effectiveLicenses, tuple("Not-Declared", "Not Declared", 5),
         tuple("No-Source-License", "No Source License", 5));
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
   }
 
   @Test
@@ -756,6 +784,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.effectiveLicenses, tuple("MIT", "MIT", 0));
     assertThat(licenses.selectableLicenses).isNotEmpty().extracting(License::getLicenseId)
         .doesNotContain("Not-Supported");
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isTrue();
   }
 
   @Test
@@ -807,6 +837,31 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertMultiLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertThat(licenses.hiddenObservedLicenses).isFalse();
+    assertThat(licenses.supportAlpObservedLicenses).isFalse();
+  }
+
+  @Test
+  public void testGetMultiLicenses_HiddenObservedLicenses() throws Exception {
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("componentIdentifier", ComponentIdentifierAdapter.toJson(NPM_COORDINATES));
+
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(NPM_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("MIT"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("Apache-2.0"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+
+    configurationService.setConfigurationNoAuthz(ALP_OBSERVED_LICENSE_DETECTION_ENABLED, false);
+    configuration.configurationChanged(Collections.singleton(ALP_OBSERVED_LICENSE_DETECTION_ENABLED));
+
+    ComponentMultiLicenses licenses = componentInfoService.getMultiLicenses(OwnerType.APPLICATION,
+        application.getPublicId(), NPM_COORDINATES, httpRequestMock, null, null);
+
+    assertMultiLicenses(licenses.declaredLicenses, tuple("MIT", "MIT", 0));
+    assertMultiLicenses(licenses.observedLicenses, tuple(NOT_SUPPORTED_ID, "Not Supported", null));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple("MIT", "MIT", 0));
+    assertThat(licenses.hiddenObservedLicenses).isTrue();
+    assertThat(licenses.supportAlpObservedLicenses).isTrue();
   }
 
   @Test

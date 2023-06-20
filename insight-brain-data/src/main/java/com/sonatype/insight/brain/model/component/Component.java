@@ -98,6 +98,8 @@ public class Component
 
   private Set<String> parentComponentPurls;
 
+  private boolean hiddenObservedLicenses;
+
   public Component() {
   }
 
@@ -491,5 +493,13 @@ public class Component
 
   public void setParentComponentPurls(final Set<String> parentComponentPurls) {
     this.parentComponentPurls = parentComponentPurls;
+  }
+
+  public boolean isHiddenObservedLicenses() {
+    return hiddenObservedLicenses;
+  }
+
+  public void setHiddenObservedLicenses(Boolean hiddenObservedLicenses) {
+    this.hiddenObservedLicenses = hiddenObservedLicenses;
   }
 }

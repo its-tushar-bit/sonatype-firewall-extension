@@ -11,6 +11,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
+import com.sonatype.insight.brain.service.Configuration;
 
 @Named
 @Singleton
@@ -18,12 +19,18 @@ public class ComponentDetailsLoaderFactory
 {
   private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
 
+  private final Configuration configuration;
+
   @Inject
-  public ComponentDetailsLoaderFactory(ProprietaryComponentNameDetector proprietaryComponentNameDetector) {
+  public ComponentDetailsLoaderFactory(
+      ProprietaryComponentNameDetector proprietaryComponentNameDetector,
+      Configuration configuration)
+  {
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
+    this.configuration = configuration;
   }
 
   public ComponentDetailsLoader newInstance(Owner owner) {
-    return new DefaultComponentDetailsLoader(owner, proprietaryComponentNameDetector);
+    return new DefaultComponentDetailsLoader(owner, proprietaryComponentNameDetector, configuration);
   }
 }

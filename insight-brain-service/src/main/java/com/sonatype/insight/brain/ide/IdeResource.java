@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -91,6 +92,8 @@ public class IdeResource
 
   private final CurrentUser currentUser;
 
+  private final Configuration configuration;
+
   @Inject
   public IdeResource(
       BaseUrl baseUrl,
@@ -98,7 +101,8 @@ public class IdeResource
       ComponentPolicyEvaluator componentPolicyEvaluator,
       TelemetrySender telemetrySender,
       UserIdePolicyEvaluationDAO userIdePolicyEvaluationDao,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      Configuration configuration)
   {
     this.baseUrl = baseUrl;
     this.client = client;
@@ -106,6 +110,7 @@ public class IdeResource
     this.telemetrySender = telemetrySender;
     this.userIdePolicyEvaluationDao = userIdePolicyEvaluationDao;
     this.currentUser = currentUser;
+    this.configuration = configuration;
   }
 
   /**
@@ -163,7 +168,8 @@ public class IdeResource
     IdeMatchedComponent ideComponent = getComponent(matchedComponent);
     if (ideComponent.getWaitDelta() == null
         && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch() || forceEvaluation)) {
-      Component component = new ComponentDAO(app).getComponent(matchedComponent);
+      Component component =
+          new ComponentDAO(app).getComponent(matchedComponent, configuration.isALPObservedLicenseDetectionEnabled());
       component.setProprietary(proprietary);
       List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID),
           Collections.singletonList(component));

@@ -102,15 +102,6 @@ public final class Report
     FULL, ERROR
   }
 
-  private static final Set<String> HIDDEN_OBSERVED_ECOSYSTEMS = new HashSet<>(Arrays.asList(
-      ComponentIdentifier.FORMAT_NUGET,
-      ComponentIdentifier.FORMAT_RUBYGEMS,
-      ComponentIdentifier.FORMAT_NPM,
-      ComponentIdentifier.FORMAT_PYPI,
-      ComponentIdentifier.FORMAT_RPM,
-      ComponentIdentifier.FORMAT_COMPOSER
-  ));
-
   public static ReportEntry getEntry(final File reportFile, final String name) throws IOException {
     if (name.contains("../") || name.contains("..\\")) {
       // legit callers use normalized paths, no directory traversal into restricted areas
@@ -319,7 +310,7 @@ public final class Report
     Set<String> currentObservedLicenses = JsonUtils.getStringSetFromArray(matchedComponentNode.get("observedLicenses"));
     if (CollectionUtils.isNotEmpty(currentObservedLicenses) &&
         !currentObservedLicenses.equals(Collections.singleton(notSupportedLicense.getShortDisplayName()))) {
-      if (!isALPObservedLicenseEnabled && HIDDEN_OBSERVED_ECOSYSTEMS.contains(matchedComponent.getFormat())) {
+      if (!isALPObservedLicenseEnabled && License.isAlpObservedLicenseEcosystemHidden(matchedComponent.getFormat())) {
         matchedComponentNode.putArray("observedLicenses")
             .add(notSupportedLicense.getShortDisplayName());
         matchedComponentNode.put("hiddenObservedLicenses", true);

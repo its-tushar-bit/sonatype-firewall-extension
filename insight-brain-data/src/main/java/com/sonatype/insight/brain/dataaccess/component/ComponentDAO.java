@@ -67,6 +67,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -606,7 +607,7 @@ public class ComponentDAO
     return componentDependencyType;
   }
 
-  public Component getComponent(ComponentInfo componentInfo) {
+  public Component getComponent(ComponentInfo componentInfo, boolean isAlpObservedLicenseDetectionEnabled) {
     Component component = new Component();
 
     component.setHash(componentInfo.getHash());
@@ -627,6 +628,15 @@ public class ComponentDAO
 
       Set<String> declaredMultiLicenseIds = componentInfo.getDeclaredLicenseIds();
       Set<String> observedMultiLicenseIds = componentInfo.getObservedLicenseIds();
+      Set<String> notSupportedLicenseIdSet = Collections.singleton(License.NOT_SUPPORTED_ID);
+
+      if (!isAlpObservedLicenseDetectionEnabled
+          && License.isAlpObservedLicenseEcosystemHidden(componentInfo.getComponentIdentifier().getFormat())
+          && CollectionUtils.isNotEmpty(observedMultiLicenseIds)
+          && !observedMultiLicenseIds.equals(notSupportedLicenseIdSet)) {
+        observedMultiLicenseIds = notSupportedLicenseIdSet;
+        component.setHiddenObservedLicenses(true);
+      }
 
       component.setDeclaredMultiLicenseIds(declaredMultiLicenseIds);
       component.setObservedMultiLicenseIds(observedMultiLicenseIds);

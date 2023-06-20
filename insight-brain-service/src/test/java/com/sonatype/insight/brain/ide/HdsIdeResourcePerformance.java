@@ -27,6 +27,9 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.service.Configuration;
+
+import static org.mockito.Mockito.mock;
 
 public class HdsIdeResourcePerformance
 {
@@ -84,7 +87,7 @@ public class HdsIdeResourcePerformance
     this.iterations = iterations * connections;
     resource = new IdeResource(null, HdsIdeResourcePerformanceUtils.createHdsClient(server),
         new ComponentPolicyEvaluator(), HdsIdeResourcePerformanceUtils.createTelemetrySender(),
-        new UserIdePolicyEvaluationDAO(), new CurrentUser());
+        new UserIdePolicyEvaluationDAO(), new CurrentUser(), mock(Configuration.class));
 
     // trigger db
     testApplication = new Application();

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
+import com.sonatype.insight.brain.service.Configuration;
 
 /**
  * Assists in loading data for the CIP.
@@ -25,15 +26,23 @@ public class DefaultComponentDetailsLoader
 
   private final ProprietaryComponentNameDetector proprietaryComponentNameDetector;
 
-  DefaultComponentDetailsLoader(Owner owner, ProprietaryComponentNameDetector proprietaryComponentNameDetector) {
+  private final Configuration configuration;
+
+  DefaultComponentDetailsLoader(
+      Owner owner,
+      ProprietaryComponentNameDetector proprietaryComponentNameDetector,
+      Configuration configuration)
+  {
     componentDAO = new ComponentDAO(owner);
     this.proprietaryComponentNameDetector =
         OwnerType.REPOSITORY.equals(owner.getType()) ? proprietaryComponentNameDetector : null;
+    this.configuration = configuration;
   }
 
   @Override
   protected Component getComponent(ComponentDetails componentDetails) {
-    Component component = componentDAO.getComponent(componentDetails);
+    Component component =
+        componentDAO.getComponent(componentDetails, configuration.isALPObservedLicenseDetectionEnabled());
     if (proprietaryComponentNameDetector != null) {
       component.setConflictingProprietaryName(
           proprietaryComponentNameDetector.findProprietaryComponentName(component.getComponentIdentifier()));

@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -49,6 +51,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.jaxrs.JsonUtils;
@@ -675,6 +678,39 @@ public class IdeResourceTest
     assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
     assertThat(policyAlerts).hasSize(1);
+  }
+
+  @Test
+  public void testDoScan_HiddenObservedLicense() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Condition condition = new Condition(LicenseConditionType.ID, "is", License.NOT_SUPPORTED_ID);
+    Policy policy = tempEntity.newPolicy(app, 10, LogicalOperator.AND, condition);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
+    HttpRequest request = simpleScanRequest(applicationPublicId, "hash").query("proprietary", false);
+
+    MatchedComponent hdsResponse = new MatchedComponent();
+    hdsResponse.setHash("hash");
+    hdsResponse.setComponentIdentifier(componentIdentifier);
+    hdsResponse.addDeclaredLicenseId("MIT");
+    hdsResponse.addObservedLicenseId("Apache-2.0");
+
+    mockHdsResponse(request, hdsResponse, 200);
+
+    Configuration configuration = getCLMServer().getInstance(Configuration.class);
+    configuration.setALPObservedLicenseDetectionEnabled(false);
+
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    IdeMatchedComponent result = response.getBody(IdeMatchedComponent.class);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getAlerts())
+        .extracting(PolicyAlert::getTrigger)
+        .extracting(PolicyFact::getPolicyName)
+        .containsExactly(policy.getName());
   }
 
   @Test

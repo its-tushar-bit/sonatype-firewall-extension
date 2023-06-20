@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCustomData;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -136,7 +137,7 @@ public class ComponentDAOTest
     sv.setAliases(Collections.singletonList("alias1"));
     matchedComponent
         .addSecurityVulnerability(sv);
-    Component component = new ComponentDAO(application).getComponent(matchedComponent);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
     assertThat(component).isNotNull();
     assertThat(component.getHash()).isEqualTo(matchedComponent.getHash());
     assertThat(component.getComponentIdentifier()).isEqualTo(matchedComponent.getComponentIdentifier());
@@ -172,7 +173,7 @@ public class ComponentDAOTest
     MatchedComponent matchedComponent = new MatchedComponent();
     matchedComponent.setHash(COMP_HASH);
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
-    Component component = new ComponentDAO(application).getComponent(matchedComponent);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
     assertThat(component).isNotNull();
     assertThat(component.getLicenseOverrideIds()).isEmpty();
 
@@ -183,7 +184,7 @@ public class ComponentDAOTest
     LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
     licenseOverrideDAO.insert(orgLicenseOverride);
-    component = new ComponentDAO(application).getComponent(matchedComponent);
+    component = new ComponentDAO(application).getComponent(matchedComponent, true);
     assertThat(component).isNotNull();
     assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-3.0");
 
@@ -191,7 +192,7 @@ public class ComponentDAOTest
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
     licenseOverrideDAO.insert(appLicenseOverride);
-    component = new ComponentDAO(application).getComponent(matchedComponent);
+    component = new ComponentDAO(application).getComponent(matchedComponent, true);
     assertThat(component).isNotNull();
     assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-2.0");
   }
@@ -202,7 +203,7 @@ public class ComponentDAOTest
     matchedComponent.setHash(COMP_HASH);
     matchedComponent
         .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
-    Component component = new ComponentDAO(application).getComponent(matchedComponent);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
     assertThat(component).isNotNull();
     assertThat(component.getLicenseOverrideIds()).isEmpty();
 
@@ -212,7 +213,7 @@ public class ComponentDAOTest
     LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
     licenseOverrideDAO.insert(orgLicenseOverride);
-    component = new ComponentDAO(application).getComponent(matchedComponent);
+    component = new ComponentDAO(application).getComponent(matchedComponent, true);
     assertThat(component).isNotNull();
     assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-3.0");
 
@@ -221,7 +222,7 @@ public class ComponentDAOTest
         new LicenseOverride(application.getId(), ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"),
             LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
     licenseOverrideDAO.insert(appLicenseOverride);
-    component = new ComponentDAO(application).getComponent(matchedComponent);
+    component = new ComponentDAO(application).getComponent(matchedComponent, true);
     assertThat(component).isNotNull();
     assertThat(component.getLicenseOverrideIds()).containsExactlyInAnyOrder("GPL-2.0");
   }
@@ -233,7 +234,7 @@ public class ComponentDAOTest
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
     matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-3.0");
-    Component component = new ComponentDAO(application).getComponent(matchedComponent);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
     assertThat(component).isNotNull();
     assertThat(component.getDeclaredLicenseIds()).containsExactlyInAnyOrder("Apache-2.0", "GPL-2.0", "GPL-3.0");
     assertThat(component.getDeclaredMultiLicenseIds())
@@ -248,12 +249,59 @@ public class ComponentDAOTest
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     matchedComponent.addObservedLicenseId("Apache-2.0-GPL-2.0");
     matchedComponent.addObservedLicenseId("Apache-2.0-GPL-3.0");
-    Component component = new ComponentDAO(application).getComponent(matchedComponent);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
     assertThat(component).isNotNull();
     assertThat(component.getObservedLicenseIds()).containsExactlyInAnyOrder("Apache-2.0", "GPL-2.0", "GPL-3.0");
     assertThat(component.getObservedMultiLicenseIds())
         .containsExactlyInAnyOrder("Apache-2.0-GPL-3.0", "Apache-2.0-GPL-2.0");
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
+  }
+
+  @Test
+  public void testGetComponent_ObservedLicensesHidden() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createNpmCoordinates("p", "v"));
+    matchedComponent.addObservedLicenseId("Apache-2.0-GPL-2.0");
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, false);
+    assertThat(component).isNotNull();
+    assertThat(component.getObservedLicenseIds()).containsExactly(License.NOT_SUPPORTED_ID);
+    assertThat(component.getObservedMultiLicenseIds()).containsExactly(License.NOT_SUPPORTED_ID);
+    assertThat(component.isHiddenObservedLicenses()).isTrue();
+  }
+
+  @Test
+  public void testGetComponent_ObservedLicensesHiddenNotSupportedFormat() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", "q", "v"));
+    matchedComponent.addObservedLicenseId("MIT");
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, false);
+    assertThat(component).isNotNull();
+    assertThat(component.getObservedLicenseIds()).containsExactly("MIT");
+    assertThat(component.getObservedMultiLicenseIds()).containsExactly("MIT");
+    assertThat(component.isHiddenObservedLicenses()).isFalse();
+  }
+
+  @Test
+  public void testGetComponent_ObservedLicensesHiddenEmptyLicenses() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createNpmCoordinates("p", "v"));
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, false);
+    assertThat(component).isNotNull();
+    assertThat(component.getObservedLicenseIds()).isEmpty();
+    assertThat(component.getObservedMultiLicenseIds()).isEmpty();
+    assertThat(component.isHiddenObservedLicenses()).isFalse();
+  }
+
+  @Test
+  public void testGetComponent_ObservedLicensesHiddenOnlyNotSupportedLicense() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createNpmCoordinates("p", "v"));
+    matchedComponent.addObservedLicenseId(License.NOT_SUPPORTED_ID);
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, false);
+    assertThat(component).isNotNull();
+    assertThat(component.getObservedLicenseIds()).containsExactly(License.NOT_SUPPORTED_ID);
+    assertThat(component.getObservedMultiLicenseIds()).containsExactly(License.NOT_SUPPORTED_ID);
+    assertThat(component.isHiddenObservedLicenses()).isFalse();
   }
 
   @Test

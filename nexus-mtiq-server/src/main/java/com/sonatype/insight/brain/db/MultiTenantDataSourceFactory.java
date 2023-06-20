@@ -14,6 +14,9 @@ import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.DatabaseSchemaPopulator;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * <p>
  * MTIQ-specific implementation of the {@link DataSourceFactory}. Extends that class but does NOT use the parent
@@ -30,6 +33,8 @@ import com.sonatype.insight.db.PostgresDatabaseEngine;
 public class MultiTenantDataSourceFactory
     extends DataSourceFactory
 {
+  private static final Logger log = LoggerFactory.getLogger(MultiTenantDataSourceFactory.class);
+
   private DataSource mainDataSource;
 
   private DataSource locksDataSource;
@@ -54,6 +59,9 @@ public class MultiTenantDataSourceFactory
     // For MTIQ we only create one data source (i.e. connection pool)
     if (mainDataSource == null) {
       DatabaseConfig mainDbConfig = validateConfig(multiTenantInsightConfig.getMainDatabase(), "mainDatabase");
+
+      log.info("Creating main data source (connection pool) with maxConnections = {}, maxIdleConnections = {}",
+          databaseConfig.getMaxConnections(), databaseConfig.getMaxIdleConnections());
 
       // verify the passed in datasource is the same. Throw an error if is it not.
       if (mainDbConfig != databaseConfig) {

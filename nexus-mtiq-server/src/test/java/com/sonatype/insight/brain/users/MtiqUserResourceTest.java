@@ -11,16 +11,23 @@ import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.jaxrs.JsonUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
 import com.google.inject.Module;
 import org.junit.Test;
 
@@ -33,15 +40,14 @@ public class MtiqUserResourceTest
 
   private final TenantMetadataDAO tenantMetadataDAO = new TenantMetadataDAO();
 
-  private TestMultiTenantAuth0ManagementService authService = new TestMultiTenantAuth0ManagementService();
-
   @Override
   protected List<Module> getBrainModules() {
     List<Module> modules = new ArrayList<>(super.getBrainModules());
     modules.add(new AbstractModule() {
       @Override
       protected void configure() {
-        bind(MultiTenantAuth0ManagementService.class).toInstance(authService);
+        bind(MultiTenantAuth0ManagementService.class).to(TestMultiTenantAuth0ManagementService.class);
+        bind(MTIQFeatureService.class).to(TestMtiqFeatureService.class).asEagerSingleton();
       }
     });
     return modules;
@@ -109,6 +115,31 @@ public class MtiqUserResourceTest
     assertThat(samlUserDAO.getAll()).hasSize(0);
   }
 
+  @Test
+  public void test_ThrowsExceptionWhenNotMangedIdp() throws Exception {
+    TestMtiqFeatureService.isFeatureEnabledDuringTest = false;
+
+    try {
+      // List
+      assertThat(restRequest().get().getStatusCode()).isEqualTo(400);
+
+      // Invite
+      MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();
+      mtiqUserDTO.setFirstName("foo");
+      mtiqUserDTO.setLastName("bar");
+      mtiqUserDTO.setEmail("foo@bar.com");
+      mtiqUserDTO.setUsername("foo@bar.com");
+
+      assertThat(restRequest().body(mtiqUserDTO).post().getStatusCode()).isEqualTo(400);
+
+      // Delete
+      assertThat(restRequest().path("foo@bar.com").delete().getStatusCode()).isEqualTo(400);
+    }
+    finally {
+      TestMtiqFeatureService.isFeatureEnabledDuringTest = true;
+    }
+  }
+
   private static class TestMultiTenantAuth0ManagementService extends MultiTenantAuth0ManagementService
   {
     @Override
@@ -126,6 +157,26 @@ public class MtiqUserResourceTest
     @Override
     public void deleteUser(final String username, final String connectionId) {
       //no-op
+    }
+  }
+
+  private static class TestMtiqFeatureService extends MTIQFeatureService
+  {
+    public static boolean isFeatureEnabledDuringTest = true;
+
+    @Inject
+    public TestMtiqFeatureService(
+        final ProductLicense productLicense,
+        final Configuration configuration,
+        final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+        final ApiConfigFeaturesService service)
+    {
+      super(productLicense, configuration, systemConfigurationPropertyDAO, service);
+    }
+
+    @Override
+    public boolean isEnabled(final SystemConfigurationPropertyFeature feature) {
+      return isFeatureEnabledDuringTest;
     }
   }
 }

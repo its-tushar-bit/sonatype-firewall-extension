@@ -31,7 +31,7 @@ describe('LicenseDetections', function () {
       loadError: null,
       toggleShowEditLicensesPopover: toggleShowEditLicensesPopoverSpy,
       identificationSource: 'Sonatype',
-      reviewObligationsButtonIsVisible: false,
+      isAdvancedLegalPackSupported: false,
       stateGo: stateGoSpy,
     };
     getShallow = enzymeUtils.getShallowComponent(LicenseDetections, minimalProps);
@@ -66,13 +66,13 @@ describe('LicenseDetections', function () {
   });
 
   it('renders an NxButton with label `Review Obligations` if ALP feature is enabled', () => {
-    const loadWrapperContents = getShallow({ reviewObligationsButtonIsVisible: true }).find(NxLoadWrapper).dive();
+    const loadWrapperContents = getShallow({ isAdvancedLegalPackSupported: true }).find(NxLoadWrapper).dive();
     const button = loadWrapperContents.find('#component-details-review-obligations');
     expect(button.text()).toContain('Review Obligations');
   });
 
   it('will not render an NxButton with label `Review Obligations` if ALP feature is not enabled', () => {
-    const loadWrapperContents = getShallow({ reviewObligationsButtonIsVisible: false }).find(NxLoadWrapper).dive();
+    const loadWrapperContents = getShallow({ isAdvancedLegalPackSupported: false }).find(NxLoadWrapper).dive();
     const button = loadWrapperContents.find('#component-details-review-obligations');
     expect(button.exists()).toBe(false);
   });
@@ -85,7 +85,7 @@ describe('LicenseDetections', function () {
       reviewObligationsClickHandler: reviewObligationsClickHandlerSpy,
     };
     const loadWrapperContents = getShallow({
-      reviewObligationsButtonIsVisible: true,
+      isAdvancedLegalPackSupported: true,
       ...applicationReportMetadataProps,
     })
       .find(NxLoadWrapper)
@@ -396,6 +396,24 @@ describe('LicenseDetections', function () {
 
       expect(observedLicenses.find('span').at(1)).toHaveText('Not Provided');
       expect(observedLicenses.find('span').at(2)).toHaveText(' (Claimed Component)');
+    });
+
+    describe('Observed Licenses section with ALP detection', () => {
+      it('renders the Get ALP detections alert if Observed Licenses are hidden', () => {
+        const loadWrapperContents = getShallow({ hiddenObservedLicenses: true }).find(NxLoadWrapper).dive();
+        expect(loadWrapperContents.find('#enable-alp-observed-licenses-alert')).toExist();
+      });
+
+      it('renders the Get ALP alert if ALP is not enabled and format supports ALP observed license detection', () => {
+        const loadWrapperContents = getShallow({
+          isAdvancedLegalPackSupported: false,
+          supportAlpObservedLicenses: true,
+        })
+          .find(NxLoadWrapper)
+          .dive();
+        const alert = loadWrapperContents.find('#get-alp-alert');
+        expect(alert).toExist();
+      });
     });
   });
 });

@@ -9,9 +9,7 @@ import { find, propEq, compose, toLower, findIndex, __ } from 'ramda';
 import {
   NxStatefulForm,
   NxFieldset,
-  NxList,
   NxTextInput,
-  NxRadio,
   NxCheckbox,
   NxLoadingSpinner,
   NxFormSelect,
@@ -20,7 +18,7 @@ import {
 
 import { capitalize, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { getStatusName } from 'MainRoot/legal/legalUtility';
-import { isOverriddenOrSelected, renderLicensesList } from '../LegalTabUtils';
+import { isOverriddenOrSelected, renderLicensesList, renderObservedLicenses } from '../LegalTabUtils';
 import {
   licensePropTypes,
   multiLicensesPropTypes,
@@ -66,6 +64,9 @@ export default function EditLicensesForm({
   submitMaskState,
   identificationSource,
   setShowUnsavedChangesModal,
+  hiddenObservedLicenses,
+  supportAlpObservedLicenses,
+  isAdvancedLegalPackSupported,
 }) {
   const [showLoadingSpinnerForOverrideField, setShowLoadingSpinnerForOverrideField] = useState(true);
   useEffect(() => {
@@ -208,7 +209,15 @@ export default function EditLicensesForm({
         <dl className="nx-read-only">
           <dt className="nx-read-only__label">Observed Licenses</dt>
           <dd className="nx-read-only__data" id="observed-licenses-container">
-            <ul className="iq-legal-list">{renderLicensesList(observedLicenses, isClaimed)}</ul>
+            <ul className="iq-legal-list">
+              {renderObservedLicenses(
+                observedLicenses,
+                isClaimed,
+                hiddenObservedLicenses,
+                isAdvancedLegalPackSupported,
+                supportAlpObservedLicenses
+              )}
+            </ul>
           </dd>
         </dl>
       </div>
@@ -306,4 +315,7 @@ EditLicensesForm.propTypes = {
   submitMaskState: PropTypes.bool,
   identificationSource: PropTypes.string,
   setShowUnsavedChangesModal: PropTypes.func,
+  hiddenObservedLicenses: PropTypes.bool,
+  supportAlpObservedLicenses: PropTypes.bool,
+  isAdvancedLegalPackSupported: PropTypes.bool,
 };

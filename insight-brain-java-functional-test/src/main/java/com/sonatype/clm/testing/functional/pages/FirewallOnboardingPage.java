@@ -33,6 +33,10 @@ public class FirewallOnboardingPage
     return BaseUrl.resolvePageUrl("/firewallOnboarding");
   }
   
+  public SelenideElement helpButton() {
+    return child("#help-button");
+  }
+
   public Button cancelButton() {
     return new Button(childSelector("#cancel-button"));
   }

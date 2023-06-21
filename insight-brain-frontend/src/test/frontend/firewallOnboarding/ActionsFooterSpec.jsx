@@ -13,6 +13,7 @@ import { steps } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
 
 describe('ActionsFooter', function () {
   const renderComponent = (currentStep) => render(<ActionsFooter currentStep={currentStep} />);
+  const HELP_URL = 'http://links.sonatype.com/products/nxiq/doc/firewall-onboarding';
 
   beforeAll(() => {
     spyOn(actions, 'saveRepositories').and.callThrough();
@@ -22,6 +23,14 @@ describe('ActionsFooter', function () {
   });
 
   describe('when the current step is the first step', () => {
+    it('renders a help button', () => {
+      renderComponent(steps[0]);
+      const helpButton = screen.getByRole('link', { name: /help/i });
+
+      expect(helpButton).toBeVisible();
+      expect(helpButton).toHaveAttribute('href', HELP_URL);
+    });
+
     it('renders cancel button', () => {
       renderComponent(steps[0]);
       const cancelButton = screen.getByRole('button', { name: /cancel/i });
@@ -56,6 +65,14 @@ describe('ActionsFooter', function () {
   });
 
   describe('when the current step is the last step', () => {
+    it('renders a help button', () => {
+      renderComponent(steps[0]);
+      const helpButton = screen.getByRole('link', { name: /help/i });
+
+      expect(helpButton).toBeVisible();
+      expect(helpButton).toHaveAttribute('href', HELP_URL);
+    });
+
     it('renders cancel button', () => {
       renderComponent(steps[0]);
       const cancelButton = screen.getByRole('button', { name: /cancel/i });

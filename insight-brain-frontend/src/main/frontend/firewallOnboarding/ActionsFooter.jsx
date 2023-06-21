@@ -15,6 +15,8 @@ import { next, prev } from './firewallOnboardingUtils';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { setShowWelcomeModalToTrueInStore } from '../firewall/firewallWelcomeModalStore';
 
+const HELP_URL = 'http://links.sonatype.com/products/nxiq/doc/firewall-onboarding';
+
 export default function ActionsFooter({ currentStep = {}, isNextButtonDisabled, ...otherProps }) {
   const uiRouterState = useRouterState();
   const dispatch = useDispatch();
@@ -34,24 +36,31 @@ export default function ActionsFooter({ currentStep = {}, isNextButtonDisabled, 
   const isNextAvailable = Boolean(next(currentStep));
 
   return (
-    <NxFooter id="actions-footer" role="navigation" {...otherProps}>
-      <NxButton variant="tertiary" id="cancel-button" onClick={handleCancel}>
-        Cancel
-      </NxButton>
-      {isPrevAvailable && (
-        <NxButton variant="secondary" id="previous-button" onClick={goBackToPreviousStep}>
-          Previous
+    <NxFooter className="actions-footer" id="actions-footer" role="navigation" {...otherProps}>
+      <div className="actions-footer__button-group">
+        <a className="nx-btn nx-btn--tertiary" id="help-button" target="_blank" rel="noreferrer" href={HELP_URL}>
+          Help
+        </a>
+      </div>
+      <div className="actions-footer__button-group">
+        <NxButton variant="tertiary" id="cancel-button" onClick={handleCancel}>
+          Cancel
         </NxButton>
-      )}
-      {isNextAvailable ? (
-        <NxButton variant="primary" id="continue-button" disabled={isNextButtonDisabled} onClick={continueToNextStep}>
-          Continue
-        </NxButton>
-      ) : (
-        <NxButton variant="primary" id="launch-button" onClick={launchFirewall}>
-          Launch Firewall
-        </NxButton>
-      )}
+        {isPrevAvailable && (
+          <NxButton variant="secondary" id="previous-button" onClick={goBackToPreviousStep}>
+            Previous
+          </NxButton>
+        )}
+        {isNextAvailable ? (
+          <NxButton variant="primary" id="continue-button" disabled={isNextButtonDisabled} onClick={continueToNextStep}>
+            Continue
+          </NxButton>
+        ) : (
+          <NxButton variant="primary" id="launch-button" onClick={launchFirewall}>
+            Launch Firewall
+          </NxButton>
+        )}
+      </div>
     </NxFooter>
   );
 }

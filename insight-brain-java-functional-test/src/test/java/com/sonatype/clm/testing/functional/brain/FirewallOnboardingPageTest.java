@@ -71,6 +71,17 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
+  public void testHelpButtonShouldBeDisplayedWithCorrectAttributes() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.shouldBe(Condition.visible);
+    page.getStartedButton().click();
+    page.helpButton()
+      .shouldBe(attribute("href", "http://links.sonatype.com/products/nxiq/doc/firewall-onboarding"))
+      .shouldHave(attribute("target", "_blank"));
+  }
+
+  @Test
   public void testClickingSidebarNavigationOpensIncompleteConfigurationModalOnWelcomeScreen() {
     refreshOrOpen(FirewallOnboardingPage.url());
 

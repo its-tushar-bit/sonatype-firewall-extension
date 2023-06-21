@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
 firewall-onboarding,
 firewall-onboarding-page {
   display: contents;
@@ -84,10 +86,14 @@ firewall-onboarding-page {
       }
     }
 
-    .nx-footer {
+    .actions-footer {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: space-between;
+
+      &__button-group {
+        @include nx-container-helpers.container-horizontal;
+      }
     }
   }
 

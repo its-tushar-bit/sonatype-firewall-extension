@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -472,7 +473,7 @@ public class ApplicationDAO
   }
 
   @SuppressWarnings("unchecked")
-  public List<String> getApplicationsWithoutCITriggeredEvaluations(final Date sinceUtcDate) {
+  public List<String> getApplicationsWithoutCITriggeredEvaluations(final Date sinceUtcDate, final String nameFilter) {
     /*
     Apps without CI can be defined as:
       Apps with evaluations != CI but not if having at least 1 eval == CI
@@ -481,7 +482,7 @@ public class ApplicationDAO
 
     Get a list of applications that are not found in the list of applications with CI evals
      */
-    final String appsWithoutCIQuery = "SELECT DISTINCT app.application_id" +
+    final StringBuilder appsWithoutCIQuery = new StringBuilder("SELECT DISTINCT app.application_id" +
         " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application app" +
         " LEFT JOIN (" +
         "    SELECT DISTINCT peci.application_id" +
@@ -492,11 +493,20 @@ public class ApplicationDAO
         "    AND peci.for_obsolete_scan = false" +
         "    AND peci.time >= ?2" +
         ") pe ON app.application_id = pe.application_id" +
-        " WHERE pe.application_id IS NULL";
+        " WHERE pe.application_id IS NULL");
+
+    final boolean hasNameFilter = StringUtils.isNotEmpty(nameFilter);
+    if (hasNameFilter) {
+      appsWithoutCIQuery.append(" AND LOWER(app.name) LIKE LOWER(CONCAT('%', ?3, '%'))");
+    }
+
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(appsWithoutCIQuery);
+      javax.persistence.Query query = tx.createNativeQuery(appsWithoutCIQuery.toString());
       query.setParameter(1, ScanTriggerType.CONTINUOUS_INTEGRATION.name());
       query.setParameter(2, sinceUtcDate);
+      if (hasNameFilter) {
+        query.setParameter(3, nameFilter);
+      }
       return query.getResultList();
     }
   }

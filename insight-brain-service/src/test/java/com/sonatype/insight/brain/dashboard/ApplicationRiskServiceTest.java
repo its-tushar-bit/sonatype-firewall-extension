@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
-
+import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -187,7 +187,7 @@ public class ApplicationRiskServiceTest
     appDTO = result.dashboardResults.get(0);
     assertThat(appDTO.stageRisks).hasSize(1);
     assertThat(appDTO.stageRisks.get(0).stageTypeId).isEqualTo(BuildStageType.ID);
-    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(orgPolicy.getThreatLevel() 
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk).isEqualTo(orgPolicy.getThreatLevel()
         + app1Policy.getThreatLevel());
 
     result = applicationRiskService
@@ -588,6 +588,48 @@ public class ApplicationRiskServiceTest
     final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
 
     assertThat(results.numResults).isEqualTo(3);
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_UseDefaultOrderBy() {
+    final CIApplicationFilter filter = new CIApplicationFilter(0, 100, new Date(1569553200000L));
+    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+
+    assertThat(results.dashboardResults.get(0).totalRisk)
+        .isGreaterThan(results.dashboardResults.get(1).totalRisk);
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_UseNonDefaultOrderBy() {
+    final Application appA = tempEntity.newApplication("A", "A", org.getId());
+    final Application appB = tempEntity.newApplication("B", "B", org.getId());
+
+    final CIApplicationFilter filter =
+        new CIApplicationFilter(0, 100, new Date(1569553200000L)).setOptionalOrderBy("-NAME");
+    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+    final List<CIApplicationDTO> apps = results.dashboardResults;
+
+    // DESC by name should look like -> [B, app2, app1, A]
+    assertThat(apps.get(0).applicationName).isEqualTo(appB.getName());
+    assertThat(apps.get(apps.size() - 1).applicationName).isEqualTo(appA.getName());
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_InvalidOrderBy() {
+    final CIApplicationFilter filter =
+        new CIApplicationFilter(0, 100, new Date(1569553200000L)).setOptionalOrderBy("INVALID");
+    assertThatThrownBy(() -> applicationRiskService.getCIApplicationRisk(filter))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Invalid orderBy property.");
+  }
+
+  @Test
+  public void testGetCIApplicationRisks_NoFilterMatches() {
+    final CIApplicationFilter filter = new CIApplicationFilter(0, 100, new Date(1569553200000L))
+        .setOptionalFilterApplicationNamesBy("INVALID");
+    // Should bypass the default Dashboard behavior of returning all apps when the input IDs are empty
+    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+    assertThat(results.dashboardResults).isEmpty();
   }
 
   private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk, int lowRisk, int netRisk) {

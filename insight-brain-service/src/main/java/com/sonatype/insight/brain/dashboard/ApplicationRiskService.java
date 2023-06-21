@@ -94,7 +94,7 @@ public class ApplicationRiskService
       int pageSize)
   {
     return getApplicationRisks(organizationIds, applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
-        policyThreatLevelFilter, policyViolationStateFilter, orderBy, page, pageSize, true, true);
+        policyThreatLevelFilter, policyViolationStateFilter, orderBy, page, pageSize, false, false);
   }
 
   public DashboardResultsDTO<CIApplicationDTO> getCIApplicationRisk(final CIApplicationFilter filter) {
@@ -105,11 +105,13 @@ public class ApplicationRiskService
     }
 
     final List<String> appsWithoutCI =
-        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(filter.getSinceUtcTimestamp());
+        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(filter.getSinceUtcTimestamp(),
+            filter.getOptionalFilterApplicationNamesBy());
     final DashboardResultsDTO<ApplicationRiskScoreDTO> fullResults =
         getApplicationRisks(Collections.emptySet(), new HashSet<>(appsWithoutCI), Collections.emptySet(),
             Collections.emptySet(), new PolicyThreatCategoryFilter(), new PolicyThreatLevelFilter(0, 10),
-            new PolicyViolationStateFilter(), "-TOTAL_RISK", filter.getPage(), filter.getPageSize(), false, false);
+            new PolicyViolationStateFilter(), filter.getOptionalOrderBy(), filter.getPage(), filter.getPageSize(),
+            true, true);
     final List<CIApplicationDTO> totalRiskResults = fullResults.dashboardResults.stream().map(applicationRiskScoreDTO ->
         new CIApplicationDTO(applicationRiskScoreDTO.applicationId, applicationRiskScoreDTO.applicationName,
             applicationRiskScoreDTO.totalApplicationRisk.totalRisk)).collect(Collectors.toList());
@@ -128,8 +130,8 @@ public class ApplicationRiskService
       final String orderBy,
       int page,
       int pageSize,
-      boolean excludeZeroRisk,
-      boolean requireApplicationAuth)
+      boolean includeZeroRisk,
+      boolean excludeAllAppsByDefault)
   {
     dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
 
@@ -137,10 +139,8 @@ public class ApplicationRiskService
 
     ApplicationRiskScoreDTOComparator applicationRiskComparator = new ApplicationRiskScoreDTOComparator(orderBy);
     List<Application> appsToSearch =
-        requireApplicationAuth ? applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds,
-            applicationIds, tagIds) :
-            applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(organizationIds,
-                applicationIds, tagIds);
+        excludeAllAppsByDefault ? applicationService.getAppsByIds(organizationIds, applicationIds, tagIds) :
+            applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
     log.debug("Loaded {} applications", appsToSearch.size());
 
     AuditData.get() //
@@ -156,7 +156,7 @@ public class ApplicationRiskService
         policyViolationLoader.getViolations(appsToSearch, stageTypes, false, policyThreatLevelFilter,
             policyThreatCategoryFilter, policyViolationStateFilter);
 
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews, excludeZeroRisk);
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews, includeZeroRisk);
     applicationRiskScoreDTOs.sort(applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
     result.numResults = applicationRiskScoreDTOs.size();
@@ -178,7 +178,7 @@ public class ApplicationRiskService
 
   private List<ApplicationRiskScoreDTO> createApplicationRiskScores(
       Collection<ApplicationView> appViews,
-      boolean excludeZeroRisk)
+      boolean includeZeroRisk)
   {
     Map<String, String> orgNames = new HashMap<>();
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>(appViews.size());
@@ -194,7 +194,7 @@ public class ApplicationRiskService
           appView.getApplication().getName(), appView.getApplication().getPublicId());
 
       updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
-      if (excludeZeroRisk && applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {
+      if (!includeZeroRisk && applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {
         continue;
       }
       applicationRiskScores.add(applicationRiskScore);

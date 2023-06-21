@@ -1283,9 +1283,43 @@ public class ApplicationDAOTest
     final List<String> expectedAppsWithoutCI =
         Arrays.asList(application3.getId(), application4.getId(), application5.getId());
     final List<String> actualAppsWithoutCI =
-        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(sinceUtcDate);
+        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(sinceUtcDate, "");
 
     assertThat(actualAppsWithoutCI)
         .hasSameElementsAs(expectedAppsWithoutCI);
+  }
+
+  @Test
+  public void testGetApplicationsWithoutCITriggeredEvaluations_FilterAppName() {
+    final Application appWithMatchingName = tempEntity.newApplication("Foo", "bar", organization.getId());
+    tempEntity.newApplication("Bar", "foo", organization.getId());
+
+    final List<String> appsWithoutCI =
+        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(new Date(), "oo");
+
+    assertThat(appsWithoutCI).hasSize(1);
+    assertThat(appsWithoutCI.get(0)).isEqualTo(appWithMatchingName.getId());
+  }
+
+  @Test
+  public void testGetApplicationsWithoutCITriggeredEvaluations_FilterAppNameCaseInsensitive() {
+    final Application appWithMatchingName =
+        tempEntity.newApplication("FooBar", "bar", organization.getId());
+
+    final List<String> appsWithoutCI =
+        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(new Date(), "fOobAR");
+
+    assertThat(appsWithoutCI).hasSize(1);
+    assertThat(appsWithoutCI.get(0)).isEqualTo(appWithMatchingName.getId());
+  }
+
+  @Test
+  public void testGetApplicationsWithoutCITriggeredEvaluations_FilterAppNameWithNoMatch() {
+    tempEntity.newApplication("Foo", "bar", organization.getId());
+
+    final List<String> appsWithoutCI =
+        applicationDAO.getApplicationsWithoutCITriggeredEvaluations(new Date(), "bar");
+
+    assertThat(appsWithoutCI).isEmpty();
   }
 }

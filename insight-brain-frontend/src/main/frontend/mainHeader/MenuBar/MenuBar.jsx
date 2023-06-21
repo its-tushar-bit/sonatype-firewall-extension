@@ -35,6 +35,8 @@ export const MenuBar = ({
   isBaseUrlConfigurationEnabled,
   isSamlConfigurationEnabled,
   isMonitoringSupported,
+  isSsoIdpManagedBySonatype,
+  isSingleTenant,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
@@ -79,6 +81,8 @@ export const MenuBar = ({
             isBaseUrlConfigurationEnabled={isBaseUrlConfigurationEnabled}
             isSamlConfigurationEnabled={isSamlConfigurationEnabled}
             isMonitoringSupported={isMonitoringSupported}
+            isSsoIdpManagedBySonatype={isSsoIdpManagedBySonatype}
+            isSingleTenant={isSingleTenant}
           />
         )}
         <UserMenu userActions={userActions} />
@@ -116,6 +120,8 @@ MenuBar.propTypes = {
   isSamlConfigurationEnabled: PropTypes.bool,
   isMonitoringSupported: PropTypes.bool,
   isShowNotificationMenuEnabled: PropTypes.bool,
+  isSsoIdpManagedBySonatype: PropTypes.bool,
+  isSingleTenant: PropTypes.bool,
 };
 
 export default MenuBar;

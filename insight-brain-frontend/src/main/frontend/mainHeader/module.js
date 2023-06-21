@@ -62,6 +62,8 @@ export default angular
         'isBaseUrlConfigurationEnabled',
         'isSamlConfigurationEnabled',
         'isMonitoringSupported',
+        'isSsoIdpManagedBySonatype',
+        'isSingleTenant',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

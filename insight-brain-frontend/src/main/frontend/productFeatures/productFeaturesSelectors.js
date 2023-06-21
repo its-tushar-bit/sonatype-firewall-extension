@@ -97,6 +97,11 @@ export const selectIsAdvancedSearchConfigurationEnabled = createSelector(
   prop('advanced-search-configuration')
 );
 
+export const selectIsSsoIdpManagedBySonatype = createSelector(
+  selectProductFeatures,
+  prop('sso-idp-managed-by-sonatype')
+);
+
 const selectIsSingleTenantEnabled = createSelector(selectProductFeatures, prop('single-tenant'));
 const selectIsMultiTenantEnabled = createSelector(selectProductFeatures, prop('multi-tenant'));
 

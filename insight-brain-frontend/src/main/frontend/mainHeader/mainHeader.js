@@ -23,6 +23,7 @@ import {
   selectIsBaseUrlConfigurationEnabled,
   selectIsMonitoringSupported,
   selectTenantMode,
+  selectIsSsoIdpManagedBySonatype,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
@@ -104,6 +105,8 @@ export const mapStateToThis = (state) => ({
   isBaseUrlConfigurationEnabled: selectIsBaseUrlConfigurationEnabled(state),
   isSamlConfigurationEnabled: selectTenantMode(state) === 'single-tenant',
   isMonitoringSupported: selectIsMonitoringSupported(state),
+  isSsoIdpManagedBySonatype: selectIsSsoIdpManagedBySonatype(state),
+  isSingleTenant: selectTenantMode(state) !== 'multi-tenant',
 });
 
 MainHeaderController.$inject = [

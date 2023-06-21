@@ -26,6 +26,8 @@ export const SystemPreferencesMenu = ({
   isBaseUrlConfigurationEnabled = false,
   isSamlConfigurationEnabled = false,
   isMonitoringSupported = false,
+  isSsoIdpManagedBySonatype = false,
+  isSingleTenant = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -37,7 +39,11 @@ export const SystemPreferencesMenu = ({
   return (
     <MenuButton icon={faCog} iconLabel="System Preferences" id="system-configuration-menu">
       <MenuTitle>System Preferences</MenuTitle>
-      <NavLink stateName="users" id="system-configuration-users" showIf={CONFIGURE_SYSTEM}>
+      <NavLink
+        stateName="users"
+        id="system-configuration-users"
+        showIf={CONFIGURE_SYSTEM && (isSingleTenant || isSsoIdpManagedBySonatype)}
+      >
         Users
       </NavLink>
       <NavLink stateName="rolesList" id="system-configuration-roles" showIf={VIEW_ROLES}>
@@ -171,6 +177,8 @@ SystemPreferencesMenu.propTypes = {
   isBaseUrlConfigurationEnabled: PropTypes.bool,
   isMonitoringSupported: PropTypes.bool,
   isSamlConfigurationEnabled: PropTypes.bool,
+  isSsoIdpManagedBySonatype: PropTypes.bool,
+  isSingleTenant: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

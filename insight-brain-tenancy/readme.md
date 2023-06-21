@@ -675,7 +675,7 @@ curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X GET http://127.0.0.1:
 #### Response Details
 ```json
 [
-  "enable-managed-idp-sso",
+  "sso-idp-managed-by-sonatype",
   "logout-auth0-on-logout",
   "webhook-configuration",
   "automatic-scm-configuration",

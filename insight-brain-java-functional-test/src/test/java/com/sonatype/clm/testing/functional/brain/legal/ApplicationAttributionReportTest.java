@@ -57,7 +57,7 @@ public class ApplicationAttributionReportTest
       "pkg\\:maven\\/org\\.springframework\\.security\\/spring-security-web\\@3\\.2\\.4\\.RELEASE\\?type\\=jar";
 
   //The box.json contains 2 invalid component identifiers, so there are 62 valid only.
-  public static final int EXPECTED_COUNT_OF_COMPONENTS = 63;
+  public static final int EXPECTED_COUNT_OF_COMPONENTS = 62;
 
   private final ApplicationAttributionReportPage reportPage = new ApplicationAttributionReportPage();
 

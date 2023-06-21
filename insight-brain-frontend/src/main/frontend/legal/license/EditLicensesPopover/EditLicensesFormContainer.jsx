@@ -34,8 +34,6 @@ function mapStateToProps(state) {
     licenseOverride,
     selectableLicenses,
     allLicenses,
-    hiddenObservedLicenses,
-    supportAlpObservedLicenses,
   } = state.advancedLegal.multiLicenses;
 
   const identificationSource = selectComponentIdentificationSource(state);
@@ -55,9 +53,6 @@ function mapStateToProps(state) {
     submitMaskState,
     submitError,
     identificationSource,
-    hiddenObservedLicenses,
-    supportAlpObservedLicenses,
-    isAdvancedLegalPackSupported: true,
   };
 }
 

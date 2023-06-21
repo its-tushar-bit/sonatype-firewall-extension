@@ -8,22 +8,20 @@ import PropTypes from 'prop-types';
 import { NxButton, NxFontAwesomeIcon, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 
-import { renderLicensesList, renderObservedLicenses } from '../LegalTabUtils';
+import { renderLicensesList } from '../LegalTabUtils';
 
 export default function LicenseDetections({
   licenseOverride,
   declaredLicenses,
   effectiveLicenses,
   observedLicenses,
-  hiddenObservedLicenses,
-  supportAlpObservedLicenses,
   loadLicenses,
   loading,
   loadError,
   toggleShowEditLicensesPopover,
   identificationSource,
   reviewObligationsClickHandler,
-  isAdvancedLegalPackSupported,
+  reviewObligationsButtonIsVisible,
 }) {
   useEffect(() => {
     loadLicenses();
@@ -59,7 +57,7 @@ export default function LicenseDetections({
                   <span>Edit</span>
                 </NxButton>
 
-                {isAdvancedLegalPackSupported && (
+                {reviewObligationsButtonIsVisible && (
                   <NxButton
                     id="component-details-review-obligations"
                     variant="primary"
@@ -104,15 +102,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Observed Licenses</dt>
                     <dd className="nx-read-only__data" id="observed-licenses-container">
-                      <ul className="iq-legal-list">
-                        {renderObservedLicenses(
-                          observedLicenses,
-                          isClaimed,
-                          hiddenObservedLicenses,
-                          isAdvancedLegalPackSupported,
-                          supportAlpObservedLicenses
-                        )}
-                      </ul>
+                      <ul className="iq-legal-list">{renderLicensesList(observedLicenses, isClaimed)}</ul>
                     </dd>
                   </div>
                 </dl>
@@ -146,7 +136,11 @@ export const licenseOverridePropTypes = PropTypes.shape({
     comment: PropTypes.string,
     componentIdentifier: PropTypes.shape({
       format: PropTypes.string,
-      coordinates: PropTypes.object,
+      coordinates: PropTypes.shape({
+        name: PropTypes.string,
+        qualifier: PropTypes.string,
+        version: PropTypes.string,
+      }),
     }),
     coordinates: PropTypes.shape({
       name: PropTypes.string,
@@ -173,13 +167,11 @@ LicenseDetections.propTypes = {
   licenseOverride: PropTypes.arrayOf(licenseOverridePropTypes),
   loadLicenses: PropTypes.func.isRequired,
   observedLicenses: PropTypes.arrayOf(multiLicensesPropTypes),
-  hiddenObservedLicenses: PropTypes.bool,
-  supportAlpObservedLicenses: PropTypes.bool,
   loading: PropTypes.bool,
   loadError: PropTypes.string,
   toggleShowEditLicensesPopover: PropTypes.func.isRequired,
   identificationSource: PropTypes.string,
 
   reviewObligationsClickHandler: PropTypes.func,
-  isAdvancedLegalPackSupported: PropTypes.bool,
+  reviewObligationsButtonIsVisible: PropTypes.bool,
 };

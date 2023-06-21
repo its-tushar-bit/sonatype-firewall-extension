@@ -88,10 +88,6 @@ public class ApplicationReportTest
 {
   public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
-  private static final int EXPECTED_TOTAL_ROWS_COUNT = 103;
-
-  private static final int EXPECTED_VIOLATIONS_COUNT = 65;
-
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
   private Application app;
@@ -162,7 +158,7 @@ public class ApplicationReportTest
 
     IQCoverageIndicator coverageIndicator = reportPage.coverageIndicator();
     coverageIndicator.caption().shouldHave(exactText("64 COMPONENTS"));
-    coverageIndicator.subCaption().shouldHave(exactText("98% of all components identified"));
+    coverageIndicator.subCaption().shouldHave(exactText("97% of all components identified"));
     coverageIndicator.donutChart().shouldBe(visible);
 
     IQGrandfatheringIndicator grandfatheringIndicator = reportPage.grandfatheringIndicator();
@@ -450,9 +446,9 @@ public class ApplicationReportTest
     Tooltip.get().shouldBe(visible).shouldHave(text("InnerSource"));
     reportPage.resultRow(26).shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))
             .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
-    reportPage.resultRow(58).shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))
+    reportPage.resultRow(57).shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))
             .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
-    reportPage.resultRow(59).shouldHave(text("org.springframework : spring-beans : 3.2.4.RELEASE"))
+    reportPage.resultRow(58).shouldHave(text("org.springframework : spring-beans : 3.2.4.RELEASE"))
             .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
   }
 
@@ -466,16 +462,14 @@ public class ApplicationReportTest
             .shouldHave(text("By default the Application Report aggregates violations by component. " +
                     "To see all violations not Aggregated by Component, please switch the toggle off."));
 
-    int expectedNoneThreatLevelResults = 37;
-
     // By default the "Aggregate by Component" toggle should be ON
     reportPage.aggregateByComponentToggle().shouldBeOn();
-    reportPage.resultRows().shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    reportPage.resultRows().shouldHaveSize(64);
     reportPage.getThreatBars("critical").shouldHaveSize(17);
     reportPage.getThreatBars("severe").shouldHaveSize(9);
     reportPage.getThreatBars("moderate").shouldHaveSize(1);
     reportPage.getThreatBars("low").shouldHaveSize(1);
-    reportPage.getThreatBars("none").shouldHaveSize(expectedNoneThreatLevelResults);
+    reportPage.getThreatBars("none").shouldHaveSize(36);
     reportPage.headers().componentNameFilterInput().setValue("commons-fileupload");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.getThreatBars("critical").shouldHaveSize(1);
@@ -489,12 +483,12 @@ public class ApplicationReportTest
     reportPage.getThreatBars("moderate").shouldHaveSize(1);
 
     InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
-    reportPage.resultRows().shouldHaveSize(EXPECTED_TOTAL_ROWS_COUNT);
+    reportPage.resultRows().shouldHaveSize(102);
     reportPage.getThreatBars("critical").shouldHaveSize(22);
     reportPage.getThreatBars("severe").shouldHaveSize(39);
     reportPage.getThreatBars("moderate").shouldHaveSize(4);
     reportPage.getThreatBars("low").shouldHaveSize(1);
-    reportPage.getThreatBars("none").shouldHaveSize(expectedNoneThreatLevelResults);
+    reportPage.getThreatBars("none").shouldHaveSize(36);
   }
 
   @Test
@@ -565,7 +559,7 @@ public class ApplicationReportTest
     ReportListPage.firstRow().buildReportLink().click();
 
     headers.policyNameFilterInput().shouldBe(Condition.empty);
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(64);
 
     headers.componentNameFilterInput().setValue("Reg");
     violations.shouldHaveSize(1);
@@ -576,7 +570,7 @@ public class ApplicationReportTest
     ReportListPage.firstRow().buildReportLink().click();
 
     headers.componentNameFilterInput().shouldBe(Condition.empty);
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(64);
   }
 
   @Test
@@ -617,7 +611,7 @@ public class ApplicationReportTest
     reportPage.shouldBe(visible);
     reportPage.reevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(64);
 
     reportPage.filterToggle().click();
     violationStateFilter = reportPage.filterPanel().violationStateFilter();
@@ -677,12 +671,12 @@ public class ApplicationReportTest
     violationStateFilter.notViolating().click();
     violationStateFilter.notViolating().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("3 of 4"));
-    violations.shouldHaveSize(EXPECTED_TOTAL_ROWS_COUNT);
+    violations.shouldHaveSize(102);
 
     // all boxes checked - again no difference in count because the waived violation is also grandfathered
     violationStateFilter.waived().click();
     violationStateFilter.counter().shouldHave(exactText("4 of 4"));
-    violations.shouldHaveSize(EXPECTED_TOTAL_ROWS_COUNT);
+    violations.shouldHaveSize(102);
 
     // no boxes checked
     violationStateFilter.allItems().shouldBe(selected).click();
@@ -692,7 +686,7 @@ public class ApplicationReportTest
     violationStateFilter.waived().shouldNotBe(selected);
     violationStateFilter.grandfathered().shouldNotBe(selected);
     violationStateFilter.counter().shouldHave(exactText("4"));
-    violations.shouldHaveSize(EXPECTED_TOTAL_ROWS_COUNT);
+    violations.shouldHaveSize(102);
 
     reportPage.filterPanel().closeButton().click();
   }
@@ -745,7 +739,7 @@ public class ApplicationReportTest
 
     // test that the header is not present but that the data and sidebar are
     MainHeader.get().shouldNot(exist);
-    reportPage.resultRows().shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    reportPage.resultRows().shouldHaveSize(64);
     reportPage.aggregateByComponentToggle().shouldBeOn();
   }
 

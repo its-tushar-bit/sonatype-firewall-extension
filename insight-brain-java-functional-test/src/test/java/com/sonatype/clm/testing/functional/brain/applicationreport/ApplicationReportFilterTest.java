@@ -51,8 +51,6 @@ public class ApplicationReportFilterTest
 {
   public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
-  private static final int EXPECTED_VIOLATIONS_COUNT = 62;
-
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
   private Application app;
@@ -142,21 +140,21 @@ public class ApplicationReportFilterTest
     proprietaryFilter.proprietary().shouldBe(selected);
     proprietaryFilter.nonProprietary().shouldBe(selected);
 
-    violations.shouldHaveSize(65);
+    violations.shouldHaveSize(64);
 
     proprietaryFilter.allItems().click();
     proprietaryFilter.counter().shouldHave(text("2"));
     proprietaryFilter.proprietary().shouldNotBe(selected);
     proprietaryFilter.nonProprietary().shouldNotBe(selected);
 
-    violations.shouldHaveSize(65);
+    violations.shouldHaveSize(64);
 
     proprietaryFilter.nonProprietary().click();
     proprietaryFilter.counter().shouldHave(text("1 of 2"));
     proprietaryFilter.proprietary().shouldNotBe(selected);
     proprietaryFilter.nonProprietary().shouldBe(selected);
 
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(61);
     proprietaryFilter.twisty().click();
 
     // InnerSource filter
@@ -179,7 +177,7 @@ public class ApplicationReportFilterTest
     innerSourceFilter.nonInnerSource().click();
     innerSourceFilter.nonInnerSource().shouldBe(selected);
     innerSourceFilter.counter().shouldHave(exactText("2 of 2"));
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(61);
     violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
     innerSourceFilter.twisty().click();
 
@@ -207,7 +205,7 @@ public class ApplicationReportFilterTest
     matchStateFilter.exact().click();
     matchStateFilter.exact().shouldBe(selected);
     matchStateFilter.counter().shouldHave(exactText("3 of 3"));
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(61);
     matchStateFilter.twisty().click();
 
     //policy type filter
@@ -254,7 +252,7 @@ public class ApplicationReportFilterTest
 
     policyTypeFilter.allItems().click();
     policyTypeFilter.allItems().shouldNotBe(selected);
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(61);
 
     // dependency type filter
     DependencyTypeFilter dependencyTypeFilter = reportPage.filterPanel().dependencyTypeFilter();
@@ -266,15 +264,15 @@ public class ApplicationReportFilterTest
     dependencyTypeFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
     dependencyTypeFilter.unknown().click();
     dependencyTypeFilter.unknown().shouldBe(selected);
-    violations.shouldHaveSize(56);
+    violations.shouldHaveSize(55);
     dependencyTypeFilter.counter().shouldHave(exactText("1 of 3"));
 
     dependencyTypeFilter.transitive().click();
-    violations.shouldHaveSize(60);
+    violations.shouldHaveSize(59);
     dependencyTypeFilter.counter().shouldHave(exactText("2 of 3"));
 
     dependencyTypeFilter.direct().click();
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(61);
     dependencyTypeFilter.allItems().shouldBe(selected);
     dependencyTypeFilter.counter().shouldHave(exactText("3 of 3"));
     dependencyTypeFilter.allItems().click();
@@ -286,7 +284,7 @@ public class ApplicationReportFilterTest
     violations.shouldHaveSize(2);
     dependencyTypeFilter.allItems().click();
     dependencyTypeFilter.allItems().shouldBe(selected);
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(61);
     dependencyTypeFilter.twisty().click();
 
     // policy threat level filter
@@ -311,7 +309,7 @@ public class ApplicationReportFilterTest
     violations.shouldHaveSize(1);
     violations.shouldHave(texts("No Results"));
     threatLevelFilter.slider().setValues(0, 10);
-    violations.shouldHaveSize(EXPECTED_VIOLATIONS_COUNT);
+    violations.shouldHaveSize(61);
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().shouldBe(hidden);
 

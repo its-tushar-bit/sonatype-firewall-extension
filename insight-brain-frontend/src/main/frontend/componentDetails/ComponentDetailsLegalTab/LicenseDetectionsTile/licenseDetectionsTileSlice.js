@@ -40,8 +40,6 @@ export const initialState = {
   observedLicenses: null,
   selectableLicenses: null,
   allLicenses: null,
-  hiddenObservedLicenses: false,
-  supportAlpObservedLicenses: false,
   loading: false,
   loadError: null,
   showEditLicensesPopover: false,
@@ -92,8 +90,6 @@ const loadFulfilled = (state, { payload }) => {
     observedLicenses,
     selectableLicenses,
     allLicenses,
-    hiddenObservedLicenses,
-    supportAlpObservedLicenses,
   } = payload;
   state.licenseOverride = licenseOverride ?? null;
   state.declaredLicenses = declaredLicenses ?? null;
@@ -101,8 +97,6 @@ const loadFulfilled = (state, { payload }) => {
   state.observedLicenses = observedLicenses ?? null;
   state.selectableLicenses = selectableLicenses ?? null;
   state.allLicenses = allLicenses ?? null;
-  state.hiddenObservedLicenses = hiddenObservedLicenses ?? false;
-  state.supportAlpObservedLicenses = supportAlpObservedLicenses ?? false;
   state.loading = false;
   state.loadError = null;
 
@@ -152,14 +146,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
   return Promise.all(promises)
     .then((results) => {
       const allLicenses = map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName }), results[0].data);
-      const {
-        declaredLicenses,
-        observedLicenses,
-        effectiveLicenses,
-        selectableLicenses,
-        hiddenObservedLicenses,
-        supportAlpObservedLicenses,
-      } = results[1].data;
+      const { declaredLicenses, observedLicenses, effectiveLicenses, selectableLicenses } = results[1].data;
       const licenseOverride = results[2].data.licenseOverridesByOwner;
       return {
         licenseOverride,
@@ -168,8 +155,6 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
         observedLicenses,
         selectableLicenses,
         allLicenses,
-        hiddenObservedLicenses,
-        supportAlpObservedLicenses,
       };
     })
     .catch(rejectWithValue);

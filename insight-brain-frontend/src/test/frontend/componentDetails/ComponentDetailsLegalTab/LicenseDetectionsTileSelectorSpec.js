@@ -29,17 +29,15 @@ describe('LicenseDetectionsTile Selectors', () => {
       observedLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
       selectableLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
       allLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
-      hiddenObservedLicenses: true,
-      supportAlpObservedLicenses: true,
       loading: true,
       loadError: 'error',
-      isAdvancedLegalPackSupported: true,
+      reviewObligationsButtonIsVisible: true,
     };
     componentDetailsLicenseDetectionsTile = {
       ...LicenseDetectionsTileData,
       editLicensesForm,
       showEditLicensesPopover: false,
-      isAdvancedLegalPackSupported: true,
+      reviewObligationsButtonIsVisible: true,
     };
 
     mockState = {

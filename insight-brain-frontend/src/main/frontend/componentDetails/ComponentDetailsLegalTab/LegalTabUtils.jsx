@@ -4,9 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
-import { NxAlert, NxInfoAlert, NxTextLink, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxThreatIndicator } from '@sonatype/react-shared-components';
 import { contains } from 'ramda';
-import { faGavel } from '@fortawesome/pro-solid-svg-icons';
 
 const claimedComponentAlert = (isEffective, len) => {
   if (isEffective) {
@@ -50,40 +49,5 @@ export const renderLicensesList = (list, claimed, isEffective = false) =>
       </li>
     );
   });
-
-export const renderObservedLicenses = (
-  observedLicenses,
-  isClaimed,
-  hiddenObservedLicenses,
-  isAdvancedLegalPackSupported,
-  supportAlpObservedLicenses
-) => {
-  if (hiddenObservedLicenses) {
-    return (
-      <NxInfoAlert id="enable-alp-observed-licenses-alert">
-        Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on.
-        <br />
-        <NxTextLink
-          external
-          href="https://links.sonatype.com/products/nxiq/doc/alp/extended-observed-license-detections"
-        >
-          Learn more
-        </NxTextLink>
-      </NxInfoAlert>
-    );
-  }
-  if (!isAdvancedLegalPackSupported && supportAlpObservedLicenses) {
-    return (
-      <NxAlert id="get-alp-alert" icon={faGavel} iconLabel="Get Advanced Legal Pack" className="nx-alert--info">
-        Get Advanced Legal Pack (ALP) to view Observed Licenses.
-        <br />
-        <NxTextLink external href="https://links.sonatype.com/products/nxiq/doc/add-on-packs/alp">
-          Learn more
-        </NxTextLink>
-      </NxAlert>
-    );
-  }
-  return renderLicensesList(observedLicenses, isClaimed);
-};
 
 export const isOverriddenOrSelected = (status) => contains(status, ['SELECTED', 'OVERRIDDEN']);

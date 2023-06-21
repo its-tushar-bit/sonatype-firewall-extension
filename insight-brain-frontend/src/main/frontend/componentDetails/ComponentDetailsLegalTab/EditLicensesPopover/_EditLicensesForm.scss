@@ -20,16 +20,6 @@
   .nx-read-only__data {
     @include nx-container-helpers.container-vertical;
   }
-  #observed-licenses-container {
-    #get-alp-alert {
-      align-items: center;
-
-      svg:first-child {
-        height: 36px;
-        color: var(--nx-swatch-grey-30);
-      }
-    }
-  }
 }
 
 .iq-legal-item {

@@ -50,8 +50,6 @@ public class ApplicationReportRawDataTest
 {
   public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
-  private static final int EXPECTED_ROWS_COUNT = 101;
-
   private final ApplicationReportPage applicationReportPage = new ApplicationReportPage();
 
   private final ApplicationReportRawDataPage rawDataPage = new ApplicationReportRawDataPage();
@@ -105,16 +103,16 @@ public class ApplicationReportRawDataTest
   public void testResults() {
     ResultTable resultTable = rawDataPage.resultTable();
     resultTable.shouldBe(visible);
-    resultTable.resultRows().shouldHaveSize(EXPECTED_ROWS_COUNT);
+    resultTable.resultRows().shouldHaveSize(100);
 
-    ResultRow springSecurity = resultTable.resultRow(95);
+    ResultRow springSecurity = resultTable.resultRow(94);
     ScrollUtil.scrollIntoView(springSecurity.getElement());
     checkRawDataRow(springSecurity, "org.springframework.security : spring-security-web : 3.2.4.release", "Apache-2.0",
         null, "sonatype-2017-0507", "5.0");
     springSecurity.declaredLicenses().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Declared: Apache-2.0 Observed: Apache-2.0"));
 
-    ResultRow resultRowXpp3 = resultTable.resultRow(EXPECTED_ROWS_COUNT);
+    ResultRow resultRowXpp3 = resultTable.resultRow(100);
     ScrollUtil.scrollIntoView(resultRowXpp3.getElement());
     checkRawDataRow(resultRowXpp3, "xpp3 : xpp3_min : 1.1.4c", "Non-Standard, Public Domain, XPP-1.1.1", "XPP-1.2",
         "", "");
@@ -138,7 +136,7 @@ public class ApplicationReportRawDataTest
         .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
 
     ResultTable resultTable = rawDataPage.resultTable();
-    ResultRow springSecurity = resultTable.resultRow(95);
+    ResultRow springSecurity = resultTable.resultRow(94);
     ScrollUtil.scrollIntoView(springSecurity.getElement());
     springSecurity.securityIssue().shouldHave(exactText("sonatype-2017-0507"));
     springSecurity.securityIssueLink().click();
@@ -164,11 +162,11 @@ public class ApplicationReportRawDataTest
   @Test
   public void testSorting() {
     ResultTable resultTable = rawDataPage.resultTable();
-    resultTable.resultRows().shouldHaveSize(EXPECTED_ROWS_COUNT);
+    resultTable.resultRows().shouldHaveSize(100);
 
     // starts off sorting by component name ascending
     ResultRow firstRow = resultTable.resultRow(1);
-    ResultRow lastRow = resultTable.resultRow(EXPECTED_ROWS_COUNT);
+    ResultRow lastRow = resultTable.resultRow(100);
     checkRawDataRow(firstRow, "angular 1.2.17", "MIT", "Not Supported", "sonatype-2014-0015", "5.4");
     ScrollUtil.scrollIntoView(lastRow.getElement());
     checkRawDataRow(lastRow, "xpp3 : xpp3_min : 1.1.4c", "Non-Standard, Public Domain, XPP-1.1.1", "XPP-1.2", "",
@@ -234,7 +232,7 @@ public class ApplicationReportRawDataTest
   @Test
   public void testFiltering() {
     ResultTable resultTable = rawDataPage.resultTable();
-    resultTable.resultRows().shouldHaveSize(EXPECTED_ROWS_COUNT);
+    resultTable.resultRows().shouldHaveSize(100);
 
     // filter component name
     rawDataPage.headers().componentFilterInput().setValue("java");

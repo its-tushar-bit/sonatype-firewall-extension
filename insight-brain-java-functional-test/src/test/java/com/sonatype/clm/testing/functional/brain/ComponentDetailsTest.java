@@ -216,7 +216,7 @@ public class ComponentDetailsTest
     ElementsCollection tags = componentDetailsPage.header().tags();
     tags.shouldHave(texts("maven", "Direct Dependency"));
 
-    componentDetailsPage.footer().paginationCounter().shouldHave(text("5 of 65"));
+    componentDetailsPage.footer().paginationCounter().shouldHave(text("5 of 64"));
   }
 
   @Test
@@ -1049,85 +1049,6 @@ public class ComponentDetailsTest
     licenseDetectionsTile.reviewObligationsButton().shouldNotBe(visible);
     licenseDetectionsTile.editLicenseButton().shouldBe(visible);
     licenseDetectionsTile.status().shouldHave(text("Status: Open"));
-  }
-
-  @Test
-  public void testLegalTab_LicenseDetectionTileAlpObservedLicensesDisabled() {
-    com.sonatype.insight.brain.service.Configuration configuration =
-        testCLMServer.getCLMServer().getInstance(com.sonatype.insight.brain.service.Configuration.class);
-    configuration.setALPObservedLicenseDetectionEnabled(false);
-
-    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "ci6x9fypjoym3kwtai3m"));
-
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTabContent().shouldBe(visible);
-
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-
-    licenseDetectionsTile
-        .shouldBe(visible)
-        .observedLicenses()
-        .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
-
-    licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
-  }
-
-  @Test
-  public void testLegalTab_LicenseDetectionTileAlpObservedLicensesWhenAlpDisabled() {
-    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
-    // we need to refresh the browser to load the product features again
-    WebDriverRunner.getWebDriver().navigate().refresh();
-
-    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "ci6x9fypjoym3kwtai3m"));
-
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTabContent().shouldBe(visible);
-
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-
-    licenseDetectionsTile
-        .shouldBe(visible)
-        .observedLicenses()
-        .shouldHave(text("Get Advanced Legal Pack (ALP) to view Observed Licenses."));
-
-    licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
-  }
-
-  @Test
-  public void testLegalTab_LicensesPopoverAlpObservedLicensesDisabled() {
-    com.sonatype.insight.brain.service.Configuration configuration =
-        testCLMServer.getCLMServer().getInstance(com.sonatype.insight.brain.service.Configuration.class);
-    configuration.setALPObservedLicenseDetectionEnabled(false);
-
-    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "ci6x9fypjoym3kwtai3m"));
-
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTabContent().shouldBe(visible);
-
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-    licenseDetectionsTile.editLicenseButton().click();
-
-    EditLicensesPopover editPopover = new EditLicensesPopover();
-    editPopover.observedLicenses()
-        .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
-  }
-
-  @Test
-  public void testLegalTab_LicensesPopoverAlpObservedLicensesWhenAlpDisabled() {
-    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
-    // we need to refresh the browser to load the product features again
-    WebDriverRunner.getWebDriver().navigate().refresh();
-
-    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "ci6x9fypjoym3kwtai3m"));
-
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTabContent().shouldBe(visible);
-
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-    licenseDetectionsTile.editLicenseButton().click();
-
-    EditLicensesPopover editPopover = new EditLicensesPopover();
-    editPopover.observedLicenses().shouldHave(text("Get Advanced Legal Pack (ALP) to view Observed Licenses."));
   }
 
   /* Part of testPolicyViolationsTab_violationTableEntries. */

@@ -96,13 +96,11 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -1641,109 +1639,6 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
 
     testLegalTabPolicyViolationsTable();
-  }
-
-  @Test
-  public void testLegalTab_LicenseDetectionTileAlpObservedLicensesDisabled() {
-    com.sonatype.insight.brain.service.Configuration configuration =
-        testCLMServer.getCLMServer().getInstance(com.sonatype.insight.brain.service.Configuration.class);
-    configuration.setALPObservedLicenseDetectionEnabled(false);
-
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
-    ComponentDetails componentDetails = createComponentDetail("hash1", componentIdentifier, singleLicense);
-    componentDetailsArrayList.add(componentDetails);
-
-    RepositoryComponent component =
-        createRepositoryComponent(componentDetails.getHash(), componentDetails.getComponentIdentifier(), date, date);
-
-    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
-    waitUntilSpinnersGone();
-
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-
-    licenseDetectionsTile
-        .shouldBe(visible)
-        .observedLicenses()
-        .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
-
-    licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
-  }
-
-  @Test
-  public void testLegalTab_LicenseDetectionTileAlpObservedLicensesWhenAlpDisabled() {
-    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
-    // we need to refresh the browser to load the product features again
-    WebDriverRunner.getWebDriver().navigate().refresh();
-
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
-    ComponentDetails componentDetails = createComponentDetail("hash1", componentIdentifier, singleLicense);
-    componentDetailsArrayList.add(componentDetails);
-
-    RepositoryComponent component =
-        createRepositoryComponent(componentDetails.getHash(), componentDetails.getComponentIdentifier(), date, date);
-
-    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
-    waitUntilSpinnersGone();
-
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-
-    licenseDetectionsTile
-        .shouldBe(visible)
-        .observedLicenses()
-        .shouldHave(text("Get Advanced Legal Pack (ALP) to view Observed Licenses."));
-
-    licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
-  }
-
-  @Test
-  public void testLegalTab_LicensesPopoverAlpObservedLicensesDisabled() {
-    com.sonatype.insight.brain.service.Configuration configuration =
-        testCLMServer.getCLMServer().getInstance(com.sonatype.insight.brain.service.Configuration.class);
-    configuration.setALPObservedLicenseDetectionEnabled(false);
-
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
-    ComponentDetails componentDetails = createComponentDetail("hash1", componentIdentifier, singleLicense);
-    componentDetailsArrayList.add(componentDetails);
-
-    RepositoryComponent component =
-        createRepositoryComponent(componentDetails.getHash(), componentDetails.getComponentIdentifier(), date, date);
-
-    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
-    waitUntilSpinnersGone();
-
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-    licenseDetectionsTile.editLicenseButton().click();
-
-    EditLicensesPopover editPopover = new EditLicensesPopover();
-    editPopover.observedLicenses()
-        .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
-  }
-
-  @Test
-  public void testLegalTab_LicensesPopoverAlpObservedLicensesWhenAlpDisabled() {
-    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
-    // we need to refresh the browser to load the product features again
-    WebDriverRunner.getWebDriver().navigate().refresh();
-
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
-    ComponentDetails componentDetails = createComponentDetail("hash1", componentIdentifier, singleLicense);
-    componentDetailsArrayList.add(componentDetails);
-
-    RepositoryComponent component =
-        createRepositoryComponent(componentDetails.getHash(), componentDetails.getComponentIdentifier(), date, date);
-
-    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
-    waitUntilSpinnersGone();
-
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-    licenseDetectionsTile.editLicenseButton().click();
-
-    EditLicensesPopover editPopover = new EditLicensesPopover();
-    editPopover.observedLicenses().shouldHave(text("Get Advanced Legal Pack (ALP) to view Observed Licenses."));
   }
 
   private void setOverriddenLicensesStatus(EditLicensesPopover editPopover, int scope, String comment) {

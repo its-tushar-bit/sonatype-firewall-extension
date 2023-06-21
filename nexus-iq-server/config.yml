@@ -80,6 +80,7 @@ logging:
     org.postgresql.jdbc.PgConnection: INFO
     org.quartz: INFO
     org.zeroturnaround.exec: INFO
+    org.eclipse.jgit: INFO
     com.networknt.schema: OFF
   appenders:
     - type: console

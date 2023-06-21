@@ -97,6 +97,7 @@ logging:
     org.quartz: INFO
     org.zeroturnaround.exec: INFO
     com.networknt.schema: OFF
+    org.eclipse.jgit: INFO
   appenders:
   - type: console
     threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}

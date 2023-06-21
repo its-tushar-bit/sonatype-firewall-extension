@@ -5,7 +5,11 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
@@ -25,13 +29,15 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Condition;
-
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.checked;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class FirewallOnboardingPageTest
     extends AbstractFunctionalTest
@@ -163,7 +169,7 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      tempEntity.newRepositoryManager();
+      createUnconfiguredRepositoryManager();
       loginAsAdmin();
 
       waitUntilUrl(FirewallOnboardingPage.url());
@@ -192,7 +198,7 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      tempEntity.newRepositoryManager();
+      createUnconfiguredRepositoryManager();
       loginAsAdmin();
 
       waitUntilUrl(FirewallOnboardingPage.url());
@@ -224,7 +230,7 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      tempEntity.newRepositoryManager();
+      createUnconfiguredRepositoryManager();
       loginAsAdmin();
 
       waitUntilUrl(FirewallOnboardingPage.url());
@@ -259,8 +265,8 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      tempEntity.newRepositoryManager("instanceId1", "nexusTest");
-      tempEntity.newRepositoryManager("instanceId2", "OtherRepoManager");
+      createUnconfiguredRepositoryManager("instanceId1");
+      createUnconfiguredRepositoryManager("instanceId2");
       loginAsAdmin();
 
       waitUntilUrl(FirewallOnboardingPage.url());
@@ -298,7 +304,7 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId3", "nexusTest3");
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId3");
 
       List<Repository> maven2Repositories = createProxyRepositories(5, repositoryManager, "maven2");
       List<Repository> pypiRepositories = createProxyRepositories(4, repositoryManager, "pypi");
@@ -354,7 +360,7 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId4", "nexus");
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId4");
       createProxyRepositories(5, repositoryManager, "maven2");
 
       List<String> supportedFormats = Arrays.asList("otherFormat");
@@ -386,7 +392,7 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId3", "nexusTest3");
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId3");
 
       List<Repository> maven2Repositories = createProxyRepositories(5, repositoryManager, "maven2");
       createProxyRepositories(4, repositoryManager, "pypi");
@@ -451,7 +457,7 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId3", "nexusTest3");
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId3");
 
       createProxyRepositories(4, repositoryManager, "maven2");
       createProxyRepositories(4, repositoryManager, "pypi");
@@ -576,5 +582,14 @@ public class FirewallOnboardingPageTest
     testCLMServer.getHdsServer()
             .respondWith(hdsResult)
             .atUri(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH);
+  }
+
+  private void createUnconfiguredRepositoryManager() {
+    createUnconfiguredRepositoryManager("testInstanceId");
+  }
+
+  private RepositoryManager createUnconfiguredRepositoryManager(String repositoryManagerInstanceId) {
+    return tempEntity.newRepositoryManager(repositoryManagerInstanceId,
+        "Nexus/3.56.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
   }
 }

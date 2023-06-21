@@ -114,7 +114,9 @@ public class RepositoryManagerDAO
    * @since 1.160
    */
   public List<RepositoryManager> getUnconfigured() {
-    String sQuery = "SELECT entity FROM RepositoryManager entity WHERE entity.configured = false";
+    // Currently, we only support Nexus Repository managers for firewall configuration.
+    String sQuery = "SELECT entity FROM RepositoryManager entity" + //
+        " WHERE entity.configured = false AND entity.userAgent LIKE 'Nexus/%'";
     return getList(sQuery);
   }
 }

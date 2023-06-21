@@ -294,9 +294,12 @@ public class RepositoryResourceTest
   public void testGetUnconfiguredRepositoryManagers() throws Exception {
     RepositoryManager configuredRepoManager = tempEntity.newRepositoryManager();
     configuredRepoManager.setConfigured(true);
+    configuredRepoManager.setConfigureTime(new Date());
     new RepositoryManagerDAO().update(configuredRepoManager);
 
     RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
+    unconfiguredRepoManager.setUserAgent("Nexus/3.56.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    new RepositoryManagerDAO().update(unconfiguredRepoManager);
 
     // By default, Firewall Onboarding is disabled
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);

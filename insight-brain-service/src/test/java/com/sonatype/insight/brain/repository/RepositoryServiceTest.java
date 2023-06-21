@@ -907,9 +907,12 @@ public class RepositoryServiceTest extends AbstractComponentTest
   public void testGetUnconfiguredRepositoryManagers() {
     RepositoryManager configuredRepoManager = tempEntity.newRepositoryManager();
     configuredRepoManager.setConfigured(true);
+    configuredRepoManager.setConfigureTime(new Date());
     repositoryManagerDAO.update(configuredRepoManager);
 
     RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
+    unconfiguredRepoManager.setUserAgent("Nexus/3.56.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    repositoryManagerDAO.update(unconfiguredRepoManager);
 
     // By default, Firewall Onboarding is disabled
     assertThat(repositoryService.getUnconfiguredRepositoryManagers().isEmpty());

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import javax.servlet.ServletRequest;
+
 /**
  * This class is bound instead of the default <code>TenantUtil</code> to allow overriding of the TenantUrlFilter
  * behaviour. On receipt of any rest request the <code>TenantUrlFilter</code> will now always return the currently set
@@ -27,5 +29,18 @@ public class TestRestTenantUtil
 
   public void setTenantSlug(String tenantSlug) {
     this.tenantSlug = tenantSlug;
+  }
+
+  public void clearTenantSlug() {
+    tenantSlug = null;
+  }
+
+  /**
+   * The real impl assumes IP-address hostnames are for the admin API. Tests cannot assume that as the dockerized
+   * Chrome instance in the functional tests uses IP-address hostnames to contact the IQ server
+   */
+  @Override
+  public boolean requestShouldUseGlobalTenant(ServletRequest request) {
+    return isAdminApiRequest(request) || tenantSlug == null;
   }
 }

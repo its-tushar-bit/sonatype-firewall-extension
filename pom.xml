@@ -110,7 +110,9 @@
     <module>nexus-mtiq-server</module>
     <module>nexus-iq-cli</module>
     <module>nexus-iq-diagnostics</module>
+    <module>insight-brain-functional-test-common</module>
     <module>insight-brain-java-functional-test</module>
+    <module>nexus-mtiq-functional-test</module>
     <module>insight-brain-functional-test</module>
     <module>keycloak-server</module>
   </modules>
@@ -223,6 +225,11 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-functional-test-common</artifactId>
+        <version>1.164.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>nexus-iq-cli</artifactId>
         <version>1.164.0-SNAPSHOT</version>
       </dependency>
@@ -231,6 +238,19 @@
         <artifactId>nexus-iq-cli</artifactId>
         <version>1.164.0-SNAPSHOT</version>
         <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>nexus-mtiq-server</artifactId>
+        <version>1.164.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>nexus-mtiq-server</artifactId>
+        <version>1.164.0-SNAPSHOT</version>
+        <classifier>tests</classifier>
+        <type>test-jar</type>
         <scope>test</scope>
       </dependency>
 

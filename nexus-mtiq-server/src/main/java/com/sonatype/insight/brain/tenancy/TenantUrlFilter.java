@@ -14,10 +14,8 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.common.net.InetAddresses;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +53,7 @@ public class TenantUrlFilter
        * on the /api/admin path but there are other admin requests such as /healthcheck. Note that the application
        * healthcheck comes in as an IP Address
        */
-      if (isAdminApiRequest(request) || InetAddresses.isInetAddress(serverName)) {
+      if (tenantUtil.requestShouldUseGlobalTenant(request)) {
         tenantUtil.setGlobalTenant();
       }
       else {
@@ -75,18 +73,6 @@ public class TenantUrlFilter
     finally {
       TenantThreadLocal.invalidateTenant();
     }
-  }
-
-  private static boolean isAdminApiRequest(ServletRequest request) {
-    if (request instanceof HttpServletRequest) {
-      HttpServletRequest httpRequest = (HttpServletRequest) request;
-      String path = httpRequest.getPathInfo();
-      String pathWithContext = httpRequest.getRequestURI();
-
-      return path != null && pathWithContext != null && pathWithContext.startsWith("/api") && path.startsWith("/admin");
-    }
-
-    return false;
   }
 
   private void createTenantNotFoundResponse(final ServletResponse response) throws IOException {

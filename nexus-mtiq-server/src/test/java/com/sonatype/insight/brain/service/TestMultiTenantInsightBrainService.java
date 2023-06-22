@@ -300,6 +300,8 @@ public class TestMultiTenantInsightBrainService
 
     RestRequestFilter.configure(env, (request, response) -> getRestRequestFilterHandler().accept(request, response));
 
+    config.setHdsUrl(testHdsUrl);
+
     super.run(config, env);
 
     // Moved after super run for DB initialization

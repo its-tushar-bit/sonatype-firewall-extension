@@ -233,6 +233,7 @@ Map<String, Closure> getParallelTests() {
   testStages << createFunctionalTests('Java Functional Tests B', '.*/[C-E].*Test.class')
   testStages << createFunctionalTests('Java Functional Tests C', '.*/[F-Q].*Test.class')
   testStages << createFunctionalTests('Java Functional Tests D', '.*/[R-Z].*Test.class')
+  testStages << createFunctionalTests('MTIQ Functional Tests', '.*/.*Test.class', 'nexus-mtiq-functional-test')
   testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-C].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[D-K].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[L-P].*Test.class')
@@ -265,7 +266,11 @@ Map<String, Closure> createGebTests() {
   }]
 }
 
-Map<String, Closure> createFunctionalTests(String stageName, String regex) {
+Map<String, Closure> createFunctionalTests(
+  String stageName,
+  String regex,
+  String mavenModule = 'insight-brain-java-functional-test'
+) {
   return ["${stageName}": {
     node(InsightConstants.AGENT_LABEL) {
       stage(stageName) {
@@ -280,7 +285,7 @@ Map<String, Closure> createFunctionalTests(String stageName, String regex) {
               mavenOptions += " -DapplitoolsEnabled=${isEyesEnabled()}"
               mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
               mavenOptions += " --threads 4"
-              Map<String, ?> testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
+              Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
               mvn testConfig, 'verify'
             }
           }

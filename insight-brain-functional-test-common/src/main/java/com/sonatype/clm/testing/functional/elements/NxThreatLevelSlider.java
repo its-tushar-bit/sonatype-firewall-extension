@@ -12,7 +12,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import org.openqa.selenium.interactions.Actions;
 
 public class NxThreatLevelSlider
-    extends BasicElement<ThreatLevelSlider>
+    extends BasicElement<NxThreatLevelSlider>
 {
   public NxThreatLevelSlider(String selector) {
     super(selector);

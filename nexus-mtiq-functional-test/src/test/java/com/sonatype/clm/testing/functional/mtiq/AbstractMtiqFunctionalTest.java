@@ -1,0 +1,661 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.mtiq;
+
+import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+
+import com.sonatype.clm.testing.functional.EyesWatcher;
+import com.sonatype.clm.testing.functional.elements.LoginModal;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.UserMenu;
+import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.admin.service.TenantProvisioningService;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
+import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.jira.JiraService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.PersistedUserSession;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
+import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
+import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestHelper;
+import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestService;
+import com.sonatype.insight.brain.service.TestCLMServer;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.brain.tenancy.TestRestTenantUtil;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
+import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
+
+import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.ex.UIAssertionError;
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
+import io.dropwizard.server.DefaultServerFactory;
+import org.apache.shiro.util.ThreadContext;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestName;
+import org.mockito.Mockito;
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoAlertPresentException;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.UnexpectedAlertBehaviour;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
+import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public abstract class AbstractMtiqFunctionalTest
+{
+  private static final Logger log = LoggerFactory.getLogger(AbstractMtiqFunctionalTest.class);
+
+  protected static final TestProductLicenseManager productLicenseManager;
+
+  protected static final TestLicenseFingerprinter licenseFingerprinter;
+
+  protected static final TestProductLicense testProductLicense;
+
+  protected static final JiraService jiraService;
+
+  protected static final TestCLMServer testCLMServer;
+
+  protected static final ReverseProxyServer reverseProxyServer;
+
+  private static final int VIEWPORT_WIDTH = 1366;
+
+  private static final int VIEWPORT_HEIGHT = 1024;
+
+  protected static final TestRestTenantUtil testRestTenantUtil;
+
+  private static String getBaseUrl(String contextPath) {
+    String url = reverseProxyServer.getUrl();
+    if (url.endsWith("/")) {
+      url = url.substring(0, url.length() - 1);
+    }
+    url += contextPath;
+    if (!url.endsWith("/")) {
+      url += '/';
+    }
+    return url;
+  }
+
+  static {
+    productLicenseManager = new TestProductLicenseManager();
+    testProductLicense = new TestProductLicense(productLicenseManager);
+    licenseFingerprinter = new TestLicenseFingerprinter();
+    testRestTenantUtil = new TestRestTenantUtil();
+    jiraService = Mockito.mock(JiraService.class);
+    initMocks();
+
+    MultiTenantBrainServiceTestHelper.setup();
+    MultiTenantBrainServiceTestHelper.createDatabaseContainer();
+
+    String contextPath = System.getProperty("iq.contextPath", "/iq-test");
+
+    // Reuse the configurator to allow reuse of MTIQ server
+    Configurator mtiqConfigurator = config -> {
+      ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
+
+      Configurator conf = MultiTenantBrainServiceTestService.getConfigurator();
+      conf.configure(config);
+    };
+
+    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(),
+        mtiqConfigurator);
+
+    reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
+
+    try {
+      testCLMServer.start();
+      testCLMServer.getCLMServer().setHdsUrl();
+      reverseProxyServer.start();
+
+      Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
+      Configuration.reportsFolder = "target/selenide-reports";
+      setBaseUrl(Configuration.baseUrl);
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+  }
+
+  public static void setBaseUrl(String baseUrl) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
+    service.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
+  }
+
+  public static void provisionTenant(String tenantSlug) {
+    TenantProvisioningService service = testCLMServer.getCLMServer().getInstance(TenantProvisioningService.class);
+    service.provisionTenant(tenantSlug);
+  }
+
+  public static void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
+        enableDefaultPasswordWarning);
+    service.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
+  }
+
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity()
+  {
+    @Override
+    public void after() {
+      Runnable superAfter = super::after;
+      TenantTestHelper.testAs(Tenant.GLOBAL_TENANT, tenant -> {
+        superAfter.run();
+        afterDatabaseReset();
+      });
+    }
+
+    @Override
+    public void initializePersistedUserSessions() {
+      // noop
+    }
+
+    @Override
+    public void cleanupPersistedUserSessions() {
+      // noop
+    }
+  };
+
+  protected void afterDatabaseReset() {
+    // hook for subclasses to perform further cleanup action after TemporaryEntity has reset the database
+  }
+
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
+  @Rule
+  public EyesWatcher eyesWatcher = new EyesWatcher(); // enables visual testing
+
+  @Rule
+  public TestName testName = new TestName();
+
+  private static void initMocks() {
+    try {
+      Mockito.reset(jiraService);
+      Mockito.when(jiraService.isEnabled()).thenReturn(false);
+      Mockito.doThrow(new IllegalStateException()).when(jiraService).getProjectsWithAcceptableIssueTypes();
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  @BeforeClass
+  public static void disableWaitToCloseOldClients() {
+    DefaultHdsClient.waitToCloseOldClients = false;
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+    setupWebDriver();
+  }
+
+  protected static void setupWebDriver() {
+    // in between tests we navigate to the 'about' page. If the page we are navigating away from was dirty then
+    // we get an alert. Prior to version 75 the chrome driver ignored these alerts by default. That behavior has
+    // since changed and without this setting an UnhandledAlertException is thrown.
+    // See also https://bugs.chromium.org/p/chromedriver/issues/detail?id=3002
+    if (Configuration.browser.equalsIgnoreCase("chrome")) {
+      ChromeOptions options = new ChromeOptions();
+      options.setUnhandledPromptBehaviour(UnexpectedAlertBehaviour.IGNORE);
+      Configuration.browserCapabilities = new DesiredCapabilities();
+      Configuration.browserCapabilities.setCapability(ChromeOptions.CAPABILITY, options);
+    }
+
+    WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
+
+    // Enforcing specific view port size for stable applitools validations.
+    setViewportSize(driver);
+
+    if (!(driver instanceof PageTweakingWebDriver)) {
+      WebDriverRunner.setWebDriver(new PageTweakingWebDriver(driver));
+    }
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+    ThreadContext.unbindSecurityManager();
+    ThreadContext.unbindSubject();
+    hardreset();
+  }
+
+  public static void hardreset() {
+    WebDriverRunner.getWebDriver().manage().deleteAllCookies();
+  }
+
+  @Before
+  public final void beforeTest() {
+    String testNameString = testName.getMethodName();
+    log.info("Before: {}", testNameString);
+
+    // global tenant must be used for system-wide configuration calls below
+    TenantTestHelper.setGlobalTenant();
+    testCLMServer.getCLMServer().setHdsUrl();
+    setEnableDefaultPasswordWarning(false);
+    setBaseUrl(Configuration.baseUrl);
+
+    // Set up the tenant within which the test runs
+    Tenant testTenant = TenantTestHelper.setupNewTestTenant(testName);
+    try {
+      provisionTenant(testTenant.tenantSlug);
+    }
+    catch (Exception e) {
+      log.error("Failed to provision MTIQ tenant", e);
+    }
+
+    testRestTenantUtil.setTenantSlug(testTenant.tenantSlug);
+  }
+
+  @After
+  public final void afterTest() throws Exception {
+    log.info("After: {}", testName.getMethodName());
+    InsightConfig insightConfig = testCLMServer.getCLMServer().getConfiguration();
+    if (insightConfig != null) {
+      insightConfig.setFeatures(Collections.emptyMap());
+    }
+    tryOpenSidebarNav();
+    initMocks();
+    if (!testCLMServer.isRunning()) {
+      testCLMServer.start();
+    }
+    testCLMServer.getHdsServer().reset();
+    if (productLicenseManager.wasChanged()) {
+      productLicenseManager.reset();
+      installLicense();
+    }
+
+    hardreset();
+    testRestTenantUtil.clearTenantSlug();
+
+    // so we aren't on app between page loads
+    navigate(() -> {
+      Selenide.open("about");
+      clearAlerts();
+      closeOtherWindows();
+      return true;
+    });
+  }
+
+  private void tryOpenSidebarNav() {
+    try {
+      // restore sidebar to open state if available
+      if (SidebarNavigation.container().is(visible)) {
+        SidebarNavigation.openNavigationSidebar();
+      }
+    }
+    catch (RuntimeException unexpectedException) {
+      // there might be an element interfering with the click but since we are not sure of it's nature we'll ignore
+      log.debug("Attempted to return the header to open but failed", unexpectedException);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  protected static void setViewportSize(WebDriver driver) {
+    JavascriptExecutor executor = (JavascriptExecutor) WebDriverRunner.getWebDriver();
+    // get the windows size for the specified view port
+    @SuppressWarnings("rawtypes")
+    List<Long> sizes = (List) executor.executeScript(
+        "return [window.outerWidth - window.innerWidth + arguments[0], " +
+            "window.outerHeight - window.innerHeight + arguments[1]];",
+        VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+    driver.manage().window().setSize(new Dimension(sizes.get(0).intValue(), sizes.get(1).intValue()));
+  }
+
+  private static List<Module> getBrainModules() {
+    return Collections.singletonList(new AbstractModule()
+    {
+      @Override
+      protected void configure() {
+        bind(TenantUtil.class).toInstance(testRestTenantUtil);
+        bind(ProductLicense.class).toInstance(testProductLicense);
+        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
+        bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
+        bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
+        bind(JiraService.class).toInstance(jiraService);
+        bind(QuartzJobStoreTX.class).to(MultiTenantQuartzJobStoreTX.class);
+        bind(TaskScheduler.class).to(MultiTenantTaskScheduler.class);
+      }
+    });
+  }
+
+  protected static void loginAsAdmin() {
+    login("admin", "admin123");
+  }
+
+  protected void login() {
+    login(getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+  }
+
+  protected static void login(String username, String password) {
+    LoginModal loginModal = new LoginModal();
+    loginModal.shouldBe(visible);
+    loginModal.username().setValue(username);
+    loginModal.password().setValue(password);
+    loginModal.loginButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    loginModal.shouldBe(hidden);
+  }
+
+  protected static void logout() {
+    UserMenu userMenu = MainHeader.userMenu();
+    userMenu.dropdownToggle().shouldBe(visible).click();
+    userMenu.logout().should(appear).click();
+    userMenu.shouldNotBe(visible);
+  }
+
+  /**
+   * Helper method to get the text out of an expected input validation popover.
+   */
+  protected String popoverText(SelenideElement element) {
+    return popoverViolations(element).shouldBe(visible).text();
+  }
+
+  /**
+   * Find all popover violation messages in a given element. Intended to confirm the presence/absence of violations in a
+   * form.
+   *
+   * @throws NoSuchElementException if the element was not found
+   */
+  protected SelenideElement popoverViolations(SelenideElement element) {
+    return $('#' + element.attr("name") + "-popover.in");
+  }
+
+  /**
+   * Find all popover violation messages in a given element as a list. Intended to confirm the presence/absence of
+   * violations in a form. If not found this will return an empty collection.
+   */
+  protected ElementsCollection popoverViolationsList(SelenideElement element) {
+    return $$('#' + element.attr("name") + "-popover.in");
+  }
+
+  protected static void refresh() {
+    navigate(() -> {
+      log.info("Refreshing page {}", WebDriverRunner.getWebDriver().getCurrentUrl());
+      WebDriverRunner.getWebDriver().navigate().refresh();
+      clearAlerts();
+      return true;
+    });
+  }
+
+  protected static void refreshOrOpen(String url) {
+    navigate(() -> {
+      String currentUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
+      if (currentUrl != null && currentUrl.endsWith(url)) {
+        log.info("Refreshing page {}", currentUrl);
+        WebDriverRunner.getWebDriver().navigate().refresh();
+        return true;
+      }
+      else {
+        log.info("Opening page {}", url);
+        Selenide.open(url);
+        return !digestUrl(currentUrl).equals(digestUrl(url));
+      }
+    });
+  }
+
+  private static String digestUrl(final String url) {
+    try {
+      return new URI(url).getSchemeSpecificPart();
+    }
+    catch (Exception e) {
+      return "";
+    }
+  }
+
+  /**
+   * Performs the specified browser navigation and waits for the current page to get dismissed if the navigation causes
+   * a full page reload, thereby ensuring future interactions do not mistake the old page for the new page.
+   */
+  private static void navigate(BooleanSupplier navigation) {
+    waitUntilUrlStable();
+    WebElement body = getWebElement("body");
+    boolean fullPageReload = navigation.getAsBoolean();
+    if (!fullPageReload || body == null) {
+      return;
+    }
+    try {
+      Selenide.Wait().withMessage("Page body did not update").until(webDriver -> {
+        try {
+          body.isDisplayed();
+          return false;
+        }
+        catch (StaleElementReferenceException e) {
+          return true;
+        }
+      });
+    }
+    catch (TimeoutException e) {
+      throw UIAssertionError.wrapThrowable(e, Configuration.timeout);
+    }
+  }
+
+  private static WebElement getWebElement(final String selector) {
+    try {
+      return $(selector).toWebElement();
+    }
+    catch (NoSuchElementException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Some URLs denote interim page states that route to another page state. Until the final page state is reached, we
+   * cannot reliably navigate the browser.
+   */
+  private static void waitUntilUrlStable() {
+    waitUntil(webDriver -> {
+      String url = webDriver.getCurrentUrl();
+      try {
+        assertThat(url).doesNotEndWith("/assets/index.html").doesNotEndWith("/assets/index.html#/management/view");
+      }
+      catch (AssertionError e) {
+        // interim URL, unless ...
+        // ... the login modal is shown
+        try {
+          assertThat(webDriver.findElement(By.id("iq-login-modal")).isDisplayed()).isTrue();
+          // ... and not currently performing a login
+          try {
+            assertThat(webDriver.findElement(By.cssSelector(".nx-submit-mask")).isDisplayed()).isTrue();
+          }
+          catch (AssertionError | NoSuchElementException | StaleElementReferenceException ignored) {
+            return;
+          }
+        }
+        catch (AssertionError | NoSuchElementException | StaleElementReferenceException suppressed) {
+          e.addSuppressed(suppressed);
+        }
+        // ... or the management view
+        if (url.endsWith("#/management/view")) {
+          // ... has finished loading
+          try {
+            assertThat(webDriver.findElement(By.id("owner-tree-view-owner-rows")).isDisplayed()).isTrue();
+            // ... and nothing to redirect to
+            try {
+              assertThat(webDriver.findElement(By.cssSelector(".owner-tree-view__row--organization")).isDisplayed())
+                  .isTrue();
+            }
+            catch (AssertionError | NoSuchElementException | StaleElementReferenceException ignored) {
+              return;
+            }
+          }
+          catch (AssertionError | NoSuchElementException | StaleElementReferenceException suppressed) {
+            e.addSuppressed(suppressed);
+          }
+        }
+        throw e;
+      }
+    });
+  }
+
+  protected static void waitUntilUrl(final String url) {
+    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl()).isEqualTo(url));
+  }
+
+  protected static void waitUntilNotUrl(final String url) {
+    waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl()).isNotEqualTo(url));
+  }
+
+  private static void waitUntil(Consumer<WebDriver> assertion) {
+    try {
+      Selenide.Wait().ignoring(AssertionError.class).until(webDriver -> {
+        assertion.accept(webDriver);
+        return true;
+      });
+    }
+    catch (TimeoutException e) {
+      throw UIAssertionError.wrapThrowable(e, Configuration.timeout);
+    }
+  }
+
+  protected static void clearAlerts() {
+    if (WebDriverRunner.isHeadless()) {
+      return;
+    }
+    WebDriver driver = WebDriverRunner.getWebDriver();
+    try {
+      Alert alert = driver.switchTo().alert();
+      log.debug("Clearing alert: {}", alert.getText());
+      alert.accept();
+    }
+    catch (NoAlertPresentException e) {
+      // do nothing
+    }
+  }
+
+  public String getUsername() {
+    return getClass().getSimpleName();
+  }
+
+  public User createUser() {
+    return tempEntity.newUser(getUsername());
+  }
+
+  public void grantPermissions(String username, String contextId, Permission... perms) {
+    Role role = tempEntity.newRole(false /* global */, perms);
+    tempEntity.newMembershipMapping(contextId, role.getId(), username);
+  }
+
+  protected static void executeJavaScript(String script) {
+    WebDriver driver = WebDriverRunner.getWebDriver();
+    JavascriptExecutor js = (JavascriptExecutor)driver;
+    js.executeScript(script);
+  }
+
+  protected void setFeatures(LicensedFeature... features) {
+    productLicenseManager.setFeatures(features);
+    installLicense();
+  }
+
+  protected void setMissingFeature(LicensedFeature feature) {
+    setFeatures(EnumSet.complementOf(EnumSet.of(feature)).toArray(new LicensedFeature[0]));
+  }
+
+  protected void setMissingFeatures(LicensedFeature... features) {
+    setFeatures(EnumSet.complementOf(EnumSet.copyOf(Arrays.asList(features))).toArray(new LicensedFeature[0]));
+  }
+
+  protected void setLicensedProducts(String... products) {
+    productLicenseManager.setProducts(products);
+    installLicense();
+  }
+
+  protected void setExpirationDate(Date date) {
+    productLicenseManager.setExpirationDate(date);
+    installLicense();
+  }
+
+  protected void installLicense() {
+    try {
+      testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class)
+          .installLicense(new ByteArrayInputStream(new byte[1]));
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected void uninstallLicense() {
+    testCLMServer.getCLMServer().getInstance(CLMLicenseManager.class).uninstallLicense();
+  }
+
+  // Close all tabs/windows except the currently active one.
+  // Thanks to https://stackoverflow.com/a/18504970 for the code
+  private void closeOtherWindows() {
+    WebDriver driver = WebDriverRunner.getWebDriver();
+    String currentHandle = driver.getWindowHandle();
+
+    for (String handle : driver.getWindowHandles()) {
+      if (!handle.equals(currentHandle)) {
+        driver.switchTo().window(handle);
+        driver.close();
+      }
+    }
+
+    driver.switchTo().window(currentHandle);
+  }
+
+  protected void cleanupAllPersistedUserSessions() {
+    ShiroSessionDAO shiroSessionDAO = new ShiroSessionDAO();
+    new PersistedUserSessionDAO().getAll().stream().map(PersistedUserSession::getId)
+        .forEach(shiroSessionDAO::deleteById);
+  }
+}

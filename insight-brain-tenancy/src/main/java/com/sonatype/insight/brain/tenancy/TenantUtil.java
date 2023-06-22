@@ -8,10 +8,13 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Named;
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 
+import com.google.common.net.InetAddresses;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,6 +119,18 @@ public class TenantUtil
     return serverName.contains(".");
   }
 
+  protected static boolean isAdminApiRequest(ServletRequest request) {
+    if (request instanceof HttpServletRequest) {
+      HttpServletRequest httpRequest = (HttpServletRequest) request;
+      String path = httpRequest.getPathInfo();
+      String pathWithContext = httpRequest.getRequestURI();
+
+      return path != null && pathWithContext != null && pathWithContext.startsWith("/api") && path.startsWith("/admin");
+    }
+
+    return false;
+  }
+
   public boolean isGlobalTenant(String tenantSlug) {
     return GLOBAL_TENANT.tenantSlug.equals(tenantSlug);
   }
@@ -171,6 +186,14 @@ public class TenantUtil
         .filter(schema -> schema.startsWith("t_"))
         .map(this::getTenantNameFromSchema)
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Admin API requests should use the global tenant.  Additionally, assume that calls to a IP-address hostname
+   * are to admin APIs (probably /healthcheck)
+   */
+  public boolean requestShouldUseGlobalTenant(ServletRequest request) {
+    return isAdminApiRequest(request) || InetAddresses.isInetAddress(request.getServerName());
   }
 
   List<String> getAllTenants() {

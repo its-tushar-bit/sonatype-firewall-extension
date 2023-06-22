@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
@@ -72,8 +73,6 @@ import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.ScanHelper;
@@ -86,6 +85,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.networking.PortAllocator;
+
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -130,17 +130,8 @@ public abstract class AbstractBrainServiceTest
   {
     @Override
     public void after() {
-      if (MultiTenantBrainServiceTestService.isTestingAgainstMtiq()) {
-        Runnable superAfter = super::after;
-        TenantTestHelper.testAs(Tenant.GLOBAL_TENANT, tenant -> {
-          superAfter.run();
-          afterDatabaseReset();
-        });
-      }
-      else {
-        super.after();
-        afterDatabaseReset();
-      }
+      super.after();
+      afterDatabaseReset();
     }
   };
 

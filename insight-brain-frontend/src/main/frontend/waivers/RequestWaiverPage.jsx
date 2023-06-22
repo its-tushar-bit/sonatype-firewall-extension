@@ -76,10 +76,7 @@ const RequestWaiversPage = ({
                 <NxInfoAlert>
                   To request a waiver, please share the Policy Violation ID and sample curl command (found below) with
                   the approver.{' '}
-                  <NxTextLink
-                    href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers#Waivers-RequestingaWaivertobeAdded"
-                    external
-                  >
+                  <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/request-waiver" external>
                     Learn about automating waiver requests.
                   </NxTextLink>
                 </NxInfoAlert>

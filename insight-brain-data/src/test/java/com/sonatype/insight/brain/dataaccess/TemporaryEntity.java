@@ -554,8 +554,6 @@ public class TemporaryEntity
 
   private Collection<HashComponentIdentifier> claimedComponents;
 
-  private Collection<DashboardFilter> dashboardFilters;
-
   private Collection<Policy> policies;
 
   private Collection<PolicyTag> policyTags;
@@ -637,7 +635,6 @@ public class TemporaryEntity
     roles = new ArrayList<>();
     ldapServers = new ArrayList<>();
     claimedComponents = new ArrayList<>();
-    dashboardFilters = new ArrayList<>();
     policies = new ArrayList<>();
     policyTags = new ArrayList<>();
     tags = new ArrayList<>();
@@ -730,6 +727,7 @@ public class TemporaryEntity
   @Override
   public void after() {
     // Entities deleted via cascaded deletes
+    // - LicenseThreatGroupLicense: cascaded from LicenseThreatGroup
     // - ProprietaryComponentNamePattern: cascaded from Repository
     // - Repository: cascaded from RepositoryManager
     // - RepositoryComponent: cascaded from Repository
@@ -739,7 +737,7 @@ public class TemporaryEntity
     automaticApplicationsConfigurationDAO.setOrganizationId("");
     delete(innerSourceComponents, innerSourceComponentDAO);
     delete(membershipMappings, membershipMappingDAO);
-    delete(dashboardFilters, dashboardFilterDAO);
+    delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
     delete(userFilterDAO.getAll(), userFilterDAO);
     delete(policyTags, policyTagDAO);
     delete(sourceControlPullRequestCommentDAO.getAll(), sourceControlPullRequestCommentDAO);
@@ -926,7 +924,6 @@ public class TemporaryEntity
     dashboardFilter.setBasedOnFilterName(basedOn);
     dashboardFilter.setAcknowledged(acknowledged);
     dashboardFilterDAO.insert(dashboardFilter);
-    dashboardFilters.add(dashboardFilter);
     return dashboardFilter;
   }
 
@@ -949,7 +946,6 @@ public class TemporaryEntity
       throw new RuntimeException(e);
     }
     DashboardFilter dashboardFilter = dashboardFilterDAO.getById(id);
-    dashboardFilters.add(dashboardFilter);
     return dashboardFilter;
   }
 
@@ -1177,10 +1173,6 @@ public class TemporaryEntity
       }
     }
     return orgName;
-  }
-
-  public void register(DashboardFilter... dashboardFilters) {
-    Collections.addAll(this.dashboardFilters, dashboardFilters);
   }
 
   public void setSavedProxyServerConfiguration(ProxyServerConfiguration savedProxyServerConfiguration) {

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,6 +43,7 @@ import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -63,6 +65,7 @@ import static java.util.stream.Collectors.toSet;
 @Singleton
 @DisallowConcurrentExecution
 public class PullRequestMonitor
+    extends Task
     implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestMonitor.class);
@@ -112,6 +115,7 @@ public class PullRequestMonitor
       SourceControlPullRequestDAO sourceControlPullRequestDAO,
       PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
   {
+    super("monitorPRs");
     this.configuration = configuration;
     this.taskScheduler = taskScheduler;
     this.gitApiFactory = gitApiFactory;
@@ -149,6 +153,13 @@ public class PullRequestMonitor
     int intervalInSeconds = sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds();
     taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(intervalInSeconds));
     log.debug("Scheduled PullRequestMonitor, interval={} seconds.", intervalInSeconds);
+  }
+
+  @Override
+  public void execute(final Map<String, List<String>> map, final PrintWriter output) throws Exception {
+    log.debug("Triggering monitoring for all PRs");
+    taskScheduler.triggerTaskNow(this, null);
+    output.print("Triggered monitoring for all PRs");
   }
 
   @Override

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.Duration;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -16,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -97,6 +100,18 @@ public class PullRequestPollingTaskTest
       underTest.productLicenseChanged();
 
       verifyNoInteractions(taskSchedulerMock);
+    });
+  }
+
+  @Test
+  public void testPullRequestPollingTask_dropWizardTaskExecuted_shouldTriggerNow() {
+    testAsGlobalTenant(global -> {
+      final StringWriter writer = new StringWriter();
+      final PrintWriter pw = new PrintWriter(writer);
+      underTest.execute(null, pw);
+
+      verify(taskSchedulerMock).triggerTaskNow(underTest, null);
+      assertThat(writer.toString()).isEqualTo("Triggered polling for all PRs");
     });
   }
 }

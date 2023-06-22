@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -21,6 +25,7 @@ import com.sonatype.insight.brain.tenancy.AllTenantsJob;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -37,6 +42,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class PullRequestPollingTask
+    extends Task
     implements InsightJob, ProductLicenseListener, AllTenantsJob
 {
   public static final String TASK_NAME = "PullRequestPollingTask";
@@ -77,6 +83,7 @@ public class PullRequestPollingTask
       int pullRequestMonitoringDelaySeconds,
       int pullRequestMonitoringIntervalSeconds)
   {
+    super("pollPRs");
     this.taskScheduler = taskScheduler;
     this.pullRequestPollingService = pullRequestPollingService;
     this.licenseChecker = licenseChecker;
@@ -103,6 +110,13 @@ public class PullRequestPollingTask
     taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(pullRequestMonitoringIntervalSeconds), startTime);
     log.info("Scheduled SCM pull request polling every {} second(s) starting in {} second(s)",
         pullRequestMonitoringIntervalSeconds, pullRequestMonitoringDelaySeconds);
+  }
+
+  @Override
+  public void execute(final Map<String, List<String>> map, final PrintWriter output) throws Exception {
+    log.debug("Triggering polling for all PRs");
+    taskScheduler.triggerTaskNow(this, null);
+    output.print("Triggered polling for all PRs");
   }
 
   @Override

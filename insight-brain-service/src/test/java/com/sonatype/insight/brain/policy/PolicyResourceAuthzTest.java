@@ -84,8 +84,6 @@ public class PolicyResourceAuthzTest
     HttpResponse response = testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID));
     assertResponseStatus(200, response);
-    Policy policy = response.getBody(Policy.class);
-    tempEntity.register(policy);
   }
 
   @Test

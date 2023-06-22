@@ -302,8 +302,6 @@ public class PolicyResourceAuditTest
     Policy policy = aComplexPolicy();
     HttpResponse response = policyResourceRequest(app).body(policy).post();
     assertResponseStatus(200, response);
-    Policy policyResponse = response.getBody(Policy.class);
-    tempEntity.register(policyResponse);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertApplicationData(auditDTO, app);
@@ -315,8 +313,6 @@ public class PolicyResourceAuditTest
     Policy policy = aComplexPolicy();
     HttpResponse response = policyResourceRequest(organization).body(policy).post();
     assertResponseStatus(200, response);
-    Policy policyResponse = response.getBody(Policy.class);
-    tempEntity.register(policyResponse);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertOrganizationData(auditDTO, organization);
@@ -329,8 +325,6 @@ public class PolicyResourceAuditTest
 
     HttpResponse response = policyResourceRequest(RepositoryContainer.SINGLETON).body(policy).post();
     assertResponseStatus(200, response);
-    Policy policyResponse = response.getBody(Policy.class);
-    tempEntity.register(policyResponse);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertRepositoryContainerData(auditDTO);

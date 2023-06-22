@@ -849,7 +849,6 @@ public class PolicyResourceTest
     result = policyDAO.getByName(policy.getName());
     assertThat(result).hasSize(1);
     policy = result.get(0);
-    tempEntity.register(policy);
     assertThat(policy.isPolicyNotificationsOverrideAllowed()).isTrue();
     
     // Update

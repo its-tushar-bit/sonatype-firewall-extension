@@ -554,10 +554,6 @@ public class TemporaryEntity
 
   private Collection<HashComponentIdentifier> claimedComponents;
 
-  private Collection<Policy> policies;
-
-  private Collection<PolicyTag> policyTags;
-
   private Collection<Tag> tags;
 
   private Collection<Label> labels;
@@ -618,8 +614,6 @@ public class TemporaryEntity
 
   private Collection<QuarantinedComponentAccess> quarantinedComponentAccesses;
 
-  private Collection<PolicyWaiver> waivers;
-
   private Collection<SourceControlOrganizationImportEvent> sourceControlOrganizationImportEvents;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -635,8 +629,6 @@ public class TemporaryEntity
     roles = new ArrayList<>();
     ldapServers = new ArrayList<>();
     claimedComponents = new ArrayList<>();
-    policies = new ArrayList<>();
-    policyTags = new ArrayList<>();
     tags = new ArrayList<>();
     labels = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
@@ -654,7 +646,6 @@ public class TemporaryEntity
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
-    waivers = new ArrayList<>();
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
     sourceControls = new ArrayList<>();
@@ -728,6 +719,8 @@ public class TemporaryEntity
   public void after() {
     // Entities deleted via cascaded deletes
     // - LicenseThreatGroupLicense: cascaded from LicenseThreatGroup
+    // - PolicyTag: cascaded from Policy
+    // - PolicyWaiver: cascaded from Policy
     // - ProprietaryComponentNamePattern: cascaded from Repository
     // - Repository: cascaded from RepositoryManager
     // - RepositoryComponent: cascaded from Repository
@@ -739,10 +732,10 @@ public class TemporaryEntity
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
     delete(userFilterDAO.getAll(), userFilterDAO);
-    delete(policyTags, policyTagDAO);
     delete(sourceControlPullRequestCommentDAO.getAll(), sourceControlPullRequestCommentDAO);
     delete(sourceControlOrganizationImportEvents, sourceControlOrganizationImportEventDAO);
     delete(defaultBranchCommitHistoryDAO.getAll(), defaultBranchCommitHistoryDAO);
+    delete(policyDAO.getAll(), entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
     List<Organization> orgs = orgDAO.getAll().stream()
         .filter(org -> !Organization.ROOT_ORGANIZATION_ID.equals(org.getId())).collect(toList());
     delete(appDAO.getAll(), appDAO);
@@ -769,7 +762,6 @@ public class TemporaryEntity
     delete(ldapServers, ldapServerDAO);
     delete(claimedComponents, hashComponentIdentifierDAO);
     delete(userViewedProductNotificationDAO.getAll(), userViewedProductNotificationDAO);
-    delete(policies, entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
     delete(labels, labelDAO);
     delete(tags, tagDAO);
     delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
@@ -791,7 +783,6 @@ public class TemporaryEntity
     delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
     delete(sourceControlPullRequestComments, sourceControlPullRequestCommentDAO);
     sourceControlPullRequestResultDAO.deleteAll();
-    delete(waivers, waiverDAO);
     delete(deletedTenants, deletedTenantDAO);
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
@@ -1179,10 +1170,6 @@ public class TemporaryEntity
     this.savedProxyServerConfiguration = savedProxyServerConfiguration;
   }
 
-  public void register(Policy... policiesToDelete) {
-    Collections.addAll(policies, policiesToDelete);
-  }
-
   public void register(Role... roles) {
     Collections.addAll(this.roles, roles);
   }
@@ -1567,7 +1554,6 @@ public class TemporaryEntity
     waiver.setExpiryTime(expiryTime);
     fillAdditionalFixedData(hash, waiver);
     waiverDAO.insert(waiver);
-    waivers.add(waiver);
     return waiver;
   }
 
@@ -1581,7 +1567,6 @@ public class TemporaryEntity
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
     fillAdditionalFixedData(hash, waiver);
     waiverDAO.insert(waiver);
-    waivers.add(waiver);
     return waiver;
   }
 
@@ -1674,13 +1659,11 @@ public class TemporaryEntity
     waiver.setExpiryTime(expiryTime);
     addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
-    waivers.add(waiver);
     return waiver;
   }
 
   public PolicyWaiver newWaiver(PolicyWaiver policyWaiver) {
     waiverDAO.insert(policyWaiver);
-    waivers.add(policyWaiver);
     return policyWaiver;
   }
 
@@ -1689,7 +1672,6 @@ public class TemporaryEntity
     waiver.setConstraintFacts(constraintFacts);
     addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
-    waivers.add(waiver);
     return waiver;
   }
 
@@ -1705,7 +1687,6 @@ public class TemporaryEntity
     waiver.setCreateTime(createTime);
     addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
-    waivers.add(waiver);
     return waiver;
   }
 
@@ -1723,7 +1704,6 @@ public class TemporaryEntity
     waiver.setExpiryTime(expiryTime);
     addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
-    waivers.add(waiver);
     return waiver;
   }
 
@@ -1822,7 +1802,6 @@ public class TemporaryEntity
   public PolicyTag newPolicyTag(String policyId, String tagId) {
     PolicyTag policyTag = new PolicyTag(policyId, tagId);
     policyTagDAO.insert(policyTag);
-    policyTags.add(policyTag);
     return policyTag;
   }
 
@@ -1843,7 +1822,6 @@ public class TemporaryEntity
 
   public Policy newPolicy(Policy policy) {
     policyDAO.insert(policy);
-    policies.add(policy);
     return policy;
   }
 

@@ -312,8 +312,8 @@ public class FirewallOnboardingPageTest
       List<Repository> npmRepositories = createProxyRepositories(3, repositoryManager, "npm");
       List<Repository> goRepositories = createProxyRepositories(2, repositoryManager, "go");
       List<Repository> swiftRepositories = createProxyRepositories(2, repositoryManager, "swift");
-      List<Repository> otherRepositories = new ArrayList<Repository>(goRepositories);
-      createProxyRepositories(2, repositoryManager,null); // add a repository with null format
+      List<Repository> otherRepositories = new ArrayList<>(goRepositories);
+      createProxyRepositories(2, repositoryManager, null); // add a repository with null format
       otherRepositories.addAll(swiftRepositories);
 
       List<String> supportedFormats = Arrays.asList("maven2", "swift", "pypi", "npm", "go");

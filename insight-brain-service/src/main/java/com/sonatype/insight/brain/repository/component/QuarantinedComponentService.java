@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
@@ -125,6 +126,11 @@ public class QuarantinedComponentService
     checkAccess(repositoryComponent);
 
     final QuarantinedComponentOverviewDto quarantinedComponentOverviewDto = new QuarantinedComponentOverviewDto();
+    quarantinedComponentOverviewDto.componentIdentifier =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(repositoryComponent.getComponentIdentifier());
+    quarantinedComponentOverviewDto.componentHash = repositoryComponent.getHash();
+    quarantinedComponentOverviewDto.matchState = repositoryComponent.getMatchStateId();
+    quarantinedComponentOverviewDto.pathname = repositoryComponent.getPathname();
     quarantinedComponentOverviewDto.componentDisplayName = repositoryComponent.getDisplayName();
     if (repositoryComponent.getComponentIdentifier() != null) {
       quarantinedComponentOverviewDto.componentVersion =
@@ -133,6 +139,7 @@ public class QuarantinedComponentService
     quarantinedComponentOverviewDto.isQuarantined = repositoryComponent.isQuarantined();
     quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount =
         getQuarantinedPolicyViolationsCount(repositoryComponent);
+    quarantinedComponentOverviewDto.repositoryId = repositoryComponent.getRepositoryId();
     quarantinedComponentOverviewDto.repositoryName = getRepositoryName(repositoryComponent);
     quarantinedComponentOverviewDto.quarantinedDate = repositoryComponent.getQuarantineTime();
     quarantinedComponentOverviewDto.tokenExpiryTime = quarantinedComponentAccessManager

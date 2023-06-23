@@ -19,10 +19,15 @@ const initialState = Object.freeze({
   viewState: Object.freeze({
     loadError: null,
     componentOverview: {
+      componentIdentifier: null,
+      componentHash: '',
+      matchState: '',
+      pathname: '',
       componentOverviewLoading: true,
       componentDisplayName: '',
       isQuarantined: false,
       quarantinedPolicyViolationsCount: 0,
+      repositoryId: '',
       repositoryName: '',
       quarantinedDate: '',
       componentVersion: '',

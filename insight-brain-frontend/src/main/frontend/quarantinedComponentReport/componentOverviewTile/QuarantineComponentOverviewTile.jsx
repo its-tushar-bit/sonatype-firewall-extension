@@ -5,12 +5,29 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxButton, NxTextLink, NxThreatIndicator } from '@sonatype/react-shared-components';
 import { formatTimeAgo } from '../../util/dateUtils';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { goToRepositoryComponentDetailsPage } from 'MainRoot/firewall/firewallActions';
+import { useDispatch } from 'react-redux';
 
 export default function QuarantineComponentOverviewTile(props) {
   // viewState
   const { componentOverview } = props;
+  const dispatch = useDispatch();
+  const uiRouterState = useRouterState();
+
+  const goToRepositoryComponentDetails = () =>
+    dispatch(
+      goToRepositoryComponentDetailsPage(
+        componentOverview.repositoryId,
+        componentOverview.componentIdentifier,
+        componentOverview.componentHash,
+        componentOverview.matchState,
+        componentOverview.pathname,
+        componentOverview.componentDisplayName
+      )
+    );
 
   const generalInfoContent = (
     <dl className="nx-read-only nx-read-only--grid iq-general-info-content">
@@ -38,7 +55,14 @@ export default function QuarantineComponentOverviewTile(props) {
     <dl className="nx-read-only nx-read-only--grid iq-repo-info-content">
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Repository</dt>
-        <dd className="nx-read-only__data">{componentOverview.repositoryName}</dd>
+        <dd className="nx-read-only__data">
+          <NxTextLink
+            newTab
+            href={uiRouterState.href('repository-report', { repositoryId: componentOverview.repositoryId })}
+          >
+            {componentOverview.repositoryName}
+          </NxTextLink>
+        </dd>
       </div>
     </dl>
   );
@@ -48,6 +72,11 @@ export default function QuarantineComponentOverviewTile(props) {
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">{componentOverview.componentDisplayName}</h2>
+        </div>
+        <div className="nx-tile__actions">
+          <NxButton variant="tertiary" onClick={goToRepositoryComponentDetails}>
+            View Component Details
+          </NxButton>
         </div>
       </header>
       <div className="nx-tile-content">
@@ -67,9 +96,14 @@ function getQuarantineLabel(isQuarantined) {
 QuarantineComponentOverviewTile.propTypes = {
   componentOverview: PropTypes.shape({
     componentOverviewLoading: PropTypes.bool.isRequired,
+    componentIdentifier: PropTypes.object.isRequired,
+    componentHash: PropTypes.string.isRequired,
+    matchState: PropTypes.string.isRequired,
+    pathname: PropTypes.string.isRequired,
     componentDisplayName: PropTypes.string.isRequired,
     isQuarantined: PropTypes.bool.isRequired,
     quarantinedPolicyViolationsCount: PropTypes.number.isRequired,
+    repositoryId: PropTypes.string.isRequired,
     repositoryName: PropTypes.string.isRequired,
     quarantinedDate: PropTypes.string.isRequired,
   }).isRequired,

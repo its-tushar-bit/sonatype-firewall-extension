@@ -11,9 +11,14 @@ describe('quarantinedComponentReportReducer', function () {
       loadError: null,
       componentOverview: {
         componentOverviewLoading: true,
+        componentIdentifier: null,
+        componentHash: '',
+        matchState: '',
+        pathname: '',
         componentDisplayName: '',
         isQuarantined: false,
         quarantinedPolicyViolationsCount: 0,
+        repositoryId: '',
         repositoryName: '',
         quarantinedDate: '',
         componentVersion: '',
@@ -79,9 +84,14 @@ describe('quarantinedComponentReportReducer', function () {
 
     it('updates the state', function () {
       let payload = {
+        componentIdentifier: null,
+        componentHash: '',
+        matchState: '',
+        pathname: '',
         componentDisplayName: null,
         isQuarantined: null,
         quarantinedPolicyViolationsCount: null,
+        repositoryId: '',
         repositoryName: null,
         quarantinedDate: null,
       };

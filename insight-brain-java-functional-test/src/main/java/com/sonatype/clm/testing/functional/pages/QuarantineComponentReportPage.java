@@ -52,6 +52,14 @@ public class QuarantineComponentReportPage
     return children(".nx-read-only__item .nx-read-only__data").get(index);
   }
 
+  public SelenideElement getQuarantineReportComponentOverviewTileRepositoryLink() {
+    return child(".iq-quarantine-report-component-overview-tile .nx-text-link");
+  }
+
+  public SelenideElement getQuarantineReportComponentOverviewTileViewComponentDetails() {
+    return child(".iq-quarantine-report-component-overview-tile .nx-btn");
+  }
+
   public SelenideElement getTokenWarningAlert() {
     return child(".nx-alert.nx-alert--warning");
   }

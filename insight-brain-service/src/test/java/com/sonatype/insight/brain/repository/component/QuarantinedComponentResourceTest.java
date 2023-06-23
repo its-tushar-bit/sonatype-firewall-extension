@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
@@ -137,9 +138,15 @@ public class QuarantinedComponentResourceTest
     assertResponseStatus(200, response);
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
         response.getBody(QuarantinedComponentOverviewDto.class);
+    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison().isEqualTo(
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    assertThat(quarantinedComponentOverviewDto.componentHash).isEqualTo("testHash");
+    assertThat(quarantinedComponentOverviewDto.matchState).isEqualTo(MatchState.EXACT.toString());
+    assertThat(quarantinedComponentOverviewDto.pathname).isEqualTo("com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar");
     assertThat(quarantinedComponentOverviewDto.componentDisplayName).isEqualTo("com.lingocoder : abi.cli : 0.5.2");
     assertThat(quarantinedComponentOverviewDto.isQuarantined).isTrue();
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(1);
+    assertThat(quarantinedComponentOverviewDto.repositoryId).isNotNull();
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
@@ -173,9 +180,15 @@ public class QuarantinedComponentResourceTest
     assertResponseStatus(200, response);
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
         response.getBody(QuarantinedComponentOverviewDto.class);
+    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison().isEqualTo(
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    assertThat(quarantinedComponentOverviewDto.componentHash).isEqualTo("testHash");
+    assertThat(quarantinedComponentOverviewDto.matchState).isEqualTo(MatchState.EXACT.toString());
+    assertThat(quarantinedComponentOverviewDto.pathname).isEqualTo("com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar");
     assertThat(quarantinedComponentOverviewDto.componentDisplayName).isEqualTo("com.lingocoder : abi.cli : 0.5.2");
     assertThat(quarantinedComponentOverviewDto.isQuarantined).isTrue();
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(1);
+    assertThat(quarantinedComponentOverviewDto.repositoryId).isNotNull();
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");

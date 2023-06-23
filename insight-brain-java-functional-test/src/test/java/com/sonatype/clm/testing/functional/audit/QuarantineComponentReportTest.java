@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Supplier;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -40,7 +41,9 @@ import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OtherVersionsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
+import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.QuarantineComponentReportPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
@@ -74,7 +77,9 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -129,10 +134,19 @@ public class QuarantineComponentReportTest
     date = new Date();
   }
 
+  @After
+  public void after() {
+    hardreset();
+  }
+
   private void waitUntilSpinnersGone() {
+    waitUntilSpinnersGone(() -> quarantineReportPage.getAllLoadingSpinners());
+  }
+
+  private void waitUntilSpinnersGone(Supplier<ElementsCollection> elementsCollectionSupplier) {
     Wait<WebDriver> wait = getWebDriverAwait();
-    wait.until(ExpectedConditions.invisibilityOf(quarantineReportPage.getAllLoadingSpinners().get(0)));
-    quarantineReportPage.getAllLoadingSpinners().shouldHave(size(0));
+    wait.until(ExpectedConditions.invisibilityOf(elementsCollectionSupplier.get().get(0)));
+    elementsCollectionSupplier.get().shouldHave(size(0));
   }
 
   private ComponentDetails createComponentDetail(String hash, ComponentIdentifier componentIdentifier) {
@@ -705,6 +719,50 @@ public class QuarantineComponentReportTest
   }
 
   @Test
+  public void testQuarantineReportComponentOverviewTile_LinkToRepositoryInNewTab() {
+    createAllTypePolicies();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    quarantineReportPage.getQuarantineReportComponentOverviewTile().shouldBe(visible);
+    WebDriver driver = WebDriverRunner.getWebDriver();
+    String oldTab = driver.getWindowHandle();
+    String newTab = null;
+    try {
+      quarantineReportPage.getQuarantineReportComponentOverviewTileRepositoryLink().shouldBe(visible).click();
+      newTab = driver.getWindowHandles().stream()
+          .filter(windowHandle -> !oldTab.equals(windowHandle))
+          .findFirst()
+          .orElse(null);
+      driver.switchTo().window(newTab);
+      loginAsAdmin();
+      RepositoryReportContainerPage.title().shouldHave(text("repositoryPublicId Repository Results"));
+    }
+    finally {
+      if (oldTab != null && newTab != null && driver.getWindowHandle().equals(newTab)) {
+        driver.close();
+        driver.switchTo().window(oldTab);
+      }
+    }
+  }
+
+  @Test
+  public void testQuarantineReportComponentOverviewTile_ViewComponentDetails() {
+    createAllTypePolicies();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    quarantineReportPage.getQuarantineReportComponentOverviewTile().shouldBe(visible);
+    quarantineReportPage.getQuarantineReportComponentOverviewTileViewComponentDetails().shouldBe(visible).click();
+    loginAsAdmin();
+    FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
+    waitUntilSpinnersGone(firewallComponentDetailsPage::getAllLoadingSpinners);
+    firewallComponentDetailsPage.title().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+  }
+
+  @Test
   public void testQuarantineReportMenus_withAnonymousAccess() {
     createAllTypePolicies();
     encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
@@ -770,8 +828,6 @@ public class QuarantineComponentReportTest
     quarantineReportPage.getViolationsTable().should(visible);
     quarantineReportPage.getRiskRemediationTile().shouldBe(visible);
     quarantineReportPage.getOtherVersionsTable().shouldBe(visible);
-
-    logout();
   }
 
   @Test

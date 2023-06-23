@@ -560,26 +560,6 @@ public class TemporaryEntity
 
   private Collection<PolicyMonitoring> policyMonitorings;
 
-  private Collection<VulnerabilityGroup> vulnerabilityGroups;
-
-  private Collection<VulnerabilityGroupVulnerability> vulnerabilityGroupsVulnerability;
-
-  private Collection<VulnerabilityCustomRemediation> vulnerabilityCustomRemediations;
-
-  private Collection<VulnerabilityCustomRemediationTag> vulnerabilityCustomRemediationTags;
-
-  private Collection<VulnerabilityCustomCwe> vulnerabilityCustomCwes;
-
-  private Collection<VulnerabilityCustomCweTag> vulnerabilityCustomCweTags;
-
-  private Collection<VulnerabilityCustomCvssVector> vulnerabilityCustomCvssVectors;
-
-  private Collection<VulnerabilityCustomCvssVectorTag> vulnerabilityCustomCvssVectorTags;
-
-  private Collection<VulnerabilityCustomCvssSeverity> vulnerabilityCustomCvssSeverities;
-
-  private Collection<VulnerabilityCustomCvssSeverityTag> vulnerabilityCustomCvssSeverityTags;
-
   private Collection<MembershipMapping> membershipMappings;
 
   private Collection<Webhook> webhooks;
@@ -630,16 +610,6 @@ public class TemporaryEntity
     tags = new ArrayList<>();
     labels = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
-    vulnerabilityGroups = new ArrayList<>();
-    vulnerabilityGroupsVulnerability = new ArrayList<>();
-    vulnerabilityCustomRemediations = new ArrayList<>();
-    vulnerabilityCustomRemediationTags = new ArrayList<>();
-    vulnerabilityCustomCwes = new ArrayList<>();
-    vulnerabilityCustomCweTags = new ArrayList<>();
-    vulnerabilityCustomCvssVectors = new ArrayList<>();
-    vulnerabilityCustomCvssVectorTags = new ArrayList<>();
-    vulnerabilityCustomCvssSeverities = new ArrayList<>();
-    vulnerabilityCustomCvssSeverityTags = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
@@ -723,6 +693,11 @@ public class TemporaryEntity
     // - RepositoryComponent: cascaded from Repository
     // - RepositoryMigration: cascaded from Repository
     // - RepositoryPolicyViolation: cascaded from Repository
+    // - VulnerabilityCustomCvssSeverityTag: cascaded from VulnerabilityCustomCvssSeverity
+    // - VulnerabilityCustomCvssVectorTag: cascaded from VulnerabilityCustomCvssVector
+    // - VulnerabilityCustomCweTag: cascaded from VulnerabilityCustomCwe
+    // - VulnerabilityCustomRemediationTag: cascaded from VulnerabilityCustomRemediation
+    // - VulnerabilityGroupVulnerability: cascaded from VulnerabilityGroup
     automaticApplicationsConfigurationDAO.setEnabled(false);
     automaticApplicationsConfigurationDAO.setOrganizationId("");
     delete(innerSourceComponents, innerSourceComponentDAO);
@@ -741,16 +716,11 @@ public class TemporaryEntity
     delete(licenseOverrideDAO.getAll(), entity -> licenseOverrideDAO.getById(entity.getId()),
         licenseOverrideDAO::delete);
     delete(securityVulnerabilityOverrideDAO.getAll(), securityVulnerabilityOverrideDAO);
-    delete(vulnerabilityGroupsVulnerability, vulnerabilityGroupVulnerabilityDAO);
-    delete(vulnerabilityGroups, vulnerabilityGroupDAO);
-    delete(vulnerabilityCustomRemediations, vulnerabilityCustomRemediationDAO);
-    delete(vulnerabilityCustomRemediationTags, vulnerabilityCustomRemediationTagDAO);
-    delete(vulnerabilityCustomCwes, vulnerabilityCustomCweDAO);
-    delete(vulnerabilityCustomCweTags, vulnerabilityCustomCweTagDAO);
-    delete(vulnerabilityCustomCvssVectors, vulnerabilityCustomCvssVectorDAO);
-    delete(vulnerabilityCustomCvssVectorTags, vulnerabilityCustomCvssVectorTagDAO);
-    delete(vulnerabilityCustomCvssSeverities, vulnerabilityCustomCvssSeverityDAO);
-    delete(vulnerabilityCustomCvssSeverityTags, vulnerabilityCustomCvssSeverityTagDAO);
+    delete(vulnerabilityGroupDAO.getAll(), vulnerabilityGroupDAO);
+    delete(vulnerabilityCustomRemediationDAO.getAll(), vulnerabilityCustomRemediationDAO);
+    delete(vulnerabilityCustomCweDAO.getAll(), vulnerabilityCustomCweDAO);
+    delete(vulnerabilityCustomCvssVectorDAO.getAll(), vulnerabilityCustomCvssVectorDAO);
+    delete(vulnerabilityCustomCvssSeverityDAO.getAll(), vulnerabilityCustomCvssSeverityDAO);
     delete(users, userDAO);
     samlUserGroupDAO.getAll().forEach(samlUserGroupDAO::delete);
     samlUserDAO.getAll().forEach(samlUserDAO::delete);
@@ -1198,10 +1168,6 @@ public class TemporaryEntity
 
   public void register(LdapServer... ldapServers) {
     Collections.addAll(this.ldapServers, ldapServers);
-  }
-
-  public void register(VulnerabilityGroup... vulnerabilityGroup) {
-    Collections.addAll(this.vulnerabilityGroups, vulnerabilityGroup);
   }
 
   public void register(SourceControlOrganizationImportEvent ... sourceControlOrganizationImportEvents) {
@@ -2976,14 +2942,12 @@ public class TemporaryEntity
   public VulnerabilityGroup newVulnerabilityGroup(String groupName, String ownerId) {
     VulnerabilityGroup group = new VulnerabilityGroup(groupName, ownerId);
     vulnerabilityGroupDAO.insert(group);
-    vulnerabilityGroups.add(group);
     return group;
   }
 
   public VulnerabilityGroupVulnerability newVulnerabilityGroupVulnerability(String groupId, String refId) {
     VulnerabilityGroupVulnerability vuln1 = new VulnerabilityGroupVulnerability(groupId, refId);
     vulnerabilityGroupVulnerabilityDAO.insert(vuln1);
-    vulnerabilityGroupsVulnerability.add(vuln1);
     return vuln1;
   }
 
@@ -2994,7 +2958,6 @@ public class TemporaryEntity
     vulnerabilityCustomRemediation.setOwnerId(ownerId);
     vulnerabilityCustomRemediation.setLastUpdatedByUsername("SUPERUSER");
     vulnerabilityCustomRemediationDAO.insert(vulnerabilityCustomRemediation);
-    vulnerabilityCustomRemediations.add(vulnerabilityCustomRemediation);
     return vulnerabilityCustomRemediation;
   }
 
@@ -3010,7 +2973,6 @@ public class TemporaryEntity
     vulnerabilityCustomRemediation.setLastUpdatedByUsername("SUPERUSER");
     vulnerabilityCustomRemediation.setComponentIdentifier(componentIdentifier);
     vulnerabilityCustomRemediationDAO.insert(vulnerabilityCustomRemediation);
-    vulnerabilityCustomRemediations.add(vulnerabilityCustomRemediation);
     return vulnerabilityCustomRemediation;
   }
 
@@ -3022,7 +2984,6 @@ public class TemporaryEntity
     vulnerabilityCustomRemediationTag.setTagId(tagId);
     vulnerabilityCustomRemediationTag.setVulnerabilityCustomRemediationId(vulnerabilityCustomRemediationId);
     vulnerabilityCustomRemediationTagDAO.insert(vulnerabilityCustomRemediationTag);
-    vulnerabilityCustomRemediationTags.add(vulnerabilityCustomRemediationTag);
     return vulnerabilityCustomRemediationTag;
   }
 
@@ -3041,14 +3002,12 @@ public class TemporaryEntity
     customRemediation.setLastUpdatedByUsername("test");
     customRemediation.setRemediation(remediation);
     vulnerabilityCustomRemediationDAO.insert(customRemediation);
-    vulnerabilityCustomRemediations.add(customRemediation);
 
     if (tag != null) {
       VulnerabilityCustomRemediationTag remediationTag = new VulnerabilityCustomRemediationTag();
       remediationTag.setTagId(tag.getId());
       remediationTag.setVulnerabilityCustomRemediationId(customRemediation.getId());
       vulnerabilityCustomRemediationTagDAO.insert(remediationTag);
-      vulnerabilityCustomRemediationTags.add(remediationTag);
     }
 
     VulnerabilityCustomCwe customCwe = new VulnerabilityCustomCwe();
@@ -3057,14 +3016,12 @@ public class TemporaryEntity
     customCwe.setLastUpdatedByUsername("test");
     customCwe.setCwe(cweId);
     vulnerabilityCustomCweDAO.insert(customCwe);
-    vulnerabilityCustomCwes.add(customCwe);
 
     if (tag != null) {
       VulnerabilityCustomCweTag cweTag = new VulnerabilityCustomCweTag();
       cweTag.setTagId(tag.getId());
       cweTag.setVulnerabilityCustomCweId(customCwe.getId());
       vulnerabilityCustomCweTagDAO.insert(cweTag);
-      vulnerabilityCustomCweTags.add(cweTag);
     }
 
     VulnerabilityCustomCvssVector customCvssVector = new VulnerabilityCustomCvssVector();
@@ -3073,14 +3030,12 @@ public class TemporaryEntity
     customCvssVector.setLastUpdatedByUsername("test");
     customCvssVector.setVector(cvssVector);
     vulnerabilityCustomCvssVectorDAO.insert(customCvssVector);
-    vulnerabilityCustomCvssVectors.add(customCvssVector);
 
     if (tag != null) {
       VulnerabilityCustomCvssVectorTag cvssVectorTag = new VulnerabilityCustomCvssVectorTag();
       cvssVectorTag.setTagId(tag.getId());
       cvssVectorTag.setVulnerabilityCustomCvssVectorId(customCvssVector.getId());
       vulnerabilityCustomCvssVectorTagDAO.insert(cvssVectorTag);
-      vulnerabilityCustomCvssVectorTags.add(cvssVectorTag);
     }
 
     VulnerabilityCustomCvssSeverity customCvssSeverity = new VulnerabilityCustomCvssSeverity();
@@ -3089,14 +3044,12 @@ public class TemporaryEntity
     customCvssSeverity.setLastUpdatedByUsername("test");
     customCvssSeverity.setSeverity(severity);
     vulnerabilityCustomCvssSeverityDAO.insert(customCvssSeverity);
-    vulnerabilityCustomCvssSeverities.add(customCvssSeverity);
 
     if (tag != null) {
       VulnerabilityCustomCvssSeverityTag cvssSeverityTag = new VulnerabilityCustomCvssSeverityTag();
       cvssSeverityTag.setTagId(tag.getId());
       cvssSeverityTag.setVulnerabilityCustomCvssSeverityId(customCvssSeverity.getId());
       vulnerabilityCustomCvssSeverityTagDAO.insert(cvssSeverityTag);
-      vulnerabilityCustomCvssSeverityTags.add(cvssSeverityTag);
     }
   }
 
@@ -3115,7 +3068,6 @@ public class TemporaryEntity
     customCvssSeverity.setLastUpdatedByUsername("test");
     customCvssSeverity.setSeverity(severity);
     vulnerabilityCustomCvssSeverityDAO.insert(customCvssSeverity);
-    vulnerabilityCustomCvssSeverities.add(customCvssSeverity);
     return customCvssSeverity;
   }
 
@@ -3130,7 +3082,6 @@ public class TemporaryEntity
     customCvssSeverity.setLastUpdatedByUsername("test");
     customCvssSeverity.setSeverity(severity);
     vulnerabilityCustomCvssSeverityDAO.insert(customCvssSeverity);
-    vulnerabilityCustomCvssSeverities.add(customCvssSeverity);
     return customCvssSeverity;
   }
 
@@ -3142,7 +3093,6 @@ public class TemporaryEntity
     cvssSeverityTag.setTagId(tagId);
     cvssSeverityTag.setVulnerabilityCustomCvssSeverityId(vulnerabilityCustomCvssSeverityId);
     vulnerabilityCustomCvssSeverityTagDAO.insert(cvssSeverityTag);
-    vulnerabilityCustomCvssSeverityTags.add(cvssSeverityTag);
     return cvssSeverityTag;
   }
 
@@ -3161,7 +3111,6 @@ public class TemporaryEntity
     customCvssVector.setLastUpdatedAt(lastUpdatedAt);
     customCvssVector.setVector(vector);
     vulnerabilityCustomCvssVectorDAO.insert(customCvssVector);
-    vulnerabilityCustomCvssVectors.add(customCvssVector);
     return customCvssVector;
   }
 
@@ -3172,7 +3121,6 @@ public class TemporaryEntity
     vulnerabilityCustomVectorTag.setVulnerabilityCustomCvssVectorId(vulnerabilityCustomVectorId);
     vulnerabilityCustomVectorTag.setTagId(tagId);
     vulnerabilityCustomCvssVectorTagDAO.insert(vulnerabilityCustomVectorTag);
-    vulnerabilityCustomCvssVectorTags.add(vulnerabilityCustomVectorTag);
     return vulnerabilityCustomVectorTag;
   }
 
@@ -3191,7 +3139,6 @@ public class TemporaryEntity
     customCwe.setLastUpdatedByUsername("test");
     customCwe.setCwe(cweId);
     vulnerabilityCustomCweDAO.insert(customCwe);
-    vulnerabilityCustomCwes.add(customCwe);
     return customCwe;
   }
 
@@ -3208,7 +3155,6 @@ public class TemporaryEntity
     customCwe.setLastUpdatedByUsername("test");
     customCwe.setCwe(cweId);
     vulnerabilityCustomCweDAO.insert(customCwe);
-    vulnerabilityCustomCwes.add(customCwe);
     return customCwe;
   }
 
@@ -3217,7 +3163,6 @@ public class TemporaryEntity
     customCweTag.setVulnerabilityCustomCweId(vulnerabilityCustomCweId);
     customCweTag.setTagId(tagId);
     vulnerabilityCustomCweTagDAO.insert(customCweTag);
-    vulnerabilityCustomCweTags.add(customCweTag);
     return customCweTag;
   }
 

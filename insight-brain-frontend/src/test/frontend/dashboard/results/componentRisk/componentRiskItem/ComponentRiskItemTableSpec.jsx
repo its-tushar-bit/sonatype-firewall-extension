@@ -89,7 +89,7 @@ describe('ComponentRiskItemTable', () => {
       render(<ComponentRiskItemTable {...minimalProps} {...additionalProps} />);
   });
 
-  xit('renders table and rows with data for each violation', () => {
+  it('renders table and rows with data for each violation', () => {
     renderComponent();
 
     const rows = screen.getAllByRole('row');
@@ -124,7 +124,7 @@ describe('ComponentRiskItemTable', () => {
     expect(screen.getByText('< 1%')).toBeVisible();
     expect(screen.getByText('2h')).toBeVisible();
     expect(screen.getByText('2d')).toBeVisible();
-    expect(screen.getByText('1mo')).toBeVisible();
+    expect(screen.getByText('2mo')).toBeVisible();
     expect(screen.getByText('2y')).toBeVisible();
   });
 });

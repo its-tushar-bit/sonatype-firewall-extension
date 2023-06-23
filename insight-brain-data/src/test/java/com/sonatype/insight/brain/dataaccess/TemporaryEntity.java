@@ -560,8 +560,6 @@ public class TemporaryEntity
 
   private Collection<PolicyMonitoring> policyMonitorings;
 
-  private Collection<SecurityVulnerabilityOverride> securityVulnerabilityOverrides;
-
   private Collection<VulnerabilityGroup> vulnerabilityGroups;
 
   private Collection<VulnerabilityGroupVulnerability> vulnerabilityGroupsVulnerability;
@@ -632,7 +630,6 @@ public class TemporaryEntity
     tags = new ArrayList<>();
     labels = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
-    securityVulnerabilityOverrides = new ArrayList<>();
     vulnerabilityGroups = new ArrayList<>();
     vulnerabilityGroupsVulnerability = new ArrayList<>();
     vulnerabilityCustomRemediations = new ArrayList<>();
@@ -741,8 +738,9 @@ public class TemporaryEntity
     delete(appDAO.getAll(), appDAO);
     orgs = sortNLevelOrgsWithLeafNodesOnTop(orgs);
     delete(orgs, orgDAO);
-    delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
-    delete(securityVulnerabilityOverrides, securityVulnerabilityOverrideDAO);
+    delete(licenseOverrideDAO.getAll(), entity -> licenseOverrideDAO.getById(entity.getId()),
+        licenseOverrideDAO::delete);
+    delete(securityVulnerabilityOverrideDAO.getAll(), securityVulnerabilityOverrideDAO);
     delete(vulnerabilityGroupsVulnerability, vulnerabilityGroupVulnerabilityDAO);
     delete(vulnerabilityGroups, vulnerabilityGroupDAO);
     delete(vulnerabilityCustomRemediations, vulnerabilityCustomRemediationDAO);
@@ -2972,7 +2970,6 @@ public class TemporaryEntity
     SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(ownerId, hash, source, refrenceId,
         status, comment);
     securityVulnerabilityOverrideDAO.insert(override);
-    securityVulnerabilityOverrides.add(override);
     return override;
   }
 

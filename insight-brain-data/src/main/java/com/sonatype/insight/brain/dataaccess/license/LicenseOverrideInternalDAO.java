@@ -95,4 +95,9 @@ public class LicenseOverrideInternalDAO
       return getByIdNotNull(tx, id);
     }
   }
+
+  List<LicenseOverrideInternal> getAll() {
+    String sQuery = "SELECT entity FROM LicenseOverrideInternal entity";
+    return getList(sQuery);
+  }
 }

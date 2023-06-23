@@ -246,4 +246,15 @@ public class LicenseOverrideDAO
 
     return internal;
   }
+
+  public List<LicenseOverride> getAll() {
+    List<LicenseOverrideInternal> internalOverrides = licenseOverrideInternalDAO.getAll();
+    List<LicenseOverride> overrides = new ArrayList<>();
+
+    for (LicenseOverrideInternal internalOverride : internalOverrides) {
+      overrides.add(new LicenseOverride(internalOverride, getLicenseIds(internalOverride.getId())));
+    }
+
+    return overrides;
+  }
 }

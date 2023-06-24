@@ -58,7 +58,6 @@ public class LdapResourceTest
     assertResponseStatus(200, response);
     LdapServer addedLdapServer = ldapServer = response.getBody(LdapServer.class);
     assertThat(addedLdapServer.getId()).isNotNull();
-    tempEntity.register(ldapServer);
     ldapServer.setId(addedLdapServer.getId());
     assertThat(addedLdapServer).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(ldapServer);
     LdapServer persistedLdapServer = ldapServerDAO.getById(ldapServer.getId());

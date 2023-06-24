@@ -1741,7 +1741,6 @@ public class LdapServiceTest
 
     ldapServer = ldapService.addLdapServer(ldapServer);
     assertThat(ldapServer.getId()).isNotNull();
-    tempEntity.register(ldapServer);
     assertThat(ldapServer.getName()).isEqualTo("test");
 
     LdapServer persistedLdapServer = new LdapServerDAO().getById(ldapServer.getId());

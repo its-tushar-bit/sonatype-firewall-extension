@@ -30,8 +30,7 @@ public class LdapServiceAuthzTest
   @Test
   public void testAddLdapServer_Authorized() {
     grantConfigureSystemPermission();
-    LdapServer ldapServer = ldapService.addLdapServer(new LdapServer("test"));
-    tempEntity.register(ldapServer);
+    ldapService.addLdapServer(new LdapServer("test"));
   }
 
   @Test(expected = UnauthorizedException.class)

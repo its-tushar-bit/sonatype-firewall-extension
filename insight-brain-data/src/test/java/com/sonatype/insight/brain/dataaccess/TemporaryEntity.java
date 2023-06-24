@@ -550,8 +550,6 @@ public class TemporaryEntity
 
   private Collection<Role> roles;
 
-  private Collection<LdapServer> ldapServers;
-
   private Collection<HashComponentIdentifier> claimedComponents;
 
   private Collection<Tag> tags;
@@ -605,7 +603,6 @@ public class TemporaryEntity
     users = new ArrayList<>();
     usernames = new ArrayList<>();
     roles = new ArrayList<>();
-    ldapServers = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     tags = new ArrayList<>();
     labels = new ArrayList<>();
@@ -685,6 +682,8 @@ public class TemporaryEntity
   @Override
   public void after() {
     // Entities deleted via cascaded deletes
+    // - LdapConnection: cascaded from LdapServer
+    // - LdapUserMapping: cascaded from LdapServer
     // - LicenseThreatGroupLicense: cascaded from LicenseThreatGroup
     // - PolicyTag: cascaded from Policy
     // - PolicyWaiver: cascaded from Policy
@@ -727,7 +726,7 @@ public class TemporaryEntity
     samlGroupDAO.getAll().forEach(samlGroupDAO::delete);
     delete(usernames, userDAO);
     delete(roles, roleDAO);
-    delete(ldapServers, ldapServerDAO);
+    delete(ldapServerDAO.getAll(), ldapServerDAO);
     delete(claimedComponents, hashComponentIdentifierDAO);
     delete(userViewedProductNotificationDAO.getAll(), userViewedProductNotificationDAO);
     delete(labels, labelDAO);
@@ -1164,10 +1163,6 @@ public class TemporaryEntity
 
   public void register(Webhook... webhooks) {
     Collections.addAll(this.webhooks, webhooks);
-  }
-
-  public void register(LdapServer... ldapServers) {
-    Collections.addAll(this.ldapServers, ldapServers);
   }
 
   public void register(SourceControlOrganizationImportEvent ... sourceControlOrganizationImportEvents) {
@@ -1679,7 +1674,6 @@ public class TemporaryEntity
   public LdapServer newLdapServer(String name) {
     LdapServer ldapServer = new LdapServer(name);
     ldapServerDAO.insert(ldapServer);
-    ldapServers.add(ldapServer);
     return ldapServer;
   }
 

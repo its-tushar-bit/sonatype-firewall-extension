@@ -552,10 +552,6 @@ public class TemporaryEntity
 
   private Collection<HashComponentIdentifier> claimedComponents;
 
-  private Collection<Tag> tags;
-
-  private Collection<Label> labels;
-
   private Collection<PolicyMonitoring> policyMonitorings;
 
   private Collection<MembershipMapping> membershipMappings;
@@ -604,8 +600,6 @@ public class TemporaryEntity
     usernames = new ArrayList<>();
     roles = new ArrayList<>();
     claimedComponents = new ArrayList<>();
-    tags = new ArrayList<>();
-    labels = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
@@ -682,6 +676,8 @@ public class TemporaryEntity
   @Override
   public void after() {
     // Entities deleted via cascaded deletes
+    // - ApplicationTag: cascaded from Application
+    // - ComponentLabel: cascaded from Label
     // - LdapConnection: cascaded from LdapServer
     // - LdapUserMapping: cascaded from LdapServer
     // - LicenseThreatGroupLicense: cascaded from LicenseThreatGroup
@@ -729,8 +725,8 @@ public class TemporaryEntity
     delete(ldapServerDAO.getAll(), ldapServerDAO);
     delete(claimedComponents, hashComponentIdentifierDAO);
     delete(userViewedProductNotificationDAO.getAll(), userViewedProductNotificationDAO);
-    delete(labels, labelDAO);
-    delete(tags, tagDAO);
+    delete(labelDAO.getAll(), labelDAO);
+    delete(tagDAO.getAll(), tagDAO);
     delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
     delete(policyMonitorings, policyMonitoringDAO);
     delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
@@ -1374,7 +1370,6 @@ public class TemporaryEntity
   public Label newLabel(String ownerId, String labelText, String description, Color color) {
     Label label = new Label(ownerId, labelText, description, color);
     labelDAO.insert(label);
-    labels.add(label);
     return label;
   }
 
@@ -1390,7 +1385,6 @@ public class TemporaryEntity
       tx.persist(label);
       tx.commit();
     }
-    labels.add(label);
     return label;
   }
 
@@ -1747,7 +1741,6 @@ public class TemporaryEntity
   public Tag newTag(String orgId, String name, String description, Color color) {
     Tag tag = new Tag(orgId, name, description, color);
     tagDAO.insert(tag);
-    tags.add(tag);
     return tag;
   }
 

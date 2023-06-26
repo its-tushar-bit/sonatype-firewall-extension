@@ -552,8 +552,6 @@ public class TemporaryEntity
 
   private Collection<HashComponentIdentifier> claimedComponents;
 
-  private Collection<PolicyMonitoring> policyMonitorings;
-
   private Collection<MembershipMapping> membershipMappings;
 
   private Collection<Webhook> webhooks;
@@ -600,7 +598,6 @@ public class TemporaryEntity
     usernames = new ArrayList<>();
     roles = new ArrayList<>();
     claimedComponents = new ArrayList<>();
-    policyMonitorings = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
@@ -728,7 +725,7 @@ public class TemporaryEntity
     delete(labelDAO.getAll(), labelDAO);
     delete(tagDAO.getAll(), tagDAO);
     delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
-    delete(policyMonitorings, policyMonitoringDAO);
+    delete(policyMonitoringDAO.getAll(), policyMonitoringDAO);
     delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
     delete(webhooks, webhookDAO);
     delete(policyViolationAggregations, policyViolationAggregationDAO);
@@ -2455,7 +2452,6 @@ public class TemporaryEntity
 
   public PolicyMonitoring newPolicyMonitoring(PolicyMonitoring policyMonitoring) {
     policyMonitoringDAO.insert(policyMonitoring);
-    policyMonitorings.add(policyMonitoring);
     return policyMonitoring;
   }
 

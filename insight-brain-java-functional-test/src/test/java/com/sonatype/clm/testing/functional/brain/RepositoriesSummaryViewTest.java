@@ -289,6 +289,7 @@ public class RepositoriesSummaryViewTest
 
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(4);
 
@@ -321,6 +322,7 @@ public class RepositoriesSummaryViewTest
 
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
 
@@ -364,6 +366,7 @@ public class RepositoriesSummaryViewTest
     refreshOrOpen(RepositoryResultsSummaryPage.url());
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
 
@@ -415,6 +418,7 @@ public class RepositoriesSummaryViewTest
     refresh();
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
 
@@ -644,6 +648,7 @@ public class RepositoriesSummaryViewTest
 
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
+    ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
 

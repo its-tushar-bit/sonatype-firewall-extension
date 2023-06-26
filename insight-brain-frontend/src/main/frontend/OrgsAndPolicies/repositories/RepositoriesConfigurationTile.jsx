@@ -14,6 +14,8 @@ import {
   NxTextLink,
   NxTile,
   NxWarningAlert,
+  NxPositiveStatusIndicator,
+  NxNegativeStatusIndicator,
 } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { actions } from './repositoriesConfigurationSlice';
@@ -97,7 +99,13 @@ const RepositoriesConfigurationTile = () => {
         <NxTable.Cell className="iq-repositories-configuration-table-repository-manager">
           {repository.managerInstanceId}
         </NxTable.Cell>
-        <NxTable.Cell>{repositoryData.auditEnabled ? 'Enabled' : 'Disabled'}</NxTable.Cell>
+        <NxTable.Cell>
+          {repositoryData.auditEnabled ? (
+            <NxPositiveStatusIndicator>Enabled</NxPositiveStatusIndicator>
+          ) : (
+            <NxNegativeStatusIndicator>Disabled</NxNegativeStatusIndicator>
+          )}
+        </NxTable.Cell>
         <NxTable.Cell>
           <div className="nx-btn-bar">
             <NxButton

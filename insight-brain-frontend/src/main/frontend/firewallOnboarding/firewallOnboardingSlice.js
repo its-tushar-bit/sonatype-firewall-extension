@@ -5,7 +5,7 @@
  */
 
 import axios from 'axios';
-import { head as first } from 'ramda';
+import { head as first, path } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { next, prev, steps, updateRepositories } from './firewallOnboardingUtils';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -81,7 +81,12 @@ const configureRepositories = (state, { payload: repositories }) => {
 
 const loadUnconfiguredRepoManagers = createAsyncThunk(
   `${REDUCER_NAME}/loadUnconfiguredRepoManagers`,
-  (_, { dispatch, rejectWithValue }) => {
+  (_, { dispatch, rejectWithValue, getState }) => {
+    // Only call the endpoint if
+    // unconfigured repositories list is not populated.
+    if (path([REDUCER_NAME, 'repositories', 'list'], getState())) {
+      return;
+    }
     return axios
       .get(getUnconfiguredRepositoriesManager())
       .then(({ data }) => {

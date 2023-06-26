@@ -554,8 +554,6 @@ public class TemporaryEntity
 
   private Collection<MembershipMapping> membershipMappings;
 
-  private Collection<Webhook> webhooks;
-
   private Collection<PolicyViolationAggregation> policyViolationAggregations;
 
   private Collection<SuccessMetricsReport> successMetricsReports;
@@ -599,7 +597,6 @@ public class TemporaryEntity
     roles = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     membershipMappings = new ArrayList<>();
-    webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
@@ -727,7 +724,7 @@ public class TemporaryEntity
     delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
     delete(policyMonitoringDAO.getAll(), policyMonitoringDAO);
     delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
-    delete(webhooks, webhookDAO);
+    delete(webhookDAO.getAll(), webhookDAO);
     delete(policyViolationAggregations, policyViolationAggregationDAO);
     delete(successMetricsReportDatas, successMetricsReportDataDAO);
     delete(successMetricsReports, successMetricsReportDAO);
@@ -1152,10 +1149,6 @@ public class TemporaryEntity
 
   public void register(MembershipMapping... membershipMappings) {
     Collections.addAll(this.membershipMappings, membershipMappings);
-  }
-
-  public void register(Webhook... webhooks) {
-    Collections.addAll(this.webhooks, webhooks);
   }
 
   public void register(SourceControlOrganizationImportEvent ... sourceControlOrganizationImportEvents) {
@@ -3164,7 +3157,6 @@ public class TemporaryEntity
   public Webhook newWebhookWithSecret(String url, Set<WebhookEventType> events, String description) {
     Webhook webhook = new Webhook(url, WEBHOOK_SECRET_KEY_ENCRYPTED, events, description);
     webhookDAO.insert(webhook);
-    webhooks.add(webhook);
     return webhook;
   }
 
@@ -3180,7 +3172,6 @@ public class TemporaryEntity
   public Webhook newWebhook(String url, Set<WebhookEventType> events) {
     Webhook webhook = new Webhook(url, null, events);
     webhookDAO.insert(webhook);
-    webhooks.add(webhook);
     return webhook;
   }
 

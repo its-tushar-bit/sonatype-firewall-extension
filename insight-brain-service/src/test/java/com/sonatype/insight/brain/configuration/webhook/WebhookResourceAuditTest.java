@@ -28,7 +28,6 @@ public class WebhookResourceAuditTest
   @Test
   public void testAddWebhook() throws Exception {
     Webhook webhook = webhookRequest().body(webhook()).post().getBody(Webhook.class);
-    tempEntity.register(webhook);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WEBHOOK, null);
     assertWebhookData(auditDTO, webhook);
@@ -37,7 +36,6 @@ public class WebhookResourceAuditTest
   @Test
   public void testAddWebhook_NullEventTypes() throws Exception {
     Webhook webhook = webhookRequest().body(webhook(null)).post().getBody(Webhook.class);
-    tempEntity.register(webhook);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WEBHOOK, null);
     assertWebhookData(auditDTO, webhook);

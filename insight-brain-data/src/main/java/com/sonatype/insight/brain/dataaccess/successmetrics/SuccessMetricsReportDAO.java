@@ -80,4 +80,9 @@ public class SuccessMetricsReportDAO
 
     super.delete(tx, successMetricsReport);
   }
+
+  public List<SuccessMetricsReport> getAll() {
+    String sQuery = "SELECT entity FROM SuccessMetricsReport entity";
+    return getList(sQuery);
+  }
 }

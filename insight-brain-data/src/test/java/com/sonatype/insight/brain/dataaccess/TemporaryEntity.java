@@ -554,10 +554,6 @@ public class TemporaryEntity
 
   private Collection<MembershipMapping> membershipMappings;
 
-  private Collection<SuccessMetricsReport> successMetricsReports;
-
-  private Collection<SuccessMetricsReportData> successMetricsReportDatas;
-
   private Collection<SourceControl> sourceControls;
 
   private Collection<SourceControlPullRequest> sourceControlPullRequests;
@@ -595,8 +591,6 @@ public class TemporaryEntity
     roles = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     membershipMappings = new ArrayList<>();
-    successMetricsReports = new ArrayList<>();
-    successMetricsReportDatas = new ArrayList<>();
     sourceControls = new ArrayList<>();
     sourceControlPullRequests = new ArrayList<>();
     sourceControlPullRequestComments = new ArrayList<>();
@@ -679,6 +673,7 @@ public class TemporaryEntity
     // - RepositoryComponent: cascaded from Repository
     // - RepositoryMigration: cascaded from Repository
     // - RepositoryPolicyViolation: cascaded from Repository
+    // - SuccessMetricsReportData: cascaded from SuccessMetricsReport
     // - VulnerabilityCustomCvssSeverityTag: cascaded from VulnerabilityCustomCvssSeverity
     // - VulnerabilityCustomCvssVectorTag: cascaded from VulnerabilityCustomCvssVector
     // - VulnerabilityCustomCweTag: cascaded from VulnerabilityCustomCwe
@@ -723,8 +718,7 @@ public class TemporaryEntity
     delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
     delete(webhookDAO.getAll(), webhookDAO);
     delete(policyViolationAggregationDAO.getAll(), policyViolationAggregationDAO);
-    delete(successMetricsReportDatas, successMetricsReportDataDAO);
-    delete(successMetricsReports, successMetricsReportDAO);
+    delete(successMetricsReportDAO.getAll(), successMetricsReportDAO);
     delete(sourceControls, sourceControlDAO);
     delete(sourceControlPullRequests, sourceControlPullRequestDAO);
     samlConfigurationDAO.delete();
@@ -3297,7 +3291,6 @@ public class TemporaryEntity
     successMetricsReport.setCreateTime(createTime);
     successMetricsReport.setIncludeLatestData(includeLatestData);
     successMetricsReportDAO.insert(successMetricsReport);
-    this.successMetricsReports.add(successMetricsReport);
     return successMetricsReport;
   }
 
@@ -3329,8 +3322,7 @@ public class TemporaryEntity
     successMetricsReportData.setLastUpdated(new Date());
     successMetricsReportData.setIncludedApplicationIds(Collections.singleton("1234"));
     successMetricsReportData.setChartDataJson("");
-    this.successMetricsReportDatas.add(successMetricsReportData);
-    this.successMetricsReportDataDAO.insert(successMetricsReportData);
+    successMetricsReportDataDAO.insert(successMetricsReportData);
     return successMetricsReportData;
   }
 

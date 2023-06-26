@@ -554,8 +554,6 @@ public class TemporaryEntity
 
   private Collection<MembershipMapping> membershipMappings;
 
-  private Collection<PolicyViolationAggregation> policyViolationAggregations;
-
   private Collection<SuccessMetricsReport> successMetricsReports;
 
   private Collection<SuccessMetricsReportData> successMetricsReportDatas;
@@ -597,7 +595,6 @@ public class TemporaryEntity
     roles = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     membershipMappings = new ArrayList<>();
-    policyViolationAggregations = new ArrayList<>();
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
     sourceControls = new ArrayList<>();
@@ -725,7 +722,7 @@ public class TemporaryEntity
     delete(policyMonitoringDAO.getAll(), policyMonitoringDAO);
     delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
     delete(webhookDAO.getAll(), webhookDAO);
-    delete(policyViolationAggregations, policyViolationAggregationDAO);
+    delete(policyViolationAggregationDAO.getAll(), policyViolationAggregationDAO);
     delete(successMetricsReportDatas, successMetricsReportDataDAO);
     delete(successMetricsReports, successMetricsReportDAO);
     delete(sourceControls, sourceControlDAO);
@@ -3218,7 +3215,6 @@ public class TemporaryEntity
         timePeriodEnd, timePeriod, mttrLowThreatStats, mttrModerateThreatStats, mttrSevereThreatStats,
         mttrCriticalThreatStats, discoveredCounts, fixedCounts, waivedCounts, openCounts, evaluationCount);
     policyViolationAggregationDAO.insert(aggregation);
-    policyViolationAggregations.add(aggregation);
 
     return aggregation;
   }
@@ -3238,7 +3234,6 @@ public class TemporaryEntity
     aggregation.setTimePeriod(timePeriod);
 
     policyViolationAggregationDAO.insert(aggregation);
-    policyViolationAggregations.add(aggregation);
 
     return aggregation;
   }
@@ -3273,7 +3268,6 @@ public class TemporaryEntity
     setPolicyViolationCounts(aggregation, OTHER, otherViolationCounts);
 
     policyViolationAggregationDAO.insert(aggregation);
-    policyViolationAggregations.add(aggregation);
 
     return aggregation;
   }

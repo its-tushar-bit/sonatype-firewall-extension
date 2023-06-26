@@ -681,4 +681,9 @@ public class PolicyViolationAggregationDAO
       return getList(sQuery, applicationIds, timePeriod, startDate, endDate);
     }
   }
+
+  public List<PolicyViolationAggregation> getAll() {
+    String sQuery = "SELECT entity FROM PolicyViolationAggregation entity";
+    return getList(sQuery);
+  }
 }

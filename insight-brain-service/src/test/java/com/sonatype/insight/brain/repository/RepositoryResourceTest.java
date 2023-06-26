@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
@@ -25,10 +26,13 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -362,5 +366,37 @@ public class RepositoryResourceTest
     assertThat(repository.isPolicyCompliantComponentSelectionEnabled()).isTrue();
     assertThat(repository.isNamespaceConfusionProtectionEnabled()).isFalse();
     assertThat(repository.getLastManualConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
+  }
+
+  @Test
+  public void testConfigureFirewallOnboarding() throws Exception {
+    FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO = new FirewallOnboardingOptionsDTO();
+    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = true;
+    firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = true;
+
+    Policy securityMaliciousPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Malicious");
+    Policy integrityRatingPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Integrity-Rating");
+    Policy securityNamespaceConflictPolicy =
+        tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Namespace Conflict");
+    // Sanity checks
+    assertThat(securityMaliciousPolicy.getActions()).isEmpty();
+    assertThat(integrityRatingPolicy.getActions()).isEmpty();
+    assertThat(securityNamespaceConflictPolicy.getActions()).isEmpty();
+
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.CONFIGURE_FIREWALL_ONBOARDING_PATH)
+            .body(firewallOnboardingOptionsDTO).put();
+    assertResponseStatus(204, response);
+
+    PolicyDAO policyDAO = new PolicyDAO();
+    Policy foundPolicy = policyDAO.getById(securityMaliciousPolicy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
+    foundPolicy = policyDAO.getById(integrityRatingPolicy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
+    foundPolicy = policyDAO.getById(securityNamespaceConflictPolicy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
   }
 }

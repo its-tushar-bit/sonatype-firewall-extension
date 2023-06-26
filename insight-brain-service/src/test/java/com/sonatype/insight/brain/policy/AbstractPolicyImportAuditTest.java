@@ -121,34 +121,6 @@ public abstract class AbstractPolicyImportAuditTest
     assertCustomData(auditDTO, "applicationCategoryCount", applicationCategoryCount);
   }
 
-  protected void assertPolicyData(final AuditDTO auditDTO, final Policy policy, boolean policyDeleted) {
-    assertPolicyData(auditDTO, policy, policyDeleted, ConstraintDTO.transcribe(policy.getConstraints()));
-  }
-
-  protected void assertPolicyData(AuditDTO auditDTO,
-                                  Policy policy,
-                                  boolean policyDeleted,
-                                  List<ConstraintDTO> constraints)
-  {
-    String auditedPolicyId = (String) auditDTO.data.get("policyId");
-    assertThat(auditedPolicyId).isNotNull();
-    if (!policyDeleted) {
-      assertThat(new PolicyDAO().getById(auditedPolicyId)).isNotNull();
-    }
-    else {
-      assertThat(auditedPolicyId).isEqualTo(policy.getId());
-    }
-    assertCustomData(auditDTO, "policyName", policy.getName());
-    assertCustomData(auditDTO, "policyThreatLevel", policy.getThreatLevel());
-    assertCustomData(auditDTO, "policyGrandfatheringMode",
-        policy.isPolicyViolationGrandfatheringAllowed() ? "allow" : "disallow");
-    assertCustomData(auditDTO, "policyActionsOverrideMode",
-        policy.isPolicyActionsOverrideAllowed() ? "allow" : "disallow");
-    assertCustomObject(auditDTO, "policyConstraints", constraints);
-    assertCustomObject(auditDTO, "actions", ActionDTO.transcribe(policy.getActions()));
-    assertCustomObject(auditDTO, "notifications", NotificationDTO.transcribe(policy.getNotifications()));
-  }
-
   protected void assertPolicyOverrideData(
       final AuditDTO auditDTO,
       final Policy policy,

@@ -42,9 +42,12 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -623,6 +626,71 @@ public class RepositoryService
     }
     finally {
       AuditData.get().commitSubEvents();
+    }
+  }
+
+  void configureFirewallOnboarding(FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO) {
+    checkWritePermission(RepositoryContainer.SINGLETON);
+
+    log.debug("Configuring firewall onboarding options.");
+
+    try {
+      setPolicyAction("Security-Malicious",
+          firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled ? FailActionType.ID : null);
+      setPolicyAction("Integrity-Rating",
+          firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled ? FailActionType.ID : null);
+
+      setPolicyAction("Security-Namespace Conflict",
+          firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled ? FailActionType.ID : null);
+    }
+    finally {
+      AuditData.get().commitSubEvents();
+    }
+  }
+
+  // Visible for testing
+  void setPolicyAction(String policyName, String policyActionId) {
+    Policy policy = policyDAO.getByOwnerIdAndName(RepositoryContainer.REPOSITORY_CONTAINER_ID, policyName);
+    if (policy == null) {
+      policy = policyDAO.getByOwnerIdAndName(Organization.ROOT_ORGANIZATION_ID, policyName);
+      log.debug("Found policy '{}' for root organization.", policyName);
+    }
+    else {
+      log.debug("Found policy '{}' for repository container.", policyName);
+    }
+    if (policy == null) {
+      log.warn("Did not find policy '{}' to configure for firewall onboarding.", policyName);
+      return;
+    }
+
+    Map<String, String> policyActions = policy.getActions();
+    String proxyStageActionId = policyActions.get(ProxyStageType.ID);
+    boolean policyUpdated = false;
+    if (policyActionId != null) {
+      if (!policyActionId.equals(proxyStageActionId)) {
+        policy.setAction(ProxyStageType.ID, policyActionId);
+        policyUpdated = true;
+      }
+    }
+    else if (proxyStageActionId != null) {
+      policyActions.remove(ProxyStageType.ID);
+      policy.setActions(policyActions);
+      policyUpdated = true;
+    }
+    
+    if (policyUpdated) {
+      log.debug("Setting action={} for proxy stage for policy '{}'.", policyActionId, policyName);
+      policyDAO.update(policy);
+      log.debug("Updated policy '{}' with action '{}' for the proxy stage.", policyName,
+          policyActionId);
+
+      try (AuditSession auditSession =
+          AuditData.get().recordSubEvent(AuditEvent.UPDATE_POLICY, false /* independent */)) {
+        AuditData.get().setPolicyWithDetails(policy);
+      }
+    }
+    else {
+      log.debug("Policy '{}' already has action={} for proxy stage.", policyName, policyActionId);
     }
   }
 }

@@ -69,6 +69,8 @@ public class RepositoryResource
 
   static final String CONFIGURE_REPOSITORIES_PATH = "repositoryManager/{repositoryManagerId}/configureRepositories";
 
+  static final String CONFIGURE_FIREWALL_ONBOARDING_PATH = "configureFirewallOnboarding";
+
   private RepositoryService repositoryService;
 
   @Inject
@@ -240,5 +242,19 @@ public class RepositoryResource
       List<Repository> repositories)
   {
     repositoryService.configureRepositories(repositoryManagerId, repositories);
+  }
+
+  /**
+   * @since 1.164
+   */
+  @PUT
+  @Path(CONFIGURE_FIREWALL_ONBOARDING_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  @Timed
+  public void configureFirewallOnboarding(
+      FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO)
+  {
+    repositoryService.configureFirewallOnboarding(firewallOnboardingOptionsDTO);
   }
 }

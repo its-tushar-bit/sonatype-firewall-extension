@@ -18,12 +18,17 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.OrganizationAuditDTO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.policy.ActionDTO;
+import com.sonatype.insight.brain.policy.ConstraintDTO;
+import com.sonatype.insight.brain.policy.NotificationDTO;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.test.LogOutput;
 
@@ -292,5 +297,34 @@ public interface AuditTestSupport
     assertCustomData(auditDTO, "firstName", firstName);
     assertCustomData(auditDTO, "lastName", lastName);
     assertCustomData(auditDTO, "emailAddress", email);
+  }
+
+  default void assertPolicyData(final AuditDTO auditDTO, final Policy policy, boolean policyDeleted) {
+    assertPolicyData(auditDTO, policy, policyDeleted, ConstraintDTO.transcribe(policy.getConstraints()));
+  }
+
+  default void assertPolicyData(
+      AuditDTO auditDTO,
+      Policy policy,
+      boolean policyDeleted,
+      List<ConstraintDTO> constraints)
+  {
+    String auditedPolicyId = (String) auditDTO.data.get("policyId");
+    assertThat(auditedPolicyId).isNotNull();
+    if (!policyDeleted) {
+      assertThat(new PolicyDAO().getById(auditedPolicyId)).isNotNull();
+    }
+    else {
+      assertThat(auditedPolicyId).isEqualTo(policy.getId());
+    }
+    assertCustomData(auditDTO, "policyName", policy.getName());
+    assertCustomData(auditDTO, "policyThreatLevel", policy.getThreatLevel());
+    assertCustomData(auditDTO, "policyGrandfatheringMode",
+        policy.isPolicyViolationGrandfatheringAllowed() ? "allow" : "disallow");
+    assertCustomData(auditDTO, "policyActionsOverrideMode",
+        policy.isPolicyActionsOverrideAllowed() ? "allow" : "disallow");
+    assertCustomObject(auditDTO, "policyConstraints", constraints);
+    assertCustomObject(auditDTO, "actions", ActionDTO.transcribe(policy.getActions()));
+    assertCustomObject(auditDTO, "notifications", NotificationDTO.transcribe(policy.getNotifications()));
   }
 }

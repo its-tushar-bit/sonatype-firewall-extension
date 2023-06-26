@@ -19,10 +19,13 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -271,6 +274,11 @@ public class RepositoryResourceAuditTest
         .parameter(repositoryManagerId).body(repositories);
   }
 
+  private HttpRequest configureFirewallOnboardingRequest(FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO) {
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.CONFIGURE_FIREWALL_ONBOARDING_PATH)
+        .body(firewallOnboardingOptionsDTO);
+  }
+
   private Repository repositoryWithComponents(int componentCount) {
     Repository repository = tempEntity.newRepository();
     for (int i = 0; i < componentCount; i++) {
@@ -316,5 +324,40 @@ public class RepositoryResourceAuditTest
     assertCustomObject(auditDTO, "componentIdentifier", componentIdentifier);
     assertCustomData(auditDTO, "componentHash", hash);
     assertCustomData(auditDTO, "componentPathname", pathname);
+  }
+
+  @Test
+  public void testConfigureFirewallOnboarding_Unauthorized() throws Exception {
+    configureFirewallOnboardingRequest(null).with(unauthorizedUser()).put();
+    assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY, "unauthorized");
+  }
+
+  @Test
+  public void testConfigureFirewallOnboarding_ExistingPolicy() throws Exception {
+    Policy securityMaliciousPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Malicious");
+    FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO = new FirewallOnboardingOptionsDTO();
+    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = true;
+    firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = true;
+    configureFirewallOnboardingRequest(firewallOnboardingOptionsDTO).put();
+
+    List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
+    assertThat(auditDTOs).hasSize(1);
+    auditDTOs = getLogEntries(AuditEvent.UPDATE_POLICY);
+    assertThat(auditDTOs).hasSize(1);
+    Policy policy = new PolicyDAO().getById(securityMaliciousPolicy.getId());
+    assertPolicyData(auditDTOs.get(0), policy, false /* deleted */);
+  }
+
+  @Test
+  public void testConfigureFirewallOnboarding_NoPolicies() throws Exception {
+    FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO = new FirewallOnboardingOptionsDTO();
+    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = true;
+    firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = true;
+    configureFirewallOnboardingRequest(firewallOnboardingOptionsDTO).put();
+
+    List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
+    assertThat(auditDTOs).hasSize(1);
+    auditDTOs = getLogEntries(AuditEvent.UPDATE_POLICY);
+    assertThat(auditDTOs).isEmpty();
   }
 }

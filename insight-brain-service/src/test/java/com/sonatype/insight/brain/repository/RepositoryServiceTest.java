@@ -45,11 +45,14 @@ import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -104,12 +107,14 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
-  private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
   private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
       new ProprietaryComponentNamePatternDAO();
+
+  private PolicyDAO policyDAO = new PolicyDAO();
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -690,7 +695,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
   private Policy createQuarantiningPolicy(Repository repository) {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
-    new PolicyDAO().update(policy);
+    policyDAO.update(policy);
     return policy;
   }
 
@@ -1138,5 +1143,111 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManager.getInstanceId());
     assertThat(repositoryManager.isConfigured()).isTrue();
     assertThat(repositoryManager.getConfigureTime()).isAfterOrEqualTo(beforeConfig).isBeforeOrEqualTo(afterConfig);
+  }
+
+  @Test
+  public void testSetPolicyAction_PolicyAtRootOrgLevel() {
+    testSetPolicyAction(Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testSetPolicyAction_PolicyAtRepositoryContainerLevel() {
+    testSetPolicyAction(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  private void testSetPolicyAction(String policyOwnerId) {
+    Policy policy = tempEntity.newPolicy(policyOwnerId);
+    // Sanity check
+    assertThat(policy.getActions()).isEmpty();
+
+    // Policy doesn't have any actions. Set action to FAIL for the proxy stage.
+    repositoryService.setPolicyAction(policy.getName(), FailActionType.ID);
+    Policy foundPolicy = policyDAO.getById(policy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
+    // Set it again - no changes
+    repositoryService.setPolicyAction(policy.getName(), FailActionType.ID);
+    foundPolicy = policyDAO.getById(policy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
+
+    // Policy has action FAIL for the proxy stage. Remove it.
+    repositoryService.setPolicyAction(policy.getName(), null);
+    foundPolicy = policyDAO.getById(policy.getId());
+    assertThat(foundPolicy.getActions()).isEmpty();
+    // Set it again - no changes
+    repositoryService.setPolicyAction(policy.getName(), null);
+    foundPolicy = policyDAO.getById(policy.getId());
+    assertThat(foundPolicy.getActions()).isEmpty();
+    
+    // Policy has other actions. Don't touch them.
+    foundPolicy.setAction(BuildStageType.ID, WarnActionType.ID);
+    policyDAO.update(foundPolicy);
+    repositoryService.setPolicyAction(policy.getName(), null);
+    foundPolicy = policyDAO.getById(policy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(BuildStageType.ID)).isEqualTo(WarnActionType.ID);
+
+    repositoryService.setPolicyAction(policy.getName(), FailActionType.ID);
+    foundPolicy = policyDAO.getById(policy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(2);
+    assertThat(foundPolicy.getActions().get(BuildStageType.ID)).isEqualTo(WarnActionType.ID);
+    assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
+
+    repositoryService.setPolicyAction(policy.getName(), null);
+    foundPolicy = policyDAO.getById(policy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(BuildStageType.ID)).isEqualTo(WarnActionType.ID);
+  }
+
+  @Test
+  public void testSetPolicyAction_PolicyDoesNotExist() {
+    // Sanity check
+    assertThat(policyDAO.getAll()).isEmpty();
+
+    repositoryService.setPolicyAction("NoSuchPolicy", FailActionType.ID);
+
+    assertThat(policyDAO.getAll()).isEmpty();
+  }
+
+  @Test
+  public void testConfigureFirewallOnboarding() {
+    FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO = new FirewallOnboardingOptionsDTO();
+    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = true;
+    firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = true;
+
+    Policy securityMaliciousPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Malicious");
+    Policy integrityRatingPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Integrity-Rating");
+    Policy securityNamespaceConflictPolicy =
+        tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Namespace Conflict");
+    // Sanity checks
+    assertThat(securityMaliciousPolicy.getActions()).isEmpty();
+    assertThat(integrityRatingPolicy.getActions()).isEmpty();
+    assertThat(securityNamespaceConflictPolicy.getActions()).isEmpty();
+
+    // Enable firewall onboarding options
+    repositoryService.configureFirewallOnboarding(firewallOnboardingOptionsDTO);
+    Policy foundPolicy = policyDAO.getById(securityMaliciousPolicy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
+    foundPolicy = policyDAO.getById(integrityRatingPolicy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
+    foundPolicy = policyDAO.getById(securityNamespaceConflictPolicy.getId());
+    assertThat(foundPolicy.getActions()).hasSize(1);
+    assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
+
+    // Disable firewall onboarding options
+    repositoryService.configureFirewallOnboarding(firewallOnboardingOptionsDTO);
+    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = false;
+    firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = false;
+
+    repositoryService.configureFirewallOnboarding(firewallOnboardingOptionsDTO);
+    foundPolicy = policyDAO.getById(securityMaliciousPolicy.getId());
+    assertThat(foundPolicy.getActions()).isEmpty();
+    foundPolicy = policyDAO.getById(integrityRatingPolicy.getId());
+    assertThat(foundPolicy.getActions()).isEmpty();
+    foundPolicy = policyDAO.getById(securityNamespaceConflictPolicy.getId());
+    assertThat(foundPolicy.getActions()).isEmpty();
   }
 }

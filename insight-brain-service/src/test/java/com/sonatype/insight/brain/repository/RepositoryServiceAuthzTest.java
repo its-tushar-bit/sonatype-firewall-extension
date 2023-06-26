@@ -503,4 +503,21 @@ public class RepositoryServiceAuthzTest
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.configureRepositories(repositoryManager.getId(), null /* repositoryDTOs */);
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testConfigureFirewallOnboarding_Unauthenticated() {
+    repositoryService.configureFirewallOnboarding(null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testConfigureFirewallOnboarding_Unauthorized() {
+    login();
+    repositoryService.configureFirewallOnboarding(null);
+  }
+
+  @Test
+  public void testConfigureFirewallOnboarding_Authorized() {
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.configureFirewallOnboarding(new FirewallOnboardingOptionsDTO());
+  }
 }

@@ -41,7 +41,6 @@ public class SourceControlOrganizationImportEventDAOTest
 
     dao.insert(event);
     assertThat(event.getId()).isNotNull();
-    tempEntity.register(event);
 
     SourceControlOrganizationImportEvent savedEvent = dao.getById(event.getId());
     assertThat(savedEvent.getOrganizationId()).isEqualTo(org.getId());

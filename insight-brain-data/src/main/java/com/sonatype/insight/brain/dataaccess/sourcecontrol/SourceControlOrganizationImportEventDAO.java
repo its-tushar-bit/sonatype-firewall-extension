@@ -43,4 +43,9 @@ public class SourceControlOrganizationImportEventDAO
         " WHERE entity.organizationId=?1";
     return getList(tx, sQuery, orgId);
   }
+
+  public List<SourceControlOrganizationImportEvent> getAll() {
+    String sQuery = "SELECT entity FROM SourceControlOrganizationImportEvent entity";
+    return getList(sQuery);
+  }
 }

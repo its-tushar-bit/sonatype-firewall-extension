@@ -554,12 +554,6 @@ public class TemporaryEntity
 
   private Collection<MembershipMapping> membershipMappings;
 
-  private Collection<SourceControl> sourceControls;
-
-  private Collection<SourceControlPullRequest> sourceControlPullRequests;
-
-  private Collection<SourceControlPullRequestComment> sourceControlPullRequestComments;
-
   private Collection<ThirdPartyFile> thirdPartyFileConfigurations;
 
   private Collection<ThirdPartyVulnerability> thirdPartyVulnerabilities;
@@ -568,15 +562,11 @@ public class TemporaryEntity
 
   private Collection<ComponentLabel> componentLabels;
 
-  private Collection<SourceControlDefaultBranchCommitHistory> sourceControlDefaultBranchCommitHistories;
-
   private Collection<String> persistedUserSessionIds;
 
   private Collection<InnerSourceComponent> innerSourceComponents;
 
   private Collection<QuarantinedComponentAccess> quarantinedComponentAccesses;
-
-  private Collection<SourceControlOrganizationImportEvent> sourceControlOrganizationImportEvents;
 
   private Collection<DeletedTenant> deletedTenants;
 
@@ -591,20 +581,15 @@ public class TemporaryEntity
     roles = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     membershipMappings = new ArrayList<>();
-    sourceControls = new ArrayList<>();
-    sourceControlPullRequests = new ArrayList<>();
-    sourceControlPullRequestComments = new ArrayList<>();
     thirdPartyFileConfigurations = new ArrayList<>();
     thirdPartyVulnerabilities = new ArrayList<>();
     userTokens = new ArrayList<>();
     componentLabels = new ArrayList<>();
     savedMailConfiguration = mailConfigurationDAO.get();
     savedProxyServerConfiguration = proxyServerConfigurationDAO.get();
-    sourceControlDefaultBranchCommitHistories = new ArrayList<>();
     initializePersistedUserSessions();
     innerSourceComponents = new ArrayList<>();
     quarantinedComponentAccesses = new ArrayList<>();
-    sourceControlOrganizationImportEvents = new ArrayList<>();
     deletedTenants = new ArrayList<>();
 
     systemConfigurationPropertiesBefore = systemConfigurationPropertyDAO.getAll();
@@ -673,6 +658,9 @@ public class TemporaryEntity
     // - RepositoryComponent: cascaded from Repository
     // - RepositoryMigration: cascaded from Repository
     // - RepositoryPolicyViolation: cascaded from Repository
+    // - SourceControlDefaultBranchCommitHistory: cascaded from Application
+    // - SourceControlPullRequestComment: cascaded from PolicyEvaluation
+    // - SourceControlPullRequestResult: cascaded from Application
     // - SuccessMetricsReportData: cascaded from SuccessMetricsReport
     // - VulnerabilityCustomCvssSeverityTag: cascaded from VulnerabilityCustomCvssSeverity
     // - VulnerabilityCustomCvssVectorTag: cascaded from VulnerabilityCustomCvssVector
@@ -685,9 +673,7 @@ public class TemporaryEntity
     delete(membershipMappings, membershipMappingDAO);
     delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
     delete(userFilterDAO.getAll(), userFilterDAO);
-    delete(sourceControlPullRequestCommentDAO.getAll(), sourceControlPullRequestCommentDAO);
-    delete(sourceControlOrganizationImportEvents, sourceControlOrganizationImportEventDAO);
-    delete(defaultBranchCommitHistoryDAO.getAll(), defaultBranchCommitHistoryDAO);
+    delete(sourceControlOrganizationImportEventDAO.getAll(), sourceControlOrganizationImportEventDAO);
     delete(policyDAO.getAll(), entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
     List<Organization> orgs = orgDAO.getAll().stream()
         .filter(org -> !Organization.ROOT_ORGANIZATION_ID.equals(org.getId())).collect(toList());
@@ -719,18 +705,15 @@ public class TemporaryEntity
     delete(webhookDAO.getAll(), webhookDAO);
     delete(policyViolationAggregationDAO.getAll(), policyViolationAggregationDAO);
     delete(successMetricsReportDAO.getAll(), successMetricsReportDAO);
-    delete(sourceControls, sourceControlDAO);
-    delete(sourceControlPullRequests, sourceControlPullRequestDAO);
+    delete(sourceControlPullRequestDAO.getAll(), sourceControlPullRequestDAO);
+    delete(sourceControlDAO.getAll(), sourceControlDAO);
     samlConfigurationDAO.delete();
     delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
     delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
     delete(componentLabels, componentLabelDAO);
-    delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
     delete(repositoryConnectionDAO.getAll(), repositoryConnectionDAO);
     delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
     delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
-    delete(sourceControlPullRequestComments, sourceControlPullRequestCommentDAO);
-    sourceControlPullRequestResultDAO.deleteAll();
     delete(deletedTenants, deletedTenantDAO);
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
@@ -1140,10 +1123,6 @@ public class TemporaryEntity
 
   public void register(MembershipMapping... membershipMappings) {
     Collections.addAll(this.membershipMappings, membershipMappings);
-  }
-
-  public void register(SourceControlOrganizationImportEvent ... sourceControlOrganizationImportEvents) {
-    Collections.addAll(this.sourceControlOrganizationImportEvents, sourceControlOrganizationImportEvents);
   }
 
   public Application newApplicationWithParent() {
@@ -1870,7 +1849,6 @@ public class TemporaryEntity
       SourceControlPullRequestComment sourceControlPullRequestComment)
   {
     sourceControlPullRequestCommentDAO.insert(sourceControlPullRequestComment);
-    sourceControlPullRequestComments.add(sourceControlPullRequestComment);
     return sourceControlPullRequestComment;
   }
 
@@ -3457,13 +3435,11 @@ public class TemporaryEntity
             .setCommitStatusEnabled(commitStatusEnabled)
             .build();
     sourceControlDAO.insert(sourceControl);
-    sourceControls.add(sourceControl);
     return sourceControl;
   }
 
   public SourceControl newSourceControl(SourceControl sourceControl) {
     sourceControlDAO.insert(sourceControl);
-    sourceControls.add(sourceControl);
     return sourceControl;
   }
 
@@ -3740,7 +3716,6 @@ public class TemporaryEntity
     final SourceControlDefaultBranchCommitHistory sourceControlDefaultBranchCommitHistory =
         new SourceControlDefaultBranchCommitHistory(applicationId, commitHash, commitTime, policyEvaluationId);
     sourceControlDefaultBranchCommitHistoryDAO.insert(sourceControlDefaultBranchCommitHistory);
-    sourceControlDefaultBranchCommitHistories.add(sourceControlDefaultBranchCommitHistory);
     return sourceControlDefaultBranchCommitHistory;
   }
 
@@ -3950,7 +3925,6 @@ public class TemporaryEntity
     SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest(repositoryUrl, pullRequestId,
         headCommitHash, baseCommitHash, branchName, baseBranchName, createTime, lastCheckTime, lastDetectedUpdateTime);
     sourceControlPullRequestDAO.insert(sourceControlPullRequest);
-    sourceControlPullRequests.add(sourceControlPullRequest);
     return sourceControlPullRequest;
   }
 
@@ -4269,7 +4243,6 @@ public class TemporaryEntity
         .setImportLimit(importLimit)
         .setDesiredSubOrganizationCount(desiredSubOrganizationCount);
     sourceControlOrganizationImportEventDAO.insert(event);
-    sourceControlOrganizationImportEvents.add(event);
     return event;
   }
 
@@ -4278,7 +4251,6 @@ public class TemporaryEntity
     event.setOrganizationId(newOrganization().getId());
     event.setScmHostUrl("https://scmhost/org/");
     sourceControlOrganizationImportEventDAO.insert(event);
-    sourceControlOrganizationImportEvents.add(event);
     return event;
   }
 

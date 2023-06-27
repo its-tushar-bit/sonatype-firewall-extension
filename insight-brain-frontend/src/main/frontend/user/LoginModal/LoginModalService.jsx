@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { getSamlSsoLoginUrl } from 'MainRoot/util/CLMLocation';
 import { assign } from 'MainRoot/util/CLMLocation';
+import { unwrapResult } from '@reduxjs/toolkit';
 
 export default function LoginModalService(rootScope, ngRedux) {
   let modalPromise = null;
@@ -36,8 +38,14 @@ export default function LoginModalService(rootScope, ngRedux) {
     redirect(destination);
   };
 
-  function open(showSamlSso) {
-    if (showSamlSso && ngRedux.getState() && ngRedux.getState().userLogin.loginModalState.isSsoOnlyEnabled) {
+  const loadIsSsoOnlyEnabled = () => {
+    return ngRedux.dispatch(productFeaturesActions.loadIsSsoOnlyEnabled()).then(unwrapResult);
+  };
+
+  async function open(showSamlSso) {
+    const isSsoOnlyEnabled = await loadIsSsoOnlyEnabled();
+
+    if (showSamlSso && isSsoOnlyEnabled) {
       onClickSSO();
       return;
     }

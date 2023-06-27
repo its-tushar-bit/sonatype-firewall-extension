@@ -23,7 +23,6 @@ export const initialState = Object.freeze({
     showSamlSso: false,
     isFormValid: false,
     isUnauthenticatedPagesEnabled: undefined,
-    isSsoOnlyEnabled: undefined,
     isQuarantinedComponentViewAnonymousAccessEnabled: undefined,
   },
   loginModalSubmitState: {
@@ -88,7 +87,6 @@ const resetLoginSubmitState = (state) => {
       showSamlSso: false,
       isFormValid: false,
       isUnauthenticatedPagesEnabled: state.loginModalState.isUnauthenticatedPagesEnabled,
-      isSsoOnlyEnabled: state.loginModalState.isSsoOnlyEnabled,
       isQuarantinedComponentViewAnonymousAccessEnabled:
         state.loginModalState.isQuarantinedComponentViewAnonymousAccessEnabled,
     },
@@ -110,7 +108,6 @@ const userLoginSlice = createSlice({
     setShowLoginModal: pathSet(['loginModalState', 'showLoginModal']),
     setShowSamlSso: pathSet(['loginModalState', 'showSamlSso']),
     setUnauthenticatedPagesEnabled: pathSet(['loginModalState', 'isUnauthenticatedPagesEnabled']),
-    setSsoOnlyEnabled: pathSet(['loginModalState', 'isSsoOnlyEnabled']),
     setQuarantinedComponentViewAnonymousAccessEnabled: pathSet([
       'loginModalState',
       'isQuarantinedComponentViewAnonymousAccessEnabled',

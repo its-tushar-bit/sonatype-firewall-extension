@@ -21,14 +21,6 @@ export default function routeStateUtilService($state, $ngRedux) {
     })
     .catch(always(false));
 
-  $ngRedux
-    .dispatch(productFeaturesActions.loadIsSsoOnlyEnabled())
-    .then(unwrapResult)
-    .then((isSsoOnlyEnabled) => {
-      $ngRedux.dispatch(userLoginActions.setSsoOnlyEnabled(isSsoOnlyEnabled));
-    })
-    .catch(always(false));
-
   const loadQuarantinedComponentViewAnonymousAccessConfigPromise = $ngRedux
     .dispatch(productFeaturesActions.loadIsQuarantinedComponentViewAnonymousAccessEnabled())
     .then(unwrapResult)

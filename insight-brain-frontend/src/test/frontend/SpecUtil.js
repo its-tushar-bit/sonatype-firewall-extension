@@ -139,6 +139,7 @@ window.SpecUtil = {
     var unsubscribeSpy = jasmine.createSpy('unsubscribe');
 
     $provide.service('$ngRedux', function () {
+      this.actions = [];
       this.connect = jasmine.createSpy('connect').and.callFake(function (mapStateToThis, actions) {
         if (actions) {
           // stub each action creator with spy
@@ -157,6 +158,14 @@ window.SpecUtil = {
       });
       this.getState = jasmine.createSpy('getState');
       this.subscribe = jasmine.createSpy('subscribe').and.returnValue(unsubscribeSpy);
+      this.dispatch = jasmine.createSpy('dispatch').and.callFake((action) => {
+        if (angular.isFunction(action)) {
+          return action(this.dispatch, this.getState);
+        } else {
+          this.actions.push(action);
+          return action;
+        }
+      });
     });
 
     return unsubscribeSpy;

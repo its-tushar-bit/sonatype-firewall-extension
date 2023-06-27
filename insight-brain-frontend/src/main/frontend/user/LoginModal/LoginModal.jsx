@@ -29,15 +29,9 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
   const dispatch = useDispatch();
   const routeState = useSelector(selectRouterState);
   const systemNotice = useSelector(selectSystemNoticeServerData);
-  const {
-    isLicensed,
-    showSamlSso,
-    showLoginModal,
-    username,
-    password,
-    isUnauthenticatedPagesEnabled,
-    isSsoOnlyEnabled,
-  } = useSelector(selectLoginModalState);
+  const { isLicensed, showSamlSso, showLoginModal, username, password, isUnauthenticatedPagesEnabled } = useSelector(
+    selectLoginModalState
+  );
   const { loginSubmitError, loginSubmitMaskState } = useSelector(selectLoginModalSubmitState);
 
   const uiRouterState = useRouterState();

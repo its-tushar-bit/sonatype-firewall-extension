@@ -62,7 +62,16 @@ function SessionSecurityService($cookies, $window, $rootScope, logoutWarningModa
     // unbind the beforeunload handler so that the page refresh cannot be cancelled
     $($window).unbind('beforeunload');
     const xhr = new XMLHttpRequest();
-    xhr.onload = () => $window.location.reload();
+    xhr.onload = () => {
+      // for MTIQ, the session logout call returns the URL to logout from Auth0 in the Location header, so
+      // we obtain that URL and we ensure we perform the logout from Auth0 too
+      const location = xhr.getResponseHeader('Location');
+      if (location) {
+        $window.location.href = location;
+      } else {
+        $window.location.reload();
+      }
+    };
     xhr.open('DELETE', CLMLocations.getSessionLogoutUrl());
     xhr.send();
   }

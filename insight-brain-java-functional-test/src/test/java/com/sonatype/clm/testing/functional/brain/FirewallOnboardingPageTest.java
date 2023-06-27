@@ -78,6 +78,53 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
+  public void testConfirmProxyRepositoryContainersAreAsWideAsParentContainer() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+    logout();
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+
+    try {
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId1");
+
+      createProxyRepositories(1, repositoryManager, "maven2");
+      List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm", "go");
+      mockComponentSupportedFormats(supportedFormats);
+
+      loginAsAdmin();
+      waitUntilUrl(FirewallOnboardingPage.url());
+      page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
+      page.shouldHave(Condition.text("Select proxy repositories"));
+      eyesWatcher.eyesCheck("Firewall onboarding: 1 repository container is as wide as in its parent container," +
+          " with space its sides");
+
+      createProxyRepositories(1, repositoryManager, "pypi");
+      refreshOrOpen(FirewallOnboardingPage.url());
+      waitUntilUrl(FirewallOnboardingPage.url());
+      page.getStartedButton().click();
+      eyesWatcher.eyesCheck("Firewall onboarding: 2 repository containers combined are as wide as its parent " +
+          "container, and have space around them");
+
+      createProxyRepositories(1, repositoryManager, "npm");
+      refreshOrOpen(FirewallOnboardingPage.url());
+      waitUntilUrl(FirewallOnboardingPage.url());
+      page.getStartedButton().click();
+      eyesWatcher.eyesCheck("Firewall onboarding: 3 repository containers combined are as wide as its parent " +
+          "container, and have space around them");
+
+      createProxyRepositories(1, repositoryManager, "go");
+      refreshOrOpen(FirewallOnboardingPage.url());
+      waitUntilUrl(FirewallOnboardingPage.url());
+      page.getStartedButton().click();
+      eyesWatcher.eyesCheck("Firewall onboarding: 4 repository containers combined are as wide as its parent " +
+          "container, and have space around them");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+    }
+  }
+  
+  @Test
   public void testHelpButtonShouldBeDisplayedWithCorrectAttributes() {
     refreshOrOpen(FirewallOnboardingPage.url());
 

@@ -12,6 +12,7 @@ import CiCd from './sections/CiCd';
 import Scm from './sections/Scm';
 import IssueTracking from './sections/IssueTracking';
 import Ide from 'MainRoot/integrations/sections/Ide';
+import AppsWithoutCiIntegrations from './sections/AppsWithoutCiIntegrations/AppsWithoutCiIntegrations';
 
 export const SECTIONS = {
   OVERVIEW: 'overview',
@@ -19,6 +20,7 @@ export const SECTIONS = {
   SCM: 'scm',
   ISSUE_TRACKING: 'issuetracking',
   IDE: 'ide',
+  APPS_WITHOUT_CI_INTEGRATIONS: 'appsWithoutCiIntegrations',
 };
 
 const integrationsModule = angular
@@ -29,6 +31,7 @@ const integrationsModule = angular
   .component('scm', iqReact2Angular(Scm, [], ['$ngRedux']))
   .component('issueTracking', iqReact2Angular(IssueTracking, [], ['$ngRedux']))
   .component('ide', iqReact2Angular(Ide, [], ['$ngRedux']))
+  .component('appsWithoutCiIntegrations', iqReact2Angular(AppsWithoutCiIntegrations, [], ['$ngRedux']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -60,6 +63,10 @@ function routes($stateProvider) {
     .state(`integrations.${SECTIONS.IDE}`, {
       url: '/ide',
       component: 'ide',
+    })
+    .state(`integrations.${SECTIONS.APPS_WITHOUT_CI_INTEGRATIONS}`, {
+      url: '/apps-without-ci-integrations',
+      component: 'appsWithoutCiIntegrations',
     });
 }
 

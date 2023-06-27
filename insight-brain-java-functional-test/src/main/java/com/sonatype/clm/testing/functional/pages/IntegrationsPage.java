@@ -34,4 +34,8 @@ public class IntegrationsPage extends BasicElement<IntegrationsPage>
   public static String urlOthers() {
     return BaseUrl.resolvePageUrl("/integrations/others");
   }
+
+  public static String urlAppsWithoutCiIntegrations() {
+    return BaseUrl.resolvePageUrl("/integrations/apps-without-ci-integrations");
+  }
 }

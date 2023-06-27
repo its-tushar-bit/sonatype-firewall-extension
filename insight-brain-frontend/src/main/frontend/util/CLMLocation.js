@@ -1253,6 +1253,8 @@ export const getConfigureRepositoriesUrl = (repositoryManagerId) =>
 
 export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositories/proprietaryComponentNamePatterns`;
 
+export const getAppsWithoutCiIntegrations = () => uriTemplate`/rest/plugin/apps/ci`;
+
 export const getConfigurationUrl = () => {
   return uriTemplate`/api/v2/config`;
 };

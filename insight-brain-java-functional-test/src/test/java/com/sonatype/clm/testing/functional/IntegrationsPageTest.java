@@ -84,6 +84,19 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     eyesWatcher.eyesCheck();
   }
 
+  @Test
+  public void testAppsWithoutCiIntegrationsPage() {
+    tempEntity.newApplicationWithParent("appId", "appName");
+
+    refreshOrOpen(IntegrationsPage.urlAppsWithoutCiIntegrations());
+
+    appsWithoutCiIntegrationsTable().shouldBe(visible);
+
+    applicationName().shouldBe(visible).shouldHave(text("appName"));
+
+    eyesWatcher.eyesCheck();
+  }
+
   private SelenideElement sideNavigation() {
     return $("#integrations-sidebar");
   }
@@ -138,5 +151,13 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement ideUserCount() {
     return overviewSection().$(".nx-card__call-out");
+  }
+
+  private SelenideElement appsWithoutCiIntegrationsTable() {
+    return $("#iq-integrations-apps-without-ci-integrations-section-table");
+  }
+
+  private SelenideElement applicationName() {
+    return appsWithoutCiIntegrationsTable().$(".iq-integrations-applications-table__name-cell");
   }
 }

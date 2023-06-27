@@ -1584,5 +1584,40 @@
     "lastModifiedTime" : 1413088400000,
     "lastModifiedEntryTime" : null,
     "website" : null
+  }, {
+    "componentIdentifier": {
+      "format": "npm",
+      "coordinates": {
+        "packageId": "npm-test-lib",
+        "version": "0.0.1"
+      }
+    },
+    "groupId": null,
+    "artifactId": null,
+    "version": null,
+    "filenames": [
+      "npm-test-lib-0.0.1.js"
+    ],
+    "pathnames": [
+      "npm-test-lib-0.0.1.zip/npm-test-lib-0.0.1.js"
+    ],
+    "matchState": "exact",
+    "scanError": false,
+    "proprietary": false,
+    "hash": "ci6x9fypjoym3kwtai3m",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "npm-test-lib",
+        "value" : "underscore"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "0.0.1"
+      } ],
+      "name" : "npm-test-lib : 0.0.1"
+    }
   } ]
 }

@@ -22,7 +22,7 @@ export const selectFirewallLicenseDetectionsTileDataSlice = createSelector(
       ...componentLicenses,
       loading: isLoadingComponentLicenses,
       loadError: componentLicensesError,
-      reviewObligationsButtonIsVisible: isAdvancedLegalPackSupported,
+      isAdvancedLegalPackSupported,
     };
   }
 );

@@ -249,6 +249,22 @@ describe('EditLicensesForm', () => {
       expect(threatIndicators.at(2)).toExist();
       expect(threatIndicators.at(2)).toHaveProp('policyThreatLevel', 5);
     });
+
+    describe('Observed Licenses section with ALP detection', () => {
+      it('renders the Get ALP detections alert if Observed Licenses are hidden', () => {
+        const component = getShallowComponent({ hiddenObservedLicenses: true });
+        expect(component.find('#enable-alp-observed-licenses-alert')).toExist();
+      });
+
+      it('renders the Get ALP alert if ALP is not enabled and format supports ALP observed license detection', () => {
+        const component = getShallowComponent({
+          isAdvancedLegalPackSupported: false,
+          supportAlpObservedLicenses: true,
+        });
+        const alert = component.find('#get-alp-alert');
+        expect(alert).toExist();
+      });
+    });
   });
 
   it('calls onClose and resetFormFields when the cancel button is clicked', () => {

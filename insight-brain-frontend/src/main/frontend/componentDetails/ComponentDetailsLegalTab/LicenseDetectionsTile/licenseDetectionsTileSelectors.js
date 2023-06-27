@@ -22,12 +22,14 @@ export const selectLicenseDetectionsTileDataSlice = createSelector(
         'observedLicenses',
         'selectableLicenses',
         'allLicenses',
+        'hiddenObservedLicenses',
+        'supportAlpObservedLicenses',
         'loading',
         'loadError',
       ],
       data
     ),
-    reviewObligationsButtonIsVisible: isAdvancedLegalPackSupported,
+    isAdvancedLegalPackSupported,
   })
 );
 

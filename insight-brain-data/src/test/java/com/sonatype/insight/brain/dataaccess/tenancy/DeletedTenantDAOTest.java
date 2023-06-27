@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.tenancy;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,6 +58,21 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
 
     assertThat(deletedTenant.getId()).isEqualTo(tenantSlug);
     assertThat(deletedTenant.getDeleteRequestedTimestamp()).isEqualTo(createdTimestamp);
+  }
+
+  @Test
+  public void testGetAllTenantDeletions() {
+    List<String> tenantIds = Arrays.asList(
+        "t_1_" + name.getMethodName(),
+        "t_2_" + name.getMethodName(),
+        "t_3_" + name.getMethodName()
+    );
+    tenantIds.forEach(tempEntity::newDeletedTenant);
+
+    List<DeletedTenant> tenants = underTest.getAllTenantDeletions();
+
+    assertThat(tenants).hasSize(3);
+    assertThat(tenants).extracting(DeletedTenant::getId).containsExactlyInAnyOrder(tenantIds.toArray(new String[0]));
   }
 
   @Test

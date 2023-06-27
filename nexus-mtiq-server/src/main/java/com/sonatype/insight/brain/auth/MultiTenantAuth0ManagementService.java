@@ -110,6 +110,21 @@ public class MultiTenantAuth0ManagementService
     auth0ManagementAPI.deleteUserByEmailFromConnection(username, connectionId);
   }
 
+  public boolean deleteTenant(final String applicationId, final String connectionId) {
+    refreshManagementApiToken();
+
+    log.debug("Deleting auth0 client");
+    try {
+      auth0ManagementAPI.clients().delete(applicationId).execute();
+      auth0ManagementAPI.connections().delete(connectionId).execute();
+    }
+    catch (Auth0Exception e) {
+      log.error("Unable to delete tenant from Auth0", e);
+      return false;
+    }
+    return true;
+  }
+
   private Auth0AuthAPI getAuthApiLazily(final Auth0Config auth0Config) {
     if (this.authAPI == null) {
       this.authAPI = auth0ApiSupplier

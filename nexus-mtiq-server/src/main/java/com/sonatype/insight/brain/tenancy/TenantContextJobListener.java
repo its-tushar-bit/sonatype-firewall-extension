@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.tenancy;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
+import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -27,10 +31,17 @@ public class TenantContextJobListener
 
   private final TenantUtil tenantUtil;
 
+  private final DeletedTenantDAO deletedTenantDAO;
+
   @Inject
-  TenantContextJobListener(final TenantManager tenantManager, final TenantUtil tenantUtil) {
+  TenantContextJobListener(
+      final TenantManager tenantManager,
+      final TenantUtil tenantUtil,
+      final DeletedTenantDAO deletedTenantDAO)
+  {
     this.tenantManager = tenantManager;
     this.tenantUtil = tenantUtil;
+    this.deletedTenantDAO = deletedTenantDAO;
   }
 
   @Override
@@ -58,7 +69,7 @@ public class TenantContextJobListener
       tenantManager.setTenant(tenant);
 
       if (tenantUtil.isAllTenantsJob(context.getJobDetail().getJobClass()) && tenantUtil.isMtiqBatchMode()) {
-        registerAllTenants();
+        registerAllNonDeletedTenants();
 
         // It is possible registration failed for some tenants so only get tenants that are currently registered
         List<String> tenants = tenantManager.getRegisteredTenants();
@@ -72,10 +83,15 @@ public class TenantContextJobListener
     }
   }
 
-  private void registerAllTenants() {
+  private void registerAllNonDeletedTenants() {
     List<String> allTenants = tenantUtil.getAllTenants();
+    List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions().stream()
+        .map(DeletedTenant::getId).collect(Collectors.toList());
 
-    runForAllTenants(allTenants, "registerAllTenants",
+    List<String> allNonDeletedTenants = allTenants.stream()
+        .filter(t -> !deletedTenants.contains(t)).collect(Collectors.toList());
+
+    runForAllTenants(allNonDeletedTenants, "registerAllTenants",
         t -> {
           log.trace("Setting tenant {} for quartz job execution", t);
           try {

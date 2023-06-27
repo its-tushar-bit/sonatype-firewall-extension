@@ -10,16 +10,23 @@ import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 
 import com.auth0.client.auth.Auth0AuthAPI;
 import com.auth0.client.mgmt.Auth0ManagementAPI;
+import com.auth0.client.mgmt.ClientsEntity;
+import com.auth0.client.mgmt.ConnectionsEntity;
+import com.auth0.exception.Auth0Exception;
 import com.auth0.json.auth.TokenHolder;
+import com.auth0.net.Request;
 import com.auth0.net.TokenRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -132,5 +139,39 @@ public class MultiTenantAuth0ManagementServiceTest
     verify(authApi).requestToken(any());
     verify(managementApi, never()).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);
     verify(authApi, never()).resetPassword(EMAIL, CONNECTION_NAME, APPLICATION_ID);
+  }
+
+  @Test
+  public void test_deleteTenantFailWhenExceptionThrown() throws Exception {
+    ClientsEntity clientsEntity = Mockito.mock(ClientsEntity.class);
+    Request<Void> request = Mockito.mock(Request.class);
+
+    when(tokenRequest.execute()).thenReturn(tokenHolder);
+    when(authApi.requestToken(any())).thenReturn(tokenRequest);
+
+    when(managementApi.clients()).thenReturn(clientsEntity);
+    when(clientsEntity.delete(APPLICATION_ID)).thenReturn(request);
+    doThrow(new Auth0Exception("mock exception")).when(request).execute();
+
+    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID)).isFalse();
+    verify(managementApi, never()).connections();
+  }
+
+  @Test
+  public void test_deleteTenant() throws Exception {
+    ClientsEntity clientsEntity = Mockito.mock(ClientsEntity.class);
+    ConnectionsEntity connectionsEntity = Mockito.mock(ConnectionsEntity.class);
+    Request<Void> request = Mockito.mock(Request.class);
+
+    when(tokenRequest.execute()).thenReturn(tokenHolder);
+    when(authApi.requestToken(any())).thenReturn(tokenRequest);
+    when(managementApi.clients()).thenReturn(clientsEntity);
+    when(clientsEntity.delete(APPLICATION_ID)).thenReturn(request);
+    when(managementApi.connections()).thenReturn(connectionsEntity);
+    when(connectionsEntity.delete(CONNECTION_ID)).thenReturn(request);
+
+    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID)).isTrue();
+    verify(managementApi.clients()).delete(APPLICATION_ID);
+    verify(managementApi.connections()).delete(CONNECTION_ID);
   }
 }

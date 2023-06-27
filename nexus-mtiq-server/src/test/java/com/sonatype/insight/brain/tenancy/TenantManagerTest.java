@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
@@ -22,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantManager.TENANT_DOES_NOT_EXIST;
 import static com.sonatype.insight.brain.tenancy.TenantManager.TENANT_PARAMETER_CANNOT_BE_NULL;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
@@ -201,7 +203,7 @@ public class TenantManagerTest
 
     // Call set tenant a second time
     assertThatThrownBy(() -> underTest.setTenant(tenant)).isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Tenant doesn't exist");
+            .hasMessage(TENANT_DOES_NOT_EXIST);
 
     verify(job, never()).register();
     verify(lifecycle, never()).bootTenant();
@@ -246,7 +248,7 @@ public class TenantManagerTest
     when(tenantValidator.validateTenantExists(tenant)).thenReturn(false);
 
     assertThatThrownBy(() -> underTest.setTenant(tenant))
-        .withFailMessage("Tenant doesn't exists")
+        .withFailMessage(TENANT_DOES_NOT_EXIST)
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -290,9 +292,48 @@ public class TenantManagerTest
     when(deletedTenantDAO.isScheduledForDeletion(tenant.tenantSlug)).thenReturn(true);
 
     assertThatThrownBy(this::setTenantAndAssertRegistration).isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Tenant doesn't exist");
+        .hasMessage(TENANT_DOES_NOT_EXIST);
 
     assertThat(underTest.isRegistered()).isFalse();
+  }
+
+  @Test
+  public void performDatabaseRegistrationAndRun() {
+    Supplier<Boolean> supplier = mock(Supplier.class);
+
+    doAnswer(invocationOnMock -> {
+      assertTenantSet(tenant);
+      return null;
+    }).when(databaseProvisionUtils).initializeDatabasesWithoutMigration(any(MultiTenantDatabaseConfigProvider.class));
+
+    underTest.performDatabaseRegistrationAndRunAs(tenant.tenantSlug, supplier);
+
+    verify(supplier, times(1)).get();
+    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration(any(MultiTenantDatabaseConfigProvider.class));
+  }
+
+  @Test
+  public void performDatabaseRegistrationAndRun_tenantNotFound() {
+    when(tenantValidator.validateTenantExists(any(Tenant.class)))
+        .thenThrow(new IllegalArgumentException(TENANT_DOES_NOT_EXIST));
+
+    assertThatThrownBy(() -> underTest.performDatabaseRegistrationAndRunAs(tenant.tenantSlug, () -> true))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(TENANT_DOES_NOT_EXIST);
+  }
+
+  @Test
+  public void performDatabaseRegistrationAndRun_tenantNull() {
+    assertThatThrownBy(() -> underTest.performDatabaseRegistrationAndRunAs(null, () -> true))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(TENANT_PARAMETER_CANNOT_BE_NULL);
+  }
+
+  @Test
+  public void performDatabaseRegistrationAndRun_tenantEmpty() {
+    assertThatThrownBy(() -> underTest.performDatabaseRegistrationAndRunAs("", () -> true))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(TENANT_PARAMETER_CANNOT_BE_NULL);
   }
 
   private void setTenantAndAssertRegistration() throws Exception {

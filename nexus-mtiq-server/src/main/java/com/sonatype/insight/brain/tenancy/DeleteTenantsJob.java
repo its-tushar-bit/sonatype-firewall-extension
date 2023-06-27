@@ -16,10 +16,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -67,18 +70,30 @@ public class DeleteTenantsJob
 
   private final TenantUtil tenantUtil;
 
+  private final MultiTenantAuth0ManagementService auth0ManagementService;
+
+  private final TenantMetadataDAO tenantMetadataDAO;
+
+  private final TenantManager tenantManager;
+
   @Inject
   public DeleteTenantsJob(MultiTenantTaskScheduler taskScheduler,
                           SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
                           DeletedTenantDAO deletedTenantDAO,
                           InsightConfig config,
-                          TenantUtil tenantUtil)
+                          TenantUtil tenantUtil,
+                          MultiTenantAuth0ManagementService auth0ManagementService,
+                          TenantMetadataDAO tenantMetadataDAO,
+                          TenantManager tenantManager)
   {
     this.taskScheduler = taskScheduler;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.deletedTenantDAO = deletedTenantDAO;
     this.config = config;
     this.tenantUtil = tenantUtil;
+    this.auth0ManagementService = auth0ManagementService;
+    this.tenantMetadataDAO = tenantMetadataDAO;
+    this.tenantManager = tenantManager;
   }
 
   @Override
@@ -122,16 +137,24 @@ public class DeleteTenantsJob
 
   private void deleteTenants(List<DeletedTenant> tenantsToDelete) {
     for (DeletedTenant tenant : tenantsToDelete) {
-      deleteTenant(tenant);
+      try {
+        deleteTenant(tenant);
+      }
+      catch (Exception e) {
+        log.error("Tenant delete {} failed with {}.", tenant.getId(), e);
+      }
     }
   }
 
-  private void deleteTenant(DeletedTenant tenant) {
+  // Visible for testing
+  void deleteTenant(DeletedTenant tenant) {
     if (GLOBAL_TENANT.tenantSlug.equals(tenant.getId())) {
       throw new RuntimeException("Deleting the global tenant is not valid");
     }
 
     log.info("Permanently deleting tenant {}", tenant.getId());
+
+    boolean successfulAuth0Deletion = deleteAuth0Details(tenant);
 
     boolean successfulJobsDeleted = deleteJobs(tenant);
 
@@ -139,8 +162,11 @@ public class DeleteTenantsJob
 
     boolean successfulFilesDeleted = deleteFilesOnDisk(tenant);
 
+    log.info("Quartz Jobs deleted = {}, Schema dropped = {}. Files on Disk deleted = {}. Auth0 deleted = {}",
+        successfulJobsDeleted, successfulSchemaDrop, successfulFilesDeleted, successfulAuth0Deletion);
+
     // Only remove the scheduled deletion if all parts were successful
-    if (successfulSchemaDrop && successfulFilesDeleted && successfulJobsDeleted) {
+    if (successfulAuth0Deletion && successfulSchemaDrop && successfulFilesDeleted && successfulJobsDeleted) {
       deletedTenantDAO.delete(tenant);
     }
   }
@@ -156,6 +182,23 @@ public class DeleteTenantsJob
     }
 
     return false;
+  }
+
+  private boolean deleteAuth0Details(final DeletedTenant tenant) {
+    boolean success = false;
+
+    try {
+      success = tenantManager.performDatabaseRegistrationAndRunAs(tenant.getId(), () -> {
+        TenantMetadata tenantMetadata = tenantMetadataDAO.get();
+        return auth0ManagementService.deleteTenant(tenantMetadata.getApplicationId(),
+            tenantMetadata.getConnectionId());
+      });
+    }
+    catch (IllegalArgumentException e) {
+      log.error("Delete tenant {} Auth0 failed to register DB with {}.", tenant.getId(), e);
+    }
+
+    return success;
   }
 
   private boolean deleteDatabaseSchema(DeletedTenant tenant) {

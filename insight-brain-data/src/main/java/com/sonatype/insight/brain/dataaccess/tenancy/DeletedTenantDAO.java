@@ -61,6 +61,11 @@ public class DeletedTenantDAO
     return super.getList(query, System.currentTimeMillis() - retentionInMillis);
   }
 
+  public List<DeletedTenant> getAllTenantDeletions() {
+    String query = "SELECT tenant FROM DeletedTenant tenant";
+    return super.getList(query);
+  }
+
   public boolean isScheduledForDeletion(String tenantSlug) {
     String sQuery = "SELECT COUNT(tenant) FROM DeletedTenant tenant WHERE tenant.tenantSlug = ?1";
     int count = getSingle(Number.class, sQuery, tenantSlug).intValue();

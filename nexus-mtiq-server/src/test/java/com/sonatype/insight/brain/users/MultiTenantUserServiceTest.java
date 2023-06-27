@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.users;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-import com.sonatype.insight.brain.auth.MultiTenantAuth0ApiSupplier;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
@@ -17,8 +14,6 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBrainServiceTest;
-import com.sonatype.insight.brain.service.Auth0Config;
-import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -31,6 +26,7 @@ import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MultiTenantUserServiceTest
@@ -40,7 +36,8 @@ public class MultiTenantUserServiceTest
 
   private final TenantMetadataDAO tenantMetadataDAO = new TenantMetadataDAO();
 
-  private TestMultiTenantAuth0ManagementService auth0ManagementService;
+  private final MultiTenantAuth0ManagementService auth0ManagementService =
+      Mockito.mock(MultiTenantAuth0ManagementService.class);
 
   private final CurrentUser currentUser = Mockito.mock(CurrentUser.class);
 
@@ -52,7 +49,6 @@ public class MultiTenantUserServiceTest
 
   @Before
   public void setUp() throws Exception {
-    auth0ManagementService = new TestMultiTenantAuth0ManagementService();
     underTest = new MultiTenantUserService(webSessionManager, sessionDAO, samlUserDAO, tenantMetadataDAO,
         auth0ManagementService, currentUser);
   }
@@ -166,8 +162,8 @@ public class MultiTenantUserServiceTest
 
       underTest.deleteByUsername(user2.getEmail());
 
+      verify(auth0ManagementService).deleteUser(user2.getEmail(), tenantMetadata.getConnectionId());
       assertThat(samlUserDAO.getByUsername(user2.getEmail())).isNull();
-      auth0ManagementService.contains(user2.getEmail(), tenantMetadata.getConnectionId());
     });
   }
 
@@ -186,8 +182,8 @@ public class MultiTenantUserServiceTest
 
       underTest.deleteByUsername("random@email.com");
 
+      verify(auth0ManagementService).deleteUser("random@email.com", tenantMetadata.getConnectionId());
       assertThat(samlUserDAO.getByUsername("random@email.com")).isNull();
-      auth0ManagementService.contains("random@email.com", tenantMetadata.getConnectionId());
     });
   }
 
@@ -237,90 +233,5 @@ public class MultiTenantUserServiceTest
     user.setEmail(email);
     user.setUsername(email);
     return user;
-  }
-
-  private class VerificationEntity
-  {
-    String email;
-
-    String identifier;
-
-    public VerificationEntity(
-        final String email,
-        final String identifier)
-    {
-      this.email = email;
-      this.identifier = identifier;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      VerificationEntity that = (VerificationEntity) o;
-      return Objects.equals(email, that.email) && Objects.equals(identifier, that.identifier);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(email, identifier);
-    }
-  }
-
-  private class TestMultiTenantAuth0ManagementService
-      extends MultiTenantAuth0ManagementService
-  {
-    private final List<VerificationEntity> entities = new ArrayList<>();
-
-    public TestMultiTenantAuth0ManagementService() {
-      super(new TestMultiTenantInsightConfig(), new MultiTenantAuth0ApiSupplier());
-    }
-
-    @Override
-    public void createOrUpdateUser(
-        final String email,
-        final String firstName,
-        final String lastName,
-        final String connectionName,
-        final String applicationId,
-        final String connectionId)
-    {
-      entities.add(new VerificationEntity(email, applicationId));
-    }
-
-    @Override
-    public void deleteUser(final String email, final String id) {
-      entities.add(new VerificationEntity(email, id));
-    }
-
-    public void contains(final String email, final String id) {
-      assertThat(entities).contains(new VerificationEntity(email, id));
-    }
-
-    public void doesNotContain(final String email, final String id) {
-      assertThat(entities).doesNotContain(new VerificationEntity(email, id));
-    }
-  }
-
-  private class TestMultiTenantInsightConfig
-      extends MultiTenantInsightConfig
-  {
-    @Override
-    public String getAuth0Domain() {
-      return "foodomain";
-    }
-
-    @Override
-    public Auth0Config getAuth0Config() {
-      Auth0Config auth0Config = new Auth0Config();
-      auth0Config.setClientId("clientId");
-      auth0Config.setDomain("domain");
-      auth0Config.setClientSecret("clientSecret");
-      return auth0Config;
-    }
   }
 }

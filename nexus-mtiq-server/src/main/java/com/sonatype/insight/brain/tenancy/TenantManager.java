@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -26,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAs;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
@@ -41,6 +43,8 @@ public class TenantManager
   private static final Logger log = LoggerFactory.getLogger(TenantManager.class);
 
   static final String TENANT_PARAMETER_CANNOT_BE_NULL = "Tenant parameter cannot be null";
+
+  static final String TENANT_DOES_NOT_EXIST = "Tenant does not exist";
 
   private final Map<Tenant, Boolean> registeredTenants = new ConcurrentHashMap<>();
 
@@ -89,7 +93,7 @@ public class TenantManager
 
   void setTenantForAdminRequest(final String tenant) {
     if (tenant == null) {
-      throw new IllegalArgumentException("Tenant parameter cannot be null");
+      throw new IllegalArgumentException(TENANT_PARAMETER_CANNOT_BE_NULL);
     }
 
     TenantThreadLocal.setTenant(new Tenant(tenant));
@@ -148,18 +152,52 @@ public class TenantManager
     runAndLogTime("app boot", tenant, start, tenantLifecycle.get()::bootTenant);
   }
 
+  protected <T> T performDatabaseRegistrationAndRunAs(final String tenantSlug, final Supplier<T> supplier) {
+    if (StringUtils.isBlank(tenantSlug)) {
+      throw new IllegalArgumentException(TENANT_PARAMETER_CANNOT_BE_NULL);
+    }
+    return performDatabaseRegistrationAndRunAs(new Tenant(tenantSlug), supplier);
+  }
+
   /**
-   * Validates a tenant before registration
+   * performDatabaseRegistrationAndRun perform only the database init (not migration) for a tenant and run method
+   * This is used for tenant deletion, where the tenant should not be registered as this causes the Quartz jobs to run.
+   */
+  private <T> T performDatabaseRegistrationAndRunAs(final Tenant tenant, final Supplier<T> supplier) {
+    if (tenant == null) {
+      throw new IllegalArgumentException(TENANT_PARAMETER_CANNOT_BE_NULL);
+    }
+
+    if (!tenantValidator.validateTenantExists(tenant)) {
+      log.debug("Tenant doesn't exist: {}", tenant.tenantSlug);
+      throw new IllegalArgumentException(TENANT_DOES_NOT_EXIST);
+    }
+
+    return runAs(tenant, () -> {
+      final Span span = GlobalTracer.get().activeSpan();
+      if (span != null) {
+        span.setTag("tenant", tenant.tenantSlug);
+      }
+
+      log.info("Registering DB for tenant {}", tenant.tenantSlug);
+      databaseProvisionUtils.initializeDatabasesWithoutMigration(multiTenantDatabaseConfigProvider);
+
+      return supplier.get();
+    });
+  }
+
+  /**
+   * Validates a tenant exists and is not deleted before registration
    */
   private void validateTenant(final Tenant tenant) {
     if (!tenantValidator.validateTenantExists(tenant)) {
       log.debug("Tenant doesn't exist: {}", tenant.tenantSlug);
-      throw new IllegalArgumentException("Tenant doesn't exist");
+      throw new IllegalArgumentException(TENANT_DOES_NOT_EXIST);
     }
 
     if (deletedTenantDAO.isScheduledForDeletion(tenant.tenantSlug)) {
       log.debug("Tenant has been scheduled for deletion and therefore cannot be used: {}", tenant.tenantSlug);
-      throw new IllegalArgumentException("Tenant doesn't exist");
+      throw new IllegalArgumentException(TENANT_DOES_NOT_EXIST);
     }
   }
 
@@ -210,7 +248,7 @@ public class TenantManager
 
   public void deregisterTenant(String tenantSlug) {
     for (TenantManaged tenantManagedBean : tenantManagedBeans) {
-      TenantThreadLocal.runAs(new Tenant(tenantSlug), () -> {
+      runAs(new Tenant(tenantSlug), () -> {
         try {
           tenantManagedBean.deregister();
         }

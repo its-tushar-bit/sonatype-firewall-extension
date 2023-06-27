@@ -9,19 +9,27 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.sonatype.insight.brain.auth.MultiTenantAuth0ApiSupplier;
+import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
 import org.junit.Before;
 import org.junit.Test;
 import org.quartz.JobExecutionContext;
@@ -36,6 +44,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class DeleteTenantsJobTest
@@ -53,14 +63,29 @@ public class DeleteTenantsJobTest
 
   TaskScheduler taskScheduler;
 
+  TenantMetadataDAO tenantMetadataDAO;
+
   @Before
   public void setup() {
     tenantManager = super.getTestCLMServer().getCLMServer().getInstance(TenantManager.class);
-    deleteTenantsJob = super.getTestCLMServer().getCLMServer().getInstance(DeleteTenantsJob.class);
+    deleteTenantsJob = spy(super.getTestCLMServer().getCLMServer().getInstance(DeleteTenantsJob.class));
     config = super.getTestCLMServer().getCLMServer().getInstance(InsightConfig.class);
     dataStore = super.getTestCLMServer().getCLMServer().getInstance(OperationalDataStore.class);
     taskScheduler = super.getTestCLMServer().getCLMServer().getInstance(MultiTenantTaskScheduler.class);
     deletedTenantDAO = new DeletedTenantDAO();
+    tenantMetadataDAO = new TenantMetadataDAO();
+  }
+
+  @Override
+  protected List<Module> getBrainModules() {
+    List<Module> brainModules = super.getBrainModules();
+    brainModules.add(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(MultiTenantAuth0ManagementService.class).toInstance(new TestMultiTenantAuth0ManagementService());
+      }
+    });
+    return brainModules;
   }
 
   @Test
@@ -72,6 +97,8 @@ public class DeleteTenantsJobTest
 
       long beforeDefaultRetentionPeriod =
           System.currentTimeMillis() - (60 * 1000 * (DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS + 1));
+
+      tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
 
       deletedTenantDAO.insert(new DeletedTenant(t.tenantSlug, beforeDefaultRetentionPeriod));
 
@@ -109,6 +136,8 @@ public class DeleteTenantsJobTest
       long beforeDefaultRetentionPeriod =
           System.currentTimeMillis() - (60 * 1000 * (retentionPeriodInHours + 1));
 
+      tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
+
       deletedTenantDAO.insert(new DeletedTenant(t.tenantSlug, beforeDefaultRetentionPeriod));
 
       deleteTenantsJob.execute(null);
@@ -118,10 +147,39 @@ public class DeleteTenantsJobTest
   }
 
   @Test
+  public void testDeleteErrorAllowsOtherDeletesToRun() {
+    testAsNewTenant(testName, t -> {
+      int retentionPeriodInHours = 1;
+
+      provisionTenant(t.tenantSlug);
+
+      tenantManager.setTenant(t);
+
+      tempEntity.newSystemConfigurationProperty(TENANT_RETENTION_PERIOD_CONFIG_KEY,
+          String.valueOf(retentionPeriodInHours));
+
+      long beforeDefaultRetentionPeriod =
+          System.currentTimeMillis() - (60 * 1000 * (retentionPeriodInHours + 1));
+
+      tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
+
+      deletedTenantDAO.insert(new DeletedTenant("error-tenant-1", beforeDefaultRetentionPeriod));
+      deletedTenantDAO.insert(new DeletedTenant("error-tenant-2", beforeDefaultRetentionPeriod));
+      deletedTenantDAO.insert(new DeletedTenant(t.tenantSlug, beforeDefaultRetentionPeriod));
+
+      deleteTenantsJob.execute(null);
+
+      assertThat(deletedTenantDAO.getTenantBySlug(t.tenantSlug)).isNull();
+
+      verify(deleteTenantsJob, times(3)).deleteTenant(any(DeletedTenant.class));
+    });
+  }
+
+  @Test
   public void testRegistration() {
     MultiTenantTaskScheduler taskScheduler = mock(MultiTenantTaskScheduler.class);
 
-    deleteTenantsJob = new DeleteTenantsJob(taskScheduler, null, null, null, null);
+    deleteTenantsJob = new DeleteTenantsJob(taskScheduler, null, null, null, null, null, null, null);
 
     deleteTenantsJob.register();
 
@@ -138,6 +196,8 @@ public class DeleteTenantsJobTest
 
       long beforeDefaultRetentionPeriod =
           System.currentTimeMillis() - (60 * 1000 * (DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS + 1));
+
+      tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
 
       deletedTenantDAO.insert(new DeletedTenant(t.tenantSlug, beforeDefaultRetentionPeriod));
 
@@ -173,5 +233,17 @@ public class DeleteTenantsJobTest
   private void initializeTenantDirectories() throws IOException {
     Files.createDirectories(config.getSonatypeWork().toPath());
     Files.createDirectories(config.getClusterDirectory().toPath());
+  }
+
+  private class TestMultiTenantAuth0ManagementService extends MultiTenantAuth0ManagementService
+  {
+    public TestMultiTenantAuth0ManagementService() {
+      super(new MultiTenantInsightConfig(), new MultiTenantAuth0ApiSupplier());
+    }
+
+    @Override
+    public boolean deleteTenant(final String applicationId, final String connectionId) {
+      return true;
+    }
   }
 }

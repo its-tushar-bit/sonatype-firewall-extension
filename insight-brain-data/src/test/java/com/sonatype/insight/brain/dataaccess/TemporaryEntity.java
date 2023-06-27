@@ -666,110 +666,116 @@ public class TemporaryEntity
     // - VulnerabilityCustomCweTag: cascaded from VulnerabilityCustomCwe
     // - VulnerabilityCustomRemediationTag: cascaded from VulnerabilityCustomRemediation
     // - VulnerabilityGroupVulnerability: cascaded from VulnerabilityGroup
-    automaticApplicationsConfigurationDAO.setEnabled(false);
-    automaticApplicationsConfigurationDAO.setOrganizationId("");
-    delete(innerSourceComponents, innerSourceComponentDAO);
-    delete(membershipMappings, membershipMappingDAO);
-    delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
-    delete(userFilterDAO.getAll(), userFilterDAO);
-    delete(sourceControlPullRequestCommentDAO.getAll(), sourceControlPullRequestCommentDAO);
-    delete(sourceControlOrganizationImportEventDAO.getAll(), sourceControlOrganizationImportEventDAO);
-    delete(policyDAO.getAll(), entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
-    List<Organization> orgs = orgDAO.getAll().stream()
-        .filter(org -> !Organization.ROOT_ORGANIZATION_ID.equals(org.getId())).collect(toList());
-    delete(appDAO.getAll(), appDAO);
-    orgs = sortNLevelOrgsWithLeafNodesOnTop(orgs);
-    delete(orgs, orgDAO);
-    delete(licenseOverrideDAO.getAll(), entity -> licenseOverrideDAO.getById(entity.getId()),
-        licenseOverrideDAO::delete);
-    delete(securityVulnerabilityOverrideDAO.getAll(), securityVulnerabilityOverrideDAO);
-    delete(vulnerabilityGroupDAO.getAll(), vulnerabilityGroupDAO);
-    delete(vulnerabilityCustomRemediationDAO.getAll(), vulnerabilityCustomRemediationDAO);
-    delete(vulnerabilityCustomCweDAO.getAll(), vulnerabilityCustomCweDAO);
-    delete(vulnerabilityCustomCvssVectorDAO.getAll(), vulnerabilityCustomCvssVectorDAO);
-    delete(vulnerabilityCustomCvssSeverityDAO.getAll(), vulnerabilityCustomCvssSeverityDAO);
-    delete(users, userDAO);
-    samlUserGroupDAO.getAll().forEach(samlUserGroupDAO::delete);
-    samlUserDAO.getAll().forEach(samlUserDAO::delete);
-    samlGroupDAO.getAll().forEach(samlGroupDAO::delete);
-    delete(usernames, userDAO);
-    delete(roles, roleDAO);
-    delete(ldapServerDAO.getAll(), ldapServerDAO);
-    delete(claimedComponents, hashComponentIdentifierDAO);
-    delete(userViewedProductNotificationDAO.getAll(), userViewedProductNotificationDAO);
-    delete(labelDAO.getAll(), labelDAO);
-    delete(tagDAO.getAll(), tagDAO);
-    delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
-    delete(policyMonitoringDAO.getAll(), policyMonitoringDAO);
-    delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
-    delete(webhookDAO.getAll(), webhookDAO);
-    delete(policyViolationAggregationDAO.getAll(), policyViolationAggregationDAO);
-    delete(successMetricsReportDAO.getAll(), successMetricsReportDAO);
-    delete(sourceControlPullRequestDAO.getAll(), sourceControlPullRequestDAO);
-    delete(sourceControlDAO.getAll(), sourceControlDAO);
-    samlConfigurationDAO.delete();
-    delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
-    delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
-    delete(componentLabels, componentLabelDAO);
-    delete(repositoryConnectionDAO.getAll(), repositoryConnectionDAO);
-    delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
-    delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
-    delete(deletedTenants, deletedTenantDAO);
-    productLicenseDAO.delete();
-    firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
-    persistedPolicyEvaluationPollingResultDAO.deleteAll();
-    persistedScanTicketDAO.getAll().forEach(persistedScanTicketDAO::delete);
+    try {
+      automaticApplicationsConfigurationDAO.setEnabled(false);
+      automaticApplicationsConfigurationDAO.setOrganizationId("");
+      delete(innerSourceComponents, innerSourceComponentDAO);
+      delete(membershipMappings, membershipMappingDAO);
+      delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
+      delete(userFilterDAO.getAll(), userFilterDAO);
+      delete(sourceControlPullRequestCommentDAO.getAll(), sourceControlPullRequestCommentDAO);
+      delete(sourceControlOrganizationImportEventDAO.getAll(), sourceControlOrganizationImportEventDAO);
+      delete(policyDAO.getAll(), entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
+      List<Organization> orgs = orgDAO.getAll().stream()
+          .filter(org -> !Organization.ROOT_ORGANIZATION_ID.equals(org.getId())).collect(toList());
+      delete(appDAO.getAll(), appDAO);
+      orgs = sortNLevelOrgsWithLeafNodesOnTop(orgs);
+      delete(orgs, orgDAO);
+      delete(licenseOverrideDAO.getAll(), entity -> licenseOverrideDAO.getById(entity.getId()),
+          licenseOverrideDAO::delete);
+      delete(securityVulnerabilityOverrideDAO.getAll(), securityVulnerabilityOverrideDAO);
+      delete(vulnerabilityGroupDAO.getAll(), vulnerabilityGroupDAO);
+      delete(vulnerabilityCustomRemediationDAO.getAll(), vulnerabilityCustomRemediationDAO);
+      delete(vulnerabilityCustomCweDAO.getAll(), vulnerabilityCustomCweDAO);
+      delete(vulnerabilityCustomCvssVectorDAO.getAll(), vulnerabilityCustomCvssVectorDAO);
+      delete(vulnerabilityCustomCvssSeverityDAO.getAll(), vulnerabilityCustomCvssSeverityDAO);
+      delete(users, userDAO);
+      samlUserGroupDAO.getAll().forEach(samlUserGroupDAO::delete);
+      samlUserDAO.getAll().forEach(samlUserDAO::delete);
+      samlGroupDAO.getAll().forEach(samlGroupDAO::delete);
+      delete(usernames, userDAO);
+      delete(roles, roleDAO);
+      delete(ldapServerDAO.getAll(), ldapServerDAO);
+      delete(claimedComponents, hashComponentIdentifierDAO);
+      delete(userViewedProductNotificationDAO.getAll(), userViewedProductNotificationDAO);
+      delete(labelDAO.getAll(), labelDAO);
+      delete(tagDAO.getAll(), tagDAO);
+      delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
+      delete(policyMonitoringDAO.getAll(), policyMonitoringDAO);
+      delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
+      delete(webhookDAO.getAll(), webhookDAO);
+      delete(policyViolationAggregationDAO.getAll(), policyViolationAggregationDAO);
+      delete(successMetricsReportDAO.getAll(), successMetricsReportDAO);
+      delete(sourceControlPullRequestDAO.getAll(), sourceControlPullRequestDAO);
+      delete(sourceControlDAO.getAll(), sourceControlDAO);
+      samlConfigurationDAO.delete();
+      delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
+      delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
+      delete(componentLabels, componentLabelDAO);
+      delete(repositoryConnectionDAO.getAll(), repositoryConnectionDAO);
+      delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
+      delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
+      delete(deletedTenants, deletedTenantDAO);
+      productLicenseDAO.delete();
+      firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
+      persistedPolicyEvaluationPollingResultDAO.deleteAll();
+      persistedScanTicketDAO.getAll().forEach(persistedScanTicketDAO::delete);
 
-    ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    if (config != null) {
-      proprietaryConfigDAO.delete(config);
-    }
-    migrationTrackerDAO.getAll().forEach(migrationTrackerDAO::delete);
-    migrationTrackers.forEach(this::detachEntity);
-    migrationTrackers.forEach(migrationTrackerDAO::insert);
-    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
-    cleanupPersistedUserSessions();
-    delete(userTokens, userTokenDAO);
-    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
-    if (savedMailConfiguration == null) {
-      mailConfigurationDAO.delete();
-    }
-    else {
-      mailConfigurationDAO.set(savedMailConfiguration);
-    }
-
-    if (savedProxyServerConfiguration == null) {
-      proxyServerConfigurationDAO.delete();
-    }
-    else {
-      proxyServerConfigurationDAO.set(savedProxyServerConfiguration);
-    }
-
-    systemConfigurationPropertyDAO.getAll().forEach(property -> systemConfigurationPropertyDAO.delete(property));
-    systemConfigurationPropertiesBefore.forEach(property -> detachEntity(property));
-    systemConfigurationPropertiesBefore.forEach(property -> systemConfigurationPropertyDAO.insert(property));
-
-    componentObligationAttributionDAO.getAll().forEach(componentObligationAttributionDAO::delete);
-    componentObligationDAO.getAll().forEach(componentObligationDAO::delete);
-    componentCopyrightDAO.getAll().forEach(componentCopyrightDAO::delete);
-    componentLegalFileDAO.getAll().forEach(componentLegalFileDAO::delete);
-    autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
-    attributionReportTemplateDAO.getAll().forEach(attributionReportTemplateDAO::delete);
-    quarantinedComponentAccessDAO.getAll().forEach(quarantinedComponentAccessDAO::delete);
-    componentSourceLinkDAO.getAll().forEach(componentSourceLinkDAO::delete);
-    crowdConfigurationDAO.delete();
-    repositoryClientConfigurationDAO.delete();
-    reverseProxyAuthenticationConfigurationDAO.delete();
-    jiraConfigurationDAO.delete();
-    sourceControlConfigurationDAO.delete();
-    membershipMappingDAO.getAll().forEach(membershipMapping -> {
-      if (!membershipMapping.getMemberName().contains(User.ADMIN_USERNAME)) {
-        membershipMappingDAO.delete(membershipMapping);
+      ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      if (config != null) {
+        proprietaryConfigDAO.delete(config);
       }
-    });
-    userIdePolicyEvaluationDAO.getAll().forEach(userIdePolicyEvaluationDAO::delete);
+      migrationTrackerDAO.getAll().forEach(migrationTrackerDAO::delete);
+      migrationTrackers.forEach(this::detachEntity);
+      migrationTrackers.forEach(migrationTrackerDAO::insert);
+      searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
+      cleanupPersistedUserSessions();
+      delete(userTokens, userTokenDAO);
+      automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
+      if (savedMailConfiguration == null) {
+        mailConfigurationDAO.delete();
+      }
+      else {
+        mailConfigurationDAO.set(savedMailConfiguration);
+      }
 
-    detectEntityLeaks();
+      if (savedProxyServerConfiguration == null) {
+        proxyServerConfigurationDAO.delete();
+      }
+      else {
+        proxyServerConfigurationDAO.set(savedProxyServerConfiguration);
+      }
+
+      systemConfigurationPropertyDAO.getAll().forEach(property -> systemConfigurationPropertyDAO.delete(property));
+      systemConfigurationPropertiesBefore.forEach(property -> detachEntity(property));
+      systemConfigurationPropertiesBefore.forEach(property -> systemConfigurationPropertyDAO.insert(property));
+
+      componentObligationAttributionDAO.getAll().forEach(componentObligationAttributionDAO::delete);
+      componentObligationDAO.getAll().forEach(componentObligationDAO::delete);
+      componentCopyrightDAO.getAll().forEach(componentCopyrightDAO::delete);
+      componentLegalFileDAO.getAll().forEach(componentLegalFileDAO::delete);
+      autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
+      attributionReportTemplateDAO.getAll().forEach(attributionReportTemplateDAO::delete);
+      quarantinedComponentAccessDAO.getAll().forEach(quarantinedComponentAccessDAO::delete);
+      componentSourceLinkDAO.getAll().forEach(componentSourceLinkDAO::delete);
+      crowdConfigurationDAO.delete();
+      repositoryClientConfigurationDAO.delete();
+      reverseProxyAuthenticationConfigurationDAO.delete();
+      jiraConfigurationDAO.delete();
+      sourceControlConfigurationDAO.delete();
+      membershipMappingDAO.getAll().forEach(membershipMapping -> {
+        if (!membershipMapping.getMemberName().contains(User.ADMIN_USERNAME)) {
+          membershipMappingDAO.delete(membershipMapping);
+        }
+      });
+      userIdePolicyEvaluationDAO.getAll().forEach(userIdePolicyEvaluationDAO::delete);
+
+      detectEntityLeaks();
+    }
+    catch (RuntimeException e) {
+      e.printStackTrace();
+      throw e;
+    }
   }
 
   private void detectEntityLeaks() {

@@ -9,6 +9,9 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.DataAccessException;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -149,8 +152,33 @@ public class SourceControlPullRequestCommentDAO
 
   @Override
   public void update(final TransactionContext tx, final SourceControlPullRequestComment pullRequestComment) {
+    validateOwnership(tx, pullRequestComment);
+
     pullRequestComment.setUpdateTime(new Date());
     super.update(tx, pullRequestComment);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, SourceControlPullRequestComment pullRequestComment) {
+    validateOwnership(tx, pullRequestComment);
+    
+    super.insert(tx, pullRequestComment);
+  }
+
+  private void validateOwnership(TransactionContext tx, SourceControlPullRequestComment pullRequestComment) {
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyEvaluation sourcePolicyEvaluation =
+        policyEvaluationDAO.getByIdNotNull(tx, pullRequestComment.getSourcePolicyEvaluationId());
+    if (!sourcePolicyEvaluation.getApplicationId().equals(pullRequestComment.getApplicationId())) {
+      throw new DataAccessException(
+          "The source policy evaluation app ID does not match the pull request comment app ID.");
+    }
+    PolicyEvaluation targetPolicyEvaluation =
+        policyEvaluationDAO.getByIdNotNull(tx, pullRequestComment.getTargetPolicyEvaluationId());
+    if (!targetPolicyEvaluation.getApplicationId().equals(pullRequestComment.getApplicationId())) {
+      throw new DataAccessException(
+          "The target policy evaluation app ID does not match the pull request comment app ID.");
+    }
   }
 
   public int deleteAllBeforeDate(final Date cutoffDate) {

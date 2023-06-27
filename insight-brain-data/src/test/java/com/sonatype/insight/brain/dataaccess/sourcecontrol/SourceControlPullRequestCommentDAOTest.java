@@ -10,16 +10,18 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.ThrowableAssert.catchThrowable;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SourceControlPullRequestCommentDAOTest
     extends AbstractDbDAOTest
@@ -134,6 +136,10 @@ public class SourceControlPullRequestCommentDAOTest
     // and given: line comments for a different app and PR
     final int additionalPullRequestId = 2;
     Application app2 = tempEntity.newApplication(organization.getId());
+    PolicyEvaluation sourcePolicyEvaluation2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
+    PolicyEvaluation targetPolicyEvaluation2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "targetScan", "targetCommit");
 
     for (int commentId = 1; commentId <= lineCommentCount; commentId++) {
       tempEntity.newSourceControlPullRequestCommentForLine(
@@ -143,8 +149,7 @@ public class SourceControlPullRequestCommentDAOTest
           additionalPullRequestId,
           commentId,
           pullRequestCommentVersion,
-          sourcePolicyEvaluation.getId(),
-          targetPolicyEvaluation.getId()
+          sourcePolicyEvaluation2.getId(), targetPolicyEvaluation2.getId()
       );
     }
 
@@ -208,20 +213,13 @@ public class SourceControlPullRequestCommentDAOTest
     PolicyEvaluation targetPolicyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit");
 
-    // when : trying to insert the pr comment entry
-    Throwable thrown = catchThrowable(() -> tempEntity.newSourceControlPullRequestComment(
-        application.getId(),
-        1,
-        2,
-        3,
-        "contentHash",
-        "bogusPolicyEvalId",
-        targetPolicyEvaluation.getId()
-    ));
-
-    // then : exception thrown indicating that the given source commit doesn't reference a policy eval
-    assertThat(thrown).hasStackTraceContaining(
-        "Referential integrity constraint violation: \"source_control_pull_request_source_policy_eval_fk: \"");
+    // when : trying to insert the pr comment entry an exception is thrown indicating that the given source commit
+    // doesn't reference a policy evaluation.
+    assertThatThrownBy(() -> {
+      tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 2, 3, "contentHash", "bogusPolicyEvalId",
+          targetPolicyEvaluation.getId());
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage("Could not find a policy evaluation with ID bogusPolicyEvalId.");
   }
 
   @Test
@@ -230,20 +228,13 @@ public class SourceControlPullRequestCommentDAOTest
     PolicyEvaluation sourcePolicyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
 
-    // when : trying to insert the pr comment entry
-    Throwable thrown = catchThrowable(() -> tempEntity.newSourceControlPullRequestComment(
-        application.getId(),
-        1,
-        2,
-        3,
-        "contentHash",
-        sourcePolicyEvaluation.getId(),
-        "bogusPolicyEvalId"
-    ));
-
-    // then : exception thrown indicating that the given target commit doesn't reference a policy eval
-    assertThat(thrown).hasStackTraceContaining(
-        "Referential integrity constraint violation: \"source_control_pull_request_target_policy_eval_fk: \"");
+    // when : trying to insert the pr comment entry an exception is thrown indicating that the given target commit
+    // doesn't reference a policy evaluation.
+    assertThatThrownBy(() -> {
+      tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 2, 3, "contentHash",
+          sourcePolicyEvaluation.getId(), "bogusPolicyEvalId");
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage("Could not find a policy evaluation with ID bogusPolicyEvalId.");
   }
 
   @Test
@@ -254,20 +245,13 @@ public class SourceControlPullRequestCommentDAOTest
     PolicyEvaluation targetPolicyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit");
 
-    // when : trying to insert the pr comment entry
-    Throwable thrown = catchThrowable(() -> tempEntity.newSourceControlPullRequestComment(
-        "bogusAppId",
-        1,
-        2,
-        3,
-        "contentHash",
-        sourcePolicyEvaluation.getId(),
-        targetPolicyEvaluation.getId()
-    ));
-
-    // then : an exception is thrown indicating that the given application is invalid
-    assertThat(thrown).hasStackTraceContaining(
-        "Referential integrity constraint violation: \"source_control_pull_request_comment_app_fk: \"");
+    // when : trying to insert the pr comment entry an exception is thrown indicating that the given application is
+    // invalid
+    assertThatThrownBy(() -> {
+      tempEntity.newSourceControlPullRequestComment("bogusAppId", 1, 2, 3, "contentHash",
+          sourcePolicyEvaluation.getId(), targetPolicyEvaluation.getId());
+    }).isInstanceOf(DataAccessException.class)
+        .hasMessage("The source policy evaluation app ID does not match the pull request comment app ID.");
   }
 
   @Test
@@ -308,8 +292,12 @@ public class SourceControlPullRequestCommentDAOTest
     assertThat(pullRequestComments).isEmpty();
 
     // given : add data for 2nd app
+    String sourcePolicyEvalId2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "sourceScan", "sourceCommit").getId();
+    String targetPolicyEvalId2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "targetScan", "targetCommit").getId();
     tempEntity.newSourceControlPullRequestComment(app2.getId(), 3, 33, 333, "contentHash2",
-        sourcePolicyEvalId, targetPolicyEvalId);
+        sourcePolicyEvalId2, targetPolicyEvalId2);
 
     // when : fetch for original app
     pullRequestComments = pullRequestCommentDAO.getByApplicationId(application.getId());
@@ -342,10 +330,14 @@ public class SourceControlPullRequestCommentDAOTest
 
     // given : add a 2nd app
     Application app2 = tempEntity.newApplication("app2", "app2", organization.getId());
+    String sourcePolicyEvalId2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "sourceScan", "sourceCommit").getId();
+    String targetPolicyEvalId2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "targetScan", "targetCommit").getId();
 
     // given : add data for 2nd app
     tempEntity.newSourceControlPullRequestComment(app2.getId(), 3, 33, 333, "contentHash2",
-        sourcePolicyEvalId, targetPolicyEvalId);
+        sourcePolicyEvalId2, targetPolicyEvalId2);
 
     // when :  delete all for first app
     try (TransactionContext tx = pullRequestCommentDAO.createTransactionContext()) {
@@ -363,5 +355,57 @@ public class SourceControlPullRequestCommentDAOTest
     pullRequestComments = pullRequestCommentDAO.getByApplicationId(app2.getId());
     assertThat(pullRequestComments).isNotNull().hasSize(1);
     pullRequestComments.forEach(comment -> assertThat(comment.getApplicationId()).isEqualTo(app2.getId()));
+  }
+
+  @Test
+  public void testInsert_ValidatesOwnership() {
+    PolicyEvaluation policyEvaluationSameApp =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit");
+    Application otherApp = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluationOtherApp =
+        tempEntity.newPolicyEvaluation(otherApp.getId(), BuildStageType.ID, "targetScan", "targetCommit");
+
+    assertThatThrownBy(() -> {
+      tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 2, 3, "contentHash", //
+          policyEvaluationOtherApp.getId(), //
+          policyEvaluationSameApp.getId());
+    }).isInstanceOf(DataAccessException.class)
+        .hasMessage("The source policy evaluation app ID does not match the pull request comment app ID.");
+
+    assertThatThrownBy(() -> {
+      tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 2, 3, "contentHash", //
+          policyEvaluationSameApp.getId(), //
+          policyEvaluationOtherApp.getId());
+    }).isInstanceOf(DataAccessException.class)
+        .hasMessage("The target policy evaluation app ID does not match the pull request comment app ID.");
+  }
+
+  @Test
+  public void testUpdate_ValidatesOwnership() {
+    PolicyEvaluation policyEvaluationSameApp1 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit");
+    PolicyEvaluation policyEvaluationSameApp2 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit");
+    SourceControlPullRequestComment pullRequestComment =
+        tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 2, 3, "contentHash", //
+            policyEvaluationSameApp1.getId(), //
+            policyEvaluationSameApp2.getId());
+    
+    Application otherApp = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluationOtherApp =
+        tempEntity.newPolicyEvaluation(otherApp.getId(), BuildStageType.ID, "targetScan", "targetCommit");
+
+    pullRequestComment.setSourcePolicyEvaluationId(policyEvaluationOtherApp.getId());
+    assertThatThrownBy(() -> {
+      pullRequestCommentDAO.update(pullRequestComment);
+    }).isInstanceOf(DataAccessException.class)
+        .hasMessage("The source policy evaluation app ID does not match the pull request comment app ID.");
+
+    pullRequestComment.setSourcePolicyEvaluationId(policyEvaluationSameApp1.getId());
+    pullRequestComment.setTargetPolicyEvaluationId(policyEvaluationOtherApp.getId());
+    assertThatThrownBy(() -> {
+      pullRequestCommentDAO.update(pullRequestComment);
+    }).isInstanceOf(DataAccessException.class)
+        .hasMessage("The target policy evaluation app ID does not match the pull request comment app ID.");
   }
 }

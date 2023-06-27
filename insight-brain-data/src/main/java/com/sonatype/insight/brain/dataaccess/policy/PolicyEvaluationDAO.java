@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,6 +35,16 @@ public class PolicyEvaluationDAO
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.id=?1";
     return get(tx, sQuery, id);
+  }
+
+  public PolicyEvaluation getByIdNotNull(TransactionContext tx, String id) {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.id=?1";
+    PolicyEvaluation policyEvaluation = get(tx, sQuery, id);
+    if (policyEvaluation == null) {
+      throw new NotFoundException("Could not find a policy evaluation with ID " + id + ".");
+    }
+    return policyEvaluation;
   }
 
   public PolicyEvaluation getLastByApplicationIdAndScanId(TransactionContext tx, String appId, String scanId) {

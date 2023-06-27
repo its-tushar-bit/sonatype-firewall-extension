@@ -659,6 +659,7 @@ public class TemporaryEntity
     // - RepositoryMigration: cascaded from Repository
     // - RepositoryPolicyViolation: cascaded from Repository
     // - SourceControlDefaultBranchCommitHistory: cascaded from Application
+    // - SourceControlPullRequestComment: cascaded from PolicyEvaluation
     // - SourceControlPullRequestResult: cascaded from Application
     // - SuccessMetricsReportData: cascaded from SuccessMetricsReport
     // - VulnerabilityCustomCvssSeverityTag: cascaded from VulnerabilityCustomCvssSeverity
@@ -673,7 +674,6 @@ public class TemporaryEntity
       delete(membershipMappings, membershipMappingDAO);
       delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
       delete(userFilterDAO.getAll(), userFilterDAO);
-      delete(sourceControlPullRequestCommentDAO.getAll(), sourceControlPullRequestCommentDAO);
       delete(sourceControlOrganizationImportEventDAO.getAll(), sourceControlOrganizationImportEventDAO);
       delete(policyDAO.getAll(), entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
       List<Organization> orgs = orgDAO.getAll().stream()

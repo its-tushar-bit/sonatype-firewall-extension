@@ -180,7 +180,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCannotDeleteRootOrg() {
+  public void testDelete_CannotDeleteRootOrg() {
     organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
     assertThatThrownBy(() -> dao.delete(organization)).isInstanceOf(BadRequestException.class)
         .hasMessage("Cannot delete the root organization: Root Organization");
@@ -229,7 +229,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testUpdateRootOrgs_ParentOrganizationIdIsForcedToNull() {
+  public void testUpdate_RootOrgsParentOrganizationIdIsForcedToNull() {
     organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
     organization.setParentOrganizationId("dummyOrg");
     dao.update(organization);
@@ -260,7 +260,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testUpdateRootOrgName() {
+  public void testUpdate_RootOrgName() {
     organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
     String originalName = organization.getName();
     organization.setName("Test Root");
@@ -277,14 +277,14 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testValidateNullName_Insert() {
+  public void testInsert_ValidateNullName() {
     Organization organization = new Organization(null /* name */);
     assertThatThrownBy(() -> dao.insert(organization)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name is required.");
   }
 
   @Test
-  public void testValidateNullName_Update() {
+  public void testUpdate_ValidateNullName() {
     organization.setName(null);
     assertThat(organization.getNameLowercaseNoWhitespace()).isNull();
     assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
@@ -292,13 +292,13 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testValidateEmptyName_Insert() {
+  public void testInsert_ValidateEmptyName() {
     assertThatThrownBy(() -> tempEntity.newOrganization(" ")).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name is required.");
   }
 
   @Test
-  public void testValidateEmptyName_Update() {
+  public void testUpdate_ValidateEmptyName() {
     organization.setName(" ");
     assertThat(organization.getNameLowercaseNoWhitespace()).isEqualTo("");
     assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
@@ -306,7 +306,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testValidateNameInvalidChars_Insert() {
+  public void testInsert_ValidateNameInvalidChars() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       Organization organization = new Organization(name);
       assertThatThrownBy(() -> dao.insert(organization)).isInstanceOf(InvalidNameException.class)
@@ -315,7 +315,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testValidateNameInvalidChars_Update() {
+  public void testUpdate_ValidateNameInvalidChars() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       organization.setName(name);
       assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
@@ -324,14 +324,14 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testValidateNameValidChars_Insert() {
+  public void testInsert_ValidateNameValidChars() {
     for (String name : NameHelperTest.VALID_NAMES) {
       tempEntity.newOrganization(name);
     }
   }
 
   @Test
-  public void testValidateNameValidChars_Update() {
+  public void testUpdate_ValidateNameValidChars() {
     Organization organization = tempEntity.newOrganization("a");
     for (String name : NameHelperTest.VALID_NAMES) {
       organization.setName(name);
@@ -340,7 +340,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testValidateNameSpaces_Insert() {
+  public void testInsert_ValidateNameSpaces() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       assertThatThrownBy(() -> tempEntity.newOrganization(name)).isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
@@ -348,7 +348,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testValidateNameSpaces_Update() {
+  public void testUpdate_ValidateNameSpaces() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       organization.setName(name);
       assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
@@ -372,7 +372,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testDuplicateName_Insert() {
+  public void testInsert_DuplicateName() {
     tempEntity.newOrganization("testDuplicateName");
 
     assertThatThrownBy(() -> tempEntity.newOrganization("testDuplicateName"))
@@ -381,7 +381,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testDuplicateName_Update() {
+  public void testUpdate_DuplicateName() {
     tempEntity.newOrganization("testDuplicateName");
     Organization organization1 = tempEntity.newOrganization("testDuplicateName1");
 
@@ -391,7 +391,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testValidateNameLength_Insert() {
+  public void testInsert_ValidateNameLength() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     assertThatThrownBy(() -> tempEntity.newOrganization(name + "a")).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.");
@@ -400,7 +400,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testValidateNameLength_Update() {
+  public void testUpdate_ValidateNameLength() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     organization.setName(name + "a");
     assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
@@ -411,7 +411,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToLabels() {
+  public void testDelete_CascadeToLabels() {
     final LabelDAO labelDAO = new LabelDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
@@ -433,7 +433,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToProprietaryConfig() {
+  public void testDelete_CascadeToProprietaryConfig() {
     Organization organization = tempEntity.newOrganization("organization");
     tempEntity.newProprietaryConfig(organization.getId());
 
@@ -442,7 +442,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToTags() {
+  public void testDelete_CascadeToTags() {
     TagDAO tagDAO = new TagDAO();
 
     Organization organization = tempEntity.newOrganization("organization");
@@ -461,7 +461,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicies() {
+  public void testDelete_CascadeToPolicies() {
     Organization organization = tempEntity.newOrganization("organization");
 
     tempEntity.newPolicy(organization);
@@ -496,7 +496,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToLicenseOverrides() {
+  public void testDelete_CascadeToLicenseOverrides() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToLicenseOverrides");
     String organizationId = organization.getId();
 
@@ -513,7 +513,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToSecurityVulnerabilityOverrides() {
+  public void testDelete_CascadeToSecurityVulnerabilityOverrides() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToSecurityVulnerabilityOverrides");
     SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
         organization.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
@@ -524,7 +524,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyWaivers() {
+  public void testDelete_CascadeToPolicyWaivers() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToPolicyWaivers");
 
     Policy policy = tempEntity.newPolicy(organization);
@@ -541,7 +541,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToMembershipMappings() {
+  public void testDelete_CascadeToMembershipMappings() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToMembershipMappings");
 
     String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
@@ -555,7 +555,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyMonitoring() {
+  public void testDelete_CascadeToPolicyMonitoring() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToPolicyMonitoring");
 
     PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
@@ -569,7 +569,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToDataRetentionPolicies() {
+  public void testDelete_CascadeToDataRetentionPolicies() {
     Organization organization = tempEntity.newOrganization();
 
     DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
@@ -581,7 +581,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToSourceControl() {
+  public void testDelete_CascadeToSourceControl() {
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     Organization organization = tempEntity.newOrganization();
     SourceControl sourceControl = tempEntity.newSourceControl(
@@ -593,7 +593,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToSourceControlOrganizationImportEvents() {
+  public void testDelete_CascadeToSourceControlOrganizationImportEvents() {
     Organization org = tempEntity.newOrganization();
     tempEntity.newSourceControlOrganizationImportEvent(org.getId(), "scm-url", -1, 0);
 
@@ -694,7 +694,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToLocks_H2() {
+  public void testDelete_CascadeToLocks_H2() {
     // Lock for audit json file store
     Organization organization = tempEntity.newOrganization();
     try (ClusterLock clusterLock = ClusterLock.createForAuditJsonFileStore(organization.getId())) {
@@ -710,7 +710,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToLocks_Postgres() {
+  public void testDelete_CascadeToLocks_Postgres() {
     DataSourceFactory.clear_ForTestsOnly();
     try (PostgresServer postgres = new PostgresServer()) {
       OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);

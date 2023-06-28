@@ -64,7 +64,7 @@ describe('ActionsFooter', function () {
     });
   });
 
-  describe('when the current step is the last step', () => {
+  describe('when the current step is the second step', () => {
     it('renders a help button', () => {
       renderComponent(steps[0]);
       const helpButton = screen.getByRole('link', { name: /help/i });
@@ -74,7 +74,7 @@ describe('ActionsFooter', function () {
     });
 
     it('renders cancel button', () => {
-      renderComponent(steps[0]);
+      renderComponent(steps[1]);
       const cancelButton = screen.getByRole('button', { name: /cancel/i });
 
       expect(cancelButton).toBeVisible();
@@ -82,11 +82,13 @@ describe('ActionsFooter', function () {
       expect(actions.openIncompleteConfigurationModal).toHaveBeenCalled();
     });
 
-    it('does not render continue button', () => {
+    it('renders continue button', () => {
       renderComponent(steps[1]);
-      const continueButton = screen.queryByRole('button', { name: /continue/i });
+      const continueButton = screen.getByRole('button', { name: /continue/i });
 
-      expect(continueButton).toBeNull();
+      expect(continueButton).toBeVisible();
+      fireEvent.click(continueButton);
+      expect(actions.continueToNextStep).toHaveBeenCalled();
     });
 
     it('renders previous button', () => {
@@ -98,8 +100,50 @@ describe('ActionsFooter', function () {
       expect(actions.goBackToPreviousStep).toHaveBeenCalled();
     });
 
-    it('renders "launch firewall" button', () => {
+    it('does not render "launch firewall" button', () => {
       renderComponent(steps[1]);
+      const launchButton = screen.queryByRole('button', { name: /launch firewall/i });
+
+      expect(launchButton).toBeNull();
+    });
+  });
+
+  describe('when the current step is the last step', () => {
+    it('renders a help button', () => {
+      renderComponent(steps[0]);
+      const helpButton = screen.getByRole('link', { name: /help/i });
+
+      expect(helpButton).toBeVisible();
+      expect(helpButton).toHaveAttribute('href', HELP_URL);
+    });
+
+    it('renders cancel button', () => {
+      renderComponent(steps[2]);
+      const cancelButton = screen.getByRole('button', { name: /cancel/i });
+
+      expect(cancelButton).toBeVisible();
+      fireEvent.click(cancelButton);
+      expect(actions.openIncompleteConfigurationModal).toHaveBeenCalled();
+    });
+
+    it('does not render continue button', () => {
+      renderComponent(steps[2]);
+      const continueButton = screen.queryByRole('button', { name: /continue/i });
+
+      expect(continueButton).toBeNull();
+    });
+
+    it('renders previous button', () => {
+      renderComponent(steps[2]);
+      const previousButton = screen.queryByRole('button', { name: /previous/i });
+
+      expect(previousButton).toBeVisible();
+      fireEvent.click(previousButton);
+      expect(actions.goBackToPreviousStep).toHaveBeenCalled();
+    });
+
+    it('renders "launch firewall" button', () => {
+      renderComponent(steps[2]);
       const launchButton = screen.getByRole('button', { name: /launch firewall/i });
 
       expect(launchButton).toBeVisible();

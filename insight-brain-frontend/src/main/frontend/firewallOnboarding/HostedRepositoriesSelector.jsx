@@ -6,7 +6,8 @@
 
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxTile, NxLoadWrapper, NxPageTitle, NxP, NxH1 } from '@sonatype/react-shared-components';
+import { NxTile, NxLoadWrapper, NxPageTitle, NxP, NxH1, NxTextLink } from '@sonatype/react-shared-components';
+
 import ActionsFooter from './ActionsFooter';
 import { actions } from './firewallOnboardingSlice';
 import {
@@ -17,22 +18,24 @@ import {
 import { steps } from './firewallOnboardingUtils';
 import FirewallRepositoryList from 'MainRoot/react/FirewallRepositoryList/FirewallRepositoryList';
 
-const currentStep = steps[0];
+const currentStep = steps[1];
 
-export default function ProxyRepositoriesSelector() {
+const NAMESPACE_CONFUSION_PROTECTION_URL = 'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
+
+export default function HostedRepositoriesSelector() {
   const { loading, loadError } = useSelector(selectRepositories);
   const unconfiguredRepoManager = useSelector(selectUnconfiguredRepoManager);
-  const proxyReposGroupByFormat = useSelector((state) => selectRepositoriesByType(state, 'proxy'));
+  const hostedReposGroupByFormat = useSelector((state) => selectRepositoriesByType(state, 'hosted'));
 
   const dispatch = useDispatch();
   const loadRepositories = () => dispatch(actions.loadRepositories(unconfiguredRepoManager));
   const configureRepositories = (repository) => dispatch(actions.configureRepositories(repository));
 
   const renderRepositoriesByFormat = () => {
-    if (!proxyReposGroupByFormat.length) {
-      return 'There are no proxy repositories to apply your protection rules.';
+    if (!hostedReposGroupByFormat.length) {
+      return 'There are no hosted repositories to apply your protection rules.';
     }
-    return proxyReposGroupByFormat.map((repositoriesByFormat) => (
+    return hostedReposGroupByFormat.map((repositoriesByFormat) => (
       <FirewallRepositoryList
         key={repositoriesByFormat.format}
         title={repositoriesByFormat.format}
@@ -40,6 +43,7 @@ export default function ProxyRepositoriesSelector() {
         onChange={(updatedItems) => {
           configureRepositories(updatedItems);
         }}
+        checkItemPropName="namespaceConfusionProtectionEnabled"
       />
     ));
   };
@@ -49,7 +53,11 @@ export default function ProxyRepositoriesSelector() {
       <NxPageTitle>
         <NxH1 className="firewall-onboarding-page__title">{currentStep.title}</NxH1>
         <NxP className="firewall-onboarding-page__subTitle">
-          Choose which proxy repositories you would like to apply your protection rules to.
+          Choose which hosted repositories you would like to enable{' '}
+          <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
+            namespace confusion protection
+          </NxTextLink>{' '}
+          on.
         </NxP>
       </NxPageTitle>
       <NxTile>

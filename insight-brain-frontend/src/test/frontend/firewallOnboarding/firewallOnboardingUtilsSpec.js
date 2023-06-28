@@ -23,7 +23,8 @@ describe('FirewallOnboardingUtils', () => {
   describe('next', () => {
     it('return next step', () => {
       expect(next(steps[0])).toBe(steps[1]);
-      expect(next(steps[1])).toBe(undefined);
+      expect(next(steps[1])).toBe(steps[2]);
+      expect(next(steps[2])).toBe(undefined);
     });
   });
 
@@ -108,13 +109,14 @@ describe('FirewallOnboardingUtils', () => {
           { id: '3', repositoryType: 'proxy' },
           { id: '5', repositoryType: 'proxy' },
         ],
+        hosted: [{ id: '2', repositoryType: 'hosted' }],
       });
     });
 
     it('should handle empty repositories', () => {
       const result = groupRepositoriesByTypes([]);
 
-      expect(result).toEqual({ proxy: [] });
+      expect(result).toEqual({ proxy: [], hosted: [] });
     });
 
     it('should handle repositories with different types', () => {
@@ -128,18 +130,19 @@ describe('FirewallOnboardingUtils', () => {
 
       expect(result).toEqual({
         proxy: [{ id: '1', repositoryType: 'proxy' }],
+        hosted: [{ id: '2', repositoryType: 'hosted' }],
       });
     });
 
     it('should handle repositories with no matching types', () => {
       const repositories = [
-        { id: '1', repositoryType: 'hosted' },
-        { id: '2', repositoryType: 'hosted' },
+        { id: '1', repositoryType: 'group' },
+        { id: '2', repositoryType: 'group' },
       ];
 
       const result = groupRepositoriesByTypes(repositories);
 
-      expect(result).toEqual({ proxy: [] });
+      expect(result).toEqual({ proxy: [], hosted: [] });
     });
   });
 });

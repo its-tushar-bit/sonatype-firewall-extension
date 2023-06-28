@@ -74,10 +74,10 @@ describe('FirewallOnboardingReducer', () => {
 
     describe('when current step does not have next step', () => {
       it('does not update currentStep', () => {
-        const state = Object.freeze({ currentStep: steps[1] });
+        const state = Object.freeze({ currentStep: steps[2] });
         const { currentStep } = reduce(state, { type: 'firewallOnboarding/continueToNextStep' });
 
-        expect(currentStep).toEqual(steps[1]);
+        expect(currentStep).toEqual(steps[2]);
       });
     });
   });

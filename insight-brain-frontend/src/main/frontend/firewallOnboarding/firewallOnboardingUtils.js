@@ -21,27 +21,37 @@ import {
   assoc,
 } from 'ramda';
 
-export const stepsIds = { SELECT: 'select', PROTECT: 'protect' };
-const select = {
-  id: stepsIds.SELECT,
+export const stepsIds = {
+  SELECT_PROXY: 'select_proxy',
+  SELECT_HOSTED: 'select_hosted',
+  PROTECT: 'protect',
+};
+
+const selectProxy = {
+  id: stepsIds.SELECT_PROXY,
   index: 0,
   name: 'Select',
   title: 'Select proxy repositories',
-  subTitle: 'Choose which proxy repositories you would like to apply your protection rules to.',
+};
+const selectHosted = {
+  id: stepsIds.SELECT_HOSTED,
+  index: 1,
+  name: 'Select',
+  title: 'Select hosted repositories',
 };
 const protect = {
   id: stepsIds.PROTECT,
-  index: 1,
+  index: 2,
   name: 'Protect',
   title: 'Inspect and complete onboarding',
 };
 
-export const steps = [select, protect];
+export const steps = [selectProxy, selectHosted, protect];
 
 export const next = (step) => steps[step.index + 1];
 export const prev = (step) => steps[step.index - 1];
 
-export const ALLOWED_REPOSITORY_TYPES = ['proxy']; // TODO CLM-25565 - for external release just add 'hosted' type to the array
+export const ALLOWED_REPOSITORY_TYPES = ['proxy', 'hosted'];
 
 export const groupRepositoriesByTypes = (repositories = []) => {
   if (!repositories) return reduce((obj, item) => assoc(item, [], obj), {}, ALLOWED_REPOSITORY_TYPES);

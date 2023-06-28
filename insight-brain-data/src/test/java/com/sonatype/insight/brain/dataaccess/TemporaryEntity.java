@@ -2482,13 +2482,18 @@ public class TemporaryEntity
           String publicId,
           RepositoryType repositoryType,
           String format,
-          boolean quarantineEnabled)
+          boolean quarantineOrNamespaceConfusionProtectionEnabled)
   {
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setRepositoryType(repositoryType);
     repository.setFormat(format);
     repository.setAuditEnabled(RepositoryType.proxy.equals(repositoryType));
-    repository.setQuarantineEnabled(quarantineEnabled);
+    if (repositoryType == RepositoryType.proxy) {
+      repository.setQuarantineEnabled(quarantineOrNamespaceConfusionProtectionEnabled);
+    }
+    else if (repositoryType == RepositoryType.hosted) {
+      repository.setNamespaceConfusionProtectionEnabled(quarantineOrNamespaceConfusionProtectionEnabled);
+    }
     repositoryDAO.insert(repository);
     return repository;
   }

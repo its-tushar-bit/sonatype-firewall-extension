@@ -48,9 +48,6 @@ describe('FirewallOnboardingPage', function () {
 
       expect(screen.getByRole('complementary')).toBeVisible();
       expect(screen.getByText(currentStep.title)).toBeVisible();
-      if (currentStep.subTitle) {
-        expect(screen.getByText(currentStep.subTitle)).toBeVisible();
-      }
       expect(screen.getByRole('navigation')).toBeVisible();
     });
   });

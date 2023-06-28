@@ -7,7 +7,7 @@
 import React from 'react';
 
 import { render, screen, axiosMockAdapter, fireEvent } from 'TestRoot/SpecUtil';
-import ProxyRepositoriesSelector from 'MainRoot/firewallOnboarding/ProxyRepositoriesSelector';
+import HostedRepositoriesSelector from 'MainRoot/firewallOnboarding/HostedRepositoriesSelector';
 import { getRepositoryListUrl, getSupportedRepositoriesFormat } from 'MainRoot/util/CLMLocation';
 import { steps } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
 
@@ -18,7 +18,7 @@ let renderComponent,
   supportedFormats,
   initialState;
 
-describe('ProxyRepositoriesSelector', function () {
+describe('HostedRepositoriesSelector', function () {
   beforeAll(function () {
     axiosMock = axiosMockAdapter();
   });
@@ -37,31 +37,31 @@ describe('ProxyRepositoriesSelector', function () {
         id: 'id1',
         repositoryManagerId: 'repoManagerId1',
         publicId: 'publicId1',
-        repositoryType: 'proxy',
-        auditEnabled: true,
-        quarantineEnabled: true,
+        repositoryType: 'hosted',
+        auditEnabled: false,
+        quarantineEnabled: false,
         policyCompliantComponentSelectionEnabled: false,
-        namespaceConfusionProtectionEnabled: false,
+        namespaceConfusionProtectionEnabled: true,
         format: 'maven',
       },
       {
         id: 'id2',
         repositoryManagerId: 'repoManagerId2',
         publicId: 'publicId2',
-        repositoryType: 'proxy',
-        auditEnabled: true,
+        repositoryType: 'hosted',
+        auditEnabled: false,
         quarantineEnabled: false,
         policyCompliantComponentSelectionEnabled: false,
-        namespaceConfusionProtectionEnabled: false,
+        namespaceConfusionProtectionEnabled: true,
         format: 'maven',
       },
       {
         id: 'id3',
         repositoryManagerId: 'repoManagerId3',
         publicId: 'publicId3',
-        repositoryType: 'proxy',
-        auditEnabled: true,
-        quarantineEnabled: true,
+        repositoryType: 'hosted',
+        auditEnabled: false,
+        quarantineEnabled: false,
         policyCompliantComponentSelectionEnabled: false,
         namespaceConfusionProtectionEnabled: false,
         format: 'maven',
@@ -70,8 +70,8 @@ describe('ProxyRepositoriesSelector', function () {
         id: 'id4',
         repositoryManagerId: 'repoManagerId4',
         publicId: 'publicId4',
-        repositoryType: 'proxy',
-        auditEnabled: true,
+        repositoryType: 'hosted',
+        auditEnabled: false,
         quarantineEnabled: false,
         policyCompliantComponentSelectionEnabled: false,
         namespaceConfusionProtectionEnabled: false,
@@ -81,8 +81,8 @@ describe('ProxyRepositoriesSelector', function () {
         id: 'id5',
         repositoryManagerId: 'repoManagerId5',
         publicId: 'publicId5',
-        repositoryType: 'proxy',
-        auditEnabled: true,
+        repositoryType: 'hosted',
+        auditEnabled: false,
         quarantineEnabled: false,
         policyCompliantComponentSelectionEnabled: false,
         namespaceConfusionProtectionEnabled: false,
@@ -92,8 +92,8 @@ describe('ProxyRepositoriesSelector', function () {
         id: 'id6',
         repositoryManagerId: 'repoManagerId6',
         publicId: 'publicId6',
-        repositoryType: 'proxy',
-        auditEnabled: true,
+        repositoryType: 'hosted',
+        auditEnabled: false,
         quarantineEnabled: false,
         policyCompliantComponentSelectionEnabled: false,
         namespaceConfusionProtectionEnabled: false,
@@ -103,8 +103,8 @@ describe('ProxyRepositoriesSelector', function () {
         id: 'id7',
         repositoryManagerId: 'repoManagerId7',
         publicId: 'publicId7',
-        repositoryType: 'proxy',
-        auditEnabled: true,
+        repositoryType: 'hosted',
+        auditEnabled: false,
         quarantineEnabled: false,
         policyCompliantComponentSelectionEnabled: false,
         namespaceConfusionProtectionEnabled: false,
@@ -135,7 +135,7 @@ describe('ProxyRepositoriesSelector', function () {
     };
 
     expectedRepositoriesByRepoManagerIdUrl = getRepositoryListUrl('id');
-    renderComponent = (preloadedState = initialState) => render(<ProxyRepositoriesSelector />, { preloadedState });
+    renderComponent = (preloadedState = initialState) => render(<HostedRepositoriesSelector />, { preloadedState });
   });
 
   it('renders loading messages', async () => {
@@ -145,7 +145,7 @@ describe('ProxyRepositoriesSelector', function () {
     expect(screen.getByText('Loading…')).toBeVisible();
   });
 
-  it('renders an error with the error message and a retry button when getting repos', async () => {
+  it('renders an error with the error message and a retry button when there is a failure fetching repos', async () => {
     axiosMock.onGet(getSupportedRepositoriesFormat()).reply(200, supportedFormats);
     axiosMock.onGet(expectedRepositoriesByRepoManagerIdUrl).reply(() => Promise.reject('Test error'));
     initialState.firewallOnboarding.repositories.loadError = 'Some error';
@@ -163,15 +163,7 @@ describe('ProxyRepositoriesSelector', function () {
     expect(await screen.findByText(/Test error/i)).toBeVisible();
   });
 
-  describe('successfully loads proxy repositories selectors page', () => {
-    it('renders correct subtitle', async () => {
-      renderComponent(initialState);
-      const subtitleEl = await screen.getByText(
-        'Choose which proxy repositories you would like to apply your protection rules to.'
-      );
-      expect(subtitleEl).toBeVisible();
-    });
-
+  describe('when successfully loads hosted repositories selectors page', () => {
     it('renders the expected repositories grouped by format', async () => {
       initialState.firewallOnboarding.repositories.list = repositoriesList;
       initialState.firewallOnboarding.supportedFormats = Object.keys(supportedFormats.regexpsByRepositoryFormat);
@@ -194,12 +186,29 @@ describe('ProxyRepositoriesSelector', function () {
       });
     });
 
+    it('renders correct subtitle and link', async () => {
+      renderComponent(initialState);
+      const subtitleEl = await screen.getByText('Choose which hosted repositories you would like to enable', {
+        exact: false,
+      });
+      expect(subtitleEl.textContent).toEqual(
+        'Choose which hosted repositories you would like to enable namespace confusion protection on.'
+      );
+
+      const NAMESPACE_CONFUSION_PROTECTION_URL =
+        'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
+      expect(screen.getByRole('link', { name: 'namespace confusion protection' })).toHaveAttribute(
+        'href',
+        NAMESPACE_CONFUSION_PROTECTION_URL
+      );
+    });
+
     it('renders empty messages if there is no repositories to configure', async () => {
       initialState.firewallOnboarding.repositories.list = [];
       initialState.firewallOnboarding.supportedFormats = Object.keys(supportedFormats.regexpsByRepositoryFormat);
       renderComponent(initialState);
 
-      expect(await screen.findByText('There are no proxy repositories to apply your protection rules.')).toBeVisible();
+      expect(await screen.findByText('There are no hosted repositories to apply your protection rules.')).toBeVisible();
     });
 
     it('renders empty messages if there is no supported formats', async () => {
@@ -207,7 +216,7 @@ describe('ProxyRepositoriesSelector', function () {
       initialState.firewallOnboarding.supportedFormats = [];
       renderComponent(initialState);
 
-      expect(await screen.findByText('There are no proxy repositories to apply your protection rules.')).toBeVisible();
+      expect(await screen.findByText('There are no hosted repositories to apply your protection rules.')).toBeVisible();
     });
   });
 });

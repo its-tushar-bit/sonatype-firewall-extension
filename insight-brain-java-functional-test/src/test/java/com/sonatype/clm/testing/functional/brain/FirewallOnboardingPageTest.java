@@ -223,13 +223,20 @@ public class FirewallOnboardingPageTest
       waitUntilUrl(FirewallOnboardingPage.url());
       SidebarNavigation.container().shouldBe(Condition.visible);
       page.getStartedButton().click();
-      page.continueButton().shouldBe(Condition.visible);
+
+      page.selectedStepShouldBe("1. Select");
       page.previousButton().shouldNotBe(Condition.visible);
       page.launchFirewallButton().shouldNotBe(Condition.visible);
-      page.selectedStepShouldBe("1. Select");
-
+      page.continueButton().shouldBe(Condition.visible);
       page.continueButton().click();
-      page.selectedStepShouldBe("2. Protect");
+
+      page.selectedStepShouldBe("2. Select");
+      page.previousButton().shouldBe(Condition.visible);
+      page.launchFirewallButton().shouldNotBe(Condition.visible);
+      page.continueButton().shouldBe(Condition.visible);
+      page.continueButton().click();
+
+      page.selectedStepShouldBe("3. Protect");
       page.previousButton().shouldBe(Condition.visible);
       page.continueButton().shouldNotBe(Condition.visible);
       page.launchFirewallButton().shouldBe(Condition.visible);
@@ -252,6 +259,7 @@ public class FirewallOnboardingPageTest
       waitUntilUrl(FirewallOnboardingPage.url());
 
       page.getStartedButton().click();
+      page.continueButton().click();
       page.continueButton().click();
       page.launchFirewallButton().shouldBe(Condition.visible).click();
 
@@ -352,15 +360,15 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId3");
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId");
 
-      List<Repository> maven2Repositories = createProxyRepositories(5, repositoryManager, "maven2");
-      List<Repository> pypiRepositories = createProxyRepositories(4, repositoryManager, "pypi");
-      List<Repository> npmRepositories = createProxyRepositories(3, repositoryManager, "npm");
-      List<Repository> goRepositories = createProxyRepositories(2, repositoryManager, "go");
-      List<Repository> swiftRepositories = createProxyRepositories(2, repositoryManager, "swift");
-      List<Repository> otherRepositories = new ArrayList<>(goRepositories);
-      createProxyRepositories(2, repositoryManager, null); // add a repository with null format
+      List<Repository> maven2Repositories = createRepositories(5, repositoryManager, "maven2", RepositoryType.proxy);
+      List<Repository> pypiRepositories = createRepositories(4, repositoryManager, "pypi", RepositoryType.proxy);
+      List<Repository> npmRepositories = createRepositories(3, repositoryManager, "npm", RepositoryType.proxy);
+      List<Repository> goRepositories = createRepositories(2, repositoryManager, "go", RepositoryType.proxy);
+      List<Repository> swiftRepositories = createRepositories(2, repositoryManager, "swift", RepositoryType.proxy);
+      List<Repository> otherRepositories = new ArrayList<Repository>(goRepositories);
+      createRepositories(2, repositoryManager, null, RepositoryType.proxy); // add a repository with null format
       otherRepositories.addAll(swiftRepositories);
 
       List<String> supportedFormats = Arrays.asList("maven2", "swift", "pypi", "npm", "go");
@@ -387,10 +395,65 @@ public class FirewallOnboardingPageTest
 
       List<FirewallRepositoryList> firewallRepositoryLists = page.firewallRepositoryLists();
 
-      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(0), maven2Repositories);
-      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(1), pypiRepositories);
-      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(2), npmRepositories);
-      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(3), otherRepositories);
+      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(0), maven2Repositories, RepositoryType.proxy);
+      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(1), pypiRepositories, RepositoryType.proxy);
+      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(2), npmRepositories, RepositoryType.proxy);
+      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(3), otherRepositories, RepositoryType.proxy);
+
+      for (FirewallRepositoryList firewallRepositoryList: firewallRepositoryLists) {
+        selectAndUnselectAllRepositoriesFromGroupedList(firewallRepositoryList);
+      }
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testSelectHostedRepositoriesStep() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+    logout();
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+
+    try {
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId");
+
+      List<Repository> maven2Repositories = createRepositories(5, repositoryManager, "maven2", RepositoryType.hosted);
+      List<Repository> pypiRepositories = createRepositories(4, repositoryManager, "pypi", RepositoryType.hosted);
+      List<Repository> npmRepositories = createRepositories(3, repositoryManager, "npm", RepositoryType.hosted);
+      List<Repository> goRepositories = createRepositories(2, repositoryManager, "go", RepositoryType.hosted);
+      List<Repository> swiftRepositories = createRepositories(2, repositoryManager, "swift", RepositoryType.hosted);
+      List<Repository> otherRepositories = new ArrayList<Repository>(goRepositories);
+      createRepositories(2, repositoryManager, null, RepositoryType.hosted); // add a repository with null form at
+      otherRepositories.addAll(swiftRepositories);
+
+      List<String> supportedFormats = Arrays.asList("maven2", "swift", "pypi", "npm", "go");
+      mockComponentSupportedFormats(supportedFormats);
+
+      loginAsAdmin();
+
+      waitUntilUrl(FirewallOnboardingPage.url());
+
+      page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Select hosted repositories"));
+
+      ElementsCollection repositoriesLists = page.repositoriesList();
+      repositoriesLists.shouldHaveSize(4);
+      repositoriesLists.get(0).shouldHave(Condition.text("maven2\n" + "3 of 5"));
+      repositoriesLists.get(1).shouldHave(Condition.text("pypi\n" + "2 of 4"));
+      repositoriesLists.get(2).shouldHave(Condition.text("npm\n" + "2 of 3"));
+      repositoriesLists.get(3).shouldHave(Condition.text("other\n" + "2 of 4"));
+
+      eyesWatcher.eyesCheck("Firewall onboarding: select hosted repositories step");
+
+      List<FirewallRepositoryList> firewallRepositoryLists = page.firewallRepositoryLists();
+
+      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(0), maven2Repositories, RepositoryType.hosted);
+      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(1), pypiRepositories, RepositoryType.hosted);
+      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(2), npmRepositories, RepositoryType.hosted);
+      checkFirewallRepositoryListByFormat(firewallRepositoryLists.get(3), otherRepositories, RepositoryType.hosted);
 
       for (FirewallRepositoryList firewallRepositoryList: firewallRepositoryLists) {
         selectAndUnselectAllRepositoriesFromGroupedList(firewallRepositoryList);
@@ -408,8 +471,8 @@ public class FirewallOnboardingPageTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId4");
-      createProxyRepositories(5, repositoryManager, "maven2");
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId");
+      createRepositories(5, repositoryManager, "maven2", RepositoryType.proxy);
 
       List<String> supportedFormats = Arrays.asList("otherFormat");
       mockComponentSupportedFormats(supportedFormats);
@@ -434,19 +497,64 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
-  public void testLastStepDisplaysCorrectNumberOfEnabledProxyRepositories() {
+  public void testSelectHostedRepositoriesStepWithNoSupportedFormat() {
     refreshOrOpen(FirewallOnboardingPage.url());
     logout();
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId3");
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId");
+      createRepositories(5, repositoryManager, "maven2", RepositoryType.proxy);
 
-      List<Repository> maven2Repositories = createProxyRepositories(5, repositoryManager, "maven2");
-      createProxyRepositories(4, repositoryManager, "pypi");
-      createProxyRepositories(3, repositoryManager, "npm");
-      List<Repository> goRepositories = createProxyRepositories(2, repositoryManager, "go");
-      new ArrayList<>(goRepositories).addAll(maven2Repositories);
+      List<String> supportedFormats = Arrays.asList("otherFormat");
+      mockComponentSupportedFormats(supportedFormats);
+
+      loginAsAdmin();
+
+      waitUntilUrl(FirewallOnboardingPage.url());
+      page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Select hosted repositories"));
+      page.shouldHave(text("There are no hosted repositories to apply your protection rules."));
+
+      eyesWatcher.eyesCheck(
+              "Firewall onboarding: select hosted repositories step with no format supported");
+
+      ElementsCollection repositoriesLists = page.repositoriesList();
+      repositoriesLists.shouldHaveSize(0);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testLastStepDisplaysCorrectNumberOfEnabledProxyAndHostedRepositories() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+    logout();
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+
+    try {
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId");
+
+      // Proxy Repositories
+      List<Repository> maven2ProxyRepositories = createRepositories(
+          5, repositoryManager, "maven2", RepositoryType.proxy
+      );
+      createRepositories(4, repositoryManager, "pypi", RepositoryType.proxy);
+      createRepositories(3, repositoryManager, "npm", RepositoryType.proxy);
+      List<Repository> goRepositories = createRepositories(2, repositoryManager, "go", RepositoryType.proxy);
+      new ArrayList<>(goRepositories).addAll(maven2ProxyRepositories);
+
+      // Hosted Repositories
+      List<Repository> maven2HostedRepositories = createRepositories(
+          5, repositoryManager, "maven2", RepositoryType.hosted
+      );
+      createRepositories(4, repositoryManager, "pypi", RepositoryType.hosted);
+      createRepositories(3, repositoryManager, "npm", RepositoryType.hosted);
+      List<Repository> goHostedRepositories = createRepositories(2, repositoryManager, "go", RepositoryType.hosted);
+      new ArrayList<>(goHostedRepositories).addAll(maven2HostedRepositories);
 
       List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm", "go");
       mockComponentSupportedFormats(supportedFormats);
@@ -471,6 +579,11 @@ public class FirewallOnboardingPageTest
       List<FirewallRepositoryList> firewallRepositoryLists = page.firewallRepositoryLists();
 
       page.continueButton().click();
+      page.shouldHave(Condition.text("Select hosted repositories"));
+
+      page.continueButton().click();
+
+      // Hosted Repositories count will be implemented: CLM-25614
       page.shouldHave(Condition.text("Inspect and complete onboarding"));
       page.shouldHave(Condition.text("Congratulations, you’re all set!"));
       page.shouldHave(
@@ -480,14 +593,18 @@ public class FirewallOnboardingPageTest
       eyesWatcher.eyesCheck("Firewall onboarding: inspect and complete onboarding step");
 
       page.previousButton().click();
+      page.previousButton().click();
       firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
+      page.continueButton().click();
       page.continueButton().click();
       page.shouldHave(
           Condition.text("Once you launch Firewall, malicious blocking will be enabled for 10 proxy repositories.")
       );
 
       page.previousButton().click();
+      page.previousButton().click();
       firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
+      page.continueButton().click();
       page.continueButton().click();
       page.shouldHave(
           Condition.text("Once you launch Firewall, malicious blocking will be enabled for 5 proxy repositories.")
@@ -499,22 +616,29 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
-  public void testLastStepDisplaysNumberOfSupportedEnabledProxyRepositoriesOnly() {
+  public void testLastStepDisplaysNumberOfSupportedEnabledProxyAndHostedRepositoriesOnly() {
     refreshOrOpen(FirewallOnboardingPage.url());
     logout();
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
 
     try {
-      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId3");
-
-      createProxyRepositories(4, repositoryManager, "maven2");
-      createProxyRepositories(4, repositoryManager, "pypi");
-      createProxyRepositories(4, repositoryManager, "npm");
-
-      // Unsupported repositories, should not be counted:
-      createProxyRepositories(4, repositoryManager, "nugget");
-
+      RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId");
       List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm");
+
+      // Proxy Repositories
+      createRepositories(4, repositoryManager, "maven2", RepositoryType.proxy);
+      createRepositories(4, repositoryManager, "pypi", RepositoryType.proxy);
+      createRepositories(4, repositoryManager, "npm", RepositoryType.proxy);
+      // Unsupported repositories, should not be counted:
+      createRepositories(4, repositoryManager, "nugget", RepositoryType.proxy);
+      
+      // Hosted Repositories
+      createRepositories(4, repositoryManager, "maven2", RepositoryType.hosted);
+      createRepositories(4, repositoryManager, "pypi", RepositoryType.hosted);
+      createRepositories(4, repositoryManager, "npm", RepositoryType.hosted);
+      // Unsupported repositories, should not be counted:
+      createRepositories(4, repositoryManager, "nugget", RepositoryType.hosted);
+
       mockComponentSupportedFormats(supportedFormats);
 
       loginAsAdmin();
@@ -531,7 +655,15 @@ public class FirewallOnboardingPageTest
       repositoriesLists.get(1).shouldHave(Condition.text("npm\n" + "2 of 4"));
       repositoriesLists.get(2).shouldHave(Condition.text("pypi\n" + "2 of 4"));
 
-      page.firewallRepositoryLists();
+      page.continueButton().click();
+
+      page.shouldHave(Condition.text("Select hosted repositories"));
+
+      ElementsCollection hostedRepositoriesLists = page.repositoriesList();
+      hostedRepositoriesLists.shouldHaveSize(3);
+      hostedRepositoriesLists.get(0).shouldHave(Condition.text("maven2\n" + "2 of 4"));
+      hostedRepositoriesLists.get(1).shouldHave(Condition.text("npm\n" + "2 of 4"));
+      hostedRepositoriesLists.get(2).shouldHave(Condition.text("pypi\n" + "2 of 4"));
 
       page.continueButton().click();
       page.shouldHave(Condition.text("Inspect and complete onboarding"));
@@ -546,7 +678,9 @@ public class FirewallOnboardingPageTest
 
   private void checkFirewallRepositoryListByFormat(
           FirewallRepositoryList firewallRepositoryList,
-          List<Repository> repositoriesListByFormat)
+          List<Repository> repositoriesListByFormat,
+          RepositoryType repositoryType)
+
   {
     firewallRepositoryList.checkAllHeaderColumn().selectAllCheckbox().shouldNotBe(checked);
 
@@ -561,22 +695,34 @@ public class FirewallOnboardingPageTest
     firewallRepositoryList.nameHeaderColumn().sort(HeaderColumn.NX_UP_SELECTED).shouldBe(visible);
     firewallRepositoryList.nameHeaderColumn().sort(HeaderColumn.NX_DOWN_SELECTED).shouldBe(visible);
 
-    checkRepositoriesProtectionRuleAndSort(firewallRepositoryList, repositoriesListByFormat);
+    checkRepositoriesProtectionRuleAndSort(firewallRepositoryList, repositoriesListByFormat, repositoryType);
 
     firewallRepositoryList.nameHeaderColumn().nxAnchor().click();
     firewallRepositoryList.nameHeaderColumn().name().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("name descending"));
 
     Collections.reverse(repositoriesListByFormat);
-    checkRepositoriesProtectionRuleAndSort(firewallRepositoryList, repositoriesListByFormat);
+    checkRepositoriesProtectionRuleAndSort(firewallRepositoryList, repositoriesListByFormat, repositoryType);
   }
 
   private void checkRepositoriesProtectionRuleAndSort(
-          FirewallRepositoryList firewallRepositoryList,List<Repository> repositoriesListByFormat)
+          FirewallRepositoryList firewallRepositoryList,
+          List<Repository> repositoriesListByFormat,
+          RepositoryType repositoryType)
   {
     for (int i = 0; i < firewallRepositoryList.rows().size(); i++) {
       firewallRepositoryList.row(i).name().shouldHave(text(repositoriesListByFormat.get(i).getName()));
-      if (repositoriesListByFormat.get(i).isQuarantineEnabled()) {
+
+      Boolean checkCondition = false;
+
+      if (repositoryType == RepositoryType.proxy) {
+        checkCondition = repositoriesListByFormat.get(i).isQuarantineEnabled();
+      }
+      else if (repositoryType == RepositoryType.hosted) {
+        checkCondition = repositoriesListByFormat.get(i).isNamespaceConfusionProtectionEnabled();
+      }
+
+      if (checkCondition) {
         firewallRepositoryList.row(i).checkbox().shouldBe(selected);
       }
       else {
@@ -597,20 +743,25 @@ public class FirewallOnboardingPageTest
     }
   }
 
-  private List<Repository> createProxyRepositories(
+  private List<Repository> createRepositories(
           int totalRepositories,
           RepositoryManager repositoryManager,
-          String format)
+          String format,
+          RepositoryType repositoryType)
   {
     List<Repository> result = new ArrayList<>();
 
     for (int i = 0; i < totalRepositories; i++) {
       String publicId = format + "publicId" + i;
+      
+      if (repositoryType == RepositoryType.hosted) {
+        publicId = format + "hostedPublicId" + i;
+      }
 
       Repository repository = tempEntity.newRepository(
               repositoryManager,
               publicId,
-              RepositoryType.proxy,
+              repositoryType,
               format,
               (i % 2) == 0);
       result.add(repository);

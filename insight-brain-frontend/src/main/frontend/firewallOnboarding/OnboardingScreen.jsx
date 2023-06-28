@@ -10,13 +10,15 @@ import { NxH1, NxP, NxPageTitle } from '@sonatype/react-shared-components';
 
 import OnboardingSteps from './OnboardingSteps';
 import ProxyRepositoriesSelector from './ProxyRepositoriesSelector';
+import HostedRepositoriesSelector from './HostedRepositoriesSelector';
 import FirewallConfigurationOverview from './FirewallConfigurationOverview';
 
 import { selectCurrentStep } from './firewallOnboardingSelectors';
 import { stepsIds } from './firewallOnboardingUtils';
 
 const content = {
-  [stepsIds.SELECT]: ProxyRepositoriesSelector,
+  [stepsIds.SELECT_PROXY]: ProxyRepositoriesSelector,
+  [stepsIds.SELECT_HOSTED]: HostedRepositoriesSelector,
   [stepsIds.PROTECT]: FirewallConfigurationOverview,
 };
 
@@ -30,10 +32,6 @@ export default function FirewallOnboardingPage() {
         <OnboardingSteps currentStep={currentStep} isRequired={{}} />
       </aside>
       <div className="content">
-        <NxPageTitle>
-          <NxH1 className="firewall-onboarding-page__title">{currentStep.title}</NxH1>
-          {currentStep.subTitle && <NxP className="firewall-onboarding-page__subTitle">{currentStep.subTitle}</NxP>}
-        </NxPageTitle>
         <Content />
       </div>
     </div>

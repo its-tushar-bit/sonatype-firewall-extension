@@ -11,7 +11,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.License;
@@ -71,8 +73,35 @@ public abstract class ComponentDetailsLoader
     return componentDetails;
   }
 
-  public static NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash) {
+  public static Map<String, NamedComponentDetails> getComponentDetailsLocallyByHashes(List<String> hashes) {
+    List<String> sanitizedHashes = hashes.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
+
+    List<HashComponentIdentifier> hashComponentIdentifiers = hashComponentIdentifierDAO.getByHashes(sanitizedHashes);
+
+    return hashComponentIdentifiers.stream()
+        .map(i -> toComponentDetails(i,  i.getComponentIdentifier()))
+        .collect(Collectors.toMap(NamedComponentDetails::getHash, Function.identity()));
+  }
+
+  private static NamedComponentDetails toComponentDetails(HashComponentIdentifier hashComponentIdentifier,
+                                                          ComponentIdentifier componentIdentifier)
+  {
     NamedComponentDetails componentDetails = null;
+
+    if (hashComponentIdentifier != null) {
+      componentDetails = new NamedComponentDetails();
+      componentDetails.setComponentIdentifier(componentIdentifier);
+      componentDetails.setHash(hashComponentIdentifier.getHash());
+      componentDetails.setMatchState(MatchState.EXACT.getId());
+      componentDetails.setCatalogDate(hashComponentIdentifier.getCreateTimeLong());
+      componentDetails.setIdentificationSource(IdentificationSource.MANUAL.getId());
+      componentDetails.setIdentificationSourceComment(hashComponentIdentifier.getComment());
+    }
+
+    return componentDetails;
+  }
+
+  public static NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash) {
 
     // Look among claimed components first
     HashComponentIdentifier hashComponentIdentifier = null;
@@ -86,17 +115,7 @@ public abstract class ComponentDetailsLoader
       hashComponentIdentifier = hashComponentIdentifierDAO.getByComponentIdentifier(componentIdentifier);
     }
 
-    if (hashComponentIdentifier != null) {
-      componentDetails = new NamedComponentDetails();
-      componentDetails.setComponentIdentifier(componentIdentifier);
-      componentDetails.setHash(hashComponentIdentifier.getHash());
-      componentDetails.setMatchState(MatchState.EXACT.getId());
-      componentDetails.setCatalogDate(hashComponentIdentifier.getCreateTimeLong());
-      componentDetails.setIdentificationSource(IdentificationSource.MANUAL.getId());
-      componentDetails.setIdentificationSourceComment(hashComponentIdentifier.getComment());
-    }
-
-    return componentDetails;
+    return toComponentDetails(hashComponentIdentifier, componentIdentifier);
   }
 
   private static Set<License> calculateEffectiveLicenses(ComponentDetails componentDetails) {

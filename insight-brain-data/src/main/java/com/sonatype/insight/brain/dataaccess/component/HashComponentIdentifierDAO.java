@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -15,6 +16,10 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import com.google.common.collect.Lists;
+
+import static java.util.stream.Collectors.toList;
 
 public class HashComponentIdentifierDAO
     extends AbstractOperationalSqlDAO<HashComponentIdentifier>
@@ -83,5 +88,21 @@ public class HashComponentIdentifierDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByComponentIdentifier(tx, componentIdentifier);
     }
+  }
+
+  public List<HashComponentIdentifier> getByHashes(List<String> hashes) {
+    // Note that our truncated representation of the hash is what is stored, hence the transformation on the input
+    // hash.
+    List<String> truncatedHashes = hashes.stream().map(HashHelper::truncateHash).collect(toList());
+
+    String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
+        " WHERE entity.hash IN (?1)";
+
+    List<List<String>> partitions = Lists.partition(truncatedHashes, getInOperatorThreshold());
+
+    return partitions.stream()
+        .map(partition -> getList(sQuery, partition))
+        .flatMap(Collection::stream)
+        .collect(toList());
   }
 }

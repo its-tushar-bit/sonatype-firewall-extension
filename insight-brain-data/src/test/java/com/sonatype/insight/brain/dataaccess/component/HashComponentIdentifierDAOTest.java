@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -13,6 +16,7 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -133,5 +137,64 @@ public class HashComponentIdentifierDAOTest
     HashComponentIdentifier hashComponentIdentifier2 = new HashComponentIdentifier(hash + "1", componentIdentifier);
     assertThatThrownBy(() -> dao.insert(hashComponentIdentifier2)).isInstanceOf(BadRequestException.class)
         .hasMessage("Another component is already mapped to 'g1 : a1 : v1'.");
+  }
+
+  @Test
+  public void testGetByHashes() {
+    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
+
+    String hash = "11111111111111111111";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    HashComponentIdentifier expectedHashComponentIdentifier = tempEntity.newClaimedComponent(hash, componentIdentifier);
+    Date createTime = expectedHashComponentIdentifier.getCreateTime();
+
+    List<HashComponentIdentifier> hashIdentifiers = dao.getByHashes(ImmutableList.of(hash));
+    assertThat(hashIdentifiers).isNotEmpty();
+
+    for (HashComponentIdentifier hashIdentifier : hashIdentifiers) {
+      assertHashComponentIdentifier(hash, componentIdentifier, createTime, hashIdentifier);
+    }
+  }
+
+  @Test
+  public void testGetByHashes_GetsHashComponentIdentifiersInBatches() {
+    TestHashComponentIdentifierDAO dao = new TestHashComponentIdentifierDAO();
+
+    List<HashComponentIdentifier> expectedIdentifiers = new ArrayList<>();
+    List<String> hashes = new ArrayList<>();
+
+    for (int i = 0; i < dao.getInOperatorThreshold() + 1; i++) {
+      String hash = UUID.randomUUID().toString();
+      hashes.add(hash);
+
+      HashComponentIdentifier expectedIdentifier = tempEntity.newClaimedComponent(hash,
+          ComponentIdentifier.createMavenCoordinates("g" + i, "a" + i, "v" + i, "c" + i, "e" + i));
+      expectedIdentifiers.add(expectedIdentifier);
+    }
+
+    List<HashComponentIdentifier> actualIdentifiers = dao.getByHashes(hashes);
+    assertThat(actualIdentifiers).hasSize(dao.getInOperatorThreshold() + 1);
+
+    for (HashComponentIdentifier actualIdentifier : actualIdentifiers) {
+      HashComponentIdentifier expectedIdentifier =
+          expectedIdentifiers.stream().filter(i -> i.getHash().equals(actualIdentifier.getHash())).findFirst().get();
+
+      assertHashComponentIdentifier(expectedIdentifier.getHash(), expectedIdentifier.getComponentIdentifier(),
+          expectedIdentifier.getCreateTime(), actualIdentifier);
+    }
+  }
+
+  /**
+   * Extend HashComponentIdentifierDAO so that we can change the partition threshold to make testing easier/quicker
+   */
+  private static class TestHashComponentIdentifierDAO
+      extends HashComponentIdentifierDAO
+  {
+    private static final int PARTITION_THRESHOLD = 2;
+
+    @Override
+    public int getInOperatorThreshold() {
+      return PARTITION_THRESHOLD;
+    }
   }
 }

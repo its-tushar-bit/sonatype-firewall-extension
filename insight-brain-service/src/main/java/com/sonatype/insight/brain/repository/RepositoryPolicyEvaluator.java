@@ -188,14 +188,17 @@ public class RepositoryPolicyEvaluator
         firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository);
     List<Component> components = new ArrayList<>();
     ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(repository);
+
+    List<String> hashes = validateIndexesMatchAndGetHashes(componentEvaluationDataRequestList, componentDetailsFromHds,
+        componentPathnameMatchesIgnorePattern);
+
+    Map<String, NamedComponentDetails> namedComponentDetails =
+        ComponentDetailsLoader.getComponentDetailsLocallyByHashes(hashes);
+
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
           componentEvaluationDataRequestList.components.get(requestIndex);
       ComponentEvaluationData componentEvaluationData = componentDetailsFromHds.components.get(requestIndex);
-      if (componentEvaluationData.requestIndex != requestIndex) {
-        throw new IllegalStateException("The request index does not match. Expected " + requestIndex + ", but found "
-            + componentEvaluationData.requestIndex + ".");
-      }
 
       // If the component matches the repository ignore pattern then
       // 1. Remove it if it is already persisted
@@ -210,9 +213,8 @@ public class RepositoryPolicyEvaluator
         components.add(null);
       }
       else {
-        // Use the claimed component data if found
-        NamedComponentDetails componentDetails = ComponentDetailsLoader
-            .getComponentDetailsLocally(null /* componentIdentifier */, componentEvaluationData.hash);
+        NamedComponentDetails componentDetails = namedComponentDetails.get(componentEvaluationData.hash);
+
         if (componentDetails == null) {
           componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
           componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
@@ -279,6 +281,30 @@ public class RepositoryPolicyEvaluator
 
     return repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), pathnames).stream()
         .collect(Collectors.toMap(RepositoryComponent::getPathname, Function.identity()));
+  }
+
+  private static List<String> validateIndexesMatchAndGetHashes(
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      ComponentEvaluationDataList componentDetailsFromHds,
+      Predicate<String> componentPathnameMatchesIgnorePattern)
+  {
+    List<String> hashes = new ArrayList<>();
+
+    for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
+      RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
+          componentEvaluationDataRequestList.components.get(requestIndex);
+      ComponentEvaluationData componentEvaluationData = componentDetailsFromHds.components.get(requestIndex);
+      if (componentEvaluationData.requestIndex != requestIndex) {
+        throw new IllegalStateException("The request index does not match. Expected " + requestIndex + ", but found "
+            + componentEvaluationData.requestIndex + ".");
+      }
+
+      if (!componentPathnameMatchesIgnorePattern.test(componentEvaluationRequest.pathname)) {
+        hashes.add(componentEvaluationData.hash);
+      }
+    }
+
+    return hashes;
   }
 
   /**

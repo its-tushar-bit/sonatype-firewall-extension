@@ -86,7 +86,7 @@ public class FirewallOnboardingPageTest
     try {
       RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId1");
 
-      createProxyRepositories(1, repositoryManager, "maven2");
+      createRepositories(1, repositoryManager, "maven2", RepositoryType.proxy);
       List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm", "go");
       mockComponentSupportedFormats(supportedFormats);
 
@@ -98,21 +98,21 @@ public class FirewallOnboardingPageTest
       eyesWatcher.eyesCheck("Firewall onboarding: 1 repository container is as wide as in its parent container," +
           " with space its sides");
 
-      createProxyRepositories(1, repositoryManager, "pypi");
+      createRepositories(1, repositoryManager, "pypi", RepositoryType.proxy);
       refreshOrOpen(FirewallOnboardingPage.url());
       waitUntilUrl(FirewallOnboardingPage.url());
       page.getStartedButton().click();
       eyesWatcher.eyesCheck("Firewall onboarding: 2 repository containers combined are as wide as its parent " +
           "container, and have space around them");
 
-      createProxyRepositories(1, repositoryManager, "npm");
+      createRepositories(1, repositoryManager, "npm", RepositoryType.proxy);
       refreshOrOpen(FirewallOnboardingPage.url());
       waitUntilUrl(FirewallOnboardingPage.url());
       page.getStartedButton().click();
       eyesWatcher.eyesCheck("Firewall onboarding: 3 repository containers combined are as wide as its parent " +
           "container, and have space around them");
 
-      createProxyRepositories(1, repositoryManager, "go");
+      createRepositories(1, repositoryManager, "go", RepositoryType.proxy);
       refreshOrOpen(FirewallOnboardingPage.url());
       waitUntilUrl(FirewallOnboardingPage.url());
       page.getStartedButton().click();

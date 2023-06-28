@@ -24,16 +24,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AdminInitialPasswordMigratorTest
     extends AbstractComponentTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
   // Same with the one in schema.sql
-  private final String defaultAdminPasswordHashed =
+  private static final String DEFAULT_ADMIN_PASSWORD_HASHED =
       "$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=";
 
-  private final String customPassword = "not-admin-123";
+  private static final String CUSTOM_PASSWORD = "not-admin-123";
 
-  private final String adminId = "ADMIN";
+  private static final String ADMIN_ID = "ADMIN";
+
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   @Inject
   private UserDAO userDAO;
@@ -53,8 +53,8 @@ public class AdminInitialPasswordMigratorTest
     assertThat(migrationTrackerDAO.getById(ADMIN_PASSWORD_MIGRATOR_ID)).isNotNull();
 
     // reset admin password
-    User admin = userDAO.getById(adminId);
-    admin.setPassword(defaultAdminPasswordHashed);
+    User admin = userDAO.getById(ADMIN_ID);
+    admin.setPassword(DEFAULT_ADMIN_PASSWORD_HASHED);
     userDAO.update(admin);
 
     // reset config and db
@@ -64,12 +64,12 @@ public class AdminInitialPasswordMigratorTest
   @Test
   public void testMigrate_NoTacker_CustomPasswordProvided() {
     migrationTrackerDAO.deleteById(ADMIN_PASSWORD_MIGRATOR_ID);
-    environmentVariables.set(AdminInitialPasswordMigrator.NXIQ_INITIAL_ADMIN_PASSWORD, customPassword);
+    environmentVariables.set(AdminInitialPasswordMigrator.NXIQ_INITIAL_ADMIN_PASSWORD, CUSTOM_PASSWORD);
 
     adminInitialPasswordMigrator.migrate();
 
-    User admin = userDAO.getById(adminId);
-    assertThat(passwordService.passwordsMatch(customPassword, admin.getPassword())).isTrue();
+    User admin = userDAO.getById(ADMIN_ID);
+    assertThat(passwordService.passwordsMatch(CUSTOM_PASSWORD, admin.getPassword())).isTrue();
   }
 
   @Test
@@ -79,19 +79,19 @@ public class AdminInitialPasswordMigratorTest
 
     adminInitialPasswordMigrator.migrate();
 
-    User admin = userDAO.getById(adminId);
-    assertThat(admin.getPassword()).isEqualTo(defaultAdminPasswordHashed);
+    User admin = userDAO.getById(ADMIN_ID);
+    assertThat(admin.getPassword()).isEqualTo(DEFAULT_ADMIN_PASSWORD_HASHED);
   }
 
   @Test
   public void testMigrate_TrackerPresent_CustomPasswordProvided() {
     migrationTrackerDAO.insertTracker(ADMIN_PASSWORD_MIGRATOR_ID);
-    environmentVariables.set(AdminInitialPasswordMigrator.NXIQ_INITIAL_ADMIN_PASSWORD, customPassword);
+    environmentVariables.set(AdminInitialPasswordMigrator.NXIQ_INITIAL_ADMIN_PASSWORD, CUSTOM_PASSWORD);
 
     adminInitialPasswordMigrator.migrate();
 
-    User admin = userDAO.getById(adminId);
-    assertThat(admin.getPassword()).isEqualTo(defaultAdminPasswordHashed);
+    User admin = userDAO.getById(ADMIN_ID);
+    assertThat(admin.getPassword()).isEqualTo(DEFAULT_ADMIN_PASSWORD_HASHED);
   }
 
   @Test
@@ -101,7 +101,7 @@ public class AdminInitialPasswordMigratorTest
 
     adminInitialPasswordMigrator.migrate();
 
-    User admin = userDAO.getById(adminId);
-    assertThat(admin.getPassword()).isEqualTo(defaultAdminPasswordHashed);
+    User admin = userDAO.getById(ADMIN_ID);
+    assertThat(admin.getPassword()).isEqualTo(DEFAULT_ADMIN_PASSWORD_HASHED);
   }
 }

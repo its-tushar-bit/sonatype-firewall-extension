@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -24,6 +27,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,7 +50,12 @@ public class TenantProvisioningServiceTest
   @Mock
   private DeletedTenantDAO deletedTenantDAO;
 
+  @Mock
+  private UserDAO userDAO;
+
   private TenantUtil tenantUtil;
+
+  private MultiTenantInsightConfig config;
 
   private TenantProvisioningService underTest;
 
@@ -55,19 +64,43 @@ public class TenantProvisioningServiceTest
   public void setup() {
     super.setup();
     tenantUtil = new TenantUtil();
+    config = new MultiTenantInsightConfig();
     underTest = new TenantProvisioningService(insightConfig, databaseProvisionUtils, tenantUtil,
-        tenantValidator, tenantDeregistrationJob, deletedTenantDAO);
+        tenantValidator, tenantDeregistrationJob, deletedTenantDAO, userDAO, config);
   }
 
   @Test
   public void shouldProvisionNewTenant() {
     testAsNewTenant(tenant -> {
+      User user = new User("ADMIN", "ADMIN", "ADMIN", "ADMIN",
+          "admin@local.com");
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+      when(userDAO.getById(any(String.class))).thenReturn(user);
+      config.setDeleteBuiltInAdmin(false);
 
       underTest.provisionTenant(tenant.tenantSlug);
 
       verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
           any(MultiTenantDatabaseConfigProvider.class));
+      verify(userDAO).getById("ADMIN");
+      verify(userDAO, never()).delete(user);
+    });
+  }
+
+  @Test
+  public void shouldProvisionNewTenant_and_deleteBuiltInAdmin() {
+    testAsNewTenant(tenant -> {
+      User user = new User("ADMIN", "ADMIN", "ADMIN", "ADMIN",
+          "admin@local.com");
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+      when(userDAO.getById(any(String.class))).thenReturn(user);
+
+      underTest.provisionTenant(tenant.tenantSlug);
+
+      verify(databaseProvisionUtils).initializeDatabases(any(InsightConfig.class),
+          any(MultiTenantDatabaseConfigProvider.class));
+      verify(userDAO).getById("ADMIN");
+      verify(userDAO).delete(user);
     });
   }
 

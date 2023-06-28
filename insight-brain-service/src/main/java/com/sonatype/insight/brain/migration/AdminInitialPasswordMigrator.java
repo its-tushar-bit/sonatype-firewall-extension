@@ -63,6 +63,14 @@ public class AdminInitialPasswordMigrator
     }
 
     User admin = userDAO.getById("ADMIN");
+
+    // Built-In admin is deleted for MTIQ when creating a new tenant
+    if (admin == null) {
+      log.info("Default Admin user does not exist.");
+      migrationTrackerDAO.insertTracker(ADMIN_PASSWORD_MIGRATOR_ID);
+      return;
+    }
+
     admin.setPassword(passwordService.hashPassword(getInitialAdminPassword()));
     log.info("Using the custom password for the admin user.");
 

@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestHelper;
 import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestService;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -149,6 +150,7 @@ public abstract class AbstractMtiqFunctionalTest
     // Reuse the configurator to allow reuse of MTIQ server
     Configurator mtiqConfigurator = config -> {
       ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
+      ((MultiTenantInsightConfig) config).setDeleteBuiltInAdmin(false);
 
       Configurator conf = MultiTenantBrainServiceTestService.getConfigurator();
       conf.configure(config);

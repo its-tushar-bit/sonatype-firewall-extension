@@ -111,3 +111,6 @@ logging:
 createSampleData: ${CREATE_SAMPLE_DATA:-true}
 
 auth0Domain: ${AUTH0_DOMAIN:-"local/"}
+
+# If true, the built-in admin user will be deleted when creating a new tenant
+deleteBuiltInAdmin: ${DELETE_BUILT_IN-ADMIN:-true}

@@ -107,6 +107,7 @@ public class MultiTenantBrainServiceTestHelper
     // Reuse the configurator to allow reuse of MTIQ server DB settings
     MultiTenantBrainServiceTestService.setConfigurator(config -> {
       MultiTenantInsightConfig mtiqConfig = (MultiTenantInsightConfig) config;
+      mtiqConfig.setDeleteBuiltInAdmin(false);
       mtiqConfig.setMainDatabase(mainDbConfig);
       mtiqConfig.setLocksDatabase(locksDbConfig);
     });

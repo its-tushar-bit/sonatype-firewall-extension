@@ -8,10 +8,13 @@ package com.sonatype.insight.brain.api.admin.service;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
@@ -46,6 +49,10 @@ public class TenantProvisioningService
 
   private final DeletedTenantDAO deletedTenantDAO;
 
+  private final UserDAO userDAO;
+
+  private final MultiTenantInsightConfig config;
+
   @Inject
   public TenantProvisioningService(
       InsightConfig insightConfig,
@@ -53,7 +60,9 @@ public class TenantProvisioningService
       TenantUtil tenantUtil,
       TenantValidator tenantValidator,
       TenantDeregistrationJob tenantDeregistrationJob,
-      DeletedTenantDAO deletedTenantDAO)
+      DeletedTenantDAO deletedTenantDAO,
+      UserDAO userDAO,
+      MultiTenantInsightConfig config)
   {
     this.insightConfig = insightConfig;
     this.databaseProvisionUtils = databaseProvisionUtils;
@@ -61,6 +70,8 @@ public class TenantProvisioningService
     this.tenantValidator = tenantValidator;
     this.tenantDeregistrationJob = tenantDeregistrationJob;
     this.deletedTenantDAO = deletedTenantDAO;
+    this.userDAO = userDAO;
+    this.config = config;
 
     databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
   }
@@ -84,6 +95,12 @@ public class TenantProvisioningService
 
     databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
     log.debug("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
+
+    // Delete the built-in default admin if configuration is set
+    User admin = userDAO.getById("ADMIN");
+    if (admin != null && config.isDeleteBuiltInAdmin()) {
+      userDAO.delete(admin);
+    }
   }
 
   /**

@@ -33,6 +33,9 @@ public class MultiTenantInsightConfig
   @JsonProperty
   private String auth0Domain;
 
+  @JsonProperty
+  private boolean deleteBuiltInAdmin = true;
+
   @Valid
   @JsonProperty(value = "auth0")
   private Auth0Config auth0Config;
@@ -93,6 +96,14 @@ public class MultiTenantInsightConfig
 
   public void setAuth0Domain(final String auth0Domain) {
     this.auth0Domain = auth0Domain;
+  }
+
+  public boolean isDeleteBuiltInAdmin() {
+    return deleteBuiltInAdmin;
+  }
+
+  public void setDeleteBuiltInAdmin(final boolean deleteBuiltInAdmin) {
+    this.deleteBuiltInAdmin = deleteBuiltInAdmin;
   }
 
   public Auth0Config getAuth0Config() {

@@ -554,10 +554,6 @@ public class TemporaryEntity
 
   private Collection<MembershipMapping> membershipMappings;
 
-  private Collection<ThirdPartyFile> thirdPartyFileConfigurations;
-
-  private Collection<ThirdPartyVulnerability> thirdPartyVulnerabilities;
-
   private Collection<UserToken> userTokens;
 
   private Collection<ComponentLabel> componentLabels;
@@ -579,8 +575,6 @@ public class TemporaryEntity
     roles = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     membershipMappings = new ArrayList<>();
-    thirdPartyFileConfigurations = new ArrayList<>();
-    thirdPartyVulnerabilities = new ArrayList<>();
     userTokens = new ArrayList<>();
     componentLabels = new ArrayList<>();
     savedMailConfiguration = mailConfigurationDAO.get();
@@ -706,8 +700,8 @@ public class TemporaryEntity
       delete(sourceControlPullRequestDAO.getAll(), sourceControlPullRequestDAO);
       delete(sourceControlDAO.getAll(), sourceControlDAO);
       samlConfigurationDAO.delete();
-      delete(thirdPartyFileConfigurations, thirdPartyFileDAO);
-      delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
+      delete(thirdPartyFileDAO.getAll(), thirdPartyFileDAO);
+      delete(thirdPartyVulnerabilityDAO.getAll(), thirdPartyVulnerabilityDAO);
       delete(componentLabels, componentLabelDAO);
       delete(repositoryConnectionDAO.getAll(), repositoryConnectionDAO);
       delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
@@ -3478,7 +3472,6 @@ public class TemporaryEntity
   public ThirdPartyFile newThirdPartyFile(String filename) {
     ThirdPartyFile thirdPartyFile = new ThirdPartyFile(filename, new Date());
     thirdPartyFileDAO.insert(thirdPartyFile);
-    thirdPartyFileConfigurations.add(thirdPartyFile);
     return thirdPartyFile;
   }
 
@@ -3732,7 +3725,6 @@ public class TemporaryEntity
     vulnerability.setAttackVector(referenceId + " vector");
     vulnerability.setUpdateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
     thirdPartyVulnerabilityDAO.insert(vulnerability);
-    thirdPartyVulnerabilities.add(vulnerability);
     return vulnerability;
   }
 
@@ -3743,7 +3735,6 @@ public class TemporaryEntity
     vulnerability.setSeverity(9);
     vulnerability.setUpdateTime(new Date());
     thirdPartyVulnerabilityDAO.insert(vulnerability);
-    thirdPartyVulnerabilities.add(vulnerability);
   }
 
   public ProductLicense setProductLicense() {

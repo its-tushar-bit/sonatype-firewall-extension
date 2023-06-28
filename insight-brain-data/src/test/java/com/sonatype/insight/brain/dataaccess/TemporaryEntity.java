@@ -564,8 +564,6 @@ public class TemporaryEntity
 
   private Collection<String> persistedUserSessionIds;
 
-  private Collection<InnerSourceComponent> innerSourceComponents;
-
   private Collection<QuarantinedComponentAccess> quarantinedComponentAccesses;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -588,7 +586,6 @@ public class TemporaryEntity
     savedMailConfiguration = mailConfigurationDAO.get();
     savedProxyServerConfiguration = proxyServerConfigurationDAO.get();
     initializePersistedUserSessions();
-    innerSourceComponents = new ArrayList<>();
     quarantinedComponentAccesses = new ArrayList<>();
     deletedTenants = new ArrayList<>();
 
@@ -648,6 +645,7 @@ public class TemporaryEntity
     // Entities deleted via cascaded deletes
     // - ApplicationTag: cascaded from Application
     // - ComponentLabel: cascaded from Label
+    // - InnerSourceComponent: cascaded from Application
     // - LdapConnection: cascaded from LdapServer
     // - LdapUserMapping: cascaded from LdapServer
     // - LicenseThreatGroupLicense: cascaded from LicenseThreatGroup
@@ -670,7 +668,6 @@ public class TemporaryEntity
     try {
       automaticApplicationsConfigurationDAO.setEnabled(false);
       automaticApplicationsConfigurationDAO.setOrganizationId("");
-      delete(innerSourceComponents, innerSourceComponentDAO);
       delete(membershipMappings, membershipMappingDAO);
       delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
       delete(userFilterDAO.getAll(), userFilterDAO);
@@ -3789,7 +3786,6 @@ public class TemporaryEntity
     InnerSourceComponent innerSourceComponent = new InnerSourceComponent(application.getId(), purl);
     innerSourceComponent.setLatestVersion(latestVersion);
     innerSourceComponentDAO.insert(innerSourceComponent);
-    innerSourceComponents.add(innerSourceComponent);
     return innerSourceComponent;
   }
 

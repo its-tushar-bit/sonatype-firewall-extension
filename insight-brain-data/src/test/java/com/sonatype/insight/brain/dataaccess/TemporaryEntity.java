@@ -556,8 +556,6 @@ public class TemporaryEntity
 
   private Collection<UserToken> userTokens;
 
-  private Collection<ComponentLabel> componentLabels;
-
   private Collection<String> persistedUserSessionIds;
 
   private Collection<QuarantinedComponentAccess> quarantinedComponentAccesses;
@@ -576,7 +574,6 @@ public class TemporaryEntity
     claimedComponents = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     userTokens = new ArrayList<>();
-    componentLabels = new ArrayList<>();
     savedMailConfiguration = mailConfigurationDAO.get();
     savedProxyServerConfiguration = proxyServerConfigurationDAO.get();
     initializePersistedUserSessions();
@@ -702,7 +699,6 @@ public class TemporaryEntity
       samlConfigurationDAO.delete();
       delete(thirdPartyFileDAO.getAll(), thirdPartyFileDAO);
       delete(thirdPartyVulnerabilityDAO.getAll(), thirdPartyVulnerabilityDAO);
-      delete(componentLabels, componentLabelDAO);
       delete(repositoryConnectionDAO.getAll(), repositoryConnectionDAO);
       delete(artifactoryConnectionDAO.getAll(), artifactoryConnectionDAO);
       delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
@@ -1358,7 +1354,6 @@ public class TemporaryEntity
   public ComponentLabel newComponentLabel(RepositoryComponent component, Label label) {
     ComponentLabel componentLabel = new ComponentLabel(component.getRepositoryId(), label.getId(), component.getHash());
     componentLabelDAO.insert(componentLabel);
-    componentLabels.add(componentLabel);
     return componentLabel;
   }
 

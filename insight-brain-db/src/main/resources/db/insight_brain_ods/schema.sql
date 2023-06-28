@@ -1150,7 +1150,7 @@ CREATE TABLE repository_connection
     repository_connection_id varchar(50)   NOT NULL,
     owner_id                 varchar(50)   NOT NULL,
     base_url                 varchar(2048) NOT NULL,
-    format                   varchar(50)   NOT NULL,
+    format                   varchar(50)   NOT NULL DEFAULT 'GENERIC',
     username                 varchar(255),
     password                 varchar(255),
     CONSTRAINT repository_connection_pk PRIMARY KEY (repository_connection_id),

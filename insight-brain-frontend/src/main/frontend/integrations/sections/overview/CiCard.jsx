@@ -8,63 +8,71 @@ import { useDispatch, useSelector } from 'react-redux';
 import React, { useEffect } from 'react';
 import { actions } from 'MainRoot/integrations/sections/overview/ciUsageSlice';
 import { selectCiUsageSlice } from 'MainRoot/integrations/integrationsSelectors';
-import { NxBinaryDonutChart, NxCard, NxH3, NxLoadWrapper, NxP, NxTextLink } from '@sonatype/react-shared-components';
+import { NxBinaryDonutChart, NxTile, NxH3, NxLoadWrapper, NxP, NxTextLink } from '@sonatype/react-shared-components';
 import { SECTIONS } from 'MainRoot/integrations/integrations.module';
 import useGetIntegrationsLink from 'MainRoot/integrations/useGetIntegrationsLink';
 import { isNil } from 'ramda';
+import getThreeMonthsAgo from 'MainRoot/integrations/utils/getThreeMonthsAgo';
+import { CiUsageAppPreviewTable } from 'MainRoot/integrations/sections/overview/CiUsageAppPreviewTable';
 
 export default function CiCard() {
   const { loading, loadError, result: ciUsage, reload } = useLoadCiUsage({ sinceUtcTimestamp: getThreeMonthsAgo() });
   const ciUrl = useGetIntegrationsLink(SECTIONS.CICD);
 
   return (
-    <NxCard className="nx-card--equal">
-      <NxCard.Header className="iq-integrations-card--align-left">
+    <NxTile>
+      <NxTile.Header className="iq-integrations-card--align-left">
         <NxH3>Apps Without CI System Integrations</NxH3>
-      </NxCard.Header>
-      <NxCard.Content className="iq-integrations-cicard__content iq-integrations-card--align-left nx-card__content--columns">
-        <div className="iq-integrations-cicard__left">{/* Content will be added in SDEV-186 */}</div>
+      </NxTile.Header>
 
-        <div className="iq-integrations-cicard__right">
-          <NxLoadWrapper loading={loading} error={loadError} retryHandler={reload}>
-            <div className="iq-integrations-cicard__donut-wrapper">
-              <NxBinaryDonutChart
-                data-testid="iq-integrations-cicard__donut"
-                className="iq-integrations-cicard__donut"
-                value={percentAppsWithoutCiCd()}
-              />
+      <NxTile.Content>
+        <div className="iq-integrations-cicard__content iq-integrations-card--align-left">
+          <div className="iq-integrations-cicard__left">
+            <CiUsageAppPreviewTable />
+          </div>
 
-              <div className="iq-integrations-cicard__donut-col iq-integrations-cicard__donut-caption">
-                {percentAppsWithoutCiCd()}% of your apps are not integrated with CI
+          <div data-testid="iq-integrations-cicard--stats-section" className="iq-integrations-cicard__right">
+            <NxLoadWrapper loading={loading} error={loadError} retryHandler={reload}>
+              <div className="iq-integrations-cicard__donut-wrapper">
+                <NxBinaryDonutChart
+                  data-testid="iq-integrations-cicard__donut"
+                  className="iq-integrations-cicard__donut"
+                  value={percentAppsWithoutCiCd()}
+                />
+
+                <div className="iq-integrations-cicard__donut-col iq-integrations-cicard__donut-caption">
+                  {percentAppsWithoutCiCd()}% of your apps are not integrated with CI
+                </div>
               </div>
-            </div>
-          </NxLoadWrapper>
+            </NxLoadWrapper>
 
-          <NxH3>What are Sonatype CI Integrations used for?</NxH3>
+            <NxH3>What are Sonatype CI Integrations used for?</NxH3>
 
-          <NxP>
-            Lifecycle's CI integrations perform{' '}
-            <NxTextLink
-              external
-              href="https://links.sonatype.com/products/nxiq/doc/integrations/overrides/cicd/ABFAdvancedBinaryFingerprinting"
-            >
-              binary scanning
-            </NxTextLink>{' '}
-            at multiple stages of your deployment. You can reduce disruption by warning of risk during the CI build
-            while blocking critical issues from automatically deploying to production.
-          </NxP>
+            <NxP>
+              Lifecycle's CI integrations perform{' '}
+              <NxTextLink
+                external
+                href="https://links.sonatype.com/products/nxiq/doc/integrations/overrides/cicd/ABFAdvancedBinaryFingerprinting"
+              >
+                binary scanning
+              </NxTextLink>{' '}
+              at multiple stages of your deployment. You can reduce disruption by warning of risk during the CI build
+              while blocking critical issues from automatically deploying to production.
+            </NxP>
 
-          <NxP>
-            Analyzing manifests alone could miss changes made during a build and end up in production. Sonatype's binary
-            fingerprint scanning, run during your CI builds, provides a more accurate assessment of open-source risk.
-          </NxP>
+            <NxP>
+              Analyzing manifests alone could miss changes made during a build and end up in production. Sonatype's
+              binary fingerprint scanning, run during your CI builds, provides a more accurate assessment of open-source
+              risk.
+            </NxP>
 
-          <NxP>
-            Learn more <NxTextLink href={ciUrl}>about our CI systems integrations</NxTextLink>.
-          </NxP>
+            <NxP>
+              Learn more <NxTextLink href={ciUrl}>about our CI systems integrations</NxTextLink>.
+            </NxP>
+          </div>
         </div>
-      </NxCard.Content>
-    </NxCard>
+      </NxTile.Content>
+    </NxTile>
   );
 
   function percentAppsWithoutCiCd() {
@@ -79,13 +87,6 @@ export default function CiCard() {
     }
 
     return Math.round((numAppsWithoutCITriggeredEvals / numTotalApps) * 100);
-  }
-
-  function getThreeMonthsAgo() {
-    const date = new Date();
-    date.setMonth(date.getMonth() - 3);
-
-    return date.getTime();
   }
 }
 

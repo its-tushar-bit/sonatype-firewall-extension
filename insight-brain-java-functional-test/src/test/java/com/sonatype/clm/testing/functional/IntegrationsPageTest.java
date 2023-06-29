@@ -6,7 +6,15 @@
 
 package com.sonatype.clm.testing.functional;
 
+import java.time.Instant;
+import java.util.Date;
+
 import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
@@ -20,6 +28,8 @@ import static com.codeborne.selenide.Selenide.$;
 public class IntegrationsPageTest extends AbstractFunctionalTest
 {
   private static final String DONUT_TEST_ID = "iq-integrations-cicard__donut";
+
+  private static final String CI_USAGE_APP_TABLE_TEST_ID = "iq-integrations-apps-without-recent-usage-preview";
 
   private static final String CI_USAGE_PERCENT_SELECTOR = ".iq-integrations-cicard__donut-col";
 
@@ -58,10 +68,21 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   @Test
   public void testCiUsageIsShown() {
+    final Organization givenOrg = tempEntity.newOrganization("Parent Org");
+
+    final String appNameWithCiUsage = "App With Ci Scan";
+    final String appNameWithoutCiUsage = "App With No Ci Scan";
+
+    givenAppWithEvalFromCi(appNameWithCiUsage, "app-for-ci-scan", givenOrg);
+    givenAppWithoutEvalFromCi(appNameWithoutCiUsage, "app-with-no-ci-scan", givenOrg);
+
     refreshOrOpen(IntegrationsPage.urlOverview());
 
     ciUsageDonut().shouldBe(visible);
-    ciUsagePercentMessage().shouldHave(text("0% of your apps are not integrated with CI"));
+    ciUsagePercentMessage().shouldHave(text("50% of your apps are not integrated with CI"));
+    ciUsageAppTable().shouldBe(visible);
+    ciUsageAppTable().shouldHave(text(appNameWithoutCiUsage));
+    ciUsageAppTable().shouldNotHave(text(appNameWithCiUsage));
   }
 
   @Test
@@ -137,10 +158,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return $("#iq-integrations-ide-section");
   }
 
-  private SelenideElement othersSection() {
-    return $("#iq-integrations-others-section");
-  }
-
   private SelenideElement ciUsageDonut() {
     return $(String.format("[data-testid='%s']", DONUT_TEST_ID));
   }
@@ -151,6 +168,55 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement ideUserCount() {
     return overviewSection().$(".nx-card__call-out");
+  }
+
+  private SelenideElement ciUsageAppTable() {
+    return $(String.format("[data-testid='%s'", CI_USAGE_APP_TABLE_TEST_ID));
+  }
+
+  private void givenAppWithEvalFromCi(
+      final String appName,
+      final String publicId,
+      final Organization organization)
+  {
+    final Application givenApp = tempEntity.newApplication(appName, publicId, organization.getId());
+
+    final PolicyEvaluation givenEval = new PolicyEvaluation(
+        givenApp.getId(),
+        "random-stage-type-id",
+        "random-scan-id",
+        false,
+        false,
+        "random-initiator",
+        ScanTriggerType.CONTINUOUS_INTEGRATION,
+        ClientScanType.SONATYPE
+    );
+    givenEval.setForObsoleteScan(false);
+    givenEval.setTime(Date.from(Instant.now()));
+
+    tempEntity.insertPolicyEvaluation(givenEval);
+  }
+
+  private void givenAppWithoutEvalFromCi(
+      final String appName,
+      final String publicId,
+      final Organization organization)
+  {
+    final Application givenApp = tempEntity.newApplication(appName, publicId, organization.getId());
+
+    final PolicyEvaluation givenEval = new PolicyEvaluation(
+        givenApp.getId(),
+        "random-stage-type-id-not-ci",
+        "random-scan-id-not-ci",
+        false,
+        true,
+        "random-initiator",
+        ScanTriggerType.SOURCE_CONTROL_API,
+        ClientScanType.SONATYPE
+    );
+    givenEval.setTime(Date.from(Instant.now()));
+
+    tempEntity.insertPolicyEvaluation(givenEval);
   }
 
   private SelenideElement appsWithoutCiIntegrationsTable() {

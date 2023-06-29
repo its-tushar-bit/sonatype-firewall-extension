@@ -12,6 +12,7 @@ import reducers from '../../main/frontend/reduxConfig/reducers';
 import JasmineDOM from '@testing-library/jasmine-dom';
 import MockAdapter from 'axios-mock-adapter';
 import axios from 'axios';
+import { faker } from '@faker-js/faker';
 
 export const WAIVER_CREATE_TIME = '2022-08-18';
 export const WAIVER_EXPIRATION_TIME = '2023-08-18';
@@ -457,3 +458,25 @@ export const queryByTextWithin = (regexpOrString, selectorOrDOMNode) => {
 
   return { all: nodes ?? [], first: nodes?.[0] };
 };
+
+/**
+ * generates a list of a random length using the supplied itemGenerator
+ *
+ * @template T
+ * @param itemGenerator {function(): T}
+ * @param options {{ min: number, max: number }=}
+ * @returns {T[]}
+ */
+export function generateList(itemGenerator, options) {
+  const { min, max } = options ?? { min: 1, max: 10 };
+
+  let numItems = faker.datatype.number({ min, max });
+
+  const items = [];
+
+  for (let i = 0; i < numItems; i++) {
+    items.push(itemGenerator());
+  }
+
+  return items;
+}

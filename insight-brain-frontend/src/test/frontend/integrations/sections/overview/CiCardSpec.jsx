@@ -9,8 +9,10 @@ import { axiosMockAdapter, render, screen, cleanup } from 'TestRoot/SpecUtil';
 import { getCiUsageUrl } from 'MainRoot/util/CLMLocation';
 import CiCard from 'MainRoot/integrations/sections/overview/CiCard';
 import { faker } from '@faker-js/faker';
+import { within } from '@testing-library/react';
 
 describe('CiCard', () => {
+  const statsSectionId = 'iq-integrations-cicard--stats-section';
   const donutTestId = 'iq-integrations-cicard__donut';
   const loadingMessage = 'Loading…';
   const errorMessageRole = 'alert';
@@ -26,7 +28,8 @@ describe('CiCard', () => {
 
     renderComponent();
 
-    expect(screen.getByText(loadingMessage)).toBeInTheDocument();
+    const { getByText } = within(screen.getByTestId(statsSectionId));
+    expect(getByText(loadingMessage)).toBeInTheDocument();
   });
 
   it('should correctly render pi graph based on the response when data is successfully fetched from the server', async () => {
@@ -44,11 +47,12 @@ describe('CiCard', () => {
 
       const expectedText = `${expectedPercent}% of your apps are not integrated with CI`;
 
-      expect(await screen.findByText(expectedText)).toBeInTheDocument();
+      const { findByText, queryByText, queryByRole } = within(screen.getByTestId(statsSectionId));
+      expect(await findByText(expectedText)).toBeInTheDocument();
       await assertDonutRenderedWithCorrectValue(expectedPercent);
 
-      expect(screen.queryByText(loadingMessage)).not.toBeInTheDocument();
-      expect(screen.queryByRole(errorMessageRole)).not.toBeInTheDocument();
+      expect(queryByText(loadingMessage)).not.toBeInTheDocument();
+      expect(queryByRole(errorMessageRole)).not.toBeInTheDocument();
 
       cleanup();
     }
@@ -59,9 +63,10 @@ describe('CiCard', () => {
 
     renderComponent();
 
-    expect(await screen.findByRole(errorMessageRole)).toBeInTheDocument();
-    expect(screen.queryByText(loadingMessage)).not.toBeInTheDocument();
-    expect(screen.queryByTestId(donutTestId)).not.toBeInTheDocument();
+    const { findByRole, queryByText, queryByTestId } = within(screen.getByTestId(statsSectionId));
+    expect(await findByRole(errorMessageRole)).toBeInTheDocument();
+    expect(queryByText(loadingMessage)).not.toBeInTheDocument();
+    expect(queryByTestId(donutTestId)).not.toBeInTheDocument();
   });
 
   function givenCiUsageRequestSucceeds(response) {

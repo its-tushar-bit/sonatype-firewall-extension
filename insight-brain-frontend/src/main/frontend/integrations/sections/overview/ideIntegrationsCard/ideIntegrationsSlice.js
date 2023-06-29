@@ -7,6 +7,7 @@ import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getIdeIntegratedUserCount } from 'MainRoot/util/CLMLocation';
+import getThreeMonthsAgo from 'MainRoot/integrations/utils/getThreeMonthsAgo';
 
 const REDUCER_NAME = 'ideIntegrations';
 
@@ -19,11 +20,10 @@ export const initialState = {
 export const loadIdeIntegratedUserCount = createAsyncThunk(
   `${REDUCER_NAME}/loadIdeIntegratedUserCount`,
   (_, { rejectWithValue }) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - 3);
+    const sinceUtcTimestamp = getThreeMonthsAgo();
 
     return axios
-      .get(getIdeIntegratedUserCount(), { params: { sinceUtcTimestamp: date.getTime() } })
+      .get(getIdeIntegratedUserCount(), { params: { sinceUtcTimestamp } })
       .then(({ data }) => data.userCount)
       .catch(rejectWithValue);
   }

@@ -5,6 +5,7 @@
  */
 
 $donut-size: 72px;
+$apps-without-ci-preview-table-place-holder-width: 483px;
 
 #integrations-sidebar {
   background-color: var(--nx-swatch-indigo-30);
@@ -59,6 +60,10 @@ a.nx-text-link.integrations-link.integrations-link-selected {
   }
 }
 
+.iq-integrations-content {
+  max-width: 1550px;
+}
+
 .iq-integrations-cicard__content {
   &.nx-card__content {
     align-items: start;
@@ -89,7 +94,26 @@ a.nx-text-link.integrations-link.integrations-link-selected {
 }
 
 .iq-integrations-cicard__left {
-  min-width: 494px;
+  min-width: $apps-without-ci-preview-table-place-holder-width;
+}
+
+.iq-integrations-cicard__left,
+.iq-integrations-cicard__right {
+  width: 100%;
+}
+
+.iq-integrations-cicard__content {
+  display: flex;
+  flex-direction: row;
+  gap: var(--nx-spacing-6x);
+}
+
+.iq-integrations-ci-usage-preview-view-all {
+  &.nx-btn {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
 }
 
 .iq-integrations-card-ide {

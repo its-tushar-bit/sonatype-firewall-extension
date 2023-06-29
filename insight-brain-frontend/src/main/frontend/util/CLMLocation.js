@@ -1269,6 +1269,8 @@ export const getCiUsageUrl = () => uriTemplate`/rest/plugin/stat/ci`;
 
 export const getIdeIntegratedUserCount = () => uriTemplate`/api/v2/scan/applications/ideUser/overview`;
 
+export const getAppsWithoutRecentCiUsageUrl = () => uriTemplate`/rest/plugin/apps/ci`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

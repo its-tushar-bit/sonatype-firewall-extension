@@ -20,9 +20,7 @@ export default function Overview() {
 
       <NxH2>Understanding Your Code Risks</NxH2>
 
-      <NxCard.Container>
-        <CiCard />
-      </NxCard.Container>
+      <CiCard />
 
       <NxCard.Container>
         <IdeIntegrationsCard />

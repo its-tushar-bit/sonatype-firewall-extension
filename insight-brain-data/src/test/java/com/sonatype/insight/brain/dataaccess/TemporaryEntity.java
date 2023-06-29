@@ -1824,6 +1824,10 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
+  public void insertPolicyEvaluation(PolicyEvaluation policyEvaluation) {
+    policyEvaluationDAO.insert(policyEvaluation);
+  }
+
   public PolicyEvaluation newPolicyEvaluation(
       String applicationId,
       String stageTypeId,

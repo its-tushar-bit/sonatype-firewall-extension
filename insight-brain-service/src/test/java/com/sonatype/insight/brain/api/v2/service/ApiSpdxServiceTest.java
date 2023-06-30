@@ -12,7 +12,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,6 +22,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -66,6 +69,7 @@ import org.spdx.storage.simple.InMemSpdxStore;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.when;
 
 public class ApiSpdxServiceTest
@@ -163,6 +167,19 @@ public class ApiSpdxServiceTest
     assertThatExceptionOfType(ConflictException.class)
         .isThrownBy(() -> service.getByScanId(application.getId(), scanId, "xml", false, "2.3"))
         .withMessageContaining("This API endpoint is currently disabled.");
+  }
+
+  @Test
+  public void testAddDependencyRelationships_NullChildren() throws Exception {
+    ApiDependencyTreeNodeDTO nodeDTO = new ApiDependencyTreeNodeDTO();
+    nodeDTO.setPackageUrl("packageUrl");
+
+    Map<String, SpdxPackage> purlElementMap = new HashMap<>();
+    purlElementMap.put("packageUrl", new SpdxPackage());
+
+    assertThatNoException().isThrownBy(() -> {
+      service.addDependencyRelationships(nodeDTO, new SpdxDocument("uri"), purlElementMap, true);
+    });
   }
 
   private void testGetByScanId(

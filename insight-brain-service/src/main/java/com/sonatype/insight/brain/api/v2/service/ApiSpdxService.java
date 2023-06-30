@@ -243,7 +243,8 @@ public class ApiSpdxService
     }
   }
 
-  private void addDependencyRelationships(
+  // visible for testing
+  void addDependencyRelationships(
       final ApiDependencyTreeNodeDTO nodeDTO,
       final SpdxDocument document,
       final Map<String, SpdxPackage> purlElementMap,
@@ -256,6 +257,10 @@ public class ApiSpdxService
 
     if (isRootNode) {
       document.getDocumentDescribes().add(spdxPackage);
+    }
+
+    if (nodeDTO.getChildren() == null) {
+      return;
     }
 
     for (ApiDependencyTreeNodeDTO childNode : nodeDTO.getChildren()) {

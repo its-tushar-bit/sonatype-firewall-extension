@@ -13,3 +13,7 @@ export const appsWithoutCiIntegrationsSelector = createSelector(integrationsSlic
 export const selectPageSize = createSelector(appsWithoutCiIntegrationsSelector, prop('pageSize'));
 
 export const selectCurrentPage = createSelector(appsWithoutCiIntegrationsSelector, prop('currentPage'));
+
+export const selectSort = createSelector(appsWithoutCiIntegrationsSelector, prop('sort'));
+
+export const selectFilter = createSelector(appsWithoutCiIntegrationsSelector, prop('filter'));

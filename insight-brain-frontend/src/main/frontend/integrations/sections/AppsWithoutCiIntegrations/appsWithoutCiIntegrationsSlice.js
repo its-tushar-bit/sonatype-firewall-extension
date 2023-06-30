@@ -11,6 +11,8 @@ import { getAppsWithoutCiIntegrations } from 'MainRoot/util/CLMLocation';
 import {
   selectCurrentPage,
   selectPageSize,
+  selectSort,
+  selectFilter,
 } from 'MainRoot/integrations/sections/AppsWithoutCiIntegrations/appsWithoutCiIntegrationsSelectors';
 
 const REDUCER_NAME = 'appsWithoutCiIntegrations';
@@ -19,14 +21,21 @@ const PAGE_SIZE = 14;
 
 const SINCE_NUMBER_OF_MONTHS = 3;
 
-export const initialState = {
+export const COLUMNS = {
+  NAME: 'NAME',
+  TOTAL_RISK: 'TOTAL_RISK',
+};
+
+export const initialState = Object.freeze({
   loading: false,
   loadError: null,
   dashboardResults: [],
   pageCount: 0,
   pageSize: PAGE_SIZE,
   currentPage: 0,
-};
+  sort: `-${COLUMNS.TOTAL_RISK}`,
+  filter: '',
+});
 
 const loadAppsWithoutCiIntegrationsRequested = (state) => {
   state.loading = true;
@@ -58,6 +67,15 @@ function getXMonthsAgo(x) {
   return date.getTime();
 }
 
+const setSort = (state, { payload }) => {
+  state.sort = state.sort.includes('-') ? payload : `-${payload}`;
+};
+
+const setFilter = (state, { payload }) => {
+  state.loading = true;
+  state.filter = payload;
+};
+
 const loadAppsWithoutCiIntegrations = createAsyncThunk(
   `${REDUCER_NAME}/loadAppsWithoutCiIntegrations`,
   (_, { getState, rejectWithValue }) => {
@@ -68,6 +86,8 @@ const loadAppsWithoutCiIntegrations = createAsyncThunk(
         page: selectCurrentPage(state),
         pageSize: selectPageSize(state),
         sinceUtcTimestamp: getXMonthsAgo(SINCE_NUMBER_OF_MONTHS),
+        optionalOrderBy: selectSort(state),
+        optionalFilterApplicationNamesBy: selectFilter(state),
       })
       .then(({ data }) => data)
       .catch(rejectWithValue);
@@ -77,7 +97,7 @@ const loadAppsWithoutCiIntegrations = createAsyncThunk(
 const appsWithoutCiIntegrationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
-  reducers: { setCurrentPage },
+  reducers: { setCurrentPage, setSort, setFilter },
   extraReducers: {
     [loadAppsWithoutCiIntegrations.pending]: loadAppsWithoutCiIntegrationsRequested,
     [loadAppsWithoutCiIntegrations.fulfilled]: loadAppsWithoutCiIntegrationsFulfilled,

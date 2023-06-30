@@ -8,15 +8,20 @@ package com.sonatype.clm.testing.functional;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.stream.IntStream;
 
 import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.ElementsCollection;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +37,8 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   private static final String CI_USAGE_APP_TABLE_TEST_ID = "iq-integrations-apps-without-recent-usage-preview";
 
   private static final String CI_USAGE_PERCENT_SELECTOR = ".iq-integrations-cicard__donut-col";
+
+  private static final int TOTAL_APPS_WITHOUT_CI_INTEGRATIONS = 10;
 
   @Before
   public void before() {
@@ -107,15 +114,47 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   @Test
   public void testAppsWithoutCiIntegrationsPage() {
-    tempEntity.newApplicationWithParent("appId", "appName");
+    createAppsWithPolicyViolations(TOTAL_APPS_WITHOUT_CI_INTEGRATIONS);
 
     refreshOrOpen(IntegrationsPage.urlAppsWithoutCiIntegrations());
 
     appsWithoutCiIntegrationsTable().shouldBe(visible);
 
-    applicationName().shouldBe(visible).shouldHave(text("appName"));
+    appsWithoutCiIntegrationsTableDataRows().shouldHaveSize(TOTAL_APPS_WITHOUT_CI_INTEGRATIONS);
+
+    applicationName(0).shouldHave(text("appName9"));
+    totalRisk(0).shouldHave(text("9"));
 
     eyesWatcher.eyesCheck();
+
+    //Sorting by total risk
+    totalRiskColumnHeader().click();
+    applicationName(0).shouldHave(text("appName0"));
+    totalRisk(0).shouldHave(text("0"));
+
+    //Sorting by app name
+    applicationColumnHeader().click();
+    applicationName(0).shouldHave(text("appName9"));
+    totalRisk(0).shouldHave(text("9"));
+
+    //Searching for application
+    applicationFilterInput().sendKeys("appName5");
+    applicationName(0).shouldHave(text("appName5"));
+    totalRisk(0).shouldHave(text("5"));
+    appsWithoutCiIntegrationsTableDataRows().shouldHaveSize(1);
+  }
+
+  private void createAppsWithPolicyViolations(int numOfViolations) {
+    IntStream.range(0, numOfViolations)
+        .forEach(i -> {
+          final Application application = tempEntity.newApplicationWithParent("appId" + i, "appName" + i);
+          final Policy policy = tempEntity.newPolicy(application);
+          policy.setThreatLevel(i);
+          final PolicyEvaluation policyEvaluation =
+                  tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-" + i,
+                          new Date(System.currentTimeMillis() - 2000));
+          tempEntity.newPolicyViolation(policyEvaluation, policy);
+        });
   }
 
   private SelenideElement sideNavigation() {
@@ -223,7 +262,27 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return $("#iq-integrations-apps-without-ci-integrations-section-table");
   }
 
-  private SelenideElement applicationName() {
-    return appsWithoutCiIntegrationsTable().$(".iq-integrations-applications-table__name-cell");
+  private SelenideElement applicationName(int rowNum) {
+    return appsWithoutCiIntegrationsTableDataRows().get(rowNum).$(".nx-cell:nth-child(1)");
+  }
+
+  private SelenideElement totalRisk(int rowNum) {
+    return appsWithoutCiIntegrationsTableDataRows().get(rowNum).$(".nx-cell:nth-child(2)");
+  }
+
+  private ElementsCollection appsWithoutCiIntegrationsTableDataRows() {
+    return appsWithoutCiIntegrationsTable().findAll(" tbody .nx-table-row");
+  }
+
+  private SelenideElement applicationFilterInput() {
+    return appsWithoutCiIntegrationsTable().$(".nx-text-input__input");
+  }
+
+  private SelenideElement applicationColumnHeader() {
+    return appsWithoutCiIntegrationsTable().$(".nx-cell--header:nth-child(1)");
+  }
+
+  private SelenideElement totalRiskColumnHeader() {
+    return appsWithoutCiIntegrationsTable().$(".nx-cell--header:nth-child(2)");
   }
 }

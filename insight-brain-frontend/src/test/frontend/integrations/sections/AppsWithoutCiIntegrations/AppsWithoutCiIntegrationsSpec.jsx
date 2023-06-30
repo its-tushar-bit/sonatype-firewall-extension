@@ -8,6 +8,7 @@ import { render, screen, axiosMockAdapter, fireEvent, within } from 'TestRoot/Sp
 import { getAppsWithoutCiIntegrations } from 'MainRoot/util/CLMLocation';
 import AppsWithoutCiIntegrations from 'MainRoot/integrations/sections/AppsWithoutCiIntegrations/AppsWithoutCiIntegrations';
 import { map, range } from 'ramda';
+import { NX_STANDARD_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
 
 describe('AppsWithoutCiIntegrations Page', () => {
   let axiosMock;
@@ -122,6 +123,8 @@ describe('AppsWithoutCiIntegrations Page', () => {
           page: 1,
           pageSize: 14,
           sinceUtcTimestamp: expectedTimestampForQuery,
+          optionalOrderBy: '-TOTAL_RISK',
+          optionalFilterApplicationNamesBy: '',
         })
       );
 
@@ -136,6 +139,8 @@ describe('AppsWithoutCiIntegrations Page', () => {
           page: 2,
           pageSize: 14,
           sinceUtcTimestamp: expectedTimestampForQuery,
+          optionalOrderBy: '-TOTAL_RISK',
+          optionalFilterApplicationNamesBy: '',
         })
       );
     });
@@ -152,10 +157,10 @@ describe('AppsWithoutCiIntegrations Page', () => {
       const nextPageBtn = await within(paginationBtnBar).findByRole('button', { name: 'goto next page' });
 
       let rows = await screen.findAllByRole('row');
-      expect(rows.length).toBe(15);
+      expect(rows.length).toBe(16);
 
-      expect(screen.getAllByRole('cell')[0]).toHaveTextContent('App0');
-      expect(screen.getAllByRole('cell')[1]).toHaveTextContent('0');
+      expect(within(rows[2]).getAllByRole('cell')[0]).toHaveTextContent('App0');
+      expect(within(rows[2]).getAllByRole('cell')[1]).toHaveTextContent('0');
 
       axiosMock.reset();
 
@@ -169,10 +174,202 @@ describe('AppsWithoutCiIntegrations Page', () => {
       expect(await screen.findByRole('table')).toBeInTheDocument();
 
       rows = await screen.findAllByRole('row');
-      expect(rows.length).toBe(15);
+      expect(rows.length).toBe(16);
 
-      expect(screen.getAllByRole('cell')[0]).toHaveTextContent('App15');
-      expect(screen.getAllByRole('cell')[1]).toHaveTextContent('15');
+      expect(within(rows[2]).getAllByRole('cell')[0]).toHaveTextContent('App15');
+      expect(within(rows[2]).getAllByRole('cell')[1]).toHaveTextContent('15');
+    });
+  });
+
+  describe('sorting', () => {
+    beforeEach(() => {
+      jasmine.clock().install();
+    });
+
+    afterEach(() => {
+      jasmine.clock().uninstall();
+    });
+
+    it('TOTAL RISK is sortable and sorted descending by default', async () => {
+      const totalDataRows = 10;
+      axiosMock.onPost(getAppsWithoutCiIntegrations()).reply(200, {
+        dashboardResults: createAppArrayWithLength(totalDataRows).reverse(),
+        numResults: 10,
+      });
+
+      const givenTime = new Date();
+      jasmine.clock().mockDate(givenTime);
+
+      render(<AppsWithoutCiIntegrations />);
+
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      const expectedTimestampForQuery = givenTime.setMonth(givenTime.getMonth() - 3);
+
+      expect(axiosMock.history.post.length).toBe(1);
+      expect(axiosMock.history.post[0].data).toBe(
+        JSON.stringify({
+          page: 0,
+          pageSize: 14,
+          sinceUtcTimestamp: expectedTimestampForQuery,
+          optionalOrderBy: '-TOTAL_RISK',
+          optionalFilterApplicationNamesBy: '',
+        })
+      );
+
+      let rows = await screen.findAllByRole('row');
+      expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
+
+      let totalRiskHeader = await screen.findByRole('columnheader', { name: /total risk/i });
+      expect(totalRiskHeader).toBeInTheDocument();
+      expect(totalRiskHeader).toHaveAttribute('aria-sort', 'descending');
+
+      for (let i = 0; i < totalDataRows; i++) {
+        expect(within(rows[i + 2]).getAllByRole('cell')[1]).toHaveTextContent((totalDataRows - 1 - i).toString());
+      }
+
+      axiosMock.reset();
+
+      axiosMock.onPost(getAppsWithoutCiIntegrations()).reply(200, {
+        dashboardResults: createAppArrayWithLength(totalDataRows),
+        numResults: 10,
+      });
+
+      fireEvent.click(totalRiskHeader);
+
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      expect(axiosMock.history.post[0].data).toBe(
+        JSON.stringify({
+          page: 0,
+          pageSize: 14,
+          sinceUtcTimestamp: expectedTimestampForQuery,
+          optionalOrderBy: 'TOTAL_RISK',
+          optionalFilterApplicationNamesBy: '',
+        })
+      );
+
+      rows = await screen.findAllByRole('row');
+      expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
+
+      totalRiskHeader = await screen.findByRole('columnheader', { name: /total risk/i });
+      expect(totalRiskHeader).toBeInTheDocument();
+      expect(totalRiskHeader).toHaveAttribute('aria-sort', 'ascending');
+
+      for (let i = 0; i < totalDataRows; i++) {
+        expect(within(rows[i + 2]).getAllByRole('cell')[1]).toHaveTextContent(i.toString());
+      }
+    });
+
+    it('APPLICATIONS is sortable and unsorted by default', async () => {
+      const totalDataRows = 10;
+      axiosMock.onPost(getAppsWithoutCiIntegrations()).reply(200, {
+        dashboardResults: createAppArrayWithLength(totalDataRows).reverse(),
+        numResults: 10,
+      });
+
+      const givenTime = new Date();
+      jasmine.clock().mockDate(givenTime);
+
+      render(<AppsWithoutCiIntegrations />);
+
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      const expectedTimestampForQuery = givenTime.setMonth(givenTime.getMonth() - 3);
+
+      let rows = await screen.findAllByRole('row');
+      expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
+
+      let applicationsHeader = await screen.findByRole('columnheader', { name: /applications/i });
+      expect(applicationsHeader).toBeInTheDocument();
+      expect(applicationsHeader).toHaveAttribute('aria-sort', 'none');
+
+      for (let i = 0; i < totalDataRows; i++) {
+        expect(within(rows[i + 2]).getAllByRole('cell')[0]).toHaveTextContent(
+          `App${(totalDataRows - 1 - i).toString()}`
+        );
+      }
+
+      axiosMock.reset();
+
+      axiosMock.onPost(getAppsWithoutCiIntegrations()).reply(200, {
+        dashboardResults: createAppArrayWithLength(totalDataRows),
+        numResults: 10,
+      });
+
+      fireEvent.click(applicationsHeader);
+
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      expect(axiosMock.history.post[0].data).toBe(
+        JSON.stringify({
+          page: 0,
+          pageSize: 14,
+          sinceUtcTimestamp: expectedTimestampForQuery,
+          optionalOrderBy: 'NAME',
+          optionalFilterApplicationNamesBy: '',
+        })
+      );
+
+      rows = await screen.findAllByRole('row');
+      expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
+
+      applicationsHeader = await screen.findByRole('columnheader', { name: /applications/i });
+      expect(applicationsHeader).toBeInTheDocument();
+      expect(applicationsHeader).toHaveAttribute('aria-sort', 'ascending');
+
+      for (let i = 0; i < totalDataRows; i++) {
+        expect(within(rows[i + 2]).getAllByRole('cell')[0]).toHaveTextContent(`App${i.toString()}`);
+      }
+    });
+  });
+
+  describe('searching', () => {
+    it('can be performed for specific applications', async () => {
+      const totalDataRows = 10;
+      axiosMock.onPost(getAppsWithoutCiIntegrations()).reply(200, {
+        dashboardResults: createAppArrayWithLength(totalDataRows),
+        numResults: 10,
+      });
+
+      jasmine.clock().install();
+
+      const givenTime = new Date();
+      jasmine.clock().mockDate(givenTime);
+
+      render(<AppsWithoutCiIntegrations />);
+
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      let rows = await screen.findAllByRole('row');
+      expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
+
+      const searchBox = await screen.findByRole('textbox');
+      fireEvent.focus(searchBox);
+      fireEvent.change(searchBox, { target: { value: 'App5' } });
+
+      jasmine.clock().tick(NX_STANDARD_DEBOUNCE_TIME);
+
+      const expectedTimestampForQuery = givenTime.setMonth(givenTime.getMonth() - 3) + NX_STANDARD_DEBOUNCE_TIME;
+
+      expect(searchBox).toHaveValue('App5');
+
+      expect(screen.getByText('Loading…')).toBeInTheDocument();
+
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      expect(axiosMock.history.post.length).toBe(2);
+      expect(axiosMock.history.post[1].data).toBe(
+        JSON.stringify({
+          page: 0,
+          pageSize: 14,
+          sinceUtcTimestamp: expectedTimestampForQuery,
+          optionalOrderBy: '-TOTAL_RISK',
+          optionalFilterApplicationNamesBy: 'App5',
+        })
+      );
+
+      jasmine.clock().uninstall();
     });
   });
 });

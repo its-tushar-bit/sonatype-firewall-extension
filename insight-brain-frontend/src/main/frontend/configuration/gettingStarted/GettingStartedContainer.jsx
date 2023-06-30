@@ -7,9 +7,14 @@ import { connect } from 'react-redux';
 
 import * as GettingStartedActions from './gettingStartedActions';
 import GettingStarted from './GettingStarted';
+import { selectTenantMode } from '../../productFeatures/productFeaturesSelectors';
 
-function mapStateToProps({ gettingStarted, router }) {
+function mapStateToProps(state) {
+  const { gettingStarted, router } = state,
+    tenantMode = selectTenantMode(state);
+
   return {
+    tenantMode,
     ...gettingStarted,
     ...router,
   };

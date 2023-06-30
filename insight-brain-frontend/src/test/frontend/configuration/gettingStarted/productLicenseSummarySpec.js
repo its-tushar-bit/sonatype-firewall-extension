@@ -161,6 +161,20 @@ describe('productLicenseSummary', function () {
         expect(licenseFingerprint).toExist();
         expect(licenseFingerprint).toHaveText('randomFingerPrint');
       });
+
+      it('does not render the fingerprint when tenantMode is set to multi-tenant', function () {
+        const newProps = {
+          license: {
+            ...initialProps.license,
+          },
+          tenantMode: 'multi-tenant',
+        };
+
+        const shallowComponent = getShallow(newProps);
+        const licenseFingerprint = shallowComponent.find('#license-fingerprint');
+
+        expect(licenseFingerprint).not.toExist();
+      });
     });
 
     describe('licenseType', function () {

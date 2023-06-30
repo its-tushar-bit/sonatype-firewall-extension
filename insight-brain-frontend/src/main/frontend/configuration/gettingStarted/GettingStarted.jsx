@@ -26,6 +26,7 @@ export default function GettingStarted({
   hdsUnreachableIncidentId,
   prevState: prevPage,
   isAdmin,
+  tenantMode,
 }) {
   useEffect(() => {
     load();
@@ -64,11 +65,11 @@ export default function GettingStarted({
           </section>
         )}
 
-        {license && isAdmin && <ProductLicenseSummary license={license} />}
+        {license && isAdmin && <ProductLicenseSummary license={license} tenantMode={tenantMode} />}
 
-        {isAuthorizedToViewSystemSetup && <SystemSetup />}
+        {isAuthorizedToViewSystemSetup && <SystemSetup tenantMode={tenantMode} />}
 
-        <LearningTopics />
+        <LearningTopics tenantMode={tenantMode} />
       </NxLoadWrapper>
     </section>
   );
@@ -85,4 +86,5 @@ GettingStarted.propTypes = {
   hdsUnreachableErrorMessage: PropTypes.string,
   isAuthorizedToViewSystemSetup: PropTypes.bool.isRequired,
   prevState: PropTypes.object,
+  tenantMode: PropTypes.string,
 };

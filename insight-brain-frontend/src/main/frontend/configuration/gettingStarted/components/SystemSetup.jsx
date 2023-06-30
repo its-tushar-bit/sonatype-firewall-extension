@@ -5,14 +5,24 @@
  */
 
 import React from 'react';
+import * as PropTypes from 'prop-types';
 import GettingStartedDocLink from './GettingStartedDocLink';
 
-export default function SystemSetup() {
+export default function SystemSetup({ tenantMode }) {
+  const isSingleTenant = tenantMode !== 'multi-tenant';
+
+  const userSectionTitle = isSingleTenant ? 'MANUALLY ADD USERS' : 'INVITE USERS',
+    userSectionLink = isSingleTenant
+      ? 'https://links.sonatype.com/products/nxiq/doc/user-management/creating-a-user'
+      : 'https://links.sonatype.com/products/nxiq/doc/firewall-saas-getting-started-on-cloud/user-management';
+
   return (
-    <section id="system-setup" className="nx-tile">
+    <section id="system-setup" className="nx-tile" aria-labelledby="system-setup-title">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">System Setup</h2>
+          <h2 id="system-setup-title" className="nx-h2">
+            System Setup
+          </h2>
         </div>
       </header>
 
@@ -23,36 +33,39 @@ export default function SystemSetup() {
 
         <div className="nx-grid-row">
           <div className="nx-grid-col nx-grid-col--50">
-            <div>
-              <div className="nx-read-only__item">
-                <dt className="nx-read-only__label">Storage and Backup</dt>
-                <dd className="nx-read-only__data">
-                  Ensure you have the required storage, and establish a data recovery plan.
-                </dd>
-              </div>
-              <section className="nx-grid-col__section">
-                <div className="nx-read-only__item">
-                  <h4 className="nx-h4 nx-grid-header__title">SYSTEM REQUIREMENTS</h4>
-                  <p className="nx-p">
-                    <GettingStartedDocLink
-                      href="http://links.sonatype.com/products/nxiq/doc/requirements"
-                      text="Documentation"
-                    />
-                  </p>
-                  <h4 className="nx-h4 nx-grid-header__title">BACKING UP IQ SERVER</h4>
-                  <p className="nx-p">
-                    <GettingStartedDocLink
-                      href="http://links.sonatype.com/products/nxiq/doc/backup"
-                      text="Documentation"
-                    />
-                  </p>
+            {isSingleTenant && (
+              <>
+                <div>
+                  <div className="nx-read-only__item">
+                    <dt className="nx-read-only__label">Storage and Backup</dt>
+                    <dd className="nx-read-only__data">
+                      Ensure you have the required storage, and establish a data recovery plan.
+                    </dd>
+                  </div>
+                  <section className="nx-grid-col__section">
+                    <div className="nx-read-only__item">
+                      <h4 className="nx-h4 nx-grid-header__title">SYSTEM REQUIREMENTS</h4>
+                      <p className="nx-p">
+                        <GettingStartedDocLink
+                          href="http://links.sonatype.com/products/nxiq/doc/requirements"
+                          text="Documentation"
+                        />
+                      </p>
+                      <h4 className="nx-h4 nx-grid-header__title">BACKING UP IQ SERVER</h4>
+                      <p className="nx-p">
+                        <GettingStartedDocLink
+                          href="http://links.sonatype.com/products/nxiq/doc/backup"
+                          text="Documentation"
+                        />
+                      </p>
+                    </div>
+                  </section>
                 </div>
-              </section>
-            </div>
+                <hr className="nx-grid-h-keyline" />
+              </>
+            )}
 
-            <hr className="nx-grid-h-keyline" />
-
-            <div>
+            <div id="system-setup-adding-users">
               <div className="nx-read-only__item">
                 <dt className="nx-read-only__label">Adding Users</dt>
                 <dd className="nx-read-only__data">
@@ -61,25 +74,30 @@ export default function SystemSetup() {
               </div>
               <section className="nx-grid-col__section">
                 <div className="nx-read-only__item">
-                  <h4 className="nx-h4 nx-grid-header__title">CONFIGURE LDAP</h4>
+                  {isSingleTenant && (
+                    <>
+                      <h4 className="nx-h4 nx-grid-header__title">CONFIGURE LDAP</h4>
+                      <p className="nx-p">
+                        <GettingStartedDocLink
+                          href="http://links.sonatype.com/products/nxiq/doc/ldap-integration"
+                          text="Documentation"
+                        />
+                      </p>
+                      <h4 className="nx-h4 nx-grid-header__title">CONFIGURE SAML</h4>
+                      <p className="nx-p">
+                        <GettingStartedDocLink
+                          href="http://links.sonatype.com/products/nxiq/doc/saml-integration"
+                          text="Documentation"
+                        />
+                      </p>
+                    </>
+                  )}
+                  <h4 className="nx-h4 nx-grid-header__title">{userSectionTitle}</h4>
                   <p className="nx-p">
                     <GettingStartedDocLink
-                      href="http://links.sonatype.com/products/nxiq/doc/ldap-integration"
+                      href={userSectionLink}
                       text="Documentation"
-                    />
-                  </p>
-                  <h4 className="nx-h4 nx-grid-header__title">CONFIGURE SAML</h4>
-                  <p className="nx-p">
-                    <GettingStartedDocLink
-                      href="http://links.sonatype.com/products/nxiq/doc/saml-integration"
-                      text="Documentation"
-                    />
-                  </p>
-                  <h4 className="nx-h4 nx-grid-header__title">MANUALLY ADD USERS</h4>
-                  <p className="nx-p">
-                    <GettingStartedDocLink
-                      href="http://links.sonatype.com/products/nxiq/doc/user-management/creating-a-user"
-                      text="Documentation"
+                      aria-label="Documentation for adding users"
                     />
                   </p>
                 </div>
@@ -110,21 +128,25 @@ export default function SystemSetup() {
                       text="Documentation"
                     />
                   </p>
-                  <h4 className="nx-h4 nx-grid-header__title">REST API</h4>
-                  <p className="nx-p">
-                    Organizations:{' '}
-                    <GettingStartedDocLink
-                      href="http://links.sonatype.com/products/nxiq/doc/organization-rest-apis/v2/add-organization"
-                      text="Documentation"
-                    />
-                  </p>
-                  <p className="nx-p">
-                    Applications:{' '}
-                    <GettingStartedDocLink
-                      href="http://links.sonatype.com/products/nxiq/doc/application-rest-apis/v2"
-                      text="Documentation"
-                    />
-                  </p>
+                  {isSingleTenant && (
+                    <>
+                      <h4 className="nx-h4 nx-grid-header__title">REST API</h4>
+                      <p className="nx-p">
+                        Organizations:{' '}
+                        <GettingStartedDocLink
+                          href="http://links.sonatype.com/products/nxiq/doc/organization-rest-apis/v2/add-organization"
+                          text="Documentation"
+                        />
+                      </p>
+                      <p className="nx-p">
+                        Applications:{' '}
+                        <GettingStartedDocLink
+                          href="http://links.sonatype.com/products/nxiq/doc/application-rest-apis/v2"
+                          text="Documentation"
+                        />
+                      </p>
+                    </>
+                  )}
                 </div>
               </section>
             </div>
@@ -134,3 +156,7 @@ export default function SystemSetup() {
     </section>
   );
 }
+
+SystemSetup.propTypes = {
+  tenantMode: PropTypes.string,
+};

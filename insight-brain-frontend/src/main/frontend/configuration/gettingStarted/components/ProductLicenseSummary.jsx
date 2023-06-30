@@ -10,13 +10,17 @@ import { getDaysFromNow, getExpiryDate } from '../../../util/jsUtil';
 import { getUserLimits } from '../gettingStartedUtils';
 import GettingStartedDocLink from './GettingStartedDocLink';
 
-export default function ProductLicenceSummary({ license }) {
+export default function ProductLicenceSummary({ license, tenantMode }) {
   const userLimits = getUserLimits(license);
+  const isSingleTenant = tenantMode !== 'multi-tenant';
+
   return (
-    <section id="product-license-summary" className="nx-tile">
+    <section id="product-license-summary" className="nx-tile" aria-labelledby="product-license-title">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Product License</h2>
+          <h2 id="product-license-title" className="nx-h2">
+            Product License
+          </h2>
         </div>
       </header>
       <div className="nx-tile-content">
@@ -48,7 +52,7 @@ export default function ProductLicenceSummary({ license }) {
             {userLimits && (
               <div>
                 {userLimits.length > 0 && (
-                  <React.Fragment>
+                  <>
                     <dt className="nx-read-only__label">Licensed Developers</dt>
                     <span className="nx-list__subtext">
                       {userLimits.length === 1 && <span id="license-licensed-developers">{userLimits[0].count}</span>}
@@ -63,24 +67,28 @@ export default function ProductLicenceSummary({ license }) {
                         </dl>
                       )}
                     </span>
-                  </React.Fragment>
+                  </>
                 )}
               </div>
             )}
 
             {license.applicationLimitToDisplay !== null && (
-              <React.Fragment>
+              <>
                 <dt className="nx-read-only__label">Licensed Applications</dt>
                 <dd className="nx-read-only__data" id="license-application-limit">
                   {license.applicationLimitToDisplay} ({license.applicationCountToDisplay} in use)
                 </dd>
-              </React.Fragment>
+              </>
             )}
 
-            <dt className="nx-read-only__label">Fingerprint</dt>
-            <dd className="nx-read-only__data" id="license-fingerprint">
-              {license.fingerprint}
-            </dd>
+            {isSingleTenant && (
+              <>
+                <dt className="nx-read-only__label">Fingerprint</dt>
+                <dd className="nx-read-only__data" id="license-fingerprint">
+                  {license.fingerprint}
+                </dd>
+              </>
+            )}
           </div>
 
           <div className="nx-grid-col nx-grid-col--33">
@@ -104,4 +112,5 @@ export default function ProductLicenceSummary({ license }) {
 
 ProductLicenceSummary.propTypes = {
   license: PropTypes.object,
+  tenantMode: PropTypes.string,
 };

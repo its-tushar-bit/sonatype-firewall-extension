@@ -65,8 +65,8 @@ public class SourceControlOrganizationImportEventDAOTest
     Date lastUpdatedTime = new Date();
     event.setLastUpdatedTime(lastUpdatedTime);
     event.setImportStatus(ImportStatus.COMPLETE);
-    event.setImportSuccessCount(29000);
-    event.setImportFailureCount(1000);
+    event.incrementImportSuccessCountBy(29000);
+    event.incrementImportFailureCountBy(1000);
 
     dao.update(event);
 

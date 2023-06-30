@@ -19,7 +19,7 @@ class SourceControlImportThreadPoolExecutor
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlImportThreadPoolExecutor.class);
 
-  static final int THREAD_POOL_SIZE = 5;
+  static final int THREAD_POOL_SIZE = 25;
 
   public SourceControlImportThreadPoolExecutor() {
     super(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),

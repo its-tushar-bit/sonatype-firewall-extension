@@ -80,6 +80,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.git.ScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
+import static com.sonatype.insight.brain.git.ScmOnboardingService.setScmParallelImportThreshold;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -174,6 +175,7 @@ public class ScmOnboardingServiceTest
         .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
     rootOrgSourceControl.setSourceControlEvaluationsEnabled(true);
     sourceControlDAO.update(rootOrgSourceControl);
+    setScmParallelImportThreshold(100);
   }
 
   @Test
@@ -1023,6 +1025,8 @@ public class ScmOnboardingServiceTest
     SourceControlOrganizationImportEvent updatedEvent = sourceControlOrganizationImportEventDAO.getById(eventId);
     assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
     assertThat(updatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedEvent.getImportSuccessCount()).isZero();
+    assertThat(updatedEvent.getImportFailureCount()).isZero();
 
     ImportFailures importFailures = JsonUtils.parse(updatedEvent.getImportErrors().getBytes(), ImportFailures.class);
     assertThat(importFailures.failures).isEmpty();
@@ -1047,6 +1051,8 @@ public class ScmOnboardingServiceTest
 
     assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
     assertThat(updatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedEvent.getImportSuccessCount()).isEqualTo(13);
+    assertThat(updatedEvent.getImportFailureCount()).isZero();
 
     ImportFailures importFailures = JsonUtils.parse(updatedEvent.getImportErrors().getBytes(), ImportFailures.class);
     assertThat(importFailures.failures).isEmpty();
@@ -1098,6 +1104,8 @@ public class ScmOnboardingServiceTest
 
     assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
     assertThat(updatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedEvent.getImportSuccessCount()).isEqualTo(10);
+    assertThat(updatedEvent.getImportFailureCount()).isZero();
 
     ImportFailures importFailures = JsonUtils.parse(updatedEvent.getImportErrors().getBytes(), ImportFailures.class);
     assertThat(importFailures.failures).isEmpty();
@@ -1122,11 +1130,11 @@ public class ScmOnboardingServiceTest
         .collect(Collectors.toList());
     assertThat(telemetryData).hasSize(3);
     int prevImportedCount = 0;
-    assertBatchedImportTelemetries(telemetryData.get(0), 4, 13, prevImportedCount);
+    assertBatchedImportTelemetries(telemetryData.get(0), 4, 10, prevImportedCount);
     prevImportedCount += 4;
-    assertBatchedImportTelemetries(telemetryData.get(1), 3, 13, prevImportedCount);
+    assertBatchedImportTelemetries(telemetryData.get(1), 3, 10, prevImportedCount);
     prevImportedCount += 3;
-    assertBatchedImportTelemetries(telemetryData.get(2), 3, 13, prevImportedCount);
+    assertBatchedImportTelemetries(telemetryData.get(2), 3, 10, prevImportedCount);
   }
 
   @Test
@@ -1147,6 +1155,8 @@ public class ScmOnboardingServiceTest
 
     assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
     assertThat(updatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedEvent.getImportSuccessCount()).isEqualTo(13);
+    assertThat(updatedEvent.getImportFailureCount()).isZero();
 
     ImportFailures importFailures = JsonUtils.parse(updatedEvent.getImportErrors().getBytes(), ImportFailures.class);
     assertThat(importFailures.failures).isEmpty();
@@ -1191,6 +1201,8 @@ public class ScmOnboardingServiceTest
 
     assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
     assertThat(updatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedEvent.getImportSuccessCount()).isEqualTo(5);
+    assertThat(updatedEvent.getImportFailureCount()).isZero();
 
     ImportFailures importFailures = JsonUtils.parse(updatedEvent.getImportErrors().getBytes(), ImportFailures.class);
     assertThat(importFailures.failures).isEmpty();
@@ -1221,6 +1233,8 @@ public class ScmOnboardingServiceTest
 
     assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
     assertThat(updatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedEvent.getImportSuccessCount()).isEqualTo(13);
+    assertThat(updatedEvent.getImportFailureCount()).isZero();
 
     ImportFailures importFailures = JsonUtils.parse(updatedEvent.getImportErrors().getBytes(), ImportFailures.class);
     assertThat(importFailures.failures).isEmpty();
@@ -1254,6 +1268,9 @@ public class ScmOnboardingServiceTest
 
     assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
     assertThat(updatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedEvent.getImportSuccessCount()).isEqualTo(13);
+    assertThat(updatedEvent.getImportFailureCount()).isZero();
+
     ImportFailures importFailures = JsonUtils.parse(updatedEvent.getImportErrors().getBytes(), ImportFailures.class);
     assertThat(importFailures.failures).isEmpty();
 
@@ -1275,8 +1292,8 @@ public class ScmOnboardingServiceTest
     String importErrors = JsonUtils.writeUnformatted(
         new ImportFailures(Arrays.asList(new ImportFailure(newSCMRepository("url", "p", "o"), "error1"))));
     event.setImportErrors(importErrors);
-    event.setImportSuccessCount(50);
-    event.setImportFailureCount(10);
+    event.incrementImportSuccessCountBy(50);
+    event.incrementImportFailureCountBy(10);
     event.setLastUpdatedTime(new Date());
     event.setImportStatus(ImportStatus.COMPLETE);
     sourceControlOrganizationImportEventDAO.update(event);

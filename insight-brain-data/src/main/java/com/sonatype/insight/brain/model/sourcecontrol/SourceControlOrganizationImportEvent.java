@@ -128,20 +128,28 @@ public class SourceControlOrganizationImportEvent
     return this;
   }
 
-  public int getImportSuccessCount() {
+  public synchronized int getImportSuccessCount() {
     return importSuccessCount;
   }
 
-  public SourceControlOrganizationImportEvent setImportSuccessCount(final int importSuccessCount) {
+  private SourceControlOrganizationImportEvent setImportSuccessCount(final int importSuccessCount) {
     this.importSuccessCount = importSuccessCount;
     return this;
   }
 
-  public int getImportFailureCount() {
+  public synchronized SourceControlOrganizationImportEvent incrementImportSuccessCountBy(final int successCount) {
+    return setImportSuccessCount(this.getImportSuccessCount() + successCount);
+  }
+
+  public synchronized int getImportFailureCount() {
     return importFailureCount;
   }
 
-  public SourceControlOrganizationImportEvent setImportFailureCount(final int importFailureCount) {
+  public synchronized SourceControlOrganizationImportEvent incrementImportFailureCountBy(final int failureCount) {
+    return setImportFailureCount(this.getImportFailureCount() + failureCount);
+  }
+
+  private SourceControlOrganizationImportEvent setImportFailureCount(final int importFailureCount) {
     this.importFailureCount = importFailureCount;
     return this;
   }
@@ -159,7 +167,7 @@ public class SourceControlOrganizationImportEvent
     return lastUpdatedTime;
   }
 
-  public SourceControlOrganizationImportEvent setLastUpdatedTime(final Date lastUpdatedTime) {
+  public synchronized SourceControlOrganizationImportEvent setLastUpdatedTime(final Date lastUpdatedTime) {
     this.lastUpdatedTime = lastUpdatedTime;
     return this;
   }

@@ -878,4 +878,85 @@ describe('OwnerSideNav', () => {
       });
     });
   });
+
+  describe('FirewallOnlyLicense', () => {
+    it('renders components when not FirewallOnlyLicense', async () => {
+      const rootOrg = ownersMap[topParentOrganizationId];
+      state = {
+        productLicense: {
+          license: {
+            products: ['SonatypeCLM', 'Firewall'],
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+          },
+          currentParams: {
+            organizationId: rootOrg.id,
+          },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: {
+            filterQuery: rscInitialState(''),
+            filteredEntries: {
+              applications: [],
+              organizations: [],
+            },
+            displayedOrganization: {
+              type: 'organization',
+              id: rootOrg.id,
+              name: rootOrg.name,
+            },
+          },
+        },
+      };
+      renderComponent();
+      const currentOrg = await screen.findByText(/ROOT_ORGANIZATION_NAME/i);
+      expect(currentOrg).toBeVisible();
+
+      expect(screen.queryByPlaceholderText('Org or App Name')).not.toBeNull();
+      expect(screen.queryByTestId('organizations-add')).not.toBeNull();
+      expect(screen.queryByText('Tree View')).not.toBeNull();
+    });
+    it('does not render components when FirewallOnlyLicense', async () => {
+      const rootOrg = ownersMap[topParentOrganizationId];
+      state = {
+        productLicense: {
+          license: {
+            products: ['Firewall'],
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+          },
+          currentParams: {
+            organizationId: rootOrg.id,
+          },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: {
+            filterQuery: rscInitialState(''),
+            filteredEntries: {
+              applications: [],
+              organizations: [],
+            },
+            displayedOrganization: {
+              type: 'organization',
+              id: rootOrg.id,
+              name: rootOrg.name,
+            },
+          },
+        },
+      };
+      renderComponent();
+      const currentOrg = await screen.findByText(/ROOT_ORGANIZATION_NAME/i);
+      expect(currentOrg).toBeVisible();
+
+      expect(screen.queryByPlaceholderText('Org or App Name')).toBeNull();
+      expect(screen.queryByTestId('organizations-add')).toBeNull();
+      expect(screen.queryByText('Tree View')).toBeNull();
+    });
+  });
 });

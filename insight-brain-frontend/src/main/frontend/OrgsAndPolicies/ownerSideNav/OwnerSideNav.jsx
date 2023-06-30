@@ -40,6 +40,7 @@ import {
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function OwnerSideNav() {
   const dispatch = useDispatch();
@@ -64,6 +65,7 @@ export default function OwnerSideNav() {
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
   const isSummaryPage = useSelector(selectIncludesManagementView);
   const repositoriesCounter = useSelector(selectRepositoriesLength);
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
 
   const uiRouterState = useRouterState();
   const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container');
@@ -247,7 +249,12 @@ export default function OwnerSideNav() {
     const childOrganizationIds = organization.organizationIds ?? [];
 
     const plusButton = !organization.synthetic ? (
-      <NxButton variant="icon-only" title="Add New Organization" onClick={() => openOwnerEditorModal(false)}>
+      <NxButton
+        data-testid="organizations-add"
+        variant="icon-only"
+        title="Add New Organization"
+        onClick={() => openOwnerEditorModal(false)}
+      >
         <NxFontAwesomeIcon icon={faPlus} />
       </NxButton>
     ) : (
@@ -276,6 +283,9 @@ export default function OwnerSideNav() {
   };
 
   const filterActive = filterQuery.value.length >= 3;
+  const shouldShowFilter = !isFirewallOnlyLicense;
+  const shouldShowOrgsAndApps = !isFirewallOnlyLicense;
+  const shouldShowTreeView = !isFirewallOnlyLicense;
 
   return (
     <>
@@ -285,13 +295,15 @@ export default function OwnerSideNav() {
           return (
             <>
               <header className="iq-orgs-and-policies-summary-sidebar__header" data-testid="sidebar-header">
-                <NxFilterInput
-                  searchIcon
-                  id="owner-sidebar-filter"
-                  placeholder="Org or App Name"
-                  value={filterQuery.value}
-                  onChange={onSearch}
-                />
+                {shouldShowFilter && (
+                  <NxFilterInput
+                    searchIcon
+                    id="owner-sidebar-filter"
+                    placeholder="Org or App Name"
+                    value={filterQuery.value}
+                    onChange={onSearch}
+                  />
+                )}
                 {filterQuery.validationErrors ? (
                   <NxP className="iq-orgs-and-policies-summary-sidebar__filter-warning">
                     {filterQuery.validationErrors}
@@ -309,17 +321,23 @@ export default function OwnerSideNav() {
                 ) : (
                   <>
                     {renderRepositoriesNavigationItem()}
-                    {renderOrganizations(displayedOrganization)}
-                    {renderApplications(displayedOrganization)}
+                    {shouldShowOrgsAndApps && (
+                      <>
+                        {renderOrganizations(displayedOrganization)}
+                        {renderApplications(displayedOrganization)}
+                      </>
+                    )}
                   </>
                 )}
               </nav>
-              <footer className="iq-orgs-and-policies-summary-sidebar__footer">
-                <a href={treeViewPageHref} className="nx-btn nx-btn--tertiary iq-tree-view-button">
-                  <NxFontAwesomeIcon icon={faFolderTree} />
-                  <span>Tree View</span>
-                </a>
-              </footer>
+              {shouldShowTreeView && (
+                <footer className="iq-orgs-and-policies-summary-sidebar__footer">
+                  <a href={treeViewPageHref} className="nx-btn nx-btn--tertiary iq-tree-view-button">
+                    <NxFontAwesomeIcon icon={faFolderTree} />
+                    <span>Tree View</span>
+                  </a>
+                </footer>
+              )}
             </>
           );
         }}

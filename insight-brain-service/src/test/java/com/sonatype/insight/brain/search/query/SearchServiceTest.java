@@ -380,8 +380,9 @@ public class SearchServiceTest
 
       assertThatExceptionOfType(BadRequestException.class)
           .isThrownBy(() -> searchService.searchIndex("itemType:APPLICATION", 1, 0, false))
-          .withMessage("Your user ID is associated with too many applications. Try limiting your search to a specific "
-              + "organization or update your configuration to support larger queries.");
+          .withMessage("Error performing search due to too many clauses. " +
+              "Please try narrowing down the query as much as possible " +
+              "and consider updating Advanced Search configuration to support larger queries.");
     }
     finally {
       configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);

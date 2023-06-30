@@ -481,8 +481,9 @@ public class SearchService
           .build();
     }
     catch (TooManyClauses e) {
-      throw new BadRequestException("Your user ID is associated with too many applications. Try limiting your search to"
-          + " a specific organization or update your configuration to support larger queries.");
+      throw new BadRequestException("Error performing search due to too many clauses. " +
+          "Please try narrowing down the query as much as possible " +
+          "and consider updating Advanced Search configuration to support larger queries.");
     }
   }
 

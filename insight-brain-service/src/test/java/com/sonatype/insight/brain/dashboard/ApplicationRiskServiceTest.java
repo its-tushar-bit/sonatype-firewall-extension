@@ -13,7 +13,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.CIApplicationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.CIApplicationFilter;
 import com.sonatype.insight.brain.model.Application;
@@ -518,7 +518,7 @@ public class ApplicationRiskServiceTest
   @Test
   public void testGetCIApplicationRisks() {
     final CIApplicationFilter filter = new CIApplicationFilter(0, 100, new Date(1569553200000L));
-    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> results = applicationRiskService.getCIApplicationRisk(filter);
 
     assertThat(results.numResults).isEqualTo(2);
     assertThat(results.dashboardResults.get(0).applicationName)
@@ -530,11 +530,11 @@ public class ApplicationRiskServiceTest
   @Test
   public void testGetCIApplicationRisks_GetPages() {
     final CIApplicationFilter filterPage1 = new CIApplicationFilter(0, 1, new Date(1569553200000L));
-    final DashboardResultsDTO<CIApplicationDTO> resultsPage1 =
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> resultsPage1 =
         applicationRiskService.getCIApplicationRisk(filterPage1);
 
     final CIApplicationFilter filterPage2 = new CIApplicationFilter(1, 1, new Date(1569553200000L));
-    final DashboardResultsDTO<CIApplicationDTO> resultsPage2 =
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> resultsPage2 =
         applicationRiskService.getCIApplicationRisk(filterPage2);
 
     assertThat(resultsPage1.numResults).isEqualTo(2);
@@ -552,7 +552,7 @@ public class ApplicationRiskServiceTest
   @Test
   public void testGetCIApplicationRisks_NonExistentPage() {
     final CIApplicationFilter filter = new CIApplicationFilter(1000, 100, new Date(1569553200000L));
-    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> results = applicationRiskService.getCIApplicationRisk(filter);
 
     assertThat(results.numResults).isEqualTo(2);
     assertThat(results.dashboardResults).isEmpty();
@@ -585,7 +585,7 @@ public class ApplicationRiskServiceTest
         new Date(System.currentTimeMillis()));
 
     final CIApplicationFilter filter = new CIApplicationFilter(1000, 100, new Date(1569553200000L));
-    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> results = applicationRiskService.getCIApplicationRisk(filter);
 
     assertThat(results.numResults).isEqualTo(3);
   }
@@ -593,7 +593,7 @@ public class ApplicationRiskServiceTest
   @Test
   public void testGetCIApplicationRisks_UseDefaultOrderBy() {
     final CIApplicationFilter filter = new CIApplicationFilter(0, 100, new Date(1569553200000L));
-    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> results = applicationRiskService.getCIApplicationRisk(filter);
 
     assertThat(results.dashboardResults.get(0).totalRisk)
         .isGreaterThan(results.dashboardResults.get(1).totalRisk);
@@ -606,8 +606,8 @@ public class ApplicationRiskServiceTest
 
     final CIApplicationFilter filter =
         new CIApplicationFilter(0, 100, new Date(1569553200000L)).setOptionalOrderBy("-NAME");
-    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
-    final List<CIApplicationDTO> apps = results.dashboardResults;
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+    final List<ApplicationTotalRiskDTO> apps = results.dashboardResults;
 
     // DESC by name should look like -> [B, app2, app1, A]
     assertThat(apps.get(0).applicationName).isEqualTo(appB.getName());
@@ -628,8 +628,81 @@ public class ApplicationRiskServiceTest
     final CIApplicationFilter filter = new CIApplicationFilter(0, 100, new Date(1569553200000L))
         .setOptionalFilterApplicationNamesBy("INVALID");
     // Should bypass the default Dashboard behavior of returning all apps when the input IDs are empty
-    final DashboardResultsDTO<CIApplicationDTO> results = applicationRiskService.getCIApplicationRisk(filter);
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> results = applicationRiskService.getCIApplicationRisk(filter);
     assertThat(results.dashboardResults).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabledRisk() {
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> results =
+        applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(0, 100);
+    final ApplicationTotalRiskDTO result1 = results.dashboardResults.get(0);
+    final ApplicationTotalRiskDTO result2 = results.dashboardResults.get(1);
+
+    // Both apps are missing source control records
+    assertThat(results.numResults).isEqualTo(2);
+    assertThat(result1.applicationName)
+        .isEqualTo(app1.getName());
+    assertThat(result2.applicationName)
+        .isEqualTo(app2.getName());
+    assertThat(result1.totalRisk)
+        .isGreaterThan(result2.totalRisk);
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabledRisk_GetPages() {
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> resultsPage1 =
+        applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(0, 1);
+
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> resultsPage2 =
+        applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(1, 1);
+
+    assertThat(resultsPage1.numResults).isEqualTo(2);
+    assertThat(resultsPage2.numResults).isEqualTo(2);
+
+    assertThat(resultsPage1.dashboardResults).hasSize(1);
+    assertThat(resultsPage2.dashboardResults).hasSize(1);
+
+    assertThat(resultsPage1.dashboardResults.get(0).applicationName)
+        .isEqualTo(app1.getName());
+    assertThat(resultsPage2.dashboardResults.get(0).applicationName)
+        .isEqualTo(app2.getName());
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabledRisk_NonExistentPage() {
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> results =
+        applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(1000, 100);
+
+    assertThat(results.numResults).isEqualTo(2);
+    assertThat(results.dashboardResults).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabledRisk_InvalidPage() {
+    assertThatThrownBy(
+        () -> applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(-1, 1))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Page and page size must be greater than 0");
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabledRisk_InvalidPageSize() {
+    assertThatThrownBy(
+        () -> applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(0, -1))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Page and page size must be greater than 0");
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabledRisk_IncludeZeroRiskApps() {
+    // Add a third app with no associated risk
+    tempEntity.newApplication(org.getId());
+
+    final DashboardResultsDTO<ApplicationTotalRiskDTO> results =
+        applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(0, 100);
+
+    assertThat(results.numResults).isEqualTo(3);
   }
 
   private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk, int lowRisk, int netRisk) {

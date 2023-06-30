@@ -188,14 +188,6 @@ public class ApplicationService
       return applicationDAO.getAll();
     }
 
-    return getAppsByIds(organizationIds, applicationIds, tagIds);
-  }
-
-  public List<Application> getAppsByIds(
-      final Set<String> organizationIds,
-      final Set<String> applicationIds,
-      final Set<String> tagIds)
-  {
     // We don't want to modify the original
     Set<String> internalApplicationIds = new HashSet<>();
     if (applicationIds != null) {

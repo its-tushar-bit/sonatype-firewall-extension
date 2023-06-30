@@ -6,7 +6,7 @@
 
 package com.sonatype.insight.brain.api.v2.dto;
 
-public class CIApplicationDTO
+public class ApplicationTotalRiskDTO
 {
   public String applicationPublicId;
 
@@ -14,10 +14,10 @@ public class CIApplicationDTO
 
   public int totalRisk;
 
-  public CIApplicationDTO() {
+  public ApplicationTotalRiskDTO() {
   }
 
-  public CIApplicationDTO(final String applicationPublicId, final String applicationName, final int totalRisk) {
+  public ApplicationTotalRiskDTO(final String applicationPublicId, final String applicationName, final int totalRisk) {
     this.applicationPublicId = applicationPublicId;
     this.applicationName = applicationName;
     this.totalRisk = totalRisk;

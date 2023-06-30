@@ -4,41 +4,41 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-package com.sonatype.insight.brain.integration;
+package com.sonatype.insight.brain.organization;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
-import com.sonatype.insight.brain.dataaccess.CIApplicationFilter;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Named
 @Timed
-@Path(CIApplicationResource.RESOURCE_PATH)
-public class CIApplicationResource
+@Path(ApplicationSourceControlResource.RESOURCE_PATH)
+public class ApplicationSourceControlResource
 {
-  static final String RESOURCE_PATH = "rest/plugin/apps/ci";
+  static final String RESOURCE_PATH = "rest/sourceControl/application";
 
   private final ApplicationRiskService applicationRiskService;
 
   @Inject
-  public CIApplicationResource(final ApplicationRiskService applicationRiskService) {
+  public ApplicationSourceControlResource(final ApplicationRiskService applicationRiskService) {
     this.applicationRiskService = applicationRiskService;
   }
 
-  @POST
+  @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Consumes(MediaType.APPLICATION_JSON)
-  public DashboardResultsDTO<ApplicationTotalRiskDTO> getCIApplicationRisks(final CIApplicationFilter filter) {
-    return applicationRiskService.getCIApplicationRisk(filter);
+  public DashboardResultsDTO<ApplicationTotalRiskDTO> getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+      @QueryParam("page") final int page, @QueryParam("pageSize") final int pageSize)
+  {
+    return applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(page, pageSize);
   }
 }

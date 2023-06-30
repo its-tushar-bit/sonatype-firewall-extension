@@ -307,6 +307,27 @@ public class SourceControlDAO
     return getList(query);
   }
 
+  // Automated source control feedback is considered disabled when either pull request commenting or commit statuses are
+  // disabled
+  public List<Application> getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+      final List<Application> scmEnabledApps)
+  {
+    // Get applications with their inheritances resolved
+    return scmEnabledApps.stream()
+        .map(app -> getCompositeSourceControlByOwnerId(app.getId()))
+        .filter(this::isAutomatedSourceControlFeedbackDisabled)
+        .map(sourceControl -> applicationDAO.getById(sourceControl.getOwnerId()))
+        .collect(Collectors.toList());
+  }
+
+  private boolean isAutomatedSourceControlFeedbackDisabled(final SourceControl sourceControl) {
+    // If inheritance was properly resolved, the flags should not be null
+    if (sourceControl.getPullRequestCommentingEnabled() == null || sourceControl.getCommitStatusEnabled() == null) {
+      throw new IllegalArgumentException("Composite source control configurations cannot be null");
+    }
+    return !sourceControl.getPullRequestCommentingEnabled() || !sourceControl.getCommitStatusEnabled();
+  }
+
   public List<SourceControl> getApplicationsWithRemediationPullRequestsEnabled() {
     // an application is enabled if it has a valid repository_url and remediation_pull_requests_enabled is set at the
     // application, parent organization, or root organization level

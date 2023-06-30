@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v2.dto.CIApplicationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditUtils;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
@@ -56,6 +57,8 @@ public class ApplicationRiskService
 
   private final ApplicationService applicationService;
 
+  private final ApplicationSourceControlService applicationSourceControlService;
+
   private final OrganizationDAO organizationDAO;
 
   private final ApplicationDAO applicationDAO;
@@ -66,12 +69,14 @@ public class ApplicationRiskService
 
   @Inject
   public ApplicationRiskService(ApplicationService applicationService,
+                                ApplicationSourceControlService applicationSourceControlService,
                                 OrganizationDAO organizationDAO,
                                 ApplicationDAO applicationDAO,
                                 PolicyViolationLoader policyViolationLoader,
                                 DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
+    this.applicationSourceControlService = applicationSourceControlService;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
     this.policyViolationLoader = policyViolationLoader;
@@ -97,7 +102,7 @@ public class ApplicationRiskService
         policyThreatLevelFilter, policyViolationStateFilter, orderBy, page, pageSize, false, false);
   }
 
-  public DashboardResultsDTO<CIApplicationDTO> getCIApplicationRisk(final CIApplicationFilter filter) {
+  public DashboardResultsDTO<ApplicationTotalRiskDTO> getCIApplicationRisk(final CIApplicationFilter filter) {
     checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
 
     if (filter.getPage() < 0 || filter.getPageSize() <= 0) {
@@ -108,15 +113,61 @@ public class ApplicationRiskService
         applicationDAO.getApplicationsWithoutCITriggeredEvaluations(filter.getSinceUtcTimestamp(),
             filter.getOptionalFilterApplicationNamesBy());
     final DashboardResultsDTO<ApplicationRiskScoreDTO> fullResults =
-        getApplicationRisks(Collections.emptySet(), new HashSet<>(appsWithoutCI), Collections.emptySet(),
-            Collections.emptySet(), new PolicyThreatCategoryFilter(), new PolicyThreatLevelFilter(0, 10),
-            new PolicyViolationStateFilter(), filter.getOptionalOrderBy(), filter.getPage(), filter.getPageSize(),
-            true, true);
-    final List<CIApplicationDTO> totalRiskResults = fullResults.dashboardResults.stream().map(applicationRiskScoreDTO ->
-        new CIApplicationDTO(applicationRiskScoreDTO.applicationId, applicationRiskScoreDTO.applicationName,
+        getApplicationRisksUnfiltered(new HashSet<>(appsWithoutCI), filter.getOptionalOrderBy(), filter.getPage(),
+            filter.getPageSize());
+    final List<ApplicationTotalRiskDTO> totalRiskResults =
+        fullResults.dashboardResults.stream().map(applicationRiskScoreDTO ->
+            new ApplicationTotalRiskDTO(applicationRiskScoreDTO.applicationId, applicationRiskScoreDTO.applicationName,
+                applicationRiskScoreDTO.totalApplicationRisk.totalRisk)).collect(Collectors.toList());
+
+    return new DashboardResultsDTO<>(totalRiskResults, fullResults.numResults);
+  }
+
+  public DashboardResultsDTO<ApplicationTotalRiskDTO> getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(
+      final int page, final int pageSize)
+  {
+    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+
+    if (page < 0 || pageSize <= 0) {
+      throw new BadRequestException("Page and page size must be greater than 0");
+    }
+
+    final List<String> appsWithAutomatedSourceControlFeedbackDisabled =
+        applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled()
+            .stream()
+            .map(Application::getId)
+            .collect(Collectors.toList());
+    final DashboardResultsDTO<ApplicationRiskScoreDTO> fullResults =
+        getApplicationRisksUnfiltered(new HashSet<>(appsWithAutomatedSourceControlFeedbackDisabled), "-TOTAL_RISK",
+            page, pageSize);
+    final List<ApplicationTotalRiskDTO> totalRiskResults =
+        fullResults.dashboardResults.stream().map(applicationRiskScoreDTO ->
+        new ApplicationTotalRiskDTO(applicationRiskScoreDTO.applicationId, applicationRiskScoreDTO.applicationName,
             applicationRiskScoreDTO.totalApplicationRisk.totalRisk)).collect(Collectors.toList());
 
     return new DashboardResultsDTO<>(totalRiskResults, fullResults.numResults);
+  }
+
+  private DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisksUnfiltered(
+      final Set<String> applicationIds,
+      final String orderBy,
+      int page,
+      int pageSize)
+  {
+    return getApplicationRisks(
+        Collections.emptySet(),
+        applicationIds,
+        Collections.emptySet(),
+        Collections.emptySet(),
+        new PolicyThreatCategoryFilter(),
+        new PolicyThreatLevelFilter(0, 10),
+        new PolicyViolationStateFilter(),
+        orderBy,
+        page,
+        pageSize,
+        true,
+        true
+    );
   }
 
   private DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisks(
@@ -131,7 +182,7 @@ public class ApplicationRiskService
       int page,
       int pageSize,
       boolean includeZeroRisk,
-      boolean excludeAllAppsByDefault)
+      boolean excludeOrgIdsAndTagIds)
   {
     dashboardUtils.validateDashboardLicensedAndEnabledForApplications();
 
@@ -139,7 +190,7 @@ public class ApplicationRiskService
 
     ApplicationRiskScoreDTOComparator applicationRiskComparator = new ApplicationRiskScoreDTOComparator(orderBy);
     List<Application> appsToSearch =
-        excludeAllAppsByDefault ? applicationService.getAppsByIds(organizationIds, applicationIds, tagIds) :
+        excludeOrgIdsAndTagIds ? applicationDAO.getByIds(applicationIds) :
             applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
     log.debug("Loaded {} applications", appsToSearch.size());
 

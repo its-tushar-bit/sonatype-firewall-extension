@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1638,6 +1639,157 @@ public class SourceControlDAOTest
     }
   }
 
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_WithInheritedDisabledFlags() {
+    final TestableHierarchy automatedSourceControlFeedbackDisabled = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId1", "appId1")
+        .withProvider(GITLAB, null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, null, null)
+        .withCommitStatusEnabled(true, false, null)
+        .build();
+
+    final Application feedbackDisabledApp = automatedSourceControlFeedbackDisabled.getApplication("appId1");
+    final List<Application> inputApplications = Collections.singletonList(feedbackDisabledApp);
+    final List<Application> results =
+        sourceControlDAO.getApplicationsWithAutomatedSourceControlFeedbackDisabled(inputApplications);
+
+    assertThat(results)
+        .extracting("id")
+        .contains(feedbackDisabledApp.getId());
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_WithInheritedEnabledFlags() {
+    final TestableHierarchy automatedSourceControlFeedbackEnabled = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId1", "appId1")
+        .withProvider(GITLAB, null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, true, null)
+        .withCommitStatusEnabled(true, null, null)
+        .build();
+
+    final Application feedbackEnabledApp = automatedSourceControlFeedbackEnabled.getApplication("appId1");
+    final List<Application> inputApplications = Collections.singletonList(feedbackEnabledApp);
+    final List<Application> results =
+        sourceControlDAO.getApplicationsWithAutomatedSourceControlFeedbackDisabled(inputApplications);
+
+    assertThat(results).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_WithInheritedMixedFlags() {
+    final TestableHierarchy automatedSourceControlFeedbackDisabled = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId1", "appId1")
+        .withProvider(GITLAB, null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, true, null)
+        .withCommitStatusEnabled(true, false, null)
+        .build();
+
+    final Application feedbackDisabledApp = automatedSourceControlFeedbackDisabled.getApplication("appId1");
+    final List<Application> inputApplications = Collections.singletonList(feedbackDisabledApp);
+    final List<Application> results =
+        sourceControlDAO.getApplicationsWithAutomatedSourceControlFeedbackDisabled(inputApplications);
+
+    assertThat(results)
+        .extracting("id")
+        .contains(feedbackDisabledApp.getId());
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_WithDisabledFlags() {
+    final TestableHierarchy automatedSourceControlFeedbackDisabled = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId1", "appId1")
+        .withProvider(GITLAB, null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(true, null, false)
+        .withCommitStatusEnabled(true, true, false)
+        .build();
+
+    final Application feedbackDisabledApp = automatedSourceControlFeedbackDisabled.getApplication("appId1");
+    final List<Application> inputApplications = Collections.singletonList(feedbackDisabledApp);
+    final List<Application> results =
+        sourceControlDAO.getApplicationsWithAutomatedSourceControlFeedbackDisabled(inputApplications);
+
+    assertThat(results)
+        .extracting("id")
+        .contains(feedbackDisabledApp.getId());
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_WithEnabledFlags() {
+    final TestableHierarchy automatedSourceControlFeedbackEnabled = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId1", "appId1")
+        .withProvider(GITLAB, null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(true, false, true)
+        .withCommitStatusEnabled(true, null, true)
+        .build();
+
+    final Application feedbackEnabledApp = automatedSourceControlFeedbackEnabled.getApplication("appId1");
+    final List<Application> inputApplications = Collections.singletonList(feedbackEnabledApp);
+    final List<Application> results =
+        sourceControlDAO.getApplicationsWithAutomatedSourceControlFeedbackDisabled(inputApplications);
+
+    assertThat(results).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_WithMixedFlags() {
+    final TestableHierarchy automatedSourceControlFeedbackDisabled = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId1", "appId1")
+        .withProvider(GITLAB, null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, true, false)
+        .withCommitStatusEnabled(true, false, true)
+        .build();
+
+    final Application feedbackDisabledApp = automatedSourceControlFeedbackDisabled.getApplication("appId1");
+    final List<Application> inputApplications = Collections.singletonList(feedbackDisabledApp);
+    final List<Application> results =
+        sourceControlDAO.getApplicationsWithAutomatedSourceControlFeedbackDisabled(inputApplications);
+
+    assertThat(results)
+        .extracting("id")
+        .contains(feedbackDisabledApp.getId());
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_AllNullFlags() {
+    final TestableHierarchy automatedSourceControlFeedbackDisabled = new TestableHierarchy()
+        .with_N_OrgsAndAnApp(ROOT_ORGANIZATION_ID, "orgId1", "appId1")
+        .withProvider(GITLAB, null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(null, null, null)
+        .withCommitStatusEnabled(null, null, null)
+        .build();
+
+    final Application feedbackDisabledApp = automatedSourceControlFeedbackDisabled.getApplication("appId1");
+    final List<Application> inputApplications = Collections.singletonList(feedbackDisabledApp);
+
+    assertThatThrownBy(() ->
+        sourceControlDAO.getApplicationsWithAutomatedSourceControlFeedbackDisabled(inputApplications))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Composite source control configurations cannot be null");
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_NoApps() {
+    final List<Application> results =
+        sourceControlDAO.getApplicationsWithAutomatedSourceControlFeedbackDisabled(Collections.emptyList());
+
+    assertThat(results)
+        .isEmpty();
+  }
+
   private void assertSourceControl(SourceControl actualSC, SourceControl expectedSC) {
     assertThat(actualSC.getId()).isEqualTo(expectedSC.getId());
     assertThat(actualSC.getOwnerId()).isEqualTo(expectedSC.getOwnerId());
@@ -1796,7 +1948,7 @@ public class SourceControlDAOTest
       }
       return this;
     }
-    
+
     private TestableHierarchy withCommitStatusEnabled(Boolean... commitStatusEnabledFlags) {
       assertHierarchyDepth(commitStatusEnabledFlags.length);
       for (int i = 0; i < commitStatusEnabledFlags.length; i++) {

@@ -201,12 +201,12 @@ public class RepositoryManagerDAOTest
 
   @Test
   public void testInsert_nameExists() {
-    RepositoryManager repositoryManager = new RepositoryManager();
+    RepositoryManager repositoryManager = new RepositoryManager("1");
     repositoryManager.setName("name1");
 
     dao.insert(repositoryManager);
 
-    RepositoryManager repositoryManager2 = new RepositoryManager();
+    RepositoryManager repositoryManager2 = new RepositoryManager("2");
     repositoryManager2.setName("name1");
 
     assertThatThrownBy(() -> dao.insert(repositoryManager2)).isInstanceOf(InvalidNameException.class)

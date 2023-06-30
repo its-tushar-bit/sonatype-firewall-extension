@@ -1179,7 +1179,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repositoryService.setPolicyAction(policy.getName(), null);
     foundPolicy = policyDAO.getById(policy.getId());
     assertThat(foundPolicy.getActions()).isEmpty();
-    
+
     // Policy has other actions. Don't touch them.
     foundPolicy.setAction(BuildStageType.ID, WarnActionType.ID);
     policyDAO.update(foundPolicy);
@@ -1249,5 +1249,23 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(foundPolicy.getActions()).isEmpty();
     foundPolicy = policyDAO.getById(securityNamespaceConflictPolicy.getId());
     assertThat(foundPolicy.getActions()).isEmpty();
+  }
+
+  @Test
+  public void testUpdateName_Success() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryService.updateName(repositoryManager.getId(), "Repo Name2");
+
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
+
+    assertThat(foundRepositoryManager.getName()).isEqualTo("Repo Name2");
+    assertThat(foundRepositoryManager.getNameLowercaseNoWhitespace()).isEqualTo("reponame2");
+  }
+
+  @Test
+  public void testUpdateName_idNull() {
+    assertThatExceptionOfType(NotFoundException.class)
+            .isThrownBy(() -> repositoryService.updateName(null, "Repo Name2"))
+            .withMessage("Cannot find a repository manager with ID null.");
   }
 }

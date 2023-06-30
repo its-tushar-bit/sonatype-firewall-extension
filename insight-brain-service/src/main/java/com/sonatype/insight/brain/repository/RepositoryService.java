@@ -677,7 +677,7 @@ public class RepositoryService
       policy.setActions(policyActions);
       policyUpdated = true;
     }
-    
+
     if (policyUpdated) {
       log.debug("Setting action={} for proxy stage for policy '{}'.", policyActionId, policyName);
       policyDAO.update(policy);
@@ -692,5 +692,24 @@ public class RepositoryService
     else {
       log.debug("Policy '{}' already has action={} for proxy stage.", policyName, policyActionId);
     }
+  }
+
+  void updateName(String repositoryManagerId, String name) {
+    AuditData.get().setRepositoryManagerId(repositoryManagerId);
+
+    checkWritePermission(RepositoryContainer.SINGLETON);
+
+    log.debug("Updating name of repository manager with id {} to: {}", repositoryManagerId, name);
+
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
+
+    AuditData.get()
+            .setRepositoryManagerInstanceId(repositoryManager.getInstanceId())
+            .setRepositoryManagerName(repositoryManager.getName());
+
+    repositoryManager.setName(name);
+    repositoryManagerDAO.update(repositoryManager);
+
+    log.debug("Repository manager with id {} updated to name: {}", repositoryManagerId, name);
   }
 }

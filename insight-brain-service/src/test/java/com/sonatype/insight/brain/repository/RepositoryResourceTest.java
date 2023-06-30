@@ -399,4 +399,19 @@ public class RepositoryResourceTest
     assertThat(foundPolicy.getActions()).hasSize(1);
     assertThat(foundPolicy.getActions().get(ProxyStageType.ID)).isEqualTo(FailActionType.ID);
   }
+
+  @Test
+  public void testUpdateName() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH,
+                    RepositoryResource.UPDATE_REPOSITORY_MANAGER_NAME_PATH)
+            .parameter(repositoryManager.getId(), "name2")
+            .put();
+
+    assertResponseStatus(204, response);
+
+    RepositoryManager repositoryManagerResult = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
+    assertThat(repositoryManagerResult.getName()).isEqualTo("name2");
+  }
 }

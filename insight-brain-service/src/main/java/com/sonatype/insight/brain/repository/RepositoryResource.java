@@ -71,6 +71,8 @@ public class RepositoryResource
 
   static final String CONFIGURE_FIREWALL_ONBOARDING_PATH = "configureFirewallOnboarding";
 
+  static final String UPDATE_REPOSITORY_MANAGER_NAME_PATH = "repositoryManager/{repositoryManagerId}/{name}";
+
   private RepositoryService repositoryService;
 
   @Inject
@@ -256,5 +258,15 @@ public class RepositoryResource
       FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO)
   {
     repositoryService.configureFirewallOnboarding(firewallOnboardingOptionsDTO);
+  }
+
+  @PUT
+  @Path(UPDATE_REPOSITORY_MANAGER_NAME_PATH)
+  @Audited(AuditEvent.UPDATE_REPOSITORY_MANAGER)
+  public void updateName(
+          @PathParam("repositoryManagerId") String repositoryManagerId,
+          @PathParam("name") String name)
+  {
+    repositoryService.updateName(repositoryManagerId, name);
   }
 }

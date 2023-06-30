@@ -520,4 +520,22 @@ public class RepositoryServiceAuthzTest
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.configureFirewallOnboarding(new FirewallOnboardingOptionsDTO());
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateName_Unauthenticated() {
+    repositoryService.updateName("repositoryManagerId", "newName");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdateName_Unauthorized() {
+    login();
+    repositoryService.updateName("repositoryManagerId", "newName");
+  }
+
+  @Test
+  public void testUpdateName_Authorized() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.updateName(repositoryManager.getId(), "newName");
+  }
 }

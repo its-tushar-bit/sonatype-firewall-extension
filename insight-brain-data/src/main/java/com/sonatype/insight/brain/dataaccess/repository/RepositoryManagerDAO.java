@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -27,6 +29,14 @@ public class RepositoryManagerDAO
     String sQuery = "SELECT entity FROM RepositoryManager entity" + //
         " WHERE entity.id=?1";
     return get(tx, sQuery, id);
+  }
+
+  public RepositoryManager getByIdNotNull(String id) {
+    RepositoryManager repositoryManager = getById(id);
+    if (repositoryManager == null) {
+      throw new NotFoundException("Cannot find a repository manager with ID " + id + ".");
+    }
+    return repositoryManager;
   }
 
   public RepositoryManager getByInstanceId(String instanceId) {
@@ -61,10 +71,18 @@ public class RepositoryManagerDAO
   @Override
   public void insert(TransactionContext tx, RepositoryManager repositoryManager) {
     validateInstanceId(repositoryManager.getInstanceId());
+    if (repositoryManager.getName() != null) {
+      NameHelper.validate("Name", repositoryManager.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
+    }
 
     if (getByInstanceId(tx, repositoryManager.getInstanceId()) != null) {
       throw new InvalidRepositoryManagerException("There is already a repository manager with instance ID "
           + repositoryManager.getInstanceId() + ".");
+    }
+
+    if (repositoryManager.getName() != null
+            && getByName(tx, repositoryManager.getName()) != null) {
+      throw new InvalidNameException(repositoryManager.getName() + " is already used as a name.");
     }
 
     super.insert(tx, repositoryManager);
@@ -73,6 +91,9 @@ public class RepositoryManagerDAO
   @Override
   public void update(TransactionContext tx, RepositoryManager repositoryManager) {
     validateInstanceId(repositoryManager.getInstanceId());
+    if (repositoryManager.getName() != null) {
+      NameHelper.validate("Name", repositoryManager.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
+    }
 
     RepositoryManager existingRepositoryManager = getByInstanceId(tx, repositoryManager.getInstanceId());
     if (existingRepositoryManager != null && !existingRepositoryManager.getId().equals(repositoryManager.getId())) {
@@ -80,7 +101,25 @@ public class RepositoryManagerDAO
           + repositoryManager.getInstanceId() + ".");
     }
 
+    if (repositoryManager.getName() != null) {
+      RepositoryManager foundByNameRepositoryManager = getByName(tx,
+              repositoryManager.getName());
+      if (foundByNameRepositoryManager != null && !repositoryManager.getId()
+              .equals(foundByNameRepositoryManager.getId())) {
+        throw new InvalidNameException(
+                repositoryManager.getName() + " is already used as a name.");
+      }
+    }
+
     super.update(tx, repositoryManager);
+  }
+
+  public RepositoryManager getByName(TransactionContext tx, String name) {
+    NameHelper.validate("Name", name, NameHelper.MAX_NAME_LENGTH_APP_ORG);
+
+    name = NameHelper.normalize(name);
+    String sQuery = "SELECT entity FROM RepositoryManager entity WHERE entity.nameLowercaseNoWhitespace=?1";
+    return get(tx, sQuery, name);
   }
 
   @Override

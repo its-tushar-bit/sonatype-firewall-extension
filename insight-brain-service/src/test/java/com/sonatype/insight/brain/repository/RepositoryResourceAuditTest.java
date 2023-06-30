@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -359,5 +360,40 @@ public class RepositoryResourceAuditTest
     assertThat(auditDTOs).hasSize(1);
     auditDTOs = getLogEntries(AuditEvent.UPDATE_POLICY);
     assertThat(auditDTOs).isEmpty();
+  }
+
+  @Test
+  public void testUpdateName_Success() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    HttpResponse response1 = restRequest()
+            .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UPDATE_REPOSITORY_MANAGER_NAME_PATH)
+            .parameter(repositoryManager.getId(), "name2")
+            .put();
+
+    assertResponseStatus(204, response1);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_REPOSITORY_MANAGER, null);
+
+    assertAuditLog(AuditEvent.UPDATE_REPOSITORY_MANAGER, null);
+
+    assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+    assertCustomData(auditDTO, "repositoryManagerName", repositoryManager.getName());
+  }
+
+  @Test
+  public void testUpdateName_Unauthorized() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    HttpResponse response = restRequest()
+            .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UPDATE_REPOSITORY_MANAGER_NAME_PATH)
+            .parameter(repositoryManager.getId(), "name")
+            .with(unauthorizedUser())
+            .put();
+
+    assertResponseStatus(403, response);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_REPOSITORY_MANAGER, "unauthorized");
+    assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
   }
 }

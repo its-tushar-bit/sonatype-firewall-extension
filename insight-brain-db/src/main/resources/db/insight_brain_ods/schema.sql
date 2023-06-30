@@ -503,8 +503,11 @@ CREATE TABLE repository_manager (
   -- The repository manager can be marked as configured without a configure time if it existed in the db before these fields were added.
   configured boolean DEFAULT true NOT NULL,
   configure_time timestamp NULL,
+  name varchar(200) default NULL,
+  name_lowercase_no_whitespace varchar(200) default NULL,
   CONSTRAINT repository_manager_pk PRIMARY KEY (repository_manager_id),
-  CONSTRAINT repository_manager_uk UNIQUE (instance_id)
+  CONSTRAINT repository_manager_uk UNIQUE (instance_id),
+  CONSTRAINT repository_manager_name_uk UNIQUE (name_lowercase_no_whitespace)
 );
 
 CREATE TABLE repository (

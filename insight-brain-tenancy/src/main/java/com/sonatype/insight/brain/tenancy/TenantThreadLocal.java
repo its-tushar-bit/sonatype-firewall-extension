@@ -243,8 +243,7 @@ public class TenantThreadLocal
   }
 
   /**
-   * PACKAGE PRIVATE!!! Only trusted callers should be able to run code as a specific tenant. Note: Using this method
-   * will invalidate the tenant when finished. Use cloneTenant before using this.
+   * PACKAGE PRIVATE!!! Only trusted callers should be able to run code as a specific tenant.
    */
   static <T> T runAs(Tenant tenant, Supplier<T> supplier) {
     if (!tenantUtil.isMultiTenant()) {

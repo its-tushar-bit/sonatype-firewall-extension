@@ -141,7 +141,7 @@ public class DeleteTenantsJob
         deleteTenant(tenant);
       }
       catch (Exception e) {
-        log.error("Tenant delete {} failed with {}.", tenant.getId(), e);
+        log.error("Tenant delete {} failed with.", tenant.getId(), e);
       }
     }
   }
@@ -190,12 +190,16 @@ public class DeleteTenantsJob
     try {
       success = tenantManager.performDatabaseRegistrationAndRunAs(tenant.getId(), () -> {
         TenantMetadata tenantMetadata = tenantMetadataDAO.get();
+        if (tenantMetadata == null) {
+          log.info("Tenant {} metadata not found, not deleting auth0 tenant.", tenant.getId());
+          return true;
+        }
         return auth0ManagementService.deleteTenant(tenantMetadata.getApplicationId(),
             tenantMetadata.getConnectionId());
       });
     }
     catch (IllegalArgumentException e) {
-      log.error("Delete tenant {} Auth0 failed to register DB with {}.", tenant.getId(), e);
+      log.error("Delete tenant {} Auth0 failed.", tenant.getId(), e);
     }
 
     return success;

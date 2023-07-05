@@ -32,7 +32,7 @@ function routes($stateProvider) {
       data: {
         title: 'Policy Violation',
       },
-      url: '/{id}?type&sidebarReference&sidebarId',
+      url: '/{id}?type&sidebarReference&sidebarId&page',
     })
     .state('transitiveViolations', {
       component: 'transitiveViolationsPageContainer',

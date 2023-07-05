@@ -19,6 +19,7 @@ export default function DashboardViolations(props) {
       sortViolations,
       stateGo,
       appliedFilter: { maxDaysOld },
+      setViolationsPage,
     } = props,
     isLoading = !violations.results && !violations.error;
 
@@ -39,6 +40,7 @@ export default function DashboardViolations(props) {
     maxDaysOld,
     needsAcknowledgement,
     reload: doLoad,
+    setViolationsPage,
   };
 
   return (
@@ -67,4 +69,5 @@ DashboardViolations.propTypes = {
     maxDaysOld: PropTypes.number,
   }).isRequired,
   violations: dashboardResultsShape,
+  setViolationsPage: PropTypes.func.isRequired,
 };

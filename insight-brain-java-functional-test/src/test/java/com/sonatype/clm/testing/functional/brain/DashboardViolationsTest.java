@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
@@ -29,7 +30,6 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations.Violatio
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
-import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -59,12 +59,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
@@ -78,8 +83,6 @@ public class DashboardViolationsTest
 {
   private static final String NO_DATA_MSG =
       "No data available in the last 30 days given the applied filters and permissions.";
-
-  private static final String MAX_RESULTS_MSG = "First 100 results shown";
 
   private static final String CSV_HEADERS = "Threat Level,Policy Name,Organization Name,Application Name," +
       "Component Name,Date First Seen,Timestamp First Seen, Reference, Policy Violation Id";
@@ -189,7 +192,6 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(hidden);
     table.violations().shouldHaveSize(3);
     showLowRiskViolations();
     table.violations().shouldHaveSize(4);
@@ -452,7 +454,7 @@ public class DashboardViolationsTest
       SelenideElement cell = cellGetter.apply(row);
 
       cell.click();
-      waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(violation.getId(), "violation", "filter"));
+      waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(violation.getId(), "violation", "filter", 1));
     }
   }
 
@@ -467,20 +469,6 @@ public class DashboardViolationsTest
     createViolations(100, buildEvalNow);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.violationsView().results().maxResultsMessage().shouldBe(hidden);
-  }
-
-  @Test
-  public void testShouldShowMaxResultsMessageWhen101Results() {
-    createViolations(101, buildEvalNow);
-    refresh();
-    DashboardPage.dashboardContainer().shouldBe(visible);
-    SelenideElement maxResultsMessage = DashboardPage.violationsView().results().maxResultsMessage();
-    maxResultsMessage.shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
-    // order results before the screenshot
-    DashboardPage.violationsView().headers().componentHeader().click();
-    ScrollUtil.scrollIntoView(maxResultsMessage);
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -508,7 +496,6 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(visible);
 
     // by default should be sorted by time desc, threat desc
     headers.ageHeader().sortArrows().shouldBeUp();
@@ -571,7 +558,6 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(visible);
 
     // sort by threat desc, time desc
     headers.threatHeader().click();
@@ -629,7 +615,6 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(visible);
 
     // sort by policy asc, time desc
     headers.policyHeader().click();
@@ -685,7 +670,6 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(visible);
 
     // sort by application asc, threat desc
     headers.applicationHeader().click();
@@ -744,7 +728,6 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(visible);
 
     // sort by component name asc, threat desc
     headers.componentHeader().click();
@@ -781,6 +764,87 @@ public class DashboardViolationsTest
 
     table.lastViolation().component().shouldHave(text("group1"));
     table.lastViolation().threatNumber().shouldHave(text("5"));
+  }
+
+  @Test
+  public void testPagination() {
+    Policy licensePolicy1 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy1", 3);
+    Policy licensePolicy2 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy2", 4);
+    Policy licensePolicy3 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy3", 5);
+    Policy licensePolicy4 = createLicensePolicy(app1.getParentOwnerId(), "DVTLicensePolicy4", 2);
+
+    for (int i = 1; i <= 25; i++) {
+      // 50 violations for 'group1' component: 25 with threatLevel 4, 25 with threatLevel 5
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy2, "group1", "artifact", "version" + i, null);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy3, "group1", "artifact", "version" + i, null);
+
+      // 50 violations for 'group2' component: 25 with threatLevel 4, 25 with threatLevel 5
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy2, "group2", "artifact", "version" + i, null);
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy3, "group2", "artifact", "version" + i, null);
+    }
+
+    // 25 violations for 'group2' component with threatLevel 3
+    for (int i = 1; i <= 25; i++) {
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy1, "group2", "artifact", "version" + i, null);
+    }
+
+    // 25 violations for 'group2' component with threatLevel 2
+    for (int i = 1; i <= 25; i++) {
+      tempEntity.newPolicyViolation(buildEvalNow, licensePolicy4, "group2", "artifact", "version" + i, null);
+    }
+
+    refresh();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    DashboardPage.violationsView().paginationButtons().shouldHaveSize(2);
+
+    table.firstViolation().component().shouldHave(text("group1"));
+    table.firstViolation().threatNumber().shouldHave(text("5"));
+
+    table.lastViolation().component().shouldHave(text("group2"));
+    table.lastViolation().threatNumber().shouldHave(text("4"));
+
+    changePage(1);
+
+    table.firstViolation().component().shouldHave(text("group2"));
+    table.firstViolation().threatNumber().shouldHave(text("3"));
+
+    table.lastViolation().component().shouldHave(text("group2"));
+    table.lastViolation().threatNumber().shouldHave(text("2"));
+
+    // sort by policy name asc, threat desc
+    headers.policyHeader().click();
+    // should be at first page after sorting
+    DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
+
+    table.firstViolation().policy().shouldHave(text(licensePolicy1.getName()));
+    table.lastViolation().policy().shouldHave(text(licensePolicy3.getName()));
+
+    changePage(1);
+
+    table.firstViolation().policy().shouldHave(text(licensePolicy3.getName()));
+    table.lastViolation().policy().shouldHave(text(licensePolicy4.getName()));
+
+    DashboardPage.filterToggle().click();
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
+    DashboardFilters.policyThreatLevelFilter().slider().setValues(3, 10);
+    DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
+
+    // should be at first page after filtering
+    DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
+    DashboardPage.violationsView().paginationButtons().shouldHaveSize(2);
+
+    changePage(1);
+    table.lastViolation().policy().shouldHave(text(licensePolicy3.getName()));
+
+    DashboardPage.filterToggle().click();
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
+    DashboardFilters.policyThreatLevelFilter().slider().setValues(4, 10);
+    DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
+
+    DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
+    DashboardPage.violationsView().paginationButtons().shouldHaveSize(1);
   }
 
   private void assertViolationsCsv(
@@ -866,5 +930,15 @@ public class DashboardViolationsTest
 
   private void clearFilters() {
     new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
+  }
+
+  private void changePage(int page) {
+    DashboardPage.violationsView().paginationButtons().get(page).click();
+
+    new FluentWait<>(getWebDriver())
+        .withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
+        .ignoring(NoSuchElementException.class)
+        .until(ExpectedConditions.visibilityOf(table.firstViolation().policy()));
   }
 }

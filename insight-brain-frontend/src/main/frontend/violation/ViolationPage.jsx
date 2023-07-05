@@ -167,7 +167,7 @@ export const violationPageTypes = {
   loadApplicableWaivers: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
   isFirewallContext: PropTypes.bool,
-  policyViolations: PropTypes.array,
+  policyViolations: PropTypes.object,
   selectPolicyId: PropTypes.string,
   loadFirewallPolicyVulnerabilityDetails: PropTypes.func,
   hasPermissionForAppWaivers: PropTypes.bool,

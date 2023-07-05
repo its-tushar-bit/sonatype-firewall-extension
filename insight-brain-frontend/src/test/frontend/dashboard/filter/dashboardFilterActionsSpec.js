@@ -75,7 +75,6 @@ describe('dashboardFilterActions: non-angular', function () {
 
   const expectedRisksPayload = {
     orderBy: '-undefined,-THREAT_LEVEL',
-    maxResults: 100,
     organizationIds: undefined,
     applicationIds: undefined,
     repositoryIds: undefined,
@@ -85,6 +84,8 @@ describe('dashboardFilterActions: non-angular', function () {
     maxDaysOld: undefined,
     policyThreatLevelRange: undefined,
     expirationDate: undefined,
+    pageSize: 100,
+    page: 0,
   };
 
   describe('loadFilter', function () {
@@ -298,7 +299,7 @@ describe('dashboardFilterActions: non-angular', function () {
           basedOnFilterName: expectedFilterName,
         });
 
-        expect(store.getActions().length).toBe(5);
+        expect(store.getActions().length).toBe(6);
 
         expect(store.getActions()[1]).toEqual({ type: 'RESET_ALL_TABS' });
 
@@ -309,12 +310,18 @@ describe('dashboardFilterActions: non-angular', function () {
             basedOnFilterName: expectedFilterName,
           },
         });
+
         expect(store.getActions()[3]).toEqual({
+          type: 'DASHBOARD_SET_PAGE',
+          payload: { resultsType: 'violations', page: 0 },
+        });
+
+        expect(store.getActions()[4]).toEqual({
           type: 'LOAD_RESULTS_REQUESTED',
           payload: 'violations',
         });
 
-        expect(store.getActions()[4]).toEqual({
+        expect(store.getActions()[5]).toEqual({
           type: 'LOAD_RESULTS_FULFILLED',
           payload: {
             resultsType: 'violations',
@@ -354,7 +361,7 @@ describe('dashboardFilterActions: non-angular', function () {
           basedOnFilterName: expectedFilterName,
         });
 
-        expect(store.getActions().length).toBe(5);
+        expect(store.getActions().length).toBe(6);
 
         expect(store.getActions()[1]).toEqual({ type: 'RESET_ALL_TABS' });
 
@@ -367,11 +374,16 @@ describe('dashboardFilterActions: non-angular', function () {
         });
 
         expect(store.getActions()[3]).toEqual({
+          type: 'DASHBOARD_SET_PAGE',
+          payload: { resultsType: 'violations', page: 0 },
+        });
+
+        expect(store.getActions()[4]).toEqual({
           type: 'LOAD_RESULTS_REQUESTED',
           payload: 'violations',
         });
 
-        expect(store.getActions()[4]).toEqual({
+        expect(store.getActions()[5]).toEqual({
           type: 'LOAD_RESULTS_FAILED',
           payload: {
             error: 'load results error',

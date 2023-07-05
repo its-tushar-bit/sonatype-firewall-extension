@@ -28,13 +28,16 @@ export default angular
   .filter('removeDashes', removeDashes)
   .filter('wrapWith', wrapWith);
 
-export function createDashboardDataRequestPayload(filter, maxResults, sortFields) {
+export function createDashboardDataRequestPayload(filter, pageSize, sortFields, page) {
   var params = {};
   if (sortFields && sortFields.length) {
     params.orderBy = sortFields.join();
   }
-  if (maxResults) {
-    params.maxResults = maxResults;
+  if (pageSize !== null && pageSize !== undefined) {
+    params.pageSize = pageSize;
+  }
+  if (page !== null && page !== undefined) {
+    params.page = page;
   }
   if (filter) {
     params.organizationIds = setToArray(filter.organizations);

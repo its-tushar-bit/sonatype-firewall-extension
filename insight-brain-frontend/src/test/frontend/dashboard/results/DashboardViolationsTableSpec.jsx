@@ -4,21 +4,23 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxTable, NxTableBody, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
+import { lensPath, set } from 'ramda';
+import { NxPagination, NxTable, NxTableBody, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 
 describe('DashboardViolationsTable', function () {
   let minimalProps,
-    minimalPropsWithMoreResults,
     getShallowComponent,
     reloadSpy,
     sortViolationsSpy,
+    setViolationsPageSpy,
     DashboardViolationsTableRowMock,
     DashboardViolationsTable;
 
   beforeEach(() => {
     reloadSpy = jasmine.createSpy('reload');
     sortViolationsSpy = jasmine.createSpy('sortViolations');
+    setViolationsPageSpy = jasmine.createSpy('setViolationsPage');
     DashboardViolationsTableRowMock = jasmine
       .createSpy('DashboardViolationsTableRow')
       .and.returnValue(<div>DashboardViolationsTableRow</div>);
@@ -26,7 +28,6 @@ describe('DashboardViolationsTable', function () {
     DashboardViolationsTable = require('inject-loader!../../../../main/frontend/dashboard/results/violations/DashboardViolationsTable')(
       {
         './DashboardViolationsTableRow': DashboardViolationsTableRowMock,
-        '../../services/dashboard.data.service': { MAX_RESULTS: 3 },
       }
     ).default;
 
@@ -62,25 +63,10 @@ describe('DashboardViolationsTable', function () {
         ],
         numResults: 3,
         sortFields: ['-threatLevel', '-firstOccurrenceTime'],
+        pageCount: 1,
+        page: 0,
       },
-    };
-
-    minimalPropsWithMoreResults = {
-      ...minimalProps,
-      violations: {
-        ...minimalProps.violations,
-        results: [
-          ...minimalProps.violations.results,
-          {
-            policyViolationId: 'policyViolationId4',
-            threatLevel: 6,
-            policyName: 'policyName1',
-            applicationName: 'App1',
-            firstOccurrenceTime: Date.now(),
-          },
-        ],
-        numResults: 4,
-      },
+      setViolationsPage: setViolationsPageSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardViolationsTable, minimalProps);
@@ -114,16 +100,6 @@ describe('DashboardViolationsTable', function () {
   });
 
   describe('NxTableBody', () => {
-    it('renders violations and a message if there are more results than MAX_RESULTS', () => {
-      const component = getShallowComponent(minimalPropsWithMoreResults),
-        tBody = component.find(NxTableBody),
-        tRows = tBody.children(),
-        infoBox = tRows.at(4).dive().find('#max-results-shown');
-
-      expect(tRows.length).toEqual(5);
-      expect(infoBox).toHaveText('First 3 results shown');
-    });
-
     it('renders a needs acknowledgement message if needsAcknowledgement is true', () => {
       const component = getShallowComponent({ needsAcknowledgement: true }),
         tBody = component.find(NxTableBody),
@@ -375,6 +351,22 @@ describe('DashboardViolationsTable', function () {
 
       ageHeaderCell.simulate('click');
       expect(sortViolationsSpy).toHaveBeenCalledWith(['firstOccurrenceTime', '-threatLevel']);
+    });
+  });
+
+  describe('pagination', () => {
+    it('renders a NxPagination component', () => {
+      const pagination = getShallowComponent().find(NxPagination);
+      expect(pagination).toExist();
+      expect(pagination).toHaveProp('pageCount', 1);
+      expect(pagination).toHaveProp('currentPage', 0);
+      expect(pagination).toHaveProp('onChange', setViolationsPageSpy);
+    });
+
+    it('sets currentPage to null when there are no results', () => {
+      const props = set(lensPath(['violations', 'pageCount']), 0, minimalProps);
+      const pagination = getShallowComponent(props).find(NxPagination);
+      expect(pagination).toHaveProp('currentPage', null);
     });
   });
 });

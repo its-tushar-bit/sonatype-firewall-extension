@@ -35,7 +35,7 @@ describe('DashboardViolationsTableRow', function () {
   });
 
   it('links on click to the violation details state', () => {
-    const row = getShallowComponent();
+    const row = getShallowComponent({ page: 2 });
 
     expect(row).toMatchSelector(NxTableRow);
     expect(row.key()).toEqual(minimalProps.violation.policyViolationId);
@@ -48,6 +48,7 @@ describe('DashboardViolationsTableRow', function () {
       id: 'policyViolationId1',
       type: 'violation',
       sidebarReference: 'filter',
+      page: 3,
     });
   });
 

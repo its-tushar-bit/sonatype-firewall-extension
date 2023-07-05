@@ -9,16 +9,17 @@ import {
   getComponentRisks,
   getNewestRisks,
   getWaivers,
-  MAX_RESULTS,
+  DASHBOARD_PAGE_SIZE,
 } from '../services/dashboard.data.service';
 import dashboardServicesModule from '../services/module';
-import { partial } from 'ramda';
+import { isNil, partial } from 'ramda';
 import {
   APPLICATIONS_RESULTS_TYPE,
   COMPONENTS_RESULTS_TYPE,
   VIOLATIONS_RESULTS_TYPE,
   WAIVERS_RESULTS_TYPE,
 } from 'MainRoot/dashboard/results/dashboardResultsTypes';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const LOAD_RESULTS_REQUESTED = 'LOAD_RESULTS_REQUESTED';
 export const LOAD_RESULTS_FULFILLED = 'LOAD_RESULTS_FULFILLED';
@@ -26,6 +27,7 @@ export const LOAD_RESULTS_FAILED = 'LOAD_RESULTS_FAILED';
 export const SORT_RESULTS_REQUESTED = 'SORT_RESULTS_REQUESTED';
 export const SORT_RESULTS_FULFILLED = 'SORT_RESULTS_FULFILLED';
 export const RESET_ALL_TABS = 'RESET_ALL_TABS';
+export const DASHBOARD_SET_PAGE = 'DASHBOARD_SET_PAGE';
 
 function loadResultsFulfilled(resultsType, results, numResults, classyBrew) {
   return {
@@ -60,10 +62,23 @@ export function loadResults(resultsType) {
   };
 }
 
+export function setPage(resultsType, page) {
+  return (dispatch) => {
+    dispatch({
+      type: DASHBOARD_SET_PAGE,
+      payload: { resultsType, page },
+    });
+
+    return dispatch(loadResults(resultsType));
+  };
+}
+
 export const loadViolationResults = partial(loadResults, [VIOLATIONS_RESULTS_TYPE]);
 export const loadComponentResults = partial(loadResults, [COMPONENTS_RESULTS_TYPE]);
 export const loadApplicationResults = partial(loadResults, [APPLICATIONS_RESULTS_TYPE]);
 export const loadWaiverResults = partial(loadResults, [WAIVERS_RESULTS_TYPE]);
+
+export const setViolationsPage = partial(setPage, [VIOLATIONS_RESULTS_TYPE]);
 
 function sortResults(resultsType, sortFields) {
   return (dispatch, getState) => {
@@ -75,7 +90,7 @@ function sortResults(resultsType, sortFields) {
     const dashboardState = getState().dashboard;
     const results = dashboardState[resultsType].results;
     const numResults = dashboardState[resultsType].numResults;
-    if (!results || numResults > MAX_RESULTS) {
+    if (!results || numResults > DASHBOARD_PAGE_SIZE) {
       return dispatch(loadResults(resultsType));
     } else {
       // use sortWaiversByFields only for waivers in case expiryTime prop is null
@@ -108,8 +123,13 @@ function sortResultsFulfilled(resultsType, results) {
 
 function fetchResults(resultsType, state) {
   const sortFields = state.dashboard[resultsType].sortFields;
+  let pageFromParams = selectRouterCurrentParams(state)?.page;
+  if (!isNil(pageFromParams)) {
+    pageFromParams--;
+  }
+  const page = state.dashboard[resultsType].page ?? pageFromParams ?? 0;
   const serviceMethod = getServiceMethod(resultsType);
-  return serviceMethod(state.dashboardFilter.appliedFilter, sortFields);
+  return serviceMethod(state.dashboardFilter.appliedFilter, sortFields, page);
 }
 
 function getServiceMethod(resultsType) {

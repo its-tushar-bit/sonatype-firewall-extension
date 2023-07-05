@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { DASHBOARD_PAGE_SIZE } from 'MainRoot/dashboard/services/dashboard.data.service';
 import reduce from '../../../main/frontend/dashboard/dashboardReducer';
 
 describe('dashboardReducer', () => {
@@ -34,6 +35,12 @@ describe('dashboardReducer', () => {
       expect(violations.sortFields).toEqual(['-firstOccurrenceTime', '-threatLevel']);
       expect(components.sortFields).toEqual(['-score']);
       expect(applications.sortFields).toEqual(['-totalApplicationRisk.totalRisk']);
+    });
+
+    it('starts at page 0', () => {
+      const { violations } = reduce(undefined, { type: 'UNKNOWN' });
+      expect(violations.pageCount).toBe(0);
+      expect(violations.page).toBeNull();
     });
   });
 
@@ -277,6 +284,50 @@ describe('dashboardReducer', () => {
       expect(applications).toBe(state.applications);
       expect(other).toBe(otherObject); // other properties are not modified
     });
+
+    it('updates violations pagination with results', () => {
+      testPaginationWithResults('violations');
+    });
+
+    const testPaginationWithResults = (resultsType) => {
+      const state = Object.freeze({
+        [resultsType]: { results: null, numResults: null, pageCount: 0, page: null },
+      });
+      const action = {
+        type: 'LOAD_RESULTS_FULFILLED',
+        payload: {
+          resultsType: resultsType,
+          results: [...Array(10).keys()],
+          numResults: 100,
+        },
+      };
+      const result = reduce(state, action)[resultsType];
+
+      expect(result.pageCount).toBe(Math.ceil(result.numResults / DASHBOARD_PAGE_SIZE));
+      expect(result.page).toBe(0);
+    };
+
+    it('updates violations pagination without results', () => {
+      testPaginationWithoutResults('violations');
+    });
+
+    const testPaginationWithoutResults = (resultsType) => {
+      const state = Object.freeze({
+        [resultsType]: { results: null, numResults: [1], pageCount: 1, page: 0 },
+      });
+      const action = {
+        type: 'LOAD_RESULTS_FULFILLED',
+        payload: {
+          resultsType: resultsType,
+          results: [],
+          numResults: 0,
+        },
+      };
+      const result = reduce(state, action)[resultsType];
+
+      expect(result.pageCount).toBe(0);
+      expect(result.page).toBeNull();
+    };
   });
 
   describe('LOAD_RESULTS_FAILED action', () => {
@@ -386,6 +437,7 @@ describe('dashboardReducer', () => {
       const state = Object.freeze({
         violations: {
           sortFields: ['-firstOccurrenceTime', '-threatLevel'],
+          page: 10,
           other: otherObject,
         },
         components: { sortFields: ['-score'] },
@@ -402,6 +454,7 @@ describe('dashboardReducer', () => {
       const { components, violations, applications } = reduce(state, action);
 
       expect(violations.sortFields).toBe(action.payload.sortFields);
+      expect(violations.page).toBe(0);
       expect(violations.other).toBe(otherObject); // other properties are not modified
       expect(components.sortFields).toBe(state.components.sortFields);
       expect(applications.sortFields).toBe(state.applications.sortFields);

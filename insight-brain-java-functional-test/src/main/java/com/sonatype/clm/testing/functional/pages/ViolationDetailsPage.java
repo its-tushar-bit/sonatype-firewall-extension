@@ -26,12 +26,15 @@ public class ViolationDetailsPage
   }
 
   public static String urlWithQueryParams(String violationId, String type, String sidebarReference) {
-    return BaseUrl.resolvePageUrl(
-        "/violation/{id}?type={type}&sidebarReference={sidebarReference}",
-        violationId,
-        type,
-        sidebarReference
-    );
+    return urlWithQueryParams(violationId, type, sidebarReference, null);
+  }
+
+  public static String urlWithQueryParams(String violationId, String type, String sidebarReference, Integer page) {
+    String path = "/violation/{id}?type={type}&sidebarReference={sidebarReference}";
+    if (page != null) {
+      return BaseUrl.resolvePageUrl(path + "&page={page}", violationId, type, sidebarReference, page);
+    }
+    return BaseUrl.resolvePageUrl(path, violationId, type, sidebarReference);
   }
 
   public ViolationDetailsPage() {

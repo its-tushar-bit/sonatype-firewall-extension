@@ -7,7 +7,7 @@ import axios from 'axios';
 
 import { fetchStageTypes } from '../../stages/stagesActions';
 import { fetchSavedFilters } from './manageFiltersActions';
-import { loadResults, RESET_ALL_TABS } from '../results/dashboardResultsActions';
+import { loadResults, RESET_ALL_TABS, setPage } from '../results/dashboardResultsActions';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import {
@@ -158,7 +158,7 @@ function applyFilterFulfilled(filter, basedOnFilterName) {
       type: APPLY_FILTER_FULFILLED,
       payload: { filter, basedOnFilterName },
     });
-    return dispatch(loadResults(getState().dashboard.currentTab));
+    return dispatch(setPage(getState().dashboard.currentTab, 0));
   };
 }
 

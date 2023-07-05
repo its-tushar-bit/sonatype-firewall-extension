@@ -15,9 +15,15 @@ describe('dashboard.utils.module', function () {
       createDashboardDataRequestPayload = $injector.get('createDashboardDataRequestPayload');
     }));
 
-    it('sets maxResults as specified', function () {
+    it('sets pageSize as specified', function () {
       expect(createDashboardDataRequestPayload(null, 1)).toEqual({
-        maxResults: 1,
+        pageSize: 1,
+      });
+    });
+
+    it('sets page as specified', function () {
+      expect(createDashboardDataRequestPayload(null, null, null, 12)).toEqual({
+        page: 12,
       });
     });
 

@@ -19,7 +19,6 @@ describe('dashboard.data.service.spec', function () {
   const filter = { filterParam: 'filter value' };
 
   const expectedRequestPayload = {
-    maxResults: 100,
     organizationIds: undefined,
     applicationIds: undefined,
     repositoryIds: undefined,
@@ -29,6 +28,8 @@ describe('dashboard.data.service.spec', function () {
     maxDaysOld: undefined,
     policyThreatLevelRange: undefined,
     expirationDate: undefined,
+    pageSize: 100,
+    page: 0,
   };
 
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -77,7 +78,7 @@ describe('dashboard.data.service.spec', function () {
         },
       });
 
-      getNewestRisks(filter, []).then(function (data) {
+      getNewestRisks(filter, [], 0).then(function (data) {
         const { results, numResults } = data;
 
         expect(axios.post).toHaveBeenCalledWith(newRisksUrl, expectedRequestPayload);
@@ -107,19 +108,21 @@ describe('dashboard.data.service.spec', function () {
         },
       });
 
-      getNewestRisks(filter, [
-        '-firstOccurrenceTime',
-        '-threatLevel',
-        'policyName',
-        '-derivedComponentName',
-        'applicationName',
-      ]);
+      getNewestRisks(
+        filter,
+        ['-firstOccurrenceTime', '-threatLevel', 'policyName', '-derivedComponentName', 'applicationName'],
+        0
+      );
 
       expect(axios.post).toHaveBeenCalledWith(newRisksUrl, expectedRequestData);
     });
   });
 
   describe('getApplicationRisks()', function () {
+    // To be replaced by expectedRequestPayload when CLM-26399 is being done
+    const expectedRequestPayloadWithoutPagination = { ...expectedRequestPayload, pageSize: 100 };
+    delete expectedRequestPayloadWithoutPagination.page;
+
     function createRisk(total, critical, severe, moderate, low) {
       return {
         totalRisk: total,
@@ -172,9 +175,9 @@ describe('dashboard.data.service.spec', function () {
         },
       });
 
-      getApplicationRisks(filter, []).then((response) => {
+      getApplicationRisks(filter, [], 0).then((response) => {
         const { results, numResults, classyBrew } = response;
-        expect(axios.post).toHaveBeenCalledWith(applicationRiskUrl, expectedRequestPayload);
+        expect(axios.post).toHaveBeenCalledWith(applicationRiskUrl, expectedRequestPayloadWithoutPagination);
         expect(results).toEqual(originalRisks);
         expect(numResults).toEqual(2);
         expect(classyBrew).toEqual('classyBrew');
@@ -189,7 +192,7 @@ describe('dashboard.data.service.spec', function () {
         expectedSortFields = ['-LOW_RISK', 'SEVERE_RISK', '-MODERATE_RISK', '-CRITICAL_RISK', 'NAME'];
 
       const expectedRequestData = {
-        ...expectedRequestPayload,
+        ...expectedRequestPayloadWithoutPagination,
         orderBy: expectedSortFields.join(','),
       };
 
@@ -214,6 +217,10 @@ describe('dashboard.data.service.spec', function () {
   });
 
   describe('getComponentRisks()', function () {
+    // To be replaced by expectedRequestPayload when CLM-26398 is being done
+    const expectedRequestPayloadWithoutPagination = { ...expectedRequestPayload, pageSize: 100 };
+    delete expectedRequestPayloadWithoutPagination.page;
+
     it('populates component name', function (done) {
       const data = {
         dashboardResults: [
@@ -244,7 +251,7 @@ describe('dashboard.data.service.spec', function () {
 
       getComponentRisks(filter, []).then(function (data) {
         const { results, numResults, classyBrew } = data;
-        expect(axios.post).toHaveBeenCalledWith(componentRiskUrl, expectedRequestPayload);
+        expect(axios.post).toHaveBeenCalledWith(componentRiskUrl, expectedRequestPayloadWithoutPagination);
         expect(results[0].hash).toBe('f60e9504841ba867a692');
         expect(results[0].derivedComponentName).toBe('foo : bar');
         expect(results[1].hash).toBe('1249e25aebb15358bedd');
@@ -269,7 +276,7 @@ describe('dashboard.data.service.spec', function () {
         ];
 
       const expectedRequestData = {
-        ...expectedRequestPayload,
+        ...expectedRequestPayloadWithoutPagination,
         orderBy: expectedSortFields.join(','),
       };
 
@@ -296,6 +303,10 @@ describe('dashboard.data.service.spec', function () {
   });
 
   describe('getWaivers()', function () {
+    // To be replaced by expectedRequestPayload when CLM-26400 is being done
+    const expectedRequestPayloadWithoutPagination = { ...expectedRequestPayload, pageSize: 100 };
+    delete expectedRequestPayloadWithoutPagination.page;
+
     it('populates component name', function (done) {
       const data = {
         dashboardResults: [
@@ -334,7 +345,7 @@ describe('dashboard.data.service.spec', function () {
 
       getWaivers(filter, []).then(function (data) {
         const { results, numResults } = data;
-        expect(axios.post).toHaveBeenCalledWith(waiverDetailsUrl, expectedRequestPayload);
+        expect(axios.post).toHaveBeenCalledWith(waiverDetailsUrl, expectedRequestPayloadWithoutPagination);
         expect(results[0].id).toBe('35513cecc0214e0cb0207238dc1fba6e');
         expect(results[0].displayName).toBe('org.sonatype.nexus : nexus-rest-client');
         expect(results[0].ownerName).toBe('Root Organization');
@@ -364,7 +375,7 @@ describe('dashboard.data.service.spec', function () {
         ];
 
       const expectedRequestData = {
-        ...expectedRequestPayload,
+        ...expectedRequestPayloadWithoutPagination,
         orderBy: expectedSortFields.join(','),
       };
 

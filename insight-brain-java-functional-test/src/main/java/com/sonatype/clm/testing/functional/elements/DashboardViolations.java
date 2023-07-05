@@ -12,6 +12,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -35,6 +36,10 @@ public class DashboardViolations
     return new ViolationsResults();
   }
 
+  public ElementsCollection paginationButtons() {
+    return $$(".nx-btn--pagination");
+  }
+
   public class ViolationsResults
       extends BasicElement<ViolationsResults>
   {
@@ -56,10 +61,6 @@ public class DashboardViolations
 
     public ViolationTile lastViolation() {
       return new ViolationTile(createSelector(".iq-dashboard-violation", nthChild(violations().size())));
-    }
-
-    public SelenideElement maxResultsMessage() {
-      return child("#max-results-shown");
     }
 
     public SelenideElement noDataMessage() {

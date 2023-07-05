@@ -325,7 +325,7 @@ public class ViolationDetailsTest
     PolicyViolation selectedPolicyViolation = tempEntity.newPolicyViolation(
         policyEvaluation1, tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Base Policy", 7));
 
-    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(selectedPolicyViolation.getId(), "violation", "filter"));
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(selectedPolicyViolation.getId(), "violation", "filter", 1));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     SidebarNav sidebarNav = violationDetailsPage.sidebarNav();
     sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));

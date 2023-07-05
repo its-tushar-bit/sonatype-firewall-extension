@@ -5,16 +5,21 @@
  */
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
+import {
+  NxPagination,
+  NxTable,
+  NxTableBody,
+  NxTableCell,
+  NxTableHead,
+  NxTableRow,
+} from '@sonatype/react-shared-components';
 import { equals } from 'ramda';
 
 import DashboardViolationsTableRow, { violationPropTypes } from './DashboardViolationsTableRow';
 import { extractSortFieldName } from '../../../util/sortUtils';
 import { Messages } from '../../../utilAngular/CommonServices';
-import MaxResultsInfoRow from '../MaxResultsInfoRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 import { isNilOrEmpty } from '../../../util/jsUtil';
-import { MAX_RESULTS } from '../../services/dashboard.data.service';
 
 const DEFAULT_SORT_FIELDS = [
   ['-threatLevel', '-firstOccurrenceTime'],
@@ -31,7 +36,8 @@ export default function DashboardViolationsTable(props) {
       stateGo,
       maxDaysOld,
       needsAcknowledgement,
-      violations: { results, numResults, sortFields, error },
+      violations: { results, sortFields, error, pageCount, page },
+      setViolationsPage,
     } = props,
     isLoading = !error && !results && !needsAcknowledgement,
     sortedColumn = extractSortFieldName(sortFields[0]),
@@ -76,9 +82,8 @@ export default function DashboardViolationsTable(props) {
       return (
         <Fragment>
           {results.map((violation) => (
-            <DashboardViolationsTableRow {...{ stateGo, violation }} key={violation.policyViolationId} />
+            <DashboardViolationsTableRow {...{ stateGo, violation, page }} key={violation.policyViolationId} />
           ))}
-          {numResults > MAX_RESULTS && <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} />}
         </Fragment>
       );
     }
@@ -128,6 +133,10 @@ export default function DashboardViolationsTable(props) {
           {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : bodyFragment()}
         </NxTableBody>
       </NxTable>
+
+      <div className="nx-table-container__footer">
+        <NxPagination pageCount={pageCount} currentPage={pageCount > 0 ? page : null} onChange={setViolationsPage} />
+      </div>
     </div>
   );
 }
@@ -143,5 +152,8 @@ DashboardViolationsTable.propTypes = {
     numResults: PropTypes.number,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
+    pageCount: PropTypes.number,
+    page: PropTypes.number,
   }),
+  setViolationsPage: PropTypes.func.isRequired,
 };

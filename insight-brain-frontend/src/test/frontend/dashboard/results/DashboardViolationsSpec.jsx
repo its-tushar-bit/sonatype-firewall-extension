@@ -18,6 +18,8 @@ describe('DashboardViolations', function () {
       violations: {
         results: {},
         sortFields: ['field'],
+        pageCount: 0,
+        page: null,
       },
       appliedFilter: {
         maxDaysOld: 0,
@@ -27,6 +29,7 @@ describe('DashboardViolations', function () {
       loadViolationResults: loadViolationResultsSpy,
       sortViolations: () => {},
       stateGo: () => {},
+      setViolationsPage: () => {},
     };
 
     (getShallowComponent = enzymeUtils.getShallowComponent(DashboardViolations, minimalProps)),
@@ -73,6 +76,8 @@ describe('DashboardViolations', function () {
       violations: {
         results: null,
         sortFields: ['field'],
+        pageCount: 0,
+        page: null,
       },
     });
     expect(component.find('.form-mask')).not.toExist();
@@ -85,6 +90,8 @@ describe('DashboardViolations', function () {
         results: null,
         error: 'error',
         sortFields: ['field'],
+        pageCount: 0,
+        page: null,
       },
     });
     expect(component.find('.form-mask')).toExist();
@@ -101,5 +108,6 @@ describe('DashboardViolations', function () {
     expect(table).toHaveProp('stateGo', minimalProps.stateGo);
     expect(table).toHaveProp('sortViolations');
     expect(table).toHaveProp('reload');
+    expect(table).toHaveProp('setViolationsPage');
   });
 });

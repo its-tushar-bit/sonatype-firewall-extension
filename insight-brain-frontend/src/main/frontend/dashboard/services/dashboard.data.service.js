@@ -19,8 +19,15 @@ import { createClassyBrew } from '../utils/classybrew.factory';
 
 export const MAX_RESULTS = 100;
 
-export function getNewestRisks(filters, sortFields) {
-  const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateViolationsSortFields(sortFields));
+export const DASHBOARD_PAGE_SIZE = 100;
+
+export function getNewestRisks(filters, sortFields, page) {
+  const request = createDashboardDataRequestPayload(
+    filters,
+    DASHBOARD_PAGE_SIZE,
+    translateViolationsSortFields(sortFields),
+    page
+  );
   return axios.post(getNewestRisksUrl(), request).then(dashboardRespopnseHandler());
 }
 

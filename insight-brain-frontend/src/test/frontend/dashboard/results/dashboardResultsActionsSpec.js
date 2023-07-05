@@ -10,6 +10,7 @@ import {
   loadComponentResults,
   loadViolationResults,
   loadWaiverResults,
+  setViolationsPage,
   sortApplicationResults,
   sortComponentResults,
   sortViolationResults,
@@ -18,7 +19,7 @@ import {
 import * as dashboardDataServices from 'MainRoot/dashboard/services/dashboard.data.service';
 
 describe('dashboardResultsActions', function () {
-  let loadResults;
+  let loadResults, setPage;
 
   const newRisksSpy = jasmine.createSpy('getNewestRisks'),
     applicationsRiskSpy = jasmine.createSpy('getApplicationRisks'),
@@ -51,10 +52,11 @@ describe('dashboardResultsActions', function () {
         getApplicationRisks: applicationsRiskSpy,
         getComponentRisks: componentRisksSpy,
         getWaivers: getWaiversSpy,
-        MAX_RESULTS: 100,
+        DASHBOARD_PAGE_SIZE: 25,
       },
     });
     loadResults = module.loadResults;
+    setPage = module.setPage;
   });
 
   const initialState = {
@@ -83,7 +85,8 @@ describe('dashboardResultsActions', function () {
         store.dispatch(loadResults(tab.resultsType)).then(() => {
           expect(tab.serviceMethod).toHaveBeenCalledWith(
             initialState.dashboardFilter.appliedFilter,
-            initialState.dashboard[tab.resultsType].sortFields
+            initialState.dashboard[tab.resultsType].sortFields,
+            0
           );
 
           expect(store.getActions().length).toBe(2);
@@ -134,16 +137,69 @@ describe('dashboardResultsActions', function () {
 
   tabs.forEach(testLoadResultsAction);
 
+  function testSetPageAction(tab) {
+    describe('setPage for ' + tab.resultsType, function () {
+      it('sets the page number', function (done) {
+        const store = SpecUtil.mockReduxStore(initialState);
+        const mockResults = Promise.resolve({
+          results: 'results',
+          numResults: 3,
+          classyBrew: 'classyBrew',
+        });
+        tab.serviceMethod.and.returnValue(mockResults);
+
+        store.dispatch(setPage(tab.resultsType, 4)).then(() => {
+          expect(tab.serviceMethod).toHaveBeenCalledWith(
+            initialState.dashboardFilter.appliedFilter,
+            initialState.dashboard[tab.resultsType].sortFields,
+            0
+          );
+
+          expect(store.getActions().length).toBe(3);
+          expect(store.getActions()[2]).toEqual({
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: tab.resultsType,
+              results: 'results',
+              numResults: 3,
+              classyBrew: 'classyBrew',
+            },
+          });
+          done();
+        });
+
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[0]).toEqual({
+          type: 'DASHBOARD_SET_PAGE',
+          payload: {
+            resultsType: tab.resultsType,
+            page: 4,
+          },
+        });
+        expect(store.getActions()[1]).toEqual({
+          type: 'LOAD_RESULTS_REQUESTED',
+          payload: tab.resultsType,
+        });
+      });
+    });
+  }
+
+  tabs.forEach(testSetPageAction);
+
   describe('loadViolationResults', () => {
-    it('calls loadResults with the violations resultsType', (done) => {
-      spyOn(dashboardDataServices, 'getNewestRisks').and.returnValue(
+    let getNewestRisksSpy;
+
+    beforeEach(function () {
+      getNewestRisksSpy = spyOn(dashboardDataServices, 'getNewestRisks').and.returnValue(
         Promise.resolve({
           results: 'violationResults',
           numResults: 3,
           classyBrew: 'classyBrew',
         })
       );
+    });
 
+    it('calls loadResults with the violations resultsType', (done) => {
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(loadViolationResults()).then(() => {
         expect(store.getActions()).toHaveActionsInOrder([
@@ -161,6 +217,23 @@ describe('dashboardResultsActions', function () {
             },
           },
         ]);
+        expect(getNewestRisksSpy).toHaveBeenCalledWith('current filters', ['-time', '-threatLevel'], 0);
+        done();
+      });
+    });
+
+    it('loads the current page number from the state', (done) => {
+      const store = SpecUtil.mockReduxStore({ ...initialState, dashboard: { violations: { page: 10 } } });
+      store.dispatch(loadViolationResults()).then(() => {
+        expect(getNewestRisksSpy).toHaveBeenCalledWith('current filters', undefined, 10);
+        done();
+      });
+    });
+
+    it('loads the current page number from route params as fallback', (done) => {
+      const store = SpecUtil.mockReduxStore({ ...initialState, router: { currentParams: { page: 45 } } });
+      store.dispatch(loadViolationResults()).then(() => {
+        expect(getNewestRisksSpy).toHaveBeenCalledWith('current filters', ['-time', '-threatLevel'], 44);
         done();
       });
     });
@@ -260,6 +333,42 @@ describe('dashboardResultsActions', function () {
     });
   });
 
+  describe('setViolationsPage', () => {
+    it('calls setPage with the violations resultsType', (done) => {
+      spyOn(dashboardDataServices, 'getNewestRisks').and.returnValue(
+        Promise.resolve({
+          results: 'violationResults',
+          numResults: 3,
+          classyBrew: 'classyBrew',
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(setViolationsPage(10)).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'DASHBOARD_SET_PAGE',
+            payload: { resultsType: 'violations', page: 10 },
+          },
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'violations',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'violations',
+              results: 'violationResults',
+              numResults: 3,
+              classyBrew: 'classyBrew',
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
   describe('sortResults', function () {
     it('updates sortFields and sorts on front end if results < 100', function () {
       initialState.dashboard.applications.results = [
@@ -294,7 +403,7 @@ describe('dashboardResultsActions', function () {
       });
     });
 
-    it('updates sortFields and sorts on front end if numResults === MAX_RESULTS (100)', function () {
+    it('updates sortFields and sorts on front end if numResults === DASHBOARD_PAGE_SIZE (25)', function () {
       initialState.dashboard.applications.results = ['-foo', 'bar'];
       initialState.dashboard.components.numResults = 100;
 
@@ -321,7 +430,7 @@ describe('dashboardResultsActions', function () {
       });
     });
 
-    it('updates sortFields and sorts on back end if numResults > MAX_RESULTS (100)', function (done) {
+    it('updates sortFields and sorts on back end if numResults > DASHBOARD_PAGE_SIZE (25)', function (done) {
       initialState.dashboard.components.results = ['-foo', 'bar'];
       initialState.dashboard.components.numResults = 101;
 
@@ -337,7 +446,7 @@ describe('dashboardResultsActions', function () {
 
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(dashboardActions.sortComponentResults(initialState.dashboard.components.results)).then(() => {
-        expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+        expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields, 0);
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[2]).toEqual({
           type: 'LOAD_RESULTS_FULFILLED',
@@ -380,7 +489,7 @@ describe('dashboardResultsActions', function () {
 
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(dashboardActions.sortComponentResults(['-foo', 'bar'])).then(() => {
-        expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+        expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields, 0);
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[2]).toEqual({
           type: 'LOAD_RESULTS_FULFILLED',
@@ -409,7 +518,7 @@ describe('dashboardResultsActions', function () {
       });
     });
 
-    it('updates sortFields and sorts on back end if numResults > MAX_RESULTS (100)', function (done) {
+    it('updates sortFields and sorts on back end if numResults > DASHBOARD_PAGE_SIZE (25)', function (done) {
       initialState.dashboard.waivers.results = ['-foo', 'bar'];
       initialState.dashboard.waivers.numResults = 101;
 
@@ -424,7 +533,7 @@ describe('dashboardResultsActions', function () {
 
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(dashboardActions.sortWaiversResults(initialState.dashboard.waivers.results)).then(() => {
-        expect(getWaiversSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+        expect(getWaiversSpy).toHaveBeenCalledWith('current filters', expectedSortFields, 0);
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[2]).toEqual({
           type: 'LOAD_RESULTS_FULFILLED',
@@ -466,7 +575,7 @@ describe('dashboardResultsActions', function () {
 
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(dashboardActions.sortWaiversResults(['-foo', 'bar'])).then(() => {
-        expect(getWaiversSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+        expect(getWaiversSpy).toHaveBeenCalledWith('current filters', expectedSortFields, 0);
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[2]).toEqual({
           type: 'LOAD_RESULTS_FULFILLED',
@@ -495,9 +604,9 @@ describe('dashboardResultsActions', function () {
       });
     });
 
-    it('updates sortFields and sorts on front end if numResults === MAX_RESULTS (100)', function () {
+    it('updates sortFields and sorts on front end if numResults === DASHBOARD_PAGE_SIZE (25)', function () {
       initialState.dashboard.waivers.results = ['-foo', 'bar'];
-      initialState.dashboard.waivers.numResults = 100;
+      initialState.dashboard.waivers.numResults = 25;
 
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(dashboardActions.sortWaiversResults(['-foo', 'bar']));

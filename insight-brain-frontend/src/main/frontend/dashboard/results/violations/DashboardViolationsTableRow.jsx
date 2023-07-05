@@ -10,7 +10,7 @@ import { NxTableCell, NxTableRow, NxThreatIndicator, NxOverflowTooltip } from '@
 import { terseAgo } from '../../../utilAngular/CommonServices';
 import ComponentDisplay from '../../../ComponentDisplay/ReactComponentDisplay';
 
-export default function DashboardViolationsTableRow({ stateGo, violation }) {
+export default function DashboardViolationsTableRow({ stateGo, violation, page }) {
   const { policyViolationId, threatLevel, policyName, applicationName, firstOccurrenceTime } = violation,
     displayTime = terseAgo(firstOccurrenceTime);
 
@@ -19,6 +19,7 @@ export default function DashboardViolationsTableRow({ stateGo, violation }) {
       id: policyViolationId,
       type: 'violation',
       sidebarReference: 'filter',
+      page: page + 1,
     });
   };
 
@@ -58,4 +59,5 @@ export const violationPropTypes = PropTypes.shape({
 DashboardViolationsTableRow.propTypes = {
   stateGo: PropTypes.func.isRequired,
   violation: violationPropTypes,
+  page: PropTypes.number,
 };

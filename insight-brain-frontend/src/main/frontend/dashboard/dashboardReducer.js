@@ -10,10 +10,12 @@ import {
   SORT_RESULTS_REQUESTED,
   SORT_RESULTS_FULFILLED,
   RESET_ALL_TABS,
+  DASHBOARD_SET_PAGE,
 } from './results/dashboardResultsActions';
 import { LOAD_FILTER_REQUESTED } from './filter/dashboardFilterActions';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 import { addWaiversScopeProp } from 'MainRoot/util/waiverUtils';
+import { DASHBOARD_PAGE_SIZE } from './services/dashboard.data.service';
 
 const initState = {
   currentTab: 'violations',
@@ -22,6 +24,8 @@ const initState = {
     numResults: null,
     error: null,
     sortFields: ['-firstOccurrenceTime', '-threatLevel'],
+    pageCount: 0,
+    page: null,
   },
   components: {
     results: null,
@@ -60,10 +64,18 @@ export default function (state = initState, { type, payload }) {
       const { resultsType, results, numResults, classyBrew } = payload;
       // map results if type is waivers
       const mapResults = resultsType === 'waivers' && results ? addWaiversScopeProp(results) : results;
+      const pageCount = numResults ? Math.ceil(numResults / DASHBOARD_PAGE_SIZE) : 0;
+      const pageValue = state[resultsType].page ?? 0;
+      let page = null;
+      if (pageCount > 0) {
+        page = pageValue <= pageCount ? pageValue : 0;
+      }
       return updateResults(state, resultsType, {
         results: mapResults,
         numResults,
         classyBrew,
+        pageCount,
+        page,
       });
     }
 
@@ -74,12 +86,17 @@ export default function (state = initState, { type, payload }) {
 
     case SORT_RESULTS_REQUESTED: {
       const { resultsType, sortFields } = payload;
-      return updateResults(state, resultsType, { sortFields });
+      return updateResults(state, resultsType, { sortFields, page: 0 });
     }
 
     case SORT_RESULTS_FULFILLED: {
       const { resultsType, results } = payload;
       return updateResults(state, resultsType, { results });
+    }
+
+    case DASHBOARD_SET_PAGE: {
+      const { resultsType, page } = payload;
+      return updateResults(state, resultsType, { page });
     }
 
     case RESET_ALL_TABS:

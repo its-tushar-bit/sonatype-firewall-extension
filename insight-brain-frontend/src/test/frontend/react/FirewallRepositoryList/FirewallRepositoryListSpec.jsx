@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import FirewallRepositoryList from 'MainRoot/react/FirewallRepositoryList/FirewallRepositoryList';
 
 let renderComponent, repositories, title, onChangeMock, minimalProps;
@@ -68,6 +68,30 @@ describe('FirewallRepositoryList', () => {
     expect(screen.getByText('public3')).toBeInTheDocument();
   });
 
+  it('renders unsupported repository formats with disabled checkbox', () => {
+    renderComponent({ supportedFormats: ['format1', 'format3'] });
+    expect(screen.getByText('public2')).toBeInTheDocument();
+    expect(screen.getByText('format2')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'firewall public2 repository item' })).toBeDisabled();
+  });
+
+  it('renders unsupported repository tooltip', async function () {
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
+    renderComponent({ supportedFormats: ['format1', 'format3'] });
+    const disabledIcon = screen.getByTestId('repo-disabled-icon');
+
+    fireEvent.mouseOver(disabledIcon);
+
+    const tooltip = await screen.findByRole('tooltip');
+
+    expect(
+      within(tooltip).getByText(
+        "This repository with format 'format2' is not supported by the Firewall. Please contact your administrator for more information."
+      )
+    ).toBeInTheDocument();
+  });
+
   it('displays the empty message when there are no repositories', () => {
     const props = {
       title: 'Test Repositories',
@@ -118,7 +142,7 @@ describe('FirewallRepositoryList', () => {
     expect(onChangeMock).toHaveBeenCalledWith([{ id: '1', key: 'quarantineEnabled', value: false }]);
   });
 
-  it('renders the correct number of total configured repositories', () => {
+  it('calls onChange for all items when an item checkbox is clicked', () => {
     renderComponent();
     expect(screen.getByText('2 of 3')).toBeInTheDocument();
 

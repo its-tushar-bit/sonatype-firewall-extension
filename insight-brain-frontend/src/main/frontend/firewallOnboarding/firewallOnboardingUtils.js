@@ -17,9 +17,12 @@ import {
   take,
   drop,
   flatten,
-  reduce,
-  assoc,
+  includes,
 } from 'ramda';
+
+/**
+ * @typedef {import('./types').Repository} Repository
+ */
 
 export const stepsIds = {
   SELECT_PROXY: 'select_proxy',
@@ -53,40 +56,74 @@ export const prev = (step) => steps[step.index - 1];
 
 export const ALLOWED_REPOSITORY_TYPES = ['proxy', 'hosted'];
 
-export const groupRepositoriesByTypes = (repositories = []) => {
-  if (!repositories) return reduce((obj, item) => assoc(item, [], obj), {}, ALLOWED_REPOSITORY_TYPES);
+/**
+ * Groups repositories by format and sorts them by:
+ * 1. Supported formats first
+ * 2. Number of repositories in the group
+ * 3. Format name
+ *
+ * The function also adds an additional 'other' column if there are more than 3 groups. Everything that doesn't fit
+ * into the first 3 groups will overflow into the 'other' group, limiting the maximum number of columns to 4.
+ *
+ * @param {Repository[]} repositories list of repositories to group
+ * @param {string[]} supportedFormats list of supported repository formats
+ * @returns {{format: string, repositories: Repository[]}[]}
+ */
+export const groupAndSortByFormat = (repositories, supportedFormats) => {
+  /** The maximium number of groups to create. All other repositories will be added to an additional 'other' column */
+  const maximumColumnsCount = 3;
 
-  const repositoriesByTypes = {};
-  ALLOWED_REPOSITORY_TYPES.forEach((type) => {
-    repositoriesByTypes[type] = repositories.filter((repo) => repo.repositoryType === type);
-  });
-  return repositoriesByTypes;
+  const sortAndGroupsRepositories =
+    /** @type {(list: readonly Repository[]) => {format: string, repositories: Repository[]}[]} */
+    (pipe(
+      groupBy(prop('format')),
+      toPairs,
+      map(([format, repositories]) => ({ format, repositories })),
+      sortWith([
+        descend((repository) => includes(repository.format, supportedFormats)),
+        descend(pipe(prop('repositories'), length)),
+        ascend(prop('format')),
+      ])
+    ));
+
+  const topSupportedFormats = take(
+    maximumColumnsCount,
+    pipe(
+      filter((item) => supportedFormats.includes(item.format)),
+      sortAndGroupsRepositories
+    )(repositories)
+  );
+
+  const otherFormats = pipe(
+    filter((repository) => !topSupportedFormats.some((group) => group.format === repository.format)),
+    sortAndGroupsRepositories
+  )(repositories);
+
+  const topFormats = take(maximumColumnsCount - topSupportedFormats.length, otherFormats);
+
+  const overflowRepositories = /** @type {Repository[]} */ (pipe(
+    drop(maximumColumnsCount - topSupportedFormats.length),
+    map(prop('repositories')),
+    flatten
+  )(otherFormats));
+
+  // use the format of the first repository in the overflow list as the format for the overflow column or 'other' if
+  // the list contains repositories with different formats
+  const getOverflowFormat = () =>
+    overflowRepositories.every((item) => item.format === overflowRepositories[0].format)
+      ? overflowRepositories[0].format
+      : 'other';
+
+  const overflowColumn =
+    overflowRepositories.length > 0 ? [{ format: getOverflowFormat(), repositories: overflowRepositories }] : [];
+
+  return [...topSupportedFormats, ...topFormats, ...overflowColumn];
 };
 
-export const groupAndSortByFormat = (repositories, allowedFormats) => {
-  // TODO CLM-24832
-  // for unsupported formats add here logic to get them this way
-  // const unsupportedRepositories = filter((item) => !allowedFormats.includes(item.format), repositories);
-  const filteredRepositories = filter((item) => allowedFormats.includes(item.format), repositories);
-  const groupedRepositories = groupBy(prop('format'), filteredRepositories);
-  const sortedGroups = pipe(
-    toPairs,
-    map(([format, repositories]) => ({ format, repositories })),
-    sortWith([descend(pipe(prop('repositories'), length)), ascend(prop('format'))])
-  )(groupedRepositories);
-
-  // TODO CLM-24832
-  // add the unsupported to otherGroups.repositories array
-  const topGroups = take(3, sortedGroups);
-  const otherGroups = drop(3, sortedGroups);
-
-  const result = otherGroups.length
-    ? [...topGroups, { format: 'other', repositories: flatten(map(prop('repositories'), otherGroups)) }]
-    : [...topGroups];
-
-  return result;
-};
-
+/**
+ * @param {Repository[]} repositoriesList
+ * @param {{id: string, key: string, value: string}[]} updateRepositories
+ */
 export const updateRepositories = (repositoriesList, updateRepositories) => {
   return repositoriesList.map((repository) => {
     const selectedRepo = updateRepositories.find(({ id }) => id === repository.id);

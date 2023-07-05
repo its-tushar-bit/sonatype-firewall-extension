@@ -19,6 +19,9 @@ import { selectRepositoriesList, selectUnconfiguredRepoManager } from './firewal
 
 export const REDUCER_NAME = 'firewallOnboarding';
 
+/** @typedef {import('./types').FirewallOnboardingState} FirewallOnboardingState */
+
+/** @type FirewallOnboardingState  */
 export const initialState = {
   incompleteConfigurationModal: {
     showModal: false,
@@ -75,7 +78,7 @@ const hideWelcomeScreen = (state) => ({
   showWelcomeScreen: false,
 });
 
-const configureRepositories = (state, { payload: repositories }) => {
+const configureRepositories = (/** @type FirewallOnboardingState */ state, { payload: repositories }) => {
   state.repositories.list = updateRepositories(state.repositories.list, repositories);
 };
 

@@ -4,15 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import {
-  steps,
-  next,
-  prev,
-  groupAndSortByFormat,
-  groupRepositoriesByTypes,
-} from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
+import { steps, next, prev, groupAndSortByFormat } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
 
 describe('FirewallOnboardingUtils', () => {
+  const defaultRepoProps = {
+    publicId: 'publicId',
+    repositoryManagerId: 'repositoryManagerId',
+    repositoryType: 'hosted',
+    enabled: true,
+    quarantineEnabled: false,
+    namespaceConfusionProtectionEnabled: false,
+    policyCompliantComponentSelectionEnabled: false,
+  };
+
   describe('prev', () => {
     it('return previous step', () => {
       expect(prev(steps[0])).toBe(undefined);
@@ -31,21 +35,21 @@ describe('FirewallOnboardingUtils', () => {
   describe('groupAndSortByFormat', () => {
     it('should group and sort repositories by format', () => {
       const repositories = [
-        { id: '1', format: 'maven' },
-        { id: '2', format: 'npm' },
-        { id: '3', format: 'maven' },
-        { id: '4', format: 'npm' },
-        { id: '5', format: 'bower' },
-        { id: '6', format: 'bower' },
-        { id: '7', format: 'pypi' },
-        { id: '8', format: 'pypi' },
-        { id: '9', format: 'gem' },
-        { id: '10', format: 'gem' },
-        { id: '11', format: 'gem' },
-        { id: '12', format: 'gem' },
-        { id: '13', format: 'apt' },
-        { id: '14', format: 'apt' },
-        { id: '15', format: 'apt' },
+        { id: '1', format: 'maven', ...defaultRepoProps },
+        { id: '2', format: 'npm', ...defaultRepoProps },
+        { id: '3', format: 'maven', ...defaultRepoProps },
+        { id: '4', format: 'npm', ...defaultRepoProps },
+        { id: '5', format: 'bower', ...defaultRepoProps },
+        { id: '6', format: 'bower', ...defaultRepoProps },
+        { id: '7', format: 'pypi', ...defaultRepoProps },
+        { id: '8', format: 'pypi', ...defaultRepoProps },
+        { id: '9', format: 'gem', ...defaultRepoProps },
+        { id: '10', format: 'gem', ...defaultRepoProps },
+        { id: '11', format: 'gem', ...defaultRepoProps },
+        { id: '12', format: 'gem', ...defaultRepoProps },
+        { id: '13', format: 'apt', ...defaultRepoProps },
+        { id: '14', format: 'apt', ...defaultRepoProps },
+        { id: '15', format: 'apt', ...defaultRepoProps },
       ];
 
       const allowedFormats = ['maven', 'npm', 'bower', 'pypi'];
@@ -57,14 +61,24 @@ describe('FirewallOnboardingUtils', () => {
       expect(result[1].format).toEqual('maven');
       expect(result[2].format).toEqual('npm');
       expect(result[3].format).toEqual('other');
-      expect(result[3].repositories.length).toEqual(2);
+
+      expect(result[3].repositories.length).toEqual(9);
+      expect(result[3].repositories[0].format).toEqual('pypi');
+      expect(result[3].repositories[1].format).toEqual('pypi');
+      expect(result[3].repositories[2].format).toEqual('gem');
+      expect(result[3].repositories[3].format).toEqual('gem');
+      expect(result[3].repositories[4].format).toEqual('gem');
+      expect(result[3].repositories[5].format).toEqual('gem');
+      expect(result[3].repositories[6].format).toEqual('apt');
+      expect(result[3].repositories[7].format).toEqual('apt');
+      expect(result[3].repositories[8].format).toEqual('apt');
     });
 
     it('should handle repositories with a single format', () => {
       const repositories = [
-        { id: '1', format: 'maven' },
-        { id: '2', format: 'maven' },
-        { id: '3', format: 'maven' },
+        { id: '1', format: 'maven', ...defaultRepoProps },
+        { id: '2', format: 'maven', ...defaultRepoProps },
+        { id: '3', format: 'maven', ...defaultRepoProps },
       ];
 
       const allowedFormats = ['maven'];
@@ -77,72 +91,46 @@ describe('FirewallOnboardingUtils', () => {
     });
 
     it('should handle no repositories matching the allowed formats', () => {
+      // given a list of repositories
       const repositories = [
-        { id: '1', format: 'npm' },
-        { id: '2', format: 'gem' },
-        { id: '3', format: 'pypi' },
+        { id: '1', format: 'npm', ...defaultRepoProps },
+        { id: '2', format: 'npm', ...defaultRepoProps },
+        { id: '3', format: 'gem', ...defaultRepoProps },
+        { id: '4', format: 'pypi', ...defaultRepoProps },
+        { id: '5', format: 'apt', ...defaultRepoProps },
+        { id: '6', format: 'conda', ...defaultRepoProps },
       ];
-
       const allowedFormats = ['maven', 'bower'];
 
+      // when the repositories are grouped and sorted
       const result = groupAndSortByFormat(repositories, allowedFormats);
 
-      expect(result.length).toEqual(0);
+      // then NPM is in the first column, and the rest in no particular order
+      expect(result.length).toEqual(4);
+      expect(result[0].format).toEqual('npm');
+      expect(result[3].repositories.length).toEqual(2);
     });
-  });
 
-  describe('groupRepositoriesByTypes', () => {
-    it('should filter repositories by type', () => {
+    it('should always sort supported formats before disabled formats even when there are more disabled repository formats', () => {
+      // given a repository list where 'notSupportedFormat' has more repositories than 'supportedFormat1' or 'supportedFormat2'
       const repositories = [
-        { id: '1', repositoryType: 'proxy' },
-        { id: '2', repositoryType: 'hosted' },
-        { id: '3', repositoryType: 'proxy' },
-        { id: '4', repositoryType: 'group' },
-        { id: '5', repositoryType: 'proxy' },
+        { id: '1', format: 'supportedFormat2', ...defaultRepoProps },
+        { id: '2', format: 'supportedFormat1', ...defaultRepoProps },
+        { id: '3', format: 'supportedFormat1', ...defaultRepoProps },
+        { id: '4', format: 'notSupportedFormat', ...defaultRepoProps },
+        { id: '5', format: 'notSupportedFormat', ...defaultRepoProps },
+        { id: '6', format: 'notSupportedFormat', ...defaultRepoProps },
       ];
+      const supportedFormats = ['supportedFormat1', 'supportedFormat2'];
 
-      const result = groupRepositoriesByTypes(repositories);
+      // when the repositories are grouped and sorted
+      const result = groupAndSortByFormat(repositories, supportedFormats);
 
-      expect(result).toEqual({
-        proxy: [
-          { id: '1', repositoryType: 'proxy' },
-          { id: '3', repositoryType: 'proxy' },
-          { id: '5', repositoryType: 'proxy' },
-        ],
-        hosted: [{ id: '2', repositoryType: 'hosted' }],
-      });
-    });
-
-    it('should handle empty repositories', () => {
-      const result = groupRepositoriesByTypes([]);
-
-      expect(result).toEqual({ proxy: [], hosted: [] });
-    });
-
-    it('should handle repositories with different types', () => {
-      const repositories = [
-        { id: '1', repositoryType: 'proxy' },
-        { id: '2', repositoryType: 'hosted' },
-        { id: '3', repositoryType: 'group' },
-      ];
-
-      const result = groupRepositoriesByTypes(repositories);
-
-      expect(result).toEqual({
-        proxy: [{ id: '1', repositoryType: 'proxy' }],
-        hosted: [{ id: '2', repositoryType: 'hosted' }],
-      });
-    });
-
-    it('should handle repositories with no matching types', () => {
-      const repositories = [
-        { id: '1', repositoryType: 'group' },
-        { id: '2', repositoryType: 'group' },
-      ];
-
-      const result = groupRepositoriesByTypes(repositories);
-
-      expect(result).toEqual({ proxy: [], hosted: [] });
+      // then the supported formats are sorted before the disabled formats
+      expect(result.length).toEqual(3);
+      expect(result[0].repositories).toEqual(repositories.filter((repo) => repo.format === 'supportedFormat1'));
+      expect(result[1].repositories).toEqual(repositories.filter((repo) => repo.format === 'supportedFormat2'));
+      expect(result[2].repositories).toEqual(repositories.filter((repo) => repo.format === 'notSupportedFormat'));
     });
   });
 });

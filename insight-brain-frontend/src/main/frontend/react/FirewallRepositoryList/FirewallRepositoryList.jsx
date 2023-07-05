@@ -5,23 +5,44 @@
  */
 import React, { useState, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxCheckbox, NxTable, NxH2, NxOverflowTooltip } from '@sonatype/react-shared-components';
+import { NxCheckbox, NxTable, NxH2, NxOverflowTooltip, NxTooltip } from '@sonatype/react-shared-components';
 import { sortItemsByFields } from 'MainRoot/util/sortUtils';
 
+/**
+ * @typedef {import('MainRoot/firewallOnboarding/types').Repository} Repository
+ */
+
+/**
+ * @param {object} props
+ * @param {string} props.title
+ * @param {function} props.onChange
+ * @param {Repository[]} props.repositories
+ * @param {string[]=} props.supportedFormats
+ * @param {string=} props.emptyMessage
+ * @param {string=} props.labelItemPropName
+ * @param {string=} props.checkItemPropName
+ */
 function FirewallRepositoryList({
   title,
   onChange,
   repositories,
+  supportedFormats,
   emptyMessage = 'No list available',
   labelItemPropName = 'publicId',
   checkItemPropName = 'quarantineEnabled',
 }) {
-  const [items, setItems] = useState([...repositories]);
+  const [items, setItems] = useState(repositories);
   const [sortFields, setSortFields] = useState(null);
 
   const columnSortField = 'publicId';
   const tableAriaLabel = `repository list for ${title}`;
-  const isAllItemSelected = items.every((item) => item[checkItemPropName]);
+  const isSupportedFormat = (format) => (supportedFormats ? supportedFormats.includes(format) : true);
+  const isSupportedItem = ({ format }) => isSupportedFormat(format);
+  const supportedItems = items.filter(isSupportedItem);
+  const isAllItemSelected = supportedItems.length > 0 && supportedItems.every((item) => item[checkItemPropName]);
+  const isAllItemsSupportedFormat = items.every((item) => isSupportedFormat(item.format));
+  const isAllItemsUnsupportedFormat = items.every((item) => !isSupportedFormat(item.format));
+  const isAllItemsSameFormat = items.every((item) => item.format === items[0].format);
 
   const totalConfiguredRepositories = () => {
     const totalConfiguredRepos = items.filter((items) => items[checkItemPropName] === true).length;
@@ -36,8 +57,8 @@ function FirewallRepositoryList({
     }
   }, [repositories]);
 
-  const handleSelectAll = (event) => {
-    onChange(items.map(({ id }) => ({ id, key: checkItemPropName, value: event.target.checked })));
+  const handleSelectAll = ({ target }) => {
+    onChange(supportedItems.map(({ id }) => ({ id, key: checkItemPropName, value: target.checked })));
   };
 
   const handleSelectItem = (item) => {
@@ -75,30 +96,49 @@ function FirewallRepositoryList({
         aria-label="firewall repository list check all"
         isChecked={isAllItemSelected}
         onChange={handleSelectAll}
-        disabled={!items.length}
+        disabled={!items.length || isAllItemsUnsupportedFormat}
       />
     </NxTable.Cell>
   );
 
-  const renderItemRow = (repo, index) => {
+  const renderItemRow = (/** @type {Repository} */ repo, /** @type {React.Key} */ index) => {
     const isChecked = repo[checkItemPropName];
     const ariaLabel = `firewall ${repo[labelItemPropName]} repository item`;
 
     return (
       <NxTable.Row key={index}>
-        <NxTable.Cell className="firewall-repository-list__item-check">
+        <NxTable.Cell
+          className={
+            isAllItemsSameFormat ? 'firewall-repository-list__item-check' : 'firewall-repository-list__item-check-large'
+          }
+        >
           <NxCheckbox
             name={repo[labelItemPropName]}
             aria-label={ariaLabel}
             isChecked={isChecked}
             onChange={() => handleSelectItem(repo)}
+            disabled={!isSupportedFormat(repo.format)}
           ></NxCheckbox>
         </NxTable.Cell>
         <NxTable.Cell className="firewall-repository-list__item-name">
           <NxOverflowTooltip>
-            <div className="nx-truncate-ellipsis">{repo[labelItemPropName]}</div>
+            <div className="nx-truncate-ellipsis">
+              {repo[labelItemPropName]}
+              {!isAllItemsSameFormat && <div className="firewall-repository-list__item-disabled">{repo.format}</div>}
+            </div>
           </NxOverflowTooltip>
         </NxTable.Cell>
+        {!isAllItemsSupportedFormat && (
+          <NxTable.Cell className="firewall-repository-list__item-icon">
+            {!isSupportedFormat(repo.format) && (
+              <NxTooltip
+                title={`This repository with format '${repo.format}' is not supported by the Firewall. Please contact your administrator for more information.`}
+              >
+                <i className="fa fa-ban" data-testid="repo-disabled-icon"></i>
+              </NxTooltip>
+            )}
+          </NxTable.Cell>
+        )}
       </NxTable.Row>
     );
   };
@@ -119,6 +159,9 @@ function FirewallRepositoryList({
               <NxTable.Cell isSortable={items.length > 1} sortDir={getSortDir()} onClick={() => sortField()}>
                 <span>name</span>
               </NxTable.Cell>
+              {!isAllItemsSupportedFormat && (
+                <NxTable.Cell className="firewall-repository-list__header-disabled"> </NxTable.Cell>
+              )}
             </NxTable.Row>
           </NxTable.Head>
           <NxTable.Body className="firewall-repositories-entries" isLoading={false} emptyMessage={emptyMessage}>
@@ -145,6 +188,7 @@ FirewallRepositoryList.propTypes = {
       format: PropTypes.string,
     })
   ).isRequired,
+  supportedFormats: PropTypes.arrayOf(PropTypes.string),
   onChange: PropTypes.func.isRequired,
   checkItemPropName: PropTypes.string,
   labelItemPropName: PropTypes.string,

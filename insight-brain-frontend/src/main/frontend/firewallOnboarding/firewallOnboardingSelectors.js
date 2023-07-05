@@ -6,8 +6,9 @@
 
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
-import { groupRepositoriesByTypes, groupAndSortByFormat } from './firewallOnboardingUtils';
+import { groupAndSortByFormat } from './firewallOnboardingUtils';
 
+/** @type {(state: any) => import('./types').FirewallOnboardingState} */
 export const selectFirewallOnboardingSlice = prop('firewallOnboarding');
 export const selectCurrentStep = createSelector(selectFirewallOnboardingSlice, prop('currentStep'));
 export const selectShowWelcomeScreen = createSelector(selectFirewallOnboardingSlice, prop('showWelcomeScreen'));
@@ -36,14 +37,9 @@ export const selectRepositoriesByType = createSelector(
   selectRepositoriesList,
   selectSupportedFormats,
   (_, repositoryType) => repositoryType,
-  (list, formats, repositoryType) => {
-    const repositoriesByType = groupRepositoriesByTypes(list);
-    for (let type in repositoriesByType) {
-      if (repositoriesByType.hasOwnProperty(type)) {
-        repositoriesByType[type] = groupAndSortByFormat(repositoriesByType[type], formats);
-      }
-    }
-    return repositoriesByType[repositoryType] ?? [];
+  (list, supportedFormats, repositoryType) => {
+    const repositoriesWithType = list?.filter((repo) => repo.repositoryType === repositoryType) ?? [];
+    return groupAndSortByFormat(repositoriesWithType, supportedFormats ?? []);
   }
 );
 
@@ -53,7 +49,7 @@ export const selectTotalEnabledRepositoriesByTypeAndProp = createSelector(
   (_, type) => type,
   (_, __, propName) => propName,
   (list, supportedFormats, type, propName = 'quarantineEnabled') => {
-    return list.reduce((count, repo) => {
+    return list?.reduce((count, repo) => {
       if (repo[propName] && repo.repositoryType === type && supportedFormats.includes(repo.format)) {
         return count + 1;
       }

@@ -172,13 +172,13 @@ describe('HostedRepositoriesSelector', function () {
       expect(await screen.findByText('maven')).toBeVisible();
       expect(await screen.findByText('npm')).toBeVisible();
       expect(await screen.findByText('go')).toBeVisible();
-      expect(await screen.findByText('other')).toBeVisible();
+      expect(await screen.findByText('pypi')).toBeVisible();
 
       const repositoriesListTitles = await screen.findAllByRole('heading', { level: 2 });
       expect(await repositoriesListTitles[0]).toHaveTextContent('maven2 of 3');
       expect(await repositoriesListTitles[1]).toHaveTextContent('npm0 of 2');
       expect(await repositoriesListTitles[2]).toHaveTextContent('go0 of 1');
-      expect(await repositoriesListTitles[3]).toHaveTextContent('other0 of 1');
+      expect(await repositoriesListTitles[3]).toHaveTextContent('pypi0 of 1');
 
       const repositoryItems = screen.getAllByRole('row', { name: /repository item/i });
       repositoryItems.forEach(async (repository, index) => {
@@ -212,7 +212,7 @@ describe('HostedRepositoriesSelector', function () {
     });
 
     it('renders empty messages if there is no supported formats', async () => {
-      initialState.firewallOnboarding.repositories.list = repositoriesList;
+      initialState.firewallOnboarding.repositories.list = [];
       initialState.firewallOnboarding.supportedFormats = [];
       renderComponent(initialState);
 

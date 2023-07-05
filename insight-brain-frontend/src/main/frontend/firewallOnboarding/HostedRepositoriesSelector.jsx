@@ -14,6 +14,7 @@ import {
   selectRepositoriesByType,
   selectRepositories,
   selectUnconfiguredRepoManager,
+  selectSupportedFormats,
 } from './firewallOnboardingSelectors';
 import { steps } from './firewallOnboardingUtils';
 import FirewallRepositoryList from 'MainRoot/react/FirewallRepositoryList/FirewallRepositoryList';
@@ -26,13 +27,17 @@ export default function HostedRepositoriesSelector() {
   const { loading, loadError } = useSelector(selectRepositories);
   const unconfiguredRepoManager = useSelector(selectUnconfiguredRepoManager);
   const hostedReposGroupByFormat = useSelector((state) => selectRepositoriesByType(state, 'hosted'));
+  const supportedFormats = useSelector(selectSupportedFormats);
 
   const dispatch = useDispatch();
   const loadRepositories = () => dispatch(actions.loadRepositories(unconfiguredRepoManager));
   const configureRepositories = (repository) => dispatch(actions.configureRepositories(repository));
 
   const renderRepositoriesByFormat = () => {
-    if (!hostedReposGroupByFormat.length) {
+    const hasRepositories = hostedReposGroupByFormat.some(
+      (repositoriesByFormat) => repositoriesByFormat.repositories.length > 0
+    );
+    if (!hasRepositories) {
       return 'There are no hosted repositories to apply your protection rules.';
     }
     return hostedReposGroupByFormat.map((repositoriesByFormat) => (
@@ -40,6 +45,7 @@ export default function HostedRepositoriesSelector() {
         key={repositoriesByFormat.format}
         title={repositoriesByFormat.format}
         repositories={repositoriesByFormat.repositories}
+        supportedFormats={supportedFormats}
         onChange={(updatedItems) => {
           configureRepositories(updatedItems);
         }}

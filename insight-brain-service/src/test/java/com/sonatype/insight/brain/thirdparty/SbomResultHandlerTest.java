@@ -1112,7 +1112,7 @@ public class SbomResultHandlerTest
     rootComponent.setPurl("pkg:npm/root@1.0");
     metadata.setComponent(rootComponent);
     targetBom.setMetadata(metadata);
-    Dependency root = createDependencyList("root", "pkg:npm/direct1@1.0");
+    Dependency root = createDependencyList("root", "pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0");
     Dependency d2 = createDependencyList("pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
     Dependency d2t1 = d2.getDependencies().get(0);
     sourceBom.setDependencies(Arrays.asList(root, d2, d2t1));
@@ -1131,6 +1131,96 @@ public class SbomResultHandlerTest
       assertThat(resultDependencies).hasSize(3) // can resolve direct dependencies from root and transitive dependencies
           .extracting(com.sonatype.insight.scan.model.Dependency::getId)
           .containsExactlyInAnyOrder("pkg:npm/direct2@2.0", "pkg:npm/direct1@1.0", "pkg:npm/d2t1@1.1");
+    });
+    assertIdentityMetadata(targetBom, metadata);
+  }
+
+  @Test
+  public void testProcessDependencyGraph_componentsWithNoPurls() {
+    //given
+    Bom sourceBom = new Bom();
+
+    Component c1 = new Component();
+    c1.setBomRef("dd2");
+    c1.setPurl("pkg:npm/direct1@1.0");
+
+    Component c2 = new Component();
+    c2.setBomRef("dd1");
+    c2.setPurl("pkg:npm/direct2@2.0");
+
+    Component c3 = new Component();
+    c3.setBomRef("td1");
+
+    Bom targetBom = new Bom();
+    targetBom.addComponent(c1);
+    targetBom.addComponent(c2);
+    targetBom.addComponent(c3);
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("root");
+    rootComponent.setBomRef("root");
+    rootComponent.setVersion("1.0");
+    rootComponent.setPurl("pkg:npm/root@1.0");
+    metadata.setComponent(rootComponent);
+    targetBom.setMetadata(metadata);
+    Dependency root = createDependencyList("root", "dd1", "dd2");
+    Dependency d1 = root.getDependencies().get(0);
+    Dependency d2 = createDependencyList("dd2", "td1");
+    Dependency d2t1 = d2.getDependencies().get(0);
+    sourceBom.setDependencies(Arrays.asList(root, d1, d2, d2t1));
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    //when
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    //then
+    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
+      assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
+
+      List<com.sonatype.insight.scan.model.Dependency> resultDependencies = projectItem.getDependencies();
+      assertThat(resultDependencies)
+          .hasSize(2)
+          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
+          .containsExactlyInAnyOrder("pkg:npm/direct2@2.0", "pkg:npm/direct1@1.0");
+    });
+    assertIdentityMetadata(targetBom, metadata);
+  }
+
+  @Test
+  public void testProcessDependencyGraph_dependenciesWithNoComponents() {
+    //given
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    targetBom.addComponent(new Component());
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("root");
+    rootComponent.setBomRef("root");
+    rootComponent.setVersion("1.0");
+    rootComponent.setPurl("pkg:npm/root@1.0");
+    metadata.setComponent(rootComponent);
+    targetBom.setMetadata(metadata);
+    Dependency root = createDependencyList("root", "dd1", "dd2");
+    Dependency d2 = createDependencyList("dd2", "td1");
+    Dependency d2t1 = d2.getDependencies().get(0);
+    sourceBom.setDependencies(Arrays.asList(root, d2, d2t1));
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    //when
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    //then
+    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
+      assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
+
+      List<com.sonatype.insight.scan.model.Dependency> resultDependencies = projectItem.getDependencies();
+      assertThat(resultDependencies).isEmpty();
     });
     assertIdentityMetadata(targetBom, metadata);
   }

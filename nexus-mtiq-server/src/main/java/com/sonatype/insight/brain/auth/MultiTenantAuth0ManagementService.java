@@ -25,6 +25,8 @@ public class MultiTenantAuth0ManagementService
 {
   private static final Logger log = LoggerFactory.getLogger(MultiTenantAuth0ManagementService.class);
 
+  static final String CONNECTION_CREATION_SKIPPED = "CONNECTION CREATION SKIPPED";
+
   private MultiTenantAuth0ApiSupplier auth0ApiSupplier;
 
   private Auth0Config auth0Config;
@@ -116,7 +118,10 @@ public class MultiTenantAuth0ManagementService
     log.debug("Deleting auth0 client");
     try {
       auth0ManagementAPI.clients().delete(applicationId).execute();
-      auth0ManagementAPI.connections().delete(connectionId).execute();
+
+      if (!CONNECTION_CREATION_SKIPPED.equals(connectionId)) {
+        auth0ManagementAPI.connections().delete(connectionId).execute();
+      }
     }
     catch (Auth0Exception e) {
       log.error("Unable to delete tenant from Auth0", e);

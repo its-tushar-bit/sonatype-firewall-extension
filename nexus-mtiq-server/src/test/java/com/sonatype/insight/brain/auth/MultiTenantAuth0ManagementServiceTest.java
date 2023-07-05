@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService.CONNECTION_CREATION_SKIPPED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -173,5 +174,22 @@ public class MultiTenantAuth0ManagementServiceTest
     assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID)).isTrue();
     verify(managementApi.clients()).delete(APPLICATION_ID);
     verify(managementApi.connections()).delete(CONNECTION_ID);
+  }
+
+  @Test
+  public void test_deleteTenant_whenConnectionCreationIsSkipped() throws Exception {
+    ClientsEntity clientsEntity = Mockito.mock(ClientsEntity.class);
+    ConnectionsEntity connectionsEntity = Mockito.mock(ConnectionsEntity.class);
+    Request<Void> request = Mockito.mock(Request.class);
+
+    when(tokenRequest.execute()).thenReturn(tokenHolder);
+    when(authApi.requestToken(any())).thenReturn(tokenRequest);
+    when(managementApi.clients()).thenReturn(clientsEntity);
+    when(clientsEntity.delete(APPLICATION_ID)).thenReturn(request);
+    when(managementApi.connections()).thenReturn(connectionsEntity);
+
+    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_CREATION_SKIPPED)).isTrue();
+    verify(managementApi.clients()).delete(APPLICATION_ID);
+    verify(managementApi.connections(), never()).delete(CONNECTION_CREATION_SKIPPED);
   }
 }

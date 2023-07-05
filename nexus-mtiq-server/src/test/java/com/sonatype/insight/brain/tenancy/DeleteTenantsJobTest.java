@@ -95,8 +95,8 @@ public class DeleteTenantsJobTest
 
       tenantManager.setTenant(t);
 
-      long beforeDefaultRetentionPeriod =
-          System.currentTimeMillis() - (60 * 1000 * (DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS + 1));
+      long beforeDefaultRetentionPeriod = System.currentTimeMillis() -
+          (60 * 60 * 1000 * (DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS + 1));
 
       tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
 
@@ -134,7 +134,7 @@ public class DeleteTenantsJobTest
           String.valueOf(retentionPeriodInHours));
 
       long beforeDefaultRetentionPeriod =
-          System.currentTimeMillis() - (60 * 1000 * (retentionPeriodInHours + 1));
+          System.currentTimeMillis() - (60 * 60 * 1000 * (retentionPeriodInHours + 1));
 
       tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
 
@@ -159,7 +159,7 @@ public class DeleteTenantsJobTest
           String.valueOf(retentionPeriodInHours));
 
       long beforeDefaultRetentionPeriod =
-          System.currentTimeMillis() - (60 * 1000 * (retentionPeriodInHours + 1));
+          System.currentTimeMillis() - (60 * 60 * 1000 * (retentionPeriodInHours + 1));
 
       tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
 
@@ -194,8 +194,8 @@ public class DeleteTenantsJobTest
 
       tenantManager.setTenant(t);
 
-      long beforeDefaultRetentionPeriod =
-          System.currentTimeMillis() - (60 * 1000 * (DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS + 1));
+      long beforeDefaultRetentionPeriod = System.currentTimeMillis() -
+          (60 * 60 * 1000 * (DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS + 1));
 
       tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
 

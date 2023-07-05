@@ -56,7 +56,7 @@ public class DeletedTenantDAO
   public List<DeletedTenant> getAllTenantDeletionsOlderThanRetentionPeriod(long retentionPeriodInHours) {
     String query = "SELECT tenant FROM DeletedTenant tenant WHERE tenant.deleteRequestedTimestamp < ?1";
 
-    long retentionInMillis = retentionPeriodInHours * 60 * 1000;
+    long retentionInMillis = retentionPeriodInHours * 60 * 60 * 1000;
 
     return super.getList(query, System.currentTimeMillis() - retentionInMillis);
   }

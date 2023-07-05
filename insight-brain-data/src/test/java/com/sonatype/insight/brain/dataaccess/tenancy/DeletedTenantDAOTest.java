@@ -82,7 +82,7 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
     assertThat(tenants).isEmpty();
 
     String olderTenantName = "t_" + name.getMethodName() + "_older";
-    Long fiveHoursAgo = System.currentTimeMillis() - (5 * 60 * 1000);
+    Long fiveHoursAgo = System.currentTimeMillis() - (5 * 60 * 60 * 1000);
     tempEntity.newDeletedTenant(olderTenantName, fiveHoursAgo);
     tenants = underTest.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
 

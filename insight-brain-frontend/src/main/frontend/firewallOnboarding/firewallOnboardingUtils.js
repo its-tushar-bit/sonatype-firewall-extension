@@ -25,31 +25,39 @@ import {
  */
 
 export const stepsIds = {
+  RULES: 'rules',
   SELECT_PROXY: 'select_proxy',
   SELECT_HOSTED: 'select_hosted',
   PROTECT: 'protect',
 };
 
+const rules = {
+  id: stepsIds.RULES,
+  index: 0,
+  name: 'Enable rules',
+  title: 'Select your protection rules',
+};
 const selectProxy = {
   id: stepsIds.SELECT_PROXY,
-  index: 0,
+  index: 1,
   name: 'Select',
   title: 'Select proxy repositories',
 };
 const selectHosted = {
   id: stepsIds.SELECT_HOSTED,
-  index: 1,
+  index: 2,
   name: 'Select',
   title: 'Select hosted repositories',
 };
 const protect = {
   id: stepsIds.PROTECT,
-  index: 2,
+  index: 3,
   name: 'Protect',
   title: 'Inspect and complete onboarding',
 };
 
-export const steps = [selectProxy, selectHosted, protect];
+export const steps = [rules, selectProxy, selectHosted, protect];
+export const stepsById = { rules, selectProxy, selectHosted, protect };
 
 export const next = (step) => steps[step.index + 1];
 export const prev = (step) => steps[step.index - 1];

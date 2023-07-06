@@ -57,3 +57,5 @@ export const selectTotalEnabledRepositoriesByTypeAndProp = createSelector(
     }, 0);
   }
 );
+
+export const selectProtectionRules = createSelector(selectFirewallOnboardingSlice, prop('protectionRules'));

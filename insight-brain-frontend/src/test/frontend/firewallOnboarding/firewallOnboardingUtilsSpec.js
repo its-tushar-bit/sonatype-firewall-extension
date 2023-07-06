@@ -21,6 +21,8 @@ describe('FirewallOnboardingUtils', () => {
     it('return previous step', () => {
       expect(prev(steps[0])).toBe(undefined);
       expect(prev(steps[1])).toBe(steps[0]);
+      expect(prev(steps[2])).toBe(steps[1]);
+      expect(prev(steps[3])).toBe(steps[2]);
     });
   });
 
@@ -28,7 +30,8 @@ describe('FirewallOnboardingUtils', () => {
     it('return next step', () => {
       expect(next(steps[0])).toBe(steps[1]);
       expect(next(steps[1])).toBe(steps[2]);
-      expect(next(steps[2])).toBe(undefined);
+      expect(next(steps[2])).toBe(steps[3]);
+      expect(next(steps[3])).toBe(undefined);
     });
   });
 

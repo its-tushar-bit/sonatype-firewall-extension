@@ -11,6 +11,7 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.FirewallRepositoryList;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
@@ -100,5 +101,21 @@ public class FirewallOnboardingPage
 
   public ElementsCollection repositoriesList() {
     return $$(ROOT + " .firewall-repository-list");
+  }
+
+  public NxCheckbox supplyChainAttacksProtectionRuleCheckbox() {
+    return new NxCheckbox(child("#firewall-rule-supply-chain-attacks"));
+  }
+
+  public NxCheckbox namespaceConfusionProtectionRuleCheckbox() {
+    return new NxCheckbox(child("#firewall-rule-namespace-confusion"));
+  }
+
+  public static Condition protectionRulesSelectorTitle() {
+    return Condition.text("Select your protection rules");
+  }
+
+  public static Condition proxyRepositoriesSelectorTitle() {
+    return Condition.text("Select proxy repositories");
   }
 }

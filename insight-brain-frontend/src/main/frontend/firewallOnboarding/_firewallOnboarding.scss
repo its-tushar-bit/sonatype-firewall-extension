@@ -141,4 +141,36 @@ firewall-onboarding-page {
       margin: 0;
     }
   }
+
+  #firewall-rules-selector {
+    .nx-list__item {
+      border-top: none;
+      margin-top: var(--nx-spacing-2x);
+      padding: 0;
+    }
+
+    .nx-radio-checkbox,
+    .firewall-rule-checkbox {
+      margin-bottom: 0;
+      margin-right: var(--nx-spacing-2x);
+    }
+
+    .firewall-static-rule-checkbox {
+      color: #328e0b;
+    }
+
+    .firewall-capability-name,
+    .nx-checkbox__content {
+      font-weight: 600;
+    }
+
+    .firewall-rule-description,
+    .firewall-capability-description {
+      margin-top: var(--nx-spacing-2x);
+    }
+
+    .firewall-rule-description {
+      margin-left: var(--nx-spacing-6x);
+    }
+  }
 }

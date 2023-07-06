@@ -5,15 +5,14 @@
  */
 
 import React from 'react';
-import { last } from 'ramda';
 import { useSelector } from 'react-redux';
 import { NxTile, NxPageTitle, NxP, NxH1, NxH2 } from '@sonatype/react-shared-components';
 import ActionsFooter from './ActionsFooter';
-import { steps } from './firewallOnboardingUtils';
+import { stepsById } from './firewallOnboardingUtils';
 import { selectTotalEnabledRepositoriesByTypeAndProp } from './firewallOnboardingSelectors';
 import logo from '../img/inspect_and_complete_page_image.svg';
 
-const currentStep = last(steps);
+const currentStep = stepsById.protect;
 
 export default function FirewallConfigurationOverview() {
   const totalEnabledProxyRepositories = useSelector((state) =>

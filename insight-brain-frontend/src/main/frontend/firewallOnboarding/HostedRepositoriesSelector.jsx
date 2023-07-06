@@ -16,10 +16,10 @@ import {
   selectUnconfiguredRepoManager,
   selectSupportedFormats,
 } from './firewallOnboardingSelectors';
-import { steps } from './firewallOnboardingUtils';
+import { stepsById } from './firewallOnboardingUtils';
 import FirewallRepositoryList from 'MainRoot/react/FirewallRepositoryList/FirewallRepositoryList';
 
-const currentStep = steps[1];
+const currentStep = stepsById.selectHosted;
 
 const NAMESPACE_CONFUSION_PROTECTION_URL = 'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
 

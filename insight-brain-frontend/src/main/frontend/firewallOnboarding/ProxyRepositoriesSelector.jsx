@@ -15,10 +15,10 @@ import {
   selectUnconfiguredRepoManager,
   selectSupportedFormats,
 } from './firewallOnboardingSelectors';
-import { steps } from './firewallOnboardingUtils';
+import { stepsById } from './firewallOnboardingUtils';
 import FirewallRepositoryList from 'MainRoot/react/FirewallRepositoryList/FirewallRepositoryList';
 
-const currentStep = steps[0];
+const currentStep = stepsById.selectProxy;
 
 export default function ProxyRepositoriesSelector() {
   const { loading, loadError } = useSelector(selectRepositories);

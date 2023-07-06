@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { last } from 'ramda';
 
 import reduce, { REDUCER_NAME } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
 import { steps } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
@@ -74,10 +75,10 @@ describe('FirewallOnboardingReducer', () => {
 
     describe('when current step does not have next step', () => {
       it('does not update currentStep', () => {
-        const state = Object.freeze({ currentStep: steps[2] });
+        const state = Object.freeze({ currentStep: last(steps) });
         const { currentStep } = reduce(state, { type: 'firewallOnboarding/continueToNextStep' });
 
-        expect(currentStep).toEqual(steps[2]);
+        expect(currentStep).toEqual(last(steps));
       });
     });
   });
@@ -368,6 +369,28 @@ describe('FirewallOnboardingReducer', () => {
         expect(newState.repositories.list).toEqual([repositories[0], repositories[1], repositories[2]]);
         expect(newState.repositories.loading).toBe(false);
         expect(newState.repositories.loadError).toBe(null);
+      });
+    });
+  });
+
+  describe('toggleProtectionRule', () => {
+    it('toggles protection rule', () => {
+      const state = Object.freeze({
+        protectionRules: {
+          securityVulnerabilityAudit: true,
+          supplyChainAttacksProtection: false,
+          namespaceConfusionProtection: false,
+        },
+      });
+      const { protectionRules } = reduce(state, {
+        type: 'firewallOnboarding/toggleProtectionRule',
+        payload: 'namespaceConfusionProtection',
+      });
+
+      expect(protectionRules).toEqual({
+        securityVulnerabilityAudit: true,
+        supplyChainAttacksProtection: false,
+        namespaceConfusionProtection: true,
       });
     });
   });

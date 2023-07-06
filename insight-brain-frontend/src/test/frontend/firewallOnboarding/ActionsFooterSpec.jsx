@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { last } from 'ramda';
 
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import ActionsFooter from 'MainRoot/firewallOnboarding/ActionsFooter';
@@ -66,7 +67,7 @@ describe('ActionsFooter', function () {
 
   describe('when the current step is the second step', () => {
     it('renders a help button', () => {
-      renderComponent(steps[0]);
+      renderComponent(steps[1]);
       const helpButton = screen.getByRole('link', { name: /help/i });
 
       expect(helpButton).toBeVisible();
@@ -118,7 +119,7 @@ describe('ActionsFooter', function () {
     });
 
     it('renders cancel button', () => {
-      renderComponent(steps[2]);
+      renderComponent(last(steps));
       const cancelButton = screen.getByRole('button', { name: /cancel/i });
 
       expect(cancelButton).toBeVisible();
@@ -127,14 +128,14 @@ describe('ActionsFooter', function () {
     });
 
     it('does not render continue button', () => {
-      renderComponent(steps[2]);
+      renderComponent(last(steps));
       const continueButton = screen.queryByRole('button', { name: /continue/i });
 
       expect(continueButton).toBeNull();
     });
 
     it('renders previous button', () => {
-      renderComponent(steps[2]);
+      renderComponent(last(steps));
       const previousButton = screen.queryByRole('button', { name: /previous/i });
 
       expect(previousButton).toBeVisible();
@@ -143,7 +144,7 @@ describe('ActionsFooter', function () {
     });
 
     it('renders "launch firewall" button', () => {
-      renderComponent(steps[2]);
+      renderComponent(last(steps));
       const launchButton = screen.getByRole('button', { name: /launch firewall/i });
 
       expect(launchButton).toBeVisible();

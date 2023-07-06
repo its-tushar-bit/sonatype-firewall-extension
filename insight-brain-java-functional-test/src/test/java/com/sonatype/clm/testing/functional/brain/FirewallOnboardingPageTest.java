@@ -82,7 +82,7 @@ public class FirewallOnboardingPageTest
     page.shouldBe(visible);
     page.steps().shouldBe(visible);
     page.actionsFooter().shouldBe(visible);
-    page.shouldHave(text("Select proxy repositories"));
+    page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
   }
 
   @Test
@@ -102,7 +102,8 @@ public class FirewallOnboardingPageTest
       waitUntilUrl(FirewallOnboardingPage.url());
       page.shouldBe(visible);
       page.getStartedButton().click();
-      page.shouldHave(text("Select proxy repositories"));
+      page.continueButton().click();
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
       eyesWatcher.eyesCheck("Firewall onboarding: 1 repository container is as wide as in its parent container," +
           " with space its sides");
 
@@ -110,6 +111,7 @@ public class FirewallOnboardingPageTest
       refreshOrOpen(FirewallOnboardingPage.url());
       waitUntilUrl(FirewallOnboardingPage.url());
       page.getStartedButton().click();
+      page.continueButton().click();
       eyesWatcher.eyesCheck("Firewall onboarding: 2 repository containers combined are as wide as its parent " +
           "container, and have space around them");
 
@@ -117,6 +119,7 @@ public class FirewallOnboardingPageTest
       refreshOrOpen(FirewallOnboardingPage.url());
       waitUntilUrl(FirewallOnboardingPage.url());
       page.getStartedButton().click();
+      page.continueButton().click();
       eyesWatcher.eyesCheck("Firewall onboarding: 3 repository containers combined are as wide as its parent " +
           "container, and have space around them");
 
@@ -124,6 +127,7 @@ public class FirewallOnboardingPageTest
       refreshOrOpen(FirewallOnboardingPage.url());
       waitUntilUrl(FirewallOnboardingPage.url());
       page.getStartedButton().click();
+      page.continueButton().click();
       eyesWatcher.eyesCheck("Firewall onboarding: 4 repository containers combined are as wide as its parent " +
           "container, and have space around them");
     }
@@ -230,21 +234,28 @@ public class FirewallOnboardingPageTest
 
       waitUntilUrl(FirewallOnboardingPage.url());
       SidebarNavigation.container().shouldBe(visible);
-      page.getStartedButton().click();
 
-      page.selectedStepShouldBe("1. Select");
+      page.getStartedButton().click();
+      page.continueButton().shouldBe(visible);
       page.previousButton().shouldNotBe(visible);
       page.launchFirewallButton().shouldNotBe(visible);
-      page.continueButton().shouldBe(visible);
-      page.continueButton().click();
+      page.selectedStepShouldBe("1. Enable rules");
 
-      page.selectedStepShouldBe("2. Select");
+      page.continueButton().click();
+      page.continueButton().shouldBe(visible);
       page.previousButton().shouldBe(visible);
       page.launchFirewallButton().shouldNotBe(visible);
+      page.selectedStepShouldBe("2. Select");
+
+      page.continueButton().click();
+      page.continueButton().shouldBe(visible);
+      page.previousButton().shouldBe(visible);
+      page.launchFirewallButton().shouldNotBe(visible);
+      page.selectedStepShouldBe("3. Select");
+
       page.continueButton().shouldBe(visible);
       page.continueButton().click();
-
-      page.selectedStepShouldBe("3. Protect");
+      page.selectedStepShouldBe("4. Protect");
       page.previousButton().shouldBe(visible);
       page.continueButton().shouldNotBe(visible);
       page.launchFirewallButton().shouldBe(visible);
@@ -267,6 +278,7 @@ public class FirewallOnboardingPageTest
       waitUntilUrl(FirewallOnboardingPage.url());
 
       page.getStartedButton().click();
+      page.continueButton().click();
       page.continueButton().click();
       page.continueButton().click();
       page.launchFirewallButton().shouldBe(visible).click();
@@ -362,6 +374,45 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
+  public void testSelectProtectionRulesStep() {
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    try {
+      createUnconfiguredRepositoryManager("instanceId");
+
+      List<String> supportedFormats = Arrays.asList("maven2", "swift", "pypi", "npm", "go");
+      mockComponentSupportedFormats(supportedFormats);
+
+      page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
+
+      page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
+      page.shouldHave(Condition.text(
+          "Select a core set of policies that enable a default set of protection rules. "
+          + "You can modify these protection rules again later."
+      ));
+
+      page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+      page.supplyChainAttacksProtectionRuleCheckbox().click();
+      page.supplyChainAttacksProtectionRuleCheckbox().shouldBe(Condition.selected);
+
+      page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+      page.namespaceConfusionProtectionRuleCheckbox().click();
+      page.namespaceConfusionProtectionRuleCheckbox().shouldBe(Condition.selected);
+
+      eyesWatcher.eyesCheck("Firewall onboarding: select protection rules step");
+
+      page.continueButton().click();
+
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+    }
+  }
+
+  @Test
   public void testSelectProxyRepositoriesStep() {
     refreshOrOpen(FirewallOnboardingPage.url());
     logout();
@@ -388,7 +439,10 @@ public class FirewallOnboardingPageTest
 
       page.shouldBe(visible);
       page.getStartedButton().click();
-      page.shouldHave(text("Select proxy repositories"));
+      page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
+      
+      page.continueButton().click();
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
       page.shouldHave(text(
           "Choose which proxy repositories you would like to apply your protection rules to."));
 
@@ -451,6 +505,7 @@ public class FirewallOnboardingPageTest
       page.shouldBe(visible);
       page.getStartedButton().click();
       page.continueButton().click();
+      page.continueButton().click();
       page.shouldHave(text("Select hosted repositories"));
 
       ElementsCollection repositoriesLists = page.repositoriesList();
@@ -512,6 +567,7 @@ public class FirewallOnboardingPageTest
       page.shouldBe(visible);
       page.getStartedButton().click();
       page.continueButton().click();
+      page.continueButton().click();
       page.shouldHave(text("Select hosted repositories"));
 
       ElementsCollection repositoriesLists = page.repositoriesList();
@@ -560,7 +616,9 @@ public class FirewallOnboardingPageTest
       waitUntilUrl(FirewallOnboardingPage.url());
       page.shouldBe(visible);
       page.getStartedButton().click();
-      page.shouldHave(text("Select proxy repositories"));
+      page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
+      page.continueButton().click();
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
       page.shouldHave(text(
           "Choose which proxy repositories you would like to apply your protection rules to."));
 
@@ -604,10 +662,14 @@ public class FirewallOnboardingPageTest
       loginAsAdmin();
       waitUntilUrl(FirewallOnboardingPage.url());
 
-      // then I should see the select proxy repositories step
+      // then I should see the select protection rules step
       page.shouldBe(visible);
       page.getStartedButton().click();
-      page.shouldHave(text("Select proxy repositories"));
+      page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
+
+      // then I should see the select proxy repositories step
+      page.continueButton().click();
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
 
       // and I should see 3 lists of repositories
       ElementsCollection repositoriesLists = page.repositoriesList();
@@ -665,6 +727,7 @@ public class FirewallOnboardingPageTest
       page.shouldBe(visible);
       page.getStartedButton().click();
       page.continueButton().click();
+      page.continueButton().click();
       page.shouldHave(text("Select hosted repositories"));
       page.shouldHave(text("There are no hosted repositories to apply your protection rules."));
 
@@ -715,9 +778,11 @@ public class FirewallOnboardingPageTest
 
       page.shouldBe(visible);
       page.getStartedButton().click();
-      page.shouldHave(text("Select proxy repositories"));
+      page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
+      page.continueButton().click();
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
       page.shouldHave(text(
-          "Choose which proxy repositories you would like to apply your protection rules to."));
+              "Choose which proxy repositories you would like to apply your protection rules to."));
 
       ElementsCollection repositoriesLists = page.repositoriesList();
       repositoriesLists.shouldHaveSize(4);
@@ -797,7 +862,9 @@ public class FirewallOnboardingPageTest
 
       page.shouldBe(visible);
       page.getStartedButton().click();
-      page.shouldHave(text("Select proxy repositories"));
+      page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
+      page.continueButton().click();
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
 
       ElementsCollection repositoriesLists = page.repositoriesList();
       repositoriesLists.shouldHaveSize(4);

@@ -43,6 +43,11 @@ export const initialState = {
     loading: false,
     loadError: null,
   },
+  protectionRules: {
+    securityVulnerabilityAudit: true,
+    supplyChainAttacksProtection: false,
+    namespaceConfusionProtection: false,
+  },
 };
 
 const openIncompleteConfigurationModal = (state, { payload }) => ({
@@ -214,6 +219,14 @@ const saveRepositoriesFailed = (state, { payload }) => ({
   },
 });
 
+const toggleProtectionRule = (state, { payload }) => ({
+  ...state,
+  protectionRules: {
+    ...state.protectionRules,
+    [payload]: !state.protectionRules[payload],
+  },
+});
+
 const firewallOnboardingSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -224,6 +237,7 @@ const firewallOnboardingSlice = createSlice({
     openIncompleteConfigurationModal,
     closeIncompleteConfigurationModal,
     configureRepositories,
+    toggleProtectionRule,
   },
   extraReducers: {
     [loadUnconfiguredRepoManagers.pending]: loadUnconfiguredRepoManagersRequested,

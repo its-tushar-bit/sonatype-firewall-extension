@@ -14,7 +14,7 @@ describe('OnboardingSteps', function () {
   const renderComponent = () => render(<OnboardingSteps currentStep={steps[0]} />);
 
   it('renders all the steps', () => {
-    renderComponent(steps[0]);
+    renderComponent();
 
     steps.forEach((step) => {
       const index = step.index + 1;

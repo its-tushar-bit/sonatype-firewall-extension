@@ -15,6 +15,7 @@ import {
   selectSupportedFormats,
   selectRepositoriesByType,
   selectTotalEnabledRepositoriesByTypeAndProp,
+  selectProtectionRules,
 } from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
 import { selectRepositories } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 
@@ -286,6 +287,26 @@ describe('FirewallOnboardingSelectors', () => {
       const result = selectRepositoriesByType.resultFunc(repositories, formats, repositoryType);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('selectProtectionRules', () => {
+    it('is composed from the following selector', () => {
+      expect(selectProtectionRules.dependencies).toEqual([selectFirewallOnboardingSlice]);
+    });
+
+    it('selects protection rules from firewall onboarding slice', () => {
+      const slice = {
+        protectionRules: {
+          securityVulnerabilityAudit: true,
+          supplyChainAttacksProtection: false,
+          namespaceConfusionProtection: false,
+        },
+      };
+
+      const actualSelection = selectProtectionRules.resultFunc(slice);
+
+      expect(actualSelection).toBe(slice.protectionRules);
     });
   });
 });

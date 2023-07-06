@@ -57,6 +57,11 @@ public class ExportEmbeddedDatabaseCommandTest
     return new DefaultTestInsightBrainService().setWorkDir(tempDir.getRoot());
   }
 
+  private void createWithoutInitData(InsightConfig config) {
+    DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
+    OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
+  }
+
   private void initData(InsightConfig config) {
     DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
     OperationalDataStoreProvider.init(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods), true);
@@ -72,13 +77,31 @@ public class ExportEmbeddedDatabaseCommandTest
   }
 
   @Test
-  public void testRun_UninitializedDatabase() {
+  public void testRun_MissingDatabase() {
     DataSourceFactory.clear_ForTestsOnly();
     try {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
       assertThatExceptionOfType(RuntimeException.class)
           .isThrownBy(() -> newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
+              dumpFile.getPath())).withMessageContaining("Cannot find the embedded database");
+      assertThat(dumpFile).doesNotExist();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  @Test
+  public void testRun_UninitializedDatabase() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try {
+      File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+      DefaultTestInsightBrainService service = newService();
+      service.setConfigurator(this::createWithoutInitData);
+
+      assertThatExceptionOfType(RuntimeException.class)
+          .isThrownBy(() -> service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
               dumpFile.getPath())).withMessageContaining("The server needs to have been started normally once before" +
               " in order to complete the required upgrade steps.");
       assertThat(dumpFile).doesNotExist();

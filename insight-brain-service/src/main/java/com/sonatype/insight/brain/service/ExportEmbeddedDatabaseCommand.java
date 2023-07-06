@@ -11,6 +11,9 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -74,6 +77,12 @@ public class ExportEmbeddedDatabaseCommand
           + " command can only be used when no external database is specified in the server's config.yml file.");
     }
 
+    Path odsPath =
+        Paths.get(getConfiguration().getSonatypeWork().getAbsolutePath(), "data", databaseFileName());
+    if (!Files.exists(odsPath)) {
+      throw new BadRequestException("Cannot find the embedded database in " + odsPath.getParent());
+    }
+
     DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
     OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
     if (!DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
@@ -103,6 +112,10 @@ public class ExportEmbeddedDatabaseCommand
       export(writer, ThirdPartyScansProvider.getDataSource());
     }
     log.info("Completed export to '{}' in {} ms.", dumpFile, System.currentTimeMillis() - start);
+  }
+
+  private static String databaseFileName() {
+    return DatabaseName.ods + ".h2.db";
   }
 
   private OutputStream newOutputStream(File dumpFile) throws Exception {

@@ -20,7 +20,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -58,7 +57,6 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
-
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -1292,8 +1290,8 @@ public class ScmOnboardingServiceTest
     String importErrors = JsonUtils.writeUnformatted(
         new ImportFailures(Arrays.asList(new ImportFailure(newSCMRepository("url", "p", "o"), "error1"))));
     event.setImportErrors(importErrors);
-    event.incrementImportSuccessCountBy(50);
-    event.incrementImportFailureCountBy(10);
+    event.setImportSuccessCount(50);
+    event.setImportFailureCount(10);
     event.setLastUpdatedTime(new Date());
     event.setImportStatus(ImportStatus.COMPLETE);
     sourceControlOrganizationImportEventDAO.update(event);

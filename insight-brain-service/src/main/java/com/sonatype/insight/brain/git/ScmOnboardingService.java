@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -410,19 +408,15 @@ public class ScmOnboardingService
     }
   }
 
-  private void updateImportEventIntermediateState(
+  private synchronized void updateImportEventIntermediateState(
       SourceControlOrganizationImportEvent event,
       int successCount,
       int failedCount)
   {
-    event.setLastUpdatedTime(getTimeNow())
-        .incrementImportSuccessCountBy(successCount)
-        .incrementImportFailureCountBy(failedCount);
+    event.setLastUpdatedTime(new Date())
+        .setImportSuccessCount(event.getImportSuccessCount() + successCount)
+        .setImportFailureCount(event.getImportFailureCount() + failedCount);
     sourceControlOrganizationImportEventDAO.update(event);
-  }
-
-  static Date getTimeNow() {
-    return Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
   }
 
   private void sendImportTelemetry(final ImportRepositoriesRequest importReposRequest) {
@@ -692,7 +686,7 @@ public class ScmOnboardingService
         .setOrganizationId(orgId)
         .setScmHostUrl(importRequest.scmHostUrl)
         .setImportLimit(importRequest.importLimit)
-        .setLastUpdatedTime(getTimeNow())
+        .setLastUpdatedTime(new Date())
         .setDesiredSubOrganizationCount(importRequest.desiredSubOrganizationCount);
 
     sourceControlOrganizationImportEventDAO.insert(importEvent);
@@ -847,11 +841,11 @@ public class ScmOnboardingService
     return (numberOfReposToImport + eachBatchSize - 1) / eachBatchSize;
   }
 
-  private void finalizeParallelImport(
+  private synchronized void finalizeParallelImport(
       final SourceControlOrganizationImportEvent event,
       final List<ImportFailure> importFailures)
   {
-    event.setLastUpdatedTime(getTimeNow());
+    event.setLastUpdatedTime(new Date());
     long diff = Math.abs(event.getLastUpdatedTime().getTime() - event.getStartTime().getTime());
     long diffMinutes = TimeUnit.MINUTES.convert(diff, TimeUnit.MILLISECONDS);
     event.setImportStatus(ImportStatus.COMPLETE);
@@ -867,7 +861,7 @@ public class ScmOnboardingService
       final ImportResults results)
   {
     event.setImportStatus(ImportStatus.COMPLETE);
-    event.setLastUpdatedTime(getTimeNow());
+    event.setLastUpdatedTime(new Date());
     if (results != null) {
       event.setImportErrors(JsonUtils.writeUnformatted(new ImportFailures(results.getFailedRepositories())));
     }

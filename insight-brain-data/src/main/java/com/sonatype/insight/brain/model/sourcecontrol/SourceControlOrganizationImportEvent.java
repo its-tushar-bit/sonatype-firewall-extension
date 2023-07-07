@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.model.sourcecontrol;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -63,10 +61,10 @@ public class SourceControlOrganizationImportEvent
   private int importFailureCount = 0;
 
   @Column(name = "start_time")
-  private Date startTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
+  private Date startTime = new Date();
 
   @Column(name = "last_updated_time")
-  private Date lastUpdatedTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
+  private Date lastUpdatedTime = new Date();
 
   @Column(name = "import_errors")
   private String importErrors;
@@ -128,28 +126,20 @@ public class SourceControlOrganizationImportEvent
     return this;
   }
 
-  public synchronized int getImportSuccessCount() {
+  public int getImportSuccessCount() {
     return importSuccessCount;
   }
 
-  private SourceControlOrganizationImportEvent setImportSuccessCount(final int importSuccessCount) {
+  public SourceControlOrganizationImportEvent setImportSuccessCount(final int importSuccessCount) {
     this.importSuccessCount = importSuccessCount;
     return this;
   }
 
-  public synchronized SourceControlOrganizationImportEvent incrementImportSuccessCountBy(final int successCount) {
-    return setImportSuccessCount(this.getImportSuccessCount() + successCount);
-  }
-
-  public synchronized int getImportFailureCount() {
+  public int getImportFailureCount() {
     return importFailureCount;
   }
 
-  public synchronized SourceControlOrganizationImportEvent incrementImportFailureCountBy(final int failureCount) {
-    return setImportFailureCount(this.getImportFailureCount() + failureCount);
-  }
-
-  private SourceControlOrganizationImportEvent setImportFailureCount(final int importFailureCount) {
+  public SourceControlOrganizationImportEvent setImportFailureCount(final int importFailureCount) {
     this.importFailureCount = importFailureCount;
     return this;
   }
@@ -167,7 +157,7 @@ public class SourceControlOrganizationImportEvent
     return lastUpdatedTime;
   }
 
-  public synchronized SourceControlOrganizationImportEvent setLastUpdatedTime(final Date lastUpdatedTime) {
+  public SourceControlOrganizationImportEvent setLastUpdatedTime(final Date lastUpdatedTime) {
     this.lastUpdatedTime = lastUpdatedTime;
     return this;
   }

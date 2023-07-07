@@ -1251,6 +1251,10 @@ public class TemporaryEntity
     return samlUser;
   }
 
+  public SamlUser newSamlUser(String username, String firstName, String lastName, String email) {
+    return newSamlUser(username, firstName, lastName, email, Collections.emptySet());
+  }
+
   public SamlGroup newSamlGroup() {
     return newSamlGroup("name" + uuid());
   }

@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.banning.BannedImplementationService;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.telemetry.MultiTenantTelemetryCollectorsProvider;
@@ -62,6 +63,7 @@ import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.brain.users.MultiTenantUserDirectory;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.version.MultiTenantVersionService;
@@ -337,6 +339,8 @@ public class MultiTenantInsightBrainService
         bind(VersionService.class).to(MultiTenantVersionService.class);
 
         bind(MultiTenantJwkProvider.class).toInstance(getMultitenantJwkProvider(config));
+
+        bind(UserDirectory.class).to(MultiTenantUserDirectory.class);
       }
     };
   }

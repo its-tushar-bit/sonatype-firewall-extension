@@ -79,6 +79,10 @@ public class AccessEditorPage
       return child("#add-associate-group-btn");
     }
 
+    public SelenideElement addGroupInput() {
+      return this.child("#add-associate-group-input");
+    }
+
     public SelenideElement searchBox() {
       return child(".nx-search-dropdown .nx-text-input__input");
     }

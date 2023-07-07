@@ -319,6 +319,7 @@ public abstract class AbstractMtiqFunctionalTest
     if (!testCLMServer.isRunning()) {
       testCLMServer.start();
     }
+    TenantTestHelper.setGlobalTenant();
     testCLMServer.getHdsServer().reset();
     if (productLicenseManager.wasChanged()) {
       productLicenseManager.reset();

@@ -38,6 +38,7 @@ import {
   selectAvailableRoles,
   selectFetchUsers,
 } from './accessSelectors';
+import { selectTenantMode } from '../../productFeatures/productFeaturesSelectors';
 
 import { actions } from './accessSlice';
 import { allPass, filter, inc, prop, propEq, reduceBy } from 'ramda';
@@ -69,6 +70,7 @@ export default function AccessPage() {
   const noRolesAvailableError = useSelector(selectNoRolesAvailableError);
   const addedUsers = sortByDisplayName(useSelector(selectUnSortedAddedUsers));
   const availableRoles = useSelector(selectAvailableRoles);
+  const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
   const createOrUpdateRole = () => dispatch(actions.createOrUpdateRole());
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -219,7 +221,7 @@ export default function AccessPage() {
                 sublabel="Search by name or use ‘*’ as wildcard (ex. ‘Isa*’ matches ‘Isaac Asimov’)"
                 isRequired
               >
-                {!groupSearchEnabled && (
+                {!groupSearchEnabled && !isMultiTenant && (
                   <NxStatefulInfoAlert id="ldap-servers-alert">
                     One or more LDAP servers have group search disabled, which will affect your results
                   </NxStatefulInfoAlert>

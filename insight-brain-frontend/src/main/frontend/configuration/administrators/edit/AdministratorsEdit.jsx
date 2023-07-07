@@ -41,6 +41,7 @@ import {
   selectIsGroupSearchEnabled,
   selectFetchUsersPartialError,
 } from '../administratorsSelectors';
+import { selectTenantMode } from '../../../productFeatures/productFeaturesSelectors';
 import { actions } from '../administratorsSlice';
 import { removeFormatGroupUsers } from 'MainRoot/util/formatGroupUsers';
 import { allPass, compose, filter, map, not, propEq } from 'ramda';
@@ -81,6 +82,7 @@ const AdministratorsEdit = () => {
 
   const submitMaskState = useSelector(selectSubmitMaskState);
   const submitError = useSelector(selectSubmitError);
+  const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
 
   const [searchText, setSearchText] = useState('');
   const [groupName, setGroupName] = useState('');
@@ -175,7 +177,7 @@ const AdministratorsEdit = () => {
                 sublabel="use ‘*’ as wildcard (ex. ‘Isa*’ matches ‘Isaac Asimov’)"
                 isRequired
               >
-                {!groupSearchEnabled && (
+                {!groupSearchEnabled && !isMultiTenant && (
                   <NxStatefulInfoAlert id="ldap-servers-alert">
                     One or more LDAP servers have group search disabled, which will affect your results
                   </NxStatefulInfoAlert>

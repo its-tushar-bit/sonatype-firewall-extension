@@ -429,7 +429,7 @@ public class FirewallOnboardingPageTest
       List<Repository> npmRepositories = createRepositories(3, repositoryManager, "npm", proxy, supportedFormats);
       List<Repository> goRepositories = createRepositories(2, repositoryManager, "go", proxy, supportedFormats);
       List<Repository> swiftRepositories = createRepositories(2, repositoryManager, "swift", proxy, supportedFormats);
-      List<Repository> otherRepositories = new ArrayList<Repository>(goRepositories);
+      List<Repository> otherRepositories = new ArrayList<>(goRepositories);
       createRepositories(2, repositoryManager, null, proxy, supportedFormats); // add a repository with null format
       otherRepositories.addAll(swiftRepositories);
 
@@ -494,7 +494,7 @@ public class FirewallOnboardingPageTest
       List<Repository> npmRepositories = createRepositories(3, repositoryManager, "npm", hosted, supportedFormats);
       List<Repository> goRepositories = createRepositories(2, repositoryManager, "go", hosted, supportedFormats);
       List<Repository> swiftRepositories = createRepositories(2, repositoryManager, "swift", hosted, supportedFormats);
-      List<Repository> otherRepositories = new ArrayList<Repository>(goRepositories);
+      List<Repository> otherRepositories = new ArrayList<>(goRepositories);
       createRepositories(2, repositoryManager, null, hosted, supportedFormats); // add a repository with null form at
       otherRepositories.addAll(swiftRepositories);
 
@@ -556,7 +556,7 @@ public class FirewallOnboardingPageTest
       List<Repository> npmRepositories = createRepositories(3, repositoryManager, "npm", hosted, supportedFormats);
       List<Repository> goRepositories = createRepositories(2, repositoryManager, "go", hosted, supportedFormats);
       List<Repository> swiftRepositories = createRepositories(2, repositoryManager, "swift", hosted, supportedFormats);
-      List<Repository> otherRepositories = new ArrayList<Repository>(goRepositories);
+      List<Repository> otherRepositories = new ArrayList<>(goRepositories);
       createRepositories(2, repositoryManager, null, hosted, supportedFormats); // add a repository with null format
       otherRepositories.addAll(swiftRepositories);
 

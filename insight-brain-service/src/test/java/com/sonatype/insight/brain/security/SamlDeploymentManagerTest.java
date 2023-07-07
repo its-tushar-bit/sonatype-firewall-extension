@@ -10,6 +10,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Base64;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
@@ -144,7 +145,7 @@ public class SamlDeploymentManagerTest
     assertThat(idp.getEntityID()).isEqualTo("idp-entity-id");
 
     assertThat(idp.getSignatureValidationKeyLocator()).isInstanceOf(Iterable.class);
-    Iterable<?> keys = (Iterable<?>) idp.getSignatureValidationKeyLocator();
+    Iterable<?> keys = idp.getSignatureValidationKeyLocator();
     assertThat(keys).hasSize(1).first().isInstanceOf(Key.class);
     Key key = (Key) keys.iterator().next();
     assertThat(Base64.getEncoder().encodeToString(key.getEncoded())).hasSize(392)
@@ -195,7 +196,7 @@ public class SamlDeploymentManagerTest
     SamlDeployment samlDeployment = samlDeploymentManager.get();
     IDP idp = samlDeployment.getIDP();
     assertThat(idp.getSignatureValidationKeyLocator()).isInstanceOf(Iterable.class);
-    Iterable<?> keys = (Iterable<?>) idp.getSignatureValidationKeyLocator();
+    Iterable<?> keys = idp.getSignatureValidationKeyLocator();
     assertThat(keys).hasSize(1).first().isInstanceOf(Key.class);
     Key key = (Key) keys.iterator().next();
     assertThat(Base64.getEncoder().encodeToString(key.getEncoded())).hasSize(392)
@@ -211,7 +212,7 @@ public class SamlDeploymentManagerTest
     SamlDeployment samlDeployment = samlDeploymentManager.get();
     IDP idp = samlDeployment.getIDP();
     assertThat(idp.getSignatureValidationKeyLocator()).isInstanceOf(Iterable.class);
-    Iterable<?> keys = (Iterable<?>) idp.getSignatureValidationKeyLocator();
+    Iterable<?> keys = idp.getSignatureValidationKeyLocator();
     assertThat(keys).hasSize(1).first().isInstanceOf(Key.class);
     Key key = (Key) keys.iterator().next();
     assertThat(Base64.getEncoder().encodeToString(key.getEncoded())).hasSize(392)
@@ -227,7 +228,7 @@ public class SamlDeploymentManagerTest
     SamlDeployment samlDeployment = samlDeploymentManager.get();
     IDP idp = samlDeployment.getIDP();
     assertThat(idp.getSignatureValidationKeyLocator()).isInstanceOf(Iterable.class);
-    Iterable<?> keys = (Iterable<?>) idp.getSignatureValidationKeyLocator();
+    Iterable<?> keys = idp.getSignatureValidationKeyLocator();
     assertThat(keys).isEmpty();
 
     SingleSignOnService ssoService = idp.getSingleSignOnService();

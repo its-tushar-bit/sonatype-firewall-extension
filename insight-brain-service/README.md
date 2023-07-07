@@ -51,7 +51,7 @@ You can log on to the server with these default credentials:
 * username: **admin**
 * password: **admin123**
 
-The **first time** you launch the application, you will need to add a license file. Download and use `[year]-sonatype-internal-nxrm-firewall-lifecycle.lic` from [the product licensing page](https://docs.sonatype.com/display/ProdMgmt/Product+Licensing).
+The **first time** you launch the application, you will need to add a license file. Download and use `[year]-sonatype-internal-lcc-lfc-1000apps-1000rm_users-1000lc_users-1000fw_users.lic` from [the product licensing page](https://sonatype.atlassian.net/wiki/spaces/ProdMgmt/pages/43516041/Product+Licensing).
 
 ## Mail Assets
 

@@ -51,8 +51,8 @@ This project requires the following local installs:
 
 Be sure to configure both Maven and npm to use repo.s.c (https://repo.sonatype.com) as the source for packages. You will need to use your own personal user credentials for repo.s.c (instructions for how to do this are included in the following Maven repo.s.c instructions):
 
-* [**Maven** instructions](https://docs.sonatype.com/x/AYlCCg)
-* [**npm** instructions](https://docs.sonatype.com/display/CDI/Setting+up+npm+to+use+repo.sonatype.com)
+* [**Maven** instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/10394202/Setting+up+maven+to+use+repo.sonatype.com)
+* [**npm** instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/10393715/Setting+up+npm+to+use+repo.sonatype.com)
 
 ## Building ##
 

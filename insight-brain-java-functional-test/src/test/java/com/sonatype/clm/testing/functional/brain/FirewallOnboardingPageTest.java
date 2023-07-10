@@ -168,13 +168,13 @@ public class FirewallOnboardingPageTest
 
     eyesWatcher.eyesCheck("Incomplete Configuration Modal: Welcome Screen");
 
-    page.incompleteConfigurationModal().continueButton().click();
+    page.incompleteConfigurationModal().cancelButton().click();
     page.incompleteConfigurationModal().shouldNotBe(visible);
 
     page.shouldBe(visible);
 
     SidebarNavigation.dashboardNavigationButton().click();
-    page.incompleteConfigurationModal().exitButton().click();
+    page.incompleteConfigurationModal().continueButton().click();
 
     waitUntilUrl(DashboardPage.url());
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -193,13 +193,13 @@ public class FirewallOnboardingPageTest
 
     eyesWatcher.eyesCheck("Incomplete Configuration Modal: Onboarding Screen");
 
-    page.incompleteConfigurationModal().continueButton().click();
+    page.incompleteConfigurationModal().cancelButton().click();
     page.incompleteConfigurationModal().shouldNotBe(visible);
 
     page.shouldBe(visible);
 
     SidebarNavigation.dashboardNavigationButton().click();
-    page.incompleteConfigurationModal().exitButton().click();
+    page.incompleteConfigurationModal().continueButton().click();
 
     waitUntilUrl(DashboardPage.url());
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -215,14 +215,14 @@ public class FirewallOnboardingPageTest
     page.cancelButton().shouldBe(visible).click();
 
     page.incompleteConfigurationModal().shouldBe(visible);
-    page.incompleteConfigurationModal().continueButton().click();
+    page.incompleteConfigurationModal().cancelButton().click();
     page.incompleteConfigurationModal().shouldNotBe(visible);
 
     page.shouldBe(visible);
 
     page.cancelButton().shouldBe(visible).click();
     page.incompleteConfigurationModal().shouldBe(visible);
-    page.incompleteConfigurationModal().exitButton().click();
+    page.incompleteConfigurationModal().continueButton().click();
     page.incompleteConfigurationModal().shouldNotBe(visible);
 
     waitUntilUrl(FirewallPage.url());

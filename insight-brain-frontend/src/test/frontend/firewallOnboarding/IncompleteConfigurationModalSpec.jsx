@@ -30,11 +30,11 @@ describe('IncompleteConfigurationModal', () => {
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Repository Firewall has not been configured');
     expect(
       screen.getByText(
-        'You have not completed the Repository Firewall configuration. Your environment will not be protected from malicious code or dependency confusion threats until Repository Firewall has been configured. If you exit, any changes you have made will be discarded. You can restart and complete the configuration process at a later time by reloading Repository Firewall.'
+        'You have not completed the Repository Firewall configuration. Your environment will not be protected from malicious code or dependency confusion threats until Repository Firewall has been configured. You can restart and complete the configuration process at a later time by reloading Repository Firewall.'
       )
     ).toBeVisible();
-    expect(screen.getByText('Would you like to continue configuring Repository Firewall?')).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Exit' })).toBeVisible();
+    expect(screen.getByText('If you continue, any changes you have made will be discarded.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Continue' })).toBeVisible();
   });
 

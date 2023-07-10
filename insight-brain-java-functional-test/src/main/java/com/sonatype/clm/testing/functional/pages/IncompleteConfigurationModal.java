@@ -18,11 +18,11 @@ public class IncompleteConfigurationModal
   }
 
   public Button continueButton() {
-    return new Button(childSelector("#continue-configuration-button"));
+    return new Button(childSelector("#incomplete-configuration-modal-continue-button"));
   }
 
-  public Button exitButton() {
-    return new Button(childSelector("#exit-configuration-button"));
+  public Button cancelButton() {
+    return new Button(childSelector("#incomplete-configuration-modal-cancel-button"));
   }
 
   public SelenideElement modalContent() {

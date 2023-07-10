@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { NxButton, NxModal } from '@sonatype/react-shared-components';
+import { NxButton, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { actions } from './firewallOnboardingSlice';
@@ -17,7 +17,7 @@ export default function IncompleteConfigurationModal() {
   const dispatch = useDispatch();
   const closeModal = () => dispatch(actions.closeIncompleteConfigurationModal());
 
-  const handleExit = () => {
+  const exitOnboarding = () => {
     if (href) {
       location.href = href;
       closeModal();
@@ -33,18 +33,17 @@ export default function IncompleteConfigurationModal() {
         <div className="nx-modal-content">
           <p>
             You have not completed the Repository Firewall configuration. Your environment will not be protected from
-            malicious code or dependency confusion threats until Repository Firewall has been configured. If you exit,
-            any changes you have made will be discarded. You can restart and complete the configuration process at a
-            later time by reloading Repository Firewall.
+            malicious code or dependency confusion threats until Repository Firewall has been configured. You can
+            restart and complete the configuration process at a later time by reloading Repository Firewall.
           </p>
-          <p>Would you like to continue configuring Repository Firewall?</p>
+          <NxWarningAlert>If you continue, any changes you have made will be discarded.</NxWarningAlert>
         </div>
         <footer className="nx-footer">
           <div className="nx-btn-bar">
-            <NxButton id="exit-configuration-button" onClick={handleExit}>
-              Exit
+            <NxButton id="incomplete-configuration-modal-cancel-button" onClick={closeModal}>
+              Cancel
             </NxButton>
-            <NxButton id="continue-configuration-button" variant="primary" onClick={closeModal}>
+            <NxButton id="incomplete-configuration-modal-continue-button" variant="primary" onClick={exitOnboarding}>
               Continue
             </NxButton>
           </div>

@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -66,12 +67,14 @@ public class FirewallOnboardingPageTest
             + " in your repositories.";
     refreshOrOpen(FirewallOnboardingPage.url());
 
-    eyesWatcher.eyesCheck("Firewall onboarding: Welcome Screen");
+    page.welcomeTitle().shouldHave(Condition.text("Welcome to Repository Firewall"));
+    page.welcomeSubtitle().shouldHave(Condition.text("Start step-by-step configuration"));
+    page.welcomeDescription().shouldHave(Condition.text(welcomeDescription));
+    page.getStartedButton().shouldHave(Condition.text("Get Started"));
 
-    page.welcomeTitle().shouldHave(text("Welcome to Repository Firewall"));
-    page.welcomeSubtitle().shouldHave(text("Start step-by-step configuration"));
-    page.welcomeDescription().shouldHave(text(welcomeDescription));
-    page.getStartedButton().shouldHave(text("Get Started"));
+    // Wait for the sidebar to close.
+    Selenide.sleep(1000);
+    eyesWatcher.eyesCheck("Firewall onboarding: Welcome Screen");
   }
 
   @Test

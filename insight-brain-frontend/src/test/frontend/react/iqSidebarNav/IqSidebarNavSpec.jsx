@@ -75,6 +75,15 @@ describe('IqSidebarNav', function () {
       expect(globalSidebar).toHaveProp('logoAltText', 'mockProductEdition');
     });
 
+    describe('setLeftNavigationOpen', () => {
+      it('setLeftNavigationOpen  dispatch an event', () => {
+        const eventSpy = jasmine.createSpy();
+        window.addEventListener('storage', eventSpy);
+        setLeftNavigationOpen(false);
+        expect(eventSpy).toHaveBeenCalled();
+      });
+    });
+
     it('renders the NxGlobalSidebar open if there are no previous preferences set', function () {
       const component = getShallowComponent(),
         globalSidebar = component.find(NxGlobalSidebar);

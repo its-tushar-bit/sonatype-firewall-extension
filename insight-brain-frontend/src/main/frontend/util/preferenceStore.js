@@ -29,6 +29,7 @@ export const setLeftNavigationOpen = (newLeftNavigationOpenState) => {
     return;
   }
   setItemInStorage(preferences.leftNavigation.isOpen, newLeftNavigationOpenState);
+  window.dispatchEvent(new Event('storage'));
 };
 
 const getItemFromStorageForKey = (key) => localStorage.getItem(key);

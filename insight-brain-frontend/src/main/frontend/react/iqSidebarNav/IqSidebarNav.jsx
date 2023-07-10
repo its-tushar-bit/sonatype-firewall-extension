@@ -32,7 +32,7 @@ import { isLeftNavigationOpen, setLeftNavigationOpen } from '../../util/preferen
 
 function IqSidebarNav(props) {
   const uiRouterState = useRouterState();
-  const [isOpen, toggleOpen] = useToggle(isLeftNavigationOpen());
+  const [isOpen, toggleOpen, setToggleOpen] = useToggle(isLeftNavigationOpen());
 
   const {
     productEdition,
@@ -75,6 +75,12 @@ function IqSidebarNav(props) {
   const isVulnerabilitySearchSelected = isSelected('vulnerabilitySearch') || isSelected('vulnerabilitySearchDetail');
   const isFirewallSelected = isSelected('firewall') || isSelected('firewallAutoUnquarantine');
   const isReportsSelected = isSelected('violations') || isSelected('transitiveViolations');
+
+  useEffect(() => {
+    const handleStorage = () => setToggleOpen(isLeftNavigationOpen());
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   useEffect(() => {
     setLeftNavigationOpen(isOpen);

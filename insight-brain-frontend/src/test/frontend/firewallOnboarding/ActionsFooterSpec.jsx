@@ -21,6 +21,7 @@ describe('ActionsFooter', function () {
     spyOn(actions, 'continueToNextStep').and.callThrough();
     spyOn(actions, 'goBackToPreviousStep').and.callThrough();
     spyOn(actions, 'openIncompleteConfigurationModal').and.callThrough();
+    spyOn(actions, 'configureProtectionRules').and.callThrough();
   });
 
   describe('when the current step is the first step', () => {
@@ -149,6 +150,7 @@ describe('ActionsFooter', function () {
 
       expect(launchButton).toBeVisible();
       fireEvent.click(launchButton);
+      expect(actions.configureProtectionRules).toHaveBeenCalled();
       expect(actions.saveRepositories).toHaveBeenCalled();
     });
   });

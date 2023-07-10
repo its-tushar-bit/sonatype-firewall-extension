@@ -65,8 +65,8 @@ export default function FirewallRulesSelector() {
                 <NxCheckbox
                   id="firewall-rule-supply-chain-attacks"
                   className="firewall-rule-checkbox"
-                  isChecked={protectionRules.supplyChainAttacksProtection}
-                  onChange={() => toggleProtectionRule('supplyChainAttacksProtection')}
+                  isChecked={protectionRules.supplyChainAttacksProtectionEnabled}
+                  onChange={() => toggleProtectionRule('supplyChainAttacksProtectionEnabled')}
                 >
                   Supply chain attacks protection
                 </NxCheckbox>
@@ -80,8 +80,8 @@ export default function FirewallRulesSelector() {
                 <NxCheckbox
                   id="firewall-rule-namespace-confusion"
                   className="firewall-rule-checkbox"
-                  isChecked={protectionRules.namespaceConfusionProtection}
-                  onChange={() => toggleProtectionRule('namespaceConfusionProtection')}
+                  isChecked={protectionRules.namespaceConfusionProtectionEnabled}
+                  onChange={() => toggleProtectionRule('namespaceConfusionProtectionEnabled')}
                 >
                   Namespace confusion protection
                 </NxCheckbox>

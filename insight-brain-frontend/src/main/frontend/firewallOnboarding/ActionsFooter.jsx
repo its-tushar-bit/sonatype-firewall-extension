@@ -28,6 +28,7 @@ export default function ActionsFooter({ currentStep = {}, isNextButtonDisabled, 
   const handleCancel = () => openIncompleteConfigurationModal(uiRouterState.href('firewall.firewallPage'));
   const launchFirewall = () => {
     setShowWelcomeModalToTrueInStore();
+    dispatch(actions.configureProtectionRules());
     dispatch(actions.saveRepositories());
     dispatch(stateGo('firewall.firewallPage'));
   };

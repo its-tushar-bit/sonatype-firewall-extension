@@ -26,6 +26,12 @@ const firewallOnboardingPreloadedState = {
       loading: false,
       loadError: null,
     },
+    protectionRules: {
+      supplyChainAttacksProtectionEnabled: false,
+      namespaceConfusionProtectionEnabled: false,
+      configuring: false,
+      configureError: null,
+    },
   },
 };
 const firstOnboardingStepTitle = steps[0].title;

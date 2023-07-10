@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.repository;
 
 class FirewallOnboardingOptionsDTO
 {
-  public boolean supplyChainAttackProtectionEnabled;
+  public boolean supplyChainAttacksProtectionEnabled;
 
   public boolean namespaceConfusionProtectionEnabled;
 }

@@ -337,7 +337,7 @@ public class RepositoryResourceAuditTest
   public void testConfigureFirewallOnboarding_ExistingPolicy() throws Exception {
     Policy securityMaliciousPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Malicious");
     FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO = new FirewallOnboardingOptionsDTO();
-    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = true;
+    firewallOnboardingOptionsDTO.supplyChainAttacksProtectionEnabled = true;
     firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = true;
     configureFirewallOnboardingRequest(firewallOnboardingOptionsDTO).put();
 
@@ -352,7 +352,7 @@ public class RepositoryResourceAuditTest
   @Test
   public void testConfigureFirewallOnboarding_NoPolicies() throws Exception {
     FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO = new FirewallOnboardingOptionsDTO();
-    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = true;
+    firewallOnboardingOptionsDTO.supplyChainAttacksProtectionEnabled = true;
     firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = true;
     configureFirewallOnboardingRequest(firewallOnboardingOptionsDTO).put();
 

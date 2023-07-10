@@ -1255,6 +1255,8 @@ export const getSupportedRepositoriesFormat = () => uriTemplate`/rest/integratio
 export const getConfigureRepositoriesUrl = (repositoryManagerId) =>
   uriTemplate`/rest/repositories/repositoryManager/${repositoryManagerId}/configureRepositories`;
 
+export const getConfigureFirewallOnboardingUrl = () => uriTemplate`/rest/repositories/configureFirewallOnboarding`;
+
 export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositories/proprietaryComponentNamePatterns`;
 
 export const getAppsWithoutCiIntegrations = () => uriTemplate`/rest/plugin/apps/ci`;

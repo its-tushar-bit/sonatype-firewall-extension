@@ -371,7 +371,7 @@ public class RepositoryResourceTest
   @Test
   public void testConfigureFirewallOnboarding() throws Exception {
     FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO = new FirewallOnboardingOptionsDTO();
-    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = true;
+    firewallOnboardingOptionsDTO.supplyChainAttacksProtectionEnabled = true;
     firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = true;
 
     Policy securityMaliciousPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Malicious");

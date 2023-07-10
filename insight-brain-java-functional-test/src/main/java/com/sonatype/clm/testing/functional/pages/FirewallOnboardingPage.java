@@ -118,4 +118,8 @@ public class FirewallOnboardingPage
   public static Condition proxyRepositoriesSelectorTitle() {
     return Condition.text("Select proxy repositories");
   }
+
+  public Button closeButton() {
+    return new Button("#firewall-welcome-modal-close-btn");
+  }
 }

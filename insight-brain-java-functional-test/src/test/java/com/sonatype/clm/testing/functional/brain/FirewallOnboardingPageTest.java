@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FirewallRepositoryList;
@@ -24,7 +25,11 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallOnboardingPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -48,6 +53,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.dto.model.repository.RepositoryType.hosted;
 import static com.sonatype.clm.dto.model.repository.RepositoryType.proxy;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FirewallOnboardingPageTest
     extends AbstractFunctionalTest
@@ -906,6 +912,57 @@ public class FirewallOnboardingPageTest
               + " and namespace confusion protection will be enabled for 6 hosted repositories."
           )
       );
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testLaunchFirewallConfiguresProtectionRules() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+    logout();
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+
+    try {
+      createUnconfiguredRepositoryManager("instanceId3");
+      Policy securityMaliciousPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Malicious");
+      Policy securityNamespaceConflictPolicy =
+          tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Integrity-Rating");
+      Policy integrityRatingPolicy =
+          tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Namespace Conflict");
+
+      assertThat(securityMaliciousPolicy.getActions()).isEmpty();
+      assertThat(integrityRatingPolicy.getActions()).isEmpty();
+      assertThat(securityNamespaceConflictPolicy.getActions()).isEmpty();
+
+      loginAsAdmin();
+
+      waitUntilUrl(FirewallOnboardingPage.url());
+
+      page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
+      page.shouldHave(Condition.text("Select your protection rules"));
+      page.supplyChainAttacksProtectionRuleCheckbox().click();
+      page.namespaceConfusionProtectionRuleCheckbox().click();
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Select proxy repositories"));
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Select hosted repositories"));
+      page.continueButton().click();
+      page.launchFirewallButton().click();
+      page.closeButton().click();
+
+      PolicyDAO policyDAO = new PolicyDAO();
+
+      Policy policy = policyDAO.getById(securityMaliciousPolicy.getId());
+      assertThat(policy.getActions().get(StageTypes.PROXY.getId())).isEqualTo(Action.ID_FAIL);
+
+      policy = policyDAO.getById(securityNamespaceConflictPolicy.getId());
+      assertThat(policy.getActions().get(StageTypes.PROXY.getId())).isEqualTo(Action.ID_FAIL);
+
+      policy = policyDAO.getById(integrityRatingPolicy.getId());
+      assertThat(policy.getActions().get(StageTypes.PROXY.getId())).isEqualTo(Action.ID_FAIL);
     }
     finally {
       SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);

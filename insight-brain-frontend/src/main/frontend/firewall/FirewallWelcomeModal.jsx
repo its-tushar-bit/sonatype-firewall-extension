@@ -23,7 +23,7 @@ export default function FirewallWelcomeModal(props) {
       </div>
       <footer className="nx-footer">
         <div className="nx-btn-bar">
-          <NxButton onClick={() => close()}>Close</NxButton>
+          <NxButton id="firewall-welcome-modal-close-btn" onClick={() => close()}>Close</NxButton>
         </div>
       </footer>
     </NxModal>

@@ -636,9 +636,9 @@ public class RepositoryService
 
     try {
       setPolicyAction("Security-Malicious",
-          firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled ? FailActionType.ID : null);
+          firewallOnboardingOptionsDTO.supplyChainAttacksProtectionEnabled ? FailActionType.ID : null);
       setPolicyAction("Integrity-Rating",
-          firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled ? FailActionType.ID : null);
+          firewallOnboardingOptionsDTO.supplyChainAttacksProtectionEnabled ? FailActionType.ID : null);
 
       setPolicyAction("Security-Namespace Conflict",
           firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled ? FailActionType.ID : null);

@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { prop } from 'ramda';
-import { createSelector } from '@reduxjs/toolkit';
+import { prop, pick } from 'ramda';
+import { compose, createSelector } from '@reduxjs/toolkit';
 import { groupAndSortByFormat } from './firewallOnboardingUtils';
 
 /** @type {(state: any) => import('./types').FirewallOnboardingState} */
@@ -58,4 +58,7 @@ export const selectTotalEnabledRepositoriesByTypeAndProp = createSelector(
   }
 );
 
-export const selectProtectionRules = createSelector(selectFirewallOnboardingSlice, prop('protectionRules'));
+export const selectProtectionRules = createSelector(
+  selectFirewallOnboardingSlice,
+  compose(pick(['supplyChainAttacksProtectionEnabled', 'namespaceConfusionProtectionEnabled']), prop('protectionRules'))
+);

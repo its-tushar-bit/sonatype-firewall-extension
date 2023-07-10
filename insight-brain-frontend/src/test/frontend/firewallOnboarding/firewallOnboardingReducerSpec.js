@@ -17,6 +17,9 @@ const SAVE_REPOSITORIES_FAILED = `${REDUCER_NAME}/saveRepositories/rejected`;
 const LOAD_REPOSITORIES_REQUESTED = `${REDUCER_NAME}/loadRepositories/pending`;
 const LOAD_REPOSITORIES_FULFILLED = `${REDUCER_NAME}/loadRepositories/fulfilled`;
 const LOAD_REPOSITORIES_FAILED = `${REDUCER_NAME}/loadRepositories/rejected`;
+const CONFIGURE_PROTECTION_RULES_REQUESTED = `${REDUCER_NAME}/configureProtectionRules/pending`;
+const CONFIGURE_PROTECTION_RULES_FULFILLED = `${REDUCER_NAME}/configureProtectionRules/fulfilled`;
+const CONFIGURE_PROTECTION_RULES_FAILED = `${REDUCER_NAME}/configureProtectionRules/rejected`;
 
 describe('FirewallOnboardingReducer', () => {
   describe('unknown action', () => {
@@ -377,20 +380,82 @@ describe('FirewallOnboardingReducer', () => {
     it('toggles protection rule', () => {
       const state = Object.freeze({
         protectionRules: {
-          securityVulnerabilityAudit: true,
-          supplyChainAttacksProtection: false,
-          namespaceConfusionProtection: false,
+          supplyChainAttacksProtectionEnabled: false,
+          namespaceConfusionProtectionEnabled: false,
         },
       });
       const { protectionRules } = reduce(state, {
         type: 'firewallOnboarding/toggleProtectionRule',
-        payload: 'namespaceConfusionProtection',
+        payload: 'namespaceConfusionProtectionEnabled',
       });
 
       expect(protectionRules).toEqual({
-        securityVulnerabilityAudit: true,
-        supplyChainAttacksProtection: false,
-        namespaceConfusionProtection: true,
+        supplyChainAttacksProtectionEnabled: false,
+        namespaceConfusionProtectionEnabled: true,
+      });
+    });
+  });
+
+  describe('configureProtectionRules', () => {
+    describe(CONFIGURE_PROTECTION_RULES_REQUESTED, () => {
+      it('sets configuring to true and clears error', () => {
+        const state = Object.freeze({
+          protectionRules: {
+            supplyChainAttacksProtectionEnabled: false,
+            namespaceConfusionProtectionEnabled: false,
+            configuring: false,
+            configureError: null,
+          },
+        });
+
+        const newState = reduce(state, {
+          type: CONFIGURE_PROTECTION_RULES_REQUESTED,
+        });
+
+        expect(newState.protectionRules.configuring).toBe(true);
+        expect(newState.protectionRules.configureError).toBe(null);
+      });
+    });
+
+    describe(CONFIGURE_PROTECTION_RULES_FAILED, () => {
+      it('clears configuring state and sets a configure error', () => {
+        const state = Object.freeze({
+          protectionRules: {
+            supplyChainAttacksProtectionEnabled: false,
+            namespaceConfusionProtectionEnabled: false,
+            configuring: true,
+            configureError: null,
+          },
+        });
+
+        const newState = reduce(state, {
+          type: CONFIGURE_PROTECTION_RULES_FAILED,
+          payload: 'test error',
+        });
+
+        expect(newState.protectionRules.configuring).toBe(false);
+        expect(newState.protectionRules.configureError).toBe('test error');
+      });
+    });
+
+    describe(CONFIGURE_PROTECTION_RULES_FULFILLED, () => {
+      it('sets configuring to false and clears configure error', () => {
+        const state = Object.freeze({
+          protectionRules: {
+            supplyChainAttacksProtectionEnabled: false,
+            namespaceConfusionProtectionEnabled: false,
+            configuring: true,
+            configureError: null,
+          },
+        });
+
+        const newState = reduce(state, {
+          type: CONFIGURE_PROTECTION_RULES_FULFILLED,
+          payload: state.configureProtectionRules,
+        });
+
+        expect(newState.protectionRules.configuring).toBe(false);
+        expect(newState.protectionRules.configureError).toBe(null);
       });
     });
   });

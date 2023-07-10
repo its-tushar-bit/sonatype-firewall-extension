@@ -298,15 +298,19 @@ describe('FirewallOnboardingSelectors', () => {
     it('selects protection rules from firewall onboarding slice', () => {
       const slice = {
         protectionRules: {
-          securityVulnerabilityAudit: true,
-          supplyChainAttacksProtection: false,
-          namespaceConfusionProtection: false,
+          supplyChainAttacksProtectionEnabled: false,
+          namespaceConfusionProtectionEnabled: false,
+          configuring: false,
+          configureError: null,
         },
       };
 
       const actualSelection = selectProtectionRules.resultFunc(slice);
 
-      expect(actualSelection).toBe(slice.protectionRules);
+      expect(actualSelection).toEqual({
+        supplyChainAttacksProtectionEnabled: false,
+        namespaceConfusionProtectionEnabled: false,
+      });
     });
   });
 });

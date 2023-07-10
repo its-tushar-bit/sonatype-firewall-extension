@@ -14,8 +14,13 @@ import {
   getRepositoryListUrl,
   getSupportedRepositoriesFormat,
   getConfigureRepositoriesUrl,
+  getConfigureFirewallOnboardingUrl,
 } from 'MainRoot/util/CLMLocation';
-import { selectRepositoriesList, selectUnconfiguredRepoManager } from './firewallOnboardingSelectors';
+import {
+  selectProtectionRules,
+  selectRepositoriesList,
+  selectUnconfiguredRepoManager,
+} from './firewallOnboardingSelectors';
 
 export const REDUCER_NAME = 'firewallOnboarding';
 
@@ -44,9 +49,10 @@ export const initialState = {
     loadError: null,
   },
   protectionRules: {
-    securityVulnerabilityAudit: true,
-    supplyChainAttacksProtection: false,
-    namespaceConfusionProtection: false,
+    supplyChainAttacksProtectionEnabled: false,
+    namespaceConfusionProtectionEnabled: false,
+    configuring: false,
+    configureError: null,
   },
 };
 
@@ -227,6 +233,41 @@ const toggleProtectionRule = (state, { payload }) => ({
   },
 });
 
+const configureProtectionRules = createAsyncThunk(
+  `${REDUCER_NAME}/configureProtectionRules`,
+  (_, { getState, rejectWithValue }) => {
+    const protectionRules = selectProtectionRules(getState());
+    return axios.put(getConfigureFirewallOnboardingUrl(), { ...protectionRules }).catch(rejectWithValue);
+  }
+);
+
+const configureProtectionRulesRequested = (state) => ({
+  ...state,
+  protectionRules: {
+    ...state.protectionRules,
+    configuring: true,
+    configureError: null,
+  },
+});
+
+const configureProtectionRulesFulfilled = (state) => ({
+  ...state,
+  protectionRules: {
+    ...state.protectionRules,
+    configuring: false,
+    configureError: null,
+  },
+});
+
+const configureProtectionRulesFailed = (state, { payload }) => ({
+  ...state,
+  protectionRules: {
+    ...state.protectionRules,
+    configuring: false,
+    configureError: Messages.getHttpErrorMessage(payload),
+  },
+});
+
 const firewallOnboardingSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -249,6 +290,9 @@ const firewallOnboardingSlice = createSlice({
     [saveRepositories.pending]: saveRepositoriesRequested,
     [saveRepositories.fulfilled]: saveRepositoriesFulfilled,
     [saveRepositories.rejected]: saveRepositoriesFailed,
+    [configureProtectionRules.pending]: configureProtectionRulesRequested,
+    [configureProtectionRules.fulfilled]: configureProtectionRulesFulfilled,
+    [configureProtectionRules.rejected]: configureProtectionRulesFailed,
   },
 });
 
@@ -257,6 +301,7 @@ export const actions = {
   loadUnconfiguredRepoManagers,
   loadRepositories,
   saveRepositories,
+  configureProtectionRules,
 };
 
 export default firewallOnboardingSlice.reducer;

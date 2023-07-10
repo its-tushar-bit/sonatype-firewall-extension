@@ -36,9 +36,8 @@ describe('FirewallOnboardingPage', function () {
           loadError: null,
         },
         protectionRules: {
-          securityVulnerabilityAudit: true,
-          supplyChainAttacksProtection: false,
-          namespaceConfusionProtection: false,
+          supplyChainAttacksProtectionEnabled: false,
+          namespaceConfusionProtectionEnabled: false,
         },
       },
     };

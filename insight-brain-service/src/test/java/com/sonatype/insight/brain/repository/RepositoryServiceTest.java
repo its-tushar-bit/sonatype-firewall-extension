@@ -1213,7 +1213,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Test
   public void testConfigureFirewallOnboarding() {
     FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO = new FirewallOnboardingOptionsDTO();
-    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = true;
+    firewallOnboardingOptionsDTO.supplyChainAttacksProtectionEnabled = true;
     firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = true;
 
     Policy securityMaliciousPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Security-Malicious");
@@ -1239,7 +1239,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     // Disable firewall onboarding options
     repositoryService.configureFirewallOnboarding(firewallOnboardingOptionsDTO);
-    firewallOnboardingOptionsDTO.supplyChainAttackProtectionEnabled = false;
+    firewallOnboardingOptionsDTO.supplyChainAttacksProtectionEnabled = false;
     firewallOnboardingOptionsDTO.namespaceConfusionProtectionEnabled = false;
 
     repositoryService.configureFirewallOnboarding(firewallOnboardingOptionsDTO);

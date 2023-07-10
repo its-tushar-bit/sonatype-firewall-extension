@@ -78,19 +78,20 @@ const loadDataFailed = (payload, state) => ({
   loadError: payload,
 });
 
-const setLoadedData = (payload, state) => ({
+const setLoadedData = ({ waiverTargets, comments }, state) => ({
   ...state,
   loading: false,
   loadError: null,
   submitError: null,
-  availableWaiverScopes: payload,
-  selectedWaiverScope: payload[0], // automatically set selectedWaiverScope with the owner
+  availableWaiverScopes: waiverTargets,
+  selectedWaiverScope: waiverTargets[0], // automatically set selectedWaiverScope with the owner
+  waiverComments: initialState(comments ? decodeURIComponent(comments) : ''),
   fieldsPristineState: {
     // save a snapshot of what pristine fields are like
-    selectedWaiverScope: payload[0],
+    selectedWaiverScope: waiverTargets[0],
     componentMatcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
     expiryTime: null,
-    waiverComments: '',
+    waiverComments: comments ? decodeURIComponent(comments) : '',
   },
 });
 

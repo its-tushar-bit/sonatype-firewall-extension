@@ -131,7 +131,7 @@ public class WebhookConfigurationTest
     webhookEditPage.title().shouldHave(text("Edit Webhook"));
     webhookEditPage.secretKey().shouldHave(value("#~FAKE~SECRET~KEY~#"));
     webhookEditPage.management().shouldBe(selected);
-    webhookEditPage.component().shouldNotBe(selected);
+    webhookEditPage.violationAlert().shouldNotBe(selected);
     webhookEditPage.applicationEvaluation().shouldNotBe(selected);
 
     webhookEditPage.url().val("");
@@ -139,7 +139,7 @@ public class WebhookConfigurationTest
     webhookEditPage.url().val("http://foo.bar");
 
     webhookEditPage.management().click();
-    webhookEditPage.component().click();
+    webhookEditPage.violationAlert().click();
 
     webhookEditPage.save().shouldHave(text("Update"));
     webhookEditPage.save().shouldBe(enabled).click();
@@ -148,7 +148,7 @@ public class WebhookConfigurationTest
     firstWebhook = webhookConfigurationPage.webhook(2);
 
     firstWebhook.text().shouldHave(text("http://foo.bar"));
-    firstWebhook.subtext().shouldHave(text("License Override"));
+    firstWebhook.subtext().shouldHave(text("Violation Alert"));
   }
 
   @Test

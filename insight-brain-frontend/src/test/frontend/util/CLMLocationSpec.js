@@ -222,6 +222,10 @@ describe('CLMLocation.js', function () {
     expect(CLMLocation.getFindUsersUrl('queryTerm')).toBe('/rest/user/global/global/query?q=queryTerm');
   });
 
+  it('should return the url for saving a waiver request ', function () {
+    expect(CLMLocation.saveRequestWaiverUrl('violationId')).toBe('/api/v2/policyWaivers/waiverRequests/violationId');
+  });
+
   it('should return the url to get the role info', function () {
     expect(CLMLocation.getRoleMappingUrl('idForTheRole')).toBe(
       '/rest/membershipMapping/global/global/role/idForTheRole'
@@ -1241,6 +1245,22 @@ describe('CLMLocation.js', function () {
       const expectedUrl = '/api/experimental/sourceControl/someType/someId/rateLimits';
 
       expect(clmLocation.getSourceControlRateLimitsUrl('someType', 'someId')).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getPolicyViolationUiLink', () => {
+    it('returns url for the ui policy violation', () => {
+      const expectedUrl = '/assets/#/violation/someViolationId';
+
+      expect(clmLocation.getPolicyViolationUiLink('#/violation/someViolationId')).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getAddWaiverUiLink', () => {
+    it('returns url for the add waiver form with a comment as a query param', () => {
+      const expectedUrl = '/assets/#/addWaiver/someViolationId?comments=new%20comment';
+
+      expect(clmLocation.getAddWaiverUiLink('#/addWaiver/someViolationId', 'new comment')).toEqual(expectedUrl);
     });
   });
 });

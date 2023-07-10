@@ -751,6 +751,10 @@ export function getWebhookEventTypesUrl() {
   return uriTemplate`/rest/config/webhook/eventTypes`;
 }
 
+export function saveRequestWaiverUrl(policyViolation) {
+  return uriTemplate`/api/v2/policyWaivers/waiverRequests/${policyViolation}`;
+}
+
 export function getIsJiraEnabledUrl() {
   return uriTemplate`/rest/jira/enabled`;
 }
@@ -1276,6 +1280,21 @@ export const getCiUsageUrl = () => uriTemplate`/rest/plugin/stat/ci`;
 export const getIdeIntegratedUserCount = () => uriTemplate`/api/v2/scan/applications/ideUser/overview`;
 
 export const getAppsWithoutRecentCiUsageUrl = () => uriTemplate`/rest/plugin/apps/ci`;
+
+export const getPolicyViolationUiLink = (policyViolationHref) => {
+  // policyViolationHref should not be set within the template to avoid undesired character escaping
+  return uriTemplate`/assets/` + policyViolationHref;
+};
+
+export const getAddWaiverUiLink = (addWaiverHref, comments) => {
+  let commentParam = '';
+  if (comments) {
+    commentParam = `?comments=${encodeURIComponent(comments)}`;
+  }
+  // addWaiverHref should not be set within the template to avoid undesired character escaping
+  // and since the href is in the way the comment can't be encoded by uriTemplate
+  return uriTemplate`/assets/` + addWaiverHref + commentParam;
+};
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',

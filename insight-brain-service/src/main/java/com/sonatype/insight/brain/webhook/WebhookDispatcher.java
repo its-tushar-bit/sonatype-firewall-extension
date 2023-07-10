@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.webhook;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,7 @@ import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
+import com.sonatype.insight.brain.webhook.dto.WaiverRequestPayload;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.eventbus.Subscribe;
@@ -62,17 +65,6 @@ import org.slf4j.LoggerFactory;
 public class WebhookDispatcher
     implements Managed
 {
-  public static final String APPLICATION_EVALUATION_ID = "iq:applicationEvaluation";
-
-  public static final String POLICY_ALERT_ID = "iq:policyAlert";
-
-  public static final String LICENSE_OVERRIDE_MANAGEMENT_ID = "iq:licenseOverrideManagement";
-
-  public static final String SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT_ID =
-      "iq:securityVulnerabilityOverrideManagement";
-
-  public static final String POLICY_MANAGEMENT_ID = "iq:policyManagement";
-
   private static final Logger log = LoggerFactory.getLogger(WebhookDispatcher.class);
 
   private final WebhookService webhookService;
@@ -243,6 +235,20 @@ public class WebhookDispatcher
     }
   }
 
+  @Subscribe
+  public void on(final WaiverRequestEvent waiverRequestEvent) {
+    WebhookEventType webhookEventType = WebhookEventType.WAIVER_REQUEST;
+
+    if (!checkEventIsLicensed(waiverRequestEvent.ownerId, webhookEventType)) {
+      return;
+    }
+
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
+          () -> sendWaiverRequestPayload(webhookService.getDecrypted(webhook.getId()), waiverRequestEvent));
+    }
+  }
+
   private void invokeWithAudit(Webhook webhook, WebhookEventType webhookEventType, Runnable invocation) {
     try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.INVOKE_WEBHOOK)) {
       try {
@@ -280,7 +286,7 @@ public class WebhookDispatcher
     payload.initiator = event.initiator;
     payload.licenseOverride = licenseOverrideDTO;
 
-    webhookClientUtil.post(webhook, LICENSE_OVERRIDE_MANAGEMENT_ID, payload);
+    webhookClientUtil.post(webhook, WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT.getId(), payload);
   }
 
   private void sendPolicyAlertPayload(final Webhook webhook, final PolicyAlertEvent event) {
@@ -336,7 +342,7 @@ public class WebhookDispatcher
       payload.policyAlerts.add(policyAlertDTO);
     }
 
-    webhookClientUtil.post(webhook, POLICY_ALERT_ID, payload);
+    webhookClientUtil.post(webhook, WebhookEventType.POLICY_ALERT.getId(), payload);
   }
 
   private void sendApplicationEvaluationPayload(final Webhook webhook, final ApplicationEvaluationEvent event) {
@@ -360,7 +366,7 @@ public class WebhookDispatcher
     payload.id = event.policyEvaluationId;
     payload.applicationEvaluation = applicationEvaluationDTO;
 
-    webhookClientUtil.post(webhook, APPLICATION_EVALUATION_ID, payload);
+    webhookClientUtil.post(webhook, WebhookEventType.APPLICATION_EVALUATION.getId(), payload);
   }
 
   private void sendSecurityVulnerabilityOverridePayload(final Webhook webhook,
@@ -382,7 +388,7 @@ public class WebhookDispatcher
     payload.timestamp = new Date();
     payload.securityVulnerabilityOverride = securityVulnerabilityOverrideDTO;
 
-    webhookClientUtil.post(webhook, SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT_ID, payload);
+    webhookClientUtil.post(webhook, WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT.getId(), payload);
   }
 
   private void sendPolicyManagementPayload(final Webhook webhook,
@@ -399,7 +405,21 @@ public class WebhookDispatcher
 
     payload.owner = ownerDTOUtil.buildOwnerDTO(event);
 
-    webhookClientUtil.post(webhook, POLICY_MANAGEMENT_ID, payload);
+    webhookClientUtil.post(webhook, WebhookEventType.POLICY_MANAGEMENT.getId(), payload);
+  }
+
+  private void sendWaiverRequestPayload(final Webhook webhook, WaiverRequestEvent event) {
+    WaiverRequestPayload payload = new WaiverRequestPayload();
+    payload.timestamp = event.timestamp != null
+        ? Date.from(event.timestamp.atZone(ZoneId.systemDefault()).toInstant())
+        : Date.from(Instant.now());
+    payload.initiator = event.initiator;
+    payload.comment = event.comment;
+    payload.policyViolationId = event.policyViolationId;
+    payload.policyViolationLink = event.policyViolationLink;
+    payload.addWaiverLink = event.addWaiverLink;
+
+    webhookClientUtil.post(webhook, WebhookEventType.WAIVER_REQUEST.getId(), payload);
   }
 
   @Override

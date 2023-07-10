@@ -34,6 +34,8 @@ import {
   selectRepositoryId,
   selectIsFirewallOrRepository,
   selectViolationId,
+  selectRouterCurrentParams,
+  selectCurrentRouteName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
@@ -145,8 +147,8 @@ export function loadAddWaiverData(violationId) {
     const repositoryPolicyId = isFirewallOrRepositoryComponent
       ? selectRepositoryId(getState())
       : selectPrevRepositoryPolicyId(getState());
-
     const fetchCrossStage = isCurrentRouteName ? fetchCrossStageViolationAddWaiver : fetchCrossStageViolation;
+
     dispatch(loadAddWaiverDataRequested());
     return dispatch(fetchCrossStage(violationId))
       .then(() => {
@@ -158,10 +160,16 @@ export function loadAddWaiverData(violationId) {
         // ToDo verify that ownerType is always application
         return loadOwnerContextHierarchy(ownerType, isPublicId, policyId);
       })
-      .then((waiverTargets) => dispatch(loadAddWaiverDataFulfilled(waiverTargets)))
+      .then((waiverTargets) =>
+        dispatch(loadAddWaiverDataFulfilled({ waiverTargets, comments: extractPreloadedCommentFromUrl(getState()) }))
+      )
       .catch((err) => dispatch(loadAddWaiverDataFailed(err)));
   };
 }
+
+const extractPreloadedCommentFromUrl = (state) => {
+  return selectCurrentRouteName(state) === 'addWaiver' ? selectRouterCurrentParams(state)?.comments : undefined;
+};
 
 /**
  * @param { string } violationId

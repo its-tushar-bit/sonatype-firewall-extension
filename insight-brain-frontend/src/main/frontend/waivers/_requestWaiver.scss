@@ -8,4 +8,15 @@
 
 request-waiver-page {
   display: contents;
+
+  .nx-fieldset {
+    width: 700px;
+  }
+
+  .iq-request-waiver-form__comments .nx-text-input {
+    box-sizing: border-box;
+    min-height: 200px;
+    width: 100%;
+    max-width: var(--nx-width-text-wrapping);
+  }
 }

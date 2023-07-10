@@ -157,7 +157,7 @@ function EditWebhook({
                 </NxInfoAlert>
               )}
               <NxFieldset id="event-types" label="Event Types" sublabel="which trigger this Webhook">
-                {availableEventTypes.map(renderCheckbox)}
+                {availableEventTypes.sort().map(renderCheckbox)}
               </NxFieldset>
             </div>
           </NxStatefulForm>

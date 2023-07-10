@@ -22,12 +22,14 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.webhook.RequestPolicyWaiverEventService;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -42,6 +44,8 @@ public class DefaultApiPolicyWaiverResource
 {
   private final ApiPolicyWaiverService apiPolicyWaiverService;
 
+  private final RequestPolicyWaiverEventService requestPolicyWaiverEventService;
+
   static final String OWNERS_PATH = "{ownerType: application|organization|repository|repository_container}/{ownerId}";
 
   static final String BY_POLICY_WAIVER_ID_PATH = OWNERS_PATH + "/{policyWaiverId}";
@@ -53,9 +57,15 @@ public class DefaultApiPolicyWaiverResource
   static final String TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH =
       "transitive/{ownerType: application|organization}/{ownerId}/stages/{stageId}";
 
+  static final String REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH = "/waiverRequests/{policyViolationId}";
+
   @Inject
-  public DefaultApiPolicyWaiverResource(ApiPolicyWaiverService apiPolicyWaiverService) {
+  public DefaultApiPolicyWaiverResource(
+      ApiPolicyWaiverService apiPolicyWaiverService,
+      RequestPolicyWaiverEventService requestPolicyWaiverEventService)
+  {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
+    this.requestPolicyWaiverEventService = requestPolicyWaiverEventService;
   }
 
   @Override
@@ -163,5 +173,19 @@ public class DefaultApiPolicyWaiverResource
   {
     return apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(ownerType, ownerId, scanId,
         componentIdentifier, packageUrl, hash);
+  }
+
+  /**
+   * @since 1.164
+   */
+  @Override
+  @POST
+  @Path(REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public void requestPolicyWaiver(
+      @PathParam("policyViolationId") final String policyViolationId,
+      ApiRequestPolicyWaiverDTO requestWaiverDTO)
+  {
+    requestPolicyWaiverEventService.postRequestPolicyWaiverEvent(policyViolationId, requestWaiverDTO);
   }
 }

@@ -18,8 +18,8 @@ import {
   getViolationDetailsUrl,
   getWaiveTransitiveViolationsUrl,
   getRepositoryPolicyViolationUrl,
-} from '../../../main/frontend/util/CLMLocation';
-import { getPermissionContextTestUrl } from '../../../main/frontend/utilAngular/CLMContextLocation';
+} from 'MainRoot/util/CLMLocation';
+import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 import {
   deleteWaiver,
   hideDeleteWaiverModal,
@@ -64,12 +64,12 @@ import {
 import {
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
   VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
-} from '../../../main/frontend/violation/violationActions';
-import { getFutureDate } from '../../../main/frontend/util/jsUtil';
+} from 'MainRoot/violation/violationActions';
+import { getFutureDate } from 'MainRoot/util/jsUtil';
 import {
   TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED,
   TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED,
-} from '../../../main/frontend/violation/transitiveViolationsActions';
+} from 'MainRoot/violation/transitiveViolationsActions';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SET_SIDEBAR_NAV_LIST_DATA } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
@@ -484,11 +484,104 @@ describe('waiverActions', function () {
           expect(store.getActions().length).toBe(3);
           expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
           expect(store.getActions()[2].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
-          expect(store.getActions()[2].payload).toEqual([{ type: 'type', id: 'id', name: 'name', label: 'Type' }]);
+          expect(store.getActions()[2].payload).toEqual({
+            waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
+            comments: undefined,
+          });
           done();
         });
 
         expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+      });
+
+      it('sets the preloaded comments from the url into the state, if on addwaiver route', (done) => {
+        spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+        spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(false);
+        spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+        spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
+
+        spyOn(routerSelectors, 'selectCurrentRouteName').and.returnValue('addWaiver');
+        spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
+          violationId: 'policyViolationId',
+          repositoryPolicyId: 'repositoryPolicyId',
+          comments: 'preloaded%20Comment',
+        });
+
+        const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
+          ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
+          violationDetails = {
+            applicationPublicId: 'appPublicId',
+            policyId: 'policyId',
+          };
+        mockAxiosCalls({
+          get: {
+            [loadViolationDetailsUrl]: Promise.resolve({
+              data: violationDetails,
+            }),
+            [ownerContextHierarchyUrl]: Promise.resolve({
+              data: {
+                type: 'type',
+                id: 'id',
+                name: 'name',
+              },
+            }),
+          },
+        });
+
+        store.dispatch(loadAddWaiverData('foo')).then(() => {
+          expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+          expect(store.getActions()[2].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
+          expect(store.getActions()[2].payload).toEqual({
+            waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
+            comments: 'preloaded%20Comment',
+          });
+          done();
+        });
+      });
+
+      it('skips the preloaded comments from the url into the state, if not on addwaiver route', (done) => {
+        spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+        spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(false);
+        spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+        spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
+
+        spyOn(routerSelectors, 'selectCurrentRouteName').and.returnValue('someOtherWaiverOrNonWaiverRoute');
+        spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
+          violationId: 'policyViolationId',
+          repositoryPolicyId: 'repositoryPolicyId',
+          comments: 'preloaded%20Comment',
+        });
+
+        const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
+          ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
+          violationDetails = {
+            applicationPublicId: 'appPublicId',
+            policyId: 'policyId',
+          };
+        mockAxiosCalls({
+          get: {
+            [loadViolationDetailsUrl]: Promise.resolve({
+              data: violationDetails,
+            }),
+            [ownerContextHierarchyUrl]: Promise.resolve({
+              data: {
+                type: 'type',
+                id: 'id',
+                name: 'name',
+              },
+            }),
+          },
+        });
+
+        store.dispatch(loadAddWaiverData('foo')).then(() => {
+          expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+          expect(store.getActions()[2].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
+          expect(store.getActions()[2].payload).toEqual({
+            waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
+            comments: undefined,
+          });
+          done();
+        });
       });
 
       describe('when loadOwnerContextHierarchy fails', function () {
@@ -658,7 +751,10 @@ describe('waiverActions', function () {
           expect(store.getActions().length).toBe(3);
           expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
           expect(store.getActions()[2].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
-          expect(store.getActions()[2].payload).toEqual([{ type: 'type', id: 'id', name: 'name', label: 'Type' }]);
+          expect(store.getActions()[2].payload).toEqual({
+            waiverTargets: [{ type: 'type', id: 'id', name: 'name', label: 'Type' }],
+            comments: undefined,
+          });
           done();
         });
 

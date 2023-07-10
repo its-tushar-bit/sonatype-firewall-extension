@@ -49,15 +49,15 @@ public class WebhookEditPage
   }
 
   public NxCheckbox management() {
-    return new NxCheckbox(eventTypes().get(0));
+    return new NxCheckbox(eventTypes().get(2));
   }
 
   public NxCheckbox applicationEvaluation() {
-    return new NxCheckbox(eventTypes().get(1));
+    return new NxCheckbox(eventTypes().get(0));
   }
 
-  public NxCheckbox component() {
-    return new NxCheckbox(eventTypes().get(3));
+  public NxCheckbox violationAlert() {
+    return new NxCheckbox(eventTypes().get(4));
   }
 
   public SelenideElement save() {

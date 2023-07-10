@@ -22,6 +22,7 @@ import advancedSearchReducer from '../advancedSearch/advancedSearchReducer';
 import sidebarNavListReducer from '../sidebarNav/sidebarNavListReducer';
 import addWaiverReducer from '../waivers/addWaiverReducer';
 import manageWaiversReducer from '../waivers/manageWaiversReducer';
+import requestWaiverReducer from '../waivers/requestWaiverSlice';
 import scmOnboardingReducer from '../configuration/scmOnboarding/scmOnboardingReducer';
 import deleteWaiverReducer from '../waivers/deleteWaiverModal/deleteWaiverReducer';
 import userTokenReducer from '../mainHeader/MenuBar/UserMenu/UserToken/userTokenReducer';
@@ -115,6 +116,7 @@ export default combineReducers({
   advancedSearch: advancedSearchReducer,
   addWaiver: addWaiverReducer,
   manageWaivers: manageWaiversReducer,
+  requestWaiver: requestWaiverReducer,
   scmOnboarding: scmOnboardingReducer,
   deleteWaiver: deleteWaiverReducer,
   userToken: userTokenReducer,

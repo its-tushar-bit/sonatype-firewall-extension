@@ -12,20 +12,29 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum WebhookEventType
 {
-  POLICY_MANAGEMENT("Policy Management"),
-  APPLICATION_EVALUATION("Application Evaluation"),
-  POLICY_ALERT("Violation Alert"),
-  LICENSE_OVERRIDE_MANAGEMENT("License Override Management"),
-  SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT("Security Vulnerability Override Management");
+  POLICY_MANAGEMENT("Policy Management", "iq:policyManagement"),
+  APPLICATION_EVALUATION("Application Evaluation", "iq:applicationEvaluation"),
+  POLICY_ALERT("Violation Alert", "iq:policyAlert"),
+  LICENSE_OVERRIDE_MANAGEMENT("License Override Management", "iq:licenseOverrideManagement"),
+  SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT("Security Vulnerability Override Management",
+      "iq:securityVulnerabilityOverrideManagement"),
+  WAIVER_REQUEST("Waiver Request", "iq:waiverRequest");
 
-  private String displayName;
+  private final String displayName;
 
-  WebhookEventType(String displayName) {
+  private final String id;
+
+  WebhookEventType(String displayName, String id) {
     this.displayName = displayName;
+    this.id = id;
   }
 
   @JsonValue
   public String getDisplayName() {
     return this.displayName;
+  }
+
+  public String getId() {
+    return this.id;
   }
 }

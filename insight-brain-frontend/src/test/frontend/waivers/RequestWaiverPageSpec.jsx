@@ -3,295 +3,356 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../enzymeUtils';
-import LoadWrapper from 'MainRoot/react/LoadWrapper';
-import { NxCodeSnippet, NxInfoAlert, NxTextLink } from '@sonatype/react-shared-components';
+import React from 'react';
 import RequestWaiverPage from 'MainRoot/waivers/RequestWaiverPage';
-import AddAndRequestWaiversBackButton from 'MainRoot/waivers/AddAndRequestWaiversBackButton';
-import * as routerContext from 'MainRoot/react/RouterStateContext';
-import * as getBaseUrl from '../../../main/frontend/util/urlUtil';
+import { axiosMockAdapter, fireEvent, render, screen } from 'TestRoot/SpecUtil';
+import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import {
+  getApplicableWaiversUrl,
+  getApplicationSummaryUrl,
+  getPermissionContextTestUrl,
+  saveRequestWaiverUrl,
+  getWebhooksUrl,
+} from 'MainRoot/util/CLMLocation';
+import { clone } from 'ramda';
+import { initialState } from 'MainRoot/waivers/requestWaiverSlice';
 
 describe('RequestWaiverPage', function () {
-  let minimalProps,
-    fullProps,
-    loadViolationSpy,
-    violationDetailsMock,
-    getShallowComponent,
-    getMountedComponent,
-    hrefSpy,
-    routerContextMock,
-    baseUrl;
-
-  beforeEach(function () {
-    loadViolationSpy = jasmine.createSpy('loadViolation');
-
-    violationDetailsMock = {
-      constraintViolations: [
-        {
-          constraintId: 'id',
-          constraintName: 'name',
-          reasons: [
-            {
-              reason: 'reason',
-              reference: {
-                value: 'vulnerabilityId',
-              },
+  let renderComponent;
+  let mock;
+  const violationId = 'someViolationId';
+  const applicationPublicId = 'someApplicationPublicId';
+  const internalApplicationId = 'someInternalApplicationId';
+  const violationDetails = {
+    constraintViolations: [
+      {
+        constraintId: 'constraintId',
+        constraintName: 'constraintName',
+        reasons: [
+          {
+            reason: 'reason',
+            reference: {
+              value: 'vulnerabilityId',
             },
-          ],
-        },
-      ],
-      filename: 'componentName',
-      policyViolationId: 'id',
-      policyName: 'name',
-    };
+          },
+        ],
+      },
+    ],
+    filename: 'componentName',
+    policyViolationId: violationId,
+    policyName: 'policyName',
+    applicationPublicId,
+  };
 
-    baseUrl = 'localhost:8070';
-    hrefSpy = jasmine.createSpy('href').and.callFake(() => 'someHref');
-    routerContextMock = { href: hrefSpy };
-    spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
-    spyOn(getBaseUrl, 'getBaseUrl').and.returnValue(baseUrl);
-
-    minimalProps = {
-      loading: false,
-      violationDetailsError: '',
-      violationDetails: null,
-      violationId: 'foo',
-      loadViolation: loadViolationSpy,
-      name: null,
+  const defaultPreloadedState = {
+    router: {
+      currentParams: {
+        violationId,
+      },
       prevParams: {
         publicId: 'publicId',
         scanId: 'scanId',
         hash: 'hash',
       },
-    };
-
-    fullProps = {
-      loading: false,
-      violationDetails: violationDetailsMock,
-      prevParams: {
-        publicId: 'publicId',
-        scanId: 'scanId',
-        hash: 'hash',
+      prevState: { name: 'applicationReport.violationWaivers' },
+    },
+    firewall: {
+      componentDetailsPage: {
+        showManageWaiverPage: false,
       },
-      name: 'prevStateName',
-    };
+    },
+    violation: {
+      selectedViolationId: violationId,
+      violationDetails,
+    },
+  };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(RequestWaiverPage, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(RequestWaiverPage, minimalProps);
+  beforeEach(() => {
+    mock = axiosMockAdapter();
+
+    const routerContext = { href: null };
+
+    spyOn(routerContext, 'href').and.callFake((url, params) => {
+      if (url.includes('sidebarView.violation')) {
+        const violationId = params.id;
+        return `#/violation/${violationId}`;
+      }
+      if (url.includes('addWaiver')) {
+        const violationId = params.violationId;
+        return `#/addWaiver/${violationId}`;
+      }
+      return '#';
+    });
+
+    mock.onGet(getApplicableWaiversUrl(violationId)).reply(200, { activeWaivers: [], expiredWaivers: [] });
+    mock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
+      contact: null,
+      hasPendingSourceControlPolicyEvaluation: false,
+      id: internalApplicationId,
+      name: 'someAppName',
+      organizationId: 'someOrgId',
+      organizationName: 'someOrgName',
+      policyEvaluations: {},
+      policyEvaluationsResults: {},
+      publicId: applicationPublicId,
+    });
+    mock
+      .onPut(getPermissionContextTestUrl('application', internalApplicationId))
+      .reply(200, ['WAIVE_POLICY_VIOLATIONS']);
+
+    renderComponent = (preloadedState, router = routerContext) =>
+      render(
+        <RouterStateContext.Provider value={router}>
+          <RequestWaiverPage />
+        </RouterStateContext.Provider>,
+        { preloadedState: preloadedState || defaultPreloadedState }
+      );
   });
 
   describe('when violationId is null', () => {
-    it('renders a LoadWrapper with an error message', function () {
-      const component = getShallowComponent({ ...minimalProps, violationId: null });
-      const loadWrapper = component.find(LoadWrapper);
-      expect(loadWrapper).toExist();
-      expect(loadWrapper).toHaveProp('error', 'No Violation ID provided.');
-    });
-
-    it('does not call `loadAddWaiverData`', function () {
-      const component = getMountedComponent({ ...minimalProps, violationId: null });
-      expect(loadViolationSpy).not.toHaveBeenCalled();
-      component.unmount();
+    it('renders a LoadWrapper with an error message', async () => {
+      const preloadedState = clone(defaultPreloadedState);
+      preloadedState.router.currentParams.violationId = null;
+      renderComponent(preloadedState);
+      const error = await screen.findByText('An error occurred loading data. No Violation ID provided.');
+      expect(error).toBeVisible();
     });
   });
 
-  it('renders a component with the "nx-page-main" class', function () {
-    expect(getShallowComponent()).toMatchSelector('.nx-page-main');
+  it('renders a page title and loading', async () => {
+    renderComponent(defaultPreloadedState);
+    const loading = await screen.findByText('Loading…');
+    expect(loading).toBeVisible();
+    const title = screen.getByText('Request Waiver');
+    const description = screen.getByText(
+      'A waiver request will be sent to the designated approver upon submit, if a webhook event for waiver requests is configured. If you are unsure about the webhook configuration, share the policy violation ID and the curl command with the designated approver.'
+    );
+    expect(title).toBeVisible();
+    expect(description).toBeVisible();
   });
 
-  it('renders a page title', function () {
-    const component = getShallowComponent();
-    expect(component.find('.nx-page-title')).toExist();
-    expect(component.find('.nx-h1')).toHaveText('Request Waiver');
-  });
-
-  it('renders a loading LoadWrapper when loading is true', function () {
-    const component = getShallowComponent({ loading: true });
-    const loadWrapper = component.find(LoadWrapper);
-    expect(loadWrapper).toHaveProp('loading', true);
-  });
-
-  it('renders a loading LoadWrapper when the violationDetails prop is missing', function () {
-    const component = getShallowComponent({ violationDetails: null });
-    const loadWrapper = component.find(LoadWrapper);
-    expect(loadWrapper).toHaveProp('loading', true);
-  });
-
-  it('calls loadAddWaiverData when the LoadWrapper retryHandler is invoked', function () {
-    const loadWrapper = getShallowComponent().find(LoadWrapper),
-      retryHandler = loadWrapper.prop('retryHandler');
-
-    expect(loadViolationSpy).not.toHaveBeenCalled();
-
-    retryHandler();
-
-    expect(loadViolationSpy).toHaveBeenCalledWith('foo');
-  });
-
-  it('calls `loadViolation` with the violationId on render', function () {
-    const component = getMountedComponent();
-    expect(loadViolationSpy).toHaveBeenCalledWith('foo');
-    component.unmount();
-  });
-
-  it('calls `loadViolation` if the violationId changes', function () {
-    const component = getMountedComponent();
-
-    expect(loadViolationSpy).toHaveBeenCalledTimes(1);
-    expect(loadViolationSpy).toHaveBeenCalledWith('foo');
-
-    component.setProps({
-      ...minimalProps,
-      violationId: 'bar',
-    });
-    expect(loadViolationSpy).toHaveBeenCalledTimes(2);
-    expect(loadViolationSpy.calls.argsFor(1)[0]).toEqual('bar');
-    component.unmount();
-  });
-
-  it('does not re-call `loadViolation` when violationId stays the same', function () {
-    const component = getMountedComponent();
-    expect(loadViolationSpy).toHaveBeenCalledTimes(1);
-    expect(loadViolationSpy).toHaveBeenCalledWith('foo');
-
-    component.setProps({
-      ...minimalProps,
-      loading: true,
+  describe('renders error when the loading requests fail', () => {
+    it('applicable waivers fail', async () => {
+      mock.onGet(getApplicableWaiversUrl(violationId)).reply(500, 'waivers failed');
+      renderComponent(defaultPreloadedState);
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toBeVisible();
+      expect(errorAlert).toHaveTextContent('waivers failed');
     });
 
-    expect(loadViolationSpy).toHaveBeenCalledTimes(1);
-    component.unmount();
-  });
+    it('application summary fail', async () => {
+      mock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(500, 'application summary failed');
+      renderComponent(defaultPreloadedState);
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toBeVisible();
+      expect(errorAlert).toHaveTextContent('application summary failed');
+    });
 
-  it('renders a NxInfoAlert', () => {
-    const component = getShallowComponent({ ...fullProps });
-    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
-    expect(loadWrapperChildren.find(NxInfoAlert)).toExist();
-  });
-
-  it('renders Policy label section', () => {
-    const component = getShallowComponent({ ...fullProps });
-    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
-    const policyIdSection = loadWrapperChildren.find('.nx-read-only__label').at(1);
-    expect(policyIdSection).toHaveText('Policy');
-  });
-
-  it('renders Constraint Name label section', () => {
-    const component = getShallowComponent({ ...fullProps });
-    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
-    const policyIdSection = loadWrapperChildren.find('.nx-read-only__label').at(2);
-    expect(policyIdSection).toHaveText('Constraint Name');
-  });
-
-  it('renders Conditions label section', () => {
-    const component = getShallowComponent({ ...fullProps });
-    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
-    const policyIdSection = loadWrapperChildren.find('.nx-read-only__label').at(3);
-    expect(policyIdSection).toHaveText('Conditions');
-  });
-
-  it('renders a NxCodeSnippet for policy violation id section', () => {
-    const component = getShallowComponent({ ...fullProps });
-    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
-    const policyIdSection = loadWrapperChildren.find(NxCodeSnippet).at(0);
-    expect(policyIdSection).toHaveProp('label', 'Policy Violation ID');
-  });
-
-  it('renders a NxCodeSnippet for policy violation details page section', () => {
-    const component = getShallowComponent({ ...fullProps });
-    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
-    const policyIdSection = loadWrapperChildren.find(NxCodeSnippet).at(1);
-    expect(policyIdSection).toHaveProp('label', 'Policy Violation Details Page');
-  });
-
-  it('renders a NxCodeSnippet for curl example section', () => {
-    const component = getShallowComponent({ ...fullProps });
-    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
-    const curlSection = loadWrapperChildren.find(NxCodeSnippet).at(2);
-    expect(curlSection).toHaveProp('label', 'Curl Example');
-  });
-
-  it('renders a AddAndRequestWaiversBackButton with correct props', function () {
-    let backButton = getShallowComponent().find(AddAndRequestWaiversBackButton);
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('violationId', 'foo');
-
-    backButton = getShallowComponent(fullProps).find(AddAndRequestWaiversBackButton);
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('violationId', 'foo');
-    expect(backButton).toHaveProp('prevStateName', 'prevStateName');
-    expect(backButton).toHaveProp('prevParams', {
-      publicId: 'publicId',
-      scanId: 'scanId',
-      hash: 'hash',
+    it('permissions fail', async () => {
+      mock.onPut(getPermissionContextTestUrl('application', internalApplicationId)).reply(500, 'permissions failed');
+      renderComponent(defaultPreloadedState);
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toBeVisible();
+      expect(errorAlert).toHaveTextContent('permissions failed');
     });
   });
 
-  describe('when violationDetails is not null', () => {
-    let component, loadWrapperChildren;
-    beforeEach(() => {
-      component = getShallowComponent({ ...fullProps });
-      loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
+  it('renders the list of fields to show', async () => {
+    renderComponent(defaultPreloadedState);
+    const componentTitle = await screen.findByText('Component');
+    const componentField = screen.getByText('componentName');
+    const policyTitle = screen.getByText('Policy');
+    const policyField = screen.getByText('policyName');
+    const constraintTitle = screen.getByText('Constraint Name');
+    const constraintField = screen.getByText('constraintName');
+    const conditionsTitle = screen.getByText('Conditions');
+    const conditionsField = screen.getByText('reason');
+    const policyViolationTitle = screen.getByText('Policy Violation ID');
+    const policyViolationField = screen.getByText('someViolationId');
+    const policyViolationDetailsTitle = screen.getByText('Policy Violation Details Page');
+    const policyViolationDetailsField = screen.getByText('/assets/#/violation/someViolationId');
+    const curlExampleTitle = screen.getByText('Curl Example');
+    const curlExampleField = screen.getByText(
+      `curl -X POST -u user:pass -H "Content-Type: text/plain; charset=UTF-8" /api/v2/policyWaiver/someViolationId/application --data-binary 'waiver comment (optional)'`
+    );
+    const commentsTitle = screen.getByText('Comments');
+    const textboxFields = screen.getAllByRole('textbox');
+    const commentsField = textboxFields[textboxFields.length - 1];
+    expect(componentTitle).toBeVisible();
+    expect(componentField).toBeVisible();
+    expect(policyTitle).toBeVisible();
+    expect(policyField).toBeVisible();
+    expect(constraintTitle).toBeVisible();
+    expect(constraintField).toBeVisible();
+    expect(conditionsTitle).toBeVisible();
+    expect(conditionsField).toBeVisible();
+    expect(policyViolationTitle).toBeVisible();
+    expect(policyViolationField).toBeVisible();
+    expect(policyViolationDetailsTitle).toBeVisible();
+    expect(policyViolationDetailsField).toBeVisible();
+    expect(curlExampleTitle).toBeVisible();
+    expect(curlExampleField).toBeVisible();
+    expect(commentsTitle).toBeVisible();
+    expect(commentsField.value).toBe('');
+  });
+
+  it('renders empty comments field on first load', async () => {
+    defaultPreloadedState.requestWaiver = { ...initialState, comments: 'some preloaded comment' };
+    renderComponent(defaultPreloadedState);
+    const commentsTitle = await screen.findByText('Comments');
+    const textboxFields = screen.getAllByRole('textbox');
+    const commentsField = textboxFields[textboxFields.length - 1];
+    expect(commentsTitle).toBeVisible();
+    expect(commentsField.value).toBe('');
+  });
+
+  it('submits the form successfully', async () => {
+    mock
+      .onPost(saveRequestWaiverUrl(violationId), {
+        policyViolationLink: '/assets/#/violation/someViolationId',
+        addWaiverLink: '/assets/#/addWaiver/someViolationId?comments=new%20comment',
+        comment: 'new comment',
+      })
+      .reply(204);
+    renderComponent(defaultPreloadedState);
+    const commentsTitle = await screen.findByText('Comments');
+    const textboxFields = screen.getAllByRole('textbox');
+    const commentsField = textboxFields[textboxFields.length - 1];
+    expect(commentsTitle).toBeVisible();
+    expect(commentsField).toBeVisible();
+    fireEvent.change(commentsField, { target: { value: 'new comment' } });
+    expect(commentsField.value).toBe('new comment');
+    const submitBtn = screen.getByText('Submit');
+    fireEvent.click(submitBtn);
+  });
+
+  describe('waiver request webhook', () => {
+    function mockWaiverRequestWebhook() {
+      mock.onGet(getWebhooksUrl()).reply(200, [
+        {
+          id: '4b2fcc867cb04f1192d1bf3d80081996',
+          url: 'https://my-awesome-webhook.com/webhook',
+          secretKey: '#~FAKE~SECRET~KEY~#',
+          description: '',
+          eventTypes: ['Waiver Request'],
+        },
+      ]);
+    }
+
+    it('sumbit button should be disabled and error is displayed if endpoint fails', async () => {
+      mock.onGet(getWebhooksUrl()).reply(500, 'Error message');
+
+      renderComponent(defaultPreloadedState);
+      const waiverRequestWebhookError = await screen.findByRole('alert');
+      const submitBtn = screen.getByText('Submit');
+      expect(submitBtn).toHaveClass('disabled');
+      expect(waiverRequestWebhookError).toHaveTextContent('An error occurred loading data. Error message');
     });
 
-    it('renders Policy data section', () => {
-      const policyIdSection = loadWrapperChildren.find('.nx-read-only__data').at(1);
-      expect(policyIdSection).toHaveText(violationDetailsMock.policyName);
-    });
+    it('sumbit button should be disabled and alert is displayed', async () => {
+      mock.onGet(getWebhooksUrl()).reply(200, []);
 
-    it('renders Constraint Name data section', () => {
-      const policyIdSection = loadWrapperChildren.find('.nx-read-only__data').at(2);
-      expect(policyIdSection).toHaveText(violationDetailsMock.constraintViolations[0].constraintName);
-    });
-
-    it('renders Conditions data section', () => {
-      const policyIdSection = loadWrapperChildren.find('.nx-read-only__data').at(3);
-      expect(policyIdSection).toHaveText(violationDetailsMock.constraintViolations[0].reasons[0].reason);
-    });
-
-    it('renders a NxCodeSnippet for policy violation id section', () => {
-      const policyIdSection = loadWrapperChildren.find(NxCodeSnippet).at(0);
-      expect(policyIdSection).toHaveProp('label', 'Policy Violation ID');
-      expect(policyIdSection).toHaveProp('content', violationDetailsMock.policyViolationId);
-    });
-
-    it('renders a NxCodeSnippet for policy violation details page section', () => {
-      const policyIdSection = loadWrapperChildren.find(NxCodeSnippet).at(1);
-
-      expect(routerContext.useRouterState).toHaveBeenCalled();
-      expect(hrefSpy).toHaveBeenCalledWith('sidebarView.violation', {
-        id: 'foo',
-      });
-      expect(policyIdSection).toHaveProp('label', 'Policy Violation Details Page');
-      expect(policyIdSection).toHaveProp('content', `${baseUrl}/assets/someHref`);
-    });
-
-    it('renders a NxCodeSnippet for curl example section', () => {
-      const curlSection = loadWrapperChildren.find(NxCodeSnippet).at(2);
-      expect(curlSection).toHaveProp('label', 'Curl Example');
-      expect(curlSection).toHaveProp(
-        'content',
-        'curl -X POST -u user:pass -H "Content-Type: text/plain; charset=UTF-8" /api/v2/policyWaiver/id/application --data-binary \'waiver comment (optional)\''
+      renderComponent(defaultPreloadedState);
+      const waiverRequestWebhookAlert = await screen.findByText(
+        'Webhook event for Automatic Waiver Request is not configured. Contact your admin or request the waiver manually.'
       );
+      const submitBtn = screen.getByText('Submit');
+      expect(submitBtn).toHaveClass('disabled');
+      expect(waiverRequestWebhookAlert).toBeVisible();
     });
 
-    it('renders a NxTextLink for policy violation details page url section', () => {
-      const policyPageLinkSection = loadWrapperChildren.find(NxTextLink).at(1);
-      expect(routerContext.useRouterState).toHaveBeenCalled();
-      expect(hrefSpy).toHaveBeenCalledWith('sidebarView.violation', {
-        id: 'foo',
-      });
-      expect(policyPageLinkSection).toHaveProp('href', `${baseUrl}/assets/someHref`);
+    it('submit button should not to be disabled and alert is not displayed', async () => {
+      mockWaiverRequestWebhook();
+
+      function findAlert() {
+        return screen.getByText(
+          'Webhook event for Automatic Waiver Request is not configured. Contact your admin or request the waiver manually.'
+        );
+      }
+
+      renderComponent(defaultPreloadedState);
+
+      const submitBtn = await screen.findByText('Submit');
+      expect(findAlert).toThrowError(/Unable to find an element with the text: Webhook/g);
+      expect(submitBtn).not.toHaveClass('disabled');
     });
 
-    it('renders an input for policy violation details page url section', () => {
-      const policyPageUrlSection = loadWrapperChildren.find('.iq-request-waivers-popover__link-input').at(0);
-      expect(routerContext.useRouterState).toHaveBeenCalled();
-      expect(hrefSpy).toHaveBeenCalledWith('sidebarView.violation', {
-        id: 'foo',
-      });
-      expect(policyPageUrlSection).toHaveProp('value', `${baseUrl}/assets/someHref`);
-      expect(policyPageUrlSection).toHaveProp('readOnly', true);
+    it('submits the form successfully with a comment', async () => {
+      mockWaiverRequestWebhook();
+      mock
+        .onPost(saveRequestWaiverUrl(violationId), {
+          policyViolationLink: '/assets/#/violation/someViolationId',
+          addWaiverLink: '/assets/#/addWaiver/someViolationId?comments=new%20comment',
+          comment: 'new comment',
+        })
+        .reply(204);
+
+      // If the comments are not trimmed fail the test
+      mock.onAny().reply(400);
+
+      renderComponent(defaultPreloadedState);
+      const commentsTitle = await screen.findByText('Comments');
+      const textboxFields = screen.getAllByRole('textbox');
+      const commentsField = textboxFields[textboxFields.length - 1];
+      expect(commentsTitle).toBeVisible();
+      expect(commentsField).toBeVisible();
+
+      //Comments are trimmed before sending them to backend
+      fireEvent.change(commentsField, { target: { value: '     new comment         ' } });
+      expect(commentsField.value).toBe('     new comment         ');
+      const submitBtn = screen.getByText('Submit');
+      fireEvent.click(submitBtn);
+
+      const success = await screen.findByText('Success!');
+      expect(success).toBeVisible();
+    });
+
+    it('submits the form successfully with no comment', async () => {
+      mockWaiverRequestWebhook();
+      mock
+        .onPost(saveRequestWaiverUrl(violationId), {
+          policyViolationLink: '/assets/#/violation/someViolationId',
+          addWaiverLink: '/assets/#/addWaiver/someViolationId',
+          comment: '',
+        })
+        .reply(204);
+
+      renderComponent(defaultPreloadedState);
+      const commentsTitle = await screen.findByText('Comments');
+      const textboxFields = screen.getAllByRole('textbox');
+      const commentsField = textboxFields[textboxFields.length - 1];
+      expect(commentsTitle).toBeVisible();
+      expect(commentsField).toBeVisible();
+      expect(commentsField.value).toBe('');
+      const submitBtn = screen.getByText('Submit');
+      fireEvent.click(submitBtn);
+
+      const success = await screen.findByText('Success!');
+      expect(success).toBeVisible();
+    });
+
+    it('fails to submit the form', async () => {
+      mockWaiverRequestWebhook();
+      mock
+        .onPost(saveRequestWaiverUrl(violationId), {
+          policyViolationLink: '/assets/#/violation/someViolationId',
+          addWaiverLink: '/assets/#/addWaiver/someViolationId?comments=new%20comment%20%3C%3E',
+          comment: 'new comment <>',
+        })
+        .reply(500, 'some saving error');
+
+      renderComponent(defaultPreloadedState);
+      const commentsTitle = await screen.findByText('Comments');
+      const textboxFields = screen.getAllByRole('textbox');
+      const commentsField = textboxFields[textboxFields.length - 1];
+      expect(commentsTitle).toBeVisible();
+      expect(commentsField).toBeVisible();
+      fireEvent.change(commentsField, { target: { value: 'new comment <>' } });
+      expect(commentsField.value).toBe('new comment <>');
+      const submitBtn = screen.getByText('Submit');
+      fireEvent.click(submitBtn);
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent('An error occurred saving data. some saving error');
     });
   });
 });

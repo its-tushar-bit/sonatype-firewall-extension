@@ -146,6 +146,10 @@ describe('AddWaiverPage', function () {
         label: 'Application',
         type: 'application',
       },
+      waiverComments: {
+        value: 'This is a preloaded comment',
+        isPristine: true,
+      },
     };
     const component = getShallowComponent(fullProps),
       loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component),
@@ -172,6 +176,7 @@ describe('AddWaiverPage', function () {
     expect(addWaiverForm).toHaveProp('expiryTime', fullProps.expiryTime);
     expect(addWaiverForm).toHaveProp('setExpiryTime', minimalProps.setExpiryTime);
     expect(addWaiverForm).toHaveProp('currentUser', minimalProps.currentUser);
+    expect(addWaiverForm).toHaveProp('waiverComments', fullProps.waiverComments);
   });
 
   it('renders NxSubmitMask with success message when submitMaskState is true', function () {

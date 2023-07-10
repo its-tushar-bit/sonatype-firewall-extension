@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.webhook;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Locale;
 
@@ -196,6 +197,19 @@ public class WebhookDispatcherAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.INVOKE_WEBHOOK, null, SYSTEM_USER);
     assertWebhookData(auditDTO, webhook, WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT, true);
+  }
+
+  @Test
+  public void testOn_WaiverRequestEvent() {
+    Webhook webhook = tempEntity.newWebhookWithSecret(server.getURI().toString(),
+        Collections.singleton(WebhookEventType.WAIVER_REQUEST));
+    WaiverRequestEvent event = new WaiverRequestEvent();
+    event.policyViolationId = "policyViolationId";
+    event.timestamp = LocalDateTime.now();
+    webhookDispatcher.on(event);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.INVOKE_WEBHOOK, null, SYSTEM_USER);
+    assertWebhookData(auditDTO, webhook, WebhookEventType.WAIVER_REQUEST, true);
   }
 
   @Test

@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -49,5 +50,25 @@ public class RequestWaiverPage
 
   public NxBackButton backButton() {
     return new NxBackButton("#menu-bar__back-button-container");
+  }
+
+  public SelenideElement comments() {
+    return child(".iq-request-waiver-form__comments .nx-text-input textarea");
+  }
+
+  public SelenideElement waiverRequestWebhookWarning() {
+    return child("#iq-waiver-request-webhook-warning");
+  }
+
+  public Button saveButton() {
+    return new Button(".request-waiver-submit");
+  }
+
+  public Button cancelButton() {
+    return new Button(".nx-form__cancel-btn");
+  }
+
+  public SelenideElement submitError() {
+    return child(".nx-footer .nx-alert");
   }
 }

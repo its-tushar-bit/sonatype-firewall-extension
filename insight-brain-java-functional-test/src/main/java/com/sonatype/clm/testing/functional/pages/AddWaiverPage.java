@@ -27,6 +27,10 @@ public class AddWaiverPage
     return BaseUrl.resolvePageUrl("/addWaiver/{id}", violationId);
   }
 
+  public static String url(String violationId, String comments) {
+    return BaseUrl.resolvePageUrl("/addWaiver/{id}?comments={comments}", violationId, comments);
+  }
+
   public AddWaiverPage() {
     super(ROOT);
   }

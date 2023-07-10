@@ -62,7 +62,7 @@ describe('EditWebhook', () => {
     });
 
     it('disables Application Evaluation checkbox', () => {
-      const appEvaluationCheckbox = component.find(NxCheckbox).at(1);
+      const appEvaluationCheckbox = component.find(NxCheckbox).at(0);
       expect(appEvaluationCheckbox).toHaveProp('children', 'Application Evaluation');
       expect(appEvaluationCheckbox).toHaveProp('disabled', true);
     });
@@ -76,6 +76,7 @@ describe('EditWebhook', () => {
         isAppWebhooksSupported: true,
       });
     });
+
     it('does not render info alert in the form', () => {
       const form = component.find(NxStatefulForm);
       expect(form).toExist();
@@ -83,25 +84,25 @@ describe('EditWebhook', () => {
     });
 
     it('does not disable Application Evaluation checkbox', () => {
-      const appEvaluationCheckbox = component.find(NxCheckbox).at(1);
+      const appEvaluationCheckbox = component.find(NxCheckbox).at(0);
       expect(appEvaluationCheckbox).toHaveProp('children', 'Application Evaluation');
       expect(appEvaluationCheckbox).toHaveProp('disabled', false);
     });
   });
 
   describe('event types checkboxes', () => {
-    it('renders checkbox with proper label and checkboxIds for each event type', () => {
+    it('renders checkbox in alphabetical order, with proper label and checkboxIds for each event type', () => {
       const component = getShallow();
 
       const checkboxes = component.find(NxCheckbox);
       expect(checkboxes.length).toBe(3);
 
-      expect(checkboxes.at(0)).toHaveProp('children', 'Policy Management');
-      expect(checkboxes.at(0)).toHaveProp('checkboxId', 'Policy-Management');
+      expect(checkboxes.at(0)).toHaveProp('children', 'Application Evaluation');
+      expect(checkboxes.at(0)).toHaveProp('checkboxId', 'Application-Evaluation');
+      expect(checkboxes.at(0)).toHaveProp('disabled', false);
 
-      expect(checkboxes.at(1)).toHaveProp('children', 'Application Evaluation');
-      expect(checkboxes.at(1)).toHaveProp('checkboxId', 'Application-Evaluation');
-      expect(checkboxes.at(1)).toHaveProp('disabled', false);
+      expect(checkboxes.at(1)).toHaveProp('children', 'Policy Management');
+      expect(checkboxes.at(1)).toHaveProp('checkboxId', 'Policy-Management');
 
       expect(checkboxes.at(2)).toHaveProp('children', 'Violation Alert');
       expect(checkboxes.at(2)).toHaveProp('checkboxId', 'Violation-Alert');
@@ -113,8 +114,8 @@ describe('EditWebhook', () => {
       });
 
       const checkboxes = component.find(NxCheckbox);
-      expect(checkboxes.at(0)).toHaveProp('isChecked', true);
-      expect(checkboxes.at(1)).toHaveProp('isChecked', false);
+      expect(checkboxes.at(0)).toHaveProp('isChecked', false);
+      expect(checkboxes.at(1)).toHaveProp('isChecked', true);
       expect(checkboxes.at(2)).toHaveProp('isChecked', true);
     });
 
@@ -126,9 +127,9 @@ describe('EditWebhook', () => {
 
       const checkboxes = component.find(NxCheckbox);
       checkboxes.at(0).simulate('change');
-      expect(toggleEventTypeSpy).toHaveBeenCalledWith('Policy Management');
-      checkboxes.at(1).simulate('change');
       expect(toggleEventTypeSpy).toHaveBeenCalledWith('Application Evaluation');
+      checkboxes.at(1).simulate('change');
+      expect(toggleEventTypeSpy).toHaveBeenCalledWith('Policy Management');
       checkboxes.at(2).simulate('change');
       expect(toggleEventTypeSpy).toHaveBeenCalledWith('Violation Alert');
       expect(toggleEventTypeSpy.calls.count()).toBe(3);

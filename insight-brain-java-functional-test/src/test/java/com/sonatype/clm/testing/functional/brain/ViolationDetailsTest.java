@@ -300,7 +300,7 @@ public class ViolationDetailsTest
     item2.shouldHave(cssClass("selected"));
 
     ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
-    waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(otherPolicyViolation.getId(),"violation","filter"));
+    waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(otherPolicyViolation.getId(), "violation", "filter"));
     detailsTile.headerTitle().shouldHave(text("Violation of Policy 2"));
   }
 
@@ -427,8 +427,10 @@ public class ViolationDetailsTest
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
     requestWaiverPage.root().shouldBe(visible);
     requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
-    requestWaiverPage.root().shouldHave(text("To request a waiver, please share the Policy Violation ID and" +
-            " sample curl command (found below) with the approver. Learn about automating waiver requests."));
+    requestWaiverPage.root()
+        .shouldHave(text("A waiver request will be sent to the designated approver upon submit, if a webhook event " +
+            "for waiver requests is configured. If you are unsure about the webhook configuration, share the policy " +
+            "violation ID and the curl command with the designated approver."));
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));

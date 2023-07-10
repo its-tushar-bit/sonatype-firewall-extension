@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.webhook;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -51,6 +53,7 @@ import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
+import com.sonatype.insight.brain.webhook.dto.WaiverRequestPayload;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -63,7 +66,6 @@ import org.mockito.Mock;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
-import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_ALERT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -138,7 +140,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.APPLICATION_EVALUATION.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -277,7 +279,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.POLICY_MANAGEMENT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -308,7 +310,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.POLICY_MANAGEMENT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -339,7 +341,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.POLICY_MANAGEMENT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -370,7 +372,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.POLICY_MANAGEMENT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -401,7 +403,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.POLICY_MANAGEMENT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -430,7 +432,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.POLICY_MANAGEMENT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -447,7 +449,8 @@ public class WebhookDispatcherTest
 
   @Test
   public void testOn_HandlesPolicyAlertEvent() {
-    Webhook target = tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(POLICY_ALERT));
+    Webhook target =
+        tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.POLICY_ALERT));
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
 
@@ -483,7 +486,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.POLICY_ALERT_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.POLICY_ALERT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -558,7 +561,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -594,7 +597,7 @@ public class WebhookDispatcherTest
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
     ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
     verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
-        .post(webhookArgumentCaptor.capture(), eq(WebhookDispatcher.LICENSE_OVERRIDE_MANAGEMENT_ID),
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
     Webhook webhook = webhookArgumentCaptor.getValue();
@@ -613,6 +616,41 @@ public class WebhookDispatcherTest
     assertThat(actualOverride.licenseIds).isEmpty();
     assertThat(actualOverride.ownerId).isEqualTo(organization.getId());
     assertThat(actualOverride.status).isEqualTo(LicenseOverrideStatus.ACKNOWLEDGED.name());
+  }
+
+  @Test
+  public void testOn_HandlesWaiverRequestEvent() {
+    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.WAIVER_REQUEST));
+
+    WaiverRequestEvent event = new WaiverRequestEvent();
+    event.initiator = "initiator";
+    event.timestamp = LocalDateTime.now();
+    event.comment = "Important waiver";
+    event.policyViolationId = "policyViolationId";
+    event.policyViolationLink = "https://encoded.policy.violation.link:8182?additionalParameters&anotherOne=yeah";
+    event.addWaiverLink = "https://encoded.add.waiver.link:8182?additionalParameters&anotherOne=yeah";
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
+    ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.WAIVER_REQUEST.getId()),
+            webhookPayloadArgumentCaptor.capture());
+
+    Webhook webhook = webhookArgumentCaptor.getValue();
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
+
+    WaiverRequestPayload webhookPayload = (WaiverRequestPayload) webhookPayloadArgumentCaptor.getValue();
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.timestamp).isEqualTo(
+        Date.from(event.timestamp.atZone(ZoneId.systemDefault()).toInstant()));
+    assertThat(webhookPayload.comment).isEqualTo("Important waiver");
+    assertThat(webhookPayload.policyViolationId).isEqualTo("policyViolationId");
+    assertThat(webhookPayload.policyViolationLink).isEqualTo(
+        "https://encoded.policy.violation.link:8182?additionalParameters&anotherOne=yeah");
+    assertThat(webhookPayload.addWaiverLink).isEqualTo(
+        "https://encoded.add.waiver.link:8182?additionalParameters&anotherOne=yeah");
   }
 
   private void testEventTypesWithOwner(Owner owner) {
@@ -664,22 +702,30 @@ public class WebhookDispatcherTest
     licenseOverrideEvent.licenseOverride.setStatus(LicenseOverrideStatus.ACKNOWLEDGED);
     licenseOverrideEvent.licenseOverride.setOwnerId(ownerId);
     webhookDispatcher.on(licenseOverrideEvent);
+
+    WaiverRequestEvent waiverRequestEvent = new WaiverRequestEvent();
+    waiverRequestEvent.policyViolationId = "policyViolationId";
+    waiverRequestEvent.ownerId = ownerId;
+    webhookDispatcher.on(waiverRequestEvent);
   }
 
   private void verifyEventTypesSent() {
     // we have 6 different events for policy management
     verify(webhookClientUtil, times(6))
-        .post(any(Webhook.class), eq(WebhookDispatcher.POLICY_MANAGEMENT_ID), any(WebhookPayload.class));
+        .post(any(Webhook.class), eq(WebhookEventType.POLICY_MANAGEMENT.getId()), any(WebhookPayload.class));
 
     verify(webhookClientUtil)
-        .post(any(Webhook.class), eq(WebhookDispatcher.APPLICATION_EVALUATION_ID), any(WebhookPayload.class));
+        .post(any(Webhook.class), eq(WebhookEventType.APPLICATION_EVALUATION.getId()), any(WebhookPayload.class));
 
     verify(webhookClientUtil)
-        .post(any(Webhook.class), eq(WebhookDispatcher.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT_ID),
+        .post(any(Webhook.class), eq(WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT.getId()),
             any(WebhookPayload.class));
 
     verify(webhookClientUtil)
-        .post(any(Webhook.class), eq(WebhookDispatcher.LICENSE_OVERRIDE_MANAGEMENT_ID), any(WebhookPayload.class));
+        .post(any(Webhook.class), eq(WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT.getId()), any(WebhookPayload.class));
+
+    verify(webhookClientUtil)
+        .post(any(Webhook.class), eq(WebhookEventType.WAIVER_REQUEST.getId()), any(WebhookPayload.class));
 
     reset(webhookClientUtil);
   }

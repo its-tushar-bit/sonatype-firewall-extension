@@ -792,6 +792,28 @@ public class AddWaiverTest
     addWaiverPage.submitError().shouldNotBe(visible);
   }
 
+  @Test
+  public void testSubmit_WaiverWithPreloadedComment() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId(), "preloaded%20comments"));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.comments().shouldHave(text("preloaded comments"));
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getApplicableToComponent(application.getId(), "hash1");
+      assertThat(waivers).hasSize(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getComment()).isEqualTo("preloaded comments");
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
   private void cleanupCreatedWaivers(List<PolicyWaiver> waivers) {
     if (waivers != null && !waivers.isEmpty()) {
       waivers.forEach(policyWaiverDAO::delete);

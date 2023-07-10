@@ -111,11 +111,11 @@ describe('addWaiverReducer', function () {
       violationDetails: null,
       otherProp: { prop: 'foo' },
     };
+    const payload = { waiverTargets: ['target1', 'target2'] };
     const action = {
       type: 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED',
-      payload: ['target1', 'target2'],
+      payload,
     };
-    const payload = ['target1', 'target2'];
 
     it('unsets the loading flag', function () {
       const newState = reducer(initialState, action);
@@ -125,8 +125,8 @@ describe('addWaiverReducer', function () {
 
     it('sets the availableWaiverScopes and chooses the first element as selectedWaiverScope', function () {
       const newState = reducer(initialState, action);
-      expect(newState.availableWaiverScopes).toEqual(payload);
-      expect(newState.selectedWaiverScope).toEqual(payload[0]);
+      expect(newState.availableWaiverScopes).toEqual(payload.waiverTargets);
+      expect(newState.selectedWaiverScope).toEqual(payload.waiverTargets[0]);
       expect(newState.otherProp).toBe(initialState.otherProp);
     });
 
@@ -137,6 +137,27 @@ describe('addWaiverReducer', function () {
         componentMatcherStrategy: 'EXACT_COMPONENT',
         expiryTime: null,
         waiverComments: '',
+      });
+    });
+
+    it('sets the comments for the waiver if they are passed by the url, decoding them if necessary', () => {
+      const payload = { waiverTargets: ['target1', 'target2'], comments: 'preloaded%20Comment' };
+      const action = {
+        type: 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED',
+        payload,
+      };
+      const newState = reducer(initialState, action);
+      expect(newState.fieldsPristineState).toEqual({
+        selectedWaiverScope: 'target1',
+        componentMatcherStrategy: 'EXACT_COMPONENT',
+        expiryTime: null,
+        waiverComments: 'preloaded Comment',
+      });
+      expect(newState.waiverComments).toEqual({
+        value: 'preloaded Comment',
+        isPristine: true,
+        trimmedValue: 'preloaded Comment',
+        validationErrors: null,
       });
     });
   });

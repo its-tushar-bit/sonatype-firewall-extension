@@ -4,25 +4,90 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
-import { NxInfoAlert, NxCodeSnippet, NxTextLink } from '@sonatype/react-shared-components';
+import {
+  NxCodeSnippet,
+  NxTextLink,
+  NxH1,
+  NxPageTitle,
+  NxTile,
+  NxStatefulForm,
+  NxPageMain,
+  NxFieldset,
+  NxTextInput,
+  NxWarningAlert,
+} from '@sonatype/react-shared-components';
 import LoadWrapper from '../react/LoadWrapper';
 import AddAndRequestWaiversBackButton from './AddAndRequestWaiversBackButton';
 
-import { getRequestWaiverUrl } from '../util/CLMLocation';
-import { extractViolationDetails, violationDetailsPropTypes } from '../util/violationDetailsUtil';
+import { getRequestWaiverUrl, getPolicyViolationUiLink, getAddWaiverUiLink } from '../util/CLMLocation';
+import { extractViolationDetails } from '../util/violationDetailsUtil';
 import { useRouterState } from '../react/RouterStateContext';
-import { getBaseUrl } from '../util/urlUtil';
+import { useDispatch, useSelector } from 'react-redux';
+import classNames from 'classnames';
 
-const RequestWaiversPage = ({
-  loading,
-  violationDetailsError,
-  violationDetails,
-  violationId,
-  loadViolation,
-  name,
-  prevParams,
-}) => {
+import {
+  selectComments,
+  selectLoadingViolation,
+  selectSubmitError,
+  selectSubmitMaskState,
+  selectViolationDetails,
+  selectViolationDetailsError,
+  selectWaiverRequestWebhookState,
+} from './requestWaiverSelectors';
+import {
+  selectPreviousRouteName,
+  selectRouterPrevParams,
+  selectViolationId,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
+import { loadViolation as loadViolationAction } from 'MainRoot/violation/violationActions';
+import { actions } from './requestWaiverSlice';
+import { returnToAddWaiverOriginPage } from './waiverActions';
+
+const WaiverRequestWebhookAlert = () => {
+  const { loading, error, waiverRequestWebhookAvailable } = useSelector(selectWaiverRequestWebhookState);
+
+  return (
+    <LoadWrapper loading={loading} error={error}>
+      {!waiverRequestWebhookAvailable && (
+        <NxWarningAlert id="iq-waiver-request-webhook-warning">
+          Webhook event for Automatic Waiver Request is not configured. Contact your admin or request the waiver
+          manually.
+        </NxWarningAlert>
+      )}
+    </LoadWrapper>
+  );
+};
+
+const RequestWaiversPage = () => {
+  const dispatch = useDispatch();
+
+  const loading = useSelector(selectLoadingViolation);
+  const violationDetailsError = useSelector(selectViolationDetailsError);
+  const violationDetails = useSelector(selectViolationDetails);
+  const violationId = useSelector(selectViolationId);
+  const name = useSelector(selectPreviousRouteName);
+  const prevParams = useSelector(selectRouterPrevParams);
+  const submitError = useSelector(selectSubmitError);
+  const waiverComments = useSelector(selectComments);
+  const submitMaskState = useSelector(selectSubmitMaskState);
+  const { loading: webhookInfoLoading, error: webhookInfoError, waiverRequestWebhookAvailable } = useSelector(
+    selectWaiverRequestWebhookState
+  );
+
+  const loadViolation = (id) => dispatch(loadViolationAction(id));
+  const getWaiverRequestWebhooks = () => dispatch(actions.getWaiverRequestWebhooks());
+  const onSubmitAction = () => dispatch(actions.submitRequestWaiver({ policyViolationLink, addWaiverLink }));
+  const cancelAction = () => dispatch(returnToAddWaiverOriginPage());
+  const setWaiverComments = (comment) => dispatch(actions.setRequestWaiverComments(comment));
+
+  const isSubmitButtonDisabled = webhookInfoLoading || !!webhookInfoError || !waiverRequestWebhookAvailable;
+
+  const onSubmit = () => {
+    if (!isSubmitButtonDisabled) {
+      onSubmitAction();
+    }
+  };
+
   const { policyViolationId, policyName, constraintName, componentName, reasons = [] } = extractViolationDetails(
     violationDetails
   );
@@ -35,11 +100,16 @@ const RequestWaiversPage = ({
 
   const error = violationId ? violationDetailsError : 'No Violation ID provided.';
 
-  function load() {
+  const load = () => {
     if (violationId) {
       loadViolation(violationId);
+      getWaiverRequestWebhooks();
     }
-  }
+  };
+
+  useEffect(() => {
+    dispatch(actions.clearInitState());
+  }, []);
 
   useEffect(load, [violationId]);
 
@@ -56,30 +126,37 @@ const RequestWaiversPage = ({
   const uiRouterState = useRouterState();
 
   const policyViolationHref = uiRouterState.href('sidebarView.violation', { id: violationId });
+  const policyViolationLink = getPolicyViolationUiLink(policyViolationHref);
 
-  const policyViolationUrl = `${getBaseUrl(window.location.href)}/assets/${policyViolationHref}`;
+  const addWaiverHref = uiRouterState.href('addWaiver', { violationId: violationId });
+  const addWaiverLink = getAddWaiverUiLink(addWaiverHref, waiverComments?.trimmedValue);
 
   const urlLinkEl = useRef();
-
   return (
-    <main id="request-waiver-page" className="nx-page-main">
+    <NxPageMain id="request-waiver-page">
       <AddAndRequestWaiversBackButton {...backButtonProps} />
-      <div className="nx-page-title">
-        <h1 className="nx-h1">Request Waiver</h1>
-      </div>
+      <NxPageTitle>
+        <NxH1>Request Waiver</NxH1>
+        <NxPageTitle.Description>
+          A waiver request will be sent to the designated approver upon submit, if a webhook event for waiver requests
+          is configured. If you are unsure about the webhook configuration, share the policy violation ID and the curl
+          command with the designated approver.
+        </NxPageTitle.Description>
+      </NxPageTitle>
 
-      <section className="nx-tile">
-        <div className="nx-tile-content">
-          <LoadWrapper loading={loading || !violationDetails} error={error} retryHandler={load}>
+      <NxTile>
+        <NxTile.Content>
+          <LoadWrapper loading={loading} error={error} retryHandler={load}>
             {() => (
-              <>
-                <NxInfoAlert>
-                  To request a waiver, please share the Policy Violation ID and sample curl command (found below) with
-                  the approver.{' '}
-                  <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/request-waiver" external>
-                    Learn about automating waiver requests.
-                  </NxTextLink>
-                </NxInfoAlert>
+              <NxStatefulForm
+                className="iq-request-waiver-form"
+                onCancel={cancelAction}
+                submitError={submitError}
+                showValidationErrors={!!submitError}
+                submitBtnClasses={classNames('request-waiver-submit', { disabled: isSubmitButtonDisabled })}
+                onSubmit={onSubmit}
+                submitMaskState={submitMaskState}
+              >
                 <dl className="nx-read-only">
                   <dt className="nx-read-only__label">Component</dt>
                   <dd className="nx-read-only__data">{componentName}</dd>
@@ -98,15 +175,15 @@ const RequestWaiversPage = ({
                 />
                 <NxCodeSnippet
                   label="Policy Violation Details Page"
-                  content={policyViolationUrl}
+                  content={policyViolationLink}
                   className="visual-testing-ignore iq-request-waivers-popover__page-url"
                   onCopyUsingBtn={() => urlLinkEl.current.select()}
                 />
-                <NxTextLink newTab href={policyViolationUrl}>
+                <NxTextLink newTab href={policyViolationLink}>
                   <input
                     readOnly
                     ref={urlLinkEl}
-                    value={policyViolationUrl}
+                    value={policyViolationLink}
                     className="visual-testing-ignore iq-request-waivers-popover__link-input"
                   />
                 </NxTextLink>
@@ -115,23 +192,17 @@ const RequestWaiversPage = ({
                   content={curlExample}
                   className="visual-testing-ignore iq-request-waivers-popover__curl"
                 />
-              </>
+                <NxFieldset className="iq-request-waiver-form__comments" label="Comments">
+                  <NxTextInput type="textarea" maxLength={1000} {...waiverComments} onChange={setWaiverComments} />
+                </NxFieldset>
+                <WaiverRequestWebhookAlert />
+              </NxStatefulForm>
             )}
           </LoadWrapper>
-        </div>
-      </section>
-    </main>
+        </NxTile.Content>
+      </NxTile>
+    </NxPageMain>
   );
-};
-
-RequestWaiversPage.propTypes = {
-  violationDetails: violationDetailsPropTypes,
-  violationId: PropTypes.string,
-  loading: PropTypes.bool.isRequired,
-  violationDetailsError: LoadWrapper.propTypes.error,
-  loadViolation: PropTypes.func.isRequired,
-  name: PropTypes.string,
-  prevParams: AddAndRequestWaiversBackButton.propTypes.prevParams,
 };
 
 export default RequestWaiversPage;

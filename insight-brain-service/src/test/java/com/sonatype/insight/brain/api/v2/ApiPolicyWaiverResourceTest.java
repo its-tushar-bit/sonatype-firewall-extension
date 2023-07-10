@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -37,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.report.ReportTestUtils;
@@ -86,7 +89,7 @@ public class ApiPolicyWaiverResourceTest
     Policy policy = tempEntity.newPolicy(application);
 
     TriggerReference triggerReference = new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID,
-            "vulnerability-1");
+        "vulnerability-1");
     ConditionFact conditionFact = new ConditionFact("condition type id", 0, "summary", "reason", triggerReference);
     ConstraintFact constraintFact = new ConstraintFact("constraint id", "constraint name", "operator", conditionFact);
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(),
@@ -720,5 +723,51 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo("all_repositories");
     assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
     assertThat(apiPolicyWaiverDTO.threatLevel).isEqualTo(policy.getThreatLevel());
+  }
+
+  @Test
+  public void testRequestWaiver_applicationPolicyViolation() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getName(), "scanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    ApiRequestPolicyWaiverDTO dto = new ApiRequestPolicyWaiverDTO();
+    dto.addWaiverLink = "addWaiverLink";
+    dto.policyViolationLink = "policyViolationLink";
+    HttpResponse post = restRequest()
+        .path(DefaultApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(policyViolation.getId())
+        .body(dto, MediaType.APPLICATION_JSON)
+        .post();
+    assertThat(post.getStatusCode()).isEqualTo(HttpServletResponse.SC_NO_CONTENT);
+  }
+
+  @Test
+  public void testRequestWaiver_unknownOrRepositoryPolicyViolation() throws Exception {
+    ApiRequestPolicyWaiverDTO dto = new ApiRequestPolicyWaiverDTO();
+    dto.addWaiverLink = "addWaiverLink";
+    dto.policyViolationLink = "policyViolationLink";
+
+    HttpResponse post = restRequest()
+        .path(DefaultApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
+        .parameter("InvalidPolicyViolationId")
+        .body(dto, MediaType.APPLICATION_JSON)
+        .post();
+    assertThat(post.getStatusCode()).isEqualTo(HttpServletResponse.SC_NOT_FOUND);
+    assertThat(post.getBodyText()).isEqualTo("Could not find associated policy violation");
+
+    Repository repository = tempEntity.newRepository();
+    RepositoryPolicyViolation
+        repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), Date.from(Instant.now()));
+    post = restRequest()
+        .path(DefaultApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(repositoryPolicyViolation.getId())
+        .body(dto, MediaType.APPLICATION_JSON)
+        .post();
+    assertThat(post.getStatusCode()).isEqualTo(HttpServletResponse.SC_NOT_FOUND);
+    assertThat(post.getBodyText()).isEqualTo("Could not find associated policy violation");
   }
 }

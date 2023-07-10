@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.ComponentFor
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.136

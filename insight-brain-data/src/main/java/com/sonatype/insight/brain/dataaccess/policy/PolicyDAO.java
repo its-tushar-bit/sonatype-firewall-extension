@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class PolicyDAO
 {

@@ -39,8 +39,8 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.groups.Tuple;
-import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -500,7 +500,7 @@ public class EditNoticesTest
   }
 
   private String getOptionText(Owner owner) {
-    return StringUtils.capitalise(owner.getType().toString()) + " - " + owner.getName();
+    return StringUtils.capitalize(owner.getType().toString()) + " - " + owner.getName();
   }
 
   private void assertButton(Button button, boolean enabled, String tooltip) {

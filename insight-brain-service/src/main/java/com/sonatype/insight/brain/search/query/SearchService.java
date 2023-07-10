@@ -62,6 +62,7 @@ import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -78,7 +79,6 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits.Relation;
 import org.apache.lucene.store.Directory;
-import org.codehaus.plexus.util.StringUtils;
 
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getItemManagementPathEdit;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getManagementPath;

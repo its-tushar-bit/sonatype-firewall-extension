@@ -35,7 +35,7 @@ import com.sonatype.insight.brain.organization.ApplicationCloneService;
 import com.sonatype.insight.brain.organization.ApplicationMoveService;
 
 import com.codahale.metrics.annotation.Timed;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *

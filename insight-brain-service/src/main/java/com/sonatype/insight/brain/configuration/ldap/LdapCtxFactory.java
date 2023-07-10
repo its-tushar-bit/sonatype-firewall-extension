@@ -11,8 +11,8 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.ldap.LdapContext;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.realm.ldap.JndiLdapContextFactory;
-import org.codehaus.plexus.util.StringUtils;
 
 import static java.lang.Boolean.TRUE;
 

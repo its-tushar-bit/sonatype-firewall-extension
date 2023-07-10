@@ -277,11 +277,11 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Table;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.openjpa.enhance.PersistenceCapable;
 import org.assertj.core.util.Maps;
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
 

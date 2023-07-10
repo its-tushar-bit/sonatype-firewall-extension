@@ -57,8 +57,8 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.util.DateUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -67,10 +67,10 @@ import org.openqa.selenium.Keys;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 
 public class TransitiveViolationsTest
     extends AbstractFunctionalTest
@@ -315,7 +315,7 @@ public class TransitiveViolationsTest
     counts.none().shouldHave(Condition.text("None"));
     counts.none().shouldHave(Condition.text("1"));
     waiveTransitiveViolationsPopover.scope().shouldHave(
-        Condition.text(StringUtils.capitalise(application.getType().toString()) + " - " + application.getName()));
+        Condition.text(StringUtils.capitalize(application.getType().toString()) + " - " + application.getName()));
     waiveTransitiveViolationsPopover.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().shouldHaveSize(8);
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(0).shouldHave(text("Never"));

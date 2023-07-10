@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.report.pdf;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -42,7 +43,6 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vandeseer.easytable.RepeatedHeaderTableDrawer;
@@ -378,7 +378,7 @@ public class PdfGenerator
         policyViolationsTableRow.threatLevel = violation.policyThreatLevel;
         policyViolationsTableRow.policyName = violation.policyName;
         policyViolationsTableRow.policyType = violation.policyThreatCategory == null ? "" : StringUtils
-            .capitalise(violation.policyThreatCategory.toLowerCase(Locale.ROOT));
+            .capitalize(violation.policyThreatCategory.toLowerCase(Locale.ROOT));
         policyViolationsTableRow.componentName = component.displayName;
         policyViolationsTableRows.add(policyViolationsTableRow);
       }

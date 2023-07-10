@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class PolicyThreatLevelFilter
     implements Predicate<Integer>

@@ -60,9 +60,11 @@ import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -149,6 +151,8 @@ public class ScmOnboardingService
 
   private final SourceControlImportThreadPoolExecutor executor;
 
+  private final InsightProxy insightProxy;
+
   @Inject
   public ScmOnboardingService(
       final SourceControlDAO sourceControlDAO,
@@ -164,7 +168,8 @@ public class ScmOnboardingService
       final TelemetrySender telemetrySender,
       final ScmApplicationNameConverter applicationNameConverter,
       final IqForScmLicenseChecker licenseChecker,
-      final SourceControlUtils sourceControlUtils)
+      final SourceControlUtils sourceControlUtils,
+      final InsightProxy insightProxy)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -181,6 +186,7 @@ public class ScmOnboardingService
     this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
     executor = new SourceControlImportThreadPoolExecutor();
+    this.insightProxy = insightProxy;
   }
 
   @Override
@@ -299,7 +305,9 @@ public class ScmOnboardingService
 
   private String getBaseUrl(String repoUrl, SourceControlProvider provider) {
     try {
-      return gitClientFactory.getClientUtils(provider).getBaseUrlFromRepo(repoUrl);
+      Configuration configuration = new Configuration();
+      insightProxy.contextualize(configuration, repoUrl);
+      return gitClientFactory.getClientUtils(provider, configuration).getBaseUrlFromRepo(repoUrl);
     }
     catch (URISyntaxException e) {
       log.info("Was not able to parse repo url {}, falling back to default for the provider", repoUrl, e);

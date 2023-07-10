@@ -58,7 +58,7 @@ public class GitClientFactory
 
   public GitApiClient createApiClient(GitRepositoryInfo gitRepositoryInfo) {
     Configuration configuration = gitApiClientFactory.createConfiguration();
-    String apiUrl = getApiUrl(gitRepositoryInfo);
+    String apiUrl = getApiUrl(gitRepositoryInfo, configuration);
     insightProxy.contextualize(configuration, apiUrl);
     return gitApiClientFactory.getGitApiClient(gitRepositoryInfo.provider, configuration,
         gitRepositoryInfo.normalizedRepositoryUrl, gitRepositoryInfo.username, gitRepositoryInfo.token);
@@ -67,7 +67,7 @@ public class GitClientFactory
   public PullRequestInfoProvider createPullRequestInfoClient(GitRepositoryInfo gitRepositoryInfo) {
     Configuration configuration = gitApiClientFactory.createConfiguration();
 
-    String graphqlApiUrl = getPullRequestInfoClientUrl(gitRepositoryInfo);
+    String graphqlApiUrl = getPullRequestInfoClientUrl(gitRepositoryInfo, configuration);
     insightProxy.contextualize(configuration, graphqlApiUrl);
 
     return gitApiClientFactory.getPullRequestInfoClient(gitRepositoryInfo.provider, configuration,
@@ -81,13 +81,14 @@ public class GitClientFactory
       final String token)
   {
     Configuration configuration = gitApiClientFactory.createConfiguration();
-    String baseApiUrl = getClientUtils(sourceControlProvider).getBaseApiUrl(hostUrl, token);
-    insightProxy.contextualize(configuration, baseApiUrl);
+    insightProxy.contextualize(configuration);
+    String baseApiUrl = getClientUtils(sourceControlProvider, configuration).getBaseApiUrl(hostUrl, token);
+    configuration.setServerUrl(baseApiUrl);
     return gitApiClientFactory.getGeneralSCMApiClient(sourceControlProvider, configuration, username, token);
   }
 
-  public GitApiClientUtils getClientUtils(final SourceControlProvider provider) {
-    return gitApiClientFactory.getGitApiClientUtils(provider);
+  public GitApiClientUtils getClientUtils(final SourceControlProvider provider, Configuration configuration) {
+    return gitApiClientFactory.getGitApiClientUtils(provider, configuration);
   }
 
   /**
@@ -113,14 +114,15 @@ public class GitClientFactory
     return apiUrl;
   }
 
-  private String getApiUrl(final GitRepositoryInfo gitRepositoryInfo) {
+  private String getApiUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
     return getUrl(gitRepositoryInfo, apiClientUrlCache,
-        gri -> getClientUtils(gri.provider).getApiUrl(gri.normalizedRepositoryUrl, gri.token));
+        gri -> getClientUtils(gri.provider, configuration).getApiUrl(gri.normalizedRepositoryUrl, gri.token));
   }
 
-  private String getPullRequestInfoClientUrl(final GitRepositoryInfo gitRepositoryInfo) {
+  private String getPullRequestInfoClientUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
     return getUrl(gitRepositoryInfo, prInfoClientUrlCache,
-        gri -> getClientUtils(gri.provider).getPullRequestInfoProviderUrl(gri.normalizedRepositoryUrl, gri.token));
+        gri -> getClientUtils(gri.provider, configuration)
+            .getPullRequestInfoProviderUrl(gri.normalizedRepositoryUrl, gri.token));
   }
 
   @VisibleForTesting

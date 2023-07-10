@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
@@ -22,6 +23,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -49,7 +51,9 @@ public class GitClientFactoryTest
     spyGitClientFactory = spy(gitClientFactory);
 
     mockGitApiClientUtils = mock(GitApiClientUtils.class);
-    when(spyGitClientFactory.getClientUtils(SourceControlProvider.GITHUB)).thenReturn(mockGitApiClientUtils);
+
+    doReturn(mockGitApiClientUtils).when(spyGitClientFactory).getClientUtils(eq(SourceControlProvider.GITHUB),
+        any(Configuration.class));
   }
 
   @Test

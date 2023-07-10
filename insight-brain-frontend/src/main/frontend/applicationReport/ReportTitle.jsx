@@ -22,7 +22,7 @@ import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelector
 import { reevaluateReport as reevaluateR } from './applicationReportActions';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
-import { getDownloadPdfUrl, getViewSbomUrl } from 'MainRoot/util/CLMLocation';
+import { getDownloadPdfUrl, getExportCycloneDxUrl, getExportSpdxUrl } from 'MainRoot/util/CLMLocation';
 
 const renderDescription = (metadataDetails) => {
   const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash } = metadataDetails;
@@ -48,7 +48,8 @@ export default function ReportTitle() {
   const reevaluateReport = (...args) => dispatch(reevaluateR(...args));
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
-  const sbomUrl = getViewSbomUrl(metadataDetails.application.id, scanId);
+  const sbomUrl = getExportCycloneDxUrl(metadataDetails.application.id, scanId);
+  const spdxUrl = getExportSpdxUrl(metadataDetails.application.id, scanId);
   const rawDataUrl = uiRouterState.href('applicationReport.rawData', { publicId, scanId });
   const legacyReportUrl = uiRouterState.href('report', { publicId, scanId });
   const vulnerabilitiesUrl = uiRouterState.href('applicationReport.vulnerabilities', { publicId, scanId });
@@ -73,11 +74,15 @@ export default function ReportTitle() {
         >
           <a className="nx-dropdown-button" href={pdfUrl}>
             <NxFontAwesomeIcon icon={faFilePdf} />
-            <span>Generate PDF</span>
+            <span>Export PDF</span>
           </a>
           <a className="nx-dropdown-button" href={sbomUrl} target="_blank" rel="noreferrer">
             <NxFontAwesomeIcon icon={faFileCode} />
-            <span>View SBOM</span>
+            <span>Export CycloneDx</span>
+          </a>
+          <a className="nx-dropdown-button" href={spdxUrl}>
+            <NxFontAwesomeIcon icon={faFilePdf} />
+            <span>Export SPDX</span>
           </a>
           <NxDropdownDivider />
           <a className="nx-dropdown-link" href={rawDataUrl}>

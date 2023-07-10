@@ -106,9 +106,13 @@ describe('CLMLocation.js', function () {
     });
 
     it('should return the correct URL for the SBOM report', () => {
-      expect(CLMLocationsService.getViewSbomUrl('foo', 'bar')).toBe(
+      expect(CLMLocationsService.getExportCycloneDxUrl('foo', 'bar')).toBe(
         'http://localhost/ui/links/cycloneDx/foo/reports/bar'
       );
+    });
+
+    it('should return the correct URL for the SPDX report', () => {
+      expect(CLMLocationsService.getExportSpdxUrl('foo', 'bar')).toBe('http://localhost/ui/links/spdx/foo/reports/bar');
     });
 
     it('should return the correct URL to query the latest version of an InnerSource component', () => {
@@ -690,10 +694,18 @@ describe('CLMLocation.js', function () {
     });
   });
 
-  describe('getViewSbomUrl', function () {
+  describe('getExportCycloneDx', function () {
     it('should return SBOM url', () => {
-      expect(CLMLocation.getViewSbomUrl('applicationId', 'scanId')).toBe(
+      expect(CLMLocation.getExportCycloneDxUrl('applicationId', 'scanId')).toBe(
         '/ui/links/cycloneDx/applicationId/reports/scanId'
+      );
+    });
+  });
+
+  describe('getExportSpdxUrl', function () {
+    it('should return SPDX url', () => {
+      expect(CLMLocation.getExportSpdxUrl('applicationId', 'scanId')).toBe(
+        '/ui/links/spdx/applicationId/reports/scanId'
       );
     });
   });

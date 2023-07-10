@@ -101,6 +101,12 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToSpdx() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.LATEST_VERSION_SPDX_REPORT_PATH, "appId", "scanId");
+    assertRedirect(response, "api/v2/spdx/appId/reports/scanId");
+  }
+
+  @Test
   @ManualServerInit
   public void testLinkToReport_WithSourceQuery_Anonymous() throws Exception {
     testLinkToReport_WithSourceQuery(true /* anonymous */);

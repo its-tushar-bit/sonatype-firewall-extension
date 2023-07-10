@@ -222,7 +222,7 @@ public class ApplicationReportTest
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
-    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(5);
+    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(6);
 
     eyesWatcher.eyesCheck();
   }
@@ -238,7 +238,7 @@ public class ApplicationReportTest
       // generating the PDF takes awhile; increase the timeout to 20 seconds
       Configuration.timeout = 20000;
 
-      downloadedPdf = optionsDropdown.menu().entries().first().shouldHave(text("Generate PDF")).download();
+      downloadedPdf = optionsDropdown.menu().entries().first().shouldHave(text("Export PDF")).download();
     }
     finally {
       Configuration.timeout = currentTimeout;
@@ -258,7 +258,7 @@ public class ApplicationReportTest
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
 
-    File downloadedSbom = optionsDropdown.menu().entries().get(1).shouldHave(text("View SBOM")).download();
+    File downloadedSbom = optionsDropdown.menu().entries().get(1).shouldHave(text("Export CycloneDx")).download();
 
     byte[] fileBeginning = new byte[5];
     try (FileInputStream stream = new FileInputStream(downloadedSbom)) {
@@ -273,7 +273,7 @@ public class ApplicationReportTest
   public void testRawDataLink() {
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().get(2).shouldHave(text("View raw data")).click();
+    optionsDropdown.menu().entries().get(3).shouldHave(text("View raw data")).click();
 
     waitUntilUrl(ApplicationReportRawDataPage.url(app, SCAN_ID));
     new ApplicationReportRawDataPage().reportTitle().shouldHave(text(app.getName()));
@@ -283,7 +283,7 @@ public class ApplicationReportTest
   public void testVulnerabilitiesLink() {
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().get(3).shouldHave(text("View vulnerabilities")).click();
+    optionsDropdown.menu().entries().get(4).shouldHave(text("View vulnerabilities")).click();
 
     waitUntilUrl(ApplicationReportVulnerabilitiesPage.url(app, SCAN_ID));
     new ApplicationReportVulnerabilitiesPage().title().shouldHave(text(app.getName()));
@@ -807,7 +807,7 @@ public class ApplicationReportTest
     // Assertions
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().get(3).shouldHave(DISABLED).click();
+    optionsDropdown.menu().entries().get(4).shouldHave(DISABLED).click();
     // should remain on report page
     reportPage.shouldBe(visible);
   }

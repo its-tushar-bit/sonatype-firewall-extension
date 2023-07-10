@@ -32,6 +32,8 @@ public class UserInterfaceLinksHelper
 
   public static final String QUARANTINED_COMPONENT_REPORT_PATH = "repositories/quarantinedComponent/{token}";
 
+  public static final String LATEST_VERSION_SPDX_REPORT_PATH = "spdx/{applicationId}/reports/{scanId}";
+
   private static String buildStableUrl(String path, Object... parameters) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build(parameters).toString();
   }

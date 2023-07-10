@@ -89,8 +89,9 @@ describe('ReportTitle', () => {
 
     fireEvent.click(options);
 
-    expect(screen.getByRole('link', { name: 'Generate PDF' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'View SBOM' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export PDF' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export CycloneDx' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export SPDX' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
 
     const viewVulnerabilitiesLink = await screen.findByRole('link', {

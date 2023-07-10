@@ -193,6 +193,14 @@ public class UserInterfaceLinksResource
     return redirect(uriBuilder, applicationId, scanId);
   }
 
+  @GET
+  @Path(LATEST_VERSION_SPDX_REPORT_PATH)
+  public Response linkToSpdx(@PathParam("applicationId") String applicationId, @PathParam("scanId") String scanId) {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(PublicApiPaths.SPDX_RESOURCE_PATH).path("/{applicationId}/reports/{reportId}");
+    return redirect(uriBuilder, applicationId, scanId);
+  }
+
   /**
    * @since 1.125
    */

@@ -10,13 +10,11 @@ import java.io.IOException;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,13 +30,6 @@ public class ApiSpdxResourceAuditTest
     scanId = tempEntity.uuid();
     app = tempEntity.newApplicationWithParent();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
-
-    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(true);
-  }
-
-  @After
-  public void teardown() {
-    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(false);
   }
 
   @Override

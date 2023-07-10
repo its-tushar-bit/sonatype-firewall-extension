@@ -10,7 +10,6 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -19,7 +18,6 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.codehaus.plexus.util.FileUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,13 +36,6 @@ public class ApiSpdxServiceAuthzTest
   public void setup() {
     scanId = tempEntity.uuid();
     setBaseUrl("http://localhost:8070/");
-
-    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(true);
-  }
-
-  @After
-  public void teardown() {
-    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(false);
   }
 
   private void createReportAndPolicyEvaluation() throws IOException {

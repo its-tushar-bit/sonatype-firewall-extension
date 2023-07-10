@@ -34,7 +34,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -57,7 +56,6 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -151,10 +149,6 @@ public class ApiSpdxService
       boolean generateCycloneDx,
       String spdxVersion)
   {
-    if (!SystemConfigurationPropertyFeature.SPDX_EXPORT.isEnabled()) {
-      throw new ConflictException("This API endpoint is currently disabled.");
-    }
-
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
 
     return getByScanId(application, scanId, validateFormat(format), generateCycloneDx,
@@ -169,10 +163,6 @@ public class ApiSpdxService
       boolean generateCycloneDx,
       String spdxVersion)
   {
-    if (!SystemConfigurationPropertyFeature.SPDX_EXPORT.isEnabled()) {
-      throw new ConflictException("This API endpoint is currently disabled.");
-    }
-
     if (StageTypes.getById(stageId) == null) {
       throw new BadRequestException("Invalid stage: " + stageId + ".");
     }

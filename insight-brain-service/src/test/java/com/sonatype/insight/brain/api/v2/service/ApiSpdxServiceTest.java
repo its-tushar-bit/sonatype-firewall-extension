@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -30,7 +29,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.ImmutableSet;
@@ -40,7 +38,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -100,13 +97,6 @@ public class ApiSpdxServiceTest
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
     setBaseUrl("http://localhost:8070/");
     createReportAndPolicyEvaluation("report");
-
-    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(true);
-  }
-
-  @After
-  public void teardown() {
-    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(false);
   }
 
   private void createReportAndPolicyEvaluation(String folder) throws IOException {
@@ -158,15 +148,6 @@ public class ApiSpdxServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getByScanId(application.getId(), scanId, "xml", false, "2.0"))
         .withMessageContaining("Invalid SPDX version: 2.0. Supported SPDX versions: [2.3]");
-  }
-
-  @Test
-  public void testGetByScanId_spdxExportDisabled() {
-    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(false);
-
-    assertThatExceptionOfType(ConflictException.class)
-        .isThrownBy(() -> service.getByScanId(application.getId(), scanId, "xml", false, "2.3"))
-        .withMessageContaining("This API endpoint is currently disabled.");
   }
 
   @Test
@@ -287,15 +268,6 @@ public class ApiSpdxServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getLatestForStage(application.getId(), BuildStageType.ID, "xml", false, "2.1"))
         .withMessageContaining("Invalid SPDX version: 2.1. Supported SPDX versions: [2.3]");
-  }
-
-  @Test
-  public void testGetLatestForStage_spdxExportDisabled() {
-    SystemConfigurationPropertyFeature.SPDX_EXPORT.setEnabled(false);
-
-    assertThatExceptionOfType(ConflictException.class)
-        .isThrownBy(() -> service.getLatestForStage(application.getId(), BuildStageType.ID, "xml", false, "2.3"))
-        .withMessageContaining("This API endpoint is currently disabled.");
   }
 
   private void testGetLatest(

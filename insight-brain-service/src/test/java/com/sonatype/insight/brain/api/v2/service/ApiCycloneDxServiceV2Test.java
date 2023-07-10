@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -43,8 +44,8 @@ import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURL.StandardTypes;
 import com.google.inject.Binder;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
-import org.codehaus.plexus.util.FileUtils;
 import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.model.Bom;

@@ -31,8 +31,8 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.scan.model.ClientScanType;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -232,7 +232,7 @@ class ScanTask
       }
 
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
-        FileUtils.rename(scanResult.getScanFile(), work.getScanFile(app.getId(), scanReceipt.getScanId()));
+        FileUtils.moveFile(scanResult.getScanFile(), work.getScanFile(app.getId(), scanReceipt.getScanId()));
       }
 
       // wait for the report

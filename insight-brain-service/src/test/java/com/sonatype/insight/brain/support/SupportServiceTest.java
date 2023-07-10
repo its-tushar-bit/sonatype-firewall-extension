@@ -37,7 +37,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections4.EnumerationUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -196,7 +195,7 @@ public class SupportServiceTest
           getZipFileBasename(supportZip) + "/" + SupportFileType.INFO.getDirName() + "/product-version.json");
       try (final ByteArrayOutputStream zipEntryContent = new ByteArrayOutputStream()) {
         try (final InputStream zipEntryStream = zipFile.getInputStream(zipEntry)) {
-          IOUtil.copy(zipEntryStream, zipEntryContent);
+          IOUtils.copy(zipEntryStream, zipEntryContent);
           final JsonNode result = JsonUtils.parse(zipEntryContent.toString("UTF-8"));
           assertThat(result.size()).isEqualTo(1);
           final JsonNode parentNode = result.get("product-version");
@@ -367,7 +366,7 @@ public class SupportServiceTest
   private String getZipEntryContent(ZipFile zipFile, ZipEntry zipEntry) throws Exception {
     try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
       try (InputStream inputStream = zipFile.getInputStream(zipEntry)) {
-        IOUtil.copy(inputStream, byteArrayOutputStream);
+        IOUtils.copy(inputStream, byteArrayOutputStream);
       }
       return byteArrayOutputStream.toString(StandardCharsets.UTF_8.name());
     }

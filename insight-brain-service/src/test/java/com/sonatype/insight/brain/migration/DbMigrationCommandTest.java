@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.postgres.PostgresServer;
 
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

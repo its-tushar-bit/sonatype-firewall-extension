@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.inject.Inject;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -712,13 +714,13 @@ public class DefaultHdsClientTest
     };
 
     File fileSent = tempDir.newFile();
-    FileUtils.write(fileSent, "Test", "UTF-8");
+    FileUtils.write(fileSent, "Test", StandardCharsets.UTF_8);
     FileBody fileBodySent = new FileBody(fileSent);
     HttpEntity httpEntity = MultipartEntityBuilder.create().addPart("file", fileBodySent).build();
     client.post(testPath, httpEntity, "test_client_user_agent");
     assertThat(statusCode[0]).isEqualTo(HttpStatus.NO_CONTENT_204);
     assertThat(fileBodyReceived[0].getFileName()).isEqualTo(fileBodySent.getFilename());
-    assertThat(IOUtils.toString(fileBodyReceived[0].getInputStream(), "UTF-8")).isEqualTo("Test");
+    assertThat(IOUtils.toString(fileBodyReceived[0].getInputStream(), StandardCharsets.UTF_8)).isEqualTo("Test");
   }
 
   @Test

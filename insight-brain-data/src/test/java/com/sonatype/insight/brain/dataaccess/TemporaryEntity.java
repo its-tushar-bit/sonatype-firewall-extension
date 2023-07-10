@@ -277,11 +277,11 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Table;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.openjpa.enhance.PersistenceCapable;
 import org.assertj.core.util.Maps;
-import org.codehaus.plexus.util.IOUtil;
 import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
 
@@ -3460,9 +3460,9 @@ public class TemporaryEntity
   private String validIdentityProviderXml() {
     try {
       Class<TemporaryEntity> tempEntity = TemporaryEntity.class;
-      return IOUtil.toString(
+      return IOUtils.toString(
           tempEntity.getResourceAsStream("/" + tempEntity.getSimpleName() + "/identity-provider-metadata.xml"),
-          StandardCharsets.UTF_8.toString());
+          StandardCharsets.UTF_8);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

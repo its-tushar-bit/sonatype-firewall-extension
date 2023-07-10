@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -68,7 +69,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -228,7 +229,7 @@ public class ReportResourceTest
       }
       else if ("security.json".equals(entry)) {
         JsonNode actual = JsonUtils.parse(response.getBodyText());
-        JsonNode expected = JsonUtils.parse(FileUtils.fileRead(file, "UTF-8"));
+        JsonNode expected = JsonUtils.parse(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
         for (JsonNode node : expected.get("aaData")) {
           ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
           ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
@@ -244,7 +245,8 @@ public class ReportResourceTest
         testJsonApplyComponentChanges(actual);
       }
       else if (contentType.startsWith("text") || contentType.endsWith("json")) {
-        assertThat(response.getBodyText()).isEqualToIgnoringWhitespace(FileUtils.fileRead(file, "UTF-8"));
+        assertThat(response.getBodyText())
+            .isEqualToIgnoringWhitespace(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
       }
       else {
         assertThat(response.getBodyBytes()).as("Unexpected content for " + entry)

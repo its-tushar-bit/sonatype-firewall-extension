@@ -9,12 +9,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,9 +81,9 @@ public class SamlIdPLogoutUrlBuilderTest
 
   protected String auth0IdpXml() {
     try {
-      return IOUtil.toString(
+      return IOUtils.toString(
           getClass().getResourceAsStream("/SamlIdPLogoutUrlBuilderTest/identity-provider-metadata.xml"),
-          StandardCharsets.UTF_8.toString());
+          StandardCharsets.UTF_8);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

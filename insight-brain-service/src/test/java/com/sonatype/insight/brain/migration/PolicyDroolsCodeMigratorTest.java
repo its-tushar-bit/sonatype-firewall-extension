@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import java.nio.charset.StandardCharsets;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -23,7 +25,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,7 +106,8 @@ public class PolicyDroolsCodeMigratorTest
   }
 
   private String getPolicyContent(String filename) throws Exception {
-    return IOUtil.toString(getClass().getResourceAsStream("/PolicyDroolsCodeMigratorTest/" + filename), "UTF-8");
+    return IOUtils.toString(getClass().getResourceAsStream("/PolicyDroolsCodeMigratorTest/" + filename),
+        StandardCharsets.UTF_8);
   }
 
   private void fakeDroolsCodeVersion(int version) {

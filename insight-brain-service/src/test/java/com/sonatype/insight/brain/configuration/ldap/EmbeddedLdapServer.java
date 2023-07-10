@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.test.networking.PortAllocator;
 import com.sonatype.insight.test.networking.SslProperties;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.directory.api.ldap.model.constants.AuthenticationLevel;
 import org.apache.directory.api.ldap.model.constants.SchemaConstants;
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
@@ -43,7 +44,6 @@ import org.apache.directory.server.ldap.handlers.sasl.digestMD5.DigestMd5Mechani
 import org.apache.directory.server.protocol.shared.store.LdifFileLoader;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 import org.apache.directory.server.protocol.shared.transport.Transport;
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

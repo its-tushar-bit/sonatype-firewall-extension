@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.releasegraph;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,7 +20,7 @@ import com.sonatype.insight.brain.model.ComponentPopularity;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FileUtils;
 
 public class ReleaseGraphPerformanceUtils
 {
@@ -57,7 +58,7 @@ public class ReleaseGraphPerformanceUtils
       sb.append('\n');
     }
     if (file != null) {
-      FileUtils.fileWrite(new File(file), sb.toString());
+      FileUtils.writeStringToFile(new File(file), sb.toString(), StandardCharsets.UTF_8);
     }
     else {
       System.out.println(sb);

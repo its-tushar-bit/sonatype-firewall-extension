@@ -191,13 +191,13 @@ public class SupportService
     final File filteredConfigYml = new File(workDir, "filtered-" + rawYml.getName());
 
     try (final FileInputStream input = new FileInputStream(rawYml)) {
-      FileUtils.write(filteredConfigYml, systemInfo.getObfuscatedYaml(input), "UTF-8");
+      FileUtils.write(filteredConfigYml, systemInfo.getObfuscatedYaml(input), StandardCharsets.UTF_8);
     }
     return filteredConfigYml;
   }
 
   private File writeTextToFile(final String text, final File outputFile) throws IOException {
-    FileUtils.write(outputFile, text, "UTF-8");
+    FileUtils.write(outputFile, text, StandardCharsets.UTF_8);
     return outputFile;
   }
 

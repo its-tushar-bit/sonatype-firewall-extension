@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.webhook;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -105,7 +106,7 @@ public class WebhookClientUtilTest
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
-        String body = IOUtils.toString(request.getInputStream(), "UTF-8");
+        String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         bodies.add(body);
         baseRequest.setHandled(true);
       }

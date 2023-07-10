@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -133,9 +134,9 @@ import com.sonatype.insight.test.LogOutput;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -1052,7 +1053,7 @@ public class ScanPolicyEvaluatorTest
     String constraintFactsJson = IOUtils.toString(
         getClass().getResource("/ScanPolicyEvaluatorTest/testEvaluate_BeforeAndAfterAddingConditionTriggerData/"
             + "policy-violation-constraint-facts.json"),
-        "UTF-8");
+        StandardCharsets.UTF_8);
     constraintFactsJson = constraintFactsJson.replace("TestConstraintId", policy.getConstraints().get(0).getId());
     PolicyViolation policyViolationBefore = new PolicyViolation(policyEvaluationBefore, policy.getId(),
         policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), "964cd74171f427720480",

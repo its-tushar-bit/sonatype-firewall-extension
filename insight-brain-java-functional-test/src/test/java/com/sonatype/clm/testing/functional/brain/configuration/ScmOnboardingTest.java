@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain.configuration;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -36,9 +37,9 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
-import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -157,7 +158,7 @@ public class ScmOnboardingTest
   }
 
   private String getResourceAsString(String filename) throws IOException {
-    return IOUtil.toString(this.getClass().getResourceAsStream(filename));
+    return IOUtils.toString(this.getClass().getResourceAsStream(filename), StandardCharsets.UTF_8);
   }
 
   @Test

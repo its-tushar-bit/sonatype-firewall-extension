@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.support;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +21,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +49,7 @@ public class SupportResourceTest
         assertThat(zipEntry.getName()).startsWith("support-")
             .endsWith("/" + SupportFileType.CONFIG.getDirName() + "/filtered-config-test.yml");
 
-        final String served = IOUtil.toString(zipInputStream, "UTF-8").replace("\r\n", "\n");
+        final String served = IOUtils.toString(zipInputStream, StandardCharsets.UTF_8).replace("\r\n", "\n");
         assertThat(served).contains("logging:\n");
       }
     }

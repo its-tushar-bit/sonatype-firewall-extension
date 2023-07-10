@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +70,7 @@ public class ReportDownloader
         // to ensure dir is not created for unknown scanId (or other errors)
         Files.createDirectories(reportFile.getAbsoluteFile().getParentFile().toPath());
         try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(reportFile.toPath()))) {
-          IOUtil.copy(is, os);
+          IOUtils.copy(is, os);
           return true;
         }
       }

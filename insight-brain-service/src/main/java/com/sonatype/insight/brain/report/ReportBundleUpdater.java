@@ -22,7 +22,7 @@ import java.util.zip.ZipOutputStream;
 
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Assists in augmenting the report bundle downloaded from the HDS.
@@ -88,7 +88,7 @@ class ReportBundleUpdater
     ZipEntry zipEntry = new ZipEntry(entryName);
     zipStream.putNextEntry(zipEntry);
     try (InputStream in = new FileInputStream(srcFile)) {
-      IOUtil.copy(in, zipStream);
+      IOUtils.copy(in, zipStream);
     }
     addedEntries.add(entryName);
   }
@@ -134,7 +134,7 @@ class ReportBundleUpdater
             ZipEntry zipEntry = new ZipEntry(entryName);
             zipStream.putNextEntry(zipEntry);
             try (InputStream in = zipFile.getInputStream(entry)) {
-              IOUtil.copy(in, zipStream);
+              IOUtils.copy(in, zipStream);
             }
           }
         }

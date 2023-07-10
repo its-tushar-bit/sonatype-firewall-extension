@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipFile;
+
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -21,7 +22,7 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import com.google.common.io.Resources;
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -257,7 +258,7 @@ public class DatabaseMigratorTest
 
     File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
     assertThat(databaseVersionFile).exists();
-    assertThat(FileUtils.fileRead(databaseVersionFile)).isEqualTo("85");
+    assertThat(FileUtils.readFileToString(databaseVersionFile, StandardCharsets.UTF_8)).isEqualTo("85");
   }
 
   @Test
@@ -321,7 +322,7 @@ public class DatabaseMigratorTest
 
     File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
     assertThat(databaseVersionFile).exists();
-    assertThat(FileUtils.fileRead(databaseVersionFile)).isEqualTo("110");
+    assertThat(FileUtils.readFileToString(databaseVersionFile, StandardCharsets.UTF_8)).isEqualTo("110");
   }
 
   @Test
@@ -385,7 +386,7 @@ public class DatabaseMigratorTest
         filesChecked.add(file.getName());
         // we should be using a unique constraint (which will result in an auto-generated unique index) rather than
         // explicitly creating a unique index ourselves;
-        assertThat(FileUtils.fileRead(file, StandardCharsets.UTF_8.name())).as("error in %s", file.getName())
+        assertThat(FileUtils.readFileToString(file, StandardCharsets.UTF_8)).as("error in %s", file.getName())
             .doesNotContain("CREATE UNIQUE INDEX ");
       }
     }

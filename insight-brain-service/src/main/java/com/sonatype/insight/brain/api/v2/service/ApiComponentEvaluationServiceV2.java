@@ -55,7 +55,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

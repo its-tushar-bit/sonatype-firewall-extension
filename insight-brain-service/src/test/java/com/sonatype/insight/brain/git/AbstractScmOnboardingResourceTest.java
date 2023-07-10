@@ -6,13 +6,14 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
-import org.codehaus.plexus.util.IOUtil;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -40,7 +41,7 @@ public class AbstractScmOnboardingResourceTest
   }
 
   protected String getResourceAsString(String filename) throws IOException {
-    return IOUtil.toString(this.getClass().getResourceAsStream(filename));
+    return IOUtils.toString(this.getClass().getResourceAsStream(filename), StandardCharsets.UTF_8);
   }
 
   protected void mockRepoForPage(WireMockRule gitService, int page, String json) {

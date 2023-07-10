@@ -40,8 +40,8 @@ import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.util.HashUtils;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.PrettyPrintXMLWriter;
 import org.codehaus.plexus.util.xml.pull.MXParser;
@@ -215,7 +215,7 @@ public class ScanFactory
           ext = ext.substring(ext.indexOf('.') + 1);
           file = tmp = Files.createTempFile(config.getWorkDir().toPath(), "sonatype-clm-file-", "." + ext).toFile();
           try (InputStream is = item.newInputStream(); FileOutputStream fos = new FileOutputStream(file)) {
-            IOUtil.copy(is, fos);
+            IOUtils.copy(is, fos);
           }
         }
         FileScanRequest scanRequest = new FileScanRequest(scanSession);

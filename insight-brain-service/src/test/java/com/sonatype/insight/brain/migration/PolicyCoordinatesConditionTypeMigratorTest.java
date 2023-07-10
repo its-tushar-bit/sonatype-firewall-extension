@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import javax.inject.Inject;
@@ -26,7 +27,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -148,8 +149,8 @@ public class PolicyCoordinatesConditionTypeMigratorTest
   }
 
   private String getPolicyContent(String filename) throws IOException {
-    return IOUtil.toString(getClass().getResourceAsStream("/PolicyCoordinatesConditionTypeMigratorTest/" + filename),
-        "UTF-8");
+    return IOUtils.toString(getClass().getResourceAsStream("/PolicyCoordinatesConditionTypeMigratorTest/" + filename),
+        StandardCharsets.UTF_8);
   }
 
   private String createObsoletePolicy(String policyJsonResourceName) throws IOException {

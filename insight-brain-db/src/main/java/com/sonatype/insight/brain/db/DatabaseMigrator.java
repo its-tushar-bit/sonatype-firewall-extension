@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,6 +19,7 @@ import java.util.function.IntConsumer;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -25,8 +27,8 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.H2DatabaseEngine;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -99,7 +101,7 @@ public class DatabaseMigrator
         File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
         databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(databasePath);
         if (databaseVersionFile.exists()) {
-          String sCurrentVersion = FileUtils.fileRead(databaseVersionFile, "UTF-8").trim();
+          String sCurrentVersion = FileUtils.readFileToString(databaseVersionFile, StandardCharsets.UTF_8).trim();
           currentVersion = Integer.parseInt(sCurrentVersion);
         }
         else {
@@ -152,7 +154,7 @@ public class DatabaseMigrator
           DatabaseUtil.updateDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, i);
         }
         else {
-          FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(i));
+          FileUtils.writeStringToFile(databaseVersionFile, String.valueOf(i), StandardCharsets.UTF_8);
         }
       }
 
@@ -211,7 +213,7 @@ public class DatabaseMigrator
   void runPostIncrementalMigrator(String postIncrementalMigratorFileName, DataSource dataSource) {
     try (InputStream is = getClass().getResourceAsStream(postIncrementalMigratorFileName)) {
       if (is != null) {
-        Class<?> c = Class.forName(IOUtil.toString(is, "UTF-8").trim());
+        Class<?> c = Class.forName(IOUtils.toString(is, StandardCharsets.UTF_8).trim());
         PostIncrementalMigrator migrator = c.asSubclass(PostIncrementalMigrator.class).newInstance();
         migrator.migrate(dataSource);
       }

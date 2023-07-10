@@ -60,7 +60,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -847,7 +847,7 @@ public final class Report
     try (final ZipFile archive = new ZipFile(reportFile)) {
       final ZipEntry entry = archive.getEntry(name);
       if (entry != null) {
-        final byte[] buf = IOUtil.toByteArray(archive.getInputStream(entry));
+        final byte[] buf = IOUtils.toByteArray(archive.getInputStream(entry));
         return new ReportEntry(entry.getName(), entry.getTime(), buf);
       }
     }

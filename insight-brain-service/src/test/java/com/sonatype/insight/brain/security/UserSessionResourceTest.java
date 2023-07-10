@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.HttpCookie;
 import java.nio.charset.StandardCharsets;
+
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -19,7 +20,7 @@ import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationSta
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -191,9 +192,9 @@ public class UserSessionResourceTest
 
   private String auth0IdpXml() {
     try {
-      return IOUtil.toString(
+      return IOUtils.toString(
           getClass().getResourceAsStream("/UserSessionResourceTest/identity-provider-metadata.xml"),
-          StandardCharsets.UTF_8.toString());
+          StandardCharsets.UTF_8);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

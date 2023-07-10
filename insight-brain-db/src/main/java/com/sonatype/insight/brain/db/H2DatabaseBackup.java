@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.db;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -16,7 +17,7 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +76,7 @@ public class H2DatabaseBackup
           "To restore the database from this backup, unzip the backup zip file into the desired database location.")
           .append(NEW_LINE);
       instructions.append("The Nexus IQ Server must be stopped before the database is restored.").append(NEW_LINE);
-      FileUtils.fileWrite(restoreInstructionsFile, "UTF-8", instructions.toString());
+      FileUtils.writeStringToFile(restoreInstructionsFile, instructions.toString(), StandardCharsets.UTF_8);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

@@ -53,8 +53,8 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;

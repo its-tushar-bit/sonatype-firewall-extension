@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import java.nio.charset.StandardCharsets;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -22,7 +24,7 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,7 +54,8 @@ public class PolicyJsonMigratorTest
   }
 
   private String getPolicyContent(String filename) throws Exception {
-    return IOUtil.toString(getClass().getResourceAsStream("/PolicyJsonMigratorTest/" + filename), "UTF-8");
+    return IOUtils.toString(getClass().getResourceAsStream("/PolicyJsonMigratorTest/" + filename),
+        StandardCharsets.UTF_8);
   }
 
   @Test

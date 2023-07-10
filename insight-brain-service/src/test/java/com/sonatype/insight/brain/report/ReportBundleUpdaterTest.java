@@ -18,7 +18,7 @@ import java.util.zip.ZipOutputStream;
 
 import com.sonatype.insight.brain.report.ReportBundleUpdater.FilenameMapping;
 
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class ReportBundleUpdaterTest
       for (Enumeration<? extends ZipEntry> en = zip.entries(); en.hasMoreElements();) {
         ZipEntry entry = en.nextElement();
         try (InputStream in = zip.getInputStream(entry)) {
-          contents.put(entry.getName(), IOUtil.toString(in, "UTF-8"));
+          contents.put(entry.getName(), IOUtils.toString(in, StandardCharsets.UTF_8));
         }
       }
     }

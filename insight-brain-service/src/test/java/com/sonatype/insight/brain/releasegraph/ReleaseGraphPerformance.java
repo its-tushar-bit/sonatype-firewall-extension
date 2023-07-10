@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.releasegraph;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,8 +36,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -200,7 +201,7 @@ public class ReleaseGraphPerformance
       sb.append('\n');
     }
     if (file != null) {
-      FileUtils.fileWrite(new File(file), sb.toString());
+      FileUtils.writeStringToFile(new File(file), sb.toString(), StandardCharsets.UTF_8);
     }
     else {
       System.out.println(sb);
@@ -233,7 +234,7 @@ public class ReleaseGraphPerformance
 
   private List<ComponentPopularity> getComponents() throws IOException {
     try (ZipFile zf = new ZipFile(srcFile); InputStream in = zf.getInputStream(zf.getEntry("popularity.json"))) {
-      return JsonUtils.parse(IOUtil.toByteArray(in), ReportPopularity.class).getPopularity();
+      return JsonUtils.parse(IOUtils.toByteArray(in), ReportPopularity.class).getPopularity();
     }
   }
 

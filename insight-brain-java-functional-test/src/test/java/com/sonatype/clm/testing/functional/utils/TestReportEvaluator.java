@@ -17,13 +17,13 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.codehaus.plexus.util.FileUtils;
 
 /**
  * Evaluate policy by using a pregenerated report.zip

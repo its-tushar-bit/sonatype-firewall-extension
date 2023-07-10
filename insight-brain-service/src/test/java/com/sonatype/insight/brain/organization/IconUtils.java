@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.organization;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,7 +17,7 @@ class IconUtils
   private static byte[] loadImage(String resource) throws IOException {
     try (InputStream iconStream = IconUtils.class.getResourceAsStream(resource)) {
       assertThat(iconStream).as("Missing resource: " + resource).isNotNull();
-      return IOUtil.toByteArray(iconStream);
+      return IOUtils.toByteArray(iconStream);
     }
   }
 

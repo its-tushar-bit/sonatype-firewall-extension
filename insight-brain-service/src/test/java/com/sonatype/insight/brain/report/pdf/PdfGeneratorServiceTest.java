@@ -31,8 +31,8 @@ import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.client.utils.DateUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 

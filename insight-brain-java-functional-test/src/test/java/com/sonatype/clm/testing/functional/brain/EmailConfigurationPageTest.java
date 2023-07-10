@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightMail;
 
 import com.codeborne.selenide.SelenideElement;
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -668,7 +668,7 @@ public class EmailConfigurationPageTest
 
     // Assert email subject and body
     assertThat(email.getSubject()).isEqualTo("Test Email Configuration");
-    String emailBody = IOUtil.toString(email.getInputStream(), StandardCharsets.UTF_8.name());
+    String emailBody = IOUtils.toString(email.getInputStream(), StandardCharsets.UTF_8);
     assertThat(emailBody).contains("Success! This is a test mail from");
   }
 

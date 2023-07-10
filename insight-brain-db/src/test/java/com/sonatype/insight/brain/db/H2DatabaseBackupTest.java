@@ -15,8 +15,8 @@ import java.util.zip.ZipFile;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,13 +55,13 @@ public class H2DatabaseBackupTest
 
   private byte[] getZipEntryContent(ZipFile zipFile, ZipEntry zipEntry) throws IOException {
     try (InputStream is = zipFile.getInputStream(zipEntry)) {
-      return IOUtil.toByteArray(is);
+      return IOUtils.toByteArray(is);
     }
   }
 
   private byte[] getFileContent(File file) throws IOException {
     try (InputStream is = Files.newInputStream(file.toPath())) {
-      return IOUtil.toByteArray(is);
+      return IOUtils.toByteArray(is);
     }
   }
 }

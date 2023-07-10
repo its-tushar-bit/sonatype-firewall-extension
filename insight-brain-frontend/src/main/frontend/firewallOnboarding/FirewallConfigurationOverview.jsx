@@ -18,6 +18,9 @@ export default function FirewallConfigurationOverview() {
   const totalEnabledProxyRepositories = useSelector((state) =>
     selectTotalEnabledRepositoriesByTypeAndProp(state, 'proxy', 'quarantineEnabled')
   );
+  const totalEnabledHostedRepositories = useSelector((state) =>
+    selectTotalEnabledRepositoriesByTypeAndProp(state, 'hosted', 'namespaceConfusionProtectionEnabled')
+  );
 
   return (
     <>
@@ -33,7 +36,9 @@ export default function FirewallConfigurationOverview() {
         </NxTile.Header>
         <NxTile.Content>
           Once you launch Firewall, <b>malicious blocking</b> will be enabled for{' '}
-          <b data-testid="proxy-repositories-count">{totalEnabledProxyRepositories}</b> proxy repositories.
+          <b data-testid="proxy-repositories-count">{totalEnabledProxyRepositories}</b> proxy repositories and{' '}
+          <b>namespace confusion protection</b> will be enabled for{' '}
+          <b data-testid="hosted-repositories-count">{totalEnabledHostedRepositories}</b> hosted repositories.
           <div className="logo-container">
             <img src={logo} alt="Inspect and complete logo" />
           </div>

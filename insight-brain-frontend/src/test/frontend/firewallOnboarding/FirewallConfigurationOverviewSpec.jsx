@@ -24,10 +24,13 @@ const firewallOnboardingPreloadedState = {
       list: [
         { id: '1', repositoryType: 'proxy', format: 'npm', quarantineEnabled: true },
         { id: '2', repositoryType: 'proxy', format: 'npm', quarantineEnabled: true },
-        { id: '3', repositoryType: 'type2', format: 'npm', quarantineEnabled: true },
-        { id: '4', repositoryType: 'type2', format: 'npm', quarantineEnabled: true },
-        { id: '5', repositoryType: 'type2', format: 'npm', quarantineEnabled: false },
-        { id: '6', repositoryType: 'type2', format: 'unsupportedFormat', quarantineEnabled: true },
+        { id: '3', repositoryType: 'hosted', format: 'npm', namespaceConfusionProtectionEnabled: true },
+        { id: '4', repositoryType: 'hosted', format: 'npm', namespaceConfusionProtectionEnabled: true },
+        { id: '5', repositoryType: 'hosted', format: 'npm', namespaceConfusionProtectionEnabled: true },
+        { id: '6', repositoryType: 'other', format: 'npm', quarantineEnabled: true },
+        { id: '7', repositoryType: 'other', format: 'npm', quarantineEnabled: true },
+        { id: '8', repositoryType: 'other', format: 'npm', quarantineEnabled: false },
+        { id: '9', repositoryType: 'other', format: 'unsupportedFormat', quarantineEnabled: true },
       ],
     },
     unconfiguredRepoManagers: {
@@ -56,5 +59,13 @@ describe('FirewallConfigurationOverview', function () {
 
     expect(counter).toBeVisible();
     expect(counter).toHaveTextContent('2');
+  });
+
+  it('renders the namespace confusion protected repositories count', () => {
+    renderComponent();
+    const counter = screen.getByTestId('hosted-repositories-count');
+
+    expect(counter).toBeVisible();
+    expect(counter).toHaveTextContent('3');
   });
 });

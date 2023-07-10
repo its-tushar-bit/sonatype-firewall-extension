@@ -805,7 +805,10 @@ public class FirewallOnboardingPageTest
       page.shouldHave(text("Inspect and complete onboarding"));
       page.shouldHave(text("Congratulations, you’re all set!"));
       page.shouldHave(
-          text("Once you launch Firewall, malicious blocking will be enabled for 8 proxy repositories.")
+          text(
+              "Once you launch Firewall, malicious blocking will be enabled for 8 proxy repositories"
+              + " and namespace confusion protection will be enabled for 8 hosted repositories."
+          )
       );
 
       eyesWatcher.eyesCheck("Firewall onboarding: inspect and complete onboarding step");
@@ -814,18 +817,26 @@ public class FirewallOnboardingPageTest
       page.previousButton().click();
       firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
       page.continueButton().click();
+      firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
       page.continueButton().click();
       page.shouldHave(
-          text("Once you launch Firewall, malicious blocking will be enabled for 10 proxy repositories.")
+          text(
+              "Once you launch Firewall, malicious blocking will be enabled for 10 proxy repositories"
+              + " and namespace confusion protection will be enabled for 10 hosted repositories."
+          )
       );
 
       page.previousButton().click();
       page.previousButton().click();
       firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
       page.continueButton().click();
+      firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
       page.continueButton().click();
       page.shouldHave(
-          text("Once you launch Firewall, malicious blocking will be enabled for 5 proxy repositories.")
+          text(
+              "Once you launch Firewall, malicious blocking will be enabled for 5 proxy repositories"
+              + " and namespace confusion protection will be enabled for 5 hosted repositories."
+          )
       );
     }
     finally {
@@ -890,7 +901,10 @@ public class FirewallOnboardingPageTest
       page.continueButton().click();
       page.shouldHave(text("Inspect and complete onboarding"));
       page.shouldHave(
-          text("Once you launch Firewall, malicious blocking will be enabled for 6 proxy repositories.")
+          text(
+              "Once you launch Firewall, malicious blocking will be enabled for 6 proxy repositories"
+              + " and namespace confusion protection will be enabled for 6 hosted repositories."
+          )
       );
     }
     finally {

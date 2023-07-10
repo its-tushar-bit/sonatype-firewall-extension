@@ -7,7 +7,6 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   NxCheckbox,
-  NxDivider,
   NxFontAwesomeIcon,
   NxH1,
   NxH2,

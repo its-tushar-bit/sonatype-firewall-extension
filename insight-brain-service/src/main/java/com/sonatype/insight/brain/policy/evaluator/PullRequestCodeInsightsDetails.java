@@ -259,6 +259,10 @@ public class PullRequestCodeInsightsDetails
       LocationDiscoveryResult locationDiscoveryResult,
       PolicyViolation policyViolation)
   {
+    if (locationDiscoveryResult == null) {
+      return null;
+    }
+
     if (locationDiscoveryResult.getLocationMap().containsKey(policyViolation.getComponentIdentifier())) {
       List<RankedSourceLocation> rankedSourceLocations =
           locationDiscoveryResult.getLocationMap().get(policyViolation.getComponentIdentifier());

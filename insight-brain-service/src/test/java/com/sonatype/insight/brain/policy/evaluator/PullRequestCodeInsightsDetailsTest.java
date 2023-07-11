@@ -210,6 +210,33 @@ public class PullRequestCodeInsightsDetailsTest
   }
 
   @Test
+  public void testPullRequestCodeInsights_addedOnly_SourceLocationUnknown() throws Exception {
+    setupTestData();
+    createTestData_Policies(false);
+
+    PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
+        bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
+        lookup(DefaultBaseUrl.class).getConfigured(), null);
+
+    assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
+    List<CodeInsightAnnotation> annotations = details.getAnnotations();
+    assertThat(annotations).hasSize(39);
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
+        "10 - Unlikely Test Policy - org.springframework.security : spring-security-web : 4.2.3.RELEASE",
+        "Nonsensical Constraint: Found licenses in the 'Liberal' license threat group ('Apache-2.0')",
+        0);
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.HIGH,
+        "10 - Unlikely Test Policy - com.h2database : h2 : 1.4.190",
+        "Nonsensical Constraint: Found security vulnerability: CVE-2018-14335",
+        null, null,
+        22);
+    assertAnnotation(annotations, BitbucketCodeInsightSeverity.LOW,
+        "2 - Component-Unknown - webgoat-server-8.0.0.M1.jar",
+        "Unknown 3rd party component: Match state was 'Unknown', Component does not contain proprietary packages",
+        34);
+  }
+
+  @Test
   public void testPullRequestCodeInsights_clearedOnly() throws Exception {
     //setup test data (reversed)
     setupTestData("/PullRequestCodeInsightsDetailsTest/to-report", "/PullRequestCodeInsightsDetailsTest/from-report");

@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -83,7 +85,12 @@ public class PullRequestCommentingServiceTest
         .withMeaninglessPolicyViolationDiff()
         .build();
 
+    GitRepositoryInfo repositoryInfo =
+        new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB, null, null, null, null, null, null,
+            null);
+
     PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO()
+        .setGitRepositoryInfo(repositoryInfo)
         .setApplicationId("app1")
         .setPullRequestNumber(123);
 
@@ -99,6 +106,36 @@ public class PullRequestCommentingServiceTest
         info("No added or cleared violations in policy evaluation diff, and no previous PR comments for application" +
             " 'app1' pull request '123'.")
     );
+  }
+
+  @Test
+  public void testDoCreateOrUpdatePullRequestComment_noClearedOrAppearedViolations_Bitbucket() {
+    // given: policy violation diff with no cleared or appeared violations
+    PullRequestCommentingService pullRequestCommentingService = new TestablePullRequestCommentingService()
+        .withMeaninglessPolicyViolationDiff()
+        .build();
+
+    GitRepositoryInfo repositoryInfo =
+        new GitRepositoryInfo(null, null, null, null, SourceControlProvider.BITBUCKET, null, null, null, null, null,
+            null, null);
+
+    PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO()
+        .setGitRepositoryInfo(repositoryInfo)
+        .setApplicationId("app1")
+        .setPullRequestNumber(123);
+
+    // when:
+    pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO);
+
+    // then: expecting PR comments to be made specific to Bitbucket
+    verify(mockPullRequestCommentCreator, times(1))
+        .createPullRequestComment(eq(pullRequestPolicyEvaluationsDTO), any(), any(), any());
+    verify(mockPullRequestCommentCreator, never()).updatePullRequestComment(any(), any(), any(), any(), any());
+    verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
+        eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
+
+    assertNoErrorsInLogs();
+    assertNoWarningsInLogs();
   }
 
   @Test

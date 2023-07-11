@@ -26,6 +26,7 @@ import com.sonatype.nexus.scm.bitbucket.BitbucketApiClient;
 import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightReportType;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,9 +115,18 @@ public class BitbucketCodeInsightsService
           CODE_INSIGHT_REPORT_KEY,
           details.getReportData());
 
-      bitbucketApiClient
-          .createCodeInsightAnnotations(sourceCommitPolicyEvaluation.getCommitHash(), CODE_INSIGHT_REPORT_KEY,
-              details.getAnnotations());
+      try {
+        bitbucketApiClient
+            .createCodeInsightAnnotations(sourceCommitPolicyEvaluation.getCommitHash(), CODE_INSIGHT_REPORT_KEY,
+                details.getAnnotations());
+      }
+      catch (HttpResponseException e) {
+        // Known issue by Bitbucket and it is harmless
+        if (e.getMessage() == null ||
+            !e.getMessage().contains("The field 'annotations' must be present and have at least 1 annotation")) {
+          throw e;
+        }
+      }
     }
     catch (IOException e) {
       log.error("Error creating Bitbucket Code Insight", e);

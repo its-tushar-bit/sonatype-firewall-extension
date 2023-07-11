@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +83,8 @@ public class PullRequestCommentingService
             .generateHash();
 
         if (existingPullRequestComment == null) { // new PR comment
-          if (policyViolationDiff.get().hasAppeared() || policyViolationDiff.get().hasCleared()) {
+          if (policyViolationDiff.get().hasAppeared() || policyViolationDiff.get().hasCleared() ||
+              SourceControlProvider.BITBUCKET == dto.getGitRepositoryInfo().getProvider()) {
             pullRequestCommentCreator
                 .createPullRequestComment(dto, policyViolationDiff.get(), remediationVersionMap, contentHash);
           }

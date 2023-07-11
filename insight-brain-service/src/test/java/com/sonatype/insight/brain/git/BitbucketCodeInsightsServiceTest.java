@@ -30,15 +30,19 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.bitbucket.BitbucketApiClient;
 import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightReportOutcome;
 import com.sonatype.nexus.scm.bitbucket.BitbucketLinkDataParameter;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_LOGO_URL;
@@ -50,6 +54,7 @@ import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -105,6 +110,9 @@ public class BitbucketCodeInsightsServiceTest
   private LocationDiscoveryResult locationDiscoveryResult;
 
   private SourceControlComponentDetails componentDetails;
+
+  @Rule
+  public LogOutput logOutput = new LogOutput(BitbucketCodeInsightsService.class);
 
   @Before
   public void before() throws URISyntaxException, IOException {
@@ -188,6 +196,39 @@ public class BitbucketCodeInsightsServiceTest
         eq(CODE_INSIGHT_REPORTER), eq(reportUri), eq(CODE_INSIGHT_LOGO_URL), eq(CODE_INSIGHT_REPORT_KEY), eq(dataMap));
     verify(bitbucketApiClient)
         .createCodeInsightAnnotations(eq(featureBranchPolicyEvaluation.getCommitHash()), anyString(), anyList());
+  }
+
+  @Test
+  public void testCodeInsightFlow_ExceptionThrown() throws IOException {
+    HttpResponseException httpResponseException = new HttpResponseException(400, "Something went wrong..");
+
+    Mockito.doThrow(httpResponseException)
+        .when(bitbucketApiClient)
+        .createCodeInsightAnnotations(eq(featureBranchPolicyEvaluation.getCommitHash()), anyString(), anyList());
+
+    createTestData_Policies();
+
+    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
+        featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
+
+    assertThat(logOutput).atErrorLevel().containsPattern("Error creating Bitbucket Code Insight");
+  }
+
+  @Test
+  public void testCodeInsightFlow_ExceptionHandled() throws IOException {
+    HttpResponseException httpResponseException =
+        new HttpResponseException(400, "The field 'annotations' must be present and have at least 1 annotation");
+
+    Mockito.doThrow(httpResponseException)
+        .when(bitbucketApiClient)
+        .createCodeInsightAnnotations(eq(featureBranchPolicyEvaluation.getCommitHash()), anyString(), anyList());
+
+    createTestData_Policies();
+
+    service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
+        featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
+
+    assertThat(logOutput).atErrorLevel().doesNotContainPattern("Error creating Bitbucket Code Insight");
   }
 
   @Test

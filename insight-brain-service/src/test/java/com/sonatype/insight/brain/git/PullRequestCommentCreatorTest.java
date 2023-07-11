@@ -123,6 +123,8 @@ public class PullRequestCommentCreatorTest
         .withPostCommentAction(mockPostCommentAction)
         .build();
 
+    testCase.policyViolationDiff.addAppeared(new PolicyViolation());
+
     // when: try to create a comment
     pullRequestCommentCreator
         .createPullRequestComment(testCase.pullRequestPolicyEvaluationsDTO, testCase.policyViolationDiff,
@@ -135,6 +137,76 @@ public class PullRequestCommentCreatorTest
     verify(mockCommentingMetricsService).sendTelemetry(telemetryCaptor.capture());
     assertThat(telemetryCaptor.getValue().lineCommentCount).isEqualTo(5);
     verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
+  }
+
+  @Test
+  public void testCreatePullRequestComment_withMarkup_NoPolicyDiff_Bitbucket() throws IOException {
+    final String featureBranchHeadCommit = "feature-1-commit-1";
+    TestCase testCase = new TestCase()
+        .forApplication("app1")
+        .withPullRequest(1, featureBranchHeadCommit)
+        .withDefaultBranchPolicyEvaluation("default-eval-1", "default-commit-1")
+        .withFeatureBranchPolicyEvaluation("feature-eval-1", featureBranchHeadCommit)
+        .withContentHash("contentHash");
+
+    PullRequestPostCommentAction mockPostCommentAction = mock(PullRequestPostCommentAction.class);
+
+    PullRequestCommentCreator pullRequestCommentCreator = new TestablePullRequestCommentCreatorBuilder()
+        .withLineComments(5)
+        .withMarkup("simulated-markup")
+        .withPostCommentAction(mockPostCommentAction)
+        .build();
+
+    GitRepositoryInfo repositoryInfo = new GitRepositoryInfo();
+    repositoryInfo.provider = SourceControlProvider.BITBUCKET;
+
+    testCase.pullRequestPolicyEvaluationsDTO.setGitRepositoryInfo(repositoryInfo);
+
+    pullRequestCommentCreator
+        .createPullRequestComment(testCase.pullRequestPolicyEvaluationsDTO, testCase.policyViolationDiff,
+            testCase.remediationVersionMap, testCase.contentHash);
+
+    // For bitbucket, we do not want the PR commenting, but we want the mockPostCommentAction which posts code insights
+    verify(mockCommentingClient, never()).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
+    ArgumentCaptor<PullRequestCommentTelemetry> telemetryCaptor =
+        ArgumentCaptor.forClass(PullRequestCommentTelemetry.class);
+    verify(mockCommentingMetricsService).sendTelemetry(telemetryCaptor.capture());
+    assertThat(telemetryCaptor.getValue().lineCommentCount).isEqualTo(5);
+    verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
+  }
+
+  @Test
+  public void testCreatePullRequestComment_withMarkup_NoPolicyDiff_Github() throws IOException {
+    final String featureBranchHeadCommit = "feature-1-commit-1";
+    TestCase testCase = new TestCase()
+        .forApplication("app1")
+        .withPullRequest(1, featureBranchHeadCommit)
+        .withDefaultBranchPolicyEvaluation("default-eval-1", "default-commit-1")
+        .withFeatureBranchPolicyEvaluation("feature-eval-1", featureBranchHeadCommit)
+        .withContentHash("contentHash");
+
+    PullRequestPostCommentAction mockPostCommentAction = mock(PullRequestPostCommentAction.class);
+
+    PullRequestCommentCreator pullRequestCommentCreator = new TestablePullRequestCommentCreatorBuilder()
+        .withLineComments(5)
+        .withMarkup("simulated-markup")
+        .withPostCommentAction(mockPostCommentAction)
+        .build();
+
+    GitRepositoryInfo repositoryInfo = new GitRepositoryInfo();
+    repositoryInfo.provider = SourceControlProvider.GITHUB;
+
+    testCase.pullRequestPolicyEvaluationsDTO.setGitRepositoryInfo(repositoryInfo);
+
+    pullRequestCommentCreator
+        .createPullRequestComment(testCase.pullRequestPolicyEvaluationsDTO, testCase.policyViolationDiff,
+            testCase.remediationVersionMap, testCase.contentHash);
+
+    // For any SCM provider except bitbucket, we do not want to invoke PR commenting or post actions if
+    // diff is empty
+    verify(mockCommentingClient, never()).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
+    verify(mockCommentingMetricsService, never()).sendTelemetry(any());
+    verify(mockPostCommentAction, never()).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
   }
 
   @Test

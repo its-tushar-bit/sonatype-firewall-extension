@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 
 import org.slf4j.Logger;
@@ -144,22 +145,29 @@ public class PullRequestCommentCreator
           featureBranchPolicyEvaluation, targetPolicyEvaluation, sourceControlComponentDetails, telemetry);
 
       if (policyEvaluationDiffMarkup.isPresent()) {
-        Optional<CommentResponse> response = pullRequestCommentingClient.createOrUpdateCommentInGitSCM(
-            prPolicyEvaluationsDTO.getApplicationId(),
-            prPolicyEvaluationsDTO.getGitRepositoryInfo(),
-            prPolicyEvaluationsDTO.getPullRequestNumber(),
-            policyEvaluationDiffMarkup.get(),
-            existingPullRequestComment,
-            telemetry);
+        Optional<CommentResponse> response = Optional.empty();
+        if (existingPullRequestComment != null || policyViolationDiff.hasAppeared() ||
+            policyViolationDiff.hasCleared()) {
+          response = pullRequestCommentingClient.createOrUpdateCommentInGitSCM(
+              prPolicyEvaluationsDTO.getApplicationId(),
+              prPolicyEvaluationsDTO.getGitRepositoryInfo(),
+              prPolicyEvaluationsDTO.getPullRequestNumber(),
+              policyEvaluationDiffMarkup.get(),
+              existingPullRequestComment,
+              telemetry);
+        }
 
-        if (response.isPresent()) {
-          CommentResponse commentResponse = response.get();
-          recordCommentInDatabase(
-              prPolicyEvaluationsDTO,
-              commentResponse.getId(),
-              commentResponse.getVersion(),
-              contentHash,
-              existingPullRequestComment);
+        if (response.isPresent() ||
+            SourceControlProvider.BITBUCKET == prPolicyEvaluationsDTO.getGitRepositoryInfo().getProvider()) {
+          if (response.isPresent()) {
+            CommentResponse commentResponse = response.get();
+            recordCommentInDatabase(
+                prPolicyEvaluationsDTO,
+                commentResponse.getId(),
+                commentResponse.getVersion(),
+                contentHash,
+                existingPullRequestComment);
+          }
 
           invokePostCommentActions(
               prPolicyEvaluationsDTO.getGitRepositoryInfo(),

@@ -23,12 +23,11 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -58,12 +57,9 @@ public class UserResource
 
   private final UserService userService;
 
-  private final TenantUtil tenantUtil;
-
   @Inject
-  public UserResource(UserService userService, TenantUtil tenantUtil) {
+  public UserResource(UserService userService) {
     this.userService = userService;
-    this.tenantUtil = tenantUtil;
   }
 
   /**
@@ -98,8 +94,8 @@ public class UserResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @BlockIfMultiTenant
   public List<User> getAll() {
-    verifyIsNotMultiTenant();
     return userService.getAll();
   }
 
@@ -107,8 +103,8 @@ public class UserResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_USER)
+  @BlockIfMultiTenant
   public User addUser(User user) {
-    verifyIsNotMultiTenant();
     return userService.addUser(user);
   }
 
@@ -116,16 +112,16 @@ public class UserResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_USER)
+  @BlockIfMultiTenant
   public User updateUser(User user) {
-    verifyIsNotMultiTenant();
     return userService.updateUser(user);
   }
 
   @DELETE
   @Path("{userId}")
   @Audited(AuditEvent.DELETE_USER)
+  @BlockIfMultiTenant
   public void deleteUser(@PathParam("userId") String userId) {
-    verifyIsNotMultiTenant();
     userService.deleteUser(userId);
   }
 
@@ -133,8 +129,8 @@ public class UserResource
   @Path(MY_PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_USER_PASSWORD)
+  @BlockIfMultiTenant
   public void changeMyPassword(ChangePasswordDTO password) {
-    verifyIsNotMultiTenant();
     userService.changeMyPassword(password);
   }
 
@@ -142,22 +138,16 @@ public class UserResource
   @Path(RESET_PASSWORD_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.RESET_USER_PASSWORD)
+  @BlockIfMultiTenant
   public ChangePasswordDTO resetPassword(@PathParam("userId") String userId) {
-    verifyIsNotMultiTenant();
     return userService.resetPassword(userId);
   }
 
   @GET
   @Path(SHOULD_DISPLAY_DEFAULT_PASSWORD_WARNING)
   @Produces(MediaType.TEXT_PLAIN)
+  @BlockIfMultiTenant
   public boolean shouldDisplayDefaultPasswordWarning() {
-    verifyIsNotMultiTenant();
     return userService.shouldDisplayDefaultPasswordWarning();
-  }
-
-  private void verifyIsNotMultiTenant() {
-    if (tenantUtil.isMultiTenant()) {
-      throw new NotFoundException("Resource not found");
-    }
   }
 }

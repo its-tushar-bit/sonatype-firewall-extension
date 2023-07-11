@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.banning.BannedImplementationService;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
+import com.sonatype.insight.brain.service.banning.rest.BlockEndpointsContainerRequestFilter;
 import com.sonatype.insight.brain.telemetry.MultiTenantTelemetryCollectorsProvider;
 import com.sonatype.insight.brain.telemetry.TelemetryCollectorsProvider;
 import com.sonatype.insight.brain.tenancy.AdminTasksTenantFilter;
@@ -208,6 +209,9 @@ public class MultiTenantInsightBrainService
   @Override
   protected void customize(InsightConfig configuration, Environment environment) {
     super.customize(configuration, environment);
+
+    // Adding filter to look for banned endpoints
+    environment.jersey().register(BlockEndpointsContainerRequestFilter.class);
 
     // Ensuring we have the same jersey configuration we have for the application context
     adminResourceBundle.jersey().register(new InsightJacksonMessageBodyProvider(environment.getObjectMapper()));

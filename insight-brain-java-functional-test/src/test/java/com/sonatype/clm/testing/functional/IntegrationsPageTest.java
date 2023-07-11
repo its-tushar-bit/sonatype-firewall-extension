@@ -153,6 +153,13 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     applicationName(0).shouldHave(text("appName5"));
     totalRisk(0).shouldHave(text("5"));
     appsWithoutCiIntegrationsTableDataRows().shouldHaveSize(1);
+
+    //Clicking back button
+    backButton().shouldHave(text("Back to Overview")).click();
+    appsWithoutCiIntegrationsTable().shouldNotBe(visible);
+
+    waitUntilUrl(IntegrationsPage.urlOverview());
+    overviewSection().shouldBe(visible);
   }
 
   @Test
@@ -247,6 +254,10 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement ciUsageAppTable() {
     return $(String.format("[data-testid='%s'", CI_USAGE_APP_TABLE_TEST_ID));
+  }
+
+  private SelenideElement backButton() {
+    return $("#menu-bar__back-button-container");
   }
 
   private void givenAppWithEvalFromCi(

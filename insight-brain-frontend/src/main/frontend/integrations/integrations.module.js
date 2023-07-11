@@ -31,7 +31,7 @@ const integrationsModule = angular
   .component('scm', iqReact2Angular(Scm, [], ['$ngRedux']))
   .component('issueTracking', iqReact2Angular(IssueTracking, [], ['$ngRedux']))
   .component('ide', iqReact2Angular(Ide, [], ['$ngRedux']))
-  .component('appsWithoutCiIntegrations', iqReact2Angular(AppsWithoutCiIntegrations, [], ['$ngRedux']))
+  .component('appsWithoutCiIntegrations', iqReact2Angular(AppsWithoutCiIntegrations, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -47,6 +47,9 @@ function routes($stateProvider) {
     .state(`integrations.${SECTIONS.OVERVIEW}`, {
       url: '/overview',
       component: 'overview',
+      data: {
+        title: 'Overview',
+      },
     })
     .state(`integrations.${SECTIONS.CICD}`, {
       url: '/ci-cd',

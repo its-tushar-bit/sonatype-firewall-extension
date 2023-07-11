@@ -1263,4 +1263,14 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getAddWaiverUiLink('#/addWaiver/someViolationId', 'new comment')).toEqual(expectedUrl);
     });
   });
+
+  describe('getRepositoryManagerUrl', () => {
+    it('returns the url for the repository manager with the given id and name', () => {
+      const expectedUrl = '/rest/repositories/repositoryManager/someRepositoryManagerId/someRepositoryManagerName';
+
+      expect(clmLocation.getRepositoryManagerUrl('someRepositoryManagerId', 'someRepositoryManagerName')).toEqual(
+        expectedUrl
+      );
+    });
+  });
 });

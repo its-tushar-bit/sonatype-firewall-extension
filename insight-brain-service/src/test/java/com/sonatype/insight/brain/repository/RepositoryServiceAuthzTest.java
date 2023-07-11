@@ -420,7 +420,7 @@ public class RepositoryServiceAuthzTest
     ProprietaryComponentNamePatternDTO request = new ProprietaryComponentNamePatternDTO(
         proprietaryComponentNamePattern.getId(), proprietaryComponentNamePattern.getFormat(),
         proprietaryComponentNamePattern.getNamespacePattern(), proprietaryComponentNamePattern.getNamePattern(),
-        repoManager.getInstanceId(), repo.getPublicId(), false /* enabled */);
+        repoManager.getInstanceId(), repoManager.getName(), repo.getPublicId(), false /* enabled */);
     repositoryService.updateProprietaryComponentNamePattern(request);
   }
 

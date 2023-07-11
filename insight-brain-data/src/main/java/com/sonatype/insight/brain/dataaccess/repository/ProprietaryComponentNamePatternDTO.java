@@ -19,6 +19,7 @@ public class ProprietaryComponentNamePatternDTO
       String namespacePattern,
       String namePattern,
       String repositoryManagerInstanceId,
+      String repositoryManagerName,
       String repositoryPublicId,
       boolean enabled)
   {
@@ -27,6 +28,7 @@ public class ProprietaryComponentNamePatternDTO
     this.namespacePattern = namespacePattern;
     this.namePattern = namePattern;
     this.repositoryManagerInstanceId = repositoryManagerInstanceId;
+    this.repositoryManagerName = repositoryManagerName;
     this.repositoryPublicId = repositoryPublicId;
     this.enabled = enabled;
   }
@@ -40,6 +42,8 @@ public class ProprietaryComponentNamePatternDTO
   public String namePattern;
 
   public String repositoryManagerInstanceId;
+
+  public String repositoryManagerName;
 
   public String repositoryPublicId;
 

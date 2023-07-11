@@ -203,7 +203,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           pageSize: 6,
           searchFilters: [],
           sortFields: [
-            { sortableField: 'REPOSITORY_MANAGER_INSTANCE_ID', asc: true, sortPriority: 1 },
+            { sortableField: 'REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME', asc: true, sortPriority: 1 },
             { sortableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME', asc: false, sortPriority: 2 },
           ],
         })
@@ -223,7 +223,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           searchFilters: [],
           sortFields: [
             { sortableField: 'REPOSITORY_PUBLIC_ID', asc: true, sortPriority: 1 },
-            { sortableField: 'REPOSITORY_MANAGER_INSTANCE_ID', asc: true, sortPriority: 2 },
+            { sortableField: 'REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME', asc: true, sortPriority: 2 },
             { sortableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME', asc: false, sortPriority: 3 },
           ],
         })
@@ -244,7 +244,7 @@ describe('NamespaceConfusionProtectionTile', () => {
           sortFields: [
             { sortableField: 'ENABLED', asc: true, sortPriority: 1 },
             { sortableField: 'REPOSITORY_PUBLIC_ID', asc: true, sortPriority: 2 },
-            { sortableField: 'REPOSITORY_MANAGER_INSTANCE_ID', asc: true, sortPriority: 3 },
+            { sortableField: 'REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME', asc: true, sortPriority: 3 },
             { sortableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME', asc: false, sortPriority: 4 },
           ],
         })

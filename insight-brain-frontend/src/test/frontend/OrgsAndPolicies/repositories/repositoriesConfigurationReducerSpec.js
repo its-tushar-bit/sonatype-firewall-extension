@@ -5,7 +5,7 @@
  */
 import reducer from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
 
-describe('repositoriesConfigurationSlice', () => {
+describe('repositoriesConfigurationSliceReducer', () => {
   describe('unknown action', () => {
     it('returns original state', () => {
       const state = Object.freeze({ foo: 'bar' });
@@ -396,6 +396,106 @@ describe('repositoriesConfigurationSlice', () => {
       });
 
       expect(showDeleteModal).toBe(true);
+    });
+  });
+
+  describe('repositories/setShowEditRepositoryManagerNameModal action', () => {
+    it('sets the edit repository manager name modal to be visible or not', () => {
+      const state = Object.freeze({});
+
+      const newState = reducer(state, {
+        type: 'repositories/setShowEditRepositoryManagerNameModal',
+        payload: true,
+      });
+
+      expect(newState).toEqual({
+        showEditRepositoryManagerNameModal: true,
+      });
+    });
+  });
+
+  describe('repositories/setRepositoryManagerName action', () => {
+    it('sets the repository manager name', () => {
+      const state = Object.freeze({});
+
+      const newState = reducer(state, {
+        type: 'repositories/setRepositoryManagerName',
+        payload: 'someRepositoryManagerName',
+      });
+
+      expect(newState).toEqual({
+        editRepositoryManagerNameModalInfo: {
+          managerName: 'someRepositoryManagerName',
+        },
+      });
+    });
+  });
+
+  describe('repositories/openEditRepositoryManagerNameModal action', () => {
+    it('sets the edit repository manager name modal to be visible and sets its information', () => {
+      const state = Object.freeze({});
+
+      const newState = reducer(state, {
+        type: 'repositories/openEditRepositoryManagerNameModal',
+        payload: { managerInstanceId: 'someManagerInstanceId', managerName: 'someManagerName' },
+      });
+
+      expect(newState).toEqual({
+        showEditRepositoryManagerNameModal: true,
+        editRepositoryManagerNameModalInfo: {
+          managerInstanceId: 'someManagerInstanceId',
+          managerName: 'someManagerName',
+        },
+        editRepositoryManagerNameError: null,
+      });
+    });
+  });
+
+  describe('repositories/editRepositoryManagerName/pending action', () => {
+    it('sets the state appropriately', () => {
+      const state = Object.freeze({});
+
+      const newState = reducer(state, {
+        type: 'repositories/editRepositoryManagerName/pending',
+      });
+
+      expect(newState).toEqual({
+        loading: true,
+        submitMaskState: false,
+        editRepositoryManagerNameError: null,
+      });
+    });
+  });
+
+  describe('repositories/editRepositoryManagerName/fulfilled action', () => {
+    it('sets the state appropriately', () => {
+      const state = Object.freeze({});
+
+      const newState = reducer(state, {
+        type: 'repositories/editRepositoryManagerName/fulfilled',
+      });
+
+      expect(newState).toEqual({
+        loading: false,
+        submitMaskState: true,
+      });
+    });
+  });
+
+  describe('repositories/editRepositoryManagerName/rejected action', () => {
+    it('sets the state appropriately', () => {
+      const state = Object.freeze({});
+
+      const newState = reducer(state, {
+        type: 'repositories/editRepositoryManagerName/rejected',
+        payload: 'someError',
+      });
+
+      expect(newState).toEqual({
+        loading: false,
+        submitMaskState: null,
+        editRepositoryManagerNameError: 'someError',
+      });
     });
   });
 });

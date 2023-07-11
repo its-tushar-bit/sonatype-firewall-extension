@@ -43,12 +43,12 @@ public class RepositoryResultsSummaryPage
     return new AccessTile("#repository-column-header .nx-cell__sort-btn");
   }
 
-  public static AccessTile repositoriesTableRepositoryManagerHeaderSortBtn() {
-    return new AccessTile("#repository-manager-column-header .nx-cell__sort-btn");
+  public static AccessTile repositoriesTableRepositoryFormatHeaderSortBtn() {
+    return new AccessTile("#repository-format-column-header .nx-cell__sort-btn");
   }
 
-  public static AccessTile repositoriesTableStatusHeaderSortBtn() {
-    return new AccessTile("#status-column-header .nx-cell__sort-btn");
+  public static AccessTile repositoriesTableRepositoryTypeHeaderSortBtn() {
+    return new AccessTile("#repository-type-column-header .nx-cell__sort-btn");
   }
 
   public static ElementsCollection getAllLoadingSpinners() {

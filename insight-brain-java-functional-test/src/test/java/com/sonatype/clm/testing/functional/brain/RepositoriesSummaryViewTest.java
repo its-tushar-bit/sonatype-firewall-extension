@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxModal;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
@@ -65,8 +66,10 @@ import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -136,21 +139,23 @@ public class RepositoriesSummaryViewTest
 
     configurationTile = RepositoriesSummaryPage.configTile();
     configurationTable = configurationTile.configurationTable();
-    configurationTable.rows().shouldHaveSize(3); // 2 repository rows and header
+    // 1 header row, 1 row for header filters, 2 repository managers, 2 repository rows
+    configurationTable.rows().shouldHaveSize(6);
     configurationTile.emptyDescriptor().shouldBe(hidden);
 
     for (int i = 0; i < repositories.size(); i++) {
-      ConfigurationTableRow configurationRow = configurationTable.row(i + 1);
       Repository repository = repositories.get(i);
 
-      configurationRow.publicId().shouldHave(text(repository.getPublicId()));
-      configurationRow.managerId()
+      configurationTable.row(i + 1, 1).managerId()
           .shouldHave(text(repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId()));
-      configurationRow.status().shouldHave(text(repository.isAuditEnabled() ? "Enabled" : "Disabled"));
+      configurationTable.row(i + 1, 2).publicId().shouldHave(text(repository.getPublicId()));
+      if (repository.isAuditEnabled()) {
+        configurationTable.row(i + 1, 2).enablement().shouldHave(text("Audit"));
+      }
     }
 
     Repository firstRepo = repositories.get(0);
-    configurationTable.row(1).publicId().click();
+    configurationTable.row(1, 2).publicId().click();
 
     try {
       Selenide.switchTo().window(1);
@@ -161,8 +166,8 @@ public class RepositoriesSummaryViewTest
       Selenide.switchTo().window(0);
     }
 
-    testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(2), repositories.get(1));
-    testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(1), repositories.get(0));
+    testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(2, 2), repositories.get(1));
+    testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(1, 2), repositories.get(0));
   }
 
   private void testRepositorySummaryView_configurationTile_deleteRepository(
@@ -190,6 +195,99 @@ public class RepositoriesSummaryViewTest
     deleteModal.shouldBe(hidden);
 
     assertThat(repositoryDAO.getById(repositoryToDelete.getId())).isNull();
+  }
+
+  @Test
+  public void testRepositorySummaryView_configurationTile_editRepositoryManagerName() {
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager("instanceId1");
+    tempEntity.newRepository(repositoryManager1, "r1");
+    tempEntity.newRepository(repositoryManager1, "r2");
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager("instanceId2");
+    tempEntity.newRepository(repositoryManager2, "r3");
+
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1000));
+    refresh();
+
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+
+    configurationTable.row(1, 1).managerId().shouldHave(text(repositoryManager1.getInstanceId()));
+    configurationTable.row(2, 1).managerId().shouldHave(text(repositoryManager2.getInstanceId()));
+
+    configurationTable.row(1, 1).editRepositoryManagerNameButton().click();
+
+    NxModal editRepositoryManagerNameModal = new NxModal("#edit-repository-manager-name-modal");
+    editRepositoryManagerNameModal.getElement().$(".nx-text-input__input").shouldHave(value(""));
+    editRepositoryManagerNameModal.getElement().$(".nx-text-input__input").setValue("customName");
+    editRepositoryManagerNameModal.submitButton().click();
+
+    configurationTable.row(1, 1).managerId().shouldHave(text("customName"));
+    configurationTable.row(2, 1).managerId().shouldHave(text(repositoryManager2.getInstanceId()));
+
+    configurationTable.row(1, 1).editRepositoryManagerNameButton().click();
+    editRepositoryManagerNameModal.getElement().$(".nx-text-input__input").shouldHave(value("customName"));
+    eyesWatcher.eyesCheck("Edit repository manager name modal");
+    editRepositoryManagerNameModal.closeButton().click();
+
+    configurationTable.row(2, 1).editRepositoryManagerNameButton().click();
+    editRepositoryManagerNameModal = new NxModal("#edit-repository-manager-name-modal");
+    editRepositoryManagerNameModal.getElement().$(".nx-text-input__input").shouldHave(value(""));
+    editRepositoryManagerNameModal.getElement().$(".nx-text-input__input").setValue("customName");
+    editRepositoryManagerNameModal.submitButton().click();
+    editRepositoryManagerNameModal.error()
+        .shouldHave(text("An error occurred saving data. customName is already used as a name."));
+    editRepositoryManagerNameModal.getElement().$(".nx-text-input__input").setValue("customName2");
+    editRepositoryManagerNameModal.getElement().$(".nx-load-error__retry").click();
+
+    configurationTable.row(1, 1).managerId().shouldHave(text("customName"));
+    configurationTable.row(2, 1).managerId().shouldHave(text("customName2"));
+  }
+
+  @Test
+  public void testRepositorySummaryView_configurationTile_filterByRepositoryName() {
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager("instanceId1");
+    tempEntity.newRepository(repositoryManager1, "r11");
+    tempEntity.newRepository(repositoryManager1, "r21");
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager("instanceId2");
+    tempEntity.newRepository(repositoryManager2, "r12");
+    tempEntity.newRepository(repositoryManager2, "r22");
+
+    refresh();
+
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    configurationTable.rows().shouldHaveSize(8);
+
+    configurationTable.repositoryPublicIdFilter().setValue("r1");
+
+    configurationTable.rows().shouldHaveSize(6);
+    configurationTable.row(1, 2).publicId().shouldHave(text("r11"));
+    configurationTable.row(2, 2).publicId().shouldHave(text("r12"));
+  }
+
+  @Test
+  public void testRepositorySummaryView_configurationTile_filterByRepositoryFormat() {
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager("instanceId1");
+    tempEntity.newRepository(repositoryManager1, "r11", "maven");
+    tempEntity.newRepository(repositoryManager1, "r21", "npm");
+    tempEntity.newRepository(repositoryManager1, "r31", null);
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager("instanceId2");
+    tempEntity.newRepository(repositoryManager2, "r12", "npm");
+    tempEntity.newRepository(repositoryManager2, "r22", "maven");
+    tempEntity.newRepository(repositoryManager2, "r32", null);
+
+    refresh();
+
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    configurationTable.rows().shouldHaveSize(10);
+
+    configurationTable.repositoryFormatFilter().click();
+    configurationTable.repositoryFormatFilter().$(".nx-radio-checkbox").click();
+    
+    configurationTable.rows().shouldHaveSize(6);
+    configurationTable.row(1, 2).publicId().shouldHave(text("r11"));
+    configurationTable.row(2, 2).publicId().shouldHave(text("r22"));
   }
 
   @Test
@@ -835,11 +933,18 @@ public class RepositoriesSummaryViewTest
     List<Repository> repositories = new ArrayList<>();
     RepositoryManager rm2 = tempEntity.newRepositoryManager("rm2");
     RepositoryManager rm1 = tempEntity.newRepositoryManager("rm1");
-    repositories.add(tempEntity.newRepository(rm1, "d", true));
-    repositories.add(tempEntity.newRepository(rm2, "c", true));
-    repositories.add(tempEntity.newRepository(rm1, "b", false));
-    repositories.add(tempEntity.newRepository(rm2, "d", false));
-    repositories.add(tempEntity.newRepository(rm1, "a", true));
+
+    repositories.add(tempEntity.newProxyRepository(rm1, "i", "maven", true, false));
+    repositories.add(tempEntity.newProxyRepository(rm1, "b", "maven", true, true));
+    repositories.add(tempEntity.newProxyRepository(rm1, "g", "npm", false, false));
+    repositories.add(tempEntity.newHostedRepository(rm1, "d", "npm", true));
+    repositories.add(tempEntity.newHostedRepository(rm1, "e", "maven", true));
+
+    repositories.add(tempEntity.newProxyRepository(rm2, "c", "maven", true, false));
+    repositories.add(tempEntity.newProxyRepository(rm2, "f", "maven", true, true));
+    repositories.add(tempEntity.newProxyRepository(rm2, "h", "npm", false, false));
+    repositories.add(tempEntity.newHostedRepository(rm2, "a", "npm", true));
+    repositories.add(tempEntity.newHostedRepository(rm2, "j", "maven", true));
   }
 
   @Test
@@ -852,76 +957,45 @@ public class RepositoriesSummaryViewTest
     repositories.add(tempEntity.newRepository(rm3, "Ab", false));
     repositories.add(tempEntity.newRepository(rm1, "bb", true));
 
-    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
-    ConfigurationTable configurationTable = configurationTile.configurationTable();
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository ascending"));
-    configurationTable.row(1).publicId().shouldHave(Condition.text("Ab"));
-    configurationTable.row(1).managerId().shouldHave(Condition.text("ee"));
-    configurationTable.row(1).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(2).publicId().shouldHave(Condition.text("ac"));
-    configurationTable.row(2).managerId().shouldHave(Condition.text("df"));
-    configurationTable.row(2).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(3).publicId().shouldHave(Condition.text("bb"));
-    configurationTable.row(3).managerId().shouldHave(Condition.text("De"));
-    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
-
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().click();
-
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository Manager ascending"));
-    configurationTable.row(1).publicId().shouldHave(Condition.text("bb"));
-    configurationTable.row(1).managerId().shouldHave(Condition.text("De"));
-    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(2).publicId().shouldHave(Condition.text("ac"));
-    configurationTable.row(2).managerId().shouldHave(Condition.text("df"));
-    configurationTable.row(2).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(3).publicId().shouldHave(Condition.text("Ab"));
-    configurationTable.row(3).managerId().shouldHave(Condition.text("ee"));
-    configurationTable.row(3).status().shouldHave(Condition.text("Disabled"));
+    assertRowOrder("ee", "Ab", "df", "ac", "De", "bb");
   }
 
   @Test
   public void testRepositoryConfigurationTableSorting_Default() {
-    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
-    ConfigurationTable configurationTable = configurationTile.configurationTable();
     setupDataForSorting();
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
     RepositoryResultsSummaryPage.configurationTile().shouldBe(visible).shouldHave(text("Configuration"));
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldBe(visible);
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldBe(visible);
-    RepositoryResultsSummaryPage.repositoriesTableStatusHeaderSortBtn().shouldBe(visible);
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldBe(visible);
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldBe(visible);
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository ascending"));
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository Manager unsorted"));
-    RepositoryResultsSummaryPage.repositoriesTableStatusHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Status unsorted"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Format unsorted"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Type unsorted"));
 
-    configurationTable.row(1).publicId().shouldHave(Condition.text("a"));
-    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(2).publicId().shouldHave(Condition.text("b"));
-    configurationTable.row(2).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(2).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(3).publicId().shouldHave(Condition.text("c"));
-    configurationTable.row(3).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(4).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(4).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(4).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(5).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(5).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(5).status().shouldHave(Condition.text("Disabled"));
+    assertRowOrder("rm2", "a", "c", "f", "h", "j", "rm1", "b", "d", "e", "g", "i");
+  }
+
+  private void assertRowOrder(String... ids) {
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    configurationTable.shouldBe(visible);
+
+    for (int i = 0; i < ids.length; i++) {
+      ScrollUtil.scrollIntoView(configurationTable.rows().get(i + 2));
+      configurationTable.rows().get(i + 2).shouldHave(matchText(ids[i] + ".*"));
+    }
   }
 
   @Test
   public void testRepositoryConfigurationTableSorting_RepositoryNameDescending() {
-    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
-    ConfigurationTable configurationTable = configurationTile.configurationTable();
     setupDataForSorting();
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
@@ -929,113 +1003,52 @@ public class RepositoriesSummaryViewTest
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository descending"));
 
-    configurationTable.row(1).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(2).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(2).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(2).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(3).publicId().shouldHave(Condition.text("c"));
-    configurationTable.row(3).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(4).publicId().shouldHave(Condition.text("b"));
-    configurationTable.row(4).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(4).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(5).publicId().shouldHave(Condition.text("a"));
-    configurationTable.row(5).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(5).status().shouldHave(Condition.text("Enabled"));
+    assertRowOrder("rm2", "j", "h", "f", "c", "a", "rm1", "i", "g", "e", "d", "b");
   }
 
   @Test
-  public void testRepositoryConfigurationTableSorting_RepositoryNameAndRepositoryManager() {
-    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
-    ConfigurationTable configurationTable = configurationTile.configurationTable();
+  public void testRepositoryConfigurationTableSorting_RepositoryNameAndRepositoryFormat() {
     setupDataForSorting();
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository descending"));
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository Manager ascending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Format ascending"));
 
-    configurationTable.row(1).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(2).publicId().shouldHave(Condition.text("b"));
-    configurationTable.row(2).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(2).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(3).publicId().shouldHave(Condition.text("a"));
-    configurationTable.row(3).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(4).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(4).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(4).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(5).publicId().shouldHave(Condition.text("c"));
-    configurationTable.row(5).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(5).status().shouldHave(Condition.text("Enabled"));
+    assertRowOrder("rm2", "j", "f", "c", "h", "a", "rm1", "i", "e", "b", "g", "d");
+
+    ScrollUtil.scrollIntoView(
+        RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().getElement());
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Format descending"));
+    
+    assertRowOrder("rm2", "h", "a", "j", "f", "c", "rm1", "g", "d", "i", "e", "b");
   }
 
   @Test
-  public void testRepositoryConfigurationTableSorting_StatusAndRepositoryManager() {
-    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
-    ConfigurationTable configurationTable = configurationTile.configurationTable();
+  public void testRepositoryConfigurationTableSorting_RepositoryNameAndRepositoryType() {
     setupDataForSorting();
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
-    RepositoryResultsSummaryPage.repositoriesTableStatusHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableStatusHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Status ascending"));
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository Manager ascending"));
-
-    configurationTable.row(1).publicId().shouldHave(Condition.text("b"));
-    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(1).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(2).publicId().shouldHave(Condition.text("a"));
-    configurationTable.row(2).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(2).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(3).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(3).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(4).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(4).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(4).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(5).publicId().shouldHave(Condition.text("c"));
-    configurationTable.row(5).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(5).status().shouldHave(Condition.text("Enabled"));
-  }
-
-  @Test
-  public void testRepositoryConfigurationTableSorting_multiSortBtnClicks() {
-    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
-    ConfigurationTable configurationTable = configurationTile.configurationTable();
-    setupDataForSorting();
-    refreshOrOpen(RepositoryResultsSummaryPage.url());
-
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository descending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Type ascending"));
 
-    configurationTable.row(1).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(2).publicId().shouldHave(Condition.text("d"));
-    configurationTable.row(2).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(2).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(3).publicId().shouldHave(Condition.text("c"));
-    configurationTable.row(3).managerId().shouldHave(Condition.text("rm2"));
-    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
-    configurationTable.row(4).publicId().shouldHave(Condition.text("b"));
-    configurationTable.row(4).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(4).status().shouldHave(Condition.text("Disabled"));
-    configurationTable.row(5).publicId().shouldHave(Condition.text("a"));
-    configurationTable.row(5).managerId().shouldHave(Condition.text("rm1"));
-    configurationTable.row(5).status().shouldHave(Condition.text("Enabled"));
+    assertRowOrder("rm2", "j", "a", "h", "f", "c", "rm1", "e", "d", "i", "g", "b");
+
+    ScrollUtil.scrollIntoView(RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().getElement());
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Type descending"));
+
+    assertRowOrder("rm1", "i", "g", "b", "e", "d", "rm2", "h", "f", "c", "j", "a");
   }
 
   @Test
@@ -1085,6 +1098,7 @@ public class RepositoriesSummaryViewTest
     policyTileList.row(1).operate().shouldHave(PolicyTile.noActionText());
 
     // Verifying Policy 2
+    ScrollUtil.scrollIntoView(policyTileList.row(2).getElement());
     policyTileList.row(2).threatLegend().shouldHave(text("5"));
     policyTileList.row(2).name().shouldHave(text("Policy 2 Root Organization"));
     policyTileList.row(2).proxy().shouldHave(PolicyTile.noActionText());

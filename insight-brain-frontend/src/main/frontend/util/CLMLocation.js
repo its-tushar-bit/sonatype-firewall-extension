@@ -241,6 +241,9 @@ export function getCompositeSourceControlUrl(ownerType, ownerId) {
 
 export const getRepositoryInfoUrl = (repositoryId) => uriTemplate`/rest/repositories/${repositoryId}`;
 
+export const getRepositoryManagerUrl = (managerId, managerName) =>
+  uriTemplate`/rest/repositories/repositoryManager/${managerId}/${managerName}`;
+
 export const getRepositoryEvaluateUrl = (repositoryId) => uriTemplate`/rest/repositories/${repositoryId}/evaluate`;
 
 export const getRepositoryComponentsUrl = (repositoryId) =>

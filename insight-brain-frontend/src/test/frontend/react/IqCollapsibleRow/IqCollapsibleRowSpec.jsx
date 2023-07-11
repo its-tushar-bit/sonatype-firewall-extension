@@ -62,7 +62,7 @@ describe('IqCollapsibleRow', () => {
     const childContent = screen.getByText('Child content');
 
     expect(childContent).toBeVisible();
-    fireEvent.click(headerTitle);
+    fireEvent.click(headerTitle.children[0]);
     expect(childContent).not.toBeInTheDocument();
     fireEvent.click(headerTitle);
     expect(childContent).toBeVisible();

@@ -13,5 +13,7 @@ public class RepositoryDTO
 
   public String managerInstanceId;
 
+  public String managerName;
+
   public Repository repository;
 }

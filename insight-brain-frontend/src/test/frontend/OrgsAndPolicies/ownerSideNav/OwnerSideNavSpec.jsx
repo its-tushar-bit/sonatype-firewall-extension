@@ -36,6 +36,7 @@ describe('OwnerSideNav', () => {
           enabled: true,
           quarantineEnabled: false,
           format: 'maven2',
+          repositoryType: 'maven',
         },
       },
       {
@@ -48,6 +49,7 @@ describe('OwnerSideNav', () => {
           enabled: true,
           quarantineEnabled: false,
           format: 'maven2',
+          repositoryType: 'maven',
         },
       },
       {
@@ -60,6 +62,7 @@ describe('OwnerSideNav', () => {
           enabled: true,
           quarantineEnabled: false,
           format: 'maven2',
+          repositoryType: 'maven',
         },
       },
     ],

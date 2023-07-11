@@ -8,14 +8,13 @@ package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
-
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class RepositoryConfigurationTile
     extends BasicElement<RepositoryConfigurationTile>
@@ -49,7 +48,20 @@ public class RepositoryConfigurationTile
 
     @Override
     public ConfigurationTableRow row(final int num) {
-      return new ConfigurationTableRow(selector, "tbody tr", nthChild(num));
+      return new ConfigurationTableRow(selector, "tbody + tbody tr", nthChild(num));
+    }
+
+    public ConfigurationTableRow row(final int bodyIndex, final int rowIndex) {
+      return new ConfigurationTableRow(selector, "tbody" + ":nth-of-type(" + bodyIndex + ")",
+          "tr" + ":nth-of-type(" + rowIndex + ")");
+    }
+
+    public SelenideElement repositoryPublicIdFilter() {
+      return child(".nx-filter-input", "input");
+    }
+
+    public SelenideElement repositoryFormatFilter() {
+      return child(".nx-filter-dropdown");
     }
 
     public static class ConfigurationTableRow
@@ -63,24 +75,32 @@ public class RepositoryConfigurationTile
         super(selectors);
       }
 
+      public SelenideElement managerId() {
+        return child(".iq-collapsible-row__header-title");
+      }
+
       public SelenideElement publicId() {
         return child("td a", nthChild(1));
       }
 
-      public SelenideElement managerId() {
+      public SelenideElement format() {
         return child("td", nthChild(2));
       }
 
-      public SelenideElement status() {
+      public SelenideElement repositoryType() {
         return child("td", nthChild(3));
       }
 
-      public SelenideElement statusIcon() {
-        return child("td", nthChild(3), "> .fa");
+      public SelenideElement enablement() {
+        return child("td", nthChild(4));
+      }
+
+      public SelenideElement editRepositoryManagerNameButton() {
+        return child("td", nthChild(2));
       }
 
       public SelenideElement deleteButton() {
-        return child("td", nthChild(4), "> div > button");
+        return child("td", nthChild(5));
       }
 
       public static Condition deleteRepositoryText(String publicId) {

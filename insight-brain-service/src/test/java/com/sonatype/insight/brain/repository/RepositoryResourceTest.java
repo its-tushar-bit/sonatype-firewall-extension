@@ -281,7 +281,8 @@ public class RepositoryResourceTest
         repo, "testNamespacePattern", "testNamePattern");
     ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO =
         new ProprietaryComponentNamePatternDTO(pattern.getId(), pattern.getFormat(), pattern.getNamespacePattern(),
-            pattern.getNamePattern(), repoManager.getInstanceId(), repo.getPublicId(), false /* enabled */);
+            pattern.getNamePattern(), repoManager.getInstanceId(), repoManager.getName(), repo.getPublicId(),
+            false /* enabled */);
     // Sanity check
     assertThat(new ProprietaryComponentNamePatternDAO().getById(pattern.getId()).isEnabled()).isTrue();
 

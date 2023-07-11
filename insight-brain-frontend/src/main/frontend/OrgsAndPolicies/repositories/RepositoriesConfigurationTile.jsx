@@ -5,8 +5,6 @@
  */
 import React, { useEffect } from 'react';
 import {
-  NxButton,
-  NxFontAwesomeIcon,
   NxStatefulForm,
   NxH2,
   NxModal,
@@ -14,43 +12,85 @@ import {
   NxTextLink,
   NxTile,
   NxWarningAlert,
-  NxPositiveStatusIndicator,
-  NxNegativeStatusIndicator,
+  NxStatefulTextInput,
+  NxP,
+  NxReadOnly,
+  NxFormGroup,
+  NxFontAwesomeIcon,
+  NxButton,
+  NxFilterInput,
+  NxStatefulFilterDropdown,
 } from '@sonatype/react-shared-components';
-import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
+import { faPen, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { actions } from './repositoriesConfigurationSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectDeleteModal,
   selectDeleteModalInfo,
-  selectRepositories,
   selectRepositoriesLoadError,
   selectRepositoriesLoading,
   selectSubmitMaskState,
   selectRepositoriesDeleteError,
   selectSortConfiguration,
+  selectShowEditRepositoryManagerNameModal,
+  selectEditRepositoryManagerNameError,
+  selectEditRepositoryManagerNameModalInfo,
+  selectRepositoriesByManagerInstanceId,
+  selectRepositoryFormats,
+  selectRepositoryFormatsFilter,
+  selectRepositoryPublicIdFilter,
 } from './repositoriesConfigurationSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { keys } from 'ramda';
+import IqCollapsibleRow from 'MainRoot/react/IqCollapsibleRow/IqCollapsibleRow';
 
 const RepositoriesConfigurationTile = () => {
   const dispatch = useDispatch();
 
   const loadRepositories = () => dispatch(actions.loadRepositories());
   const setShowDeleteModal = (isShown) => dispatch(actions.setShowDeleteModal(isShown));
+  const setShowEditRepositoryManagerNameModal = (isShown) =>
+    dispatch(actions.setShowEditRepositoryManagerNameModal(isShown));
   const deleteRepository = () => dispatch(actions.deleteRepository());
   const openDeleteModal = (modalInfo) => dispatch(actions.openDeleteModal(modalInfo));
+  const openEditRepositoryManagerNameModal = (modalInfo) =>
+    dispatch(actions.openEditRepositoryManagerNameModal(modalInfo));
   const sortRepositories = (column) => dispatch(actions.sortRepositories(column));
+  const setRepositoryManagerName = (name) => dispatch(actions.setRepositoryManagerName(name));
+  const editRepositoryManagerName = () => dispatch(actions.editRepositoryManagerName());
+  const setRepositoryPublicIdFilter = (value) => dispatch(actions.setRepositoryPublicIdFilter(value));
+  const setRepositoryFormatsFilter = (value) => dispatch(actions.setRepositoryFormatsFilter(value));
 
-  const repositories = useSelector(selectRepositories);
+  const repositoriesByManagerInstanceId = useSelector(selectRepositoriesByManagerInstanceId);
   const isLoading = useSelector(selectRepositoriesLoading);
   const loadError = useSelector(selectRepositoriesLoadError);
   const deleteError = useSelector(selectRepositoriesDeleteError);
+  const editRepositoryManagerNameError = useSelector(selectEditRepositoryManagerNameError);
   const showDeleteModal = useSelector(selectDeleteModal);
+  const showEditRepositoryManagerNameModal = useSelector(selectShowEditRepositoryManagerNameModal);
   const submitMaskState = useSelector(selectSubmitMaskState);
   const deleteModalInfo = useSelector(selectDeleteModalInfo);
+  const editRepositoryManagerNameModalInfo = useSelector(selectEditRepositoryManagerNameModalInfo);
   const sortConfiguration = useSelector(selectSortConfiguration);
+  const repositoryPublicIdFilter = useSelector(selectRepositoryPublicIdFilter);
+  const repositoryFormats = useSelector(selectRepositoryFormats);
+  const repositoryFormatsFilter = useSelector(selectRepositoryFormatsFilter);
 
   const uiRouterState = useRouterState();
+
+  const getEnablement = (repository) => {
+    const enablement = [];
+    if (repository.auditEnabled) {
+      enablement.push('Audit');
+    }
+    if (repository.quarantineEnabled) {
+      enablement.push('Quarantine');
+    }
+    if (repository.namespaceConfusionProtectionEnabled) {
+      enablement.push('Namespace Scanning');
+    }
+    return enablement.join(', ');
+  };
 
   useEffect(() => {
     loadRepositories();
@@ -87,25 +127,62 @@ const RepositoriesConfigurationTile = () => {
     </NxModal>
   );
 
+  const editRepositoryManagerNameModal = (
+    <NxModal
+      id="edit-repository-manager-name-modal"
+      data-testid="edit-repository-manager-name-modal"
+      onCancel={() => setShowEditRepositoryManagerNameModal(false)}
+      aria-labelledby="repositories-delete-label-modal"
+    >
+      <NxStatefulForm
+        onSubmit={editRepositoryManagerName}
+        onCancel={() => setShowEditRepositoryManagerNameModal(false)}
+        submitBtnText="Update"
+        submitError={editRepositoryManagerNameError}
+        submitMaskState={submitMaskState}
+        submitMaskMessage="Updating…"
+      >
+        <NxModal.Header>
+          <NxH2>Edit Repository Manager</NxH2>
+        </NxModal.Header>
+        <NxModal.Content>
+          <NxReadOnly>
+            <NxReadOnly.Label>Repository Manager ID</NxReadOnly.Label>
+            <NxReadOnly.Data>{editRepositoryManagerNameModalInfo.managerInstanceId}</NxReadOnly.Data>
+          </NxReadOnly>
+          <NxFormGroup label="Repository Manager Name">
+            <NxStatefulTextInput
+              validator={(value) => (value.length ? null : 'Must be non-empty')}
+              defaultValue={editRepositoryManagerNameModalInfo.managerName || ''}
+              onChange={setRepositoryManagerName}
+            />
+          </NxFormGroup>
+          <NxP>Any changes made will apply to all repositories for this repository manager.</NxP>
+        </NxModal.Content>
+      </NxStatefulForm>
+    </NxModal>
+  );
+
   const mapRepositoryToRow = (repository) => {
     const repositoryData = repository.repository;
     return (
       <NxTable.Row key={repositoryData.id}>
         <NxTable.Cell className="iq-repositories-configuration-table-repository">
-          <NxTextLink newTab href={uiRouterState.href('repository-report', { repositoryId: repositoryData.id })}>
-            {repositoryData.publicId}
-          </NxTextLink>
-        </NxTable.Cell>
-        <NxTable.Cell className="iq-repositories-configuration-table-repository-manager">
-          {repository.managerInstanceId}
-        </NxTable.Cell>
-        <NxTable.Cell>
-          {repositoryData.auditEnabled ? (
-            <NxPositiveStatusIndicator>Enabled</NxPositiveStatusIndicator>
+          {repositoryData.repositoryType === 'hosted' ? (
+            repositoryData.publicId
           ) : (
-            <NxNegativeStatusIndicator>Disabled</NxNegativeStatusIndicator>
+            <NxTextLink newTab href={uiRouterState.href('repository-report', { repositoryId: repositoryData.id })}>
+              {repositoryData.publicId}
+            </NxTextLink>
           )}
         </NxTable.Cell>
+        <NxTable.Cell className="iq-repositories-configuration-table-repository-format">
+          {repositoryData.format}
+        </NxTable.Cell>
+        <NxTable.Cell className="iq-repositories-configuration-table-repository-type">
+          {repositoryData.repositoryType}
+        </NxTable.Cell>
+        <NxTable.Cell>{getEnablement(repositoryData)}</NxTable.Cell>
         <NxTable.Cell>
           <div className="nx-btn-bar">
             <NxButton
@@ -144,34 +221,88 @@ const RepositoriesConfigurationTile = () => {
                 Repository
               </NxTable.Cell>
               <NxTable.Cell
-                id="repository-manager-column-header"
+                id="repository-format-column-header"
                 isSortable
-                sortDir={showHighlight('managerInstanceId')}
-                onClick={() => sortRepositories('managerInstanceId')}
+                sortDir={showHighlight('format')}
+                onClick={() => sortRepositories('format')}
               >
-                Repository Manager
+                Format
               </NxTable.Cell>
               <NxTable.Cell
-                id="status-column-header"
+                id="repository-type-column-header"
                 isSortable
-                sortDir={showHighlight('auditEnabled')}
-                onClick={() => sortRepositories('auditEnabled')}
+                sortDir={showHighlight('repositoryType')}
+                onClick={() => sortRepositories('repositoryType')}
               >
-                Status
+                Type
               </NxTable.Cell>
+              <NxTable.Cell id="repository-enablement-column-header">Enablement</NxTable.Cell>
+              <NxTable.Cell />
+            </NxTable.Row>
+            <NxTable.Row isFilterHeader>
+              <NxTable.Cell>
+                <NxFilterInput
+                  placeholder="Repository name"
+                  onChange={setRepositoryPublicIdFilter}
+                  value={repositoryPublicIdFilter}
+                />
+              </NxTable.Cell>
+              <NxTable.Cell>
+                <NxStatefulFilterDropdown
+                  placeholder="Format"
+                  options={repositoryFormats.map((format) => {
+                    return { id: format, displayName: format };
+                  })}
+                  selectedIds={repositoryFormatsFilter}
+                  onChange={setRepositoryFormatsFilter}
+                  showReset={true}
+                />
+              </NxTable.Cell>
+              <NxTable.Cell />
+              <NxTable.Cell />
               <NxTable.Cell />
             </NxTable.Row>
           </NxTable.Head>
-          <NxTable.Body
-            emptyMessage="There are no repositories registered with the server."
-            error={loadError}
-            isLoading={isLoading}
-            retryHandler={loadRepositories}
-          >
-            {repositories.map(mapRepositoryToRow)}
-          </NxTable.Body>
+          {keys(repositoriesByManagerInstanceId).length > 0 ? (
+            keys(repositoriesByManagerInstanceId).map((managerInstanceId) => (
+              <NxTable.Body
+                key={managerInstanceId}
+                error={loadError}
+                isLoading={isLoading}
+                retryHandler={loadRepositories}
+              >
+                <IqCollapsibleRow
+                  headerTitle={
+                    repositoriesByManagerInstanceId[managerInstanceId][0].managerName ||
+                    repositoriesByManagerInstanceId[managerInstanceId][0].managerInstanceId
+                  }
+                  noItemsMessage="None"
+                  isCollapsible={true}
+                  colSpan={4}
+                  rowBtnIcon={faPen}
+                  rowBtnTitle="Edit"
+                  rowBtnAction={() =>
+                    openEditRepositoryManagerNameModal({
+                      managerInstanceId: repositoriesByManagerInstanceId[managerInstanceId][0].managerInstanceId,
+                      managerName: repositoriesByManagerInstanceId[managerInstanceId][0].managerName,
+                    })
+                  }
+                >
+                  {repositoriesByManagerInstanceId[managerInstanceId].map(mapRepositoryToRow)}
+                </IqCollapsibleRow>
+              </NxTable.Body>
+            ))
+          ) : (
+            <NxTable.Body
+              emptyMessage="There are no repositories registered with the server."
+              error={loadError}
+              isLoading={isLoading}
+              retryHandler={loadRepositories}
+            ></NxTable.Body>
+          )}
         </NxTable>
         {showDeleteModal && deleteModal}
+        {showEditRepositoryManagerNameModal && editRepositoryManagerNameModal}
       </NxTile.Content>
     </NxTile>
   );

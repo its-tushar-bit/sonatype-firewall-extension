@@ -60,8 +60,10 @@ const NamespaceConfusionProtectionTile = () => {
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell className="iq-repository-cell-manager">
-        <NxOverflowTooltip title={row.repositoryManagerInstanceId}>
-          <div className="iq-repository-cell-manager--text">{row.repositoryManagerInstanceId}</div>
+        <NxOverflowTooltip title={row.repositoryManagerName || row.repositoryManagerInstanceId}>
+          <div className="iq-repository-cell-manager--text">
+            {row.repositoryManagerName || row.repositoryManagerInstanceId}
+          </div>
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell className="iq-repository-cell-repository">
@@ -118,8 +120,8 @@ const NamespaceConfusionProtectionTile = () => {
                 </NxTable.Cell>
                 <NxTable.Cell
                   isSortable
-                  sortDir={getHighlightedArrowState('REPOSITORY_MANAGER_INSTANCE_ID')}
-                  onClick={() => sortComponents('REPOSITORY_MANAGER_INSTANCE_ID')}
+                  sortDir={getHighlightedArrowState('REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME')}
+                  onClick={() => sortComponents('REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME')}
                   className="iq-repository-column--manager"
                 >
                   Repository Manager

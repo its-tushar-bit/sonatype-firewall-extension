@@ -278,6 +278,7 @@ public class RepositoryService
     repositoryDTO.repository = repository;
     RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
     repositoryDTO.managerInstanceId = repositoryManager.getInstanceId();
+    repositoryDTO.managerName = repositoryManager.getName();
     return repositoryDTO;
   }
 

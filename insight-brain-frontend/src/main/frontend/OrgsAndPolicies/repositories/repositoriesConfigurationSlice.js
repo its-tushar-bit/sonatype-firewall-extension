@@ -6,11 +6,16 @@
 import { compose, createAsyncThunk, createSlice, original } from '@reduxjs/toolkit';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import axios from 'axios';
-import { getRepositoriesUrl, getRepositoryInfoUrl } from 'MainRoot/util/CLMLocation';
-import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { getRepositoriesUrl, getRepositoryInfoUrl, getRepositoryManagerUrl } from 'MainRoot/util/CLMLocation';
+import { pathSet, propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { selectDeleteModalInfo } from './repositoriesConfigurationSelectors';
-import { ascend, descend, path, prop, sortWith, toLower } from 'ramda';
+import {
+  selectDeleteModalInfo,
+  selectEditRepositoryManagerNameModalInfo,
+  selectOriginalRepositories,
+} from './repositoriesConfigurationSelectors';
+import { actions as namespaceConfusionProtectionTileSliceActions } from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/namespaceConfusionProtectionTileSlice';
+import { ascend, descend, path, pathOr, prop, sortWith, toLower } from 'ramda';
 
 const REDUCER_NAME = 'repositories';
 
@@ -20,33 +25,52 @@ const initialSortConfiguration = [
     dir: 'asc',
   },
   {
-    key: 'managerInstanceId',
+    key: 'format',
     dir: 'asc',
   },
   {
-    key: 'auditEnabled',
+    key: 'repositoryType',
+    dir: 'asc',
+  },
+  {
+    key: 'managerInstanceId',
     dir: 'asc',
   },
 ];
 
 export const initialState = {
+  originalRepositories: [],
   repositories: [],
   loading: false,
   loadError: null,
   deleteError: null,
+  editRepositoryManagerNameError: null,
   showDeleteModal: false,
+  showEditRepositoryManagerNameModal: false,
   submitMaskState: null,
   deleteModalInfo: {
     id: null,
     publicId: null,
   },
+  editRepositoryManagerNameModalInfo: {
+    managerInstanceId: null,
+    managerName: null,
+  },
   sortConfiguration: initialSortConfiguration,
+  repositoryPublicIdFilter: '',
+  repositoryFormatsFilter: new Set(),
 };
 
 const openDeleteModal = (state, { payload: { publicId, id } }) => {
   state.showDeleteModal = true;
   state.deleteModalInfo = { publicId, id };
   state.deleteError = null;
+};
+
+const openEditRepositoryManagerNameModal = (state, { payload: { managerInstanceId, managerName } }) => {
+  state.showEditRepositoryManagerNameModal = true;
+  state.editRepositoryManagerNameModalInfo = { managerInstanceId, managerName };
+  state.editRepositoryManagerNameError = null;
 };
 
 const getNextDir = (currentDir) => (currentDir === 'asc' ? 'desc' : 'asc');
@@ -66,8 +90,12 @@ const getSortKey = (key) => {
       return compose(toLower, prop(key));
     case 'publicId':
       return compose(toLower, path(['repository', key]));
+    case 'format':
+      return compose(toLower, pathOr('', ['repository', key]));
+    case 'repositoryType':
+      return compose(toLower, path(['repository', key]));
     default:
-      return path(['repository', key]);
+      return pathOr('', ['repository', key]);
   }
 };
 
@@ -91,9 +119,14 @@ const loadRepositoriesRequested = (state) => {
 };
 
 const loadRepositoriesFulfilled = (state, { payload }) => {
-  state.loading = false;
-  state.loadError = null;
-  state.repositories = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration)]);
+  const repos = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration)]);
+  return {
+    ...state,
+    loading: false,
+    loadError: null,
+    originalRepositories: repos,
+    repositories: repos,
+  };
 };
 
 const loadRepositoriesFailed = (state, { payload }) => {
@@ -120,6 +153,23 @@ const deleteRepositoryFailed = (state, { payload }) => {
   state.deleteError = Messages.getHttpErrorMessage(payload);
 };
 
+const editRepositoryManagerNameRequested = (state) => {
+  state.loading = true;
+  state.submitMaskState = false;
+  state.editRepositoryManagerNameError = null;
+};
+
+const editRepositoryManagerNameFulfilled = (state) => {
+  state.loading = false;
+  state.submitMaskState = true;
+};
+
+const editRepositoryManagerNameFailed = (state, { payload }) => {
+  state.loading = false;
+  state.submitMaskState = null;
+  state.editRepositoryManagerNameError = Messages.getHttpErrorMessage(payload);
+};
+
 const loadRepositories = createAsyncThunk(`${REDUCER_NAME}/loadRepositories`, (_, { rejectWithValue }) => {
   return axios
     .get(getRepositoriesUrl())
@@ -144,14 +194,72 @@ const deleteRepository = createAsyncThunk(
   }
 );
 
+const editRepositoryManagerName = createAsyncThunk(
+  `${REDUCER_NAME}/editRepositoryManagerName`,
+  (_, { getState, rejectWithValue, dispatch }) => {
+    const state = getState();
+    const { managerInstanceId, managerName } = selectEditRepositoryManagerNameModalInfo(getState());
+    const originalRepositories = selectOriginalRepositories(state);
+    const managerId = originalRepositories.find((repository) => repository.managerInstanceId === managerInstanceId)
+      .repository.repositoryManagerId;
+    return axios
+      .put(getRepositoryManagerUrl(managerId, managerName))
+      .then(() => {
+        setTimeout(() => {
+          dispatch(actions.resetSubmitMaskState());
+          dispatch(actions.setShowEditRepositoryManagerNameModal(false));
+          dispatch(loadRepositories());
+          dispatch(namespaceConfusionProtectionTileSliceActions.getComponentNamePatterns());
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const setRepositoryPublicIdFilter = (state, { payload }) => {
+  const newState = {
+    ...state,
+    repositoryPublicIdFilter: payload,
+  };
+  return filterRepositories(newState);
+};
+
+const setRepositoryFormatsFilter = (state, { payload }) => {
+  const newState = {
+    ...state,
+    repositoryFormatsFilter: payload,
+  };
+  return filterRepositories(newState);
+};
+
+const filterRepositories = (state) => {
+  return {
+    ...state,
+    repositories: state.originalRepositories.filter((repository) => {
+      if (!repository.repository.publicId.toLowerCase().includes(state.repositoryPublicIdFilter.toLowerCase())) {
+        return false;
+      }
+      if (state.repositoryFormatsFilter.size > 0 && !state.repositoryFormatsFilter.has(repository.repository.format)) {
+        return false;
+      }
+      return true;
+    }),
+  };
+};
+
 const repositoriesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
     setShowDeleteModal: propSet('showDeleteModal'),
+    setShowEditRepositoryManagerNameModal: propSet('showEditRepositoryManagerNameModal'),
+    setRepositoryManagerName: pathSet(['editRepositoryManagerNameModalInfo', 'managerName']),
     resetSubmitMaskState: propSetConst('submitMaskState', null),
     openDeleteModal,
+    openEditRepositoryManagerNameModal,
     sortRepositories,
+    setRepositoryPublicIdFilter,
+    setRepositoryFormatsFilter,
   },
   extraReducers: {
     [loadRepositories.pending]: loadRepositoriesRequested,
@@ -160,6 +268,9 @@ const repositoriesSlice = createSlice({
     [deleteRepository.pending]: deleteRepositoryRequested,
     [deleteRepository.fulfilled]: deleteRepositoryFulfilled,
     [deleteRepository.rejected]: deleteRepositoryFailed,
+    [editRepositoryManagerName.pending]: editRepositoryManagerNameRequested,
+    [editRepositoryManagerName.fulfilled]: editRepositoryManagerNameFulfilled,
+    [editRepositoryManagerName.rejected]: editRepositoryManagerNameFailed,
   },
 });
 
@@ -169,4 +280,5 @@ export const actions = {
   ...repositoriesSlice.actions,
   loadRepositories,
   deleteRepository,
+  editRepositoryManagerName,
 };

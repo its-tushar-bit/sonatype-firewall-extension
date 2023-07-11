@@ -7,26 +7,9 @@
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 #iq-repositories-configuration-table {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr min-content;
-
-  thead,
-  tbody,
-  tr {
-    display: contents;
-  }
-
-  td {
-    box-sizing: border-box;
-  }
-
   .iq-repositories-configuration-table-repository,
   .iq-repositories-configuration-table-repository-manager {
     @include nx-text-helpers.truncate-ellipsis;
-  }
-
-  .nx-cell--meta-info {
-    grid-column: span 4;
   }
 }
 

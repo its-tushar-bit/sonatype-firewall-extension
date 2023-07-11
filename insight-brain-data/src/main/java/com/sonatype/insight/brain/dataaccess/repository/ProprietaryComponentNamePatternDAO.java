@@ -86,6 +86,7 @@ public class ProprietaryComponentNamePatternDAO
         // to be able to sort and filter on both fields
         "CONCAT(pattern.namespace_pattern, pattern.name_pattern) as pattern, " + //
         "repoManager.instance_id AS repository_manager_instance_id, " + //
+        "repoManager.name AS repository_manager_name, " + //
         "repo.public_id AS repository_public_id, " + //
         "pattern.enabled" + //
         " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".proprietary_component_name_pattern pattern" + //
@@ -99,6 +100,7 @@ public class ProprietaryComponentNamePatternDAO
         "name_pattern, " + //
         "pattern, " + //
         "repository_manager_instance_id, " + //
+        "repository_manager_name, " + //
         "repository_public_id, " + //
         "enabled" + //
         " FROM (" + innerSelect + ") AS inner_sql";
@@ -139,8 +141,8 @@ public class ProprietaryComponentNamePatternDAO
           case PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME:
             sQuery += "pattern";
             break;
-          case REPOSITORY_MANAGER_INSTANCE_ID:
-            sQuery += "repository_manager_instance_id";
+          case REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME:
+            sQuery += "COALESCE(repository_manager_instance_id, repository_manager_name)";
             break;
           case REPOSITORY_PUBLIC_ID:
             sQuery += "repository_public_id";
@@ -177,8 +179,9 @@ public class ProprietaryComponentNamePatternDAO
               emptyToNull((String) array[3]), // namePattern
               // Skip 4 - the concatenated namespacePattern+namePattern
               (String) array[5], // repositoryManagerInstanceId
-              (String) array[6], // repositoryPublicId
-              (boolean) array[7])) // enabled
+              (String) array[6], // repositoryManagerName
+              (String) array[7], // repositoryPublicId
+              (boolean) array[8])) // enabled
           .collect(Collectors.toList());
 
       return results;

@@ -883,7 +883,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO =
         new ProprietaryComponentNamePatternDTO(pattern.getId(), pattern.getFormat(), pattern.getNamespacePattern(),
-            pattern.getNamePattern(), repoManager.getInstanceId(), repo.getPublicId(), false /* enabled */);
+            pattern.getNamePattern(), repoManager.getInstanceId(), repoManager.getName(), repo.getPublicId(),
+            false /* enabled */);
 
     repositoryService.updateProprietaryComponentNamePattern(proprietaryComponentNamePatternDTO);
     pattern = proprietaryComponentNamePatternDAO.getById(pattern.getId());

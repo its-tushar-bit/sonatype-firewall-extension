@@ -333,8 +333,8 @@ public class ProprietaryComponentNamePatternDAOTest
 
     // Sort on repo manager instance ID ASC
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID, true /* asc */,
-        1 /* sortPriority */));
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
+        true /* asc */, 1 /* sortPriority */));
     List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern1);
@@ -343,7 +343,8 @@ public class ProprietaryComponentNamePatternDAOTest
 
     // Sort on repo manager instance ID DESC
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID, false /* asc */,
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
+        false /* asc */,
         1 /* sortPriority */));
     result = dao.getByFilter(filter);
     assertThat(result).hasSize(3);
@@ -445,7 +446,8 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         true /* asc */, 2 /* sortPriority */));
     filter.sortFields.add(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID, true /* asc */,
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
+        true /* asc */,
         1 /* sortPriority */));
     List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
     assertThat(result).hasSize(3);
@@ -459,7 +461,8 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         false /* asc */, 2 /* sortPriority */));
     filter.sortFields.add(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID, true /* asc */,
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
+        true /* asc */,
         1 /* sortPriority */));
     result = dao.getByFilter(filter);
     assertThat(result).hasSize(3);
@@ -473,8 +476,8 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         true /* asc */, 2 /* sortPriority */));
     filter.sortFields.add(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID, false /* asc */,
-        1 /* sortPriority */));
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
+        false /* asc */, 1 /* sortPriority */));
     result = dao.getByFilter(filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern3);
@@ -487,7 +490,8 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         false /* asc */, 2 /* sortPriority */));
     filter.sortFields.add(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID, false /* asc */,
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
+        false /* asc */,
         1 /* sortPriority */));
     result = dao.getByFilter(filter);
     assertThat(result).hasSize(3);
@@ -519,7 +523,8 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         "testNamespacePattern1"));
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID, false /* asc */,
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
+        false /* asc */,
         1 /* sortPriority */));
 
     List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
@@ -555,8 +560,8 @@ public class ProprietaryComponentNamePatternDAOTest
           ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
           "testNamespacePattern1"));
       filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
-          ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID, false /* asc */,
-          1 /* sortPriority */));
+          ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
+          false /* asc */, 1 /* sortPriority */));
 
       List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
       assertThat(result).hasSize(2);

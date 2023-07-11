@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.nexus.scm.SourceControlProvider;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ElementsCollection;
@@ -29,6 +31,8 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
 public class IntegrationsPageTest extends AbstractFunctionalTest
 {
@@ -39,6 +43,12 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   private static final String CI_USAGE_PERCENT_SELECTOR = ".iq-integrations-cicard__donut-col";
 
   private static final int TOTAL_APPS_WITHOUT_CI_INTEGRATIONS = 10;
+
+  private static final String REPO_URL = "https://example.com/organization/project";
+
+  private static final String ROOT_TOKEN = "root-token";
+
+  private static final String ENC = "CMMDwoV";
 
   @Before
   public void before() {
@@ -109,6 +119,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     refresh();
     ideUserCount().shouldBe(visible).shouldHave(text("2"));
 
+    scrollIntoView(ideUserCount());
     eyesWatcher.eyesCheck();
   }
 
@@ -142,6 +153,31 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     applicationName(0).shouldHave(text("appName5"));
     totalRisk(0).shouldHave(text("5"));
     appsWithoutCiIntegrationsTableDataRows().shouldHaveSize(1);
+  }
+
+  @Test
+  public void testAppsWithoutScmIntegrationsPage() throws Exception {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null,
+            (new DefaultPlexusCipher()).encrypt(ROOT_TOKEN, ENC),
+            SourceControlProvider.GITHUB);
+
+    final Application configuredApp = tempEntity.newApplicationWithParent("app1", "Configured App");
+    final Application unconfiguredApp = tempEntity.newApplicationWithParent("app2", "Unconfigured App");
+
+    // Add a source control record for configuredApp with ASCF enabled, so it shouldn't be in the result list
+    // unconfiguredApp has no source control record, so it should be in the result list
+    tempEntity.newSourceControl(configuredApp.getId(), REPO_URL, null, null, null, null, false,
+            null, null, null, true, true, "/target/*", true, true);
+
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    appsWithoutScmIntegrationsTable().shouldBe(visible);
+
+    appsWithoutScmIntegrationsTableDataRows().shouldHaveSize(1);
+
+    applicationNameWithNoScm(0).shouldHave(text(unconfiguredApp.getName()));
+
+    eyesWatcher.eyesCheck();
   }
 
   private void createAppsWithPolicyViolations(int numOfViolations) {
@@ -284,5 +320,21 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement totalRiskColumnHeader() {
     return appsWithoutCiIntegrationsTable().$(".nx-cell--header:nth-child(2)");
+  }
+
+  private SelenideElement appsWithoutScmIntegrationsTable() {
+    return $("#iq-integrations-apps-without-scm-integrations-section");
+  }
+
+  private ElementsCollection appsWithoutScmIntegrationsTableDataRows() {
+    return appsWithoutScmIntegrationsTable().findAll(" tbody .nx-table-row");
+  }
+
+  private SelenideElement applicationNameWithNoScm(int rowNum) {
+    return appsWithoutScmIntegrationsTableDataRows().get(rowNum).$(".nx-cell:nth-child(1)");
+  }
+
+  private SelenideElement applicationTotalRiskWithNoScm(int rowNum) {
+    return appsWithoutScmIntegrationsTableDataRows().get(rowNum).$(".nx-cell:nth-child(1)");
   }
 }

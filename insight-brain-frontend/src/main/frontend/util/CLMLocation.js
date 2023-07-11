@@ -1265,6 +1265,8 @@ export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositorie
 
 export const getAppsWithoutCiIntegrations = () => uriTemplate`/rest/plugin/apps/ci`;
 
+export const getAppsWithoutScmIntegrations = () => uriTemplate`/rest/sourceControl/application`;
+
 export const getConfigurationUrl = () => {
   return uriTemplate`/api/v2/config`;
 };

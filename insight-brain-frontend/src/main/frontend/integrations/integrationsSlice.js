@@ -8,9 +8,11 @@ import ciUsageRequestSlice from './sections/overview/ciUsageSlice';
 import ideIntegrationsSlice from './sections/overview/ideIntegrationsCard/ideIntegrationsSlice';
 import appsWithoutRecentCiUsagePreviewSlice from 'MainRoot/integrations/slices/appsWithoutRecentCiUsagePreviewSlice';
 import appsWithoutCiIntegrationsSlice from './sections/AppsWithoutCiIntegrations/appsWithoutCiIntegrationsSlice';
+import appsWithoutScmIntegrationsSlice from './sections/AppsWithoutScmIntegrations/appsWithoutScmIntegrationsSlice';
 
 export const INTEGRATIONS = 'integrations';
 export const CI_USAGE = 'ciUsage';
+export const APPS_WITHOUT_SCM_INTEGRATIONS = 'appsWithoutScmIntegrations';
 export const CI_APPS_WITHOUT_RECENT_CI_USAGE_PREVIEW = 'appsWithoutRecentCiUsagePreview';
 
 export default combineReducers({
@@ -18,4 +20,5 @@ export default combineReducers({
   ideIntegrations: ideIntegrationsSlice,
   [CI_APPS_WITHOUT_RECENT_CI_USAGE_PREVIEW]: appsWithoutRecentCiUsagePreviewSlice,
   appsWithoutCiIntegrations: appsWithoutCiIntegrationsSlice,
+  [APPS_WITHOUT_SCM_INTEGRATIONS]: appsWithoutScmIntegrationsSlice,
 });

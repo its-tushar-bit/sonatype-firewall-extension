@@ -11,7 +11,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -21,6 +20,8 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.subject.Subject;
 
@@ -44,40 +45,74 @@ public class PermissionService
     this.rolePermissionDAO = rolePermissionDAO;
   }
 
-  public Set<Permission> hasPermissions(Subject subject,
-                                        OwnerType ownerType,
-                                        String ownerId,
-                                        Set<Permission> permissions)
+  public Set<Permission> validatePermissionForPublicApplicationId(
+      Subject subject,
+      String publicAppId,
+      Set<Permission> permissions)
+  {
+    checkPermissionsSet(permissions);
+
+    if (!subject.isAuthenticated()) {
+      return EnumSet.noneOf(Permission.class);
+    }
+
+    Map<AuthzContext.Key, Object> contextParameters = new EnumMap<>(AuthzContext.Key.class);
+
+    contextParameters.put(Key.APPLICATION_PUBLIC_ID, publicAppId);
+
+    return checkPermissions(subject, permissions, contextParameters);
+  }
+
+  public Set<Permission> validatePermission(
+      Subject subject,
+      OwnerType ownerType,
+      String ownerId,
+      Set<Permission> permissions)
+  {
+    if (!subject.isAuthenticated()) {
+      return EnumSet.noneOf(Permission.class);
+    }
+    Map<AuthzContext.Key, Object> contextParameters = new EnumMap<>(AuthzContext.Key.class);
+    switch (ownerType) {
+      case APPLICATION:
+        contextParameters.put(AuthzContext.Key.APPLICATION_ID, ownerId);
+        break;
+      case ORGANIZATION:
+        contextParameters.put(AuthzContext.Key.ORGANIZATION_ID, ownerId);
+        break;
+      case REPOSITORY_CONTAINER:
+        contextParameters.put(AuthzContext.Key.ID, ownerId);
+        contextParameters.put(AuthzContext.Key.TYPE, OwnerType.REPOSITORY_CONTAINER);
+        break;
+      case REPOSITORY:
+        contextParameters.put(AuthzContext.Key.REPOSITORY_ID, ownerId);
+        break;
+      case GLOBAL:
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown owner type: " + ownerType);
+    }
+
+    return checkPermissions(subject, permissions, contextParameters);
+  }
+
+  private void checkPermissionsSet(Set<Permission> permissions) {
+    if (permissions == null || permissions.isEmpty()) {
+      throw new BadRequestException("Must specify permissions to check.");
+    }
+  }
+
+  private EnumSet<Permission> checkPermissions(
+      Subject subject,
+      Set<Permission> permissions,
+      Map<AuthzContext.Key, Object> contextParameters)
   {
     EnumSet<Permission> result = EnumSet.noneOf(Permission.class);
 
-    if (subject.isAuthenticated()) {
-      Map<AuthzContext.Key, Object> contextParameters = new EnumMap<>(AuthzContext.Key.class);
-      switch (ownerType) {
-        case APPLICATION:
-          contextParameters.put(AuthzContext.Key.APPLICATION_ID, ownerId);
-          break;
-        case ORGANIZATION:
-          contextParameters.put(AuthzContext.Key.ORGANIZATION_ID, ownerId);
-          break;
-        case REPOSITORY_CONTAINER:
-          contextParameters.put(AuthzContext.Key.ID, ownerId);
-          contextParameters.put(AuthzContext.Key.TYPE, OwnerType.REPOSITORY_CONTAINER);
-          break;
-        case REPOSITORY:
-          contextParameters.put(AuthzContext.Key.REPOSITORY_ID, ownerId);
-          break;
-        case GLOBAL:
-          break;
-        default:
-          throw new IllegalArgumentException("Unknown owner type: " + ownerType);
-      }
-
-      UserPrincipal user = (UserPrincipal) subject.getPrincipal();
-      for (Permission permission : permissions) {
-        if (authzChecker.isPermitted(user, permission, contextParameters)) {
-          result.add(permission);
-        }
+    UserPrincipal user = (UserPrincipal) subject.getPrincipal();
+    for (Permission permission : permissions) {
+      if (authzChecker.isPermitted(user, permission, contextParameters)) {
+        result.add(permission);
       }
     }
 

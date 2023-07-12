@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.security;
 
 import java.util.EnumSet;
 import java.util.Set;
-
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PermissionServiceTest
     extends AbstractServiceAuthzTest
@@ -28,64 +29,87 @@ public class PermissionServiceTest
 
   private static final Permission[] NONE = {};
 
+  private void assertPublicAppPermissions(String publicApplicationId, Permission... expected) {
+    assertThat(service.validatePermissionForPublicApplicationId(subject, publicApplicationId, EnumSet.allOf(Permission.class)))
+        .containsExactlyInAnyOrder(expected);
+  }
+
   private void assertPermissions(OwnerType ownerType, String ownerId, Permission... expected) {
-    assertThat(service.hasPermissions(subject, ownerType, ownerId, EnumSet.allOf(Permission.class)))
+    assertThat(service.validatePermission(subject, ownerType, ownerId, EnumSet.allOf(Permission.class)))
         .containsExactlyInAnyOrder(expected);
   }
 
   @Test
-  public void testHasPermissions_GlobalContext_Unauthenticated() {
+  public void testValidatePermissions_GlobalContext_Unauthenticated() {
     assertPermissions(OwnerType.GLOBAL, null, NONE);
   }
 
   @Test
-  public void testHasPermissions_GlobalContext_Authenticated() {
+  public void testValidatePermissions_GlobalContext_Authenticated() {
     grantConfigureSystemPermission();
     assertPermissions(OwnerType.GLOBAL, null, Permission.CONFIGURE_SYSTEM);
   }
 
   @Test
-  public void testHasPermissions_RepoContainerContext_Unauthenticated() {
+  public void testValidatePermissions_RepoContainerContext_Unauthenticated() {
     assertPermissions(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, NONE);
   }
 
   @Test
-  public void testHasPermissions_RepoContainerContext_Authenticated() {
+  public void testValidatePermissions_RepoContainerContext_Authenticated() {
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     assertPermissions(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.READ);
   }
 
   @Test
-  public void testHasPermissions_RepoContext_Unauthenticated() {
+  public void testValidatePermissions_RepoContext_Unauthenticated() {
     assertPermissions(OwnerType.REPOSITORY, repository.getId(), NONE);
   }
 
   @Test
-  public void testHasPermissions_RepoContext_Authenticated() {
+  public void testValidatePermissions_RepoContext_Authenticated() {
     grantReadPermission(repository.getId());
     grantWritePermission(repository.getId());
     assertPermissions(OwnerType.REPOSITORY, repository.getId(), Permission.READ, Permission.WRITE);
   }
 
   @Test
-  public void testHasPermissions_OrgContext_Unauthenticated() {
+  public void testValidatePermissions_OrgContext_Unauthenticated() {
     assertPermissions(OwnerType.ORGANIZATION, org.getId(), NONE);
   }
 
   @Test
-  public void testHasPermissions_OrgContext_Authenticated() {
+  public void testValidatePermissions_OrgContext_Authenticated() {
     grantReadPermission(org.getId());
     grantWritePermission(org.getId());
     assertPermissions(OwnerType.ORGANIZATION, org.getId(), Permission.READ, Permission.WRITE);
   }
 
   @Test
-  public void testHasPermissions_AppContext_Unauthenticated() {
+  public void testValidatePermissions_PublicAppContext_NoPermission() {
+    assertThatThrownBy(() -> assertPublicAppPermissions(app.getPublicId(), NONE)).
+      isInstanceOf(BadRequestException.class).hasMessage("Must specify permissions to check.");
+  }
+
+  @Test
+  public void testValidatePermissions_PublicAppContext_Unauthenticated() {
+    assertPublicAppPermissions(app.getPublicId(), NONE);
+  }
+
+  @Test
+  public void testValidatePermissions_PublicAppContext_Authenticated() {
+    grantReadPermission(app.getPublicId());
+    grantWritePermission(app.getPublicId());
+    assertPublicAppPermissions(app.getPublicId(), Permission.READ, Permission.WRITE);
+  }
+
+  @Test
+  public void testValidatePermissions_AppContext_Unauthenticated() {
     assertPermissions(OwnerType.APPLICATION, app.getId(), NONE);
   }
 
   @Test
-  public void testHasPermissions_AppContext_Authenticated() {
+  public void testValidatePermissions_AppContext_Authenticated() {
     grantReadPermission(app.getId());
     grantWritePermission(app.getId());
     assertPermissions(OwnerType.APPLICATION, app.getId(), Permission.READ, Permission.WRITE);

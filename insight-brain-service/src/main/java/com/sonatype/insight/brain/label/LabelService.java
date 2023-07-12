@@ -173,7 +173,7 @@ public class LabelService
 
     ApplicableContext context = null;
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      if (!permissionService.hasPermissions(SecurityUtils.getSubject(), owner.getType(), owner.getId(),
+      if (!permissionService.validatePermission(SecurityUtils.getSubject(), owner.getType(), owner.getId(),
           Collections.singleton(Permission.WRITE)).contains(Permission.WRITE)) {
         break;
       }

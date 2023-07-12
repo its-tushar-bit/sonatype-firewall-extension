@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -35,6 +34,8 @@ public class PermissionResource
 
   public static final String OWNER_CONTEXT_PATH = "{ownerType: global|application|organization|repository}/{ownerId}";
 
+  public static final String PUBLIC_APPLICATION_ID_PATH = "application/publicId/{publicApplicationId}";
+
   public static final String SINGLETON_OWNER_CONTEXT_PATH = "{ownerType: repository_container}";
 
   private final PermissionService permissionService;
@@ -56,7 +57,19 @@ public class PermissionResource
       throw new BadRequestException("Must specify permissions to check.");
     }
 
-    return permissionService.hasPermissions(SecurityUtils.getSubject(), ownerType, ownerId, permissions);
+    return permissionService.validatePermission(SecurityUtils.getSubject(), ownerType, ownerId, permissions);
+  }
+
+  @PUT
+  @Path(PUBLIC_APPLICATION_ID_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Set<Permission> validatePermissionForPublicApplicationId(
+      @PathParam("publicApplicationId") final String publicApplicationId,
+      Set<Permission> permissions)
+  {
+    return permissionService.validatePermissionForPublicApplicationId(SecurityUtils.getSubject(), publicApplicationId,
+        permissions);
   }
 
   @PUT
@@ -64,7 +77,7 @@ public class PermissionResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Set<Permission> validatePermission(@PathParam("ownerType") final OwnerType ownerType,
-                                            Set<Permission> permissions)
+      Set<Permission> permissions)
   {
     return validatePermission(ownerType, RepositoryContainer.REPOSITORY_CONTAINER_ID, permissions);
   }

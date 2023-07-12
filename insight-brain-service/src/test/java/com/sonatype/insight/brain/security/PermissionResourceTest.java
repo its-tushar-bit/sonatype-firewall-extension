@@ -34,6 +34,10 @@ public class PermissionResourceTest
     return super.restRequest().path(PermissionResource.RESOURCE_PATH).auth(user);
   }
 
+  private HttpRequest validateRequest_PublicApplicationId(String publicApplicationId) {
+    return restRequest().path(PermissionResource.PUBLIC_APPLICATION_ID_PATH).parameter(OwnerType.APPLICATION, publicApplicationId);
+  }
+
   private HttpRequest validateRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(PermissionResource.OWNER_CONTEXT_PATH).parameter(ownerType, ownerId);
   }
@@ -53,6 +57,16 @@ public class PermissionResourceTest
   public void testValidatePermission_GlobalContext() throws Exception {
     HttpResponse response = validateRequest(OwnerType.GLOBAL, "global").body(
         EnumSet.of(Permission.READ, Permission.WRITE)).put();
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
+  }
+
+  @Test
+  public void testValidatePermission_PublicApplicationContext() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    HttpResponse response =
+      validateRequest_PublicApplicationId(app.getPublicId()).body(EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);
     assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
   }

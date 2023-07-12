@@ -35,14 +35,22 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -52,11 +60,27 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomCVSSVectorStringConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomRemediationConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCweConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
@@ -886,5 +910,200 @@ public class RepositoryPolicyEvaluatorTest
     List<RepositoryComponent> repositoryComponents = new RepositoryComponentDAO().getByRepositoryId(repository.getId());
 
     assertThat(repositoryComponents).hasSize(1);
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilityCweConditionType() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    String cweId = "500";
+    Condition condition = new Condition(SecurityVulnerabilityCweConditionType.ID, "is", cweId);
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+    securityVulnerability.setCwe(cweId);
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilityCweConditionType_CustomCwe() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    String svCweId = "500";
+    String customCweId = "600";
+    Condition condition = new Condition(SecurityVulnerabilityCweConditionType.ID, "is", customCweId);
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+    securityVulnerability.setCwe(svCweId);
+    VulnerabilityCustomCwe vulnerabilityCustomCwe = new VulnerabilityCustomCwe();
+    vulnerabilityCustomCwe.setOwnerId(repository.getId());
+    vulnerabilityCustomCwe.setRefId(securityVulnerability.getRefId());
+    vulnerabilityCustomCwe.setComponentIdentifier(componentIdentifier);
+    vulnerabilityCustomCwe.setLastUpdatedAt(new Date());
+    vulnerabilityCustomCwe.setLastUpdatedByUsername("testUser");
+    vulnerabilityCustomCwe.setCwe(customCweId);
+    new VulnerabilityCustomCweDAO().insert(vulnerabilityCustomCwe);
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilityStatusConditionType() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getId());
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+    tempEntity.newSecurityVulnerabilityOverride(repository.getId(), componentHash, securityVulnerability.getSource(),
+        securityVulnerability.getRefId(), SecurityVulnerabilityOverrideStatus.valueOf(condition.getValue()));
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilityCustomRemediationConditionType() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    Condition condition = new Condition(SecurityVulnerabilityCustomRemediationConditionType.ID, "exists",
+        "testRemediation");
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+    VulnerabilityCustomRemediation vulnerabilityCustomRemediation = new VulnerabilityCustomRemediation();
+    vulnerabilityCustomRemediation.setRemediation(condition.getValue());
+    vulnerabilityCustomRemediation.setRefId(securityVulnerability.getRefId());
+    vulnerabilityCustomRemediation.setOwnerId(repository.getId());
+    vulnerabilityCustomRemediation.setLastUpdatedByUsername("testUser");
+    new VulnerabilityCustomRemediationDAO().insert(vulnerabilityCustomRemediation);
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilityCustomCVSSVectorStringConditionType() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    Condition condition =
+        new Condition(SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID, "matches", "testCVSSVectorString");
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+    VulnerabilityCustomCvssVector customCvssVector = new VulnerabilityCustomCvssVector();
+    customCvssVector.setOwnerId(repository.getId());
+    customCvssVector.setRefId(securityVulnerability.getRefId());
+    customCvssVector.setComponentIdentifier(componentIdentifier);
+    customCvssVector.setLastUpdatedByUsername("testUser");
+    customCvssVector.setLastUpdatedAt(new Date());
+    customCvssVector.setVector(condition.getValue());
+    new VulnerabilityCustomCvssVectorDAO().insert(customCvssVector);
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilityCategoryConditionType() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    Condition condition = new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is",
+        SecurityVulnerabilityCategory.CONFIGURATION.getId());
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+    securityVulnerability
+        .setVulnerabilityCategories(Collections.singletonList(SecurityVulnerabilityCategory.CONFIGURATION.getId()));
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilitySeverityConditionType() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, "=", "5");
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilitySeverityConditionType_CustomSeverity() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    String customSeverity = "7";
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, "=", customSeverity);
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+    VulnerabilityCustomCvssSeverity vulnerabilityCustomCvssSeverity = new VulnerabilityCustomCvssSeverity();
+    vulnerabilityCustomCvssSeverity.setOwnerId(repository.getId());
+    vulnerabilityCustomCvssSeverity.setRefId(securityVulnerability.getRefId());
+    vulnerabilityCustomCvssSeverity.setLastUpdatedByUsername("testUser");
+    vulnerabilityCustomCvssSeverity.setSeverity(Float.valueOf(customSeverity));
+    new VulnerabilityCustomCvssSeverityDAO().insert(vulnerabilityCustomCvssSeverity);
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilitySourceConditionType() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    Condition condition = new Condition(SecurityVulnerabilitySourceConditionType.ID, "is", "sonatype");
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  @Test
+  public void testEvaluate_VulnerabilityGroupConditionType() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String componentHash = "testHash";
+    Condition condition = new Condition(VulnerabilityGroupConditionType.ID, "is", "testVulnerabilityGroupId");
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f);
+    VulnerabilityGroup vulnerabilityGroup = new VulnerabilityGroup("testGroupName", Organization.ROOT_ORGANIZATION_ID);
+    vulnerabilityGroup.setId(condition.getValue());
+    new VulnerabilityGroupDAO().insert(vulnerabilityGroup);
+    VulnerabilityGroupVulnerability vulnerabilityGroupVulnerability =
+        new VulnerabilityGroupVulnerability(vulnerabilityGroup.getId(), securityVulnerability.getRefId());
+    new VulnerabilityGroupVulnerabilityDAO().insert(vulnerabilityGroupVulnerability);
+
+    testEvaluate_SecurityCondition(repository, componentIdentifier, componentHash, condition, securityVulnerability);
+  }
+
+  private void testEvaluate_SecurityCondition(
+      Repository repository,
+      ComponentIdentifier componentIdentifier,
+      String componentHash,
+      Condition policyCondition,
+      SecurityVulnerability securityVulnerability)
+  {
+    String componentPath = "testPath";
+
+    Policy policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, 5 /* threatLevel */,
+        LogicalOperator.AND, policyCondition);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT;
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", componentPath, componentHash);
+    ComponentEvaluationData componentEvaluationData = createComponentEvaluationData(componentIdentifier, componentHash,
+        MatchState.EXACT, 0, null, null, Collections.singletonList(securityVulnerability), 1);
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+    hdsResult.components.add(componentEvaluationData);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,
+        null /* clientUserAgent */);
+
+    List<RepositoryPolicyViolation> policyViolations =
+        new RepositoryPolicyViolationDAO().getActiveByRepositoryIdAndPathname(repository.getId(), componentPath);
+
+    assertThat(policyViolations).hasSize(1);
+    RepositoryPolicyViolation policyViolation = policyViolations.get(0);
+    assertThat(policyViolation.getPolicyId()).isEqualTo(policy.getId());
   }
 }

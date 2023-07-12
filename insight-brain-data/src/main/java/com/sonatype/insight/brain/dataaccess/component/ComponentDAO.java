@@ -646,8 +646,11 @@ public class ComponentDAO
     }
 
     if (componentInfo.getSecurityVulnerabilities() != null) {
+      loadSecurityVulnerabilityCustomData();
+
       for (com.sonatype.clm.dto.model.SecurityVulnerability dtoSv : componentInfo.getSecurityVulnerabilities()) {
         SecurityVulnerability sv = new SecurityVulnerability(dtoSv.getSource(), dtoSv.getRefId(), dtoSv.getSeverity());
+        sv.setCwe(dtoSv.getCwe());
         if (dtoSv.getVulnerabilityCategories() != null) {
           for (String vulnCategory : dtoSv.getVulnerabilityCategories()) {
             sv.addVulnerabilityCategory(SecurityVulnerabilityCategory.getById(vulnCategory));
@@ -658,6 +661,7 @@ public class ComponentDAO
             sv.addAlias(alias);
           }
         }
+        fillSecurityVulnerabilityCustomData(component, sv);
         component.addSecurityVulnerability(sv);
       }
       loadSVOverrides(component);

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.component;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -17,9 +18,15 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCustomData;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -28,7 +35,12 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -387,5 +399,195 @@ public class ComponentDAOTest
     assertThat(customData.getCweId()).isEqualTo("123");
     assertThat(customData.getCvssVector()).isEqualTo("custom/vector");
     assertThat(customData.getCvssSeverity()).isEqualTo(4.4f);
+  }
+
+  @Test
+  public void testGetComponent_SecurityVulnerability() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("testRefId", "testSource", 7F);
+    securityVulnerability.setCwe("testCwe");
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getRefId()).isEqualTo(securityVulnerability.getRefId());
+    assertThat(foundSecurityVulnerability.getSource()).isEqualTo(securityVulnerability.getSource());
+    assertThat(foundSecurityVulnerability.getSeverity()).isEqualTo(securityVulnerability.getSeverity());
+    assertThat(foundSecurityVulnerability.getCwe()).isEqualTo(securityVulnerability.getCwe());
+    assertThat(foundSecurityVulnerability.getStatus()).isEqualTo(SecurityVulnerabilityOverrideStatus.OPEN);
+  }
+
+  @Test
+  public void testGetComponent_SecurityVulnerabilityOverride() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("testRefId", "testSource", 7F);
+    securityVulnerability.setCwe("testCwe");
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    SecurityVulnerabilityOverride svOverride =
+        new SecurityVulnerabilityOverride(application.getId(), COMP_HASH, securityVulnerability.getSource(),
+            securityVulnerability.getRefId(), SecurityVulnerabilityOverrideStatus.CONFIRMED, "comment");
+    new SecurityVulnerabilityOverrideDAO().insert(svOverride);
+
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getStatus()).isEqualTo(svOverride.getStatus());
+  }
+
+  @Test
+  public void testGetComponent_SecurityVulnerabilityCustomCwe() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("testRefId", "testSource", 7F);
+    securityVulnerability.setCwe("testCwe");
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    VulnerabilityCustomCwe vulnerabilityCustomCwe = new VulnerabilityCustomCwe();
+    vulnerabilityCustomCwe.setOwnerId(application.getId());
+    vulnerabilityCustomCwe.setRefId(securityVulnerability.getRefId());
+    vulnerabilityCustomCwe.setComponentIdentifier(matchedComponent.getComponentIdentifier());
+    vulnerabilityCustomCwe.setLastUpdatedAt(new Date());
+    vulnerabilityCustomCwe.setLastUpdatedByUsername("testUser");
+    vulnerabilityCustomCwe.setCwe("customCweId");
+    new VulnerabilityCustomCweDAO().insert(vulnerabilityCustomCwe);
+
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getCwe()).isEqualTo(securityVulnerability.getCwe());
+    assertThat(foundSecurityVulnerability.getSecurityVulnerabilityCustomData().getCweId())
+        .isEqualTo(vulnerabilityCustomCwe.getCwe());
+  }
+
+  @Test
+  public void testGetComponent_SecurityVulnerabilityCustomCVSSVectorString() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("testRefId", "testSource", 7F);
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    VulnerabilityCustomCvssVector customCvssVector = new VulnerabilityCustomCvssVector();
+    customCvssVector.setOwnerId(application.getId());
+    customCvssVector.setRefId(securityVulnerability.getRefId());
+    customCvssVector.setComponentIdentifier(matchedComponent.getComponentIdentifier());
+    customCvssVector.setLastUpdatedByUsername("testUser");
+    customCvssVector.setLastUpdatedAt(new Date());
+    customCvssVector.setVector("customVector");
+    new VulnerabilityCustomCvssVectorDAO().insert(customCvssVector);
+
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getVector()).isNull();
+    assertThat(foundSecurityVulnerability.getSecurityVulnerabilityCustomData().getCvssVector())
+        .isEqualTo(customCvssVector.getVector());
+  }
+
+  @Test
+  public void testGetComponent_SecurityVulnerabilityCustomSeverity() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("testRefId", "testSource", 7F);
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    VulnerabilityCustomCvssSeverity vulnerabilityCustomCvssSeverity = new VulnerabilityCustomCvssSeverity();
+    vulnerabilityCustomCvssSeverity.setOwnerId(application.getId());
+    vulnerabilityCustomCvssSeverity.setRefId(securityVulnerability.getRefId());
+    vulnerabilityCustomCvssSeverity.setLastUpdatedByUsername("testUser");
+    vulnerabilityCustomCvssSeverity.setSeverity(3F);
+    new VulnerabilityCustomCvssSeverityDAO().insert(vulnerabilityCustomCvssSeverity);
+
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getSeverity()).isEqualTo(securityVulnerability.getSeverity());
+    assertThat(foundSecurityVulnerability.getSecurityVulnerabilityCustomData().getCvssSeverity())
+        .isEqualTo(vulnerabilityCustomCvssSeverity.getSeverity());
+  }
+
+  @Test
+  public void testGetComponent_SecurityVulnerabilityCategory() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("testRefId", "testSource", 7F);
+    securityVulnerability
+        .setVulnerabilityCategories(Collections.singletonList(SecurityVulnerabilityCategory.CONFIGURATION.getId()));
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getVulnerabilityCategories())
+        .containsExactly(SecurityVulnerabilityCategory.CONFIGURATION);
+  }
+
+  @Test
+  public void testGetComponent_SecurityVulnerabilityAlias() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("testRefId", "testSource", 7F);
+    securityVulnerability.setAliases(Collections.singletonList("testAlias"));
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getAliases()).containsExactly("testAlias");
+  }
+
+  @Test
+  public void testGetComponent_SecurityVulnerabilityCustomRemediation() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("testRefId", "testSource", 7F);
+    VulnerabilityCustomRemediation vulnerabilityCustomRemediation = new VulnerabilityCustomRemediation();
+    vulnerabilityCustomRemediation.setRemediation("testRemediation");
+    vulnerabilityCustomRemediation.setRefId(securityVulnerability.getRefId());
+    vulnerabilityCustomRemediation.setOwnerId(application.getId());
+    vulnerabilityCustomRemediation.setLastUpdatedByUsername("testUser");
+    new VulnerabilityCustomRemediationDAO().insert(vulnerabilityCustomRemediation);
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = new ComponentDAO(application).getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getSecurityVulnerabilityCustomData().getRemediation())
+        .isEqualTo("testRemediation");
   }
 }

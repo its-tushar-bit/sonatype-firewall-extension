@@ -163,19 +163,25 @@ void pushMTIQDockerImage() {
         return
     }
 
-    String iqVersion = getMavenProjectVersion('.')
+    // Default version for the MTIQ image off the `main` branch is in the format 202307111354-1234-ABCDEFGH
 
-    // Default version for the MTIQ image off the `main` branch is in the format 1.123.0-1234
-    // - The 1.123.0 is the exact version from the pom.xml, minus any build suffix after the '-' such as '-SNAPSHOT'
-    // - The 1234 is the current Jenkins build number
-    String imageVersion = "${iqVersion.split("-")[0]}-${env.BUILD_NUMBER}"
+    // First part of MTIQ version number (202307111354 in the example) is an unformatted date up to the minute
+    def dateSection = new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone('UTC'))
 
-    // If we are on a feature branch (i.e. not `main`), then we use the branch name in the build as well,
+    // Second part of the MTIQ version number (1234 in the example) is the Jenkins snapshot build number
+    def buildNumSection = env.BUILD_NUMBER
+
+    // Third part of the MTIQ version number (ABCDEFGH in the example) is the Git short hash
+    def gitShortHashSection = env.GIT_COMMIT.take(8)
+
+    def imageVersion = "${dateSection}-${buildNumSection}-${gitShortHashSection}"
+
+    // If we are on a feature branch (i.e. not `main`), then we use the branch name in the version number
     // as well as prefixing it with `branch-` to allow for easy identification
     if (!isMainBuild) {
       // get branch name, max 20 characters
       String branch = gitBranch(env).replaceAll(/[^\w.-]/, '_').take(30)
-      imageVersion = "branch-${iqVersion.split("-")[0]}-${branch}-${env.BUILD_NUMBER}"
+      imageVersion = "branch-${branch}-${env.BUILD_NUMBER}"
     }
 
     echo "MTIQ image version: ${imageVersion}"

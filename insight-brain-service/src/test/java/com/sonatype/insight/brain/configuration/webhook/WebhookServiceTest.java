@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.configuration.webhook;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
@@ -21,7 +20,6 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.LicensedFeature;
-
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
@@ -63,6 +61,18 @@ public class WebhookServiceTest
     assertThat(webhook.getDescription()).isEqualTo(webhook1.getDescription());
     assertThat(webhook.getSecretKey()).isNull();
     assertThat(webhook.getEventTypes()).isNull();
+  }
+
+  @Test
+  public void testGetWaiverRequestWebhooks() {
+    tempEntity.newWebhookWithSecret("http://web.hook",
+        Collections.singleton(WebhookEventType.WAIVER_REQUEST), "test");
+    tempEntity.newWebhookWithSecret("http://web.hook.other",
+        Collections.singleton(WebhookEventType.WAIVER_REQUEST), "test 2");
+    tempEntity.newWebhook(Collections.singleton(WebhookEventType.POLICY_MANAGEMENT));
+
+    Long waiverRequestWebhooksCount = webhookService.getWaiverRequestWebhooksCountNoAuthz();
+    assertThat(waiverRequestWebhooksCount).isEqualTo(2);
   }
 
   @Test

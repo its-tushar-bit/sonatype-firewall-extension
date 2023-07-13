@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.configuration.webhook;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -43,6 +42,8 @@ public class WebhookResource
 
   static final String POLICY_NOTIFICATION_WEBHOOKS_PATH = "policy/{ownerType: application|organization}/{ownerId}";
 
+  public static final String WAIVER_REQUEST_WEBHOOKS_PATH = "waiverRequestCount";
+
   private final WebhookService webhookService;
 
   @Inject
@@ -61,6 +62,16 @@ public class WebhookResource
       @PathParam("ownerId") String ownerId)
   {
     return webhookService.getPolicyNotificationWebhooks(ownerType, ownerId);
+  }
+
+  /**
+   * @since 1.165
+   */
+  @GET
+  @Path(WAIVER_REQUEST_WEBHOOKS_PATH)
+  @Produces(MediaType.TEXT_PLAIN)
+  public Long getWaiverRequestWebhooksCount() {
+    return webhookService.getWaiverRequestWebhooksCountNoAuthz();
   }
 
   @GET

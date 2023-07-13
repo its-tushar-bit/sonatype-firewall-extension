@@ -7,8 +7,8 @@ import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-import { always, isEmpty } from 'ramda';
-import { getWebhooksUrl, saveRequestWaiverUrl } from 'MainRoot/util/CLMLocation';
+import { always, prop, isEmpty } from 'ramda';
+import { getWaiverRequestWebhooksCountUrl, saveRequestWaiverUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectViolationId } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectComments } from './requestWaiverSelectors';
@@ -31,8 +31,6 @@ export const initialState = {
     waiverRequestWebhookAvailable: false,
   },
 };
-
-const WAIVER_REQUEST_WEBHOOK_EVENT_TYPE = 'Waiver Request';
 
 const submitRequestWaiverRequested = (state) => {
   state.submitMaskState = false;
@@ -93,20 +91,13 @@ const getWaiverRequestWebhooksFailed = (state, { payload }) => {
 const getWaiverRequestWebhooksFulfilled = (state, { payload }) => {
   state.webhooks.loading = false;
   state.webhooks.error = null;
-  state.webhooks.waiverRequestWebhookAvailable = payload;
+  state.webhooks.waiverRequestWebhookAvailable = !!payload;
 };
 
 const getWaiverRequestWebhooks = createAsyncThunk(
   `${REDUCER_NAME}/getWaiverRequestWebhook`,
   (_, { rejectWithValue }) => {
-    return axios
-      .get(getWebhooksUrl())
-      .then(({ data }) => {
-        return Array.isArray(data) && data.length > 0
-          ? data.filter(({ eventTypes }) => eventTypes.includes(WAIVER_REQUEST_WEBHOOK_EVENT_TYPE))?.length > 0
-          : false;
-      })
-      .catch(rejectWithValue);
+    return axios.get(getWaiverRequestWebhooksCountUrl()).then(prop('data')).catch(rejectWithValue);
   }
 );
 

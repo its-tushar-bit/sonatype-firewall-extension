@@ -770,6 +770,10 @@ export function getWebhooksUrl() {
   return uriTemplate`/rest/config/webhook`;
 }
 
+export function getWaiverRequestWebhooksCountUrl() {
+  return uriTemplate`/rest/config/webhook/waiverRequestCount`;
+}
+
 export function deleteWebhooksUrl(webhookId) {
   return uriTemplate`/rest/config/webhook/${webhookId}`;
 }

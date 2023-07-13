@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.LicensedFeature;
-
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
@@ -77,6 +75,11 @@ public class WebhookService
       }
     }
     return result;
+  }
+
+  Long getWaiverRequestWebhooksCountNoAuthz() {
+    return getAll_Unauthorized().stream()
+        .filter(webhook -> webhook.getEventTypes().contains(WebhookEventType.WAIVER_REQUEST)).count();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

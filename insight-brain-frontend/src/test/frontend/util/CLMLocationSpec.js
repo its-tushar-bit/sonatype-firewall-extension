@@ -1273,4 +1273,12 @@ describe('CLMLocation.js', function () {
       );
     });
   });
+
+  describe('getWaiverRequestWebhooksCountUrl', () => {
+    it('returns the url for the internal endpoint for getting the ids of waiver request webhooks', () => {
+      const expectedUrl = '/rest/config/webhook/waiverRequestCount';
+
+      expect(clmLocation.getWaiverRequestWebhooksCountUrl()).toEqual(expectedUrl);
+    });
+  });
 });

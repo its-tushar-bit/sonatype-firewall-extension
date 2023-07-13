@@ -12,7 +12,7 @@ import {
   getApplicationSummaryUrl,
   getPermissionContextTestUrl,
   saveRequestWaiverUrl,
-  getWebhooksUrl,
+  getWaiverRequestWebhooksCountUrl,
 } from 'MainRoot/util/CLMLocation';
 import { clone } from 'ramda';
 import { initialState } from 'MainRoot/waivers/requestWaiverSlice';
@@ -228,19 +228,11 @@ describe('RequestWaiverPage', function () {
 
   describe('waiver request webhook', () => {
     function mockWaiverRequestWebhook() {
-      mock.onGet(getWebhooksUrl()).reply(200, [
-        {
-          id: '4b2fcc867cb04f1192d1bf3d80081996',
-          url: 'https://my-awesome-webhook.com/webhook',
-          secretKey: '#~FAKE~SECRET~KEY~#',
-          description: '',
-          eventTypes: ['Waiver Request'],
-        },
-      ]);
+      mock.onGet(getWaiverRequestWebhooksCountUrl()).reply(200, 1);
     }
 
     it('sumbit button should be disabled and error is displayed if endpoint fails', async () => {
-      mock.onGet(getWebhooksUrl()).reply(500, 'Error message');
+      mock.onGet(getWaiverRequestWebhooksCountUrl()).reply(500, 'Error message');
 
       renderComponent(defaultPreloadedState);
       const waiverRequestWebhookError = await screen.findByRole('alert');
@@ -250,7 +242,7 @@ describe('RequestWaiverPage', function () {
     });
 
     it('sumbit button should be disabled and alert is displayed', async () => {
-      mock.onGet(getWebhooksUrl()).reply(200, []);
+      mock.onGet(getWaiverRequestWebhooksCountUrl()).reply(200, 0);
 
       renderComponent(defaultPreloadedState);
       const waiverRequestWebhookAlert = await screen.findByText(

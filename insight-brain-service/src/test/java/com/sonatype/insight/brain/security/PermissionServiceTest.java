@@ -30,8 +30,8 @@ public class PermissionServiceTest
   private static final Permission[] NONE = {};
 
   private void assertPublicAppPermissions(String publicApplicationId, Permission... expected) {
-    assertThat(service.validatePermissionForPublicApplicationId(subject, publicApplicationId, EnumSet.allOf(Permission.class)))
-        .containsExactlyInAnyOrder(expected);
+    assertThat(service.validatePermissionForPublicApplicationId(subject, publicApplicationId,
+      EnumSet.allOf(Permission.class))).containsExactlyInAnyOrder(expected);
   }
 
   private void assertPermissions(OwnerType ownerType, String ownerId, Permission... expected) {
@@ -87,8 +87,8 @@ public class PermissionServiceTest
 
   @Test
   public void testValidatePermissions_PublicAppContext_NoPermission() {
-    assertThatThrownBy(() -> assertPublicAppPermissions(app.getPublicId(), NONE)).
-      isInstanceOf(BadRequestException.class).hasMessage("Must specify permissions to check.");
+    assertThatThrownBy(() -> assertPublicAppPermissions(app.getPublicId(), NONE))
+      .isInstanceOf(BadRequestException.class).hasMessage("Must specify permissions to check.");
   }
 
   @Test

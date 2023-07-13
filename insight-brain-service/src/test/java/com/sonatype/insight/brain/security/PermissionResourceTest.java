@@ -35,7 +35,8 @@ public class PermissionResourceTest
   }
 
   private HttpRequest validateRequest_PublicApplicationId(String publicApplicationId) {
-    return restRequest().path(PermissionResource.PUBLIC_APPLICATION_ID_PATH).parameter(OwnerType.APPLICATION, publicApplicationId);
+    return restRequest().path(PermissionResource.PUBLIC_APPLICATION_ID_PATH).parameter(OwnerType.APPLICATION,
+      publicApplicationId);
   }
 
   private HttpRequest validateRequest(OwnerType ownerType, String ownerId) {
@@ -66,7 +67,8 @@ public class PermissionResourceTest
     Application app = tempEntity.newApplicationWithParent();
 
     HttpResponse response =
-      validateRequest_PublicApplicationId(app.getPublicId()).body(EnumSet.of(Permission.READ, Permission.WRITE)).put();
+        validateRequest_PublicApplicationId(app.getPublicId()).body(EnumSet.of(Permission.READ, Permission.WRITE))
+          .put();
     assertResponseStatus(200, response);
     assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
   }

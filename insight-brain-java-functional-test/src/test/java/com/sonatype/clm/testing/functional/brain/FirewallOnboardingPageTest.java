@@ -248,23 +248,23 @@ public class FirewallOnboardingPageTest
       page.continueButton().shouldBe(visible);
       page.previousButton().shouldNotBe(visible);
       page.launchFirewallButton().shouldNotBe(visible);
-      page.selectedStepShouldBe("1. Enable rules");
+      page.selectedStepShouldBe("1. Protection Rules Selection");
 
       page.continueButton().click();
       page.continueButton().shouldBe(visible);
       page.previousButton().shouldBe(visible);
       page.launchFirewallButton().shouldNotBe(visible);
-      page.selectedStepShouldBe("2. Select");
+      page.selectedStepShouldBe("2. Enabling Protection (open source components)");
 
       page.continueButton().click();
       page.continueButton().shouldBe(visible);
       page.previousButton().shouldBe(visible);
       page.launchFirewallButton().shouldNotBe(visible);
-      page.selectedStepShouldBe("3. Select");
+      page.selectedStepShouldBe("3. Enabling Protection (proprietary components)");
 
       page.continueButton().shouldBe(visible);
       page.continueButton().click();
-      page.selectedStepShouldBe("4. Protect");
+      page.selectedStepShouldBe("4. Review");
       page.previousButton().shouldBe(visible);
       page.continueButton().shouldNotBe(visible);
       page.launchFirewallButton().shouldBe(visible);

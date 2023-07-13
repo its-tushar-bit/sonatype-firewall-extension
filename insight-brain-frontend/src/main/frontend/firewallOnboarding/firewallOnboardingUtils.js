@@ -34,25 +34,25 @@ export const stepsIds = {
 const rules = {
   id: stepsIds.RULES,
   index: 0,
-  name: 'Enable rules',
+  name: 'Protection Rules Selection',
   title: 'Select your protection rules',
 };
 const selectProxy = {
   id: stepsIds.SELECT_PROXY,
   index: 1,
-  name: 'Select',
+  name: 'Enabling Protection (open source components)',
   title: 'Select proxy repositories',
 };
 const selectHosted = {
   id: stepsIds.SELECT_HOSTED,
   index: 2,
-  name: 'Select',
+  name: 'Enabling Protection (proprietary components)',
   title: 'Select hosted repositories',
 };
 const protect = {
   id: stepsIds.PROTECT,
   index: 3,
-  name: 'Protect',
+  name: 'Review',
   title: 'Inspect and complete onboarding',
 };
 

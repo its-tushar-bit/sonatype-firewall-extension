@@ -35,8 +35,7 @@ public class PermissionResourceTest
   }
 
   private HttpRequest validateRequest_PublicApplicationId(String publicApplicationId) {
-    return restRequest().path(PermissionResource.PUBLIC_APPLICATION_ID_PATH).parameter(OwnerType.APPLICATION,
-      publicApplicationId);
+    return restRequest().path(PermissionResource.PUBLIC_APPLICATION_ID_PATH).parameter(publicApplicationId);
   }
 
   private HttpRequest validateRequest(OwnerType ownerType, String ownerId) {

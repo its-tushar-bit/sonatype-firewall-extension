@@ -5,16 +5,18 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
 
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
@@ -29,9 +31,16 @@ public class PermissionServiceTest
 
   private static final Permission[] NONE = {};
 
+  private static final HashSet<Permission> NONE_SET = new HashSet<Permission>(Arrays.asList(NONE));
+
+  private void assertPublicAppPermissionsNone(String publicApplicationId) {
+    assertThat(service.validatePermissionForPublicApplicationId(subject, publicApplicationId, NONE_SET))
+        .containsExactlyInAnyOrder(NONE);
+  }
+
   private void assertPublicAppPermissions(String publicApplicationId, Permission... expected) {
     assertThat(service.validatePermissionForPublicApplicationId(subject, publicApplicationId,
-      EnumSet.allOf(Permission.class))).containsExactlyInAnyOrder(expected);
+        EnumSet.allOf(Permission.class))).containsExactlyInAnyOrder(expected);
   }
 
   private void assertPermissions(OwnerType ownerType, String ownerId, Permission... expected) {
@@ -87,7 +96,7 @@ public class PermissionServiceTest
 
   @Test
   public void testValidatePermissions_PublicAppContext_NoPermission() {
-    assertThatThrownBy(() -> assertPublicAppPermissions(app.getPublicId(), NONE))
+    assertThatThrownBy(() -> assertPublicAppPermissionsNone(app.getPublicId()))
       .isInstanceOf(BadRequestException.class).hasMessage("Must specify permissions to check.");
   }
 
@@ -98,8 +107,8 @@ public class PermissionServiceTest
 
   @Test
   public void testValidatePermissions_PublicAppContext_Authenticated() {
-    grantReadPermission(app.getPublicId());
-    grantWritePermission(app.getPublicId());
+    grantReadPermission(app.getId());
+    grantWritePermission(app.getId());
     assertPublicAppPermissions(app.getPublicId(), Permission.READ, Permission.WRITE);
   }
 

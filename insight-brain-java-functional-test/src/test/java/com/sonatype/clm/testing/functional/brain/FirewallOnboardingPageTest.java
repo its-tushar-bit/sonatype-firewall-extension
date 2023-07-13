@@ -18,12 +18,16 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FirewallRepositoryList;
 import com.sonatype.clm.testing.functional.elements.FirewallRepositoryList.HeaderColumn;
+import com.sonatype.clm.testing.functional.elements.HelpMenu;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallOnboardingPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
+import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
@@ -35,6 +39,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.Condition;
@@ -181,6 +186,29 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
+  public void testClickingSidebarNavigationLifeCycleLogoIsInterceptedOpensIncompleteConfigurationModal() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.incompleteConfigurationModal().shouldNotBe(visible);    
+
+    SidebarNavigation.container().shouldBe(visible);
+    SidebarNavigation.openNavigationSidebar();
+    SidebarNavigation.productInfoLink().click();
+    page.incompleteConfigurationModal().shouldBe(visible);
+
+    page.incompleteConfigurationModal().cancelButton().click();
+    page.incompleteConfigurationModal().shouldNotBe(visible);
+
+    page.shouldBe(visible);
+
+    SidebarNavigation.productInfoLink().click();
+    page.incompleteConfigurationModal().continueButton().click();
+
+    waitUntilUrl(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldBe(visible);
+  }
+
+  @Test
   public void testClickingSidebarNavigationOpensIncompleteConfigurationModalOnOnboardingScreen() {
     refreshOrOpen(FirewallOnboardingPage.url());
 
@@ -203,6 +231,58 @@ public class FirewallOnboardingPageTest
 
     waitUntilUrl(DashboardPage.url());
     DashboardPage.dashboardContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testMainHeaderHelpMenuItemIsInterceptedAndOpensIncompleteConfigurationModal() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.incompleteConfigurationModal().shouldNotBe(visible);
+
+    HelpMenu help = MainHeader.helpMenu();
+
+    help.dropdownToggle().click();
+    help.gettingStartedLink().shouldBe(visible).click();
+
+    page.incompleteConfigurationModal().shouldBe(visible);
+    page.incompleteConfigurationModal().cancelButton().click();
+    page.incompleteConfigurationModal().shouldNotBe(visible);
+    page.shouldBe(visible);
+
+    help.dropdownToggle().click();
+    help.gettingStartedLink().shouldBe(visible).click();
+
+    page.incompleteConfigurationModal().shouldBe(visible);
+    page.incompleteConfigurationModal().continueButton().click();
+
+    waitUntilUrl(GettingStartedPage.url());
+    new GettingStartedPage().shouldBe(visible);
+  }
+
+  @Test
+  public void testMainHeaderSystemPreferenceItemIsInterceptedAndOpensIncompleteConfigurationModal() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.incompleteConfigurationModal().shouldNotBe(visible);
+
+    SystemConfigMenu sysConfigMenu = MainHeader.systemConfigMenu();
+
+    sysConfigMenu.dropdownToggle().click();
+    sysConfigMenu.users().shouldBe(visible).click();
+
+    page.incompleteConfigurationModal().shouldBe(visible);
+    page.incompleteConfigurationModal().cancelButton().click();
+    page.incompleteConfigurationModal().shouldNotBe(visible);
+    page.shouldBe(visible);
+
+    sysConfigMenu.dropdownToggle().click();
+    sysConfigMenu.users().shouldBe(visible).click();
+
+    page.incompleteConfigurationModal().shouldBe(visible);
+    page.incompleteConfigurationModal().continueButton().click();
+
+    waitUntilUrl(UserManagementPage.url());
+    new UserManagementPage().shouldBe(visible);
   }
 
   @Test

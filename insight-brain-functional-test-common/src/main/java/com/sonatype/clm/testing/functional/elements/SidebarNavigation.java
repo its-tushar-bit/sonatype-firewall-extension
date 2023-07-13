@@ -27,6 +27,10 @@ public class SidebarNavigation
     return $(".nx-global-sidebar__logo");
   }
 
+  public static SelenideElement productInfoLink() {
+    return $(".nx-global-sidebar__product-info");
+  }
+
   public static SelenideElement toggleNavigationButton() {
     return $(".nx-global-sidebar__toggle");
   }

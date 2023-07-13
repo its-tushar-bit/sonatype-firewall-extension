@@ -13,7 +13,7 @@ import IncompleteConfigurationModal from './IncompleteConfigurationModal';
 import WelcomeScreen from './WelcomeScreen';
 import OnboardingScreen from './OnboardingScreen';
 import { selectShowWelcomeScreen } from './firewallOnboardingSelectors';
-import { setLeftNavigationOpen } from '../util/preferenceStore';
+import { setLeftNavigationOpen, isLeftNavigationOpen } from '../util/preferenceStore';
 import { actions } from './firewallOnboardingSlice';
 
 export default function FirewallOnboardingPage() {
@@ -22,20 +22,22 @@ export default function FirewallOnboardingPage() {
   const showWelcomeScreen = useSelector(selectShowWelcomeScreen);
 
   useEffect(() => {
-    setLeftNavigationOpen(false);
-
-    const globalSidebarEl = document.querySelector('.nx-global-sidebar');
+    if (isLeftNavigationOpen()) {
+      setLeftNavigationOpen(false);
+    }
 
     const captureClick = (event) => {
       const anchorEl = event.target.closest('a');
-      if (anchorEl) {
+      const targetIsInsideOnboardingPageContainer = !!event.target.closest('.firewall-onboarding-page');
+      if (!targetIsInsideOnboardingPageContainer && anchorEl && anchorEl.href) {
         event.preventDefault();
+        event.stopImmediatePropagation();
         openIncompleteConfigurationModal(anchorEl.href);
       }
     };
 
-    globalSidebarEl?.addEventListener('click', captureClick);
-    return () => globalSidebarEl?.removeEventListener('click', captureClick);
+    document.addEventListener('click', captureClick, true);
+    return () => document.removeEventListener('click', captureClick, true);
   }, []);
 
   return (

@@ -11,19 +11,21 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Application;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.jaxrs2.Reader;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.WordUtils;
@@ -40,10 +42,17 @@ public class ApiEndpointsService
   // Visible for testing
   public static final EnumMap<ApiType, String> OPEN_API_JSON_BY_API_TYPE = new EnumMap<>(ApiType.class);
 
+  public final VersionService versionService;
+
+  @Inject
+  public ApiEndpointsService(VersionService versionService) {
+    this.versionService = versionService;
+  }
+
   public String getOpenAPI(Application application, ApiType apiType) {
     checkApiPageEnabled();
     return OPEN_API_JSON_BY_API_TYPE.computeIfAbsent(apiType,
-        key -> toJson(createOpenAPI(application, apiType.getPathPrefix())));
+        key -> toJson(createOpenAPI(application, apiType)));
   }
 
   private void checkApiPageEnabled() {
@@ -53,7 +62,7 @@ public class ApiEndpointsService
     }
   }
 
-  private OpenAPI createOpenAPI(Application application, String pathPrefix) {
+  private OpenAPI createOpenAPI(Application application, ApiType apiType) {
     OpenAPI openAPI = new Reader().read(
         Stream.concat(
                 application.getClasses().stream(),
@@ -61,13 +70,13 @@ public class ApiEndpointsService
             )
             .map(Resource::from)
             .filter(Objects::nonNull)
-            .filter(resource -> resource.getPath().startsWith(pathPrefix.substring(1)))
+            .filter(resource -> resource.getPath().startsWith(apiType.getPathPrefix().substring(1)))
             .flatMap(resource -> resource.getHandlerClasses().stream())
             .collect(Collectors.toSet()));
     SortedSet<String> tags = new TreeSet<>();
     if (openAPI.getPaths() != null) {
       openAPI.getPaths().forEach((key, pathItem) -> {
-        String tag = createTag(key, pathPrefix);
+        String tag = createTag(key, apiType.getPathPrefix());
         pathItem.readOperations().forEach(operation -> {
           if (CollectionUtils.isEmpty(operation.getTags())) {
             operation.addTagsItem(tag);
@@ -77,6 +86,10 @@ public class ApiEndpointsService
       });
     }
     tags.forEach(tag -> addTagToOpenAPI(tag, openAPI));
+    Info info = new Info();
+    info.setTitle(String.format("Sonatype Lifecycle %s REST API", StringUtils.capitalize(apiType.toString())));
+    info.setVersion(versionService.getVersion());
+    openAPI.setInfo(info);
     return openAPI;
   }
 

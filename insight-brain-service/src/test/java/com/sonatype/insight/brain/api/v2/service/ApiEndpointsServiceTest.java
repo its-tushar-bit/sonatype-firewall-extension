@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -21,7 +20,9 @@ import javax.ws.rs.core.Application;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.version.VersionService;
 
+import com.google.inject.Binder;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -39,16 +40,28 @@ import static org.mockito.Mockito.when;
 public class ApiEndpointsServiceTest
     extends AbstractComponentTest
 {
+  private static final String MOCK_VERSION = "1.165.0-01";
+
   @Inject
   private ApiEndpointsService apiEndpointsService;
 
   @Mock
   private Application mockApplication;
 
+  @Mock
+  private VersionService mockVersionService;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(VersionService.class).toInstance(mockVersionService);
+    super.configure(binder);
+  }
+
   @Before
   public void before() {
     SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
     ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE.clear();
+    when(mockVersionService.getVersion()).thenReturn(MOCK_VERSION);
   }
 
   @After
@@ -61,7 +74,7 @@ public class ApiEndpointsServiceTest
     setupApplicationClasses();
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
-    assertEndpoints(result, "/api/v2/ApiEndpointsServiceTestPublicResource",
+    assertEndpoints(result, ApiType.PUBLIC, "/api/v2/ApiEndpointsServiceTestPublicResource",
         "Api Endpoints Service Test Public Resource");
     assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.PUBLIC);
   }
@@ -71,7 +84,7 @@ public class ApiEndpointsServiceTest
     setupApplicationClasses();
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.EXPERIMENTAL);
 
-    assertEndpoints(result, "/api/experimental/ApiEndpointsServiceTestExperimentalResource",
+    assertEndpoints(result, ApiType.EXPERIMENTAL, "/api/experimental/ApiEndpointsServiceTestExperimentalResource",
         "Api Endpoints Service Test Experimental Resource");
     assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.EXPERIMENTAL);
   }
@@ -92,10 +105,29 @@ public class ApiEndpointsServiceTest
     assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.PUBLIC);
   }
 
-  private void assertEndpoints(String result, String expectedEndpoint, String expectedTag) throws Exception {
+  private void assertEndpoints(String result, ApiType expectedApiType, String expectedEndpoint, String expectedTag)
+      throws Exception
+  {
     assertThat(result).isNotBlank();
     OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
     assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getInfo()).isNotNull();
+    String expectedTitle = null;
+    switch (expectedApiType) {
+      case PUBLIC: {
+        expectedTitle = "Sonatype Lifecycle Public REST API";
+        break;
+      }
+      case EXPERIMENTAL: {
+        expectedTitle = "Sonatype Lifecycle Experimental REST API";
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    assertThat(openAPI.getInfo().getTitle()).isEqualTo(expectedTitle);
+    assertThat(openAPI.getInfo().getVersion()).isEqualTo(MOCK_VERSION);
     assertThat(openAPI.getTags()).hasSize(1);
     assertThat(openAPI.getPaths()).hasSize(2);
     assertEndpoint(openAPI, expectedEndpoint, expectedTag, HttpMethod.GET,

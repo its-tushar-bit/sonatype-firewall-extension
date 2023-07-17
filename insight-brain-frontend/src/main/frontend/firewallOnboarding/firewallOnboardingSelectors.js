@@ -21,7 +21,7 @@ export const selectUnconfiguredRepoManager = createSelector(
   (unconfiguredRepoManagers) => {
     // return the first repo manager if there is any until we
     // can give support for multiples unconfigured repo managers
-    return unconfiguredRepoManagers.repoManagers[0] ?? null;
+    return unconfiguredRepoManagers.repoManagers?.[0] ?? null;
   }
 );
 export const selectIncompleteConfigurationModal = createSelector(

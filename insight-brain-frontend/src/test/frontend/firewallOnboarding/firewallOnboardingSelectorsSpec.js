@@ -108,6 +108,18 @@ describe('FirewallOnboardingSelectors', () => {
 
       expect(actualSelection).toBe(slice.repoManagers[0]);
     });
+
+    it('selects null when no unconfigured repositories managers present', () => {
+      const slice = {
+        repoManagers: undefined,
+        loading: false,
+        loadError: null,
+      };
+
+      const actualSelection = selectUnconfiguredRepoManager.resultFunc(slice);
+
+      expect(actualSelection).toBe(null);
+    });
   });
 
   describe('selectRepositories', () => {

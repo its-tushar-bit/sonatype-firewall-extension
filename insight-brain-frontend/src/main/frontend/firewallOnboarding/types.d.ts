@@ -16,6 +16,16 @@ export type Repository = {
   format: string;
 };
 
+export type RepositoryManager = {
+  id: string;
+  instanceId: string;
+  userAgent: string;
+  configured: boolean;
+  configureTime?: string;
+  name?: string;
+  nameLowercaseNoWhitespace?: string;
+};
+
 export type FirewallOnboardingState = {
   incompleteConfigurationModal: {
     showModal: boolean;
@@ -33,7 +43,7 @@ export type FirewallOnboardingState = {
     list: Repository[];
   };
   unconfiguredRepoManagers: {
-    repoManagers: any[];
+    repoManagers: RepositoryManager[] | undefined;
     loading: boolean;
     loadError: any;
   };

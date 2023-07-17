@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantMigrator;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.ConfiguredCommand;
@@ -33,8 +32,7 @@ public class MtiqDbMigrationCommand
   @Override
   public void onError(Cli cli, Namespace namespace, Throwable t) {
     // throw up to let our main() method do the desired error logging/handling
-    String message = String.format("Error trying to migrate the database for tenant: %s. Error: %s.",
-        TenantThreadLocal.getTenant().databaseSchema, t.getMessage());
+    String message = "Error running tenant database migrations.";
     log.error(message, t);
     throw new IllegalStateException(message, t);
   }

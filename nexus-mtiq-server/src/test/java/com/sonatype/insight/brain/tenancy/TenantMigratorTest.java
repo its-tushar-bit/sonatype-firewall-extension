@@ -13,6 +13,8 @@ import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.service.DatabaseConfigProvider;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.test.LogOutput;
@@ -26,7 +28,9 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -80,6 +84,26 @@ public class TenantMigratorTest
       runMigrateAllSchemas(Arrays.asList("t_tenant_1", "global", "public", "postgres"));
 
       assertMigrationExecutedForTheExpectedNumberOfTenants(1);
+    });
+  }
+
+  @Test
+  public void shouldThrowError_withTenantName_whenTenantMigrationThrows() {
+    testAsGlobalTenant(global -> {
+      List<String> expectedSchemaList = Arrays.asList("t_tenant_1", "global");
+
+      when(operationalDataStore.getDataSource()).thenReturn(dataSource);
+      OperationalDataStoreProvider.setInstance(operationalDataStore);
+
+      try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
+        dataBaseUtil.when(() -> DatabaseUtil.getSchemasList(dataSource)).thenReturn(expectedSchemaList);
+
+        doThrow(new RuntimeException()).when(databaseProvisionUtils)
+            .initializeDatabases(any(InsightConfig.class), any(DatabaseConfigProvider.class));
+
+        assertThatThrownBy(underTest::migrateAllSchemas).isInstanceOf(
+            RuntimeException.class).hasMessage("Error trying to migrate the database for tenant: tenant-1.");
+      }
     });
   }
 

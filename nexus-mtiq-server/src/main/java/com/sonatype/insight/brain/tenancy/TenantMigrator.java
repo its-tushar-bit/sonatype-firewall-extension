@@ -57,9 +57,16 @@ public class TenantMigrator
     for (Tenant tenant : tenants) {
       Integer finalIndex = index;
       runAs(tenant, () -> {
-        log.info("Running database migrations {} of {}. Processing tenant: {}", finalIndex, tenants.size(),
-            TenantThreadLocal.getTenant().databaseSchema);
-        migrateSchema();
+        try {
+          log.info("Running database migrations {} of {}. Processing tenant: {}", finalIndex, tenants.size(),
+              TenantThreadLocal.getTenant().databaseSchema);
+          migrateSchema();
+        }
+        catch (Exception e) {
+          String message = String.format("Error trying to migrate the database for tenant: %s.",
+              TenantThreadLocal.getTenant().tenantSlug);
+          throw new IllegalStateException(message, e);
+        }
         tenant.invalidate();
         return null;
       });

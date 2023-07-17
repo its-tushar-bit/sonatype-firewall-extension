@@ -54,8 +54,7 @@ public class MtiqDbMigrationCommandTest
   public void testOnError() {
     testAsNewTenant(tenant -> {
       assertThatThrownBy(() -> mtiqDbMigrationCommand.onError(null, null, new Exception("Error"))).isInstanceOf(
-          IllegalStateException.class).hasMessage(
-          String.format("Error trying to migrate the database for tenant: %s. Error: Error.", tenant.databaseSchema));
+          IllegalStateException.class).hasMessage("Error running tenant database migrations.");
     });
   }
 

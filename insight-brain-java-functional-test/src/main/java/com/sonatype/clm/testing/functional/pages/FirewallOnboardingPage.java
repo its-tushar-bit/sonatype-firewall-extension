@@ -115,8 +115,12 @@ public class FirewallOnboardingPage
     return Condition.text("Select your protection rules");
   }
 
+  public static Condition proxyRepositoriesSelectorNoProtectionRulesTitle() {
+    return Condition.text("You have not enabled recommended protection");
+  }
+
   public static Condition proxyRepositoriesSelectorTitle() {
-    return Condition.text("Select proxy repositories");
+    return Condition.text("Enable protection from malicious components");
   }
 
   public Button closeButton() {

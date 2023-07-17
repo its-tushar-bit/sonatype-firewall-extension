@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
 import {
   filter,
   groupBy,
@@ -18,7 +19,11 @@ import {
   drop,
   flatten,
   includes,
+  cond,
+  equals,
+  always,
 } from 'ramda';
+import { NxTextLink } from '@sonatype/react-shared-components';
 
 /**
  * @typedef {import('./types').Repository} Repository
@@ -35,25 +40,21 @@ const rules = {
   id: stepsIds.RULES,
   index: 0,
   name: 'Protection Rules Selection',
-  title: 'Select your protection rules',
 };
 const selectProxy = {
   id: stepsIds.SELECT_PROXY,
   index: 1,
   name: 'Enabling Protection (open source components)',
-  title: 'Select proxy repositories',
 };
 const selectHosted = {
   id: stepsIds.SELECT_HOSTED,
   index: 2,
   name: 'Enabling Protection (proprietary components)',
-  title: 'Select hosted repositories',
 };
 const protect = {
   id: stepsIds.PROTECT,
   index: 3,
   name: 'Review',
-  title: 'Inspect and complete onboarding',
 };
 
 export const steps = [rules, selectProxy, selectHosted, protect];
@@ -144,4 +145,86 @@ export const updateRepositories = (repositoriesList, updateRepositories) => {
     }
     return repository;
   });
+};
+
+/**
+ * @param {Boolean} supplyChainAttacksProtectionEnabled
+ * @param {Boolean} namespaceConfusionProtectionEnabled
+ * @returns {String}
+ */
+const getProxyPageTitle = (supplyChainAttacksProtectionEnabled, namespaceConfusionProtectionEnabled) =>
+  !supplyChainAttacksProtectionEnabled && !namespaceConfusionProtectionEnabled
+    ? 'You have not enabled recommended protection'
+    : 'Enable protection from malicious components';
+
+/**
+ * @param {Boolean} supplyChainAttacksProtectionEnabled
+ * @param {Boolean} namespaceConfusionProtectionEnabled
+ * @returns {String}
+ */
+const getProxyPageSubtitle = (supplyChainAttacksProtectionEnabled, namespaceConfusionProtectionEnabled) =>
+  cond([
+    [
+      equals([true, true]),
+      always(
+        'The selected proxy repositories will have supply chain attacks protection and namespace confusion protection enabled.'
+      ),
+    ],
+    [
+      equals([true, false]),
+      always(
+        'The selected proxy repositories will have supply chain attacks protection enabled. You can also enable namespace confusion protection by going back to the previous step.'
+      ),
+    ],
+    [
+      equals([false, true]),
+      always(
+        'The selected proxy repositories will have namespace confusion protection enabled. You can also enable supply chain attacks protection by going back to the previous step.'
+      ),
+    ],
+    [
+      equals([false, false]),
+      always(
+        'The selected proxy repositories will not have supply chain attacks protection or namespace confusion protection enabled. You can enable protection by going back to the previous step.'
+      ),
+    ],
+  ])([supplyChainAttacksProtectionEnabled, namespaceConfusionProtectionEnabled]);
+
+const NAMESPACE_CONFUSION_PROTECTION_URL = 'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
+
+const getHostedPageTitle = () => 'Protect your internal components from namespace attacks';
+
+/**
+ * @param {Boolean} namespaceConfusionProtectionEnabled
+ * @returns {React.ReactNode}
+ */
+const getHostedPageSubtitle = (_, namespaceConfusionProtectionEnabled) =>
+  namespaceConfusionProtectionEnabled ? (
+    <>
+      The component names from the selected hosted repositories will be used to protect against{' '}
+      <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
+        namespace confusion
+      </NxTextLink>{' '}
+      attacks against your hosted repositories.
+    </>
+  ) : (
+    <>
+      The component names from the selected hosted repositories will not be used to protect against{' '}
+      <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
+        namespace confusion
+      </NxTextLink>{' '}
+      attacks against your hosted repositories. You can enable namespace confusion protection by going back to the
+      previous step.
+    </>
+  );
+
+export const getRepoPageTitleByFormat = {
+  proxy: {
+    title: getProxyPageTitle,
+    subtitle: getProxyPageSubtitle,
+  },
+  hosted: {
+    title: getHostedPageTitle,
+    subtitle: getHostedPageSubtitle,
+  },
 };

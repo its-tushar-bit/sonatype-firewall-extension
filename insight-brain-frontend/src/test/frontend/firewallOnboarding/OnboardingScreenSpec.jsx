@@ -46,12 +46,11 @@ describe('FirewallOnboardingPage', function () {
   });
 
   steps.forEach((currentStep) => {
-    it(`renders ${currentStep.title} page with the correct text`, () => {
+    it(`renders ${currentStep.name} page with the correct text`, () => {
       firewallOnboardingPreloadedState.firewallOnboarding.currentStep = currentStep;
       renderComponent(firewallOnboardingPreloadedState);
 
       expect(screen.getByRole('complementary')).toBeVisible();
-      expect(screen.getByText(currentStep.title)).toBeVisible();
       expect(screen.getByRole('navigation')).toBeVisible();
     });
   });

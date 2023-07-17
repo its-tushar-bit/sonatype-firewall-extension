@@ -34,7 +34,7 @@ export default function FirewallRulesSelector() {
   return (
     <>
       <NxPageTitle>
-        <NxH1 className="firewall-onboarding-page__title">{currentStep.title}</NxH1>
+        <NxH1 className="firewall-onboarding-page__title">Select your protection rules</NxH1>
         <NxP className="firewall-onboarding-page__subTitle">
           Select a core set of policies that enable a default set of protection rules. You can modify these protection
           rules again later.

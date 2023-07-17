@@ -34,7 +34,7 @@ const firewallOnboardingPreloadedState = {
     },
   },
 };
-const firstOnboardingStepTitle = steps[0].title;
+const FIRST_STEP_TITLE = 'Select your protection rules';
 const WELCOME_SCREEN_TITLE = 'Welcome to Repository Firewall';
 
 describe('FirewallOnboardingPage', function () {
@@ -45,7 +45,7 @@ describe('FirewallOnboardingPage', function () {
     renderComponent();
 
     expect(screen.getByText(WELCOME_SCREEN_TITLE)).toBeVisible();
-    expect(screen.queryByText(firstOnboardingStepTitle)).not.toBeInTheDocument();
+    expect(screen.queryByText(FIRST_STEP_TITLE)).not.toBeInTheDocument();
   });
 
   it('renders the onboarding screen after the user clicks the "Get Started" button', () => {
@@ -53,7 +53,7 @@ describe('FirewallOnboardingPage', function () {
     const getStartedBtn = screen.getByRole('button', { name: 'Get Started' });
 
     fireEvent.click(getStartedBtn);
-    expect(screen.getByText(firstOnboardingStepTitle)).toBeVisible();
+    expect(screen.getByText(FIRST_STEP_TITLE)).toBeVisible();
     expect(screen.queryByText(WELCOME_SCREEN_TITLE)).not.toBeInTheDocument();
   });
 });

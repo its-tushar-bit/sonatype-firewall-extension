@@ -5,10 +5,8 @@
  */
 
 import React from 'react';
-import * as PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxTile, NxLoadWrapper, NxPageTitle, NxP, NxH1, NxTextLink } from '@sonatype/react-shared-components';
-
+import { NxTile, NxLoadWrapper, NxPageTitle, NxP, NxH1 } from '@sonatype/react-shared-components';
 import ActionsFooter from './ActionsFooter';
 import { actions } from './firewallOnboardingSlice';
 import {
@@ -18,40 +16,15 @@ import {
   selectSupportedFormats,
   selectProtectionRules,
 } from './firewallOnboardingSelectors';
-import { getRepoPageTitleByFormat } from './firewallOnboardingUtils';
-import { selectCurrentStep } from './firewallOnboardingSelectors';
+import { stepsById, getRepoPageTitleByFormat } from './firewallOnboardingUtils';
 import FirewallRepositoryList from 'MainRoot/react/FirewallRepositoryList/FirewallRepositoryList';
-import { stepsIds } from './firewallOnboardingUtils';
 
-const NAMESPACE_CONFUSION_PROTECTION_URL = 'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
-const repositoriesSelectorPropsByStep = {
-  [stepsIds.SELECT_PROXY]: {
-    formatType: 'proxy',
-    subtitle: 'Choose which proxy repositories you would like to apply your protection rules to.',
-  },
-  [stepsIds.SELECT_HOSTED]: {
-    formatType: 'hosted',
-    firewallRepositoryListProps: {
-      checkItemPropName: 'namespaceConfusionProtectionEnabled',
-    },
-    subtitle: (
-      <>
-        Choose which hosted repositories you would like to enable{' '}
-        <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
-          namespace confusion protection
-        </NxTextLink>{' '}
-        on.
-      </>
-    ),
-  },
-};
+const currentStep = stepsById.selectProxy;
 
-export default function RepositoriesSelector() {
-  const currentStep = useSelector(selectCurrentStep);
-  const { formatType, firewallRepositoryListProps = {} } = repositoriesSelectorPropsByStep[currentStep.id];
+export default function ProxyRepositoriesSelector() {
   const { loading, loadError } = useSelector(selectRepositories);
   const unconfiguredRepoManager = useSelector(selectUnconfiguredRepoManager);
-  const reposGroupedByFormat = useSelector((state) => selectRepositoriesByType(state, formatType));
+  const proxyReposGroupByFormat = useSelector((state) => selectRepositoriesByType(state, 'proxy'));
   const supportedFormats = useSelector(selectSupportedFormats);
   const { namespaceConfusionProtectionEnabled, supplyChainAttacksProtectionEnabled } = useSelector(
     selectProtectionRules
@@ -62,13 +35,14 @@ export default function RepositoriesSelector() {
   const configureRepositories = (repository) => dispatch(actions.configureRepositories(repository));
 
   const renderRepositoriesByFormat = () => {
-    const hasRepositories = reposGroupedByFormat.some(
+    const hasRepositories = proxyReposGroupByFormat.some(
       (repositoriesByFormat) => repositoriesByFormat.repositories.length > 0
     );
     if (!hasRepositories) {
-      return `There are no ${formatType} repositories to apply your protection rules.`;
+      return 'There are no proxy repositories to apply your protection rules.';
     }
-    return reposGroupedByFormat.map((repositoriesByFormat) => (
+
+    return proxyReposGroupByFormat.map((repositoriesByFormat) => (
       <FirewallRepositoryList
         key={repositoriesByFormat.format}
         title={repositoriesByFormat.format}
@@ -77,17 +51,16 @@ export default function RepositoriesSelector() {
         onChange={(updatedItems) => {
           configureRepositories(updatedItems);
         }}
-        {...firewallRepositoryListProps}
       />
     ));
   };
 
-  const title = getRepoPageTitleByFormat[formatType].title(
+  const title = getRepoPageTitleByFormat.proxy.title(
     supplyChainAttacksProtectionEnabled,
     namespaceConfusionProtectionEnabled
   );
 
-  const subtitle = getRepoPageTitleByFormat[formatType].subtitle(
+  const subtitle = getRepoPageTitleByFormat.proxy.subtitle(
     supplyChainAttacksProtectionEnabled,
     namespaceConfusionProtectionEnabled
   );
@@ -109,7 +82,3 @@ export default function RepositoriesSelector() {
     </>
   );
 }
-
-RepositoriesSelector.propTypes = {
-  step: PropTypes.object,
-};

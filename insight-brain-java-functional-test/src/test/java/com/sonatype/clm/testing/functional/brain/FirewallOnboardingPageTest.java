@@ -117,7 +117,7 @@ public class FirewallOnboardingPageTest
       page.shouldBe(visible);
       page.getStartedButton().click();
       page.continueButton().click();
-      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
       eyesWatcher.eyesCheck("Firewall onboarding: 1 repository container is as wide as in its parent container," +
           " with space its sides");
 
@@ -502,6 +502,112 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
+  public void testProxyAndHostedContextualTextsBasedOnSelectedProtectionRules() {
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    try {
+      createUnconfiguredRepositoryManager("instanceId");
+
+      List<String> supportedFormats = Arrays.asList("maven2", "swift", "pypi", "npm", "go");
+      mockComponentSupportedFormats(supportedFormats);
+
+      page.shouldBe(Condition.visible);
+      page.getStartedButton().click();
+
+      page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
+ 
+      page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+      page.supplyChainAttacksProtectionRuleCheckbox().click();
+      page.supplyChainAttacksProtectionRuleCheckbox().shouldBe(Condition.selected);
+
+      page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+      page.namespaceConfusionProtectionRuleCheckbox().click();
+      page.namespaceConfusionProtectionRuleCheckbox().shouldBe(Condition.selected);
+
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Enable protection from malicious components"));
+      page.shouldHave(Condition.text(
+          "The selected proxy repositories will have supply chain attacks "
+          + "protection and namespace confusion protection enabled."
+      ));
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Protect your internal components from namespace attacks"));
+      page.shouldHave(Condition.text(
+          "The component names from the selected hosted repositories will be used to protect "
+          + "against namespace confusion attacks against your hosted repositories."
+      ));
+
+      page.previousButton().click();
+      page.previousButton().click();
+
+      page.supplyChainAttacksProtectionRuleCheckbox().click();
+      page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+      page.namespaceConfusionProtectionRuleCheckbox().shouldBe(Condition.selected);
+
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Enable protection from malicious components"));
+      page.shouldHave(Condition.text(
+          "The selected proxy repositories will have namespace confusion protection enabled. "
+          + "You can also enable supply chain attacks protection by going back to the previous step."
+      ));
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Protect your internal components from namespace attacks"));
+      page.shouldHave(Condition.text(
+          "The component names from the selected hosted repositories will be used to protect "
+          + "against namespace confusion attacks against your hosted repositories."
+      ));
+
+      page.previousButton().click();
+      page.previousButton().click();
+
+      page.supplyChainAttacksProtectionRuleCheckbox().click();
+      page.namespaceConfusionProtectionRuleCheckbox().click();
+      page.supplyChainAttacksProtectionRuleCheckbox().shouldBe(Condition.selected);
+      page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Enable protection from malicious components"));
+      page.shouldHave(Condition.text(
+          "The selected proxy repositories will have supply chain attacks protection enabled. "
+          + "You can also enable namespace confusion protection by going back to the previous step."
+      ));
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Protect your internal components from namespace attacks"));
+      page.shouldHave(Condition.text(
+          "The component names from the selected hosted repositories will not be used to protect against "
+          + "namespace confusion attacks against your hosted repositories. "
+          + "You can enable namespace confusion protection by going back to the previous step."
+      ));
+
+      page.previousButton().click();
+      page.previousButton().click();
+
+      page.supplyChainAttacksProtectionRuleCheckbox().click();
+      page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+      page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+
+      page.continueButton().click();
+      page.shouldHave(Condition.text("You have not enabled recommended protection"));
+      page.shouldHave(Condition.text(
+          "The selected proxy repositories will not have supply chain attacks "
+          + "protection or namespace confusion protection enabled. "
+          + "You can enable protection by going back to the previous step."
+      ));
+      page.continueButton().click();
+      page.shouldHave(Condition.text("Protect your internal components from namespace attacks"));
+      page.shouldHave(Condition.text(
+          "The component names from the selected hosted repositories will not be used to protect "
+          + "against namespace confusion attacks against your hosted repositories. "
+          + "You can enable namespace confusion protection by going back to the previous step."
+      ));
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+    }
+  }
+
+  @Test
   public void testSelectProxyRepositoriesStep() {
     refreshOrOpen(FirewallOnboardingPage.url());
     logout();
@@ -531,9 +637,12 @@ public class FirewallOnboardingPageTest
       page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
       
       page.continueButton().click();
-      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
       page.shouldHave(text(
-          "Choose which proxy repositories you would like to apply your protection rules to."));
+          "The selected proxy repositories will not have supply chain attacks "
+          + "protection or namespace confusion protection enabled. "
+          + "You can enable protection by going back to the previous step."
+      ));
 
       ElementsCollection repositoriesLists = page.repositoriesList();
       repositoriesLists.shouldHaveSize(4);
@@ -595,7 +704,7 @@ public class FirewallOnboardingPageTest
       page.getStartedButton().click();
       page.continueButton().click();
       page.continueButton().click();
-      page.shouldHave(text("Select hosted repositories"));
+      page.shouldHave(text("Protect your internal components from namespace attacks"));
 
       ElementsCollection repositoriesLists = page.repositoriesList();
       repositoriesLists.shouldHaveSize(4);
@@ -657,7 +766,7 @@ public class FirewallOnboardingPageTest
       page.getStartedButton().click();
       page.continueButton().click();
       page.continueButton().click();
-      page.shouldHave(text("Select hosted repositories"));
+      page.shouldHave(text("Protect your internal components from namespace attacks"));
 
       ElementsCollection repositoriesLists = page.repositoriesList();
       repositoriesLists.shouldHaveSize(4);
@@ -707,9 +816,7 @@ public class FirewallOnboardingPageTest
       page.getStartedButton().click();
       page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
       page.continueButton().click();
-      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
-      page.shouldHave(text(
-          "Choose which proxy repositories you would like to apply your protection rules to."));
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
       ElementsCollection repositoriesLists = page.repositoriesList();
       repositoriesLists.shouldHaveSize(1);
@@ -758,7 +865,7 @@ public class FirewallOnboardingPageTest
 
       // then I should see the select proxy repositories step
       page.continueButton().click();
-      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
       // and I should see 3 lists of repositories
       ElementsCollection repositoriesLists = page.repositoriesList();
@@ -817,7 +924,7 @@ public class FirewallOnboardingPageTest
       page.getStartedButton().click();
       page.continueButton().click();
       page.continueButton().click();
-      page.shouldHave(text("Select hosted repositories"));
+      page.shouldHave(text("Protect your internal components from namespace attacks"));
       page.shouldHave(text("There are no hosted repositories to apply your protection rules."));
 
       eyesWatcher.eyesCheck(
@@ -869,9 +976,7 @@ public class FirewallOnboardingPageTest
       page.getStartedButton().click();
       page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
       page.continueButton().click();
-      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
-      page.shouldHave(text(
-              "Choose which proxy repositories you would like to apply your protection rules to."));
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
       ElementsCollection repositoriesLists = page.repositoriesList();
       repositoriesLists.shouldHaveSize(4);
@@ -883,12 +988,12 @@ public class FirewallOnboardingPageTest
       List<FirewallRepositoryList> firewallRepositoryLists = page.firewallRepositoryLists();
 
       page.continueButton().click();
-      page.shouldHave(text("Select hosted repositories"));
+      page.shouldHave(text("Protect your internal components from namespace attacks"));
 
       page.continueButton().click();
 
       // Hosted Repositories count will be implemented: CLM-25614
-      page.shouldHave(text("Inspect and complete onboarding"));
+      page.shouldHave(text("Inspect and complete configuration"));
       page.shouldHave(text("Congratulations, you’re all set!"));
       page.shouldHave(
           text(
@@ -964,7 +1069,7 @@ public class FirewallOnboardingPageTest
       page.getStartedButton().click();
       page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
       page.continueButton().click();
-      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
       ElementsCollection repositoriesLists = page.repositoriesList();
       repositoriesLists.shouldHaveSize(4);
@@ -975,7 +1080,7 @@ public class FirewallOnboardingPageTest
 
       page.continueButton().click();
 
-      page.shouldHave(text("Select hosted repositories"));
+      page.shouldHave(text("Protect your internal components from namespace attacks"));
 
       ElementsCollection hostedRepositoriesLists = page.repositoriesList();
       hostedRepositoriesLists.shouldHaveSize(4);
@@ -985,7 +1090,7 @@ public class FirewallOnboardingPageTest
       hostedRepositoriesLists.get(3).shouldHave(text("nuget\n" + "0 of 4"));
 
       page.continueButton().click();
-      page.shouldHave(text("Inspect and complete onboarding"));
+      page.shouldHave(text("Inspect and complete configuration"));
       page.shouldHave(
           text(
               "Once you launch Firewall, malicious blocking will be enabled for 6 proxy repositories"
@@ -1026,9 +1131,9 @@ public class FirewallOnboardingPageTest
       page.supplyChainAttacksProtectionRuleCheckbox().click();
       page.namespaceConfusionProtectionRuleCheckbox().click();
       page.continueButton().click();
-      page.shouldHave(Condition.text("Select proxy repositories"));
+      page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorTitle());
       page.continueButton().click();
-      page.shouldHave(Condition.text("Select hosted repositories"));
+      page.shouldHave(Condition.text("Protect your internal components from namespace attacks"));
       page.continueButton().click();
       page.launchFirewallButton().click();
       page.closeButton().click();

@@ -47,12 +47,6 @@ describe('FirewallConfigurationOverview', function () {
   const renderComponent = (preloadedState = firewallOnboardingPreloadedState) =>
     render(<FirewallConfigurationOverview />, { preloadedState });
 
-  it('renders correct subtitle', async () => {
-    renderComponent();
-    const subtitleEl = await screen.getByText('Inspect and complete onboarding.');
-    expect(subtitleEl).toBeVisible();
-  });
-
   it('renders correct number of selected proxy repositories', () => {
     renderComponent();
     const counter = screen.getByTestId('proxy-repositories-count');

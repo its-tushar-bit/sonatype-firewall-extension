@@ -24,14 +24,6 @@ describe('RepositoriesSelector', function () {
     axiosMock = axiosMockAdapter();
   });
 
-  const proxyProps = {
-    step: stepsById.selectProxy,
-  };
-
-  const hostedProps = {
-    step: stepsById.selectHosted,
-  };
-
   beforeEach(function () {
     supportedFormats = {
       regexpsByRepositoryFormat: {
@@ -66,12 +58,15 @@ describe('RepositoriesSelector', function () {
           loading: false,
           loadError: null,
         },
+        protectionRules: {
+          supplyChainAttacksProtectionEnabled: true,
+          namespaceConfusionProtectionEnabled: true,
+        },
       },
     };
 
     expectedRepositoriesByRepoManagerIdUrl = getRepositoryListUrl('id');
-    renderComponent = (props = proxyProps, preloadedState = initialState) =>
-      render(<RepositoriesSelector {...props} />, { preloadedState });
+    renderComponent = (preloadedState = initialState) => render(<RepositoriesSelector />, { preloadedState });
   });
 
   it('renders loading messages', async () => {
@@ -99,11 +94,53 @@ describe('RepositoriesSelector', function () {
     expect(await screen.findByText(/Test error/i)).toBeVisible();
   });
 
-  describe('loads proxy repositories selectors page', () => {
-    it('renders correct subtitle', async () => {
-      renderComponent(proxyProps, initialState);
+  describe('successfully loads proxy repositories selectors page', () => {
+    it('renders correct title', async () => {
+      renderComponent(initialState);
+      const titleEl = await screen.getByText('Enable protection from malicious components');
+      expect(titleEl).toBeVisible();
+    });
+
+    it('renders correct title when protenctionRules are disabled', async () => {
+      initialState.firewallOnboarding.protectionRules.supplyChainAttacksProtectionEnabled = false;
+      initialState.firewallOnboarding.protectionRules.namespaceConfusionProtectionEnabled = false;
+      renderComponent(initialState);
+      const titleEl = await screen.getByText('You have not enabled recommended protection');
+      expect(titleEl).toBeVisible();
+    });
+
+    it('renders correct subtitle when both supplyChainAttacksProtection and namespaceConfusionProtection are enabled', async () => {
+      renderComponent(initialState);
       const subtitleEl = await screen.getByText(
-        'Choose which proxy repositories you would like to apply your protection rules to.'
+        'The selected proxy repositories will have supply chain attacks protection and namespace confusion protection enabled.'
+      );
+      expect(subtitleEl).toBeVisible();
+    });
+
+    it('renders correct subtitle when only supplyChainAttacksProtection is enabled', async () => {
+      initialState.firewallOnboarding.protectionRules.namespaceConfusionProtectionEnabled = false;
+      renderComponent(initialState);
+      const subtitleEl = await screen.getByText(
+        'The selected proxy repositories will have supply chain attacks protection enabled. You can also enable namespace confusion protection by going back to the previous step.'
+      );
+      expect(subtitleEl).toBeVisible();
+    });
+
+    it('renders correct subtitle when only namespaceConfusionProtection is enabled', async () => {
+      initialState.firewallOnboarding.protectionRules.supplyChainAttacksProtectionEnabled = false;
+      renderComponent(initialState);
+      const subtitleEl = await screen.getByText(
+        'The selected proxy repositories will have namespace confusion protection enabled. You can also enable supply chain attacks protection by going back to the previous step.'
+      );
+      expect(subtitleEl).toBeVisible();
+    });
+
+    it('renders correct subtitle when both supplyChainAttacksProtection and namespaceConfusionProtection are DISABLED', async () => {
+      initialState.firewallOnboarding.protectionRules.namespaceConfusionProtectionEnabled = false;
+      initialState.firewallOnboarding.protectionRules.supplyChainAttacksProtectionEnabled = false;
+      renderComponent(initialState);
+      const subtitleEl = await screen.getByText(
+        'The selected proxy repositories will not have supply chain attacks protection or namespace confusion protection enabled. You can enable protection by going back to the previous step.'
       );
       expect(subtitleEl).toBeVisible();
     });
@@ -111,7 +148,7 @@ describe('RepositoriesSelector', function () {
     it('renders the expected proxy repositories grouped by format', async () => {
       initialState.firewallOnboarding.repositories.list = repositoriesList.proxy;
       initialState.firewallOnboarding.supportedFormats = Object.keys(supportedFormats.regexpsByRepositoryFormat);
-      renderComponent(proxyProps, initialState);
+      renderComponent(initialState);
 
       expect(await screen.findByText('maven')).toBeVisible();
       expect(await screen.findByText('npm')).toBeVisible();
@@ -133,7 +170,7 @@ describe('RepositoriesSelector', function () {
     it('renders empty messages if there is no repositories', async () => {
       initialState.firewallOnboarding.repositories.list = [];
       initialState.firewallOnboarding.supportedFormats = [];
-      renderComponent(proxyProps, initialState);
+      renderComponent(initialState);
 
       expect(await screen.findByText('There are no proxy repositories to apply your protection rules.')).toBeVisible();
     });
@@ -141,7 +178,7 @@ describe('RepositoriesSelector', function () {
     it('renders empty messages if there is no proxy repositories to configure', async () => {
       initialState.firewallOnboarding.repositories.list = [];
       initialState.firewallOnboarding.supportedFormats = Object.keys(supportedFormats.regexpsByRepositoryFormat);
-      renderComponent(proxyProps, initialState);
+      renderComponent(initialState);
 
       expect(await screen.findByText('There are no proxy repositories to apply your protection rules.')).toBeVisible();
     });
@@ -161,19 +198,84 @@ describe('RepositoriesSelector', function () {
   });
 
   describe('loads hosted repositories selectors page', () => {
-    it('renders correct subtitle and link', async () => {
+    it('renders correct title', async () => {
       initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
-      renderComponent(hostedProps, initialState);
-      const subtitleEl = await screen.getByText('Choose which hosted repositories you would like to enable', {
+      renderComponent(initialState);
+      const titleEl = await screen.getByText('Protect your internal components from namespace attacks');
+      expect(titleEl).toBeVisible();
+    });
+
+    it('renders correct subtitle when both supplyChainAttacksProtection and namespaceConfusionProtection are enabled', async () => {
+      initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
+      renderComponent(initialState);
+      const subtitleEl = await screen.getByText('The component names from the selected hosted repositories', {
         exact: false,
       });
       expect(subtitleEl.textContent).toEqual(
-        'Choose which hosted repositories you would like to enable namespace confusion protection on.'
+        'The component names from the selected hosted repositories will be used to protect against namespace confusion attacks against your hosted repositories.'
       );
 
       const NAMESPACE_CONFUSION_PROTECTION_URL =
         'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
-      expect(screen.getByRole('link', { name: 'namespace confusion protection' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'namespace confusion' })).toHaveAttribute(
+        'href',
+        NAMESPACE_CONFUSION_PROTECTION_URL
+      );
+    });
+
+    it('renders correct subtitle when only namespaceConfusionProtection is enabled', async () => {
+      initialState.firewallOnboarding.protectionRules.supplyChainAttacksProtectionEnabled = false;
+      initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
+      renderComponent(initialState);
+      const subtitleEl = await screen.getByText('The component names from the selected hosted repositories', {
+        exact: false,
+      });
+      expect(subtitleEl.textContent).toEqual(
+        'The component names from the selected hosted repositories will be used to protect against namespace confusion attacks against your hosted repositories.'
+      );
+
+      const NAMESPACE_CONFUSION_PROTECTION_URL =
+        'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
+      expect(screen.getByRole('link', { name: 'namespace confusion' })).toHaveAttribute(
+        'href',
+        NAMESPACE_CONFUSION_PROTECTION_URL
+      );
+    });
+
+    it('renders correct subtitle when only supplyChainAttacksProtection is enabled', async () => {
+      initialState.firewallOnboarding.protectionRules.namespaceConfusionProtectionEnabled = false;
+      initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
+      renderComponent(initialState);
+      const subtitleEl = await screen.getByText('The component names from the selected hosted repositories', {
+        exact: false,
+      });
+      expect(subtitleEl.textContent).toEqual(
+        'The component names from the selected hosted repositories will not be used to protect against namespace confusion attacks against your hosted repositories. You can enable namespace confusion protection by going back to the previous step.'
+      );
+
+      const NAMESPACE_CONFUSION_PROTECTION_URL =
+        'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
+      expect(screen.getByRole('link', { name: 'namespace confusion' })).toHaveAttribute(
+        'href',
+        NAMESPACE_CONFUSION_PROTECTION_URL
+      );
+    });
+
+    it('renders correct subtitle when both supplyChainAttacksProtection and namespaceConfusionProtection are DISABLED', async () => {
+      initialState.firewallOnboarding.protectionRules.namespaceConfusionProtectionEnabled = false;
+      initialState.firewallOnboarding.protectionRules.supplyChainAttacksProtectionEnabled = false;
+      initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
+      renderComponent(initialState);
+      const subtitleEl = await screen.getByText('The component names from the selected hosted repositories', {
+        exact: false,
+      });
+      expect(subtitleEl.textContent).toEqual(
+        'The component names from the selected hosted repositories will not be used to protect against namespace confusion attacks against your hosted repositories. You can enable namespace confusion protection by going back to the previous step.'
+      );
+
+      const NAMESPACE_CONFUSION_PROTECTION_URL =
+        'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
+      expect(screen.getByRole('link', { name: 'namespace confusion' })).toHaveAttribute(
         'href',
         NAMESPACE_CONFUSION_PROTECTION_URL
       );
@@ -183,7 +285,8 @@ describe('RepositoriesSelector', function () {
       initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
       initialState.firewallOnboarding.repositories.list = repositoriesList.hosted;
       initialState.firewallOnboarding.supportedFormats = Object.keys(supportedFormats.regexpsByRepositoryFormat);
-      renderComponent(hostedProps, initialState);
+      initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
+      renderComponent(initialState);
 
       expect(await screen.findByText('maven')).toBeVisible();
       expect(await screen.findByText('npm')).toBeVisible();
@@ -206,7 +309,8 @@ describe('RepositoriesSelector', function () {
       initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
       initialState.firewallOnboarding.repositories.list = [];
       initialState.firewallOnboarding.supportedFormats = [];
-      renderComponent(hostedProps, initialState);
+      initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
+      renderComponent(initialState);
 
       expect(await screen.findByText('There are no hosted repositories to apply your protection rules.')).toBeVisible();
     });
@@ -215,7 +319,8 @@ describe('RepositoriesSelector', function () {
       initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
       initialState.firewallOnboarding.repositories.list = [];
       initialState.firewallOnboarding.supportedFormats = Object.keys(supportedFormats.regexpsByRepositoryFormat);
-      renderComponent(hostedProps, initialState);
+      initialState.firewallOnboarding.currentStep = stepsById.selectHosted;
+      renderComponent(initialState);
 
       expect(await screen.findByText('There are no hosted repositories to apply your protection rules.')).toBeVisible();
     });

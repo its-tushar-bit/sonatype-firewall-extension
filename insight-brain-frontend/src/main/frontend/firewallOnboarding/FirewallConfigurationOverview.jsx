@@ -25,8 +25,7 @@ export default function FirewallConfigurationOverview() {
   return (
     <>
       <NxPageTitle>
-        <NxH1 className="firewall-onboarding-page__title">{currentStep.title}</NxH1>
-        <NxP className="firewall-onboarding-page__subTitle">Inspect and complete onboarding.</NxP>
+        <NxH1 className="firewall-onboarding-page__title">Inspect and complete configuration</NxH1>
       </NxPageTitle>
       <NxTile>
         <NxTile.Header>

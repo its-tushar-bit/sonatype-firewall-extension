@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import { render, screen, fireEvent, axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
 import { getRepositoryConnectionUrl } from 'MainRoot/util/CLMLocation';
 import { actions } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
@@ -27,6 +27,11 @@ describe('InnerSourceRepositoryTile', () => {
   beforeEach(() => {
     goToEditInnerSourceRepositoryPageSpy = spyOn(actions, 'goToEditPage').and.callThrough();
     state = {
+      productLicense: {
+        license: {
+          products: ['CLM'],
+        },
+      },
       productFeatures: {
         productFeatures: { 'inner-source-repository-integration': true },
       },
@@ -135,5 +140,54 @@ describe('InnerSourceRepositoryTile', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Edit' }));
 
     expect(goToEditInnerSourceRepositoryPageSpy).toHaveBeenCalledTimes(1);
+  });
+
+  describe('FirewallOnlyLicense', () => {
+    const ownerId = 'e270271429f747ef9bebf4ca88f5e6c0';
+
+    it('does not render with a Firewall only license', async () => {
+      const state = {
+        productLicense: {
+          license: {
+            products: ['Firewall'],
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast-org',
+            },
+          },
+        },
+      };
+
+      renderComponent(state);
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('InnerSource Repositories');
+      expect(title).toBeNull();
+    });
+
+    it('renders with a non-Firewall only license test', async () => {
+      renderComponent();
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('InnerSource Repositories');
+      expect(title).not.toBeNull();
+    });
   });
 });

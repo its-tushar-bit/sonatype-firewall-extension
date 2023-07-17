@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, within, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, within, fireEvent, waitFor } from 'TestRoot/SpecUtil';
 import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ApplicationCategoriesTile';
 import * as applicationsSelectors from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 import * as assignApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
@@ -17,6 +17,8 @@ import { actions as createEditApplicationCategoriesActions } from 'MainRoot/Orgs
 import { actions as assignApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 
 describe('ApplicationCategoriesTile', () => {
+  const ownerId = 'e270271429f747ef9bebf4ca88f5e6c0';
+
   let renderComponent,
     isAppSpy,
     isOrgSpy,
@@ -406,6 +408,84 @@ describe('ApplicationCategoriesTile', () => {
       const expandedContent = content.parentElement.querySelector('.nx-collapsible-items__children');
       expect(expandedContent).toBeInTheDocument();
       expect(expandedContent).toHaveAttribute('role', 'list');
+    });
+  });
+
+  describe('FirewallOnlyLicense', () => {
+    const renderComponentWithState = (preloadedState) => render(<ApplicationCategoriesTile />, { preloadedState });
+
+    it('does not render with a Firewall only license', async () => {
+      const state = {
+        productLicense: {
+          license: {
+            products: ['Firewall'],
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast-org',
+            },
+          },
+        },
+      };
+
+      renderComponentWithState(state);
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('Application Categories');
+      expect(title).toBeNull();
+    });
+
+    it('renders with a non-Firewall only license', async () => {
+      const state = {
+        productLicense: {
+          license: {
+            products: ['CLM'],
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast-org',
+            },
+          },
+        },
+      };
+
+      renderComponentWithState(state);
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('Application Categories');
+      expect(title).not.toBeNull();
     });
   });
 });

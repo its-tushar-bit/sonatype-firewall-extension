@@ -22,6 +22,7 @@ import {
   selectLoadError,
 } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
 import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function SourceControlTile() {
   const dispatch = useDispatch();
@@ -43,6 +44,9 @@ export default function SourceControlTile() {
   const { to, params } = deriveEditRoute(router, 'edit-source-control');
   const href = uiStateRouter.href(to, params);
   const currentOwner = useSelector(selectSelectedOwner);
+
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
 
   const loadSourceControl = () => dispatch(sourceControlActions.loadSourceControl());
   useEffect(() => {
@@ -82,18 +86,20 @@ export default function SourceControlTile() {
   };
 
   return (
-    <NxTile id="owner-pill-source-control">
-      <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadSourceControl}>
-        <NxTile.Header>
-          <NxTile.Headings>
-            <NxTile.HeaderTitle>
-              <NxH2>Source Control</NxH2>
-            </NxTile.HeaderTitle>
-            <NxTile.HeaderSubtitle>{subtitle}</NxTile.HeaderSubtitle>
-          </NxTile.Headings>
-        </NxTile.Header>
-        {renderContent()}
-      </NxLoadWrapper>
-    </NxTile>
+    isFeatureEnabledForLicense && (
+      <NxTile id="owner-pill-source-control">
+        <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadSourceControl}>
+          <NxTile.Header>
+            <NxTile.Headings>
+              <NxTile.HeaderTitle>
+                <NxH2>Source Control</NxH2>
+              </NxTile.HeaderTitle>
+              <NxTile.HeaderSubtitle>{subtitle}</NxTile.HeaderSubtitle>
+            </NxTile.Headings>
+          </NxTile.Header>
+          {renderContent()}
+        </NxLoadWrapper>
+      </NxTile>
+    )
   );
 }

@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/RetentionTile';
-import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, axiosMockAdapter, within, screen, fireEvent, waitFor } from 'TestRoot/SpecUtil';
 import { actions } from 'MainRoot/OrgsAndPolicies/retentionSlice';
 import { getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
 
@@ -177,6 +177,82 @@ describe('RetentionTile', () => {
       fireEvent.click(editBtn);
 
       expect(goToEditRetentionSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('FirewallOnlyLicense', () => {
+    it('does not render with a Firewall only license', async () => {
+      preloadedState = {
+        productLicense: {
+          license: {
+            products: ['Firewall'],
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast-org',
+            },
+          },
+        },
+      };
+
+      renderComponent(preloadedState);
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('Data Retention');
+      expect(title).toBeNull();
+    });
+
+    it('renders with a non-Firewall only license', async () => {
+      preloadedState = {
+        productLicense: {
+          license: {
+            products: ['CLM'],
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast-org',
+            },
+          },
+        },
+      };
+
+      renderComponent(preloadedState);
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('Data Retention');
+      expect(title).not.toBeNull();
     });
   });
 });

@@ -20,6 +20,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 import { selectActionStagesIsLoading, selectActionStagesLoadError } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectIsMonitoringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function ContinuousMonitoringSummaryTile() {
   const uiStateRouter = useRouterState();
@@ -35,6 +36,9 @@ export default function ContinuousMonitoringSummaryTile() {
   const monitoringLoadError = useSelector(selectPolicyMonitoringLoadError);
   const stagesLoadError = useSelector(selectActionStagesLoadError);
   const loadError = monitoringLoadError || stagesLoadError;
+
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
 
   const doLoad = () => {
     dispatch(policyMonitoringActions.loadContinuousMonitoringSummaryTileInformation());
@@ -54,17 +58,19 @@ export default function ContinuousMonitoringSummaryTile() {
   };
 
   return (
-    <NxTile id="owner-pill-continuous-monitoring">
-      <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
-        <NxTile.Header>
-          <NxTile.HeaderTitle>
-            <NxH2>Continuous monitoring</NxH2>
-          </NxTile.HeaderTitle>
-        </NxTile.Header>
-        <NxTile.Content>
-          <NxList id="continuous-monitoring">{renderContent()}</NxList>
-        </NxTile.Content>
-      </NxLoadWrapper>
-    </NxTile>
+    isFeatureEnabledForLicense && (
+      <NxTile id="owner-pill-continuous-monitoring">
+        <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
+          <NxTile.Header>
+            <NxTile.HeaderTitle>
+              <NxH2>Continuous monitoring</NxH2>
+            </NxTile.HeaderTitle>
+          </NxTile.Header>
+          <NxTile.Content>
+            <NxList id="continuous-monitoring">{renderContent()}</NxList>
+          </NxTile.Content>
+        </NxLoadWrapper>
+      </NxTile>
+    )
   );
 }

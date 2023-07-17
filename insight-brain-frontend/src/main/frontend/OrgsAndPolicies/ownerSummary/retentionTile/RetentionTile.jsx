@@ -25,6 +25,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/retentionSelectors';
 import { actions, NOT_ENABLED } from 'MainRoot/OrgsAndPolicies/retentionSlice';
 import RetentionTable from './RetentionTable';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function RetentionTile() {
   const dispatch = useDispatch();
@@ -34,6 +35,9 @@ export default function RetentionTile() {
   const loadError = useSelector(selectLoadError);
   const successMetrics = useSelector(selectSuccessMetrics);
   const stages = useSelector(selectApplicationReportsStages);
+
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
 
   const goToEditRetention = () => dispatch(actions.goToEditRetention());
   const doLoad = () => dispatch(actions.loadRetention());
@@ -63,7 +67,8 @@ export default function RetentionTile() {
   }
 
   return (
-    isOrg && (
+    isOrg &&
+    isFeatureEnabledForLicense && (
       <NxTile id="owner-pill-retention" className="retention-tile">
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
           <NxTile.Header>

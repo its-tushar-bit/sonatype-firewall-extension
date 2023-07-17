@@ -43,6 +43,7 @@ import { curryN, isEmpty } from 'ramda';
 import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function ApplicationCategoriesTile() {
   const dispatch = useDispatch();
@@ -74,6 +75,9 @@ export default function ApplicationCategoriesTile() {
 
   const router = useSelector(selectRouterSlice);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
+
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
 
   const loadAssignableCategories = () => dispatch(assignApplicationCategoriesActions.loadApplicableCategories());
   const loadAppliedCategories = () => dispatch(assignApplicationCategoriesActions.loadAppliedCategories());
@@ -238,29 +242,31 @@ export default function ApplicationCategoriesTile() {
   }, [selectedOwner]);
 
   return (
-    <NxTile id="owner-pill-app-categories">
-      <NxLoadWrapper loading={loading} retryHandler={loadData} error={error}>
-        <NxTile.Header>
-          <NxTile.Headings>
-            <NxTile.HeaderTitle>
-              <NxH2>Application Categories</NxH2>
-            </NxTile.HeaderTitle>
-            <NxTile.HeaderSubtitle>{subtitleText}</NxTile.HeaderSubtitle>
-          </NxTile.Headings>
-          <NxTile.HeaderActions>
-            <NxButton
-              variant="tertiary"
-              onClick={headerButtonAction}
-              className={isEditDisabled ? 'disabled' : ''}
-              id="add-category-button"
-              title={isEditDisabled ? 'No application categories defined.' : ''}
-            >
-              {editButtonText}
-            </NxButton>
-          </NxTile.HeaderActions>
-        </NxTile.Header>
-        <NxTile.Content>{renderContent()}</NxTile.Content>
-      </NxLoadWrapper>
-    </NxTile>
+    isFeatureEnabledForLicense && (
+      <NxTile id="owner-pill-app-categories">
+        <NxLoadWrapper loading={loading} retryHandler={loadData} error={error}>
+          <NxTile.Header>
+            <NxTile.Headings>
+              <NxTile.HeaderTitle>
+                <NxH2>Application Categories</NxH2>
+              </NxTile.HeaderTitle>
+              <NxTile.HeaderSubtitle>{subtitleText}</NxTile.HeaderSubtitle>
+            </NxTile.Headings>
+            <NxTile.HeaderActions>
+              <NxButton
+                variant="tertiary"
+                onClick={headerButtonAction}
+                className={isEditDisabled ? 'disabled' : ''}
+                id="add-category-button"
+                title={isEditDisabled ? 'No application categories defined.' : ''}
+              >
+                {editButtonText}
+              </NxButton>
+            </NxTile.HeaderActions>
+          </NxTile.Header>
+          <NxTile.Content>{renderContent()}</NxTile.Content>
+        </NxLoadWrapper>
+      </NxTile>
+    )
   );
 }

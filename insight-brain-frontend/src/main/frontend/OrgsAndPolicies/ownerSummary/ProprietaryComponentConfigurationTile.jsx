@@ -17,6 +17,7 @@ import { selectRouterSlice } from '../../reduxUiRouter/routerSelectors';
 import { deriveEditRoute } from '../utility/util';
 import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import { selectIsLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function ProprietaryComponentConfigurationTile() {
   const dispatch = useDispatch();
@@ -36,6 +37,9 @@ export default function ProprietaryComponentConfigurationTile() {
   const uiStateRouter = useRouterState();
   const href = uiStateRouter.href(to, params);
 
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
+
   const isRootOrg = useSelector(selectIsRootOrganization);
   const inheritedProprietaryCount = useSelector(selectProprietaryConfigInheritedMatchersCount);
   const localProprietaryCount = useSelector(selectProprietaryConfigLocalMatchersCount);
@@ -43,24 +47,26 @@ export default function ProprietaryComponentConfigurationTile() {
   const localProprietaryText = `${localProprietaryCount} local`;
 
   return (
-    <NxTile id="owner-pill-component-configuration">
-      <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadData}>
-        <NxTile.Header>
-          <NxTile.HeaderTitle>
-            <NxH2>Proprietary Component Configuration</NxH2>
-          </NxTile.HeaderTitle>
-        </NxTile.Header>
-        <NxTile.Content>
-          <NxList id="proprietary-component-matchers">
-            <NxList.LinkItem href={href}>
-              <NxList.Text>
-                {localProprietaryText}
-                {!isRootOrg && inheritedProprietaryText}
-              </NxList.Text>
-            </NxList.LinkItem>
-          </NxList>
-        </NxTile.Content>
-      </NxLoadWrapper>
-    </NxTile>
+    isFeatureEnabledForLicense && (
+      <NxTile id="owner-pill-component-configuration">
+        <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadData}>
+          <NxTile.Header>
+            <NxTile.HeaderTitle>
+              <NxH2>Proprietary Component Configuration</NxH2>
+            </NxTile.HeaderTitle>
+          </NxTile.Header>
+          <NxTile.Content>
+            <NxList id="proprietary-component-matchers">
+              <NxList.LinkItem href={href}>
+                <NxList.Text>
+                  {localProprietaryText}
+                  {!isRootOrg && inheritedProprietaryText}
+                </NxList.Text>
+              </NxList.LinkItem>
+            </NxList>
+          </NxTile.Content>
+        </NxLoadWrapper>
+      </NxTile>
+    )
   );
 }

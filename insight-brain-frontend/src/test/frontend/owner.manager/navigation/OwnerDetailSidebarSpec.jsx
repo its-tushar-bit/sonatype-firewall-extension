@@ -154,6 +154,105 @@ describe('OwnerDetailSidebar', () => {
       render(<OwnerDetailSidebar />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
+  it('renders correct sidebar with correct list open at Organization levels when FirewallOnlyLicense only', async () => {
+    const state = {
+      productLicense: {
+        license: {
+          products: ['Firewall'],
+        },
+      },
+      router: {
+        currentState: {
+          name: 'management.edit.organization.create-category',
+          url: '/category',
+        },
+        currentParams: {
+          organizationId: 'ROOT_ORGANIZATION_ID',
+        },
+      },
+      orgsAndPolicies: {
+        applications: {
+          applications: APPS,
+        },
+        organizations: {
+          organizations: ORGS,
+        },
+        root: {
+          selectedOwner: {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'Root Organization',
+          },
+        },
+        policyMonitoring: {
+          isGrandfatheringSupported: false,
+          isMonitoringSupported: true,
+        },
+      },
+    };
+
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent(state);
+
+    expect(await screen.findByText('Policies')).toBeVisible();
+    expect(await screen.findByText('Component Labels')).toBeVisible();
+    expect(await screen.findByText('License Threat Groups')).toBeVisible();
+    expect(screen.getByText('Access')).toBeVisible();
+    expect(screen.queryByText('Grandfathering')).not.toBeInTheDocument();
+    expect(screen.queryByText('Application Categories')).not.toBeInTheDocument();
+    expect(screen.queryByText('Continuous Monitoring')).not.toBeInTheDocument();
+  });
+
+  it('renders correct sidebar with correct list open at Organization levels when not FirewallOnlyLicense only', async () => {
+    const state = {
+      productLicense: {
+        license: {
+          products: ['SonatypeCLM', 'Firewall'],
+        },
+      },
+      router: {
+        currentState: {
+          name: 'management.edit.organization.create-category',
+          url: '/category',
+        },
+        currentParams: {
+          organizationId: 'ROOT_ORGANIZATION_ID',
+        },
+      },
+      orgsAndPolicies: {
+        applications: {
+          applications: APPS,
+        },
+        organizations: {
+          organizations: ORGS,
+        },
+        root: {
+          selectedOwner: {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'Root Organization',
+          },
+        },
+        policyMonitoring: {
+          isGrandfatheringSupported: false,
+          isMonitoringSupported: true,
+        },
+      },
+    };
+
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent(state);
+
+    expect(await screen.findByText('Application Categories')).toBeVisible();
+    expect(await screen.findByText('Policies')).toBeVisible();
+    expect(await screen.findByText('Component Labels')).toBeVisible();
+    expect(await screen.findByText('License Threat Groups')).toBeVisible();
+    expect(await screen.findByText('Application Evaluator')).toBeVisible();
+    expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
+    expect(await screen.findByText('Grandfathering')).toBeVisible();
+    expect(screen.getByText('Grandfathering').parentElement).toHaveClassName('disabled');
+  });
+
   it('renders correct sidebar with correct list open at Organization levels', async () => {
     mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
 

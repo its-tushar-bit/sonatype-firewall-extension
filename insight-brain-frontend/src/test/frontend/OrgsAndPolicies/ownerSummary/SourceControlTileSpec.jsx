@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen } from 'TestRoot/SpecUtil';
+import { render, screen, waitFor } from 'TestRoot/SpecUtil';
 import * as sourceControlSelectors from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
 import { actions as sourceControlActions } from 'MainRoot/OrgsAndPolicies/sourceControlSlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -118,5 +118,85 @@ describe('SourceControlTile', () => {
 
     const linkItem = screen.getByText('itemSubText');
     expect(linkItem.closest('a')).toHaveAttribute('href', 'editPageHref');
+  });
+
+  describe('FirewallOnlyLicense', () => {
+    const ownerId = 'e270271429f747ef9bebf4ca88f5e6c0';
+
+    const renderComponentWithState = (preloadedState) => render(<SourceControlTile />, { preloadedState });
+
+    it('does not render with a Firewall only license', async () => {
+      const state = {
+        productLicense: {
+          license: {
+            products: ['Firewall'],
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast-org',
+            },
+          },
+        },
+      };
+
+      renderComponentWithState(state);
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('Source Control');
+      expect(title).toBeNull();
+    });
+
+    it('renders with a non-Firewall only license', async () => {
+      const state = {
+        productLicense: {
+          license: {
+            products: ['CLM'],
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast-org',
+            },
+          },
+        },
+      };
+
+      renderComponentWithState(state);
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('Source Control');
+      expect(title).not.toBeNull();
+    });
   });
 });

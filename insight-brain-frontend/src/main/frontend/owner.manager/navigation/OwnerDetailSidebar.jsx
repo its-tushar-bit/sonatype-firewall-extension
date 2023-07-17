@@ -54,6 +54,7 @@ import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/
 import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectLicenseThreatGroupSiblings } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import { selectAreAnyCategoriesDefined } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function OwnerDetailSidebar() {
   const dispatch = useDispatch();
@@ -83,6 +84,8 @@ export default function OwnerDetailSidebar() {
   const isSourceControl = useSelector(selectIsSourceControl);
   const isAccess = useSelector(selectIsAccess);
   const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
   const labelsSiblings = useSelector(selectLabelsSiblings);
   const rolesSiblings = useSelector(selectRolesSiblings);
@@ -185,7 +188,7 @@ export default function OwnerDetailSidebar() {
       <NxH4>Policy Management</NxH4>
 
       {/* Categories */}
-      {!isRepositoriesRelated && (
+      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
         <NxCollapsibleItems
           id="application-category-group"
           role="menu"
@@ -253,7 +256,7 @@ export default function OwnerDetailSidebar() {
       </NxCollapsibleItems>
 
       {/* Grandfathering */}
-      {!isRepositoriesRelated && (
+      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
         <NxTooltip
           title={!isGrandfatheringSupported ? 'Policy Violation Grandfathering is not supported by your license' : ''}
         >
@@ -270,7 +273,7 @@ export default function OwnerDetailSidebar() {
         </NxTooltip>
       )}
       {/* Monitoring */}
-      {!isRepositoriesRelated && (
+      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
         <NxTooltip title={!isMonitoringSupported ? 'Policy Monitoring is not supported by your license' : ''}>
           <NxCollapsibleItems.Child role="menuitem">
             <NxTextLink
@@ -285,7 +288,7 @@ export default function OwnerDetailSidebar() {
         </NxTooltip>
       )}
       {/* Proprietary */}
-      {!isRepositoriesRelated && (
+      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             id="proprietary-components-link"
@@ -363,7 +366,7 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* Source Control */}
-      {!isRepositoriesRelated && (
+      {!isRepositoriesRelated && isFeatureEnabledForLicense && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             className={`iq-noncollapsible ${isSourceControl ? 'selected' : ''}`}

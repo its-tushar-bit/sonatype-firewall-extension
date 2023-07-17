@@ -26,6 +26,7 @@ import {
   selectRepositoryConnections,
 } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function InnerSourceRepositoryTile() {
   const dispatch = useDispatch();
@@ -49,6 +50,10 @@ export default function InnerSourceRepositoryTile() {
     : 'Local';
   const innerSourceRepositoriesEnabled = useSelector(selectInnerSourceRepositoriesEnabled);
   const innerSourceRepositoriesIsEmpty = innerSourceRepositoriesEnabled && !innerSourceRepositories.length;
+
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
+
   const goToEditInnerSourceRepositoryPage = () => {
     dispatch(actions.goToEditPage());
   };
@@ -58,50 +63,52 @@ export default function InnerSourceRepositoryTile() {
   }
 
   return (
-    <NxTile id="owner-pill-innersource-repository">
-      <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={load}>
-        <NxTile.Header>
-          <NxTile.Headings>
-            <NxTile.HeaderTitle>
-              <NxH2>InnerSource Repositories</NxH2>
-            </NxTile.HeaderTitle>
-            <NxTile.HeaderSubtitle>Configure repositories to identify InnerSource components.</NxTile.HeaderSubtitle>
-          </NxTile.Headings>
-          <NxTile.HeaderActions>
-            <NxButton
-              variant="tertiary"
-              onClick={goToEditInnerSourceRepositoryPage}
-              id="innersource-repositories-edit"
-              title="edit"
-            >
-              <NxFontAwesomeIcon icon={faPen} />
-              <span>Edit</span>
-            </NxButton>
-          </NxTile.HeaderActions>
-        </NxTile.Header>
-        <NxTile.Content>
-          <NxH3>{listHeader}</NxH3>
-          <NxList>
-            {innerSourceRepositoriesEnabled &&
-              innerSourceRepositories.map(({ repositoryConnectionId, baseUrl, format }) => (
-                <NxList.Item key={repositoryConnectionId}>
-                  <NxList.Text>{baseUrl}</NxList.Text>
-                  <NxList.Subtext>{format}</NxList.Subtext>
+    isFeatureEnabledForLicense && (
+      <NxTile id="owner-pill-innersource-repository">
+        <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={load}>
+          <NxTile.Header>
+            <NxTile.Headings>
+              <NxTile.HeaderTitle>
+                <NxH2>InnerSource Repositories</NxH2>
+              </NxTile.HeaderTitle>
+              <NxTile.HeaderSubtitle>Configure repositories to identify InnerSource components.</NxTile.HeaderSubtitle>
+            </NxTile.Headings>
+            <NxTile.HeaderActions>
+              <NxButton
+                variant="tertiary"
+                onClick={goToEditInnerSourceRepositoryPage}
+                id="innersource-repositories-edit"
+                title="edit"
+              >
+                <NxFontAwesomeIcon icon={faPen} />
+                <span>Edit</span>
+              </NxButton>
+            </NxTile.HeaderActions>
+          </NxTile.Header>
+          <NxTile.Content>
+            <NxH3>{listHeader}</NxH3>
+            <NxList>
+              {innerSourceRepositoriesEnabled &&
+                innerSourceRepositories.map(({ repositoryConnectionId, baseUrl, format }) => (
+                  <NxList.Item key={repositoryConnectionId}>
+                    <NxList.Text>{baseUrl}</NxList.Text>
+                    <NxList.Subtext>{format}</NxList.Subtext>
+                  </NxList.Item>
+                ))}
+              {innerSourceRepositoriesIsEmpty && (
+                <NxList.Item>
+                  <NxList.Text>No InnerSource repository connections are configured</NxList.Text>
                 </NxList.Item>
-              ))}
-            {innerSourceRepositoriesIsEmpty && (
-              <NxList.Item>
-                <NxList.Text>No InnerSource repository connections are configured</NxList.Text>
-              </NxList.Item>
-            )}
-            {!innerSourceRepositoriesEnabled && (
-              <NxList.Item>
-                <NxList.Text>InnerSource repository connections are disabled</NxList.Text>
-              </NxList.Item>
-            )}
-          </NxList>
-        </NxTile.Content>
-      </NxLoadWrapper>
-    </NxTile>
+              )}
+              {!innerSourceRepositoriesEnabled && (
+                <NxList.Item>
+                  <NxList.Text>InnerSource repository connections are disabled</NxList.Text>
+                </NxList.Item>
+              )}
+            </NxList>
+          </NxTile.Content>
+        </NxLoadWrapper>
+      </NxTile>
+    )
   );
 }

@@ -15,6 +15,7 @@ import {
   selectLoading,
 } from '../policyViolationGrandfatheringSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function PolicyGrandfatheringTile() {
   const dispatch = useDispatch();
@@ -24,6 +25,9 @@ export default function PolicyGrandfatheringTile() {
   const grandfatheringStatusMessage = useSelector(selectGrandfatheringStatusMessage);
   const isLoading = useSelector(selectLoading);
   const loadError = useSelector(selectLoadError);
+
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
+  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
 
   const doLoad = () => dispatch(actions.loadPolicyViolationGrandfathering());
 
@@ -42,17 +46,19 @@ export default function PolicyGrandfatheringTile() {
   };
 
   return (
-    <NxTile id="owner-pill-grandfathering">
-      <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
-        <NxTile.Header>
-          <NxTile.HeaderTitle>
-            <NxH2>Policy Violation Grandfathering</NxH2>
-          </NxTile.HeaderTitle>
-        </NxTile.Header>
-        <NxTile.Content>
-          <NxList id="policy-violation-grandfathering">{renderContent()}</NxList>
-        </NxTile.Content>
-      </NxLoadWrapper>
-    </NxTile>
+    isFeatureEnabledForLicense && (
+      <NxTile id="owner-pill-grandfathering">
+        <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
+          <NxTile.Header>
+            <NxTile.HeaderTitle>
+              <NxH2>Policy Violation Grandfathering</NxH2>
+            </NxTile.HeaderTitle>
+          </NxTile.Header>
+          <NxTile.Content>
+            <NxList id="policy-violation-grandfathering">{renderContent()}</NxList>
+          </NxTile.Content>
+        </NxLoadWrapper>
+      </NxTile>
+    )
   );
 }

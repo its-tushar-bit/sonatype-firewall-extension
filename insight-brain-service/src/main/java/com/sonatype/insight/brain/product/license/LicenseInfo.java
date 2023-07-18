@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.util.Properties;
+
 public class LicenseInfo
     extends LicenseSummary
 {
@@ -32,20 +34,24 @@ public class LicenseInfo
 
   public String[] products;
 
+  public Properties properties;
+
   public LicenseInfo() {
   }
 
-  public LicenseInfo(String fingerprint,
-                     long expiryTimestamp,
-                     Integer licensedUsersToDisplay,
-                     Integer firewallUsersToDisplay,
-                     Integer applicationLimitToDisplay,
-                     Integer applicationCountToDisplay,
-                     String contactName,
-                     String contactCompany,
-                     String contactEmail,
-                     String[] products,
-                     String productEdition)
+  public LicenseInfo(
+      String fingerprint,
+      long expiryTimestamp,
+      Integer licensedUsersToDisplay,
+      Integer firewallUsersToDisplay,
+      Integer applicationLimitToDisplay,
+      Integer applicationCountToDisplay,
+      String contactName,
+      String contactCompany,
+      String contactEmail,
+      String[] products,
+      Properties properties,
+      String productEdition)
   {
     super(productEdition);
 
@@ -59,5 +65,6 @@ public class LicenseInfo
     this.contactCompany = contactCompany;
     this.contactEmail = contactEmail;
     this.products = products;
+    this.properties = properties;
   }
 }

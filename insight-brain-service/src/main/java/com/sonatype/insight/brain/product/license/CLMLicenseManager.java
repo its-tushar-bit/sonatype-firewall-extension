@@ -23,6 +23,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -445,10 +446,12 @@ public class CLMLicenseManager
       applicationCountToDisplay = new ApplicationDAO().getCount();
     }
 
+    Properties properties = productLicense.isValid() ? licenseManager.getLicenseDetails().getProperties() : null;
+
     return new LicenseInfo(productLicense.getFingerprint(), productLicense.getExpirationTimestamp(),
         licensedUsersToDisplay, firewallUsersToDisplay, applicationLimitToDisplay, applicationCountToDisplay,
         productLicense.getContactName(), productLicense.getContactCompany(), productLicense.getContactEmail(), products,
-        productEdition);
+        properties, productEdition);
   }
 
   private String getProductEdition() {

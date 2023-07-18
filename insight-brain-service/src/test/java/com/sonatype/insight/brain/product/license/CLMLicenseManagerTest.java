@@ -12,10 +12,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
@@ -38,7 +39,6 @@ import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import com.sonatype.insight.productlicense.ProductLicenseConfig;
 import com.sonatype.insight.productlicense.ProductLicenseSigner;
 import com.sonatype.insight.test.LogOutput;
-
 import org.sonatype.licensing.LicensingException;
 
 import com.google.inject.Binder;
@@ -1532,6 +1532,13 @@ public class CLMLicenseManagerTest
     assertThat(info).isNotNull();
     assertThat(info.products).containsExactlyInAnyOrder("Sonatype Repository Firewall", "Sonatype Auditor",
         "Sonatype Lifecycle", "Sonatype Nexus Pro+", "Sonatype Advanced Legal Pack", "Sonatype Lifecycle Cloud");
+    Map<String, String> expected = new HashMap<>();
+    expected.put("clm.licenseVersion", "1");
+    expected.put("clm.maxActiveApplications", "100");
+    expected.put("clm.maxFirewallUsers", "45");
+    expected.put("clm.maxUsers", "50");
+    expected.put("clm.products", "Firewall,Risk,RiskAndRemediation,foo,Nexus,AdvancedLegalPack,LifecycleCloud");
+    assertThat(info.properties).containsAllEntriesOf(expected);
   }
 
   @Test

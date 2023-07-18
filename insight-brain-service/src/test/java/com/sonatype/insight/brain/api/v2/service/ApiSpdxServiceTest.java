@@ -38,6 +38,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -116,17 +117,23 @@ public class ApiSpdxServiceTest
 
   @Test
   public void testGetByScanId_json() throws Exception {
-    testGetByScanId("json", false, "2.3");
+    testGetByScanId("json", false, "2.3", false);
   }
 
   @Test
   public void testGetByScanId_xml() throws Exception {
-    testGetByScanId("xml", false, "2.3");
+    testGetByScanId("xml", false, "2.3", false);
+  }
+
+  @Test
+  public void testGetByScanId_json_sageReport() throws Exception {
+    createReportAndPolicyEvaluation("sageReport");
+    testGetByScanId("json", false, "2.3", true);
   }
 
   @Test
   public void testGetByScanId_json_cycloneDx() throws Exception {
-    testGetByScanId("json", true, "2.3");
+    testGetByScanId("json", true, "2.3", false);
   }
 
   @Test
@@ -166,7 +173,8 @@ public class ApiSpdxServiceTest
   private void testGetByScanId(
       String format,
       boolean generateCycloneDx,
-      String spdxVersion) throws Exception
+      String spdxVersion,
+      boolean isSage) throws Exception
   {
     when(versionService.getFullVersion()).thenReturn("1.0");
 
@@ -180,7 +188,7 @@ public class ApiSpdxServiceTest
     }
 
     assertFilename(response, "build", format, generateCycloneDx);
-    assertDocument(document, spdxVersion);
+    assertDocument(document, spdxVersion, isSage);
   }
 
   private String extractSpdxContentFromArchive(Response response) throws IOException {
@@ -228,8 +236,10 @@ public class ApiSpdxServiceTest
     assertThat(actualFilename).isEqualTo(expectedFilename);
   }
 
-  private void assertDocument(final SpdxDocument document, final String spdxVersion) throws Exception {
-    assertMetadata(document, spdxVersion);
+  private void assertDocument(final SpdxDocument document, final String spdxVersion, boolean isSage) throws Exception {
+
+    String dataDate = isSage ? "20230716" : null;
+    assertMetadata(document, spdxVersion, dataDate);
     assertPackages(document);
     assertTopLevelRelationship(document);
   }
@@ -289,7 +299,7 @@ public class ApiSpdxServiceTest
     }
 
     assertFilename(response, stageId, format, generateCycloneDx);
-    assertDocument(document, spdxVersion);
+    assertDocument(document, spdxVersion, false);
   }
 
   private void assertTopLevelRelationship(SpdxDocument document) throws InvalidSPDXAnalysisException {
@@ -301,11 +311,18 @@ public class ApiSpdxServiceTest
         "com.sonatype.testing:pr-comment-02");
   }
 
-  private void assertMetadata(SpdxDocument document, String spdxVersion) throws Exception {
+  private void assertMetadata(SpdxDocument document, String spdxVersion, String dataDate) throws Exception {
     assertThat(document.getSpecVersion()).isEqualTo("SPDX-" + spdxVersion);
     assertThat(document.getCreationInfo().getCreated()).isNotNull();
     assertThat(document.getCreationInfo().getCreators().stream().findFirst().get()).isEqualTo(
         "Tool: Sonatype IQ Server - 1.0");
+
+    if (StringUtils.isNotBlank(dataDate)) {
+      assertThat(document.getCreationInfo().getComment().get()).isEqualTo("Data Date: 20230716");
+    }
+    else {
+      assertThat(document.getCreationInfo().getComment()).isEmpty();
+    }
   }
 
   private static final Set<String> expectedNames = ImmutableSet.of(

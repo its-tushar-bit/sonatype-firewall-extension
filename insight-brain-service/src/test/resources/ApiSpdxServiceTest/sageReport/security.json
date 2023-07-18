@@ -1,0 +1,3153 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.14.0"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-core",
+    "version" : "2.14.0",
+    "hash" : "49d219171d6af643e061",
+    "url" : null,
+    "reference" : "sonatype-2022-6438",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2022-6438" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.14.0"
+      } ],
+      "name" : "jackson-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-core",
+    "version" : "2.16.0",
+    "hash" : "ca12fb3902ecfcba1e13",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228",
+    "reference" : "CVE-2021-44228",
+    "source" : "cve",
+    "score" : 10.0,
+    "cwe" : "917",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-44228" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.logging.log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.16.0"
+      } ],
+      "name" : "log4j-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-core",
+    "version" : "2.16.0",
+    "hash" : "ca12fb3902ecfcba1e13",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44832",
+    "reference" : "CVE-2021-44832",
+    "source" : "cve",
+    "score" : 6.6,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-44832" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.logging.log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.16.0"
+      } ],
+      "name" : "log4j-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "log4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.logging.log4j",
+        "version" : "2.16.0"
+      }
+    },
+    "groupId" : "org.apache.logging.log4j",
+    "artifactId" : "log4j-core",
+    "version" : "2.16.0",
+    "hash" : "ca12fb3902ecfcba1e13",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45105",
+    "reference" : "CVE-2021-45105",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-45105" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.logging.log4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "log4j-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.16.0"
+      } ],
+      "name" : "log4j-core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-10241",
+    "reference" : "CVE-2019-10241",
+    "source" : "cve",
+    "score" : 6.1,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-10241" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-10246",
+    "reference" : "CVE-2019-10246",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-10246" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-10247",
+    "reference" : "CVE-2019-10247",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-10247" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-12086",
+    "reference" : "CVE-2019-12086",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-12086" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-12384",
+    "reference" : "CVE-2019-12384",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-12384" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-12814",
+    "reference" : "CVE-2019-12814",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-12814" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14379",
+    "reference" : "CVE-2019-14379",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "915",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-14379" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14439",
+    "reference" : "CVE-2019-14439",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-14439" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14540",
+    "reference" : "CVE-2019-14540",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-14540" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14892",
+    "reference" : "CVE-2019-14892",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-14892" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14893",
+    "reference" : "CVE-2019-14893",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-14893" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16335",
+    "reference" : "CVE-2019-16335",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-16335" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16942",
+    "reference" : "CVE-2019-16942",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-16942" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16943",
+    "reference" : "CVE-2019-16943",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-16943" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-17267",
+    "reference" : "CVE-2019-17267",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-17267" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-17531",
+    "reference" : "CVE-2019-17531",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-17531" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-20330",
+    "reference" : "CVE-2019-20330",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-20330" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-10650",
+    "reference" : "CVE-2020-10650",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-10650" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-10672",
+    "reference" : "CVE-2020-10672",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-10672" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-10673",
+    "reference" : "CVE-2020-10673",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-10673" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-10968",
+    "reference" : "CVE-2020-10968",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-10968" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-10969",
+    "reference" : "CVE-2020-10969",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-10969" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-11111",
+    "reference" : "CVE-2020-11111",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-11111" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-11112",
+    "reference" : "CVE-2020-11112",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-11112" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-11113",
+    "reference" : "CVE-2020-11113",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-11113" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-11619",
+    "reference" : "CVE-2020-11619",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-11619" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-11620",
+    "reference" : "CVE-2020-11620",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-11620" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-14060",
+    "reference" : "CVE-2020-14060",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-14060" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-14061",
+    "reference" : "CVE-2020-14061",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-14061" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-24616",
+    "reference" : "CVE-2020-24616",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-24616" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-24750",
+    "reference" : "CVE-2020-24750",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-24750" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-25649",
+    "reference" : "CVE-2020-25649",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "611",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "functional" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-25649" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-27218",
+    "reference" : "CVE-2020-27218",
+    "source" : "cve",
+    "score" : 4.8,
+    "cwe" : "226",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:L",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-27218" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-27223",
+    "reference" : "CVE-2020-27223",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "functional" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-27223" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-35490",
+    "reference" : "CVE-2020-35490",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-35490" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-35491",
+    "reference" : "CVE-2020-35491",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-35491" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-35728",
+    "reference" : "CVE-2020-35728",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-35728" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36179",
+    "reference" : "CVE-2020-36179",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36179" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36180",
+    "reference" : "CVE-2020-36180",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36180" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36181",
+    "reference" : "CVE-2020-36181",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36181" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36182",
+    "reference" : "CVE-2020-36182",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36182" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36183",
+    "reference" : "CVE-2020-36183",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36183" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36184",
+    "reference" : "CVE-2020-36184",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36184" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36185",
+    "reference" : "CVE-2020-36185",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36185" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36186",
+    "reference" : "CVE-2020-36186",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36186" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36187",
+    "reference" : "CVE-2020-36187",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36187" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36188",
+    "reference" : "CVE-2020-36188",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36188" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36189",
+    "reference" : "CVE-2020-36189",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36189" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-36518",
+    "reference" : "CVE-2020-36518",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "787",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-36518" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-8840",
+    "reference" : "CVE-2020-8840",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-8840" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-9546",
+    "reference" : "CVE-2020-9546",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-9546" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-9547",
+    "reference" : "CVE-2020-9547",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-9547" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-9548",
+    "reference" : "CVE-2020-9548",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2020-9548" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-20190",
+    "reference" : "CVE-2021-20190",
+    "source" : "cve",
+    "score" : 8.1,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-20190" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-28165",
+    "reference" : "CVE-2021-28165",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "755",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-28165" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-2047",
+    "reference" : "CVE-2022-2047",
+    "source" : "cve",
+    "score" : 2.7,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:N/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-2047" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42003",
+    "reference" : "CVE-2022-42003",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-42003" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42004",
+    "reference" : "CVE-2022-42004",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-42004" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-26048",
+    "reference" : "CVE-2023-26048",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-26048" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-26049",
+    "reference" : "CVE-2023-26049",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-26049" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : null,
+    "reference" : "sonatype-2014-0257",
+    "source" : "sonatype",
+    "score" : 4.8,
+    "cwe" : "573",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2014-0257" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : null,
+    "reference" : "sonatype-2016-0687",
+    "source" : "sonatype",
+    "score" : 6.5,
+    "cwe" : "776",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2016-0687" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : null,
+    "reference" : "sonatype-2019-0371",
+    "source" : "sonatype",
+    "score" : 8.5,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2019-0371" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : null,
+    "reference" : "sonatype-2020-0348",
+    "source" : "sonatype",
+    "score" : 8.5,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ "CVE-2020-14062" ],
+    "vulnIds" : [ "sonatype-2020-0348", "CVE-2020-14062" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : null,
+    "reference" : "sonatype-2020-0436",
+    "source" : "sonatype",
+    "score" : 8.5,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2020-0436" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ehcache",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "net.sf.ehcache",
+        "version" : "2.10.7"
+      }
+    },
+    "groupId" : "net.sf.ehcache",
+    "artifactId" : "ehcache",
+    "version" : "2.10.7",
+    "hash" : "cf0f1bb23f08b47b3aac",
+    "url" : null,
+    "reference" : "sonatype-2022-6438",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2022-6438" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ehcache"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.10.7"
+      } ],
+      "name" : "ehcache"
+    }
+  } ]
+}

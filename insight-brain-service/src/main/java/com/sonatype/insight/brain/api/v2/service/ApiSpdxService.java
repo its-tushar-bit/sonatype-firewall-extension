@@ -191,7 +191,7 @@ public class ApiSpdxService
 
       String uri = getReportUrl(application.getPublicId(), scanId);
 
-      final SpdxDocument document = createDocument(spdxVersion, uri);
+      final SpdxDocument document = createDocument(spdxVersion, uri, data);
       final Map<String, SpdxPackage> purlElementMap = new HashMap<>();
 
       addPackages(data.components, document, purlElementMap);
@@ -471,7 +471,9 @@ public class ApiSpdxService
     return version;
   }
 
-  private SpdxDocument createDocument(String spdxVersion, String uri) throws InvalidSPDXAnalysisException {
+  private SpdxDocument createDocument(String spdxVersion, String uri, ApiReportRawDataDTOV2 data)
+      throws InvalidSPDXAnalysisException
+  {
     DefaultModelStore.reset();
     SpdxDocument spdxDocument = new SpdxDocument(uri);
     spdxDocument.setSpecVersion("SPDX-" + spdxVersion);
@@ -486,6 +488,10 @@ public class ApiSpdxService
 
     creatorInfo.setCreated(date);
     creatorInfo.getCreators().add("Tool: Sonatype IQ Server - " + versionService.getFullVersion());
+    if (StringUtils.isNotBlank(data.globalInformation.dataVersionDate)) {
+      creatorInfo.setComment("Data Date: " + data.globalInformation.dataVersionDate);
+    }
+
     spdxDocument.setCreationInfo(creatorInfo);
 
     return spdxDocument;

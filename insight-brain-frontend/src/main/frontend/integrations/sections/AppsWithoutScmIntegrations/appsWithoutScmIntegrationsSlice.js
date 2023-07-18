@@ -11,13 +11,12 @@ import { getAppsWithoutScmIntegrations } from 'MainRoot/util/CLMLocation';
 
 const REDUCER_NAME = 'appsWithoutScmIntegrations';
 
-const PAGE_SIZE = 6;
+const LIMIT = 6;
 
 export const initialState = Object.freeze({
   loading: false,
   loadError: null,
   dashboardResults: [],
-  pageSize: PAGE_SIZE,
 });
 
 const loadAppsWithoutScmIntegrationsRequested = (state) => {
@@ -28,7 +27,7 @@ const loadAppsWithoutScmIntegrationsRequested = (state) => {
 const loadAppsWithoutScmIntegrationsFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
-  state.dashboardResults = payload.dashboardResults;
+  state.dashboardResults = payload;
 };
 
 const loadAppsWithoutScmIntegrationsFailed = (state, { payload }) => {
@@ -42,8 +41,7 @@ const loadAppsWithoutScmIntegrations = createAsyncThunk(
     return axios
       .get(getAppsWithoutScmIntegrations(), {
         params: {
-          page: 0,
-          pageSize: PAGE_SIZE,
+          limit: LIMIT,
         },
       })
       .then(({ data }) => data)

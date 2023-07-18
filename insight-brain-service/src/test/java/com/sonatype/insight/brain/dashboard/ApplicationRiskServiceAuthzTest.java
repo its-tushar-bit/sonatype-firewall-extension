@@ -122,33 +122,4 @@ public class ApplicationRiskServiceAuthzTest
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.numResults).isEqualTo(1);
   }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabledRisk_Unauthenticated() {
-    final DashboardResultsDTO<?> result =
-        applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(0, 100);
-
-    assertThat(result.dashboardResults).isEmpty();
-    assertThat(result.numResults).isZero();
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabledRisk_Unauthorized() {
-    login();
-    final DashboardResultsDTO<?> result =
-        applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(0, 100);
-
-    assertThat(result.dashboardResults).isEmpty();
-    assertThat(result.numResults).isZero();
-  }
-
-  @Test
-  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabledRisk_Authorized() {
-    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
-    final DashboardResultsDTO<?> result =
-        applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(0, 100);
-
-    assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
-  }
 }

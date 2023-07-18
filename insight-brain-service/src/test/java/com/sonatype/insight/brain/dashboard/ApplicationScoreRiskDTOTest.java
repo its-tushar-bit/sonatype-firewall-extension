@@ -19,7 +19,7 @@ public class ApplicationScoreRiskDTOTest
   
   @Test
   public void testToCsvLine() {
-    ApplicationRiskScoreDTO risk = new ApplicationRiskScoreDTO("orgName", "appName", "appId");
+    ApplicationRiskScoreDTO risk = new ApplicationRiskScoreDTO("orgName", "appName", "appId", "id");
     risk.totalApplicationRisk = new RiskDTO(5, 4, 3, 2, 1);
     assertThat(risk.toCsvLine()).isEqualTo("orgName,appName,5,4,3,2,1");
   }

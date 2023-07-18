@@ -25,10 +25,7 @@ describe('AppsWithoutScmIntegrations Page', () => {
 
   describe('on successful http calls retrieving an empty list', () => {
     beforeEach(() => {
-      axiosMock.onGet(getAppsWithoutScmIntegrations()).reply(200, {
-        dashboardResults: [],
-        numResults: 0,
-      });
+      axiosMock.onGet(getAppsWithoutScmIntegrations()).reply(200, []);
       render(<AppsWithoutScmIntegrations />);
     });
 
@@ -50,10 +47,7 @@ describe('AppsWithoutScmIntegrations Page', () => {
 
   describe('on successful http calls retrieving a non-empty list', () => {
     beforeEach(() => {
-      axiosMock.onGet(getAppsWithoutScmIntegrations()).reply(200, {
-        dashboardResults: createAppArrayWithLength(6),
-        numResults: 6,
-      });
+      axiosMock.onGet(getAppsWithoutScmIntegrations()).reply(200, createAppArrayWithLength(6));
       render(<AppsWithoutScmIntegrations />);
     });
 

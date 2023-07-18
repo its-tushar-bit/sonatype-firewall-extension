@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.utils.CsvWritable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Joiner;
 
 /**
@@ -28,17 +29,22 @@ public class ApplicationRiskScoreDTO implements CsvWritable
 
   public String applicationId;
 
+  @JsonIgnore
+  public String id;
+
   public RiskDTO totalApplicationRisk = new RiskDTO();
 
   public List<StageRiskScoreDTO> stageRisks = new ArrayList<>();
 
   public ApplicationRiskScoreDTO(final String organizationName,
                                  final String applicationName,
-                                 final String applicationId)
+                                 final String applicationId,
+                                 final String id)
   {
     this.organizationName = organizationName;
     this.applicationName = applicationName;
     this.applicationId = applicationId;
+    this.id = id;
   }
 
   public void addStageRiskScore(StageRiskScoreDTO newStageRisk) {

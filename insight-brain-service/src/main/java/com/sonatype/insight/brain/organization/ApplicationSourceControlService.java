@@ -6,57 +6,95 @@
 
 package com.sonatype.insight.brain.organization;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
+import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 @Named
 public class ApplicationSourceControlService
 {
-  private final ApplicationDAO applicationDAO;
-
-  private final SourceControlDAO sourceControlDAO;
-
   private final SourceControlUtils sourceControlUtils;
+
+  private final ApiSourceControlService apiSourceControlService;
+
+  private final ApplicationRiskService applicationRiskService;
 
   @Inject
   public ApplicationSourceControlService(
-      final ApplicationDAO applicationDAO,
-      final SourceControlDAO sourceControlDAO,
-      final SourceControlUtils sourceControlUtils)
+      final SourceControlUtils sourceControlUtils,
+      final ApiSourceControlService apiSourceControlService,
+      final ApplicationRiskService applicationRiskService)
   {
-    this.applicationDAO = applicationDAO;
-    this.sourceControlDAO = sourceControlDAO;
     this.sourceControlUtils = sourceControlUtils;
+    this.apiSourceControlService = apiSourceControlService;
+    this.applicationRiskService = applicationRiskService;
   }
 
-  public List<Application> getApplicationsWithAutomatedSourceControlFeedbackDisabled() {
-    final List<Application> scmEnabledApps = new ArrayList<>();
-    final List<Application> scmDisabledApps = new ArrayList<>();
-    final List<Application> applications = applicationDAO.getAll();
-    applications.forEach(app -> {
-      final boolean isScmEnabled = sourceControlUtils.isScmEnabled(app.getId());
-      if (isScmEnabled) {
-        scmEnabledApps.add(app);
-      }
-      else {
-        scmDisabledApps.add(app);
-      }
-    });
+  public List<ApplicationTotalRiskDTO> getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+      final int limit
+  )
+  {
+    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
 
-    if (applications.size() == scmDisabledApps.size()) {
-      return scmDisabledApps;
+    if (limit <= 0) {
+      throw new BadRequestException("Limit size must be greater than 0");
     }
 
-    final List<Application> appsWithAutomatedSourceControlFeedbackDisabled =
-        sourceControlDAO.getApplicationsWithAutomatedSourceControlFeedbackDisabled(scmEnabledApps);
-    appsWithAutomatedSourceControlFeedbackDisabled.addAll(scmDisabledApps);
-    return appsWithAutomatedSourceControlFeedbackDisabled;
+    return applicationRiskService.getRiskForAllApps()
+        .stream()
+        .sorted((app1, app2) -> app2.totalApplicationRisk.totalRisk - app1.totalApplicationRisk.totalRisk)
+        .filter(entry -> isAutomatedSourceControlFeedbackDisabledForApp(entry.id))
+        .limit(limit)
+        .map(entry -> new ApplicationTotalRiskDTO(entry.applicationId,
+            entry.applicationName, entry.totalApplicationRisk.totalRisk))
+        .collect(Collectors.toList());
+  }
+
+  private boolean isAutomatedSourceControlFeedbackDisabledForApp(final String appId) {
+    final SourceControl sourceControl = apiSourceControlService.getCompositeSourceControlByOwnerDecrypted(appId);
+    final GitRepositoryInfo gitRepositoryInfo =
+        SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, appId);
+
+    final boolean isScmEnabled = sourceControlUtils.isScmEnabled(gitRepositoryInfo);
+
+    if (!isScmEnabled) {
+      return true;
+    }
+    else {
+      return isAutomatedSourceControlFeedbackDisabled(sourceControl);
+    }
+  }
+
+  // Automated source control feedback is considered disabled when either pull request commenting or commit statuses are
+  // disabled
+  private boolean isAutomatedSourceControlFeedbackDisabled(final SourceControl sourceControl) {
+    // If inheritance was properly resolved, the flags should not be null
+    if (sourceControl.getPullRequestCommentingEnabled() == null || sourceControl.getCommitStatusEnabled() == null) {
+      throw new IllegalArgumentException("Composite source control configurations cannot be null");
+    }
+    return !sourceControl.getPullRequestCommentingEnabled() || !sourceControl.getCommitStatusEnabled();
+  }
+
+  @Authorize(permission = Permission.READ)
+  void checkReadPermission(
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
+  {
+    // The @Authorize annotation provides the implementation for this function
   }
 }

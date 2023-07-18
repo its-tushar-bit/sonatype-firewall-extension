@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -31,15 +31,13 @@ public class ApplicationSourceControlResourceTest
     final HttpResponse response = getAppsWithoutAutomatedSourceControlFeedbackRequest().get();
     assertResponseStatus(200, response);
 
-    final DashboardResultsDTO<?> responseData = response.getBody(DashboardResultsDTO.class);
+    final ApplicationTotalRiskDTO[] responseData = response.getBody(ApplicationTotalRiskDTO[].class);
 
-    assertThat(responseData.dashboardResults).hasSize(numAppsWithoutASCF);
-    assertThat(responseData.numResults).isEqualTo(numAppsWithoutASCF);
+    assertThat(responseData).hasSize(numAppsWithoutASCF);
   }
 
   private HttpRequest getAppsWithoutAutomatedSourceControlFeedbackRequest() {
     return restRequest().path(ApplicationSourceControlResource.RESOURCE_PATH)
-        .query("page", 0)
-        .query("pageSize", 100);
+        .query("limit", 100);
   }
 }

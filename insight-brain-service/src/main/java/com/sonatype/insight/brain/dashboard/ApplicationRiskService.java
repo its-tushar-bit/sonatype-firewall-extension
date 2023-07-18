@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
-import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
@@ -57,8 +56,6 @@ public class ApplicationRiskService
 
   private final ApplicationService applicationService;
 
-  private final ApplicationSourceControlService applicationSourceControlService;
-
   private final OrganizationDAO organizationDAO;
 
   private final ApplicationDAO applicationDAO;
@@ -69,14 +66,12 @@ public class ApplicationRiskService
 
   @Inject
   public ApplicationRiskService(ApplicationService applicationService,
-                                ApplicationSourceControlService applicationSourceControlService,
                                 OrganizationDAO organizationDAO,
                                 ApplicationDAO applicationDAO,
                                 PolicyViolationLoader policyViolationLoader,
                                 DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
-    this.applicationSourceControlService = applicationSourceControlService;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
     this.policyViolationLoader = policyViolationLoader;
@@ -123,29 +118,34 @@ public class ApplicationRiskService
     return new DashboardResultsDTO<>(totalRiskResults, fullResults.numResults);
   }
 
-  public DashboardResultsDTO<ApplicationTotalRiskDTO> getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(
-      final int page, final int pageSize)
+  public List<ApplicationRiskScoreDTO> getRiskForAllApps() {
+    final List<Application> appsToSearch = applicationDAO.getAll();
+
+    return getRiskForProvidedApps(
+        appsToSearch,
+        Collections.emptySet(),
+        null,
+        null,
+        null,
+        true);
+  }
+
+  private List<ApplicationRiskScoreDTO> getRiskForProvidedApps(
+      final List<Application> appsToSearch,
+      final Set<String> stageIds,
+      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      final PolicyThreatLevelFilter policyThreatLevelFilter,
+      final PolicyViolationStateFilter policyViolationStateFilter,
+      final boolean includeZeroRisk
+  )
   {
-    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+    final Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
 
-    if (page < 0 || pageSize <= 0) {
-      throw new BadRequestException("Page and page size must be greater than 0");
-    }
+    final Collection<ApplicationView> appViews =
+        policyViolationLoader.getViolations(appsToSearch, stageTypes, false, policyThreatLevelFilter,
+            policyThreatCategoryFilter, policyViolationStateFilter);
 
-    final List<String> appsWithAutomatedSourceControlFeedbackDisabled =
-        applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled()
-            .stream()
-            .map(Application::getId)
-            .collect(Collectors.toList());
-    final DashboardResultsDTO<ApplicationRiskScoreDTO> fullResults =
-        getApplicationRisksUnfiltered(new HashSet<>(appsWithAutomatedSourceControlFeedbackDisabled), "-TOTAL_RISK",
-            page, pageSize);
-    final List<ApplicationTotalRiskDTO> totalRiskResults =
-        fullResults.dashboardResults.stream().map(applicationRiskScoreDTO ->
-        new ApplicationTotalRiskDTO(applicationRiskScoreDTO.applicationId, applicationRiskScoreDTO.applicationName,
-            applicationRiskScoreDTO.totalApplicationRisk.totalRisk)).collect(Collectors.toList());
-
-    return new DashboardResultsDTO<>(totalRiskResults, fullResults.numResults);
+    return createApplicationRiskScores(appViews, includeZeroRisk);
   }
 
   private DashboardResultsDTO<ApplicationRiskScoreDTO> getApplicationRisksUnfiltered(
@@ -201,13 +201,15 @@ public class ApplicationRiskService
         .setSelectedApplicationCategories(AuditUtils.getSelectedApplicationCategoriesById(tagIds)) //
         .setData("inspectedApplicationCount", appsToSearch.size());
 
-    Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
+    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = getRiskForProvidedApps(
+        appsToSearch,
+        stageIds,
+        policyThreatCategoryFilter,
+        policyThreatLevelFilter,
+        policyViolationStateFilter,
+        includeZeroRisk
+    );
 
-    Collection<ApplicationView> appViews =
-        policyViolationLoader.getViolations(appsToSearch, stageTypes, false, policyThreatLevelFilter,
-            policyThreatCategoryFilter, policyViolationStateFilter);
-
-    List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews, includeZeroRisk);
     applicationRiskScoreDTOs.sort(applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
     result.numResults = applicationRiskScoreDTOs.size();
@@ -241,8 +243,10 @@ public class ApplicationRiskService
       String orgName = orgNames.computeIfAbsent(appView.getApplication().getOrganizationId(),
           orgId -> organizationDAO.getByIdNotNull(orgId).getName());
 
+      final Application application = appView.getApplication();
+
       ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(orgName,
-          appView.getApplication().getName(), appView.getApplication().getPublicId());
+          application.getName(), application.getPublicId(), application.getId());
 
       updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
       if (!includeZeroRisk && applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {

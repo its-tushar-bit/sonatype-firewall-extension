@@ -6,6 +6,7 @@
 
 package com.sonatype.insight.brain.organization;
 
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -15,8 +16,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApplicationTotalRiskDTO;
-import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
-import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -27,18 +26,18 @@ public class ApplicationSourceControlResource
 {
   static final String RESOURCE_PATH = "rest/sourceControl/application";
 
-  private final ApplicationRiskService applicationRiskService;
+  private final ApplicationSourceControlService applicationSourceControlService;
 
   @Inject
-  public ApplicationSourceControlResource(final ApplicationRiskService applicationRiskService) {
-    this.applicationRiskService = applicationRiskService;
+  public ApplicationSourceControlResource(final ApplicationSourceControlService applicationSourceControlService) {
+    this.applicationSourceControlService = applicationSourceControlService;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public DashboardResultsDTO<ApplicationTotalRiskDTO> getApplicationsWithAutomatedSourceControlFeedbackDisabled(
-      @QueryParam("page") final int page, @QueryParam("pageSize") final int pageSize)
+  public List<ApplicationTotalRiskDTO> getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+      @QueryParam("limit") final int limit)
   {
-    return applicationRiskService.getApplicationsWithAutomatedSourceControlFeedbackDisabledRisk(page, pageSize);
+    return applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(limit);
   }
 }

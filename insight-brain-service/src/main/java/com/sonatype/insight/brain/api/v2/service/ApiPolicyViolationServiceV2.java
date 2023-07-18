@@ -27,8 +27,8 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -237,7 +237,8 @@ public class ApiPolicyViolationServiceV2
         PackageUrlIdentifier.toPackageUrl(policyViolation.getComponentIdentifier());
     ComponentDisplayName componentDisplayName =
         ComponentDisplayNameUtil.fromIdentifier(policyViolation.getComponentIdentifier());
-    apiPolicyViolationDTO.component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
+    apiPolicyViolationDTO.component.displayName =
+        componentDisplayName != null ? componentDisplayName.toString() : policyViolation.getFilename();
     apiPolicyViolationDTO.constraintViolations = PolicyViolationAdapter.convert(policyViolation);
     return apiPolicyViolationDTO;
   }

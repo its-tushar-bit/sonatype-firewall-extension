@@ -58,15 +58,25 @@ public class TenantSupportInfoServiceTest
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
       when(supportInfoFiles.aNewListOfSupportFiles()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withConfigPropertiesInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withJavaVersion()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withProductVersion()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withLicenseDetails()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withTenantInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withUsersDetails()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withSamlUsersDetails()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withRolesDetails()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withRolePermissionDetails()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withMembershipMappings()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withPolicies()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withComponentsInQuarantine()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withWaivers()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withRepositoryManager()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withRepositories()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withSecurityVulnerabilityOverrides()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withSystemConfigurationInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withSystemNoticeInfo()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withWebhookInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.build()).thenReturn(new ArrayList<>());
       when(supportInfoUtil.generateSupportInfo(any(), any())).thenReturn(
           new SupportInfo(new ByteArrayOutputStream(), "tenant-support-mtiq"));

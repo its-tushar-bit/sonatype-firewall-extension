@@ -12,8 +12,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.support.SupportInfo;
-import com.sonatype.insight.brain.support.SupportInfoUtil;
 import com.sonatype.insight.brain.support.SupportInfoFiles;
+import com.sonatype.insight.brain.support.SupportInfoUtil;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
@@ -63,15 +63,25 @@ public class TenantSupportInfoService
 
     final List<SupportFile> supportFiles = this.supportInfoFiles
         .aNewListOfSupportFiles()
+        .withConfigPropertiesInfo()
         .withJavaVersion()
         .withProductVersion()
         .withLicenseDetails()
+        .withTenantInfo()
         .withUsersDetails()
+        .withSamlUsersDetails()
         .withRolesDetails()
+        .withRolePermissionDetails()
         .withMembershipMappings()
         .withPolicies()
         .withComponentsInQuarantine()
         .withWaivers()
+        .withRepositoryManager()
+        .withRepositories()
+        .withSecurityVulnerabilityOverrides()
+        .withSystemConfigurationInfo()
+        .withSystemNoticeInfo()
+        .withWebhookInfo()
         .build();
 
     return supportInfoUtil.generateSupportInfo(tenantSlug, supportFiles);

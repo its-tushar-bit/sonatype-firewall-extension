@@ -110,7 +110,7 @@ public class SupportInfoUtilTest
     String systemInfo = new ObjectMapper().writeValueAsString(systemInfoParams);
 
     File jsonFile1 = supportInfoUtil.writeTextToFile(tenantInfo, "file1.json");
-    SupportFile supportFile1 = new SupportFile(SupportFileType.TENANT, jsonFile1, true);
+    SupportFile supportFile1 = new SupportFile(SupportFileType.INFO, jsonFile1, true);
 
     File jsonFile2 = supportInfoUtil.writeTextToFile(systemInfo, "file2.json");
     SupportFile supportFile2 = new SupportFile(SupportFileType.INFO, jsonFile2, true);
@@ -131,7 +131,7 @@ public class SupportInfoUtilTest
       ZipEntry firstEntry = zipInputStream.getNextEntry();
       assertThat(firstEntry).isNotNull();
       assertThat(firstEntry.getName()).isEqualTo(
-          supportInfo.getSupportInfoName() + "/" + SupportFileType.TENANT.getDirName() + "/" + "file1.json");
+          supportInfo.getSupportInfoName() + "/" + SupportFileType.INFO.getDirName() + "/" + "file1.json");
 
       ZipEntry secondEntry = zipInputStream.getNextEntry();
       assertThat(secondEntry).isNotNull();

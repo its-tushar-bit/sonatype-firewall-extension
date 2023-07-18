@@ -16,8 +16,7 @@ public enum SupportFileType
   CLUSTER_LOG,
   INFO,
   CONFIG,
-  DB,
-  TENANT;
+  DB;
 
   private final String dirName = name().toLowerCase(Locale.ENGLISH);
 

@@ -7,14 +7,18 @@ package com.sonatype.insight.brain.support;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Properties;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -37,21 +41,47 @@ public class SupportInfoFiles
 
   private static final String PRODUCT_LICENSE_FILE = "product-license.json";
 
-  private static final String USERS_FILE = "users.json";
+  private static final String TENANT_INFO_ENTRY = "tenant-info";
 
-  private static final String ROLES_FILE = "roles.json";
+  private static final String TENANT_INFO_FILE = TENANT_INFO_ENTRY + ".json";
 
-  private static final String MEMBERSHIP_MAPPINGS_FILE = "membership_mappings.json";
+  private static final String USER_FILE = "user.json";
 
-  private static final String POLICIES_FILE = "policies.json";
+  private static final String SAML_USER_FILE = "samlUser.json";
 
-  private static final String COMPONENTS_IN_QUARANTINE_FILE = "components_in_quarantine.json";
+  private static final String ROLE_FILE = "role.json";
 
-  private static final String WAIVERS_FILE = "waivers.json";
+  private static final String ROLE_PERMISSION_FILE = "rolePermission.json";
+
+  private static final String MEMBERSHIP_MAPPING_FILE = "membershipMapping.json";
+
+  private static final String POLICY_FILE = "policy.json";
+
+  private static final String COMPONENTS_IN_QUARANTINE_FILE = "componentsInQuarantine.json";
+
+  private static final String WAIVER_FILE = "waiver.json";
+
+  private static final String REPOSITORY_MANAGER_FILE = "repositoryManager.json";
+
+  private static final String REPOSITORY_FILE = "repository.json";
+
+  private static final String SECURITY_VULNERABILITY_OVERRIDE_FILE = "securityVulnerabilityOverride.json";
+
+  private static final String SYSTEM_CONFIGURATION_FILE = "systemConfiguration.json";
+
+  private static final String CONFIG_PROPERTIES_FILE = "config.json";
+
+  private static final String SYSTEM_NOTICE_FILE = "systemNotice.json";
+
+  private static final String WEBHOOK_FILE = "webhook.json";
 
   private final VersionService versionService;
 
   private final DbData dbData;
+
+  private final SamlUserDAO samlUserDao;
+
+  private final ConfigurationInfo configurationInfo;
 
   private final SystemInfo systemInfo;
 
@@ -63,11 +93,15 @@ public class SupportInfoFiles
   public SupportInfoFiles(
       VersionService versionService,
       DbData dbData,
+      SamlUserDAO samlUserDao,
+      ConfigurationInfo configurationInfo,
       SystemInfo systemInfo,
       SupportInfoUtil supportInfoUtil)
   {
     this.versionService = versionService;
     this.dbData = dbData;
+    this.samlUserDao = samlUserDao;
+    this.configurationInfo = configurationInfo;
     this.systemInfo = systemInfo;
     this.supportInfoUtil = supportInfoUtil;
   }
@@ -76,6 +110,18 @@ public class SupportInfoFiles
     this.supportFiles = new ArrayList<>();
     return this;
   }
+
+  // CONFIG folder:
+
+  public SupportInfoFiles withConfigPropertiesInfo() {
+    String configPropertiesJson = configurationInfo.getConfigurationInfo();
+
+    createAndAddSupportFile(configPropertiesJson, CONFIG_PROPERTIES_FILE, SupportFileType.CONFIG);
+
+    return this;
+  }
+
+  // INFO folder:
 
   public SupportInfoFiles withJavaVersion() {
     String javaVersionJson = JsonUtils.format(systemInfo.getObfuscatedSystemProperties("java", JAVA_INFO_ENTRY));
@@ -102,11 +148,33 @@ public class SupportInfoFiles
     return this;
   }
 
+  public SupportInfoFiles withTenantInfo() {
+    Properties properties = new Properties();
+    properties.put("tenant", TenantThreadLocal.getTenant().tenantSlug);
+
+    String tenantInfoJson = systemInfo.getPropertiesJson(properties, TENANT_INFO_ENTRY);
+
+    createAndAddSupportFile(tenantInfoJson, TENANT_INFO_FILE, SupportFileType.INFO);
+
+    return this;
+  }
+
+  // DB Folder:
+
   public SupportInfoFiles withUsersDetails() {
     Entry<String, Object> users = dbData.getUser();
     String usersJson = JsonUtils.format(users);
 
-    createAndAddSupportFile(usersJson, USERS_FILE, SupportFileType.TENANT);
+    createAndAddSupportFile(usersJson, USER_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withSamlUsersDetails() {
+    Entry<String, Object> samlUsers = new AbstractMap.SimpleImmutableEntry<>("samlUser", samlUserDao.getAll());
+    String samlUsersJson = JsonUtils.format(samlUsers);
+
+    createAndAddSupportFile(samlUsersJson, SAML_USER_FILE, SupportFileType.DB);
 
     return this;
   }
@@ -115,7 +183,16 @@ public class SupportInfoFiles
     Entry<String, Object> roles = dbData.getRole();
     String rolesJson = JsonUtils.format(roles);
 
-    createAndAddSupportFile(rolesJson, ROLES_FILE, SupportFileType.TENANT);
+    createAndAddSupportFile(rolesJson, ROLE_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withRolePermissionDetails() {
+    Entry<String, Object> rolePermissions = dbData.getRolePermission();
+    String rolePermissionsJson = JsonUtils.format(rolePermissions);
+
+    createAndAddSupportFile(rolePermissionsJson, ROLE_PERMISSION_FILE, SupportFileType.DB);
 
     return this;
   }
@@ -124,7 +201,7 @@ public class SupportInfoFiles
     Entry<String, Object> membershipMappings = dbData.getMembershipMapping();
     String membershipMappingsJson = JsonUtils.format(membershipMappings);
 
-    createAndAddSupportFile(membershipMappingsJson, MEMBERSHIP_MAPPINGS_FILE, SupportFileType.TENANT);
+    createAndAddSupportFile(membershipMappingsJson, MEMBERSHIP_MAPPING_FILE, SupportFileType.DB);
 
     return this;
   }
@@ -133,7 +210,7 @@ public class SupportInfoFiles
     Entry<String, Object> policies = dbData.getPolicy();
     String policiesJson = JsonUtils.format(policies);
 
-    createAndAddSupportFile(policiesJson, POLICIES_FILE, SupportFileType.TENANT);
+    createAndAddSupportFile(policiesJson, POLICY_FILE, SupportFileType.DB);
 
     return this;
   }
@@ -142,7 +219,7 @@ public class SupportInfoFiles
     Entry<String, Object> quarantinedComponents = dbData.getQuarantinedComponent();
     String quarantinedComponentsJson = JsonUtils.format(quarantinedComponents);
 
-    createAndAddSupportFile(quarantinedComponentsJson, COMPONENTS_IN_QUARANTINE_FILE, SupportFileType.TENANT);
+    createAndAddSupportFile(quarantinedComponentsJson, COMPONENTS_IN_QUARANTINE_FILE, SupportFileType.DB);
 
     return this;
   }
@@ -151,7 +228,62 @@ public class SupportInfoFiles
     Entry<String, Object> waivers = dbData.getWaiver();
     String policiesJson = JsonUtils.format(waivers);
 
-    createAndAddSupportFile(policiesJson, WAIVERS_FILE, SupportFileType.TENANT);
+    createAndAddSupportFile(policiesJson, WAIVER_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withRepositoryManager() {
+    Entry<String, Object> repositoryManager = dbData.getRepositoryManager();
+    String repositoryManagerJson = JsonUtils.format(repositoryManager);
+
+    createAndAddSupportFile(repositoryManagerJson, REPOSITORY_MANAGER_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withRepositories() {
+    Entry<String, Object> repository = dbData.getRepository();
+    String repositoriesJson = JsonUtils.format(repository);
+
+    createAndAddSupportFile(repositoriesJson, REPOSITORY_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withSecurityVulnerabilityOverrides() {
+    Entry<String, Object> securityVulnerabilityOverride = dbData.getSecurityVulnerabilityOverride();
+    String securityVulnerabilityOverridesJson = JsonUtils.format(securityVulnerabilityOverride);
+
+    createAndAddSupportFile(securityVulnerabilityOverridesJson, SECURITY_VULNERABILITY_OVERRIDE_FILE,
+        SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withSystemConfigurationInfo() {
+    Entry<String, Object> systemConfiguration = dbData.getSystemConfiguration();
+    String systemConfigurationJson = JsonUtils.format(systemConfiguration);
+
+    createAndAddSupportFile(systemConfigurationJson, SYSTEM_CONFIGURATION_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withSystemNoticeInfo() {
+    Entry<String, Object> systemNotice = dbData.getSystemNotice();
+    String systemNoticeJson = JsonUtils.format(systemNotice);
+
+    createAndAddSupportFile(systemNoticeJson, SYSTEM_NOTICE_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withWebhookInfo() {
+    Entry<String, Object> webhook = dbData.getWebhook();
+    String webhookJson = JsonUtils.format(webhook);
+
+    createAndAddSupportFile(webhookJson, WEBHOOK_FILE, SupportFileType.DB);
 
     return this;
   }

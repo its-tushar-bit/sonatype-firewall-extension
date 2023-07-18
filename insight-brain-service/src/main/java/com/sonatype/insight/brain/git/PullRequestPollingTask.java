@@ -49,9 +49,9 @@ public class PullRequestPollingTask
 
   private static final Logger log = LoggerFactory.getLogger(PullRequestPollingTask.class);
 
-  public static final int PULL_REQUEST_MONITORING_INTERVAL_SECONDS = 60;
+  public static final int PULL_REQUEST_POLLING_INTERVAL_SECONDS = 60;
 
-  private static final int PULL_REQUEST_MONITORING_DELAY_SECONDS = 30;
+  private static final int PULL_REQUEST_POLLING_DELAY_SECONDS = 30;
 
   private final PullRequestPollingService pullRequestPollingService;
 
@@ -59,9 +59,9 @@ public class PullRequestPollingTask
 
   private final TaskScheduler taskScheduler;
 
-  private final int pullRequestMonitoringIntervalSeconds;
+  private final int pullRequestPollingTaskIntervalInSeconds;
 
-  private final int pullRequestMonitoringDelaySeconds;
+  private final int pullRequestPollingTaskDelayInSeconds;
 
   public boolean disableForTesting;
 
@@ -71,8 +71,8 @@ public class PullRequestPollingTask
       final PullRequestPollingService pullRequestPollingService,
       final IqForScmLicenseChecker licenseChecker)
   {
-    this(taskScheduler, pullRequestPollingService, licenseChecker, PULL_REQUEST_MONITORING_DELAY_SECONDS,
-        PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
+    this(taskScheduler, pullRequestPollingService, licenseChecker, PULL_REQUEST_POLLING_DELAY_SECONDS,
+        PULL_REQUEST_POLLING_INTERVAL_SECONDS);
   }
 
   @VisibleForTesting
@@ -80,36 +80,37 @@ public class PullRequestPollingTask
       TaskScheduler taskScheduler,
       PullRequestPollingService pullRequestPollingService,
       IqForScmLicenseChecker licenseChecker,
-      int pullRequestMonitoringDelaySeconds,
-      int pullRequestMonitoringIntervalSeconds)
+      int pullRequestPollingTaskDelayInSeconds,
+      int pullRequestPollingTaskIntervalInSeconds)
   {
     super("pollPRs");
     this.taskScheduler = taskScheduler;
     this.pullRequestPollingService = pullRequestPollingService;
     this.licenseChecker = licenseChecker;
-    this.pullRequestMonitoringDelaySeconds = pullRequestMonitoringDelaySeconds;
-    this.pullRequestMonitoringIntervalSeconds = pullRequestMonitoringIntervalSeconds;
+    this.pullRequestPollingTaskDelayInSeconds = pullRequestPollingTaskDelayInSeconds;
+    this.pullRequestPollingTaskIntervalInSeconds = pullRequestPollingTaskIntervalInSeconds;
   }
 
   @Override
   public void register() {
-    startPullRequestMonitoring();
+    startPullRequestPolling();
   }
 
   @Override
   public void deregister() {
-    stopPullRequestMonitoring();
+    stopPullRequestPolling();
   }
 
-  private void startPullRequestMonitoring() {
+  private void startPullRequestPolling() {
     if (disableForTesting || !isLicensed()) {
       return;
     }
     Date startTime = Date.from(
-        LocalDateTime.now().plusSeconds(pullRequestMonitoringDelaySeconds).atZone(ZoneId.systemDefault()).toInstant());
-    taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(pullRequestMonitoringIntervalSeconds), startTime);
+        LocalDateTime.now().plusSeconds(pullRequestPollingTaskDelayInSeconds).atZone(ZoneId.systemDefault())
+            .toInstant());
+    taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(pullRequestPollingTaskIntervalInSeconds), startTime);
     log.info("Scheduled SCM pull request polling every {} second(s) starting in {} second(s)",
-        pullRequestMonitoringIntervalSeconds, pullRequestMonitoringDelaySeconds);
+        pullRequestPollingTaskIntervalInSeconds, pullRequestPollingTaskDelayInSeconds);
   }
 
   @Override
@@ -141,7 +142,7 @@ public class PullRequestPollingTask
     return TASK_NAME;
   }
 
-  private void stopPullRequestMonitoring() {
+  private void stopPullRequestPolling() {
     if (!disableForTesting) {
       log.info("Stopped SCM pull request polling");
       taskScheduler.unscheduleTask(this);
@@ -166,11 +167,11 @@ public class PullRequestPollingTask
     if (tenantUtil.isSingleTenant() || tenantUtil.isGlobalTenant()) {
       if (isLicensed()) {
         log.debug("Pull request polling (automation) is licensed");
-        startPullRequestMonitoring();
+        startPullRequestPolling();
       }
       else {
         log.debug("Pull request polling (automation) is not licensed");
-        stopPullRequestMonitoring();
+        stopPullRequestPolling();
       }
     }
   }

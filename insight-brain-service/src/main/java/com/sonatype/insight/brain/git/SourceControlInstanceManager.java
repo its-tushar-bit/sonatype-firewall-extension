@@ -37,7 +37,7 @@ public class SourceControlInstanceManager
   // must be greater than the polling interval so that the instance with the lock doesn't lose it before it
   // has a chance to refresh it
   private int instanceLockReservationTimeSeconds =
-      PullRequestPollingTask.PULL_REQUEST_MONITORING_INTERVAL_SECONDS + 5;
+      PullRequestPollingTask.PULL_REQUEST_POLLING_INTERVAL_SECONDS + 5;
 
   private final PerpetualLockManager perpetualLockManager = new PerpetualLockManager();
 

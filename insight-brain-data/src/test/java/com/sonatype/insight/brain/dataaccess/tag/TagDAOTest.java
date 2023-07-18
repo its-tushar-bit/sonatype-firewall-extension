@@ -16,9 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
+import com.sonatype.insight.brain.dataaccess.*;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweTagDAO;
@@ -30,7 +28,6 @@ import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
@@ -52,14 +49,33 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * @since 1.9
  */
-public class TagDAOTest
-    extends AbstractDbDAOTest
+public class TagDAOTest extends NameableDAOTest<Tag>
 {
   private final TagDAO dao = new TagDAO();
+
+  @Override
+  protected Tag createNameable(String a) {
+    return tempEntity.newTag(organization.getId(), a, "testCRUD description", Color.yellow);
+  }
+
+  @Override
+  protected AbstractOperationalSqlDAO<Tag> getDao() {
+    return dao;
+  }
 
   @Before
   public void before() {
     organization = tempEntity.newOrganization("TagDAOTest");
+  }
+
+  @Override
+  protected int getMaxNameLength() {
+    return NameHelper.MAX_NAME_LENGTH;
+  }
+  
+  @Override
+  protected Tag getEntityByName(String name) {
+    return dao.getByName(name).get(0);
   }
 
   @Test
@@ -164,154 +180,6 @@ public class TagDAOTest
     dao.delete(tag2);
     assertThat(vulnerabilityCustomCvssVectorTagDAO.getByTagId(tag1.getId())).isEmpty();
     assertThat(vulnerabilityCustomCvssVectorTagDAO.getByTagId(tag2.getId())).isEmpty();
-  }
-
-  @Test
-  public void testValidateNullName_Insert() {
-    Tag tag = new Tag(organization.getId(), null /* name */, "description", Color.yellow);
-    assertThatThrownBy(() -> dao.insert(tag)).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateNullName_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    dao.insert(tag);
-
-    tag.setName(null);
-    assertThatThrownBy(() -> dao.update(tag)).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateEmptyName_Insert() {
-    Tag tag = new Tag(organization.getId(), " " /* name */, "description", Color.yellow);
-    assertThatThrownBy(() -> dao.insert(tag)).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateEmptyName_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    dao.insert(tag);
-
-    tag.setName(" ");
-    assertThatThrownBy(() -> dao.update(tag)).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Insert() {
-    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      tag.setName(name);
-      assertThatThrownBy(() -> dao.insert(tag)).isInstanceOf(InvalidNameException.class)
-          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    dao.insert(tag);
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      tag.setName(name);
-      assertThatThrownBy(() -> dao.update(tag)).isInstanceOf(InvalidNameException.class)
-          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testValidateNameValidChars_Insert() {
-    for (String name : NameHelperTest.VALID_NAMES) {
-      tempEntity.newTag(organization.getId(), name);
-    }
-  }
-
-  @Test
-  public void testValidateNameValidChars_Update() {
-    Tag tag = tempEntity.newTag(organization.getId(), "a");
-    for (String name : NameHelperTest.VALID_NAMES) {
-      tag.setName(name);
-      dao.update(tag);
-    }
-  }
-
-  @Test
-  public void testValidateNameSpaces_Insert() {
-    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      tag.setName(name);
-      assertThatThrownBy(() -> dao.insert(tag)).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testValidateNameSpaces_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    dao.insert(tag);
-
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      tag.setName(name);
-      assertThatThrownBy(() -> dao.update(tag)).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testNameIsCaseAndWhitespaceInsensitive() {
-    String name = "test string With Case and Whitespace";
-
-    Tag tag = new Tag(organization.getId(), name, "description", Color.yellow);
-    dao.insert(tag);
-
-    assertThat(tag.getName()).isEqualTo(name);
-    assertThat(tag.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
-  }
-
-  @Test
-  public void testDuplicateName_Insert() {
-    Tag tag = new Tag(organization.getId(), "testDuplicateName", "description", Color.yellow);
-    dao.insert(tag);
-
-    Tag tag1 = new Tag(organization.getId(), "Test Duplicate Name", "description", Color.yellow);
-    assertThatThrownBy(() -> dao.insert(tag1)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Test Duplicate Name is already used as a name.");
-  }
-
-  @Test
-  public void testDuplicateName_Update() {
-    Tag tag = new Tag(organization.getId(), "testDuplicateName", "description", Color.yellow);
-    dao.insert(tag);
-
-    Tag tag1 = new Tag(organization.getId(), "testDuplicateName1", "description", Color.yellow);
-    dao.insert(tag1);
-
-    tag1.setName("Test Duplicate Name");
-    assertThatThrownBy(() -> dao.update(tag1)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Test Duplicate Name is already used as a name.");
-  }
-
-  @Test
-  public void testValidateNameLength_Insert() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    Tag tag = new Tag(organization.getId(), name + "a", "description", Color.yellow);
-    assertThatThrownBy(() -> dao.insert(tag)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name must be 60 characters or less.");
-
-    tag.setName(name);
-    dao.insert(tag);
-  }
-
-  @Test
-  public void testValidateNameLength_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    dao.insert(tag);
-
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    tag.setName(name + "a");
-    assertThatThrownBy(() -> dao.update(tag)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name must be 60 characters or less.");
-
-    tag.setName(name);
-    dao.update(tag);
   }
 
   @Test

@@ -7,17 +7,15 @@ package com.sonatype.insight.brain.dataaccess.filter;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
-import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
@@ -25,10 +23,30 @@ import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LE
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class UserFilterDAOTest
-    extends AbstractDbDAOTest
+public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
 {
   private final UserFilterDAO userFilterDAO = new UserFilterDAO();
+
+  @Override
+  protected UserFilter createNameable(String a) {
+    return tempEntity.newUserFilter("testUsername", "testRealmId", a, ADVANCED_LEGAL_PACK_DASHBOARD, "");
+  }
+
+  @Override
+  protected AbstractOperationalSqlDAO<UserFilter> getDao() {
+    return userFilterDAO;
+  }
+
+  @Override
+  protected int getMaxNameLength() {
+    return NameHelper.MAX_NAME_LENGTH;
+  }
+  
+  @Override
+  protected UserFilter getEntityByName(String name) {
+    return userFilterDAO.getByUsernameAndRealmIdAndNameAndType("testUsername", "testRealmId", name, 
+        ADVANCED_LEGAL_PACK_DASHBOARD);
+  }
 
   @Test
   public void testCRUD() {
@@ -108,145 +126,6 @@ public class UserFilterDAOTest
     assertThatThrownBy(() ->
         userFilterDAO.update(userFilter)
     ).isInstanceOf(BadRequestException.class).hasMessage("The type is required.");
-  }
-
-  @Test
-  public void testValidateNullName_Insert() {
-    UserFilter userFilter =
-        new UserFilter("testUsername", "testRealmId", null /* name */, ADVANCED_LEGAL_PACK_DASHBOARD);
-    assertThatThrownBy(() ->
-        userFilterDAO.insert(userFilter)
-    ).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateNullName_Update() {
-    UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
-    userFilter.setName(null);
-    assertThatThrownBy(() ->
-        userFilterDAO.update(userFilter)
-    ).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateEmptyName_Insert() {
-    UserFilter actualFilter = tempEntity.newUserFilter("testUsername", "testRealmId", ACTIVE_FILTER_NAME,
-        ADVANCED_LEGAL_PACK_DASHBOARD, "testFilterString");
-    UserFilter expectedFilter = userFilterDAO.getById(actualFilter.getId());
-    assertFilter(actualFilter, expectedFilter);
-  }
-
-  @Test
-  public void testValidateEmptyName_Update() {
-    UserFilter userFilter = tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName",
-        ADVANCED_LEGAL_PACK_DASHBOARD, "testFilterString");
-    userFilter.setName(ACTIVE_FILTER_NAME);
-    userFilterDAO.update(userFilter);
-    UserFilter expectedFilter = userFilterDAO.getById(userFilter.getId());
-    assertFilter(userFilter, expectedFilter);
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Insert() {
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      UserFilter userFilter = new UserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD);
-      assertThatThrownBy(() ->
-          userFilterDAO.insert(userFilter)
-      ).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Update() {
-    UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      userFilter.setName(name);
-      assertThatThrownBy(() ->
-          userFilterDAO.update(userFilter)
-      ).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testValidateNameValidChars_Insert() {
-    for (String name : NameHelperTest.VALID_NAMES) {
-      tempEntity.newUserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD, "");
-    }
-  }
-
-  @Test
-  public void testValidateNameValidChars_Update() {
-    UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD, "");
-    for (String name : NameHelperTest.VALID_NAMES) {
-      userFilter.setName(name);
-      userFilterDAO.update(userFilter);
-    }
-  }
-
-  @Test
-  public void testValidateNameSpaces_Insert() {
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      assertThatThrownBy(() ->
-          tempEntity.newUserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD, "")
-      ).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testValidateNameSpaces_Update() {
-    UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      userFilter.setName(name);
-      assertThatThrownBy(() ->
-          userFilterDAO.update(userFilter)
-      ).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testDuplicateName_Insert() {
-    tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
-    assertThatThrownBy(() ->
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "")
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("testFilterName is already used as a name for type ADVANCED_LEGAL_PACK_DASHBOARD");
-  }
-
-  @Test
-  public void testDuplicateName_Update() {
-    tempEntity.newUserFilter("testUsername", "testRealmId", "test Filter Name 1", ADVANCED_LEGAL_PACK_DASHBOARD, "");
-    UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName2", ADVANCED_LEGAL_PACK_DASHBOARD, "");
-    userFilter.setName("test Filter Name 1");
-    assertThatThrownBy(() ->
-        userFilterDAO.update(userFilter)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("test Filter Name 1 is already used as a name for type ADVANCED_LEGAL_PACK_DASHBOARD");
-  }
-
-  @Test
-  public void testValidateNameLength_Insert() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH + 1);
-    assertThatThrownBy(() ->
-        tempEntity.newUserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD, "")
-    ).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
-  }
-
-  @Test
-  public void testValidateNameLength_Update() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH + 1);
-    UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
-    userFilter.setName(name);
-    assertThatThrownBy(() ->
-        userFilterDAO.update(userFilter)
-    ).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
   }
 
   @Test

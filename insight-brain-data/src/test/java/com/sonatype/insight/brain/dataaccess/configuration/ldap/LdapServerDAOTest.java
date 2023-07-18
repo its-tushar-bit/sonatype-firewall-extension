@@ -9,15 +9,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
+import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
-import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
@@ -28,16 +27,34 @@ import com.sonatype.insight.brain.model.notification.UserViewedProductNotificati
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class LdapServerDAOTest
-    extends AbstractDbDAOTest
+public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
 {
   private final LdapServerDAO dao = new LdapServerDAO();
+
+  @Override
+  protected LdapServer createNameable(String a) {
+    return tempEntity.newLdapServer(a);
+  }
+
+  @Override
+  protected AbstractOperationalSqlDAO<LdapServer> getDao() {
+    return dao;
+  }
+  
+  @Override
+  protected int getMaxNameLength() {
+    return NameHelper.MAX_NAME_LENGTH;
+  }
+  
+  @Override
+  protected LdapServer getEntityByName(String name) {
+    return dao.getByName(name);
+  }
 
   @Test
   public void testCRUD() {
@@ -70,150 +87,6 @@ public class LdapServerDAOTest
     // delete
     dao.delete(ldapServer);
     assertThat(dao.getById(ldapServer.getId())).isNull();
-  }
-
-  @Test
-  public void testValidateNullName_Insert() {
-    LdapServer ldapServer = new LdapServer(null /* name */);
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.insert(ldapServer))
-        .withMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateNullName_Update() {
-    LdapServer ldapServer = tempEntity.newLdapServer("testValidateNullName");
-    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isEqualTo("testvalidatenullname");
-
-    ldapServer.setName(null);
-    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isNull();
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
-        .withMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateEmptyName_Insert() {
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> tempEntity.newLdapServer(" "))
-        .withMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateEmptyName_Update() {
-    LdapServer ldapServer = tempEntity.newLdapServer("testValidateEmptyName");
-    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isEqualTo("testvalidateemptyname");
-
-    ldapServer.setName(" ");
-    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isEqualTo("");
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
-        .withMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Insert() {
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      LdapServer ldapServer = new LdapServer(name);
-      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.insert(ldapServer))
-          .withMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Update() {
-    LdapServer ldapServer = tempEntity.newLdapServer("testValidateNameInvalidChars");
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      ldapServer.setName(name);
-      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
-          .withMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testValidateNameValidChars_Insert() {
-    for (String name : NameHelperTest.VALID_NAMES) {
-      tempEntity.newLdapServer(name);
-    }
-  }
-
-  @Test
-  public void testValidateNameValidChars_Update() {
-    LdapServer ldapServer = tempEntity.newLdapServer("a");
-    for (String name : NameHelperTest.VALID_NAMES) {
-      ldapServer.setName(name);
-      dao.update(ldapServer);
-    }
-  }
-
-  @Test
-  public void testValidateNameSpaces_Insert() {
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> tempEntity.newLdapServer(name))
-          .withMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testValidateNameSpaces_Update() {
-    LdapServer ldapServer = tempEntity.newLdapServer("testValidateNameSpaces");
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      ldapServer.setName(name);
-      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
-          .withMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testNameIsCaseAndWhitespaceInsensitive() {
-    String name = "test string With Case and Whitespace";
-
-    LdapServer ldapServer = tempEntity.newLdapServer(name);
-
-    assertThat(ldapServer.getName()).isEqualTo(name);
-    assertThat(ldapServer.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
-
-    String name1 = "TEST String      With    cASE and      whitespace";
-    LdapServer ldapServer1 = dao.getByName(name1);
-    assertThat(ldapServer1).isNotNull();
-    assertThat(ldapServer1.getId()).isEqualTo(ldapServer.getId());
-  }
-
-  @Test
-  public void testDuplicateName_Insert() {
-    tempEntity.newLdapServer("testDuplicateName");
-
-    assertThatExceptionOfType(InvalidNameException.class)
-        .isThrownBy(() -> tempEntity.newLdapServer("testDuplicateName"))
-        .withMessage("testDuplicateName is already used as a name.");
-  }
-
-  @Test
-  public void testDuplicateName_Update() {
-    tempEntity.newLdapServer("testDuplicateName");
-    LdapServer ldapServer = tempEntity.newLdapServer("testDuplicateName1");
-
-    ldapServer.setName("Test Duplicate Name");
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
-        .withMessage("Test Duplicate Name is already used as a name.");
-  }
-
-  @Test
-  public void testValidateNameLength_Insert() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> tempEntity.newLdapServer(name + "a"))
-        .withMessage("Name must be 60 characters or less.");
-
-    tempEntity.newLdapServer(name);
-  }
-
-  @Test
-  public void testValidateNameLength_Update() {
-    LdapServer ldapServer = tempEntity.newLdapServer("test name");
-
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    ldapServer.setName(name + "a");
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
-        .withMessage("Name must be 60 characters or less.");
-
-    ldapServer.setName(name);
-    dao.update(ldapServer);
   }
 
   @Test

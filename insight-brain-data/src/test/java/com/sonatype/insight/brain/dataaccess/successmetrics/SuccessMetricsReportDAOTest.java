@@ -84,21 +84,21 @@ public class SuccessMetricsReportDAOTest
   }
 
   @Test
-  public void testValidateNullName_Insert() {
+  public void testInsert_ValidateNullName() {
     SuccessMetricsReport successMetrics = new SuccessMetricsReport(null);
     assertThatThrownBy(() -> successMetricsReportDAO.insert(successMetrics)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name is required.");
   }
 
   @Test
-  public void testValidateEmptyName_Insert() {
+  public void testInsert_ValidateEmptyName() {
     SuccessMetricsReport successMetrics = new SuccessMetricsReport("");
     assertThatThrownBy(() -> successMetricsReportDAO.insert(successMetrics)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name is required.");
   }
 
   @Test
-  public void testValidateNameInvalidChars_Insert() {
+  public void testInsert_ValidateNameInvalidChars() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       SuccessMetricsReport successMetrics = new SuccessMetricsReport(name);
       assertThatThrownBy(() -> successMetricsReportDAO.insert(successMetrics)).isInstanceOf(InvalidNameException.class)
@@ -107,7 +107,7 @@ public class SuccessMetricsReportDAOTest
   }
 
   @Test
-  public void testValidateNameValidChars_Insert() {
+  public void testInsert_ValidateNameValidChars() {
     String username = "test123";
     for (String name : NameHelperTest.VALID_NAMES) {
       tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1");
@@ -115,7 +115,7 @@ public class SuccessMetricsReportDAOTest
   }
 
   @Test
-  public void testValidateNameSpaces_Insert() {
+  public void testInsert_ValidateNameSpaces() {
     String username = "test123";
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       assertThatThrownBy(() -> tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1"))
@@ -139,7 +139,7 @@ public class SuccessMetricsReportDAOTest
   }
 
   @Test
-  public void testDuplicateName_Insert() {
+  public void testInsert_DuplicateName() {
     String username = "test123";
     tempEntity.newSuccessMetricsReport(username, "Metrics12345", "testMetricsString 1111");
     assertThatThrownBy(() -> tempEntity.newSuccessMetricsReport(username, "METRICS 12345", "testMetricsString 1111"))
@@ -147,7 +147,7 @@ public class SuccessMetricsReportDAOTest
   }
 
   @Test
-  public void testValidateNameLength_Insert() {
+  public void testInsert_ValidateNameLength() {
     String username = "test123";
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     assertThatThrownBy(() -> tempEntity.newSuccessMetricsReport(username, name + "a", "testMetricsString 1111"))

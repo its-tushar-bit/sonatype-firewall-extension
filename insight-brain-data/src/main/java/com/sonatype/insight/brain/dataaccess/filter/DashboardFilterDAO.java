@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.filter;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.security.User;
@@ -125,7 +126,7 @@ public class DashboardFilterDAO
       existingFilter = getLegacyByUsernameAndName(tx, dashboardFilter.getUsername(), dashboardFilter.getName());
     }
     if (existingFilter != null) {
-      throw new BadRequestException(dashboardFilter.getName() + " is already used as a name.");
+      throw new InvalidNameException(dashboardFilter.getName() + " is already used as a name.");
     }
     super.insert(tx, dashboardFilter);
   }
@@ -139,7 +140,7 @@ public class DashboardFilterDAO
       existingFilter = getLegacyByUsernameAndName(tx, dashboardFilter.getUsername(), dashboardFilter.getName());
     }
     if (existingFilter != null && !existingFilter.getId().equals(dashboardFilter.getId())) {
-      throw new BadRequestException(dashboardFilter.getName() + " is already used as a name.");
+      throw new InvalidNameException(dashboardFilter.getName() + " is already used as a name.");
     }
     super.update(tx, dashboardFilter);
   }

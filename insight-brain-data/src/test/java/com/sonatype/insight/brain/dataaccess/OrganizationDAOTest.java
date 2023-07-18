@@ -35,9 +35,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRe
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Color;
-import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
@@ -69,7 +67,6 @@ import com.sonatype.insight.postgres.PostgresServer;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -78,13 +75,32 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class OrganizationDAOTest
-    extends AbstractDbDAOTest
+public class OrganizationDAOTest extends NameableDAOTest<Organization>
 {
-  private final OrganizationDAO dao = new OrganizationDAO();
-
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
+
+  private final OrganizationDAO dao = new OrganizationDAO();
+
+  @Override
+  protected Organization createNameable(String a) {
+    return tempEntity.newOrganization(a);
+  }
+
+  @Override
+  protected AbstractOperationalSqlDAO<Organization> getDao() {
+    return dao;
+  }
+  
+  @Override
+  protected int getMaxNameLength() {
+    return NameHelper.MAX_NAME_LENGTH_APP_ORG;
+  }
+  
+  @Override
+  protected Organization getEntityByName(String name) {
+    return dao.getByName(name);
+  }
 
   @Test
   public void testCRUD() {
@@ -274,140 +290,6 @@ public class OrganizationDAOTest
       organization.setName(originalName);
       dao.update(organization);
     }
-  }
-
-  @Test
-  public void testInsert_ValidateNullName() {
-    Organization organization = new Organization(null /* name */);
-    assertThatThrownBy(() -> dao.insert(organization)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testUpdate_ValidateNullName() {
-    organization.setName(null);
-    assertThat(organization.getNameLowercaseNoWhitespace()).isNull();
-    assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testInsert_ValidateEmptyName() {
-    assertThatThrownBy(() -> tempEntity.newOrganization(" ")).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testUpdate_ValidateEmptyName() {
-    organization.setName(" ");
-    assertThat(organization.getNameLowercaseNoWhitespace()).isEqualTo("");
-    assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testInsert_ValidateNameInvalidChars() {
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      Organization organization = new Organization(name);
-      assertThatThrownBy(() -> dao.insert(organization)).isInstanceOf(InvalidNameException.class)
-          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testUpdate_ValidateNameInvalidChars() {
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      organization.setName(name);
-      assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
-          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testInsert_ValidateNameValidChars() {
-    for (String name : NameHelperTest.VALID_NAMES) {
-      tempEntity.newOrganization(name);
-    }
-  }
-
-  @Test
-  public void testUpdate_ValidateNameValidChars() {
-    Organization organization = tempEntity.newOrganization("a");
-    for (String name : NameHelperTest.VALID_NAMES) {
-      organization.setName(name);
-      dao.update(organization);
-    }
-  }
-
-  @Test
-  public void testInsert_ValidateNameSpaces() {
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      assertThatThrownBy(() -> tempEntity.newOrganization(name)).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testUpdate_ValidateNameSpaces() {
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      organization.setName(name);
-      assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testNameIsCaseAndWhitespaceInsensitive() {
-    String name = "test string With Case and Whitespace";
-
-    organization = tempEntity.newOrganization(name);
-
-    assertThat(organization.getName()).isEqualTo(name);
-    assertThat(organization.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
-
-    String name1 = "TEST String      With    cASE and      whitespace";
-    Organization organization1 = dao.getByName(name1);
-    assertThat(organization1).isNotNull();
-    assertThat(organization1.getId()).isEqualTo(organization.getId());
-  }
-
-  @Test
-  public void testInsert_DuplicateName() {
-    tempEntity.newOrganization("testDuplicateName");
-
-    assertThatThrownBy(() -> tempEntity.newOrganization("testDuplicateName"))
-        .isInstanceOf(InvalidNameException.class)
-        .hasMessage("testDuplicateName is already used as a name.");
-  }
-
-  @Test
-  public void testUpdate_DuplicateName() {
-    tempEntity.newOrganization("testDuplicateName");
-    Organization organization1 = tempEntity.newOrganization("testDuplicateName1");
-
-    organization1.setName("Test Duplicate Name");
-    assertThatThrownBy(() -> dao.update(organization1)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Test Duplicate Name is already used as a name.");
-  }
-
-  @Test
-  public void testInsert_ValidateNameLength() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
-    assertThatThrownBy(() -> tempEntity.newOrganization(name + "a")).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.");
-
-    tempEntity.newOrganization(name);
-  }
-
-  @Test
-  public void testUpdate_ValidateNameLength() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
-    organization.setName(name + "a");
-    assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.");
-
-    organization.setName(name);
-    dao.update(organization);
   }
 
   @Test

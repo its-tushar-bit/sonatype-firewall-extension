@@ -100,8 +100,7 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class ApplicationDAOTest
-    extends AbstractDbDAOTest
+public class ApplicationDAOTest extends NameableDAOTest<Application>
 {
   /**
    * Prohibited application public ID whitespace characters.
@@ -112,6 +111,28 @@ public class ApplicationDAOTest
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
+
+  @Override
+  protected Application createNameable(String a) {
+    Application app = new Application("publicId" + System.nanoTime(), a, organization.getId());
+    applicationDAO.insert(app);
+    return app;
+  }
+
+  @Override
+  protected AbstractOperationalSqlDAO<Application> getDao() {
+    return applicationDAO;
+  }
+  
+  @Override
+  protected int getMaxNameLength() {
+    return NameHelper.MAX_NAME_LENGTH_APP_ORG;
+  }
+
+  @Override
+  protected Application getEntityByName(String name) {
+    return applicationDAO.getByName(name);
+  }
 
   @Test
   public void testCRUD() {
@@ -552,113 +573,6 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testInsert_ValidateNullName() {
-    Application app = new Application("publicId", null, organization.getId());
-    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testUpdate_ValidateNullName() {
-    Application app = new Application("publicId", "testValidateNullName", organization.getId());
-    assertThat(app.getNameLowercaseNoWhitespace()).isEqualTo("testvalidatenullname");
-    applicationDAO.insert(app);
-
-    app.setName(null);
-    assertThat(app.getNameLowercaseNoWhitespace()).isNull();
-    assertThatThrownBy(() -> applicationDAO.update(app)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testInsert_ValidateEmptyName() {
-    Application app = new Application("publicId", " ", organization.getId());
-    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testUpdate_ValidateEmptyName() {
-    Application app = new Application("publicId", "testValidateEmptyName", organization.getId());
-    assertThat(app.getNameLowercaseNoWhitespace()).isEqualTo("testvalidateemptyname");
-    applicationDAO.insert(app);
-
-    app.setName(" ");
-    assertThat(app.getNameLowercaseNoWhitespace()).isEqualTo("");
-    assertThatThrownBy(() -> applicationDAO.update(app)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testInsert_ValidateNameInvalidChars() {
-    Application app = new Application("publicId", "name", organization.getId());
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      app.setName(name);
-      assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
-          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testUpdate_ValidateNameInvalidChars() {
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      application.setName(name);
-      assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
-          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testInsert_ValidateNameValidChars() {
-    for (String name : NameHelperTest.VALID_NAMES) {
-      tempEntity.newApplication(name, tempEntity.uuid(), organization.getId());
-    }
-  }
-
-  @Test
-  public void testUpdate_ValidateNameValidChars() {
-    Application app = tempEntity.newApplication("a", "publicId", organization.getId());
-    for (String name : NameHelperTest.VALID_NAMES) {
-      app.setName(name);
-      applicationDAO.update(app);
-    }
-  }
-
-  @Test
-  public void testInsert_ValidateNameSpaces() {
-    Application app = new Application("publicId", "name", organization.getId());
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      app.setName(name);
-      assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testUpdate_ValidateNameSpaces() {
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      application.setName(name);
-      assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testNameIsCaseAndWhitespaceInsensitive() {
-    String name = "test string With Case and Whitespace";
-
-    Application app = tempEntity.newApplication(name, "publicId", organization.getId());
-
-    assertThat(app.getName()).isEqualTo(name);
-    assertThat(app.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
-
-    String name1 = "TEST String      With    cASE and      whitespace";
-    Application application1 = applicationDAO.getByName(name1);
-    assertThat(application1).isNotNull();
-    assertThat(application1.getId()).isEqualTo(app.getId());
-  }
-
-  @Test
   public void testInsert_DuplicatePublicId() {
     assertThatThrownBy(() -> tempEntity.newApplication(tempEntity.uuid(), application.getPublicId(),
         organization.getId())).isInstanceOf(InvalidApplicationException.class)
@@ -674,24 +588,6 @@ public class ApplicationDAOTest
 
     assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidApplicationException.class)
         .hasMessage(application.getPublicId() + " is already used as an ID.");
-  }
-
-  @Test
-  public void testInsert_DuplicateName() {
-    tempEntity.newApplication("testDuplicateName", "publicId", organization.getId());
-    assertThatThrownBy(
-        () -> tempEntity.newApplication("Test Duplicate Name", "publicId2", organization.getId())).isInstanceOf(
-        InvalidNameException.class).hasMessage("Test Duplicate Name is already used as a name.");
-  }
-
-  @Test
-  public void testUpdate_DuplicateName() {
-    tempEntity.newApplication("testDuplicateName", "publicId", organization.getId());
-
-    Application application1 = tempEntity.newApplication(application.getOrganizationId());
-    application1.setName("Test Duplicate Name");
-    assertThatThrownBy(() -> applicationDAO.update(application1)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Test Duplicate Name is already used as a name.");
   }
 
   @Test
@@ -840,6 +736,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Override
   public void testInsert_ValidateNameLength() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     Application app = new Application("publicId", name + "a", organization.getId());
@@ -848,17 +745,6 @@ public class ApplicationDAOTest
 
     app.setName(name);
     applicationDAO.insert(app);
-  }
-
-  @Test
-  public void testUpdate_ValidateNameLength() {
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
-    application.setName(name + "a");
-    assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.");
-
-    application.setName(name);
-    applicationDAO.update(application);
   }
 
   @Test

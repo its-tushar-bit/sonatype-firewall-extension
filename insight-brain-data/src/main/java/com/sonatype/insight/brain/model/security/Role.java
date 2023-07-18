@@ -10,19 +10,20 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.model.HasStringId;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * A role a user might have.
  * 
  * @since 1.7
  */
+@JsonIgnoreProperties({ "nameLowercaseNoWhitespace"})
 @Entity
 @Table(name = "role")
-public class Role
+public class Role extends Nameable
     implements HasStringId
 {
   /**
@@ -64,16 +65,8 @@ public class Role
   @Column(name = "role_id")
   private String id;
 
-  @Column(name = "name")
-  private String name;
-
   @Column(name = "sort_order")
   private int sortOrder;
-
-  @JsonIgnore
-  @Column(name = "name_lowercase_no_whitespace")
-  @SuppressWarnings("PMD.UnusedPrivateField")
-  private String nameLowercaseNoWhitespace;
 
   @Column(name = "description")
   private String description;
@@ -102,26 +95,12 @@ public class Role
     this.id = id;
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    nameLowercaseNoWhitespace = NameHelper.normalize(name);
-    this.name = name;
-  }
-
   public int getSortOrder() {
     return sortOrder;
   }
 
   public void setSortOrder(final int sortOrder) {
     this.sortOrder = sortOrder;
-  }
-
-  @SuppressWarnings("unused")
-  private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
-    // prevent Jackson from messing this field up during deserialization
   }
 
   public String getDescription() {

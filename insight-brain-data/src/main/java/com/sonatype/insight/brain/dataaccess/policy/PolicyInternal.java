@@ -15,7 +15,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
@@ -32,18 +32,12 @@ import com.sonatype.insight.model.HasStringId;
  */
 @Entity
 @Table(name = "policy")
-public class PolicyInternal
+public class PolicyInternal extends Nameable
     implements HasStringId
 {
   @Id
   @Column(name = "policy_id")
   private String id;
-
-  @Column(name = "name")
-  private String name;
-
-  @Column(name = "name_lowercase_no_whitespace")
-  private String nameLowercaseNoWhitespace;
 
   @Column(name = "owner_id")
   private String ownerId;
@@ -71,31 +65,6 @@ public class PolicyInternal
   @Override
   public void setId(String id) {
     this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    nameLowercaseNoWhitespace = NameHelper.normalize(name);
-    this.name = name;
-  }
-
-  public String getNameLowercaseNoWhitespace() {
-    return nameLowercaseNoWhitespace;
-  }
-
-  /**
-   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-   * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
-   * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
-   * 
-   * @deprecated This method should not be used explicitly.
-   */
-  @Deprecated
-  @SuppressWarnings("unused")
-  private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
   }
 
   public String getOwnerId() {

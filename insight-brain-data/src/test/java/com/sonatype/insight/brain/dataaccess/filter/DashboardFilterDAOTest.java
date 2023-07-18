@@ -7,23 +7,44 @@ package com.sonatype.insight.brain.dataaccess.filter;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class DashboardFilterDAOTest
-    extends AbstractDbDAOTest
+public class DashboardFilterDAOTest extends NameableDAOTest<DashboardFilter>
 {
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+
+  @Override
+  protected DashboardFilter createNameable(String a) {
+    DashboardFilter dashboardFilter =
+        tempEntity.newDashboardFilter("test123", "testRealmId", a, "testFilterString 1111");
+  
+    return dashboardFilter;
+  }
+
+  @Override
+  protected AbstractOperationalSqlDAO<DashboardFilter> getDao() {
+    return dashboardFilterDAO;
+  }
+
+  @Override
+  protected int getMaxNameLength() {
+    return NameHelper.MAX_NAME_LENGTH;
+  }
+  
+  @Override
+  protected DashboardFilter getEntityByName(String name) {
+    return dashboardFilterDAO.getByUsernameAndRealmIdAndName("test123", "testRealmId", name);
+  }
 
   @Test
   public void testCRUD() {
@@ -134,147 +155,11 @@ public class DashboardFilterDAOTest
   }
 
   @Test
-  public void testValidateNullName_Insert() {
-    DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", null);
-    assertThatThrownBy(() -> dashboardFilterDAO.insert(dashboardFilter)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateNullName_Update() {
-    DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", null);
-    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateEmptyName_Insert() {
-    String username = "test123";
-    // this should create a new filter
-    DashboardFilter actualFilter = tempEntity.newDashboardFilter(username, "testRealmId", "", "testFilterString 1");
-    // search for the new filter
-    DashboardFilter expectedFilter = dashboardFilterDAO.getById(actualFilter.getId());
-    // verify
-    assertFilter(actualFilter, expectedFilter);
-  }
-
-  @Test
-  public void testValidateEmptyName_Update() {
-    String username = "test123";
-    // this should create a new filter
-    DashboardFilter dashboardFilter =
-        tempEntity.newDashboardFilter(username, "testRealmId", "abc filter", "testFilterString 1");
-    dashboardFilter.setName("");
-    // update the new filter
-    dashboardFilterDAO.update(dashboardFilter);
-    // search for the updated filter
-    DashboardFilter expectedFilter = dashboardFilterDAO.getById(dashboardFilter.getId());
-    assertFilter(dashboardFilter, expectedFilter);
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Insert() {
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", name);
-      assertThatThrownBy(() -> dashboardFilterDAO.insert(dashboardFilter)).isInstanceOf(InvalidNameException.class)
-          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Update() {
-    String username = "test123";
-    DashboardFilter dashboardFilter =
-        tempEntity.newDashboardFilter(username, "testRealmId", "test 1", "testFilterString 1");
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      dashboardFilter.setName(name);
-      assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(InvalidNameException.class)
-          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
-    }
-  }
-
-  @Test
-  public void testValidateNameValidChars_Insert() {
-    String username = "test123";
-    for (String name : NameHelperTest.VALID_NAMES) {
-      tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1");
-    }
-  }
-
-  @Test
-  public void testValidateNameValidChars_Update() {
-    String username = "test123";
-    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter(username, "testRealmId", "", "testFilterString 1");
-    for (String name : NameHelperTest.VALID_NAMES) {
-      dashboardFilter.setName(name);
-      dashboardFilterDAO.update(dashboardFilter);
-    }
-  }
-
-  @Test
-  public void testValidateNameSpaces_Insert() {
-    String username = "test123";
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      assertThatThrownBy(
-          () -> tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1")).isInstanceOf(
-              InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testValidateNameSpaces_Update() {
-    String username = "test123";
-    DashboardFilter dashboardFilter =
-        tempEntity.newDashboardFilter(username, "testRealmId", "sample filter", "testFilterString 1111");
-    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      dashboardFilter.setName(name);
-      assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
-    }
-  }
-
-  @Test
-  public void testNameIsCaseAndWhitespaceInsensitive() {
-    String username = "test123";
-    String name = "test string With Case and Whitespace";
-    DashboardFilter dashboardFilter =
-        tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1111");
-    assertThat(dashboardFilter.getName()).isEqualTo(name);
-    assertThat(dashboardFilter.getNameLowercaseNoWhitespace()).isEqualTo("teststringwithcaseandwhitespace");
-
-    String name1 = "TEST String      With    cASE and      whitespace";
-    DashboardFilter actual = dashboardFilterDAO.getByUsernameAndRealmIdAndName(username, "testRealmId", name1);
-    assertThat(actual).isNotNull();
-    assertThat(actual.getId()).isEqualTo(dashboardFilter.getId());
-  }
-
-  @Test
-  public void testDuplicateName_Insert() {
-    String username = "test123";
-    tempEntity.newDashboardFilter(username, "testRealmId", "Filter12345", "testFilterString 1111");
-    assertThatThrownBy(() -> tempEntity.newDashboardFilter(username, "testRealmId", "FILTER 12345",
-        "testFilterString 1111")).isInstanceOf(BadRequestException.class)
-        .hasMessage("FILTER 12345 is already used as a name.");
-  }
-
-  @Test
   public void testDuplicateName_Insert_LegacyFilter() {
     String username = "test123";
     tempEntity.newDashboardFilterLegacy(username, "Filter12345", "testFilterString 1111");
     assertThatThrownBy(() -> tempEntity.newDashboardFilter(username, "testRealmId", "FILTER 12345",
-        "testFilterString 1111")).isInstanceOf(BadRequestException.class)
-        .hasMessage("FILTER 12345 is already used as a name.");
-  }
-
-  @Test
-  public void testDuplicateName_Update() {
-    String username = "test0123";
-    tempEntity.newDashboardFilter(username, "testRealmId", "Filter12345", "testFilterString 1111");
-    DashboardFilter dashboardFilter =
-        tempEntity.newDashboardFilter(username, "testRealmId", "Filter 0123", "testFilterString 1111");
-    dashboardFilter.setName("FILTER 12345");
-    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(BadRequestException.class)
+        "testFilterString 1111")).isInstanceOf(InvalidNameException.class)
         .hasMessage("FILTER 12345 is already used as a name.");
   }
 
@@ -285,31 +170,8 @@ public class DashboardFilterDAOTest
     DashboardFilter dashboardFilter =
         tempEntity.newDashboardFilter(username, "testRealmId", "Filter 0123", "testFilterString 1111");
     dashboardFilter.setName("FILTER 12345");
-    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(BadRequestException.class)
-        .hasMessage("FILTER 12345 is already used as a name.");
-  }
-
-  @Test
-  public void testValidateNameLength_Insert() {
-    String username = "test123";
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    assertThatThrownBy(
-        () -> tempEntity.newDashboardFilter(username, "testRealmId", name + "a", "testFilterString 1111")).isInstanceOf(
-        InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
-    tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1111");
-  }
-
-  @Test
-  public void testValidateNameLength_Update() {
-    String username = "test123";
-    String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    DashboardFilter dashboardFilter =
-        tempEntity.newDashboardFilter(username, "testRealmId", "valid name", "testFilterString 1111");
-    dashboardFilter.setName(name + "a");
     assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name must be 60 characters or less.");
-    dashboardFilter.setName(name);
-    dashboardFilterDAO.update(dashboardFilter);
+        .hasMessage("FILTER 12345 is already used as a name.");
   }
 
   @Test

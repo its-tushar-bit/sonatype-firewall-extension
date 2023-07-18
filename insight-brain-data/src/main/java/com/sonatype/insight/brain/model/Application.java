@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Entity
 @Table(name = "application")
-public class Application
+public class Application extends Nameable
     implements HasStringId, Owner
 {
   @Id
@@ -33,12 +33,6 @@ public class Application
 
   @Column(name = "public_id_lowercase")
   private String publicIdLowercase;
-
-  @Column(name = "name")
-  private String name;
-
-  @Column(name = "name_lowercase_no_whitespace")
-  private String nameLowercaseNoWhitespace;
 
   @Column(name = "organization_id")
   private String organizationId;
@@ -107,20 +101,6 @@ public class Application
     return publicIdLowercase;
   }
 
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    nameLowercaseNoWhitespace = NameHelper.normalize(name);
-    this.name = name;
-  }
-
-  public String getNameLowercaseNoWhitespace() {
-    return nameLowercaseNoWhitespace;
-  }
-
   /**
    * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
    * publicIdLowercase field. If this method is not defined, jackson will set/access the publicIdLowercase field
@@ -131,18 +111,6 @@ public class Application
   @Deprecated
   @SuppressWarnings("unused")
   private void setPublicIdLowercase(String publicIdLowercase) {
-  }
-
-  /**
-   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-   * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
-   * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
-   *
-   * @deprecated This method should not be used explicitly.
-   */
-  @Deprecated
-  @SuppressWarnings("unused")
-  private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
   }
 
   public String getOrganizationId() {

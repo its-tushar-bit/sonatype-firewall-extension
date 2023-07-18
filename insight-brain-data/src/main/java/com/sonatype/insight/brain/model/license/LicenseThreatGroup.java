@@ -10,12 +10,12 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.model.HasStringId;
 
 @Entity
 @Table(name = "license_threat_group")
-public class LicenseThreatGroup
+public class LicenseThreatGroup extends Nameable
     implements HasStringId
 {
   @Id
@@ -24,12 +24,6 @@ public class LicenseThreatGroup
 
   @Column(name = "owner_id")
   private String ownerId;
-
-  @Column(name = "name")
-  private String name;
-
-  @Column(name = "name_lowercase_no_whitespace")
-  private String nameLowercaseNoWhitespace;
 
   @Column(name = "threat_level")
   private int threatLevel;
@@ -61,36 +55,11 @@ public class LicenseThreatGroup
     this.ownerId = ownerId;
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    nameLowercaseNoWhitespace = NameHelper.normalize(name);
-    this.name = name;
-  }
-
-  public String getNameLowercaseNoWhitespace() {
-    return nameLowercaseNoWhitespace;
-  }
-
   public int getThreatLevel() {
     return threatLevel;
   }
 
   public void setThreatLevel(int threatLevel) {
     this.threatLevel = threatLevel;
-  }
-
-  /**
-   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-   * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
-   * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
-   * 
-   * @deprecated This method should not be used explicitly.
-   */
-  @Deprecated
-  @SuppressWarnings("unused")
-  private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
   }
 }

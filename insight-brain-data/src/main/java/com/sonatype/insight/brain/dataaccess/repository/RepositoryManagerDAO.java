@@ -115,8 +115,6 @@ public class RepositoryManagerDAO
   }
 
   public RepositoryManager getByName(TransactionContext tx, String name) {
-    NameHelper.validate("Name", name, NameHelper.MAX_NAME_LENGTH_APP_ORG);
-
     name = NameHelper.normalize(name);
     String sQuery = "SELECT entity FROM RepositoryManager entity WHERE entity.nameLowercaseNoWhitespace=?1";
     return get(tx, sQuery, name);
@@ -157,5 +155,11 @@ public class RepositoryManagerDAO
     String sQuery = "SELECT entity FROM RepositoryManager entity" + //
         " WHERE entity.configured = false AND entity.userAgent LIKE 'Nexus/%'";
     return getList(sQuery);
+  }
+  
+  public RepositoryManager getByName(String name) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByName(tx, name);
+    }
   }
 }

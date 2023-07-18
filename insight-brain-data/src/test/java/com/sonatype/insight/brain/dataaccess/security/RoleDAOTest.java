@@ -9,11 +9,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
-import com.sonatype.insight.brain.model.NameHelperTest;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
@@ -34,13 +35,33 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class RoleDAOTest
-    extends AbstractDbDAOTest
+public class RoleDAOTest extends NameableDAOTest<Role>
 {
   private final RoleDAO roleDAO = new RoleDAO();
 
   private Role newRole(String name) {
     return tempEntity.newRole(name, name + " description", false /* global */);
+  }
+  
+  @Override
+  protected Role createNameable(String a) {
+    Role role = newRole(a);
+    return role;
+  }
+
+  @Override
+  protected AbstractOperationalSqlDAO<Role> getDao() {
+    return roleDAO;
+  }
+
+  @Override
+  protected int getMaxNameLength() {
+    return NameHelper.MAX_NAME_LENGTH;
+  }
+  
+  @Override
+  protected Role getEntityByName(String name) {
+    return roleDAO.getByName(name);
   }
 
   @Test
@@ -140,25 +161,8 @@ public class RoleDAOTest
   }
 
   @Test
-  public void testValidateEmptyName_Insert() {
-    Role role = new Role();
-    role.setName("");
-    assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Insert() {
-    Role role = new Role();
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      role.setName(name);
-      assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name contains an invalid character: '" + name + "'.");
-    }
-  }
-
-  @Test
-  public void testDuplicateName_Insert() {
+  @Override
+  public void testInsert_DuplicateName() {
     Role role = new Role();
     role.setName("applicationEVALUATOR");
     assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(InvalidNameException.class)
@@ -166,25 +170,8 @@ public class RoleDAOTest
   }
 
   @Test
-  public void testValidateEmptyName_Update() {
-    Role role = newRole("Test");
-    role.setName("");
-    assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(InvalidNameException.class)
-        .hasMessage("Name is required.");
-  }
-
-  @Test
-  public void testValidateNameInvalidChars_Update() {
-    Role role = newRole("Test");
-    for (String name : NameHelperTest.INVALID_CHARACTERS) {
-      role.setName(name);
-      assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(InvalidNameException.class)
-          .hasMessage("Name contains an invalid character: '" + name + "'.");
-    }
-  }
-
-  @Test
-  public void testDuplicateName_Update() {
+  @Override
+  public void testUpdate_DuplicateName() {
     Role role = newRole("Test");
     role.setName("applicationEVALUATOR");
     assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(InvalidNameException.class)

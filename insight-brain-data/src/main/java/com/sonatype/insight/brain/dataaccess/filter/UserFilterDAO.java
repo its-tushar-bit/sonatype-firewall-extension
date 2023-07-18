@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.filter;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
@@ -42,7 +43,7 @@ public class UserFilterDAO
     UserFilter existingFilter = getByUsernameAndRealmIdAndNameAndType(tx, userFilter.getUsername(),
         userFilter.getRealmId(), userFilter.getName(), userFilter.getType());
     if (existingFilter != null) {
-      throw new BadRequestException(
+      throw new InvalidNameException(
           userFilter.getName() + " is already used as a name for type " + userFilter.getType());
     }
     super.insert(tx, userFilter);
@@ -54,7 +55,7 @@ public class UserFilterDAO
     UserFilter existingFilter = getByUsernameAndRealmIdAndNameAndType(tx, userFilter.getUsername(),
         userFilter.getRealmId(), userFilter.getName(), userFilter.getType());
     if (existingFilter != null && !existingFilter.getId().equals(userFilter.getId())) {
-      throw new BadRequestException(
+      throw new InvalidNameException(
           userFilter.getName() + " is already used as a name for type " + userFilter.getType());
     }
     super.update(tx, userFilter);

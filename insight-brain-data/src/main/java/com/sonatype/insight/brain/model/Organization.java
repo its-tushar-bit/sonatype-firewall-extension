@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "organization")
-public class Organization
+public class Organization extends Nameable
     implements HasStringId, Owner
 {
   public static final String ROOT_ORGANIZATION_ID = "ROOT_ORGANIZATION_ID";
@@ -27,12 +27,6 @@ public class Organization
 
   @Column(name = "parent_organization_id")
   private String parentOrganizationId;
-
-  @Column(name = "name")
-  private String name;
-
-  @Column(name = "name_lowercase_no_whitespace")
-  private String nameLowercaseNoWhitespace;
 
   /**
    * @since 1.50
@@ -100,32 +94,6 @@ public class Organization
 
   public void setParentOrganizationId(final String parentOrganizationId) {
     this.parentOrganizationId = parentOrganizationId;
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    nameLowercaseNoWhitespace = NameHelper.normalize(name);
-    this.name = name;
-  }
-
-  public String getNameLowercaseNoWhitespace() {
-    return nameLowercaseNoWhitespace;
-  }
-
-  /**
-   * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
-   * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
-   * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
-   * 
-   * @deprecated This method should not be used explicitly.
-   */
-  @Deprecated
-  @SuppressWarnings("unused")
-  private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
   }
 
   @Override

@@ -173,7 +173,7 @@ public class UserDAOTest
   }
 
   @Test
-  public void testValidateNameValidChars_Insert() {
+  public void testInsert_ValidateNameValidChars() {
     for (String name : NameHelperTest.VALID_NAMES) {
       if (name.contains(" ")) {
         continue;
@@ -183,7 +183,7 @@ public class UserDAOTest
   }
 
   @Test
-  public void testValidateNameValidChars_Update() {
+  public void testUpdate_ValidateNameValidChars() {
     UserDAO dao = new UserDAO();
     User user = tempEntity.newUser("a");
     for (String name : NameHelperTest.VALID_NAMES) {

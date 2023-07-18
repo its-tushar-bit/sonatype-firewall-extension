@@ -207,7 +207,7 @@ public class ApiCycloneDxServiceV2
             policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
         ApiDependencyTreeNodeDTO dependenciesData =
             apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
-        addMetadata(policyEvaluation, dependenciesData, bom, version, components);
+        addMetadata(policyEvaluation, dependenciesData, bom, version, components, data);
         if (hasDependenciesData(components, dependenciesData)) {
           addDependencyTree(dependenciesData, bom, components);
         }
@@ -282,16 +282,20 @@ public class ApiCycloneDxServiceV2
       final ApiDependencyTreeNodeDTO dependenciesData,
       final Bom bom,
       final Version version,
-      final Map<String, Map<String, String>> components)
+      final Map<String, Map<String, String>> components,
+      final ApiReportRawDataDTOV2 data)
   {
     if (policyEvaluation != null) {
       Metadata metadata = new Metadata();
 
       if (version.compareTo(Version.VERSION_12) > 0) {
-        Property property = new Property();
-        property.setName("Scan ID");
-        property.setValue(policyEvaluation.getScanId());
-        metadata.addProperty(property);
+        Property scanIdProperty = createProperty("Scan ID", policyEvaluation.getScanId());
+        metadata.addProperty(scanIdProperty);
+
+        if (StringUtils.isNotBlank(data.globalInformation.dataVersionDate)) {
+          Property dataDate = createProperty("Data Date", data.globalInformation.dataVersionDate);
+          metadata.addProperty(dataDate);
+        }
       }
 
       metadata.setTimestamp(policyEvaluation.getTime());
@@ -714,9 +718,13 @@ public class ApiCycloneDxServiceV2
   }
 
   private static void addProperty(final String name, final String value, final Component component) {
+    component.addProperty(createProperty(name, value));
+  }
+
+  private static Property createProperty(final String name, final String value) {
     Property property = new Property();
     property.setName(name);
     property.setValue(value);
-    component.addProperty(property);
+    return property;
   }
 }

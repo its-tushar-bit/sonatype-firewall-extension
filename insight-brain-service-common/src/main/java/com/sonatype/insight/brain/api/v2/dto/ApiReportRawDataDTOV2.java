@@ -22,4 +22,6 @@ public class ApiReportRawDataDTOV2
    * @since 1.14.1
    */
   public ApiMatchStateSummaryDTOV2 matchSummary = new ApiMatchStateSummaryDTOV2();
+
+  public ApiGlobalInformationDTOV2 globalInformation = new ApiGlobalInformationDTOV2();
 }

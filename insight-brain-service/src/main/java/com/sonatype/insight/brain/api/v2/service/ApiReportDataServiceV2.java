@@ -430,8 +430,18 @@ public class ApiReportDataServiceV2
     ContainerNode<?> dataJson = JsonUtils.parse(dataEntry.buf);
     data.matchSummary.knownComponentCount = dataJson.get("knownArtifactCount").intValue();
     data.matchSummary.totalComponentCount = dataJson.get("totalArtifactCount").intValue();
-
+    addGlobalInformation(dataJson, data);
     return data;
+  }
+
+  private void addGlobalInformation(ContainerNode<?> dataJson, ApiReportRawDataDTOV2 data) throws IOException {
+    JsonNode globalsNode = dataJson.get("globals");
+
+    Map<String, JsonNode> map = JsonUtils.asPojo(globalsNode, Map.class);
+
+    if (map != null && map.containsKey("dataVersionDate")) {
+      data.globalInformation.dataVersionDate = String.valueOf(map.get("dataVersionDate"));
+    }
   }
 
   private boolean isDependencyDataInRestApiSupported() {

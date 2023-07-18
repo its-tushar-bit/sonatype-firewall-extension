@@ -177,7 +177,7 @@ public class ApiCycloneDxServiceV2Test
 
     createReportAndPolicyEvaluation("report");
     Response response = service.getByScanId(application.getId(), scanId, contentType, version);
-    assertBom(response, version, hasVulnerabilities);
+    assertBom(response, version, hasVulnerabilities, false);
   }
 
   @Test
@@ -189,7 +189,7 @@ public class ApiCycloneDxServiceV2Test
     Bom bom = parser.parse(bytes);
 
     assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
-    assertMetadata(bom, application, scanId, Version.VERSION_11);
+    assertMetadata(bom, application, scanId, Version.VERSION_11, null);
     assertThat(bom.getExternalReferences()).hasSize(1);
 
     Component component =
@@ -208,7 +208,7 @@ public class ApiCycloneDxServiceV2Test
     Bom bom = ThirdPartyUtils.parseAndValidateSbom(response.getEntity().toString(), "xml");
 
     assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
-    assertMetadata(bom, application, scanId, Version.VERSION_14);
+    assertMetadata(bom, application, scanId, Version.VERSION_14, null);
     assertThat(bom.getExternalReferences()).hasSize(1);
 
     String commonPurl1 = "pkg:generic/Apache.NMS.dll@2.0.0.0?nexusnamespace=Apache&nexustype=pecoff";
@@ -368,13 +368,22 @@ public class ApiCycloneDxServiceV2Test
     testGetLatest(MediaType.APPLICATION_JSON, Version.VERSION_12);
   }
 
-  public void testGetLatest(String contentType, Version version) throws Exception {
+  @Test
+  public void testSageReport() throws Exception {
+    when(versionService.getFullVersion()).thenReturn("1.0");
+    createReportAndPolicyEvaluation("sageReport");
+    Response response =
+        service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_JSON, Version.VERSION_14);
+    assertBom(response, Version.VERSION_14, false, true);
+  }
+
+  private void testGetLatest(String contentType, Version version) throws Exception {
     if (version != Version.VERSION_11) {
       when(versionService.getFullVersion()).thenReturn("1.0");
     }
     createReportAndPolicyEvaluation("report");
     Response response = service.getLatest(application.getId(), BuildStageType.ID, contentType, version);
-    assertBom(response, version, false);
+    assertBom(response, version, false, false);
   }
 
   private void assertBomMaven(Response response) throws Exception {
@@ -421,7 +430,9 @@ public class ApiCycloneDxServiceV2Test
         component -> component.getBomRef().equals(bom.getDependencies().get(0).getRef())).count()).isEqualTo(0);
   }
 
-  private void assertBom(Response response, Version version, boolean hasVulnerabilities) throws Exception {
+  private void assertBom(Response response, Version version, boolean hasVulnerabilities, boolean isSageReport)
+      throws Exception
+  {
     byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(bytes);
     Bom bom = parser.parse(bytes);
@@ -429,7 +440,10 @@ public class ApiCycloneDxServiceV2Test
     assertThat(parser.validate(bytes, version)).isEmpty();
     assertThat(bom.getSpecVersion()).isEqualTo(version.getVersionString());
     assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
-    assertMetadata(bom, application, scanId, version);
+
+    String dataDate = isSageReport ? "20230716" : null;
+
+    assertMetadata(bom, application, scanId, version, dataDate);
 
     assertThat(bom.getExternalReferences()).hasSize(1);
 
@@ -511,7 +525,7 @@ public class ApiCycloneDxServiceV2Test
     }
   }
 
-  private void assertMetadata(Bom bom, Application application, String scanId, Version version) {
+  private void assertMetadata(Bom bom, Application application, String scanId, Version version, String dataDate) {
     PolicyEvaluation policyEvaluation = null;
     if (version.getVersion() >= 1.2) {
       policyEvaluation =
@@ -527,12 +541,17 @@ public class ApiCycloneDxServiceV2Test
       assertToolVendor(metadata);
 
       if (version.getVersion() > 1.2) {
-        assertThat(metadata.getProperties()).hasSize(1);
-
         Property property = new Property();
         property.setName("Scan ID");
         property.setValue(scanId);
-        assertThat(metadata.getProperties()).containsExactly(property);
+        assertThat(metadata.getProperties()).contains(property);
+
+        if (dataDate != null) {
+          Property dataDateProperty = new Property();
+          dataDateProperty.setName("Data Date");
+          dataDateProperty.setValue(dataDate);
+          assertThat(metadata.getProperties()).contains(dataDateProperty);
+        }
       }
       else {
         assertThat(metadata.getProperties()).isNull();

@@ -22,7 +22,6 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
-import com.sonatype.clm.dto.model.repository.FirewallTelemetry;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 
@@ -63,11 +62,6 @@ public interface RestClient
      * @since 1.35
      */
     FirewallIgnorePatterns getFirewallIgnorePatterns() throws IOException;
-
-    /**
-     * @since 1.135.0
-     */
-    void postFirewallTelemetry(FirewallTelemetry firewallTelemetry) throws IOException;
   }
 
   interface Scan

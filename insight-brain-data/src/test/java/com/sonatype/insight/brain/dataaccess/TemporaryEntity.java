@@ -538,8 +538,6 @@ public class TemporaryEntity
 
   private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO();
 
-  private MailConfiguration savedMailConfiguration;
-
   private Collection<LicenseOverride> licenseOverrides;
 
   private Collection<User> users;
@@ -574,7 +572,6 @@ public class TemporaryEntity
     claimedComponents = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     userTokens = new ArrayList<>();
-    savedMailConfiguration = mailConfigurationDAO.get();
     savedProxyServerConfiguration = proxyServerConfigurationDAO.get();
     initializePersistedUserSessions();
     quarantinedComponentAccesses = new ArrayList<>();
@@ -735,12 +732,7 @@ public class TemporaryEntity
       cleanupPersistedUserSessions();
       delete(userTokens, userTokenDAO);
       automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
-      if (savedMailConfiguration == null) {
-        mailConfigurationDAO.delete();
-      }
-      else {
-        mailConfigurationDAO.set(savedMailConfiguration);
-      }
+      mailConfigurationDAO.delete();
 
       if (savedProxyServerConfiguration == null) {
         proxyServerConfigurationDAO.delete();

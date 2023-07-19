@@ -14,8 +14,11 @@ make(
     mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     prepare: {
       if (env.BRANCH_NAME == 'main' && currentBuild.fullProjectName.toLowerCase().contains('snapshot')) {
-        List<String> issues = getIssuesByFixVersion('brain-next')
-        replaceFixVersionForIssues(issues, 'brain-next', 'saas-next')
+        String fixVersion = 'brain-next'
+        String newFixVersion = 'sass-next'
+        echo "Replacing '${fixVersion}' with '${newFixVersion}'"
+        List<String> issues = getIssuesByFixVersion(fixVersion)
+        replaceFixVersionForIssues(issues, fixVersion, newFixVersion)
       }
     },
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->

@@ -562,7 +562,7 @@ public class TemporaryEntity
 
   private Collection<DeletedTenant> deletedTenants;
 
-  private List<SystemConfigurationProperty> systemConfigurationPropertiesBefore;
+  private static List<SystemConfigurationProperty> initialSystemConfigurationProperties;
 
   @Override
   public void before() {
@@ -580,10 +580,22 @@ public class TemporaryEntity
     quarantinedComponentAccesses = new ArrayList<>();
     deletedTenants = new ArrayList<>();
 
-    systemConfigurationPropertiesBefore = systemConfigurationPropertyDAO.getAll();
+    saveInitialSystemConfigurationPropertiesIfNeeded();
+  }
 
-    // Disable search
-    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
+  private void saveInitialSystemConfigurationPropertiesIfNeeded() {
+    if (initialSystemConfigurationProperties == null) {
+      // The advanced search is enabled by default. Disable it for tests.
+      systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
+      // Save the initial system configuration properties. They will be restored after each test.
+      initialSystemConfigurationProperties = systemConfigurationPropertyDAO.getAll();
+    }
+  }
+
+  private void restoreInitialSystemConfigurationProperties() {
+    systemConfigurationPropertyDAO.getAll().forEach(property -> systemConfigurationPropertyDAO.delete(property));
+    initialSystemConfigurationProperties.forEach(property -> detachEntity(property));
+    initialSystemConfigurationProperties.forEach(property -> systemConfigurationPropertyDAO.insert(property));
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -734,9 +746,7 @@ public class TemporaryEntity
         proxyServerConfigurationDAO.set(savedProxyServerConfiguration);
       }
 
-      systemConfigurationPropertyDAO.getAll().forEach(property -> systemConfigurationPropertyDAO.delete(property));
-      systemConfigurationPropertiesBefore.forEach(property -> detachEntity(property));
-      systemConfigurationPropertiesBefore.forEach(property -> systemConfigurationPropertyDAO.insert(property));
+      restoreInitialSystemConfigurationProperties();
 
       componentObligationAttributionDAO.getAll().forEach(componentObligationAttributionDAO::delete);
       componentObligationDAO.getAll().forEach(componentObligationDAO::delete);

@@ -101,19 +101,19 @@ pipeline {
       parallel {
         stage ('Publish Image') {
           steps {
-            build(job: 'insight/insight-brain/docker-pipelines/main-image/release',
+            build(job: 'insight/insight-brain/docker/main-image/release',
               parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")])
           }
         }
         stage('Publish Slim Image') {
           steps {
-            build(job: 'insight/insight-brain/docker-pipelines/slim-image/release',
+            build(job: 'insight/insight-brain/docker/slim-image/release',
               parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")])
           }
         }
         stage('Publish RedHat Image') {
           steps {
-            build(job: 'insight/insight-brain/docker-pipelines/redhat-image/release',
+            build(job: 'insight/insight-brain/docker/redhat-image/release',
               parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")])
           }
         }

@@ -34,7 +34,7 @@ const firewallOnboardingPreloadedState = {
     },
   },
 };
-const FIRST_STEP_TITLE = 'Select your protection rules';
+const FIRST_STEP_TITLE = 'Enable Repository Firewall features';
 const WELCOME_SCREEN_TITLE = 'Welcome to Repository Firewall';
 
 describe('FirewallOnboardingPage', function () {

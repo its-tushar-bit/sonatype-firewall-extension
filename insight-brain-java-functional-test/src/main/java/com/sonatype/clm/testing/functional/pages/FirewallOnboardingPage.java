@@ -112,7 +112,7 @@ public class FirewallOnboardingPage
   }
 
   public static Condition protectionRulesSelectorTitle() {
-    return Condition.text("Select your protection rules");
+    return Condition.text("Enable Repository Firewall features");
   }
 
   public static Condition proxyRepositoriesSelectorNoProtectionRulesTitle() {
@@ -125,5 +125,13 @@ public class FirewallOnboardingPage
 
   public Button closeButton() {
     return new Button("#firewall-welcome-modal-close-btn");
+  }
+
+  public SelenideElement maliciousComponentsDocumentationLink() {
+    return child("#malicious-components-doc-link");
+  }
+
+  public SelenideElement namespaceAttacksDocumentationLink() {
+    return child("#namespace-attacks-doc-link");
   }
 }

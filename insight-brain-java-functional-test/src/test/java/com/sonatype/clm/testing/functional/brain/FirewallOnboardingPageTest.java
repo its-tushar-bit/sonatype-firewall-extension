@@ -162,6 +162,30 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
+  public void testMaliciousComponentsDocumentationLinkShouldBeDisplayedWithCorrectAttributes() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.shouldBe(visible);
+    page.getStartedButton().click();
+    page.maliciousComponentsDocumentationLink()
+        .shouldBe(attribute(
+            "href",
+            "http://links.sonatype.com/nexus-firewall/protection-from-pending-and-suspicious-components"))
+        .shouldHave(attribute("target", "_blank"));
+  }
+
+  @Test
+  public void testNamespaceAttacksDocumentationLinkShouldBeDisplayedWithCorrectAttributes() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.shouldBe(visible);
+    page.getStartedButton().click();
+    page.namespaceAttacksDocumentationLink()
+        .shouldBe(attribute("href", "http://links.sonatype.com/nexus-firewall/preventing-namespace-confusion"))
+        .shouldHave(attribute("target", "_blank"));
+  }
+
+  @Test
   public void testClickingSidebarNavigationOpensIncompleteConfigurationModalOnWelcomeScreen() {
     refreshOrOpen(FirewallOnboardingPage.url());
 
@@ -1127,7 +1151,7 @@ public class FirewallOnboardingPageTest
 
       page.shouldBe(Condition.visible);
       page.getStartedButton().click();
-      page.shouldHave(Condition.text("Select your protection rules"));
+      page.shouldHave(Condition.text("Enable Repository Firewall features"));
       page.supplyChainAttacksProtectionRuleCheckbox().click();
       page.namespaceConfusionProtectionRuleCheckbox().click();
       page.continueButton().click();

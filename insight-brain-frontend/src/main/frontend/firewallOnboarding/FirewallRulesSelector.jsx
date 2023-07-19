@@ -14,6 +14,7 @@ import {
   NxList,
   NxP,
   NxPageTitle,
+  NxTextLink,
   NxTile,
 } from '@sonatype/react-shared-components';
 import { faShieldCheck } from '@fortawesome/pro-solid-svg-icons';
@@ -24,6 +25,9 @@ import { stepsById } from './firewallOnboardingUtils';
 import { selectProtectionRules } from './firewallOnboardingSelectors';
 
 const currentStep = stepsById.rules;
+const NAMESPACE_CONFUSION_PROTECTION_URL = 'http://links.sonatype.com/nexus-firewall/preventing-namespace-confusion';
+const MALICIOUS_COMPONENTS_PROTECTION_URL =
+  'http://links.sonatype.com/nexus-firewall/protection-from-pending-and-suspicious-components';
 
 export default function FirewallRulesSelector() {
   const dispatch = useDispatch();
@@ -34,7 +38,7 @@ export default function FirewallRulesSelector() {
   return (
     <>
       <NxPageTitle>
-        <NxH1 className="firewall-onboarding-page__title">Select your protection rules</NxH1>
+        <NxH1 className="firewall-onboarding-page__title">Enable Repository Firewall features</NxH1>
         <NxP className="firewall-onboarding-page__subTitle">
           Select a core set of policies that enable a default set of protection rules. You can modify these protection
           rules again later.
@@ -72,7 +76,17 @@ export default function FirewallRulesSelector() {
                 </NxCheckbox>
               </NxList.Text>
               <NxList.Subtext className="firewall-rule-description">
-                Malicious attacks from third-party vendors.
+                Keep{' '}
+                <NxTextLink
+                  external
+                  newTab
+                  noReferrer
+                  id="malicious-components-doc-link"
+                  href={MALICIOUS_COMPONENTS_PROTECTION_URL}
+                >
+                  malicious components
+                </NxTextLink>{' '}
+                out of the repository until they can be cleared of risk and automatically release them when done.
               </NxList.Subtext>
             </NxList.Item>
             <NxList.Item>
@@ -87,8 +101,17 @@ export default function FirewallRulesSelector() {
                 </NxCheckbox>
               </NxList.Text>
               <NxList.Subtext className="firewall-rule-description">
-                Software supply chain attack that tricks a package manager into downloading a malicious component
-                instead of a proprietary one.
+                Monitor your hosted repositories for propietary components while keeping{' '}
+                <NxTextLink
+                  external
+                  noReferrer
+                  newTab
+                  id="namespace-attacks-doc-link"
+                  href={NAMESPACE_CONFUSION_PROTECTION_URL}
+                >
+                  namespace attacks
+                </NxTextLink>{' '}
+                from coming in through your proxies.
               </NxList.Subtext>
             </NxList.Item>
           </NxList>

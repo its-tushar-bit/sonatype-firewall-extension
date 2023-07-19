@@ -83,6 +83,10 @@ public class AccessEditorPage
       return this.child("#add-associate-group-input");
     }
 
+    public SelenideElement addGroupSublabel() {
+      return this.child("#associate-group-form-group .nx-sub-label");
+    }
+
     public SelenideElement searchBox() {
       return child(".nx-search-dropdown .nx-text-input__input");
     }

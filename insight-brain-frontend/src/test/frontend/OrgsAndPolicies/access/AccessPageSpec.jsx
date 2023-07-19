@@ -6,6 +6,7 @@
 import React from 'react';
 import AccessPage from 'MainRoot/OrgsAndPolicies/access/AccessPage';
 import * as accessSelectors from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/access/accessSlice';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import { NX_SEARCH_DROPDOWN_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
@@ -18,7 +19,8 @@ describe('AccessPage Component', () => {
     selectIsGroupSearchEnabledSpy,
     setGroupNameSpy,
     addSelectedUserGroupSpy,
-    saveMaskTimerDoneSpy;
+    saveMaskTimerDoneSpy,
+    selectTenantModeSpy;
 
   const addedUsers = [
     {
@@ -47,6 +49,7 @@ describe('AccessPage Component', () => {
     spyOn(actions, 'setAddedUsers').and.callThrough();
     setGroupNameSpy = spyOn(actions, 'setGroupName').and.callThrough();
     addSelectedUserGroupSpy = spyOn(actions, 'addSelectedUserGroup').and.callThrough();
+    selectTenantModeSpy = spyOn(productFeaturesSelectors, 'selectTenantMode').and.returnValue('single-tenant');
     spyOn(accessSelectors, 'selectFetchUsers').and.returnValue({
       data: [
         {
@@ -297,7 +300,7 @@ describe('AccessPage Component', () => {
     expect(search).toBeVisible();
   });
 
-  it('Associate Group feild is present', () => {
+  it('Add an External Group field is present', () => {
     spyOn(accessSelectors, 'selectAccessSlice').and.returnValue({
       isNew: true,
       groupName: {
@@ -310,7 +313,7 @@ describe('AccessPage Component', () => {
     });
     selectIsGroupSearchEnabledSpy.and.returnValue(false);
     renderComponent();
-    const associateGroupField = screen.getByText('Associate Group');
+    const associateGroupField = screen.getByText('Add an External Group');
     const associateGroupFieldFieldset = associateGroupField.closest('.nx-form-row');
     expect(associateGroupField).toBeVisible();
     let addBtn = within(associateGroupFieldFieldset).getByRole('button');
@@ -320,16 +323,16 @@ describe('AccessPage Component', () => {
     expect(addInput).toBeVisible();
   });
 
-  it('Associate Group field is not present in the DOM', () => {
+  it('Add an External Group field is not present in the DOM', () => {
     renderComponent();
-    const associateGroupField = screen.queryByText('Associate Group');
+    const associateGroupField = screen.queryByText('Add an External Group');
     expect(associateGroupField).toBeNull();
   });
 
   it('calls setGroupName action when we change Associated Group input field', () => {
     selectIsGroupSearchEnabledSpy.and.returnValue(false);
     renderComponent();
-    const associateGroupField = screen.getByText('Associate Group');
+    const associateGroupField = screen.getByText('Add an External Group');
     const associateGroupFieldFieldset = associateGroupField.closest('.nx-form-row');
     const addInput = within(associateGroupFieldFieldset).getByRole('textbox');
     fireEvent.change(addInput, { target: { value: 'new group' } });
@@ -339,7 +342,7 @@ describe('AccessPage Component', () => {
   it('disables Associated Group input Add button if input field is empty', () => {
     selectIsGroupSearchEnabledSpy.and.returnValue(false);
     renderComponent();
-    const associateGroupField = screen.getByText('Associate Group');
+    const associateGroupField = screen.getByText('Add an External Group');
     const associateGroupFieldFieldset = associateGroupField.closest('.nx-form-row');
     const addBtn = within(associateGroupFieldFieldset).getByRole('button');
     expect(addBtn).toHaveClassName('disabled');
@@ -357,7 +360,7 @@ describe('AccessPage Component', () => {
       value: '',
     });
     renderComponent();
-    const associateGroupField = screen.getByText('Associate Group');
+    const associateGroupField = screen.getByText('Add an External Group');
     const associateGroupFieldFieldset = associateGroupField.closest('.nx-form-row');
     const addBtn = within(associateGroupFieldFieldset).getByRole('button');
     const addInput = within(associateGroupFieldFieldset).getByRole('textbox');
@@ -378,7 +381,7 @@ describe('AccessPage Component', () => {
       value: '',
     });
     renderComponent();
-    const associateGroupField = screen.getByText('Associate Group');
+    const associateGroupField = screen.getByText('Add an External Group');
     const associateGroupFieldFieldset = associateGroupField.closest('.nx-form-row');
     expect(associateGroupField).toBeVisible();
     let addBtn = within(associateGroupFieldFieldset).getByRole('button');
@@ -505,7 +508,7 @@ describe('AccessPage Component', () => {
   it('Update button is active by adding new group by Add button', () => {
     selectIsGroupSearchEnabledSpy.and.returnValue(false);
     renderComponent();
-    const associateGroupField = screen.getByText('Associate Group');
+    const associateGroupField = screen.getByText('Add an External Group');
     const associateGroupFieldFieldset = associateGroupField.closest('.nx-form-row');
     expect(associateGroupField).toBeVisible();
     let addBtn = within(associateGroupFieldFieldset).getByRole('button');
@@ -571,5 +574,47 @@ describe('AccessPage Component', () => {
     expect(modalDeleteButton).toBeVisible();
     fireEvent.click(modalDeleteButton);
     expect(removeRoleSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('mentions LDAP in the Add an External Group input sublabel', () => {
+    selectIsGroupSearchEnabledSpy.and.returnValue(false);
+    renderComponent();
+    const input = screen.getByRole('textbox', { name: 'Add an External Group' });
+
+    expect(input).toHaveAccessibleDescription('Requires an exact match of the LDAP group name');
+  });
+
+  describe('multi-tenant mode', () => {
+    beforeEach(() => {
+      selectTenantModeSpy.and.returnValue('multi-tenant');
+    });
+
+    it('does not render the LDAP group search alert', () => {
+      renderComponent();
+      expect(screen.queryByText('One or more LDAP servers have group search disabled')).not.toBeInTheDocument();
+    });
+
+    it('renders the Add an External Group box and button when group search is disabled', () => {
+      selectIsGroupSearchEnabledSpy.and.returnValue(false);
+      renderComponent();
+
+      expect(screen.getByRole('textbox', { name: 'Add an External Group' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument();
+    });
+
+    it('does not render the Add an External Group box and button when group search is enabled', () => {
+      renderComponent();
+
+      expect(screen.queryByRole('textbox', { name: 'Add an External Group' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Add' })).not.toBeInTheDocument();
+    });
+
+    it('mentions SAML rather than LDAP in the Add an External Group input sublabel', () => {
+      selectIsGroupSearchEnabledSpy.and.returnValue(false);
+      renderComponent();
+      const input = screen.getByRole('textbox', { name: 'Add an External Group' });
+
+      expect(input).toHaveAccessibleDescription('Requires an exact match of the SAML group name');
+    });
   });
 });

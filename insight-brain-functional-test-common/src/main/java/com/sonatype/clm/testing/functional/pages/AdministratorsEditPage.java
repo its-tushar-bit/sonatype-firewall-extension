@@ -104,5 +104,9 @@ public class AdministratorsEditPage
     public SelenideElement addAssociateGroupInput() {
       return this.child("#add-associate-group-input");
     }
+
+    public SelenideElement addAssociateGroupSublabel() {
+      return this.child("#associate-group-form-group .nx-sub-label");
+    }
   }
 }

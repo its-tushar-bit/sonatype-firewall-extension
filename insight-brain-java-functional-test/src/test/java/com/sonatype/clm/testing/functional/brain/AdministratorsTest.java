@@ -282,6 +282,7 @@ public class AdministratorsTest
     refreshOrOpen(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
 
     addMembersForm.groupAlert().shouldBe(visible).shouldHave(text(AddMembersForm.DISABLED_GROUP_SEARCH_WARNING));
+    addMembersForm.addAssociateGroupSublabel().shouldHave(text("Requires an exact match of the LDAP group name"));
 
     // mix servers have group search disabled and disabled
     ldapUserMapping2.setDynamicGroupSearchEnabled(true);

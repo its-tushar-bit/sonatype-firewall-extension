@@ -83,6 +83,7 @@ public class ApplicationAccessEditorTest
     SelenideElement addGroupButton = addMembersForm.addGroupButton();
     addGroupButton.shouldBe(visible);
     addGroupButton.shouldHave(cssClass("disabled"));
+    addMembersForm.addGroupSublabel().shouldHave(text("Requires an exact match of the LDAP group name"));
 
     addMembersForm.addGroupBox().shouldBe(visible).val("FooBar");
     addGroupButton.shouldBe(enabled).click();

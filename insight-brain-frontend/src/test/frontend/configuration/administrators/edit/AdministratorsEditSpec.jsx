@@ -8,6 +8,7 @@ import React from 'react';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import AdministratorsEdit from 'MainRoot/configuration/administrators/edit/AdministratorsEdit';
 import * as administratorsSelectors from 'MainRoot/configuration/administrators/administratorsSelectors';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 import { actions } from 'MainRoot/configuration/administrators/administratorsSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
@@ -20,7 +21,8 @@ describe('AdministratorsEdit', () => {
     goToAdministratorsSpy,
     loadFetchUsersSpy,
     saveMembersSpy,
-    selectIsGroupSearchEnabledSpy;
+    selectIsGroupSearchEnabledSpy,
+    selectTenantModeSpy;
   const roleToEdit = {
     roleId: 'b9646757e98e486da7d730025f5245f8',
     roleName: 'Policy Administrator',
@@ -55,6 +57,7 @@ describe('AdministratorsEdit', () => {
     spyOn(administratorsSelectors, 'selectFetchUsersLoading').and.returnValue(false);
     fetchUsersDataSpy = spyOn(administratorsSelectors, 'selectUsersNotAdded').and.returnValue([]);
     selectIsGroupSearchEnabledSpy = spyOn(administratorsSelectors, 'selectIsGroupSearchEnabled').and.returnValue(true);
+    selectTenantModeSpy = spyOn(productFeaturesSelectors, 'selectTenantMode').and.returnValue('single-tenant');
     goToAdministratorsSpy = spyOn(actions, 'goToAdministrators').and.callThrough();
     saveMembersSpy = spyOn(actions, 'saveMembers').and.callThrough();
     loadFetchUsersSpy = spyOn(actions, 'loadFetchUsers').and.callThrough();
@@ -96,7 +99,7 @@ describe('AdministratorsEdit', () => {
   it('renders initial members list', () => {
     renderComponent();
 
-    const associateGroupField = screen.queryByText('Associate Group');
+    const associateGroupField = screen.queryByText('Add an External Group');
     const groupAlert = screen.queryByText(
       'One or more LDAP servers have group search disabled, which will affect your results'
     );
@@ -171,7 +174,7 @@ describe('AdministratorsEdit', () => {
 
     renderComponent();
 
-    const associateGroupField = screen.getByText('Associate Group');
+    const associateGroupField = screen.getByText('Add an External Group');
     const groupAlert = screen.getByText(
       'One or more LDAP servers have group search disabled, which will affect your results'
     );
@@ -236,5 +239,47 @@ describe('AdministratorsEdit', () => {
     expect(loadFetchUsersSpy).toHaveBeenCalledOnceWith('term');
 
     jasmine.clock().uninstall();
+  });
+
+  it('mentions LDAP in the Add an External Group input sublabel', () => {
+    selectIsGroupSearchEnabledSpy.and.returnValue(false);
+    renderComponent();
+    const input = screen.getByRole('textbox', { name: 'Add an External Group' });
+
+    expect(input).toHaveAccessibleDescription('Requires an exact match of the LDAP group name');
+  });
+
+  describe('multi-tenant mode', () => {
+    beforeEach(() => {
+      selectTenantModeSpy.and.returnValue('multi-tenant');
+    });
+
+    it('does not render the LDAP group search alert', () => {
+      renderComponent();
+      expect(screen.queryByText('One or more LDAP servers have group search disabled')).not.toBeInTheDocument();
+    });
+
+    it('renders the Add an External Group box and button when group search is disabled', () => {
+      selectIsGroupSearchEnabledSpy.and.returnValue(false);
+      renderComponent();
+
+      expect(screen.getByRole('textbox', { name: 'Add an External Group' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument();
+    });
+
+    it('does not render the Add an External Group box and button when group search is enabled', () => {
+      renderComponent();
+
+      expect(screen.queryByRole('textbox', { name: 'Add an External Group' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Add' })).not.toBeInTheDocument();
+    });
+
+    it('mentions SAML rather than LDAP in the Add an External Group input sublabel', () => {
+      selectIsGroupSearchEnabledSpy.and.returnValue(false);
+      renderComponent();
+      const input = screen.getByRole('textbox', { name: 'Add an External Group' });
+
+      expect(input).toHaveAccessibleDescription('Requires an exact match of the SAML group name');
+    });
   });
 });

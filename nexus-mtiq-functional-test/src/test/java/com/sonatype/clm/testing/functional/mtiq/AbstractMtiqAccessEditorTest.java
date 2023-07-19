@@ -83,7 +83,12 @@ public abstract class AbstractMtiqAccessEditorTest
 
     addMembersForm.roleSelect().chooseOption("Component Evaluator");
     addMembersForm.addGroupButton().shouldHave(cssClass("disabled"));
-    addMembersForm.addGroupInput().setValue("test group").click();
+    addMembersForm.addGroupSublabel().shouldHave(text("Requires an exact match of the SAML group name"));
+    addMembersForm.addGroupInput().setValue("test group");
+
+    eyesWatcher.eyesCheck("with external group text box");
+
+    addMembersForm.addGroupInput().click();
     addMembersForm.addGroupButton().shouldNotHave(cssClass("disabled")).click();
     addMembersForm.addedItems().shouldHaveSize(1);
     addMembersForm.addedItems().shouldHave(texts("test group (Group)")); // TODO CLM-26430
@@ -100,13 +105,15 @@ public abstract class AbstractMtiqAccessEditorTest
     assertThat(mapping.getMemberName()).isEqualTo("test group");
 
     addMembersForm.disabledGroupSearchWarning().shouldNotBe(visible);
-    //.shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
 
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
         String.valueOf(true));
     refresh();
 
     addMembersForm.disabledGroupSearchWarning().shouldNot(exist);
+    addMembersForm.addGroupSublabel();
+
+    eyesWatcher.eyesCheck("without external group text box");
   }
 
   abstract void goFromSummaryToAddRole();

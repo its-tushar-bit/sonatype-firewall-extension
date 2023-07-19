@@ -217,7 +217,7 @@ export default function AccessPage() {
                 </NxFormGroup>
               )}
               <NxFieldset
-                label="Search Users"
+                label="Search Users and Groups"
                 sublabel="Search by name or use ‘*’ as wildcard (ex. ‘Isa*’ matches ‘Isaac Asimov’)"
                 isRequired
               >
@@ -238,11 +238,19 @@ export default function AccessPage() {
               </NxFieldset>
               {!groupSearchEnabled && (
                 <NxFormRow>
-                  <NxFormGroup label="Associate Group" sublabel="Requires an exact match of the group name">
+                  {/* Note about sublabel: MTIQ doesn't support LDAP and on-prem doesn't currently show
+                   * this field for SAML (only for LDAP), hence the conditional string
+                   */}
+                  <NxFormGroup
+                    id="associate-group-form-group"
+                    label="Add an External Group"
+                    sublabel={`Requires an exact match of the ${isMultiTenant ? 'SAML' : 'LDAP'} group name`}
+                  >
                     <NxTextInput
                       onChange={onChangeGroupName}
                       className="associate-group-input"
                       id="add-associate-group-input"
+                      placeholder="e.g., authenticated-users"
                       {...groupName}
                     />
                   </NxFormGroup>
@@ -255,7 +263,6 @@ export default function AccessPage() {
                       }
                     >
                       <NxButton
-                        variant="primary"
                         onClick={addGroup}
                         type="button"
                         className={isAddGroupDisabled ? 'disabled' : ''}
@@ -268,7 +275,7 @@ export default function AccessPage() {
                 </NxFormRow>
               )}
               <NxTransferListHalf
-                label="Associated Users"
+                label="Associated Members"
                 filterValue={addedItemsFilter}
                 onFilterChange={setAddedItemsFilter}
                 showMoveAll

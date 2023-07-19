@@ -147,11 +147,16 @@ public class MultiTenantAdministratorsTest
 
     AdministratorsEditPage.AddMembersForm addMembersForm = administratorsEditPage.addMembersForm();
 
-    addMembersForm.groupAlert().shouldNotBe(visible);//.shouldHave(text(""/* TODO */));
+    addMembersForm.groupAlert().shouldNotBe(visible);
 
+    addMembersForm.addAssociateGroupSublabel().shouldHave(text("Requires an exact match of the SAML group name"));
     addMembersForm.addAssociateGroupBtn().shouldHave(cssClass("disabled"));
     addMembersForm.addAssociateGroupInput().setValue("test group").click();
-    addMembersForm.addAssociateGroupBtn().shouldNotHave(cssClass("disabled")).click();
+    addMembersForm.addAssociateGroupBtn().shouldNotHave(cssClass("disabled"));
+
+    eyesWatcher.eyesCheck("with external group text box");
+
+    addMembersForm.addAssociateGroupBtn().click();
     addMembersForm.addedItems().shouldHaveSize(2);
     addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "test group (Group)")); // TODO CLM-26430
     addMembersForm.addAssociateGroupInput().setValue("test group");
@@ -164,6 +169,9 @@ public class MultiTenantAdministratorsTest
     refreshOrOpen(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
 
     addMembersForm.groupAlert().shouldNotBe(visible);
+    addMembersForm.addAssociateGroupSublabel();
+
+    eyesWatcher.eyesCheck("without external group text box");
   }
 
   /*

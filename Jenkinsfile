@@ -15,7 +15,7 @@ make(
     prepare: {
       if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
         String fixVersion = 'brain-next'
-        String newFixVersion = 'sass-next'
+        String newFixVersion = 'saas-next'
         echo "Replacing '${fixVersion}' with '${newFixVersion}'"
         List<String> issues = getIssuesByFixVersion(fixVersion)
         replaceFixVersionForIssues(issues, fixVersion, newFixVersion)

@@ -530,6 +530,7 @@ export function setQuarantineGridComponentNameFilter(componentName) {
   return (dispatch) => {
     dispatch(quarantineGridSetComponentNameFilter({ componentName: componentName }));
     if (componentName.length !== 1) {
+      dispatch(quarantineGridSetPage({ currentPage: null }));
       dispatch(loadQuarantineList());
     }
   };

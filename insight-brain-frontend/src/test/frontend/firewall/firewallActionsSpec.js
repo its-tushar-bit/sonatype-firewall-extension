@@ -1048,16 +1048,20 @@ describe('firewallActions', function () {
   describe('setQuarantineGridComponentNameFilter', function () {
     it('immediately dispatches actions to set the component name filter for the quarantine grid', function () {
       const componentName = { componentName: 'name' };
+      const currentPage = { currentPage: null };
 
       store.dispatch(setQuarantineGridComponentNameFilter(componentName.componentName));
 
       const actions = store.getActions();
-      expect(actions.length).toBe(2);
+      expect(actions.length).toBe(3);
       expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER);
       expect(actions[0].payload).toEqual(componentName);
-      expect(actions[0].payload.componentName).toEqual(jasmine.any(String));
-      expect(actions[1].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
-      expect(actions[1].payload).toBeUndefined();
+      expect(actions[0].payload.componentName).toEqual('name');
+      expect(actions[1].type).toBe(FIREWALL_QUARANTINE_GRID_SET_PAGE);
+      expect(actions[1].payload).toEqual(currentPage);
+      expect(actions[1].payload.currentPage).toBeNull();
+      expect(actions[2].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
+      expect(actions[2].payload).toBeUndefined();
     });
 
     it('does not load the quarantine list if the component name is only 1 character', function () {

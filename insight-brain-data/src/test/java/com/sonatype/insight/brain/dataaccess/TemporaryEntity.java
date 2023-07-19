@@ -540,8 +540,6 @@ public class TemporaryEntity
 
   private MailConfiguration savedMailConfiguration;
 
-  private Collection<MigrationTracker> migrationTrackers;
-
   private Collection<LicenseOverride> licenseOverrides;
 
   private Collection<User> users;
@@ -562,11 +560,13 @@ public class TemporaryEntity
 
   private Collection<DeletedTenant> deletedTenants;
 
+  private static List<MigrationTracker> initialMigrationTrackers;
+
   private static List<SystemConfigurationProperty> initialSystemConfigurationProperties;
 
   @Override
   public void before() {
-    migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
+    saveInitialMigrationTrackersIfNeeded();
     licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
     usernames = new ArrayList<>();
@@ -583,6 +583,18 @@ public class TemporaryEntity
     saveInitialSystemConfigurationPropertiesIfNeeded();
   }
 
+  private void saveInitialMigrationTrackersIfNeeded() {
+    if (initialMigrationTrackers == null) {
+      initialMigrationTrackers = migrationTrackerDAO.getAll();
+    }
+  }
+
+  private void restoreInitialMigrationTrackers() {
+    migrationTrackerDAO.getAll().forEach(migrationTracker -> migrationTrackerDAO.delete(migrationTracker));
+    initialMigrationTrackers.forEach(migrationTracker -> detachEntity(migrationTracker));
+    initialMigrationTrackers.forEach(migrationTracker -> migrationTrackerDAO.insert(migrationTracker));
+  }
+
   private void saveInitialSystemConfigurationPropertiesIfNeeded() {
     if (initialSystemConfigurationProperties == null) {
       // The advanced search is enabled by default. Disable it for tests.
@@ -596,13 +608,6 @@ public class TemporaryEntity
     systemConfigurationPropertyDAO.getAll().forEach(property -> systemConfigurationPropertyDAO.delete(property));
     initialSystemConfigurationProperties.forEach(property -> detachEntity(property));
     initialSystemConfigurationProperties.forEach(property -> systemConfigurationPropertyDAO.insert(property));
-  }
-
-  private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
-    MigrationTracker copy = new MigrationTracker(migrationTracker.getId());
-    copy.setVersion(migrationTracker.getVersion());
-    copy.setConfiguration(migrationTracker.getConfiguration());
-    return copy;
   }
 
   public List<Organization> sortNLevelOrgsWithLeafNodesOnTop(Collection<Organization> orgs) {
@@ -725,9 +730,7 @@ public class TemporaryEntity
       if (config != null) {
         proprietaryConfigDAO.delete(config);
       }
-      migrationTrackerDAO.getAll().forEach(migrationTrackerDAO::delete);
-      migrationTrackers.forEach(this::detachEntity);
-      migrationTrackers.forEach(migrationTrackerDAO::insert);
+      restoreInitialMigrationTrackers();
       searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
       cleanupPersistedUserSessions();
       delete(userTokens, userTokenDAO);

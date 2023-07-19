@@ -163,7 +163,7 @@ public class ComponentRemediationService
 
       boolean includeAdvancedStrategies = currentComponent.isMaven() &&
           productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES)
-          && !SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
+          && SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
       if (includeAdvancedStrategies) {
         // non-violating/non-failing with dependencies
         Collection<PackageUrlIdentifier> nonFailingVersionsPurls = nonFailingVersions.stream()

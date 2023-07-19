@@ -53,7 +53,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(service.getPropertyNameForFeature(FEATURE_REPORTS_LIST)).isEqualTo(REPORTS_LIST_DISABLED);
     assertThat(service.getPropertyNameForFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION)).isEqualTo(
         SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED);
-    assertThat(service.getPropertyNameForFeature(FEATURE_TRANSITIVE_SOLVER)).isEqualTo(TRANSITIVE_SOLVER_DISABLED);
+    assertThat(service.getPropertyNameForFeature(FEATURE_TRANSITIVE_SOLVER)).isEqualTo(TRANSITIVE_SOLVER_ENABLED);
     assertThat(service.getPropertyNameForFeature(FEATURE_CODE_INSIGHTS)).isEqualTo(CODE_INSIGHTS);
     assertThat(service.getPropertyNameForFeature(FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE)).isEqualTo(
         COMPONENT_SEARCH_API_WITH_INNERSOURCE);
@@ -132,26 +132,25 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testEnableTransitive_solver_feature() {
-    service.enableFeature(FEATURE_TRANSITIVE_SOLVER);
-    assertThat(systemConfigurationPropertyDAO.getByName(TRANSITIVE_SOLVER_DISABLED).getValue()).isEqualTo("true");
+    assertThat(systemConfigurationPropertyDAO.getByName(TRANSITIVE_SOLVER_ENABLED)).isNull();
   }
 
   @Test
   public void testEnableTransitive_solver_feature_AlreadyEnabled() {
-    tempEntity.newSystemConfigurationProperty(TRANSITIVE_SOLVER_DISABLED, "true");
     assertThatThrownBy(() -> service.enableFeature(FEATURE_TRANSITIVE_SOLVER)).isInstanceOf(BadRequestException.class)
         .hasMessage("Feature is already enabled.");
   }
 
   @Test
   public void testDisableTransitive_solver_feature() {
-    tempEntity.newSystemConfigurationProperty(TRANSITIVE_SOLVER_DISABLED, "true");
     service.disableFeature(FEATURE_TRANSITIVE_SOLVER);
-    assertThat(systemConfigurationPropertyDAO.getByName(TRANSITIVE_SOLVER_DISABLED)).isNull();
+    assertThat(systemConfigurationPropertyDAO.getByName(TRANSITIVE_SOLVER_ENABLED).getValue())
+        .isEqualTo("false");
   }
 
   @Test
   public void testDisableTransitive_solver_feature_AlreadyDisabled() {
+    service.disableFeature(FEATURE_TRANSITIVE_SOLVER);
     assertThatThrownBy(() -> service.disableFeature(FEATURE_TRANSITIVE_SOLVER)).isInstanceOf(BadRequestException.class)
         .hasMessage("Feature is already disabled.");
   }

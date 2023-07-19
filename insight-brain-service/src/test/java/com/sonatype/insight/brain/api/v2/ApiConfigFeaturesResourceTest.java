@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -19,6 +20,7 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 import static org.eclipse.jetty.http.HttpStatus.NO_CONTENT_204;
 
 public class ApiConfigFeaturesResourceTest
@@ -72,5 +74,27 @@ public class ApiConfigFeaturesResourceTest
         restRequest().path(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION).delete());
     assertThat(configurationPropertyDAO.getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED))
         .isNotNull();
+  }
+
+  @Test
+  public void testEnableFeature_SupportDroppedTransitiveSolver() throws Exception {
+    final HttpResponse response = restRequest().path("transitiveSolverDisable").post();
+
+    assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST_400);
+    assertThat(response.getBodyText()).isEqualTo(
+        "'transitiveSolverDisable' is no longer supported. Instead you can disable and enable the feature " +
+            "using 'transitiveSolver'"
+    );
+  }
+
+  @Test
+  public void testDisableFeature_SupportDroppedTransitiveSolver() throws Exception {
+    final HttpResponse response = restRequest().path("transitiveSolverDisable").delete();
+
+    assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST_400);
+    assertThat(response.getBodyText()).isEqualTo(
+        "'transitiveSolverDisable' is no longer supported. Instead you can disable and enable the feature " +
+            "using 'transitiveSolver'"
+    );
   }
 }

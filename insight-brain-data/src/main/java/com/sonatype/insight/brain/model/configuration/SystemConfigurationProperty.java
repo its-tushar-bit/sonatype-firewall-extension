@@ -67,7 +67,7 @@ public class SystemConfigurationProperty
 
   public static final String ADVANCED_SEARCH_CONFIGURATION = "ADVANCED_SEARCH_CONFIGURATION";
 
-  public static final String TRANSITIVE_SOLVER_DISABLED = "TRANSITIVE_SOLVER_DISABLED";
+  public static final String TRANSITIVE_SOLVER_ENABLED = "TRANSITIVE_SOLVER_ENABLED";
 
   public static final String CODE_INSIGHTS = "CODE_INSIGHTS";
 

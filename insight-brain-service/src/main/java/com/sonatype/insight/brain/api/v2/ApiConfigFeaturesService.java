@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Arrays;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -34,7 +34,7 @@ public class ApiConfigFeaturesService
 
   static final String FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION = "vulnerabilitySource";
 
-  static final String FEATURE_TRANSITIVE_SOLVER = "transitiveSolverDisable";
+  static final String FEATURE_TRANSITIVE_SOLVER = "transitiveSolver";
 
   static final String FEATURE_CODE_INSIGHTS = "codeInsights";
 
@@ -65,6 +65,10 @@ public class ApiConfigFeaturesService
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 
   public static final String NXIQ_ENABLE_SSO_ONLY_ENV_VAR = "NXIQ_ENABLE_SSO_ONLY";
+
+  private static final List<UnsupportedFeature> NO_LONGER_SUPPORTED_FLAGS = Arrays.asList(
+      new UnsupportedFeature("transitiveSolverDisable", FEATURE_TRANSITIVE_SOLVER)
+  );
 
   /**
    * This enumeration contains features that can be enabled/disabled by the {@link ApiConfigFeaturesResource}.
@@ -115,7 +119,7 @@ public class ApiConfigFeaturesService
     AUTOMATIC_APPLICATION_CONFIGURATION(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CONFIGURATION, true),
     AUTOMATIC_SCM_CONFIGURATION(SystemConfigurationProperty.AUTOMATIC_SCM_CONFIGURATION, true),
     ADVANCED_SEARCH_CONFIGURATION(SystemConfigurationProperty.ADVANCED_SEARCH_CONFIGURATION, true),
-    TRANSITIVE_SOLVER(SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED, false),
+    TRANSITIVE_SOLVER(SystemConfigurationProperty.TRANSITIVE_SOLVER_ENABLED, true),
     CODE_INSIGHTS(SystemConfigurationProperty.CODE_INSIGHTS, true),
     COMPONENT_SEARCH_API_WITH_INNERSOURCE(SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE, true),
     DEFAULT_BRANCH_MONITORING(SystemConfigurationProperty.DEFAULT_BRANCH_MONITORING, true),
@@ -235,6 +239,8 @@ public class ApiConfigFeaturesService
   }
 
   public void enableFeatureNoAuthz(String feature) {
+    throwErrorIfFeatureNoLongerSupported(feature);
+
     enableFeature(systemConfigurationPropertyDAO, getSystemConfigurationPropertyFeature(feature));
     log.debug("Enabled feature '{}'", feature);
   }
@@ -274,6 +280,8 @@ public class ApiConfigFeaturesService
   }
 
   public void disableFeatureNoAuthz(String feature) {
+    throwErrorIfFeatureNoLongerSupported(feature);
+
     disableFeature(systemConfigurationPropertyDAO, getSystemConfigurationPropertyFeature(feature));
     log.debug("Disabled feature '{}'", feature);
   }
@@ -314,8 +322,27 @@ public class ApiConfigFeaturesService
     return !enabledWhenAbsent;
   }
 
+  private void throwErrorIfFeatureNoLongerSupported(final String feature) {
+    NO_LONGER_SUPPORTED_FLAGS
+        .stream()
+        .filter(entry -> entry.getFeatureName().equals(feature))
+        .findFirst()
+        .ifPresent(unsupportedFeature -> {
+          if (unsupportedFeature.hasReplacementFeatureName()) {
+            throw new javax.ws.rs.BadRequestException("'" + feature + "' is no longer supported. Instead you can " +
+                "disable and enable the feature using '" + unsupportedFeature.getReplacementFeatureName() + "'");
+          }
+          else
+          {
+            throw new javax.ws.rs.BadRequestException("'" + feature + "' is no longer supported.");
+          }
+        });
+  }
+
   // Visible for testing
   SystemConfigurationPropertyFeature getSystemConfigurationPropertyFeature(String feature) {
+    throwErrorIfFeatureNoLongerSupported(feature);
+
     String propertyName = getPropertyNameForFeature(feature);
     return Arrays.stream(SystemConfigurationPropertyFeature.values())
         .filter(s -> s.getPropertyName().equalsIgnoreCase(propertyName) ||
@@ -335,7 +362,7 @@ public class ApiConfigFeaturesService
       case FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION:
         return SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
       case FEATURE_TRANSITIVE_SOLVER:
-        return SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED;
+        return SystemConfigurationProperty.TRANSITIVE_SOLVER_ENABLED;
       case FEATURE_CODE_INSIGHTS:
         return SystemConfigurationProperty.CODE_INSIGHTS;
       case FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE:

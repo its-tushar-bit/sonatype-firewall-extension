@@ -72,7 +72,7 @@ Threat (of 10) | Policy | Violation Details
 <summary title="Threat Level: 0 of 10"><img alt="T0" src="https://cdn.sonatype.com/iq-for-scm/1.0/light-blue-bar.png" width="4" height="16"> 
 <b>0&nbsp;&nbsp;&nbsp;org.group.fixed : fixed-artifact : 1.0</b>&nbsp;&nbsp;:white_check_mark:</summary>
 <p></p>
-  
+
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
 0 | Unlikely Test Policy | <b>Nonsensical Constraint:</b><ul><li>Found licenses in the 'Liberal' license threat group ('BSD-3-Clause')</li></ul>

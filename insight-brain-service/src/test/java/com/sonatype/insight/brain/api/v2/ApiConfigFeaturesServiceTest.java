@@ -71,6 +71,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(service.getPropertyNameForFeature(FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)).isEqualTo(
         INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
     assertThat(service.getPropertyNameForFeature("default-value")).isEqualTo("default-value");
+    assertThat(service.getPropertyNameForFeature(FEATURE_SCM_UX_IMPROVEMENTS)).isEqualTo(SCM_UX_IMPROVEMENTS);
   }
 
   @Test
@@ -748,5 +749,17 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_ScanNpmDevAndOptDependencies_AlreadyDisabled() {
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES))
         .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableScmUxImprovements_feature() {
+    service.enableFeature(FEATURE_SCM_UX_IMPROVEMENTS);
+    assertThat(systemConfigurationPropertyDAO.getByName(SCM_UX_IMPROVEMENTS).getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testDisableFeature_scmUxImprovements_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(FEATURE_SCM_UX_IMPROVEMENTS)).isInstanceOf(
+            BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 }

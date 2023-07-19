@@ -24,6 +24,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInfo;
 import com.sonatype.insight.brain.model.Application;
@@ -86,7 +87,30 @@ public class PullRequestFeedbackMarkupServiceTest
   }
 
   @Test
-  public void testCreateMarkup() throws Exception {
+  public void testCreateSummaryMarkup_withUxImprovement() throws Exception {
+    runCreateSummaryMarkupTest(true, "PullRequestFeedbackMarkup_violationAdded_withUxImprovement.md" );
+  }
+
+  @Test
+  public void testCreateSummaryMarkup_noUxImprovement() throws Exception {
+    runCreateSummaryMarkupTest(false, "PullRequestFeedbackMarkup_violationAdded_noUxImprovement.md" );
+  }
+
+  @Test
+  public void testCreateLineMarkup_noUxImprovement() throws Exception {
+    runCreateLineMarkupTest(false, "PullRequestFeedbackMarkup_singlePolicyWithSuggestion_noUxImprovement.md");
+  }
+
+  @Test
+  public void testCreateLineMarkup_withUxImprovement() throws Exception {
+    runCreateLineMarkupTest(true, "PullRequestFeedbackMarkup_singlePolicyWithSuggestion_withUxImprovement.md");
+  }
+
+  private void runCreateSummaryMarkupTest(
+      final boolean enableUxImprovement,
+      final String expectedMarkupOutputFile) throws Exception
+  {
+    SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.setEnabled(enableUxImprovement);
     // given: Evaluation in feature branch with new vulnerabilities (some with remediation)
     final String FROM_SCAN_ID = "fromScanId";
     final String TO_SCAN_ID = "toScanId";
@@ -121,7 +145,7 @@ public class PullRequestFeedbackMarkupServiceTest
     //setup pullRequestLineComments
     List<PullRequestLineCommentDTO> pullRequestLineComments = new ArrayList<>();
     PullRequestLineCommentDTO lineCommentDTO =
-        new PullRequestLineCommentDTO(componentIdentifier, new DiffPosition("path", 1, 0, 1, 1));
+        new PullRequestLineCommentDTO(componentIdentifier, new DiffPosition("path", 1, 0, 1, null, 1));
     lineCommentDTO.setScmId(12345);
     pullRequestLineComments.add(lineCommentDTO);
 
@@ -157,15 +181,22 @@ public class PullRequestFeedbackMarkupServiceTest
     );
 
     // then: markup is created and telemetry information updated
-    final String expectedContent = readResource("PullRequestFeedbackMarkup_violationAdded.md");
+    final String expectedContent = readResource(expectedMarkupOutputFile);
     assertThat(markup).isNotEmpty();
     assertThat(commentTelemetry.newViolationsComponentCount).isEqualTo(4);
     assertThat(commentTelemetry.clearedViolationsComponentCount).isEqualTo(0);
     assertThat(markup.get()).isEqualTo(expectedContent);
   }
 
-  @Test
-  public void testCreateLineMarkup() throws Exception {
+  public void runCreateLineMarkupTest(
+      final boolean enableUxImprovement,
+      final String expectedMarkupOutputFile) throws Exception
+  {
+    SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.setEnabled(enableUxImprovement);
+    // given: Evaluation in feature branch with new vulnerabilities
+    final String SCAN_ID = "myScanId";
+    Application app = tempEntity.newApplicationWithParent("TEST_APP_PUBLIC_ID", "TEST APP", "TEST ORG");
+
     // given: component introduce new policy violation for github
     final Condition condition = new Condition(MatchStateConditionType.ID, "is", "exact");
     final ConditionFact conditionFact = ComponentPolicyEvaluator.createConditionFact(condition,
@@ -176,6 +207,8 @@ public class PullRequestFeedbackMarkupServiceTest
 
     List<ConstraintFact> constraintFactList = Collections.singletonList(constraintFact);
     PolicyEvaluation evaluation = new PolicyEvaluation();
+    evaluation.setApplicationId(app.getId());
+    evaluation.setScanId(SCAN_ID);
     PolicyViolation policyViolation =
         new PolicyViolation(evaluation, "policy1", "Policy 1", 1,
             PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
@@ -187,12 +220,18 @@ public class PullRequestFeedbackMarkupServiceTest
     // when: when generating comment line markup
     final Optional<String> contents =
         pullRequestFeedbackMarkupService.createLineMarkup(policyViolations, "Test Component",
-            new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
-            SourceControlProvider.GITHUB, "https://scm.mycompany.com");
+            new RemediationVersionDTO(
+                "123",
+                ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
+            Optional.ofNullable(null),
+            SourceControlProvider.GITHUB,
+            "https://scm.mycompany.com",
+            evaluation.getApplicationId(),
+            evaluation.getScanId());
 
     // then: markup is generated
     final String expectedContent =
-        readResource("PullRequestFeedbackMarkup_singlePolicyWithSuggestion.md");
+        readResource(expectedMarkupOutputFile);
     assertThat(contents).isNotEmpty();
     assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
   }

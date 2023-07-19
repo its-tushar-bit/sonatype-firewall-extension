@@ -58,6 +58,8 @@ public class ApiConfigFeaturesService
 
   static final String FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS = "internalSourceControlPolicyEvaluations";
 
+  public static final String FEATURE_SCM_UX_IMPROVEMENTS = "scmUxImprovements";
+
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
@@ -167,7 +169,8 @@ public class ApiConfigFeaturesService
     /**
      * If configured the UI will show the Sonatype managed IDP Auth0 user management pages
      */
-    SSO_IDP_MANAGED_BY_SONATYPE(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE, false, false);
+    SSO_IDP_MANAGED_BY_SONATYPE(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE, false, false),
+    SCM_UX_IMPROVEMENTS(SystemConfigurationProperty.SCM_UX_IMPROVEMENTS, true, false);
 
     private final String propertyName;
 
@@ -355,6 +358,8 @@ public class ApiConfigFeaturesService
         return SystemConfigurationProperty.ENABLE_SSO_ONLY;
       case FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS:
         return SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
+      case FEATURE_SCM_UX_IMPROVEMENTS:
+        return SystemConfigurationProperty.SCM_UX_IMPROVEMENTS;
       default:
         return feature;
     }

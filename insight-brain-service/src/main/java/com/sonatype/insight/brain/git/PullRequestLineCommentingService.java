@@ -84,7 +84,8 @@ public class PullRequestLineCommentingService
       final String applicationId,
       final String sourcePolicyEvaluationId,
       final String basePolicyEvaluationId,
-      final LocationDiscoveryResult locationDiscoveryResult)
+      final LocationDiscoveryResult locationDiscoveryResult,
+      final String featureBranchScanId)
   {
     final PullRequestLineCommentCreationResult lineCommentCreationResult =
         new PullRequestLineCommentCreationResult();
@@ -111,8 +112,13 @@ public class PullRequestLineCommentingService
             // Build a list of line comments to be created
             buildLineCommentList(lineCommentCreationResult, diffPositionMap, violationList);
 
-            addMarkupToLineComments(lineCommentCreationResult.getPullRequestLineCommentDtoList(), remediationVersionMap,
-                gitRepositoryInfo.getProvider(), gitRepositoryInfo.getRepositoryUrl());
+            addMarkupToLineComments(
+                lineCommentCreationResult.getPullRequestLineCommentDtoList(),
+                remediationVersionMap,
+                gitRepositoryInfo.getProvider(),
+                gitRepositoryInfo.getRepositoryUrl(),
+                applicationId,
+                featureBranchScanId);
 
             createLineComments(lineCommentCreationResult, gitApiClient, pullRequestId, commitHash,
                 sourcePolicyEvaluationId, basePolicyEvaluationId, applicationId);
@@ -210,17 +216,39 @@ public class PullRequestLineCommentingService
       final List<PullRequestLineCommentDTO> lineCommentList,
       final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final SourceControlProvider provider,
-      final String scmBaseUrl)
+      final String scmBaseUrl,
+      final String applicationId,
+      final String featureBranchScanId)
   {
     for (PullRequestLineCommentDTO lineCommentDTO : lineCommentList) {
       ComponentIdentifier componentIdentifier = lineCommentDTO.getComponentIdentifier();
       RemediationVersionDTO remediationVersion = remediationVersionMap.get(componentIdentifier);
+      Optional<String> codeSuggestion = createCodeSuggestion(
+              componentIdentifier,
+              remediationVersion,
+              lineCommentDTO.getDiffPosition().getNewLineContent()
+      );
       //Create the line comment body, if possible
       Optional<String> markupOptional = pullRequestFeedbackMarkupService.createLineMarkup(
           lineCommentDTO.getPolicyViolations(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(),
-          remediationVersion, provider, scmBaseUrl);
+          remediationVersion, codeSuggestion, provider, scmBaseUrl, applicationId, featureBranchScanId);
       markupOptional.ifPresent(lineCommentDTO::setMarkup);
     }
+  }
+
+  private Optional<String> createCodeSuggestion(
+          ComponentIdentifier componentIdentifier,
+          RemediationVersionDTO remediationVersion,
+          String existingContent
+  )
+  {
+    String codeSuggestion = null;
+    String componentVersion = componentIdentifier.get("version");
+    if (remediationVersion != null && existingContent.contains(componentVersion)) {
+      // TODO: handling for non-specific dependency versions: https://sonatype.atlassian.net/browse/SDEV-282.
+      codeSuggestion = existingContent.replace(componentVersion, remediationVersion.getVersion());
+    }
+    return Optional.ofNullable(codeSuggestion);
   }
 
   /**

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
@@ -269,7 +270,7 @@ public class PullRequestFeedbackDetails
             }
           }
 
-          return ImmutableMap.<String, Object>builder()
+          final ImmutableMap.Builder<String, Object> modelMapBuilder  = ImmutableMap.<String, Object>builder()
               .put("componentNameAndVersion",
                   sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDisplayName())
               .put("dependencyLogo",
@@ -285,8 +286,10 @@ public class PullRequestFeedbackDetails
               .put("breakingChangesCount", breakingChangesCount)
               .put("lineCommentLink",
                   getLineCommentLink(pullRequestLineComments, componentEntry.getValue(), gitRepositoryInfo, prNumber))
-              .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true))
-              .build();
+              .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true));
+
+          maybePutComponentHash(modelMapBuilder, componentEntry.getValue());
+          return modelMapBuilder.build();
         })
         .sorted(
             (o1, o2) -> Integer.compare((Integer) o2.get("highestThreatLevel"), (Integer) o1.get("highestThreatLevel")))
@@ -382,6 +385,8 @@ public class PullRequestFeedbackDetails
         .put("date", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(featureBranchEvaluation.getTime()))
         .put("featureBranchStage", StringUtils.capitalize(featureBranchEvaluation.getStageTypeId()))
         .put("baseBranchStage", StringUtils.capitalize(baseBranchEvaluation.getStageTypeId()))
+        .put("baseFeatureBranchURL", baseUrl +
+            UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()))
         .put("detailedFeatureBranchReportUrl", baseUrl +
             UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()) +
             "?source=pr-commenting")
@@ -398,6 +403,7 @@ public class PullRequestFeedbackDetails
         )
         .put("threatImageArray", THREAT_IMAGE_ARRAY)
         .put("provider", provider)
+        .put("scmUxImprovementsEnabled", SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.isEnabled())
         .build();
   }
 
@@ -415,5 +421,17 @@ public class PullRequestFeedbackDetails
       return THREAT_IMAGE_ARRAY[0];
     }
     return THREAT_IMAGE_ARRAY[threatLevel];
+  }
+
+  private static void maybePutComponentHash(
+      final ImmutableMap.Builder<String, Object> modelMapBuilder,
+      final List<PolicyViolation> policyViolations)
+  {
+    extractFirstComponentHash(policyViolations)
+        .ifPresent(hash -> modelMapBuilder.put( "componentScanHash" , hash));
+  }
+
+  private static Optional<String> extractFirstComponentHash(final List<PolicyViolation> violations) {
+    return violations.stream().map(AbstractPolicyViolation::getHash).findFirst();
   }
 }

@@ -26,6 +26,9 @@ public class UserInterfaceLinksHelper
 
   public static final String REPO_RESULT_PATH = "repository/{repositoryId}/result";
 
+  public static final String COMPONENT_SCAN_REPORT_PATH =
+      "application/{applicationPublicId}/report/{scanId}/componentDetails/{componentScanHash}";
+
   public static final String VULNERABILITY_DETAILS_PATH = "vln/{vulnerabilityId}";
 
   public static final String LATEST_VERSION_SBOM_REPORT_PATH = "cycloneDx/{applicationId}/reports/{scanId}";

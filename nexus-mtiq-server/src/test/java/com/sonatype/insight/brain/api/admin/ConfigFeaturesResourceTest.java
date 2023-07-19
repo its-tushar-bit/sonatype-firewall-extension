@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
+
 import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -59,7 +60,8 @@ public class ConfigFeaturesResourceTest
   private final String[] allFeatures = Stream.concat(Arrays.stream(defaultEnabledFeatures), Arrays.stream(
       new String[]{
           SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId()
+          SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
+          SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId()
       }
   )).toArray(String[]::new);
 

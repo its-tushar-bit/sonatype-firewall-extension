@@ -155,8 +155,8 @@ public class PullRequestCodeInsightsDetailsTest
     createTestData_Policies(true);
 
     ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
-    RankedSourceLocation sourceLocation1 = new RankedSourceLocation("/pom.xml", 19, 1);
-    RankedSourceLocation sourceLocation2 = new RankedSourceLocation("/pom.xml", 30, 2);
+    RankedSourceLocation sourceLocation1 = new RankedSourceLocation("/pom.xml", 19, "456", 1);
+    RankedSourceLocation sourceLocation2 = new RankedSourceLocation("/pom.xml", 30, "456", 2);
     locationDiscoveryResult.getLocationMap().put(ci, Arrays.asList(sourceLocation1, sourceLocation2));
 
     //when
@@ -196,8 +196,8 @@ public class PullRequestCodeInsightsDetailsTest
     createTestData_Policies(false);
 
     ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
-    RankedSourceLocation sourceLocation1 = new RankedSourceLocation("/pom.xml", 19, 1);
-    RankedSourceLocation sourceLocation2 = new RankedSourceLocation("/pom.xml", 30, 2);
+    RankedSourceLocation sourceLocation1 = new RankedSourceLocation("/pom.xml", 19, "456", 1);
+    RankedSourceLocation sourceLocation2 = new RankedSourceLocation("/pom.xml", 30, "456", 2);
     locationDiscoveryResult.getLocationMap().put(ci, Arrays.asList(sourceLocation1, sourceLocation2));
 
     //when
@@ -479,7 +479,8 @@ public class PullRequestCodeInsightsDetailsTest
 
     //setup pullRequestLineComments
     pullRequestLineComments = new ArrayList<>();
-    PullRequestLineCommentDTO lineCommentDTO = new PullRequestLineCommentDTO(ci, new DiffPosition("path", 1, 0, 1, 1));
+    PullRequestLineCommentDTO lineCommentDTO = new PullRequestLineCommentDTO(ci, new DiffPosition("path",
+            1, 0, 1, "456", 1));
     lineCommentDTO.setScmId(12345);
     pullRequestLineComments.add(lineCommentDTO);
 

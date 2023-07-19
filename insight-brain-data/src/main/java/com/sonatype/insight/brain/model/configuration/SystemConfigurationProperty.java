@@ -193,6 +193,8 @@ public class SystemConfigurationProperty
 
   public static final String QUARANTINED_ITEM_CUSTOM_MESSAGE = "quarantinedItemCustomMessage";
 
+  public static final String SCM_UX_IMPROVEMENTS = "scmUxImprovements";
+
   /**
    * Internal feature flag to enable Firewall Onboarding. It will be removed right before we release Firewall
    * Onboarding for external customers.

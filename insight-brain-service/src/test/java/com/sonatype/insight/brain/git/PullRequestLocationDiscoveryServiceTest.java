@@ -197,7 +197,7 @@ public class PullRequestLocationDiscoveryServiceTest
 
     LocationDiscoveryResult result = new LocationDiscoveryResult();
     List<RankedSourceLocation> list = new LinkedList<>();
-    list.add(new RankedSourceLocation("path", 1, 1));
+    list.add(new RankedSourceLocation("path", 1, "456", 1));
     result.getLocationMap().put(identifier, list);
     when(locationDiscoveryExecutor.execute(any())).thenReturn(result);
 

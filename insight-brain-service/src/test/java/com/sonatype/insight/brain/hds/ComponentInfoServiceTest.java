@@ -286,27 +286,27 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetLicenses_BadOwnerId() {
-    testGetLicenses_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
-    testGetLicenses_BadOwnerId(OwnerType.REPOSITORY, "Cannot find a repository with ID ");
+    testGetLicenses_BadOwnerId(OwnerType.APPLICATION, "Application with ID ");
+    testGetLicenses_BadOwnerId(OwnerType.REPOSITORY, "Repository with ID ");
   }
 
   @Test
   public void testGetMultiLicenses_BadOwnerId() {
-    testGetMultiLicenses_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
-    testGetMultiLicenses_BadOwnerId(OwnerType.REPOSITORY, "Cannot find a repository with ID ");
+    testGetMultiLicenses_BadOwnerId(OwnerType.APPLICATION, "Application with ID ");
+    testGetMultiLicenses_BadOwnerId(OwnerType.REPOSITORY, "Repository with ID ");
   }
 
   private void testGetLicenses_BadOwnerId(final OwnerType ownerType, final String expectedErrMsgPrefix) {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> componentInfoService.getLicenses(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null,
-            null)).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
+            null)).withMessageContaining(expectedErrMsgPrefix + "bogusOwnerId");
   }
 
   private void testGetMultiLicenses_BadOwnerId(OwnerType ownerType,String expectedErrMsgPrefix) {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> 
       componentInfoService.getMultiLicenses(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null,
         null)
-    ).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
+    ).withMessageContaining(expectedErrMsgPrefix + "bogusOwnerId");
   }
 
   @Test

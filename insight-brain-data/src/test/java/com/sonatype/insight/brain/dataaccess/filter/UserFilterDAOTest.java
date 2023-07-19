@@ -44,7 +44,7 @@ public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
   
   @Override
   protected UserFilter getEntityByName(String name) {
-    return userFilterDAO.getByUsernameAndRealmIdAndNameAndType("testUsername", "testRealmId", name, 
+    return userFilterDAO.getByUsernameAndRealmIdAndNameAndType("testUsername", "testRealmId", name,
         ADVANCED_LEGAL_PACK_DASHBOARD);
   }
 

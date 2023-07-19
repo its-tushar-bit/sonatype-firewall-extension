@@ -241,8 +241,8 @@ public class ApiComponentRemediationServiceTest
     doCallRealMethod().when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(any(OwnerType.class), any(String.class),
             any(ComponentIdentifier.class), any(String.class), any(), any(), any());
-    testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
-    testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.ORGANIZATION, "Cannot find organization with ID ");
+    testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.APPLICATION, "Application with ID ");
+    testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.ORGANIZATION, "Organization with ID ");
   }
 
   private void testGetSuggestedRemediationForComponent_BadOwnerId(final OwnerType ownerType,
@@ -253,7 +253,7 @@ public class ApiComponentRemediationServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> service.getSuggestedRemediationForComponent(dto, ownerType, "bogusOwnerId", DevelopStageType.ID,
             null /* identificationSource */, null /* scanId */))
-        .withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
+        .withMessageContaining(expectedErrMsgPrefix + "bogusOwnerId");
   }
 
   @Test

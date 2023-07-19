@@ -1045,11 +1045,11 @@ public class ApiPolicyWaiverServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
             "doesNotExist", BuildStageType.ID, null, null, null, null)
-    ).withMessageContaining("Could not find an application with ID doesNotExist.");
+    ).withMessageContaining("Application with ID doesNotExist does not exist.");
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
             "doesNotExist", BuildStageType.ID, null, null, null, null)
-    ).withMessageContaining("Cannot find organization with ID doesNotExist.");
+    ).withMessageContaining("Organization with ID doesNotExist does not exist.");
   }
 
   @Test
@@ -1319,7 +1319,7 @@ public class ApiPolicyWaiverServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, appId, null,
             null, null, "hash")
-    ).withMessageContaining("Could not find an application with ID " + appId + ".");
+    ).withMessageContaining("Application with ID " + appId + " does not exist.");
   }
 
   @Test

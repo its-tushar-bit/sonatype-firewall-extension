@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.105
@@ -31,32 +30,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class ComponentObligationAttributionDAO
     extends AbstractOperationalSqlDAO<ComponentObligationAttribution>
 {
-  public List<ComponentObligationAttribution> getAll() {
-    String sQuery = "SELECT entity FROM ComponentObligationAttribution entity";
-    return getList(sQuery);
-  }
-
-  @Override
-  public ComponentObligationAttribution getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ComponentObligationAttribution entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public ComponentObligationAttribution getByIdNotNull(TransactionContext tx, String id) {
-    ComponentObligationAttribution componentObligationAttribution = getById(tx, id);
-    if (componentObligationAttribution == null) {
-      throw new NotFoundException("ComponentObligationAttribution with ID " + id + " does not exist.");
-    }
-    return componentObligationAttribution;
-  }
-
-  public ComponentObligationAttribution getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
   public List<ComponentObligationAttribution> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM ComponentObligationAttribution entity" + //
         " WHERE entity.ownerId=?1";

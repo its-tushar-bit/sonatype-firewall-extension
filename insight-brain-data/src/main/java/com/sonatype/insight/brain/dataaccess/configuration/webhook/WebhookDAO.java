@@ -7,39 +7,17 @@ package com.sonatype.insight.brain.dataaccess.configuration.webhook;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 
 public class WebhookDAO
     extends AbstractOperationalSqlDAO<Webhook>
 {
-  @Override
-  public Webhook getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM Webhook entity" +
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public Webhook getByIdNotNull(String id) {
-    Webhook webhook = getById(id);
-    if (webhook == null) {
-      throw new NotFoundException("Could not find a webhook with ID " + id + ".");
-    }
-    return webhook;
-  }
-
-  public List<Webhook> getAll() {
-    String sQuery = "SELECT entity FROM Webhook entity";
-    return getList(sQuery);
-  }
-
   @Override
   public void insert(final TransactionContext tx, final Webhook webhook) {
     validate(webhook);

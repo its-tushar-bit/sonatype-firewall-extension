@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Date;
-import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -22,13 +21,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class ComponentSourceLinkDAO
     extends AbstractOperationalSqlDAO<ComponentSourceLink>
 {
-  @Override
-  public ComponentSourceLink getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ComponentSourceLink entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public ComponentSourceLink getByOwnerIdAndComponentIdentifier(
       TransactionContext tx,
       String ownerId,
@@ -84,10 +76,5 @@ public class ComponentSourceLinkDAO
       sourceLinkOverrideDAO.delete(tx, sourceLinkOverride);
     }
     super.delete(tx, componentSourceLink);
-  }
-
-  public List<ComponentSourceLink> getAll() {
-    String sQuery = "SELECT entity FROM ComponentSourceLink entity";
-    return getList(sQuery);
   }
 }

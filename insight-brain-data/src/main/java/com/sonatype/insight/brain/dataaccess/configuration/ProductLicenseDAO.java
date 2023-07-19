@@ -19,13 +19,6 @@ public class ProductLicenseDAO
   }
 
   @Override
-  protected ProductLicense getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ProductLicense entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public void insert(TransactionContext tx, ProductLicense productLicense) {
     productLicense.setId(SINGLETON_ENTITY_ID);
     super.insert(tx, productLicense);

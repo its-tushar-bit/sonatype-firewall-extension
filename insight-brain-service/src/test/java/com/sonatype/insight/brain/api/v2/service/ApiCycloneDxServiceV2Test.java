@@ -119,7 +119,7 @@ public class ApiCycloneDxServiceV2Test
   public void testGetByScanId_unknownApplicationId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.getByScanId("fake-app", "fake-scan-id", "application/xml", Version.VERSION_11))
-        .withMessageContaining("Could not find an application with ID fake-app");
+        .withMessageContaining("Application with ID fake-app does not exist.");
   }
 
   @Test
@@ -343,7 +343,7 @@ public class ApiCycloneDxServiceV2Test
   public void testGetLatest_unknownApplicationId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.getLatest("fake-app", ReleaseStageType.ID, "application/xml", Version.VERSION_11))
-        .withMessageContaining("Could not find an application with ID fake-app");
+        .withMessageContaining("Application with ID fake-app does not exist.");
   }
 
   @Test

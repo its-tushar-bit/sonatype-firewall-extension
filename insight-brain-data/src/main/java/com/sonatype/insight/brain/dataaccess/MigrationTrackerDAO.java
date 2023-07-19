@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.List;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.model.MigrationTracker;
@@ -18,16 +17,6 @@ public class MigrationTrackerDAO
   public void insert(TransactionContext tx, MigrationTracker entity) {
     Objects.requireNonNull(entity.getId(), "MigrationTracker entity cannot be inserted without an id!");
     super.insert(tx, entity);
-  }
-
-  @Override
-  public MigrationTracker getById(final String id) {
-    return get("SELECT mt FROM MigrationTracker mt WHERE mt.id=?1", id);
-  }
-
-  public List<MigrationTracker> getAll() {
-    String sQuery = "SELECT entity FROM MigrationTracker entity";
-    return getList(sQuery);
   }
 
   public boolean isTrackerPresent(String trackerId) {

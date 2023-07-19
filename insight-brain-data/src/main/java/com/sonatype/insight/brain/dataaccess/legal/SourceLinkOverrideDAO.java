@@ -23,13 +23,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class SourceLinkOverrideDAO
     extends AbstractOperationalSqlDAO<SourceLinkOverride>
 {
-  @Override
-  public SourceLinkOverride getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM SourceLinkOverride entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<SourceLinkOverride> getByComponentSourceLinkId(TransactionContext tx, String componentSourceLinkId) {
     String sQuery = "SELECT entity FROM SourceLinkOverride entity" + //
         " WHERE entity.componentSourceLinkId=?1";

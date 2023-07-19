@@ -24,21 +24,6 @@ public class RepositoryManagerDAO
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryManagerDAO.class);
 
-  @Override
-  public RepositoryManager getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM RepositoryManager entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public RepositoryManager getByIdNotNull(String id) {
-    RepositoryManager repositoryManager = getById(id);
-    if (repositoryManager == null) {
-      throw new NotFoundException("Cannot find a repository manager with ID " + id + ".");
-    }
-    return repositoryManager;
-  }
-
   public RepositoryManager getByInstanceId(String instanceId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByInstanceId(tx, instanceId);
@@ -137,14 +122,6 @@ public class RepositoryManagerDAO
     if (duration > 500) {
       log.debug("Deleted repository manager with id {} in {} ms.", repositoryManager.getId(), duration);
     }
-  }
-
-  /**
-   * @since 1.35
-   */
-  public List<RepositoryManager> getAll() {
-    String sQuery = "SELECT entity FROM RepositoryManager entity";
-    return getList(sQuery);
   }
 
   /**

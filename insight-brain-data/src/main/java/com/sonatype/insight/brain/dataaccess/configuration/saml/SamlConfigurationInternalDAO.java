@@ -28,13 +28,6 @@ class SamlConfigurationInternalDAO
   // Visible for tests
   public static final long TEN_YEARS_IN_SECONDS = Duration.ofDays(10 * 365).getSeconds();
 
-  @Override
-  protected SamlConfigurationInternal getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM SamlConfigurationInternal entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   /**
    * Returns the one and only SAML configuration or null if SAML is not configured.
    */

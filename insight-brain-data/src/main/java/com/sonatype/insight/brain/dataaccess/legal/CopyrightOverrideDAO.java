@@ -23,13 +23,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class CopyrightOverrideDAO
     extends AbstractOperationalSqlDAO<CopyrightOverride>
 {
-  @Override
-  public CopyrightOverride getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM CopyrightOverride entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<CopyrightOverride> getByComponentCopyrightId(TransactionContext tx, String componentCopyrightId) {
     String sQuery = "SELECT entity FROM CopyrightOverride entity" + //
         " WHERE entity.componentCopyrightId=?1";

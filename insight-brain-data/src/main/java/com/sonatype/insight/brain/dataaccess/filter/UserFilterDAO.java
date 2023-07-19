@@ -31,13 +31,6 @@ public class UserFilterDAO
   private static final Logger log = LoggerFactory.getLogger(UserFilterDAO.class);
 
   @Override
-  public UserFilter getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM UserFilter entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public void insert(TransactionContext tx, UserFilter userFilter) {
     validate(tx, userFilter);
     UserFilter existingFilter = getByUsernameAndRealmIdAndNameAndType(tx, userFilter.getUsername(),
@@ -161,8 +154,14 @@ public class UserFilterDAO
     return getList(tx, sQuery, username, realmId);
   }
 
-  public List<UserFilter> getAll() {
-    String sQuery = "SELECT entity FROM UserFilter entity";
-    return getList(sQuery);
+  public UserFilter getByName(String name) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByName(tx, name);
+    }
+  }
+
+  private UserFilter getByName(TransactionContext tx, String name) {
+    String sQuery = "SELECT entity FROM UserFilter entity WHERE entity.nameLowercaseNoWhitespace=?1";
+    return get(tx, sQuery, NameHelper.normalize(name));
   }
 }

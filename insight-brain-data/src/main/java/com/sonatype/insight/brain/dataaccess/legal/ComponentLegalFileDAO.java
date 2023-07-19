@@ -25,13 +25,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class ComponentLegalFileDAO
     extends AbstractOperationalSqlDAO<ComponentLegalFile>
 {
-  @Override
-  public ComponentLegalFile getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ComponentLegalFile entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<ComponentLegalFile> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM ComponentLegalFile entity" + //
         " WHERE entity.ownerId=?1";
@@ -94,11 +87,6 @@ public class ComponentLegalFileDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(tx, ownerId, componentIdentifier, legalFileType);
     }
-  }
-
-  public List<ComponentLegalFile> getAll() {
-    String sQuery = "SELECT entity FROM ComponentLegalFile entity";
-    return getList(sQuery);
   }
 
   @Override

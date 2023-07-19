@@ -61,7 +61,7 @@ public class PolicyEvaluationSummaryServiceTest
     String appId = "invalidAppId";
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(appId, stage))
-        .withMessageContaining("not find an application with ID " + appId);
+        .withMessageContaining("Application with ID " + appId);
   }
 
   @Test

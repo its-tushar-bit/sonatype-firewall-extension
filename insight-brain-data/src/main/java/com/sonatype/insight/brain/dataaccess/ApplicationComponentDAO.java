@@ -29,13 +29,6 @@ public class ApplicationComponentDAO
   private static final int H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY = 350;
 
   @Override
-  public ApplicationComponent getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public void update(TransactionContext tx, ApplicationComponent entity) {
     throw new UnsupportedOperationException("ApplicationComponent does not support update operations");
   }
@@ -182,11 +175,6 @@ public class ApplicationComponentDAO
           " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)";
       return getList(sQuery, applicationIds, stageTypeIds);
     }
-  }
-
-  public long getCount() {
-    String sQuery = "SELECT COUNT(entity) FROM ApplicationComponent entity";
-    return getSingle(Long.class, sQuery);
   }
 
   @SuppressWarnings("unchecked")

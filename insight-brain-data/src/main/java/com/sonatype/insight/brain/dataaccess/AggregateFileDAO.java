@@ -17,13 +17,6 @@ public class AggregateFileDAO
     extends AbstractOperationalSqlDAO<AggregateFile>
 {
   @Override
-  public AggregateFile getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM AggregateFile entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public void update(TransactionContext tx, AggregateFile entity) {
     throw new UnsupportedOperationException("AggregateFile does not support update operations");
   }

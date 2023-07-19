@@ -24,13 +24,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class LegalFileOverrideDAO
     extends AbstractOperationalSqlDAO<LegalFileOverride>
 {
-  @Override
-  public LegalFileOverride getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM LegalFileOverride entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<LegalFileOverride> getByComponentLegalFileId(TransactionContext tx, String componentLegalFileId) {
     String sQuery = "SELECT entity FROM LegalFileOverride entity" + //
         " WHERE entity.componentLegalFileId=?1";

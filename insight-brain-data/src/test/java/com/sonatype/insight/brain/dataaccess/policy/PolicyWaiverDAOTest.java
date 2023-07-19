@@ -49,7 +49,7 @@ public class PolicyWaiverDAOTest
   @Test
   public void testGetByIdNotNull() {
     assertThatThrownBy(() -> new PolicyWaiverDAO().getByIdNotNull("fake id")).isInstanceOf(NotFoundException.class)
-        .hasMessage("Cannot find a policy waiver with ID fake id.");
+        .hasMessage("PolicyWaiver with ID fake id does not exist.");
   }
 
   @Test

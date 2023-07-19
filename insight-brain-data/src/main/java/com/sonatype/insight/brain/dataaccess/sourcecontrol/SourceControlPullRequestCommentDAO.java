@@ -22,11 +22,6 @@ public class SourceControlPullRequestCommentDAO
 
   private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlPullRequestComment entity ";
 
-  @Override
-  public SourceControlPullRequestComment getById(String id) {
-    return get(SELECT_ENTITY + "WHERE entity.id=?1", id);
-  }
-
   /**
    * This method fetches the overall comment for the given application and pull request.
    */
@@ -95,10 +90,6 @@ public class SourceControlPullRequestCommentDAO
         pullRequestId)) {
       delete(ctx, comment);
     }
-  }
-
-  public List<SourceControlPullRequestComment> getAll() {
-    return getList(SELECT_ENTITY);
   }
 
   /**

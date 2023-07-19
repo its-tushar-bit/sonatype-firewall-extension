@@ -93,27 +93,6 @@ public class UserDAO
     return getList(sQuery, nameQuery);
   }
 
-  @Override
-  protected User getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM User entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public User getByIdNotNull(TransactionContext tx, String id) {
-    User user = getById(tx, id);
-    if (user == null) {
-      throw new NotFoundException("Cannot find a user with ID " + id + ".");
-    }
-    return user;
-  }
-
-  public User getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
   private void validateUsername(String username) {
     if (username != null && username.contains(" ")) {
       throw new InvalidNameException("The username cannot contain spaces.");
@@ -199,6 +178,7 @@ public class UserDAO
     super.delete(tx, entity);
   }
 
+  @Override
   public List<User> getAll() {
     String sQuery = "SELECT entity FROM User entity" + //
         " ORDER BY entity.username";

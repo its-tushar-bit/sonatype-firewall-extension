@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.9
@@ -27,27 +26,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class PolicyInternalDAO
     extends AbstractOperationalSqlDAO<PolicyInternal>
 {
-  @Override
-  protected PolicyInternal getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM PolicyInternal entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  PolicyInternal getByIdNotNull(TransactionContext tx, String id) {
-    PolicyInternal policyInternal = getById(tx, id);
-    if (policyInternal == null) {
-      throw new NotFoundException("Cannot find a policy with ID " + id + ".");
-    }
-    return policyInternal;
-  }
-
-  PolicyInternal getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
   List<PolicyInternal> getByIds(Collection<String> ids) {
     String sQuery = "SELECT entity FROM PolicyInternal entity" + //
         " WHERE entity.id IN (?1)";

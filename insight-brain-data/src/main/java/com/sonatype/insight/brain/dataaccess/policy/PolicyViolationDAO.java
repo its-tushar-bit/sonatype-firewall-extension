@@ -34,13 +34,6 @@ public class PolicyViolationDAO
 {
   static final int DELETE_BATCH_SIZE = 100;
 
-  @Override
-  protected PolicyViolation getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<PolicyViolation> getByApplicationId(String applicationId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1";
@@ -441,11 +434,6 @@ public class PolicyViolationDAO
       String sQuery = "DELETE FROM PolicyViolation entity WHERE entity.applicationId=?1";
       createQuery(sQuery, appId).executeUpdate(tx);
     }
-  }
-
-  public long getCount() {
-    String sQuery = "SELECT COUNT(entity) FROM PolicyViolation entity";
-    return getSingle(Long.class, sQuery);
   }
 
   private Collection<PolicyThreatCategory> getPolicyThreatCategoriesFilter(

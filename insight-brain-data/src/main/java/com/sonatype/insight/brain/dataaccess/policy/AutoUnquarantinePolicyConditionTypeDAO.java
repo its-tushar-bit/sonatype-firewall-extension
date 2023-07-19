@@ -21,12 +21,6 @@ public class AutoUnquarantinePolicyConditionTypeDAO
     extends AbstractOperationalSqlDAO<AutoUnquarantinePolicyConditionType>
 {
   @Override
-  public AutoUnquarantinePolicyConditionType getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM AutoUnquarantinePolicyConditionType entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<AutoUnquarantinePolicyConditionType> getAll() {
     String sQuery = "SELECT entity FROM AutoUnquarantinePolicyConditionType entity" + //
         " ORDER BY entity.id";

@@ -40,13 +40,6 @@ import static java.util.stream.Collectors.toMap;
 public class RepositoryPolicyViolationDAO
     extends AbstractOperationalSqlDAO<RepositoryPolicyViolation>
 {
-  @Override
-  protected RepositoryPolicyViolation getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname) {
     try (TransactionContext tx = createTransactionContext()) {
       return getActiveByRepositoryIdAndPathname(tx, repositoryId, pathname);
@@ -187,11 +180,6 @@ public class RepositoryPolicyViolationDAO
         " WHERE entity.repositoryId=?1" + //
         " AND entity.pathname=?2";
     return getList(tx, sQuery, repositoryId, pathname);
-  }
-
-  public long getCount() {
-    String sQuery = "SELECT COUNT(entity) FROM RepositoryPolicyViolation entity";
-    return getSingle(Long.class, sQuery);
   }
 
   /**

@@ -146,12 +146,4 @@ public class RolePermissionDAO
     }
     return map.get(permission);
   }
-
-  /**
-   * @since 1.35
-   */
-  public List<RolePermission> getAll() {
-    String sQuery = "SELECT entity FROM RolePermission entity";
-    return getList(sQuery);
-  }
 }

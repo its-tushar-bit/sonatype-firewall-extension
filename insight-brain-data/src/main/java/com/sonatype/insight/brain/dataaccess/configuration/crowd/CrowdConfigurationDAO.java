@@ -41,13 +41,6 @@ public class CrowdConfigurationDAO
   }
 
   @Override
-  protected CrowdConfiguration getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM CrowdConfiguration entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public void insert(TransactionContext tx, CrowdConfiguration crowdConfiguration) {
     crowdConfiguration.setId(SINGLETON_ENTITY_ID);
     validate(crowdConfiguration);

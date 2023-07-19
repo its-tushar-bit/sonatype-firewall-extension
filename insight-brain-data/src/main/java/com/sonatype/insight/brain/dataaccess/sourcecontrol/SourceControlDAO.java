@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -179,11 +178,6 @@ public class SourceControlDAO
     return createQuery(sQuery).forceSingleResult().get();
   }
 
-  @Override
-  public SourceControl getById(final TransactionContext tx, final String id) {
-    return get(tx, "SELECT entity FROM SourceControl entity WHERE entity.id=?1", id);
-  }
-
   private SourceControl getCompositeSourceControlByOwnerIds(List<String> ownerIds) {
     SourceControl sourceControl = new SourceControl();
 
@@ -214,14 +208,6 @@ public class SourceControlDAO
     });
 
     return sorted;
-  }
-
-  public SourceControl getByIdNotNull(final String id) {
-    SourceControl sourceControl = getById(id);
-    if (sourceControl == null) {
-      throw new NotFoundException("Could not find a SourceControl with ID " + id + ".");
-    }
-    return sourceControl;
   }
 
   public List<SourceControl> getByApplication() {
@@ -364,10 +350,6 @@ public class SourceControlDAO
     }
     // could not find a defined value
     return false;
-  }
-
-  public List<SourceControl> getAll() {
-    return getList("SELECT entity FROM SourceControl entity");
   }
 
   @Override

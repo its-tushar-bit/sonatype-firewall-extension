@@ -27,13 +27,6 @@ import org.apache.commons.collections.CollectionUtils;
 public class SamlUserDAO
     extends AbstractOperationalSqlDAO<SamlUser>
 {
-  @Override
-  protected SamlUser getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM SamlUser entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<SamlUser> getByIds(Set<String> ids) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByIds(tx, ids);
@@ -136,6 +129,7 @@ public class SamlUserDAO
     super.delete(tx, entity);
   }
 
+  @Override
   public List<SamlUser> getAll() {
     String sQuery = "SELECT entity FROM SamlUser entity" + //
         " ORDER BY entity.username";

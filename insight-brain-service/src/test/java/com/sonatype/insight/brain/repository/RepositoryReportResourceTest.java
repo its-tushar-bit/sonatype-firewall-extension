@@ -70,6 +70,6 @@ public class RepositoryReportResourceTest
   }
 
   private String getErrorMessage(String repositoryId) {
-    return "Cannot find a repository with ID " + repositoryId + ".";
+    return "Repository with ID " + repositoryId + " does not exist.";
   }
 }

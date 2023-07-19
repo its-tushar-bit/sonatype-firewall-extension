@@ -45,13 +45,6 @@ public class RepositoryComponentDAO
 
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
 
-  @Override
-  public RepositoryComponent getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<RepositoryComponent> getByRepositoryId(String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1";
@@ -367,11 +360,6 @@ public class RepositoryComponentDAO
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1 AND entity.matchStateId=?2";
     return getList(sQuery, repositoryId, matchStateId);
-  }
-
-  public long getCount() {
-    String sQuery = "SELECT COUNT(entity) FROM RepositoryComponent entity";
-    return getSingle(Long.class, sQuery);
   }
 
   @Override

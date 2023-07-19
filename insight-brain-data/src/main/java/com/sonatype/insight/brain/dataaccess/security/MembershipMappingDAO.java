@@ -22,15 +22,6 @@ public class MembershipMappingDAO
     extends AbstractOperationalSqlDAO<MembershipMapping>
 {
   /**
-   * @since 1.15.0
-   */
-  @Override
-  protected MembershipMapping getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM MembershipMapping entity WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  /**
    * Gets the membership mappings for a given context.
    */
   public List<MembershipMapping> getByContextId(String contextId) {
@@ -184,13 +175,5 @@ public class MembershipMappingDAO
     String sQuery = "SELECT entity FROM MembershipMapping entity" //
         + " WHERE entity.roleId=?1";
     return getList(tx, sQuery, roleId);
-  }
-
-  /**
-   * @since 1.35
-   */
-  public List<MembershipMapping> getAll() {
-    String sQuery = "SELECT entity FROM MembershipMapping entity";
-    return getList(sQuery);
   }
 }

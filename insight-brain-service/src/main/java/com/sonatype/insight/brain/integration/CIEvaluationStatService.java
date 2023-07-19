@@ -49,7 +49,7 @@ class CIEvaluationStatService
         sinceUtcDate);
 
     int numAppsWithCI = policyEvaluationDAO.getCountOfApplicationsWithCITriggeredEvaluations(sinceUtcDate);
-    int numTotalApps = applicationDAO.getCount();
+    int numTotalApps = (int) applicationDAO.getCount();
     int numAppsWithoutCI = numTotalApps - numAppsWithCI;
 
     return new CIEvaluationStatDTO(numAppsWithoutCI, numTotalApps);

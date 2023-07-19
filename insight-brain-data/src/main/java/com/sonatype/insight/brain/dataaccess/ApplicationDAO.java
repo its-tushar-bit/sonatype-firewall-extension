@@ -61,27 +61,6 @@ public class ApplicationDAO
 
   public static final int MAX_PUBLIC_ID_LENGTH = 200;
 
-  @Override
-  public Application getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM Application entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public Application getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
-  public Application getByIdNotNull(TransactionContext tx, String id) {
-    Application application = getById(tx, id);
-    if (application == null) {
-      throw new NotFoundException("Could not find an application with ID " + id + ".");
-    }
-    return application;
-  }
-
   public Application getByPublicId(TransactionContext tx, String publicId) {
     if (publicId == null || publicId.trim().isEmpty()) {
       throw new DataAccessException("The application public ID cannot be null or empty.");
@@ -134,17 +113,13 @@ public class ApplicationDAO
     return getList(sQuery, contactInternalName);
   }
 
-  public int getCount() {
-    String sQuery = "SELECT COUNT(entity) FROM Application entity";
-    return getSingle(Number.class, sQuery).intValue();
-  }
-
   public List<Application> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " ORDER BY entity.publicIdLowercase";
     return getList(tx, sQuery);
   }
 
+  @Override
   public List<Application> getAll() {
     try (TransactionContext tx = createTransactionContext()) {
       return getAll(tx);

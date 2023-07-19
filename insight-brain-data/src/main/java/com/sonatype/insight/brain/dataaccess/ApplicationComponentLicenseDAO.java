@@ -28,13 +28,6 @@ public class ApplicationComponentLicenseDAO
   private static final int H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY = 350;
 
   @Override
-  public ApplicationComponentLicense getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ApplicationComponentLicense entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public void update(TransactionContext tx, ApplicationComponentLicense entity) {
     throw new UnsupportedOperationException("ApplicationComponentLicense does not support update operations");
   }

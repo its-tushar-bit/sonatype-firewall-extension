@@ -112,7 +112,7 @@ public class ApiOrganizationResourceV2Test
         restRequest().path(DefaultApiOrganizationResourceV2.ORGANIZATION_ID).parameter("doesNotExist").get();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find organization with ID doesNotExist.");
+    assertThat(response.getBodyText()).isEqualTo("Organization with ID doesNotExist does not exist.");
   }
 
   @Test

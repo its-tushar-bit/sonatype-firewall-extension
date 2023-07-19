@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.7
@@ -38,26 +37,6 @@ public class RoleDAO
 
   public RoleDAO(boolean testing) {
     this.testing = testing;
-  }
-
-  @Override
-  protected Role getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM Role entity WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public Role getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
-  Role getByIdNotNull(TransactionContext tx, String id) {
-    Role role = getById(tx, id);
-    if (role == null) {
-      throw new NotFoundException("Cannot find a role with ID " + id + ".");
-    }
-    return role;
   }
 
   @Override
@@ -184,6 +163,7 @@ public class RoleDAO
   /**
    * Gets all roles sorted by 'nameLowercaseNoWhitespace'
    */
+  @Override
   public List<Role> getAll() {
     String sQuery = "SELECT entity FROM Role entity ORDER BY entity.sortOrder";
     return getList(sQuery);

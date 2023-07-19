@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,23 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 public class PolicyEvaluationDAO
     extends AbstractOperationalSqlDAO<PolicyEvaluation>
 {
-  @Override
-  protected PolicyEvaluation getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public PolicyEvaluation getByIdNotNull(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.id=?1";
-    PolicyEvaluation policyEvaluation = get(tx, sQuery, id);
-    if (policyEvaluation == null) {
-      throw new NotFoundException("Could not find a policy evaluation with ID " + id + ".");
-    }
-    return policyEvaluation;
-  }
-
   public PolicyEvaluation getLastByApplicationIdAndScanId(TransactionContext tx, String appId, String scanId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.scanId=?2" + //
@@ -394,11 +376,6 @@ public class PolicyEvaluationDAO
     else {
       return createQuery(sQuery, applicationId, stageTypeId, minDate).forceSingleResult().get();
     }
-  }
-
-  public long getCount() {
-    String sQuery = "SELECT COUNT(entity) FROM PolicyEvaluation entity";
-    return getSingle(Long.class, sQuery);
   }
 
   public List<PolicyEvaluation> getLimitedAmountByApplicationId(

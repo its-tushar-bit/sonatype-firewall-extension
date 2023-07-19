@@ -14,13 +14,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class SourceControlOrganizationImportEventDAO
     extends AbstractOperationalSqlDAO<SourceControlOrganizationImportEvent>
 {
-  @Override
-  protected SourceControlOrganizationImportEvent getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM SourceControlOrganizationImportEvent entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public SourceControlOrganizationImportEvent getByOrganizationAndEventId(final String orgId, final String eventId) {
     try (TransactionContext tx = createTransactionContext()) {
       String sQuery = "SELECT entity FROM SourceControlOrganizationImportEvent entity" + //
@@ -42,10 +35,5 @@ public class SourceControlOrganizationImportEventDAO
     String sQuery = "SELECT entity FROM SourceControlOrganizationImportEvent entity" + //
         " WHERE entity.organizationId=?1";
     return getList(tx, sQuery, orgId);
-  }
-
-  public List<SourceControlOrganizationImportEvent> getAll() {
-    String sQuery = "SELECT entity FROM SourceControlOrganizationImportEvent entity";
-    return getList(sQuery);
   }
 }

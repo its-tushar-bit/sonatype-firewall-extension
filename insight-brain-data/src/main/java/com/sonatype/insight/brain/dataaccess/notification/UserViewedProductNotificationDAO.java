@@ -21,13 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 public class UserViewedProductNotificationDAO
     extends AbstractOperationalSqlDAO<UserViewedProductNotification>
 {
-  @Override
-  public UserViewedProductNotification getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM UserViewedProductNotification entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public UserViewedProductNotification getByUsernameAndRealmIdAndNotificationId(
       String username,
       String realmId,
@@ -54,12 +47,6 @@ public class UserViewedProductNotificationDAO
   public List<UserViewedProductNotification> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM UserViewedProductNotification entity";
     return getList(tx, sQuery);
-  }
-
-  public List<UserViewedProductNotification> getAll() {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getAll(tx);
-    }
   }
 
   @Override

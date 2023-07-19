@@ -17,13 +17,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class ApplicationTagDAO
     extends AbstractOperationalSqlDAO<ApplicationTag>
 {
-  @Override
-  protected ApplicationTag getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ApplicationTag entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<ApplicationTag> getByApplicationId(String appId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByApplicationId(tx, appId);
@@ -61,13 +54,5 @@ public class ApplicationTagDAO
     String sQuery = "SELECT appTag FROM ApplicationTag appTag, Tag tag" + //
         " WHERE appTag.tagId = tag.id AND tag.organizationId =?1";
     return getList(sQuery, organizationId);
-  }
-
-  /**
-   * @since 1.35
-   */
-  public List<ApplicationTag> getAll() {
-    String sQuery = "SELECT entity FROM ApplicationTag entity" ;
-    return getList(sQuery);
   }
 }

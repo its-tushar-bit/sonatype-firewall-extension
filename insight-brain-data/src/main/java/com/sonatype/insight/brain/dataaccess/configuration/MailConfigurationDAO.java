@@ -48,8 +48,8 @@ public class MailConfigurationDAO
   }
 
   @Override
-  protected MailConfiguration getById(TransactionContext tx, String id) {
-    return get(tx, QUERY, SINGLETON_ENTITY_ID);
+  public MailConfiguration getById(TransactionContext tx, String id) {
+    return super.getById(tx, SINGLETON_ENTITY_ID);
   }
 
   public void set(MailConfiguration mailConfiguration) {

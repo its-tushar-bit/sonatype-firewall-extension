@@ -68,7 +68,7 @@ public class PolicyDAOTest
 
     // Update the policy
     assertThatThrownBy(() -> policyDAO.update(policy)).isInstanceOf(NotFoundException.class)
-        .hasMessage("Cannot find a policy with ID yeti.");
+        .hasMessage("PolicyInternal with ID yeti does not exist.");
   }
 
   @Test

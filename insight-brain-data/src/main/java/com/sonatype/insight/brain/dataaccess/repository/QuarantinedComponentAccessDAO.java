@@ -19,13 +19,6 @@ public class QuarantinedComponentAccessDAO
 {
   private static final int DELETE_BATCH_SIZE = 100;
 
-  @Override
-  public QuarantinedComponentAccess getById(TransactionContext tx, String id) {
-    String sQuery =
-        "SELECT entity FROM QuarantinedComponentAccess entity WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public int deleteAllBeforeDate(final Date cutoffDate) {
     String sQuery = "SELECT entity.id FROM QuarantinedComponentAccess entity" +
         " WHERE entity.generateTime < ?1";
@@ -39,11 +32,6 @@ public class QuarantinedComponentAccessDAO
       ids = new Query<String>(sQuery, cutoffDate).setMaxResults(DELETE_BATCH_SIZE).getList();
     }
     return deletedRows;
-  }
-
-  public List<QuarantinedComponentAccess> getAll() {
-    final String sQuery = "SELECT entity FROM QuarantinedComponentAccess entity";
-    return getList(sQuery);
   }
 
   public void deleteByRepositoryComponentId(final TransactionContext tx, final String repositoryComponentId) {

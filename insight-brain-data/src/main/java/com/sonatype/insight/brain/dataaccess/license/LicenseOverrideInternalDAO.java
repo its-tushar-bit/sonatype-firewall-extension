@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.model.license.LicenseOverrideInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.13
@@ -22,14 +21,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LicenseOverrideInternalDAO
     extends AbstractOperationalSqlDAO<LicenseOverrideInternal>
 {
-  @Override
-  protected LicenseOverrideInternal getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM LicenseOverrideInternal entity" + //
-        " WHERE entity.id=?1";
-
-    return get(tx, sQuery, id);
-  }
-
   public LicenseOverrideInternal getByOwnerIdAndComponentIdentifier(TransactionContext tx,
                                                                     String ownerId,
                                                                     ComponentIdentifier componentIdentifier)
@@ -80,24 +71,5 @@ public class LicenseOverrideInternalDAO
       throw new BadRequestException("LicenseOverride already exists for this ownerId and component");
     }
     super.insert(tx, entity);
-  }
-
-  private LicenseOverrideInternal getByIdNotNull(TransactionContext tx, String id) {
-    LicenseOverrideInternal licenseOverride = getById(tx, id);
-    if (licenseOverride == null) {
-      throw new NotFoundException("Cannot find a license override with ID " + id + ".");
-    }
-    return licenseOverride;
-  }
-
-  public LicenseOverrideInternal getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
-  List<LicenseOverrideInternal> getAll() {
-    String sQuery = "SELECT entity FROM LicenseOverrideInternal entity";
-    return getList(sQuery);
   }
 }

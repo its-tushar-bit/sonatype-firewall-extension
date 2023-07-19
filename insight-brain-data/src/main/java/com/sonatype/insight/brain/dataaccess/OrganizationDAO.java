@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationI
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,27 +41,6 @@ public class OrganizationDAO
     extends AbstractOperationalSqlDAO<Organization>
 {
   private static final Logger log = LoggerFactory.getLogger(OrganizationDAO.class);
-
-  @Override
-  public Organization getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM Organization entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public Organization getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
-  public Organization getByIdNotNull(TransactionContext tx, String id) {
-    Organization organization = getById(tx, id);
-    if (organization == null) {
-      throw new NotFoundException("Cannot find organization with ID " + id + ".");
-    }
-    return organization;
-  }
 
   private Organization getByName(TransactionContext tx, String name) {
     if (name == null || name.trim().isEmpty()) {
@@ -88,6 +66,7 @@ public class OrganizationDAO
     }
   }
 
+  @Override
   public List<Organization> getAll() {
     String sQuery = "SELECT entity FROM Organization entity" + //
         " ORDER BY entity.name";

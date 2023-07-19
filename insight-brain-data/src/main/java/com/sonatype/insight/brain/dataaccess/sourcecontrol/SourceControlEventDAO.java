@@ -201,11 +201,6 @@ public class SourceControlEventDAO
     log.debug(UPDATED_EVENT_WITH_STATUS, eventId, eventStatus);
   }
 
-  @Override
-  public SourceControlEvent getById(final String id) {
-    return get(SELECT_ENTITY + WHERE_ENTITY_ID_MATCHES, id);
-  }
-
   public void resetStaleEvents(Date cutoffTime, String instanceIdToIgnore) {
     String sQuery = UPDATE_ENTITY +
         "SET entity.instanceId = null, entity.eventStatus = 'new' " +
@@ -261,10 +256,6 @@ public class SourceControlEventDAO
         " WHERE entity.applicationId = ?1 AND entity.eventType = ?2 AND entity.branchName = ?3";
     return 0 !=
         getSingle(Long.class, sQuery, applicationId, REMEDIATION_PULL_REQUEST_EVENT, branchName);
-  }
-
-  public List<SourceControlEvent> getAll() {
-    return getList(SELECT_ENTITY);
   }
 
   @Override

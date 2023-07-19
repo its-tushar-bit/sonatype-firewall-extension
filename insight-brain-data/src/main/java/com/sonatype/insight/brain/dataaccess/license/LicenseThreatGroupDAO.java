@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
@@ -102,27 +101,6 @@ public class LicenseThreatGroupDAO
         " FROM LicenseThreatGroup licenseThreatGroup" + //
         " WHERE licenseThreatGroup.id IN (?1)";
     return getList(sQuery, licenseThreatGroupIds);
-  }
-
-  @Override
-  public LicenseThreatGroup getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  LicenseThreatGroup getByIdNotNull(TransactionContext tx, String id) {
-    LicenseThreatGroup licenseThreatGroup = getById(tx, id);
-    if (licenseThreatGroup == null) {
-      throw new NotFoundException("Cannot find a license threat group with ID " + id + ".");
-    }
-    return licenseThreatGroup;
-  }
-
-  public LicenseThreatGroup getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
   }
 
   public LicenseThreatGroup getByOwnerIdAndName(String ownerId, String name) {
@@ -237,14 +215,6 @@ public class LicenseThreatGroupDAO
       licenseThreatGroupLicenseDAO.delete(tx, licenseThreatGroupLicense);
     }
     super.delete(tx, licenseThreatGroup);
-  }
-
-  /**
-   * @since 1.35
-   */
-  public List<LicenseThreatGroup> getAll() {
-    String sQuery = "SELECT entity FROM LicenseThreatGroup entity";
-    return getList(sQuery);
   }
 
   /**

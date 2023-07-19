@@ -37,27 +37,6 @@ public class PolicyWaiverDAO
 {
   private static final OwnerDAO ownerDAO = new OwnerDAO();
 
-  @Override
-  protected PolicyWaiver getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  private PolicyWaiver getByIdNotNull(TransactionContext tx, String id) {
-    PolicyWaiver policyWaiver = getById(tx, id);
-    if (policyWaiver == null) {
-      throw new NotFoundException("Cannot find a policy waiver with ID " + id + ".");
-    }
-    return policyWaiver;
-  }
-
-  public PolicyWaiver getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
   public List<PolicyWaiver> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
@@ -68,10 +47,6 @@ public class PolicyWaiverDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getActiveByOwnerId(tx, ownerId);
     }
-  }
-
-  public List<PolicyWaiver> getAll() {
-    return getList("SELECT pw FROM PolicyWaiver pw");
   }
 
   /**
@@ -227,14 +202,6 @@ public class PolicyWaiverDAO
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
         " WHERE entity.policyId=?1 AND entity.ownerId IN (?2)";
     return getList(tx, sQuery, policyId, ownerIds);
-  }
-
-  /**
-   * @since 1.52
-   */
-  public int getCount() {
-    String sQuery = "SELECT COUNT(entity.id) FROM PolicyWaiver entity";
-    return getSingle(Number.class, sQuery).intValue();
   }
 
   @Override

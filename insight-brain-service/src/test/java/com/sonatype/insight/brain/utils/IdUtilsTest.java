@@ -102,7 +102,7 @@ public class IdUtilsTest
   public void testGetInternalOwnerId_Application_NotFound() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> IdUtils.getInternalOwnerId(OwnerType.APPLICATION, "no-such-app-id"))
-        .withMessage("Could not find an application with ID no-such-app-id.");
+        .withMessage("Application with ID no-such-app-id does not exist.");
   }
 
   @Test
@@ -142,6 +142,6 @@ public class IdUtilsTest
   public void testGetPublicOwnerId_Application_NotFound() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> IdUtils.getPublicOwnerId(OwnerType.APPLICATION, "no-such-app-public-id"))
-        .withMessage("Could not find an application with ID no-such-app-public-id.");
+        .withMessage("Application with ID no-such-app-public-id does not exist.");
   }
 }

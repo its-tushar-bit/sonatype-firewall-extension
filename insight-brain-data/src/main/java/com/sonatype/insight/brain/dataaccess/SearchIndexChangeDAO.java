@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.List;
-
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -18,11 +16,6 @@ public class SearchIndexChangeDAO
   private boolean isAdvancedSearchEnabled(TransactionContext tx) {
     return Boolean.parseBoolean(new SystemConfigurationPropertyDAO()
         .getByName(tx, SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED).getValue());
-  }
-
-  public List<SearchIndexChange> getAll() {
-    String sQuery = "SELECT entity FROM SearchIndexChange entity";
-    return getList(sQuery);
   }
 
   @Override

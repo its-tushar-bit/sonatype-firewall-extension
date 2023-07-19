@@ -1423,7 +1423,7 @@ public class ComponentLegalServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> componentLegalService
         .getComponentLegalFile(OwnerType.APPLICATION, id, ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
             null))
-        .withMessageContaining("Could not find an application with ID " + id + ".");
+        .withMessageContaining("Application with ID " + id + " does not exist.");
   }
 
   @Test

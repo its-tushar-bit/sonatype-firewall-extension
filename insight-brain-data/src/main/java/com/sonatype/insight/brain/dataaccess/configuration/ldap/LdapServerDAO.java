@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.7
@@ -27,27 +26,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LdapServerDAO
     extends AbstractOperationalSqlDAO<LdapServer>
 {
-  @Override
-  public LdapServer getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM LdapServer entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public LdapServer getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
-  private LdapServer getByIdNotNull(TransactionContext tx, String id) {
-    LdapServer config = getById(tx, id);
-    if (config == null) {
-      throw new NotFoundException("Cannot find LdapServer with ID " + id + ".");
-    }
-    return config;
-  }
-
   private LdapServer getByName(TransactionContext tx, String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new DataAccessException("The LdapServer name cannot be null or empty.");
@@ -65,6 +43,7 @@ public class LdapServerDAO
     }
   }
 
+  @Override
   public List<LdapServer> getAll() {
     String sQuery = "SELECT entity FROM LdapServer entity" + //
         " ORDER BY entity.priority";

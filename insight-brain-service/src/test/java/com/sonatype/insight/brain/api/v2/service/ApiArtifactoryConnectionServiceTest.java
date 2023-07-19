@@ -963,7 +963,7 @@ public class ApiArtifactoryConnectionServiceTest
         .isThrownBy(() -> artifactoryConnectionService
             .updateOwnerArtifactoryConnectionStatus(OwnerType.ORGANIZATION, "irrelevant", dto))
         .withMessage(
-            "Cannot find organization with ID irrelevant.");
+            "Organization with ID irrelevant does not exist.");
   }
 
   @Test
@@ -974,7 +974,7 @@ public class ApiArtifactoryConnectionServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> artifactoryConnectionService
             .updateOwnerArtifactoryConnectionStatus(OwnerType.APPLICATION, "irrelevant", dto))
-        .withMessage("Could not find an application with ID irrelevant.");
+        .withMessage("Application with ID irrelevant does not exist.");
   }
 
   private void testTestArtifactoryConnection_MissingData(

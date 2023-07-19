@@ -150,7 +150,7 @@ public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
     serverPriorityList.add("incorrectServerId");
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> dao.updatePriority(serverPriorityList))
-        .withMessageContaining("Cannot find LdapServer with ID incorrectServerId");
+        .withMessageContaining("LdapServer with ID incorrectServerId does not exist.");
   }
 
   @Test

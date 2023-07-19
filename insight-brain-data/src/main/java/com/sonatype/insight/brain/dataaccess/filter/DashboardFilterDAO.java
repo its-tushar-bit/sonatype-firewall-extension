@@ -27,13 +27,6 @@ public class DashboardFilterDAO
 {
   private static final Logger log = LoggerFactory.getLogger(DashboardFilterDAO.class);
 
-  @Override
-  public DashboardFilter getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM DashboardFilter entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<DashboardFilter> getByUsernameAndRealmId(TransactionContext tx, String username, String realmId) {
     username = User.normalizeUsername(username);
     String sQuery = "SELECT entity FROM DashboardFilter entity" + //
@@ -110,11 +103,6 @@ public class DashboardFilterDAO
 
   public List<DashboardFilter> getLegacyNamedFiltersByUsername(String username) {
     return getNamedFiltersByUsernameAndRealmId(username, null /* realmId */);
-  }
-
-  public List<DashboardFilter> getAll() {
-    String sQuery = "SELECT entity FROM DashboardFilter entity";
-    return getList(sQuery);
   }
 
   @Override

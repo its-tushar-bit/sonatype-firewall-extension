@@ -22,12 +22,6 @@ public class UserTokenDAO
     extends AbstractOperationalSqlDAO<UserToken>
 {
   @Override
-  protected UserToken getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM UserToken entity WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public void insert(TransactionContext tx, UserToken userToken) {
     if (userToken.getCreateTime() == null) {
       userToken.setCreateTime(new Date());

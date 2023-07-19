@@ -18,13 +18,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class LicenseThreatGroupLicenseDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroupLicense>
 {
-  @Override
-  protected LicenseThreatGroupLicense getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   private LicenseThreatGroupLicense getByGroupIdAndLicenseId(TransactionContext tx,
                                                              String ownerId,
                                                              String licenseThreatGroupId)
@@ -111,14 +104,6 @@ public class LicenseThreatGroupLicenseDAO
 
       tx.commit();
     }
-  }
-
-  /**
-   * @since 1.35
-   */
-  public List<LicenseThreatGroupLicense> getAll() {
-    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity";
-    return getList(sQuery);
   }
 
   public List<LicenseThreatGroupLicense> getByOwnerIds(Collection<String> ownerIds) {

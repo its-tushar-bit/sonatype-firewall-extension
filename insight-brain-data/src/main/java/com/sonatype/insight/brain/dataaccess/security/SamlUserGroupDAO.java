@@ -17,18 +17,6 @@ import org.apache.commons.collections.CollectionUtils;
 public class SamlUserGroupDAO
     extends AbstractOperationalSqlDAO<SamlUserGroup>
 {
-  public List<SamlUserGroup> getAll() {
-    String sQuery = "SELECT entity FROM SamlUserGroup entity";
-    return getList(sQuery);
-  }
-
-  @Override
-  protected SamlUserGroup getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM SamlUserGroup entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public SamlUserGroup getBySamlUserIdAndSamlGroupId(String samlUserId, String samlGroupId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getBySamlUserIdAndSamlGroupId(tx, samlUserId, samlGroupId);

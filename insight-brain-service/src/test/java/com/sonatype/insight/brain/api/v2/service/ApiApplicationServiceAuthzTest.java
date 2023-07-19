@@ -151,7 +151,7 @@ public class ApiApplicationServiceAuthzTest
     String organizationId = "doesNotExist";
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> apiApplicationService.getApplicationsByOrganizationId(organizationId))
-        .withMessageContaining("Cannot find organization with ID " + organizationId + ".");
+        .withMessageContaining("Organization with ID " + organizationId + " does not exist.");
   }
 
   @Test

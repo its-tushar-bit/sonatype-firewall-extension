@@ -99,7 +99,7 @@ public class ApplicationCloneServiceTest
   public void testCloneApplication_SourceApplicationDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> appCloneService.cloneApplication("AppDoesNotExistId", "clonedAppName", "clonedAppPublicId"))
-        .withMessage("Could not find an application with ID AppDoesNotExistId.");
+        .withMessage("Application with ID AppDoesNotExistId does not exist.");
   }
 
   @Test

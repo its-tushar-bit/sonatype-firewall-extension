@@ -62,7 +62,7 @@ public class ApiCompositeSourceControlConfigValidatorResourceTest
         .parameter("1234")
         .get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).contains("Could not find an application with ID 1234.");
+    assertThat(response.getBodyText()).contains("Application with ID 1234 does not exist.");
   }
 
   @Test

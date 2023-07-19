@@ -32,8 +32,8 @@ public class ProxyServerConfigurationDAO
   }
 
   @Override
-  protected ProxyServerConfiguration getById(TransactionContext tx, String id) {
-    return get(tx, "SELECT entity FROM ProxyServerConfiguration entity WHERE entity.id=?1", SINGLETON_ENTITY_ID);
+  public ProxyServerConfiguration getById(TransactionContext tx, String id) {
+    return super.getById(tx, SINGLETON_ENTITY_ID);
   }
 
   @Override

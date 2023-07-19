@@ -23,12 +23,6 @@ import org.apache.commons.collections.CollectionUtils;
 public class ProprietaryComponentNamePatternDAO
     extends AbstractOperationalSqlDAO<ProprietaryComponentNamePattern>
 {
-  @Override
-  protected ProprietaryComponentNamePattern getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ProprietaryComponentNamePattern entity WHERE entity.id = ?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<ProprietaryComponentNamePattern> getByFormat(String format) {
     String sQuery = "SELECT entity FROM ProprietaryComponentNamePattern entity WHERE entity.format = ?1";
     return getList(sQuery, format);

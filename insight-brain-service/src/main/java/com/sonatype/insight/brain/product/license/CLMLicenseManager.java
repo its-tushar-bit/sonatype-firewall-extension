@@ -443,7 +443,7 @@ public class CLMLicenseManager
     }
 
     if (applicationLimitToDisplay != null) {
-      applicationCountToDisplay = new ApplicationDAO().getCount();
+      applicationCountToDisplay = (int) new ApplicationDAO().getCount();
     }
 
     Properties properties = productLicense.isValid() ? licenseManager.getLicenseDetails().getProperties() : null;

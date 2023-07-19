@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dataaccess.component;
 
 import java.time.Duration;
 import java.util.Date;
-import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -19,7 +18,7 @@ public class RepositoryIdentifiedComponentDAO
     extends AbstractOperationalSqlDAO<RepositoryIdentifiedComponent>
 {
   @Override
-  protected RepositoryIdentifiedComponent getById(TransactionContext tx, String id) {
+  public RepositoryIdentifiedComponent getById(TransactionContext tx, String id) {
     return getByHash(tx, id);
   }
 
@@ -31,11 +30,6 @@ public class RepositoryIdentifiedComponentDAO
     String sQuery = "SELECT entity FROM RepositoryIdentifiedComponent entity" + //
         " WHERE entity.hash=?1";
     return get(tx, sQuery, hash);
-  }
-
-  public List<RepositoryIdentifiedComponent> getAll() {
-    String sQuery = "SELECT entity FROM RepositoryIdentifiedComponent entity";
-    return getList(sQuery);
   }
 
   public RepositoryIdentifiedComponent getByHashNotNullAndUpdateLastAccessTime(String hash) {

@@ -989,7 +989,7 @@ public class ApiRepositoryConnectionServiceTest
         .isThrownBy(() -> repositoryConnectionService
             .updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, "irrelevant", dto))
         .withMessage(
-            "Cannot find organization with ID irrelevant.");
+            "Organization with ID irrelevant does not exist.");
   }
 
   @Test
@@ -1000,7 +1000,7 @@ public class ApiRepositoryConnectionServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryConnectionService
             .updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, "irrelevant", dto))
-        .withMessage("Could not find an application with ID irrelevant.");
+        .withMessage("Application with ID irrelevant does not exist.");
   }
 
   private void testTestRepositoryConnection_MissingData(

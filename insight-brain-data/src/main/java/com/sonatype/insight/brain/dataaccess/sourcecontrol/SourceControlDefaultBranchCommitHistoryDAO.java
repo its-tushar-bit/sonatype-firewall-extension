@@ -29,15 +29,6 @@ public class SourceControlDefaultBranchCommitHistoryDAO
 
   public static final String ORDER_BY_ENTITY_COMMIT_TIME_DESC = "ORDER BY entity.commitTime DESC";
 
-  @Override
-  public SourceControlDefaultBranchCommitHistory getById(final String id) {
-    return get(SELECT_ENTITY + "WHERE entity.id=?1", id);
-  }
-
-  public List<SourceControlDefaultBranchCommitHistory> getAll() {
-    return getList(SELECT_ENTITY);
-  }
-
   public List<SourceControlDefaultBranchCommitHistory> getByApplicationIdSortedByDateDesc(String applicationId) {
     return getList(SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1 +
         ORDER_BY_ENTITY_COMMIT_TIME_DESC, applicationId);

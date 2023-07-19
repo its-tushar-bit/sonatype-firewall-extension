@@ -21,13 +21,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class ComponentLabelDAO
     extends AbstractOperationalSqlDAO<ComponentLabel>
 {
-  @Override
-  protected ComponentLabel getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ComponentLabel entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<ComponentLabel> getByLabelId(TransactionContext tx, String labelId) {
     String sQuery = "SELECT entity FROM ComponentLabel entity" + //
         " WHERE entity.labelId=?1";
@@ -104,14 +97,6 @@ public class ComponentLabelDAO
     final String sQuery = "SELECT label FROM ComponentLabel label" + //
         " WHERE label.ownerId IN (?1)";
     return getList(sQuery, ownerIds);
-  }
-
-  /**
-   * @since 1.35
-   */
-  public List<ComponentLabel> getAll() {
-    String sQuery = "SELECT entity FROM ComponentLabel entity";
-    return getList(sQuery);
   }
 
   @Override

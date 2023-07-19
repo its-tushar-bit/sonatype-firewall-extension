@@ -20,12 +20,6 @@ public class LockDAO
     extends AbstractOperationalSqlDAO<Lock>
 {
   @Override
-  public Lock getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM Lock entity WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public void update(TransactionContext tx, Lock entity) {
     throw new UnsupportedOperationException();
   }

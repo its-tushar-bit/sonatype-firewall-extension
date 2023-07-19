@@ -336,7 +336,7 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
   @Test
   public void testGetByIdNotNull() {
     assertThatThrownBy(() -> licenseThreatGroupDAO.getByIdNotNull("fake id")).isInstanceOf(NotFoundException.class)
-        .hasMessage("Cannot find a license threat group with ID fake id.");
+        .hasMessage("LicenseThreatGroup with ID fake id does not exist.");
   }
 
   @Test

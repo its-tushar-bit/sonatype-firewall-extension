@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
-import java.util.Collection;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -17,13 +15,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class LdapUserMappingDAO
     extends AbstractOperationalSqlDAO<LdapUserMapping>
 {
-  @Override
-  public LdapUserMapping getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM LdapUserMapping entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public LdapUserMapping getByServerId(String serverId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByServerId(tx, serverId);
@@ -41,10 +32,5 @@ public class LdapUserMappingDAO
     if (ldapUserMapping != null) {
       delete(tx, ldapUserMapping);
     }
-  }
-
-  public Collection<LdapUserMapping> getAll() {
-    String sQuery = "SELECT entity FROM LdapUserMapping entity";
-    return getList(sQuery);
   }
 }

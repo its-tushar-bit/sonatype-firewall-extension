@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.scan;
 
 import java.util.Date;
-import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
@@ -15,18 +14,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class PersistedScanTicketDAO
     extends AbstractOperationalSqlDAO<PersistedScanTicket>
 {
-  public List<PersistedScanTicket> getAll() {
-    String sQuery = "SELECT entity FROM PersistedScanTicket entity";
-    return getList(sQuery);
-  }
-
-  @Override
-  public PersistedScanTicket getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM PersistedScanTicket entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   @Override
   public final void delete(TransactionContext tx, PersistedScanTicket persistedScanTicket) {
     // WARNING: Don't add any business logic to this method because, for performance reasons,

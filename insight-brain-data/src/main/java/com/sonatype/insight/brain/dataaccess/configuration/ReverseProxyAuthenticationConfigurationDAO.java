@@ -60,10 +60,8 @@ public class ReverseProxyAuthenticationConfigurationDAO
   }
 
   @Override
-  protected ReverseProxyAuthenticationConfiguration getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ReverseProxyAuthenticationConfiguration entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, SINGLETON_ENTITY_ID);
+  public ReverseProxyAuthenticationConfiguration getById(TransactionContext tx, String id) {
+    return super.getById(tx, SINGLETON_ENTITY_ID);
   }
 
   public void set(ReverseProxyAuthenticationConfiguration configuration) {

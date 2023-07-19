@@ -218,14 +218,14 @@ public class ApiApplicationResourceV2Test
     final String appId = "invalidAppId";
     final HttpResponse response = restRequest().path(appId).delete();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Could not find an application with ID " + appId + ".");
+    assertThat(response.getBodyText()).isEqualTo("Application with ID " + appId + " does not exist.");
   }
 
   @Test
   public void testGetNotExistentApplication() throws Exception {
     final HttpResponse response = restRequest().path("invalidId").get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Could not find an application with ID invalidId.");
+    assertThat(response.getBodyText()).isEqualTo("Application with ID invalidId does not exist.");
   }
 
   @Test

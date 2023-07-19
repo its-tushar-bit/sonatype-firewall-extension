@@ -138,7 +138,7 @@ public class DefaultApiScmOnboardingResourceTest
         .post();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).contains("Cannot find organization with ID orgThatDoesNotExist");
+    assertThat(response.getBodyText()).contains("Organization with ID orgThatDoesNotExist does not exist.");
   }
 
   @Test

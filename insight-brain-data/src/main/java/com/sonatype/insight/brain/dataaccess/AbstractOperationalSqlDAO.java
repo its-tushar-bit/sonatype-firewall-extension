@@ -5,14 +5,18 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -28,6 +32,21 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   public static Map<String, String> creationStackTracesForTestEntities = new LinkedHashMap<>();
 
+  private String entityName;
+
+  public AbstractOperationalSqlDAO() {
+    entityName = ((Class<?>) getParameterizedSuperClass().getActualTypeArguments()[0]).getSimpleName();
+  }
+
+  private ParameterizedType getParameterizedSuperClass() {
+    Type genericSuperclass = getClass().getGenericSuperclass();
+    if (!(genericSuperclass instanceof ParameterizedType)) {
+      genericSuperclass = (ParameterizedType) getClass().getSuperclass().getGenericSuperclass();
+    }
+    
+    return (ParameterizedType) genericSuperclass;
+  }
+  
   @Override
   public TransactionContext createTransactionContext() {
     return new TransactionContext(OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager());
@@ -124,5 +143,39 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   protected boolean detectTestEntityLeaks() {
     return false;
+  }
+
+  @Override
+  public T getById(TransactionContext tx, String id) {
+    String sQuery = "SELECT entity FROM " + getEntityName() + " entity WHERE entity.id=?1";
+    return get(tx, sQuery, id);
+  }
+
+  public T getByIdNotNull(TransactionContext tx, String id) {
+    T entity = getById(tx, id);
+    if (entity == null) {
+      throw new NotFoundException(getEntityName() + " with ID " + id + " does not exist.");
+    }
+    return entity;
+  }
+
+  public T getByIdNotNull(String id) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
+    }
+  }
+
+  public List<T> getAll() {
+    String sQuery = "SELECT entity FROM " + getEntityName() + " entity";
+    return getList(sQuery);
+  }
+
+  public long getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() + " entity";
+    return getSingle(Long.class, sQuery);
+  }
+
+  public String getEntityName() {
+    return entityName;
   }
 }

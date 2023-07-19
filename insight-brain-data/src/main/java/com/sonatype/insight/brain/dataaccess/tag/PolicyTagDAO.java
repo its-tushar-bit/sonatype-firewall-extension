@@ -19,13 +19,6 @@ public class PolicyTagDAO
     extends AbstractOperationalSqlDAO<PolicyTag>
 {
   @Override
-  protected PolicyTag getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM PolicyTag entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public void update(TransactionContext tx, PolicyTag entity) {
     throw new UnsupportedOperationException("The PolicyTag table does not support update operations");
   }
@@ -67,14 +60,6 @@ public class PolicyTagDAO
     String sQuery = "SELECT entity FROM PolicyTag entity" + //
         " WHERE entity.policyId=?1 AND entity.tagId=?2";
     return get(sQuery, policyId, tagId);
-  }
-
-  /**
-   * @since 1.35
-   */
-  public List<PolicyTag> getAll() {
-    String sQuery = "SELECT entity FROM PolicyTag entity";
-    return getList(sQuery);
   }
 
   public boolean isPolicyApplicable(TransactionContext tx, String policyId, Set<String> tagIds) {

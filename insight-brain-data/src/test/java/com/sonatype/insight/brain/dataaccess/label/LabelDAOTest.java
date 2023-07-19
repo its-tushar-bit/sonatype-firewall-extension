@@ -486,7 +486,7 @@ public class LabelDAOTest
   @Test
   public void testGetByIdNotNull() {
     assertThatThrownBy(() -> new LabelDAO().getByIdNotNull("fake id")).isInstanceOf(NotFoundException.class)
-        .hasMessage("Cannot find a label with ID fake id.");
+        .hasMessage("Label with ID fake id does not exist.");
   }
 
   @Test

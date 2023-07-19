@@ -219,7 +219,7 @@ public class SourceControlPullRequestCommentDAOTest
       tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 2, 3, "contentHash", "bogusPolicyEvalId",
           targetPolicyEvaluation.getId());
     }).isInstanceOf(NotFoundException.class)
-        .hasMessage("Could not find a policy evaluation with ID bogusPolicyEvalId.");
+        .hasMessage("PolicyEvaluation with ID bogusPolicyEvalId does not exist.");
   }
 
   @Test
@@ -234,7 +234,7 @@ public class SourceControlPullRequestCommentDAOTest
       tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 2, 3, "contentHash",
           sourcePolicyEvaluation.getId(), "bogusPolicyEvalId");
     }).isInstanceOf(NotFoundException.class)
-        .hasMessage("Could not find a policy evaluation with ID bogusPolicyEvalId.");
+        .hasMessage("PolicyEvaluation with ID bogusPolicyEvalId does not exist.");
   }
 
   @Test

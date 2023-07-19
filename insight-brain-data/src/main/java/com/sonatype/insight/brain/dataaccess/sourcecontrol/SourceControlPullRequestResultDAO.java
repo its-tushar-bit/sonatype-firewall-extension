@@ -19,19 +19,6 @@ public class SourceControlPullRequestResultDAO
     return getList(tx, sQuery);
   }
 
-  public List<SourceControlPullRequestResult> getAll() {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getAll(tx);
-    }
-  }
-
-  @Override
-  public SourceControlPullRequestResult getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM SourceControlPullRequestResult entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<SourceControlPullRequestResult> getByApplicationId(TransactionContext tx, String applicationId) {
     String sQuery = "SELECT entity FROM SourceControlPullRequestResult entity" + //
         " WHERE entity.applicationId=?1";

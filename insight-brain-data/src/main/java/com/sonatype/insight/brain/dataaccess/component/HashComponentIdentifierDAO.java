@@ -26,13 +26,6 @@ public class HashComponentIdentifierDAO
 {
   public static final String NOT_FOUND_MESSAGE = "There is no claimed component with hash ";
 
-  @Override
-  protected HashComponentIdentifier getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public HashComponentIdentifier getByHashNotNull(String hash) {
     HashComponentIdentifier hashComponentIdentifier = getByHash(hash);
     if (hashComponentIdentifier == null) {
@@ -64,6 +57,7 @@ public class HashComponentIdentifierDAO
         ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
   }
 
+  @Override
   public List<HashComponentIdentifier> getAll() {
     String sQuery = "SELECT entity FROM HashComponentIdentifier entity ORDER BY entity.hash";
     return getList(sQuery);

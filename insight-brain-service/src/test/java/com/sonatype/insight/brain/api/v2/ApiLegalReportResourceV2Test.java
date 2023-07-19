@@ -138,7 +138,7 @@ public class ApiLegalReportResourceV2Test
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
-        .isEqualTo("Could not find an application with ID " + applicationPublicId + ".");
+        .isEqualTo("Application with ID " + applicationPublicId + " does not exist.");
   }
 
   @Test
@@ -332,7 +332,7 @@ public class ApiLegalReportResourceV2Test
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
-        .isEqualTo("Could not find an application with ID " + applicationPublicId + ".");
+        .isEqualTo("Application with ID " + applicationPublicId + " does not exist.");
   }
 
   @Test

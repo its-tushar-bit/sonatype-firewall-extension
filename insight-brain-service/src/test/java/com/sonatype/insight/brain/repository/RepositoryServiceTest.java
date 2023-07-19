@@ -568,7 +568,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
   public void testGetRepositoryById_UnknownId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryService.getRepositoryById("foobar"))
-        .withMessage("Cannot find a repository with ID foobar.");
+        .withMessage("Repository with ID foobar does not exist.");
   }
 
   @Test
@@ -602,7 +602,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
   public void testReevaluateRepository_UnknownId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryService.reevaluateRepository("foobar"))
-        .withMessage("Cannot find a repository with ID foobar.");
+        .withMessage("Repository with ID foobar does not exist.");
   }
 
   @Test
@@ -616,7 +616,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
   public void testDeleteRepository_UnknownId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryService.deleteRepository("foobar"))
-        .withMessage("Cannot find a repository with ID foobar.");
+        .withMessage("Repository with ID foobar does not exist.");
   }
 
   @Test
@@ -1267,6 +1267,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
   public void testUpdateName_idNull() {
     assertThatExceptionOfType(NotFoundException.class)
             .isThrownBy(() -> repositoryService.updateName(null, "Repo Name2"))
-            .withMessage("Cannot find a repository manager with ID null.");
+            .withMessage("RepositoryManager with ID null does not exist.");
   }
 }

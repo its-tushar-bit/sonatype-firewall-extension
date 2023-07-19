@@ -224,7 +224,7 @@ public class LabelServiceTest
   public void testAddLabel_ToNonExistingApplication() {
     ApiLabelDTO labelDTO = new ApiLabelDTO("MyLabel", "DescriptionLabel", "dark-blue");
     assertThatThrownBy(() -> labelService.addLabel(OwnerType.APPLICATION, "no-app-with-this-id", labelDTO))
-        .isInstanceOf(NotFoundException.class).hasMessage("Could not find an application with ID no-app-with-this-id.");
+        .isInstanceOf(NotFoundException.class).hasMessage("Application with ID no-app-with-this-id does not exist.");
   }
 
   @Test
@@ -334,7 +334,7 @@ public class LabelServiceTest
     apiLabelDTO.id = null;
 
     assertThatThrownBy(() -> labelService.updateLabel(OwnerType.APPLICATION, appId, apiLabelDTO))
-        .isInstanceOf(NotFoundException.class).hasMessage("Cannot find a label with ID null.");
+        .isInstanceOf(NotFoundException.class).hasMessage("Label with ID null does not exist.");
   }
 
   @Test
@@ -384,7 +384,7 @@ public class LabelServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     assertThatThrownBy(() -> labelService.deleteLabel(APPLICATION, app.getId(), "YettiId"))
-        .isInstanceOf(NotFoundException.class).hasMessage("Cannot find a label with ID YettiId.");
+        .isInstanceOf(NotFoundException.class).hasMessage("Label with ID YettiId does not exist.");
   }
 
   @Test

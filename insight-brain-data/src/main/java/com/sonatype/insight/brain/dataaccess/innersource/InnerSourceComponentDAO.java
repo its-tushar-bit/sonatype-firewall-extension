@@ -23,13 +23,6 @@ public class InnerSourceComponentDAO
   public static final String SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT =
       "SELECT entity FROM InnerSourceComponent entity";
 
-  @Override
-  public InnerSourceComponent getById(TransactionContext tx, String id) {
-    String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<InnerSourceComponent> getByApplicationId(TransactionContext tx, String appId) {
     String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
         " WHERE entity.applicationId=?1";

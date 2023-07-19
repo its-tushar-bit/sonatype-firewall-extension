@@ -23,11 +23,6 @@ public class DataRetentionPolicyDAO
     extends AbstractOperationalSqlDAO<DataRetentionPolicy>
 {
   @Override
-  public DataRetentionPolicy getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM DataRetentionPolicy entity WHERE entity.id = ?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<DataRetentionPolicy> getAll() {
     String sQuery = "SELECT entity FROM DataRetentionPolicy entity ORDER BY entity.ownerId, entity.contextId";
     return getList(sQuery);

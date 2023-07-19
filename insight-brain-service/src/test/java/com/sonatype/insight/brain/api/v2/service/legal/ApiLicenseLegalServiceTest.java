@@ -2162,11 +2162,11 @@ public class ApiLicenseLegalServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION, ownerId, null,
             null, null, null, null, null))
-        .withMessageContaining("Could not find an application with ID " + ownerId + ".");
+        .withMessageContaining("Application with ID " + ownerId + " does not exist.");
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.ORGANIZATION, ownerId, null,
             null, null, null, null, null))
-        .withMessageContaining("Cannot find organization with ID " + ownerId + ".");
+        .withMessageContaining("Organization with ID " + ownerId + " does not exist.");
   }
 
   @Test

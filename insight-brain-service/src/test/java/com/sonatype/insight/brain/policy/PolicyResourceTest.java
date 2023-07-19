@@ -65,7 +65,7 @@ public class PolicyResourceTest
         .part("file", "file", createImportBody()).post();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find organization with ID " + orgId + ".");
+    assertThat(response.getBodyText()).isEqualTo("Organization with ID " + orgId + " does not exist.");
   }
 
   @Test
@@ -294,7 +294,7 @@ public class PolicyResourceTest
         .put();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy with ID 123.");
+    assertThat(response.getBodyText()).isEqualTo("PolicyInternal with ID 123 does not exist.");
   }
 
   @Test

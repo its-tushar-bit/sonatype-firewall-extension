@@ -112,7 +112,7 @@ public class ApiSpdxServiceTest
   public void testGetByScanId_unknownApplicationId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.getByScanId("fake-app", "fake-scan-id", "json", false, "2.3"))
-        .withMessageContaining("Could not find an application with ID fake-app");
+        .withMessageContaining("Application with ID fake-app does not exist.");
   }
 
   @Test

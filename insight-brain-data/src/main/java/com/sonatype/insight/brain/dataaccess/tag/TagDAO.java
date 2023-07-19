@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCweTag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.9
@@ -43,13 +42,6 @@ public class TagDAO
     extends AbstractOperationalSqlDAO<Tag>
 {
   private static final OrganizationDAO orgDAO = new OrganizationDAO();
-
-  @Override
-  protected Tag getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM Tag entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
 
   public List<Tag> getByOrganizationId(String organizationId) {
     try (TransactionContext tx = createTransactionContext()) {
@@ -128,14 +120,6 @@ public class TagDAO
     return getList(sQuery, name);
   }
 
-  /**
-   * @since 1.35
-   */
-  public List<Tag> getAll() {
-    String sQuery = "SELECT entity FROM Tag entity";
-    return getList(sQuery);
-  }
-
   private void validateColor(Color color) {
     if (color == null) {
       throw new InvalidTagException("The application category color must be assigned.");
@@ -203,20 +187,6 @@ public class TagDAO
       }
 
       validateNameWithinHierarchyDown(tx, childOrg, name);
-    }
-  }
-
-  private Tag getByIdNotNull(TransactionContext tx, String id) {
-    Tag tag = getById(tx, id);
-    if (tag == null) {
-      throw new NotFoundException("Cannot find an application category with ID " + id + ".");
-    }
-    return tag;
-  }
-
-  public Tag getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
     }
   }
 

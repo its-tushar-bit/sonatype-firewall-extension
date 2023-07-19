@@ -24,13 +24,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class ComponentCopyrightDAO
     extends AbstractOperationalSqlDAO<ComponentCopyright>
 {
-  @Override
-  public ComponentCopyright getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ComponentCopyright entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<ComponentCopyright> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM ComponentCopyright entity" + //
         " WHERE entity.ownerId=?1";
@@ -123,10 +116,5 @@ public class ComponentCopyrightDAO
       copyrightOverrideDAO.delete(tx, copyrightOverride);
     }
     super.delete(tx, componentCopyright);
-  }
-
-  public List<ComponentCopyright> getAll() {
-    String sQuery = "SELECT entity FROM ComponentCopyright entity";
-    return getList(sQuery);
   }
 }

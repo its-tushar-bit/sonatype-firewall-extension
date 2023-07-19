@@ -402,7 +402,7 @@ public class MembershipMappingServiceTest
         .isThrownBy(() -> membershipMappingService
             .grantRoleMembership(OwnerType.APPLICATION, "owner-id", Role.DEVELOPER_ROLE_ID, MemberType.USER,
                 "username"))
-        .withMessageContaining("Could not find an application with ID owner-id.");
+        .withMessageContaining("Application with ID owner-id does not exist.");
   }
 
   @Test
@@ -411,7 +411,7 @@ public class MembershipMappingServiceTest
         .isThrownBy(() -> membershipMappingService
             .grantRoleMembership(OwnerType.ORGANIZATION, "no-such-application", Role.DEVELOPER_ROLE_ID,
                 MemberType.USER, "username"))
-        .withMessageContaining("Cannot find organization with ID no-such-application");
+        .withMessageContaining("Organization with ID no-such-application does not exist.");
   }
 
   @Test

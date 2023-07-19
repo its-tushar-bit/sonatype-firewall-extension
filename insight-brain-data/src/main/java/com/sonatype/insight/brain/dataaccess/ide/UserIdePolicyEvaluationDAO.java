@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.ide;
 
 import java.util.Date;
-import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
@@ -15,17 +14,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class UserIdePolicyEvaluationDAO extends AbstractOperationalSqlDAO<UserIdePolicyEvaluation>
 {
-  @Override
-  public UserIdePolicyEvaluation getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM UserIdePolicyEvaluation entity WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public long getCount() {
-    String sQuery = "SELECT COUNT(entity) FROM UserIdePolicyEvaluation entity";
-    return getSingle(Long.class, sQuery);
-  }
-
   public long getCountSince(Date sinceUtcDate) {
     String sQuery = "SELECT COUNT(entity) FROM UserIdePolicyEvaluation entity" +
         " WHERE entity.lastEvaluationTime >= ?1";
@@ -64,10 +52,5 @@ public class UserIdePolicyEvaluationDAO extends AbstractOperationalSqlDAO<UserId
     if (entity != null) {
       delete(tx, entity);
     }
-  }
-
-  public List<UserIdePolicyEvaluation> getAll() {
-    String sQuery = "SELECT entity FROM UserIdePolicyEvaluation entity";
-    return getList(sQuery);
   }
 }

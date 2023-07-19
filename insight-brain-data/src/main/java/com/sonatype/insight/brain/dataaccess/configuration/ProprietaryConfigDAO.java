@@ -27,13 +27,6 @@ public class ProprietaryConfigDAO
   // copied from insight-scanner/RegexSelector.java
   static final List<String> REGEX_BLACK_LIST = Collections.unmodifiableList(Arrays.asList(".*", "^.*$"));
 
-  @Override
-  public ProprietaryConfig getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ProprietaryConfig entity" + //
-        " WHERE entity.id = ?1";
-    return get(tx, sQuery, id);
-  }
-
   public ProprietaryConfig getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
@@ -44,14 +37,6 @@ public class ProprietaryConfigDAO
     String sQuery = "SELECT entity FROM ProprietaryConfig entity" + //
         " WHERE entity.ownerId = ?1";
     return get(tx, sQuery, ownerId);
-  }
-
-  /**
-   * @since 1.35
-   */
-  public List<ProprietaryConfig> getAll() {
-    String sQuery = "SELECT entity FROM ProprietaryConfig entity";
-    return getList(sQuery);
   }
 
   @Override

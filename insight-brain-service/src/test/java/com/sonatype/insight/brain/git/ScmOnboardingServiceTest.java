@@ -374,7 +374,7 @@ public class ScmOnboardingServiceTest
   public void testLoadRepositories_invalidOrgId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> scmOnboardingService.loadRepositories("organizationThatDoesntExist", gitService.baseUrl()))
-        .withMessageContaining("Cannot find organization with ID organizationThatDoesntExist.");
+        .withMessageContaining("Organization with ID organizationThatDoesntExist does not exist.");
 
     // and: no source control evaluation events
     verifyNoSourceControlEvaluationEventsCreated();

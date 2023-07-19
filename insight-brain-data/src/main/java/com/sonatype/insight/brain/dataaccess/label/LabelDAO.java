@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 public class LabelDAO
     extends AbstractOperationalSqlDAO<Label>
@@ -99,35 +98,6 @@ public class LabelDAO
       }
     }
     return entity;
-  }
-
-  @Override
-  public Label getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT label FROM Label label" + //
-        " WHERE label.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  Label getByIdNotNull(TransactionContext tx, String id) {
-    Label label = getById(tx, id);
-    if (label == null) {
-      throw new NotFoundException("Cannot find a label with ID " + id + ".");
-    }
-    return label;
-  }
-
-  public Label getByIdNotNull(String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByIdNotNull(tx, id);
-    }
-  }
-
-  /**
-   * @since 1.35
-   */
-  public List<Label> getAll() {
-    String sQuery = "SELECT label FROM Label label";
-    return getList(sQuery);
   }
 
   @Override

@@ -15,13 +15,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class RepositoryConnectionDAO
     extends AbstractOperationalSqlDAO<RepositoryConnection>
 {
-  @Override
-  public RepositoryConnection getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<RepositoryConnection> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
@@ -71,10 +64,5 @@ public class RepositoryConnectionDAO
   public void deleteAll() {
     String sQuery = "DELETE FROM RepositoryConnection entity";
     createQuery(sQuery).executeUpdate();
-  }
-
-  public List<RepositoryConnection> getAll() {
-    String sQuery = "SELECT entity FROM RepositoryConnection entity";
-    return getList(sQuery);
   }
 }

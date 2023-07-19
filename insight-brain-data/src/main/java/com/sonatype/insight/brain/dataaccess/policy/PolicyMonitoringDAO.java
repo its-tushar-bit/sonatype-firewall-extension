@@ -19,17 +19,11 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class PolicyMonitoringDAO
     extends AbstractOperationalSqlDAO<PolicyMonitoring>
 {
+  @Override
   public List<PolicyMonitoring> getAll() {
     String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
         " ORDER BY entity.id";
     return getList(sQuery);
-  }
-
-  @Override
-  protected PolicyMonitoring getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
   }
 
   public PolicyMonitoring getByOwnerId(String ownerId) {

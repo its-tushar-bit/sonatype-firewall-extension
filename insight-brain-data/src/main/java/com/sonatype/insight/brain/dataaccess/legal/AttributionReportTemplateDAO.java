@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Date;
-import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -20,13 +19,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class AttributionReportTemplateDAO
     extends AbstractOperationalSqlDAO<AttributionReportTemplate>
 {
-  @Override
-  public AttributionReportTemplate getById(TransactionContext tx, String id) {
-    final String sQuery = "SELECT entity FROM AttributionReportTemplate entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   private void checkAttributionReportTemplateNameLength(AttributionReportTemplate attributionReportTemplate) {
     if (attributionReportTemplate.getTemplateName().length() > 250) {
       throw new InvalidNameException("Report template name is too long");
@@ -52,11 +44,6 @@ public class AttributionReportTemplateDAO
     }
     attributionReportTemplate.setLastUpdatedAt(new Date());
     super.update(tx, attributionReportTemplate);
-  }
-
-  public List<AttributionReportTemplate> getAll() {
-    final String sQuery = "SELECT entity FROM AttributionReportTemplate entity";
-    return getList(sQuery);
   }
 
   public void deleteById(String attributionReportId) {

@@ -374,7 +374,7 @@ public class ComponentInfoResourceTest
     HttpResponse response = vulnerabilitiesRequest(OwnerType.REPOSITORY, "repositoryDoesNotExist", "hash",
         MAVEN_COORDINATES).get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot find a repository with ID repositoryDoesNotExist.");
+    assertThat(response.getBodyText()).isEqualTo("Repository with ID repositoryDoesNotExist does not exist.");
   }
 
   private ComponentIdentifier componentIdentifierFrom(final String format, final String name, final String version) {

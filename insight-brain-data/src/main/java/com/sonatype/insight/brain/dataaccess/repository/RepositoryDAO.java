@@ -32,13 +32,6 @@ public class RepositoryDAO
         + " and publicId=" + repositoryPublicId + ".";
   }
 
-  @Override
-  public Repository getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM Repository entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<Repository> getByRepositoryManagerId(String repositoryManagerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryManagerId(tx, repositoryManagerId);
@@ -262,25 +255,6 @@ public class RepositoryDAO
   public List<Repository> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM Repository entity";
     return getList(tx, sQuery);
-  }
-
-  public List<Repository> getAll() {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getAll(tx);
-    }
-  }
-
-  public Repository getByIdNotNull(String id) {
-    Repository repository = getById(id);
-    if (repository == null) {
-      throw new NotFoundException("Cannot find a repository with ID " + id + ".");
-    }
-    return repository;
-  }
-
-  public long getCount() {
-    String sQuery = "SELECT COUNT(entity) FROM Repository entity";
-    return getSingle(Long.class, sQuery);
   }
 
   /**

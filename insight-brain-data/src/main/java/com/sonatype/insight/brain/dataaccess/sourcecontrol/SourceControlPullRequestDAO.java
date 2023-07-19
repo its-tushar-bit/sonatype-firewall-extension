@@ -22,10 +22,6 @@ public class SourceControlPullRequestDAO
   private static final Logger log = LoggerFactory.getLogger(SourceControlPullRequestDAO.class);
 
   @Override
-  public SourceControlPullRequest getById(TransactionContext tx, String id) {
-    return get(tx, "SELECT entity FROM SourceControlPullRequest entity WHERE entity.id=?1", id);
-  }
-
   public List<SourceControlPullRequest> getAll() {
     String sQuery = "SELECT entity FROM SourceControlPullRequest entity" + //
         " ORDER BY entity.repositoryUrl, entity.pullRequestId";

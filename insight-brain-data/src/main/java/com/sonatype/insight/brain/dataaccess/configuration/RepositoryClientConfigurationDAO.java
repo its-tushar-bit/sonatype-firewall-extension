@@ -25,10 +25,8 @@ public class RepositoryClientConfigurationDAO
   }
 
   @Override
-  protected RepositoryClientConfiguration getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM RepositoryClientConfiguration entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, SINGLETON_ENTITY_ID);
+  public RepositoryClientConfiguration getById(TransactionContext tx, String id) {
+    return super.getById(tx, SINGLETON_ENTITY_ID);
   }
 
   public void set(RepositoryClientConfiguration configuration) {

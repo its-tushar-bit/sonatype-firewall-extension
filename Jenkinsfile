@@ -13,7 +13,7 @@ make(
     mavenVersion: 'Maven 3.6.x',
     mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     prepare: {
-      if (env.BRANCH_NAME == 'main' && currentBuild.fullProjectName.toLowerCase().contains('snapshot')) {
+      if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
         String fixVersion = 'brain-next'
         String newFixVersion = 'sass-next'
         echo "Replacing '${fixVersion}' with '${newFixVersion}'"

@@ -111,12 +111,6 @@ pipeline {
               parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")])
           }
         }
-        stage('Publish RedHat Image') {
-          steps {
-            build(job: 'insight/insight-brain/docker/redhat-image/release',
-              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")])
-          }
-        }
       }
     }
 

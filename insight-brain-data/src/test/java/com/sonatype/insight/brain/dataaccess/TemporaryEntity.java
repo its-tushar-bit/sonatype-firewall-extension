@@ -548,8 +548,6 @@ public class TemporaryEntity
 
   private Collection<String> persistedUserSessionIds;
 
-  private Collection<QuarantinedComponentAccess> quarantinedComponentAccesses;
-
   private Collection<DeletedTenant> deletedTenants;
 
   private static List<MigrationTracker> initialMigrationTrackers;
@@ -565,7 +563,6 @@ public class TemporaryEntity
     membershipMappings = new ArrayList<>();
     userTokens = new ArrayList<>();
     initializePersistedUserSessions();
-    quarantinedComponentAccesses = new ArrayList<>();
     deletedTenants = new ArrayList<>();
 
     saveInitialSystemConfigurationPropertiesIfNeeded();
@@ -3986,7 +3983,6 @@ public class TemporaryEntity
   {
     QuarantinedComponentAccess quarantinedComponentAccess =
         new QuarantinedComponentAccess(repositoryId, repositoryComponentId, generateDate);
-    quarantinedComponentAccesses.add(quarantinedComponentAccess);
     quarantinedComponentAccessDAO.insert(quarantinedComponentAccess);
     return quarantinedComponentAccess;
   }

@@ -13,7 +13,6 @@ import java.util.List;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -62,7 +61,6 @@ public class RoleResourceAuditTest
   public void testAddRole() throws Exception {
     RoleDTO roleDTO = role(null, "Test Role", "Just testing", Permission.READ, Permission.VIEW_ROLES);
     roleDTO.id = restRequest().body(roleDTO).post().getBody(RoleDTO.class).id;
-    tempEntity.register(new RoleDAO().getByIdNotNull(roleDTO.id));
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_ROLE, null);
     assertRoleData(auditDTO, roleDTO.id, roleDTO.name, roleDTO.description, Permission.READ, Permission.VIEW_ROLES);

@@ -540,8 +540,6 @@ public class TemporaryEntity
 
   private Collection<String> usernames;
 
-  private Collection<Role> roles;
-
   private Collection<MembershipMapping> membershipMappings;
 
   private Collection<UserToken> userTokens;
@@ -559,7 +557,6 @@ public class TemporaryEntity
     saveInitialMigrationTrackersIfNeeded();
     users = new ArrayList<>();
     usernames = new ArrayList<>();
-    roles = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     userTokens = new ArrayList<>();
     initializePersistedUserSessions();
@@ -578,6 +575,15 @@ public class TemporaryEntity
     migrationTrackerDAO.getAll().forEach(migrationTracker -> migrationTrackerDAO.delete(migrationTracker));
     initialMigrationTrackers.forEach(migrationTracker -> detachEntity(migrationTracker));
     initialMigrationTrackers.forEach(migrationTracker -> migrationTrackerDAO.insert(migrationTracker));
+  }
+
+  private void restoreInitialRoles() {
+    // Built-in roles cannot be inserted/updated/deleted
+    roleDAO.getAll().forEach(role -> {
+      if (!role.isBuiltIn()) {
+        roleDAO.delete(role);
+      }
+    });
   }
 
   private void saveInitialSystemConfigurationPropertiesIfNeeded() {
@@ -685,7 +691,7 @@ public class TemporaryEntity
       samlUserDAO.getAll().forEach(samlUserDAO::delete);
       samlGroupDAO.getAll().forEach(samlGroupDAO::delete);
       delete(usernames, userDAO);
-      delete(roles, roleDAO);
+      restoreInitialRoles();
       delete(ldapServerDAO.getAll(), ldapServerDAO);
       delete(hashComponentIdentifierDAO.getAll(), hashComponentIdentifierDAO);
       delete(userViewedProductNotificationDAO.getAll(), userViewedProductNotificationDAO);
@@ -1079,10 +1085,6 @@ public class TemporaryEntity
     return orgName;
   }
 
-  public void register(Role... roles) {
-    Collections.addAll(this.roles, roles);
-  }
-
   public void register(User... users) {
     Collections.addAll(this.users, users);
   }
@@ -1262,7 +1264,6 @@ public class TemporaryEntity
     role.setDescription(description);
     role.setGlobal(global);
     roleDAO.insert(role);
-    roles.add(role);
     for (Permission permission : permissions) {
       rolePermDAO.insert(new RolePermission(role.getId(), permission));
     }

@@ -104,7 +104,6 @@ public class RoleServiceAuthzTest
     Role role = new Role("Name", "Description");
     RoleDTO roleDTO = roleService.addRole(new RoleDTO(role));
     role.setId(roleDTO.id);
-    tempEntity.register(role);
   }
 
   @Test(expected = UnauthorizedException.class)

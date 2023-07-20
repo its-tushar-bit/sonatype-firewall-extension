@@ -72,7 +72,6 @@ public class RoleResourceTest
     assertResponseStatus(200, response);
     RoleDTO newRoleDTO = response.getBody(RoleDTO.class);
     assertThat(newRoleDTO.id).isNotNull();
-    tempEntity.register(roleDAO.getByIdNotNull(newRoleDTO.id));
 
     assertRoleDTO(newRoleDTO, roleDTO, categoryDisplayName);
     assertRole(newRoleDTO, Permission.READ, Permission.WRITE);

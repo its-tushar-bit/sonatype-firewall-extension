@@ -427,8 +427,6 @@ public class TemporaryEntity
 
   private final ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
 
-  private ProxyServerConfiguration savedProxyServerConfiguration;
-
   private final WebhookDAO webhookDAO = new WebhookDAO();
 
   private final PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
@@ -572,7 +570,6 @@ public class TemporaryEntity
     claimedComponents = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     userTokens = new ArrayList<>();
-    savedProxyServerConfiguration = proxyServerConfigurationDAO.get();
     initializePersistedUserSessions();
     quarantinedComponentAccesses = new ArrayList<>();
     deletedTenants = new ArrayList<>();
@@ -734,12 +731,7 @@ public class TemporaryEntity
       automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
       mailConfigurationDAO.delete();
 
-      if (savedProxyServerConfiguration == null) {
-        proxyServerConfigurationDAO.delete();
-      }
-      else {
-        proxyServerConfigurationDAO.set(savedProxyServerConfiguration);
-      }
+      proxyServerConfigurationDAO.delete();
 
       restoreInitialSystemConfigurationProperties();
 
@@ -1094,10 +1086,6 @@ public class TemporaryEntity
       }
     }
     return orgName;
-  }
-
-  public void setSavedProxyServerConfiguration(ProxyServerConfiguration savedProxyServerConfiguration) {
-    this.savedProxyServerConfiguration = savedProxyServerConfiguration;
   }
 
   public void register(Role... roles) {

@@ -187,7 +187,6 @@ public abstract class AbstractBrainServiceTest
       ProxyServerConfiguration proxyServerConfiguration = getCLMServer().getProxyServerConfiguration();
       if (proxyServerConfiguration != null) {
         new ProxyServerConfigurationDAO().set(proxyServerConfiguration);
-        tempEntity.setSavedProxyServerConfiguration(proxyServerConfiguration);
         getCLMServer().getInstance(ApiProxyServerConfigurationService.class).applyProxyServerConfigurationToClients();
       }
     }
@@ -322,7 +321,6 @@ public abstract class AbstractBrainServiceTest
     }
     releaseScmPerpetualLock();
     new ProxyServerConfigurationDAO().delete();
-    tempEntity.setSavedProxyServerConfiguration(null);
     if (testCLMServer != null && getCLMServer().isRunning()) {
       ApiProxyServerConfigurationService proxyServerConfigurationService =
           getCLMServer().getInstance(ApiProxyServerConfigurationService.class);

@@ -41,7 +41,6 @@ public class HashComponentIdentifierResourceTest
   @Before
   public void setup() {
     hashComponentIdentifier = new HashComponentIdentifier(hash, COMPONENT_IDENTIFIER);
-    tempEntity.register(hashComponentIdentifier);
   }
 
   @Test

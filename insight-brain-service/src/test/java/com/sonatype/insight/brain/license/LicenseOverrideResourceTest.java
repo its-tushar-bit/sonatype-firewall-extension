@@ -390,7 +390,6 @@ public class LicenseOverrideResourceTest
         new LicenseOverride(null /* ownerId */, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
             "My comment2")).post();
     final LicenseOverride repoContainerLicenseOverride = response.getBody(LicenseOverride.class);
-    tempEntity.register(repoContainerLicenseOverride);
 
     // Verify the applied root org license overrides for the repository
     response = restRequest(OwnerType.REPOSITORY, repoId, componentIdentifier).get();
@@ -410,7 +409,6 @@ public class LicenseOverrideResourceTest
         new LicenseOverride(null /* ownerId */, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
             "My comment2")).post();
     final LicenseOverride rootOrgLicenseOverride = response.getBody(LicenseOverride.class);
-    tempEntity.register(rootOrgLicenseOverride);
 
     // Verify the applied root org license overrides for the repository
     response = restRequest(OwnerType.REPOSITORY, repoId, componentIdentifier).get();

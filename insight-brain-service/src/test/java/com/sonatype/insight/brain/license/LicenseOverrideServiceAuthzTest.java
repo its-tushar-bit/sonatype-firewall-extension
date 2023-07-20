@@ -41,7 +41,6 @@ public class LicenseOverrideServiceAuthzTest
     grantPermission(owner.getId(), Permission.CHANGE_LICENSES);
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
-    tempEntity.register(override);
     licenseOverrideService.addLicenseOverride(owner.getType(), ownerId, override, null, mockRequest);
   }
 

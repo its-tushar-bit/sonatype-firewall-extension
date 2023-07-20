@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiHashComponentIdentifierDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
@@ -35,9 +34,6 @@ public class ApiHashComponentIdentifierResourceAuditTest
     mockComponentSummary(componentIdentifier, ComponentSummary.create(false));
 
     restRequest().body(givenDTO).post();
-
-    HashComponentIdentifier storedHashComponentIdentifier = new HashComponentIdentifierDAO().getByHash(givenDTO.hash);
-    tempEntity.register(storedHashComponentIdentifier);
 
     assertHashComponentIdentifierData(assertAuditLog(AuditEvent.SET_COMPONENT_IDENTITY, null),
         givenDTO.toHashComponentIdentifier());

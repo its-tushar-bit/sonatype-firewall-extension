@@ -115,8 +115,6 @@ public class LicenseOverrideResourceAuditTest
     LicenseOverride response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
         .body(licenseOverride).post().getBody(LicenseOverride.class);
 
-    tempEntity.register(response);
-
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
     assertOverrideData(auditDTO, response, "Apache-2.0", "GPL-2.0");
     assertRepositoryContainerData(auditDTO);

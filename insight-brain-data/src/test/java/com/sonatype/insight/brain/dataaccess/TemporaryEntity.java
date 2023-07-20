@@ -536,15 +536,11 @@ public class TemporaryEntity
 
   private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO();
 
-  private Collection<LicenseOverride> licenseOverrides;
-
   private Collection<User> users;
 
   private Collection<String> usernames;
 
   private Collection<Role> roles;
-
-  private Collection<HashComponentIdentifier> claimedComponents;
 
   private Collection<MembershipMapping> membershipMappings;
 
@@ -563,11 +559,9 @@ public class TemporaryEntity
   @Override
   public void before() {
     saveInitialMigrationTrackersIfNeeded();
-    licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
     usernames = new ArrayList<>();
     roles = new ArrayList<>();
-    claimedComponents = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     userTokens = new ArrayList<>();
     initializePersistedUserSessions();
@@ -696,7 +690,7 @@ public class TemporaryEntity
       delete(usernames, userDAO);
       delete(roles, roleDAO);
       delete(ldapServerDAO.getAll(), ldapServerDAO);
-      delete(claimedComponents, hashComponentIdentifierDAO);
+      delete(hashComponentIdentifierDAO.getAll(), hashComponentIdentifierDAO);
       delete(userViewedProductNotificationDAO.getAll(), userViewedProductNotificationDAO);
       delete(labelDAO.getAll(), labelDAO);
       delete(tagDAO.getAll(), tagDAO);
@@ -1100,14 +1094,6 @@ public class TemporaryEntity
     Collections.addAll(this.usernames, usernames);
   }
 
-  public void register(HashComponentIdentifier... hashComponentIdentifiers) {
-    Collections.addAll(claimedComponents, hashComponentIdentifiers);
-  }
-
-  public void register(LicenseOverride... licenseOverrides) {
-    Collections.addAll(this.licenseOverrides, licenseOverrides);
-  }
-
   public void register(MembershipMapping... membershipMappings) {
     Collections.addAll(this.membershipMappings, membershipMappings);
   }
@@ -1436,7 +1422,6 @@ public class TemporaryEntity
   {
     LicenseOverride override = new LicenseOverride(ownerId, componentIdentifier, status, licenseIds, comment);
     licenseOverrideDAO.insert(override);
-    licenseOverrides.add(override);
     return override;
   }
 
@@ -1810,7 +1795,6 @@ public class TemporaryEntity
 
   public HashComponentIdentifier newClaimedComponent(HashComponentIdentifier claimedComponent) {
     hashComponentIdentifierDAO.insert(claimedComponent);
-    claimedComponents.add(claimedComponent);
     return claimedComponent;
   }
 

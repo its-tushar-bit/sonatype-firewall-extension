@@ -76,7 +76,6 @@ public class ApiHashComponentIdentifierResourceTest
     assertResponseStatus(200, response);
     HashComponentIdentifier storedHashComponentIdentifier =
         new HashComponentIdentifierDAO().getByHash(givenDTO.hash);
-    tempEntity.register(storedHashComponentIdentifier);
     ApiHashComponentIdentifierDTO returnedDTO = response.getBody(ApiHashComponentIdentifierDTO.class);
     assertThat(givenDTO).usingRecursiveComparison().isEqualTo(returnedDTO);
     assertClaimedComponent(returnedDTO, storedHashComponentIdentifier);

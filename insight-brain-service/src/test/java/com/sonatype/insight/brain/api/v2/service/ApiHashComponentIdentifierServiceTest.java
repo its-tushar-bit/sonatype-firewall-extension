@@ -112,7 +112,6 @@ public class ApiHashComponentIdentifierServiceTest
     ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
 
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
-    tempEntity.register(hashComponentIdentifier);
     assertClaimedComponent(returnedDTO, hashComponentIdentifier);
   }
 
@@ -139,7 +138,6 @@ public class ApiHashComponentIdentifierServiceTest
     ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
 
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
-    tempEntity.register(hashComponentIdentifier);
     assertClaimedComponent(returnedDTO, hashComponentIdentifier);
   }
 
@@ -167,7 +165,6 @@ public class ApiHashComponentIdentifierServiceTest
     ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
 
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
-    tempEntity.register(hashComponentIdentifier);
     assertThat(hashComponentIdentifier.getHash()).isEqualTo(HashHelper.truncateHash(givenDTO.hash));
     assertClaimedComponent(returnedDTO, hashComponentIdentifier);
   }
@@ -199,7 +196,6 @@ public class ApiHashComponentIdentifierServiceTest
     ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
 
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
-    tempEntity.register(hashComponentIdentifier);
     componentIdentifier.ensureComplete();
     assertThat(hashComponentIdentifier.getComponentIdentifier()).isEqualTo(componentIdentifier);
     assertClaimedComponent(returnedDTO, hashComponentIdentifier);
@@ -214,7 +210,6 @@ public class ApiHashComponentIdentifierServiceTest
     ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
 
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
-    tempEntity.register(hashComponentIdentifier);
     assertThat(hashComponentIdentifier.getComponentIdentifier())
         .isEqualTo(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
     assertClaimedComponent(returnedDTO, hashComponentIdentifier);
@@ -288,7 +283,6 @@ public class ApiHashComponentIdentifierServiceTest
     ApiHashComponentIdentifierDTO returnedDTO = apiHashComponentIdentifierService.set(givenDTO);
 
     HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
-    tempEntity.register(hashComponentIdentifier);
     assertThat(hashComponentIdentifier.getComponentIdentifier())
         .isEqualTo(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
     assertClaimedComponent(returnedDTO, hashComponentIdentifier);

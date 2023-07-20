@@ -6,99 +6,118 @@
 package com.sonatype.insight.brain.api.admin.service;
 
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.shiro.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.api.v2.service.ConfigurationProperty.getConfigurationPropertiesByName;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.BASE_URL;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
 
 @Named
 public class TenantConfigurationService
 {
+  private static final Set<String> CONFIGURABLE_PROPERTIES = ImmutableSet.of(
+      BASE_URL,
+      FRAME_ANCESTORS_ALLOWLIST,
+      EVENT_BUS_MAX_THREAD_POOL_SIZE,
+      USER_AGENT_SUFFIX,
+      MAX_ADVANCED_SEARCH_CLAUSE_COUNT,
+      ADVANCED_SEARCH_CSV_EXPORT_DELIMITER,
+      POLICY_MONITORING_HOUR,
+      WEBHOOK_SECRET_PASSPHRASE,
+      HDS_URL,
+      SESSION_TIMEOUT_MINUTES,
+      PURGE_SCAN_FILES,
+      AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
+      QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
+      WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED
+  );
+
+  private static final String NO_CONFIG_SPECIFIED = "No configuration was specified.";
+
   private static final Logger log = LoggerFactory.getLogger(TenantConfigurationService.class);
 
-  public static final Set<String> CONFIGURABLE_PROPERTIES = ImmutableSet.of(
-      BASE_URL
-  );
+  private final ApiConfigurationService apiConfigurationService;
 
   private final TenantUtil tenantUtil;
 
   private final TenantValidator tenantValidator;
 
-  protected final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
   @Inject
   public TenantConfigurationService(
+      ApiConfigurationService apiConfigurationService,
       TenantUtil tenantUtil,
-      TenantValidator tenantValidator,
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+      TenantValidator tenantValidator)
   {
+    this.apiConfigurationService = apiConfigurationService;
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
-    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
-  public void setPropertiesConfiguration(Map<String, Object> propertiesConfiguration, String tenantSlug) {
+  public Map<String, Object> getPropertiesConfiguration(String tenantSlug, Set<String> propertyNames) {
+    validateCurrentTenant(tenantSlug);
+
+    if (CollectionUtils.isEmpty(propertyNames)) {
+      throw new BadRequestException(NO_CONFIG_SPECIFIED);
+    }
+    validatePropertyNames(propertyNames);
+
+    return apiConfigurationService.getConfigurationNoAuthz(propertyNames);
+  }
+
+  public void setPropertiesConfiguration(String tenantSlug, Map<String, Object> propertiesConfiguration) {
     validateCurrentTenant(tenantSlug);
 
     if (CollectionUtils.isEmpty(propertiesConfiguration)) {
-      throw new BadRequestException("No configuration was specified.");
+      throw new BadRequestException(NO_CONFIG_SPECIFIED);
     }
+    validatePropertyNames(propertiesConfiguration.keySet());
 
-    for (Entry<String, Object> propertyConfig : propertiesConfiguration.entrySet()) {
-      if (!CONFIGURABLE_PROPERTIES.contains(propertyConfig.getKey()) ||
-          !getConfigurationPropertiesByName().containsKey(propertyConfig.getKey())) {
-        log.error("Property {} is not configurable.", propertyConfig.getKey());
-        throw new BadRequestException(String.format("Property %s is not configurable.", propertyConfig.getKey()));
-      }
+    apiConfigurationService.setConfigurationNoAuthz(propertiesConfiguration);
+  }
 
-      validatePropertyConfigValue(propertyConfig.getKey(), propertyConfig.getValue());
+  public void deletePropertiesConfiguration(String tenantSlug, Set<String> propertyNames) {
+    validateCurrentTenant(tenantSlug);
 
-      setPropertyConfiguration(propertyConfig.getKey(), propertyConfig.getValue());
+    if (CollectionUtils.isEmpty(propertyNames)) {
+      throw new BadRequestException(NO_CONFIG_SPECIFIED);
     }
+    validatePropertyNames(propertyNames);
+
+    apiConfigurationService.deleteConfigurationNoAuthz(propertyNames);
   }
 
   private void validateCurrentTenant(String tenantSlug) {
     if (tenantUtil.isGlobalTenant()) {
-      throw new BadRequestException("Invalid tenant");
+      return;
     }
 
     if (!tenantValidator.validateTenantExists(tenantSlug)) {
-      log.debug("Tenant {} doesn't exist", tenantSlug);
-      throw new NotFoundException("Tenant doesn't exist");
+      log.debug("Tenant {} does not exist", tenantSlug);
+      throw new NotFoundException("Tenant does not exist");
     }
   }
 
-  private void validatePropertyConfigValue(String propertyName, Object propertyValue) {
-    if (propertyValue == null) {
-      throw new BadRequestException(String.format("Property %s has no value.", propertyName));
-    }
-
-    Class<?> expectedType = getConfigurationPropertiesByName().get(propertyName).getType();
-    Class<?> actualType = propertyValue.getClass();
-
-    if (!ClassUtils.isAssignable(actualType, expectedType)) {
-      throw new BadRequestException(
-          String.format("Invalid value for %s, expected %s, but got %s.", propertyName, expectedType, actualType));
+  private void validatePropertyNames(Set<String> propertyNames) {
+    for (String propertyName : propertyNames) {
+      validatePropertyName(propertyName);
     }
   }
 
-  private void setPropertyConfiguration(String property, Object value) {
-    systemConfigurationPropertyDAO.set(property,
-        getConfigurationPropertiesByName().get(property).getValueToString().apply(new Object[]{}, value));
+  private void validatePropertyName(String propertyName) {
+    if (!CONFIGURABLE_PROPERTIES.contains(propertyName)) {
+      log.debug("Property {} is not configurable.", propertyName);
+      throw new BadRequestException(String.format("Property %s is not configurable.", propertyName));
+    }
   }
 }

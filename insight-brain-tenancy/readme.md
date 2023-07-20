@@ -759,3 +759,47 @@ curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X DELETE http://127.0.0
 
 # This will disable the feature "internal-firewall-onboarding-enabled" for the tenant "cubs"
 ```
+
+### Get Configuration For Tenant
+
+For MTIQ we need a way to get configuration properties for a tenant, so we can customize the experience of a customer.
+We have an admin endpoint that will help you to get a configuration property by its name. 
+Important: If no configuration property value is found for the tenant the GLOBAL value will be returned.
+
+#### For Local Development
+You can run the next command to get configuration properties for a tenant:
+```bash
+curl -H 'Authorization: Bearer <access-token>' http://{mtiq-ip-address}:8071/api/admin/tenants/{tenantSlug}/config?properties={property_1}&properties={property_2}
+
+# Here is an example getting the tenant property values for baseUrl and quarantinedItemCustomMessage
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' http://127.0.0.1:8071/api/admin/tenants/cubs/config?properties=baseUrl&properties=quarantinedItemCustomMessage
+```
+
+### Set Configuration For Tenant
+
+For MTIQ we need a way to set configuration properties for a tenant, so we can customize the experience of a customer.
+We have an admin endpoint that will help you to set a configuration property using json.
+
+#### For Local Development
+You can run the next command to set configuration properties for a tenant:
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X PUT --data '{"<name>":"<value>"}' -H "Content-Type: application/json" http://{mtiq-ip-address}:8071/api/admin/tenants/{tenantSlug}/config
+
+# Here is an example setting the tenant property value for quarantinedItemCustomMessage 
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X PUT --data '{"quarantinedItemCustomMessage":"test"}' -H "Content-Type: application/json" http://127.0.0.1:8071/api/admin/tenants/cubs/config
+```
+
+### Delete Configuration For Tenant
+
+For MTIQ we need a way to delete configuration properties for a tenant, so we can customize the experience of a customer.
+We have an admin endpoint that will help you to delete configuration properties by name.
+Important: Once a property value is deleted for the tenant the value will be set from GLOBAL.
+
+#### For Local Development
+You can run the next command to delete configuration for a tenant:
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X DELETE http://{mtiq-ip-address}:8071/api/admin/tenants/{tenantSlug}/config?properties={property_1}&properties={property_2}
+
+# Here is an example deleting the tenant property values for baseUrl and quarantinedItemCustomMessage
+curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X DELETE http://127.0.0.1:8071/api/admin/tenants/cubs/config?properties=baseUrl&properties=quarantinedItemCustomMessage
+```

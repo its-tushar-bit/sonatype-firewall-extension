@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
@@ -21,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,14 +40,73 @@ public class TenantConfigurationServiceTest
   private TenantValidator tenantValidator;
 
   @Mock
-  SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  private ApiConfigurationService apiConfigurationService;
 
   TenantConfigurationService underTest;
 
   @Before
   @Override
   public void setup() {
-    underTest = new TenantConfigurationService(tenantUtil, tenantValidator, systemConfigurationPropertyDAO);
+    underTest = new TenantConfigurationService(apiConfigurationService, tenantUtil, tenantValidator);
+  }
+
+  @Test
+  public void shouldGetSinglePropertyConfiguration() {
+    testAsNewTenant(tenant -> {
+      String expectedProperty = "baseUrl";
+      Set<String> query = new HashSet<>(Arrays.asList(expectedProperty));
+      Map<String, Object> expected = Collections.singletonMap(expectedProperty, "http://127.0.0.1:8070");
+
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(apiConfigurationService.getConfigurationNoAuthz(query)).thenReturn(expected);
+
+      assertThat(underTest.getPropertiesConfiguration(tenant.tenantSlug, query)).isEqualTo(expected);
+    });
+  }
+
+  @Test
+  public void shouldNotThrowRuntimeException_getPropertiesConfiguration_whenUsingGlobalTenant() {
+    testAsGlobalTenant(global -> {
+      when(tenantUtil.isGlobalTenant()).thenReturn(true);
+
+      String expectedProperty = "baseUrl";
+      Set<String> query = new HashSet<>(Arrays.asList(expectedProperty));
+      Map<String, Object> expected = Collections.singletonMap(expectedProperty, "http://127.0.0.1:8070");
+
+      when(apiConfigurationService.getConfigurationNoAuthz(query)).thenReturn(expected);
+
+      assertThat(underTest.getPropertiesConfiguration(global.tenantSlug, query)).isEqualTo(expected);
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_getPropertiesConfiguration_whenTenantDoesntExist() {
+    final String errorMessage = "Tenant does not exist";
+
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      Set<String> query = new HashSet<>(Arrays.asList("baseUrl"));
+
+      assertThatThrownBy(() -> underTest.getPropertiesConfiguration(tenant.tenantSlug, query))
+          .withFailMessage(errorMessage)
+          .isInstanceOf(NotFoundException.class);
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_getPropertiesConfiguration_whenPropertyIsNotConfigurable() {
+    final String errorMessage = "Property forceBaseUrl is not configurable.";
+
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+
+      Set<String> query = new HashSet<>(Arrays.asList("forceBaseUrl"));
+
+      assertThatThrownBy(() -> underTest.getPropertiesConfiguration(tenant.tenantSlug, query))
+          .withFailMessage(errorMessage)
+          .isInstanceOf(BadRequestException.class);
+    });
   }
 
   @Test
@@ -55,16 +118,14 @@ public class TenantConfigurationServiceTest
       String expectedValue = "http://127.0.0.1:8070";
       Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
 
-      underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug);
+      underTest.setPropertiesConfiguration(tenant.tenantSlug, propertyConfiguration);
 
-      verify(systemConfigurationPropertyDAO).set(expectedProperty, expectedValue + "/");
+      verify(apiConfigurationService).setConfigurationNoAuthz(propertyConfiguration);
     });
   }
 
   @Test
-  public void shouldThrowRuntimeException_setPropertiesConfiguration_whenUsingGlobalTenant() {
-    final String errorMessage = "Invalid tenant";
-
+  public void shouldNotThrowRuntimeException_setPropertiesConfiguration_whenUsingGlobalTenant() {
     testAsGlobalTenant(global -> {
       when(tenantUtil.isGlobalTenant()).thenReturn(true);
 
@@ -72,15 +133,15 @@ public class TenantConfigurationServiceTest
       String expectedValue = "http://127.0.0.1:8070";
       Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, global.tenantSlug))
-          .withFailMessage(errorMessage)
-          .isInstanceOf(BadRequestException.class);
+      underTest.setPropertiesConfiguration(global.tenantSlug, propertyConfiguration);
+
+      verify(apiConfigurationService).setConfigurationNoAuthz(propertyConfiguration);
     });
   }
 
   @Test
   public void shouldThrowRuntimeException_setPropertiesConfiguration_whenTenantDoesntExist() {
-    final String errorMessage = "Tenant doesn't exist";
+    final String errorMessage = "Tenant does not exist";
 
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
@@ -89,7 +150,7 @@ public class TenantConfigurationServiceTest
       String expectedValue = "http://127.0.0.1:8070";
       Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug))
+      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(tenant.tenantSlug, propertyConfiguration))
           .withFailMessage(errorMessage)
           .isInstanceOf(NotFoundException.class);
     });
@@ -104,7 +165,7 @@ public class TenantConfigurationServiceTest
 
       Map<String, Object> propertyConfiguration = Collections.emptyMap();
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug))
+      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(tenant.tenantSlug, propertyConfiguration))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
@@ -121,25 +182,61 @@ public class TenantConfigurationServiceTest
       boolean expectedValue = true;
       Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug))
+      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(tenant.tenantSlug, propertyConfiguration))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
   }
 
   @Test
-  public void shouldThrowRuntimeException_setPropertiesConfiguration_whenPropertyHasInvalidValue() {
-    final String errorMessage =
-        "Invalid value for baseUrl, expected class java.lang.String, but got class java.lang.Boolean.";
+  public void shouldDeleteSinglePropertyConfiguration() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+
+      Set<String> query = new HashSet<>(Arrays.asList("baseUrl"));
+      underTest.deletePropertiesConfiguration(tenant.tenantSlug, query);
+
+      verify(apiConfigurationService).deleteConfigurationNoAuthz(query);
+    });
+  }
+
+  @Test
+  public void shouldNotThrowRuntimeException_deletePropertiesConfiguration_whenUsingGlobalTenant() {
+    testAsGlobalTenant(global -> {
+      when(tenantUtil.isGlobalTenant()).thenReturn(true);
+
+      Set<String> query = new HashSet<>(Arrays.asList("baseUrl"));
+      underTest.deletePropertiesConfiguration(global.tenantSlug, query);
+
+      verify(apiConfigurationService).deleteConfigurationNoAuthz(query);
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_deletePropertiesConfiguration_whenTenantDoesntExist() {
+    final String errorMessage = "Tenant does not exist";
+
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      Set<String> query = new HashSet<>(Arrays.asList("baseUrl"));
+
+      assertThatThrownBy(() -> underTest.deletePropertiesConfiguration(tenant.tenantSlug, query))
+          .withFailMessage(errorMessage)
+          .isInstanceOf(NotFoundException.class);
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_deletePropertiesConfiguration_whenPropertyIsNotConfigurable() {
+    final String errorMessage = "Property forceBaseUrl is not configurable.";
 
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
-      String expectedProperty = "baseUrl";
-      boolean expectedValue = true;
-      Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
+      Set<String> query = new HashSet<>(Arrays.asList("forceBaseUrl"));
 
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(propertyConfiguration, tenant.tenantSlug))
+      assertThatThrownBy(() -> underTest.deletePropertiesConfiguration(tenant.tenantSlug, query))
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });

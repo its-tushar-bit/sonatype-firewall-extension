@@ -74,6 +74,7 @@ import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
 import org.spdx.library.DefaultModelStore;
 import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.library.SpdxConstants;
 import org.spdx.library.model.Checksum;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ReferenceType;
@@ -225,11 +226,14 @@ public class ApiSpdxService
     if (StringUtils.isBlank(packageUrl)) {
       packageUrl = buildFakeParentPackageUrl(rootNodeDTO, applicationName, scanId);
     }
-    if (packageUrl != null && !purlElementMap.containsKey(packageUrl)) {
-      String version = getSpdxVersionFromPurl(packageUrl);
-      SpdxNoAssertionLicense noAssertionLicense = new SpdxNoAssertionLicense();
-      addPackage(packageUrl, version, null, noAssertionLicense, noAssertionLicense, Collections.emptyList(),
-          document, purlElementMap);
+    if (packageUrl != null) {
+      if (!purlElementMap.containsKey(packageUrl)) {
+        String version = getSpdxVersionFromPurl(packageUrl);
+        SpdxNoAssertionLicense noAssertionLicense = new SpdxNoAssertionLicense();
+        addPackage(packageUrl, version, null, noAssertionLicense, noAssertionLicense, Collections.emptyList(),
+            document, purlElementMap);
+      }
+      document.setName(packageUrl);
     }
   }
 
@@ -407,6 +411,7 @@ public class ApiSpdxService
             createSpdxNameFromPurl(packageUrl),
             concludedLicenseInfo, null, declaredLicenseInfo)
         .setFilesAnalyzed(false)
+        .setDownloadLocation(SpdxConstants.NOASSERTION_VALUE)
         .addExternalRef(purlRef);
 
     for (ExternalRef externalRef : additionalExternalRefs) {
@@ -477,6 +482,8 @@ public class ApiSpdxService
     DefaultModelStore.reset();
     SpdxDocument spdxDocument = new SpdxDocument(uri);
     spdxDocument.setSpecVersion("SPDX-" + spdxVersion);
+    spdxDocument.setName(spdxDocument.getId());
+    spdxDocument.setDataLicense(new SpdxListedLicense(SpdxConstants.SPDX_DATA_LICENSE_ID));
 
     SpdxCreatorInformation creatorInfo = new SpdxCreatorInformation();
     DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder()

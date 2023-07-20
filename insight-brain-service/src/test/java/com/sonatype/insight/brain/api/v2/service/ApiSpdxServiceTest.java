@@ -313,6 +313,8 @@ public class ApiSpdxServiceTest
 
   private void assertMetadata(SpdxDocument document, String spdxVersion, String dataDate) throws Exception {
     assertThat(document.getSpecVersion()).isEqualTo("SPDX-" + spdxVersion);
+    assertThat(document.getName()).isPresent();
+    assertThat(document.getDataLicense()).isNotNull();
     assertThat(document.getCreationInfo().getCreated()).isNotNull();
     assertThat(document.getCreationInfo().getCreators().stream().findFirst().get()).isEqualTo(
         "Tool: Sonatype IQ Server - 1.0");
@@ -359,6 +361,7 @@ public class ApiSpdxServiceTest
       assertThat(spdxPackage.getId()).startsWith(ApiSpdxService.SPDX_REF_PREFIX);
       assertThat(spdxPackage.getVersionInfo()).isPresent().get().isIn(expectedVersions);
       assertThat(spdxPackage.getName()).isPresent().get().isIn(expectedNames);
+      assertThat(spdxPackage.getDownloadLocation()).isPresent().get().isEqualTo(SpdxConstants.NOASSERTION_VALUE);
 
       Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
       assertThat(externalRefs).isNotEmpty();

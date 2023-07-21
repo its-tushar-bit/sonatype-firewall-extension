@@ -15,10 +15,10 @@ make(
     prepare: {
       if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
         String fixVersion = 'brain-next'
-        String newFixVersion = 'saas-next'
-        echo "Replacing '${fixVersion}' with '${newFixVersion}'"
+        List<String> newFixVersions = ['saas-next']
+        echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
         List<String> issues = getIssuesByFixVersion(fixVersion)
-        replaceFixVersionForIssues(issues, fixVersion, newFixVersion)
+        replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
       }
     },
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->

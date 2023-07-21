@@ -151,7 +151,6 @@ public abstract class AbstractAccessEditorTest
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 2, accessEditorPage);
     assertThatRoleNotAvailableInDropdown(roleName, addMembersForm);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), roleName);
-    tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
     assertThat(membershipMappings).hasSize(4);
   }
 
@@ -186,8 +185,6 @@ public abstract class AbstractAccessEditorTest
     addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
     FormMask.seeAndWaitForDismissal();
     assertCommonInitialStateIsCorrect(accessEditorPage);
-    List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), role.getName());
-    tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).hasSize(4);
   }
 

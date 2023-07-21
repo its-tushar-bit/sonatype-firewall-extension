@@ -540,13 +540,13 @@ public class TemporaryEntity
 
   private Collection<String> usernames;
 
-  private Collection<MembershipMapping> membershipMappings;
-
   private Collection<UserToken> userTokens;
 
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
+
+  private static List<MembershipMapping> initialMembershipMappings;
 
   private static List<MigrationTracker> initialMigrationTrackers;
 
@@ -554,15 +554,40 @@ public class TemporaryEntity
 
   @Override
   public void before() {
+    saveInitialMembershipMappingsIfNeeded();
     saveInitialMigrationTrackersIfNeeded();
     users = new ArrayList<>();
     usernames = new ArrayList<>();
-    membershipMappings = new ArrayList<>();
     userTokens = new ArrayList<>();
     initializePersistedUserSessions();
     deletedTenants = new ArrayList<>();
 
     saveInitialSystemConfigurationPropertiesIfNeeded();
+  }
+
+  private void saveInitialMembershipMappingsIfNeeded() {
+    if (initialMembershipMappings == null) {
+      initialMembershipMappings = membershipMappingDAO.getAll();
+    }
+  }
+
+  private void restoreInitialMembershipMappings() {
+    Set<String> initialMembershipMappingIDs =
+        initialMembershipMappings.stream().map(MembershipMapping::getId).collect(Collectors.toSet());
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getAll()) {
+      if (!initialMembershipMappingIDs.contains(membershipMapping.getId())) {
+        membershipMappingDAO.delete(membershipMapping);
+      }
+      else {
+        initialMembershipMappingIDs.remove(membershipMapping.getId());
+      }
+    }
+    for (MembershipMapping membershipMapping : initialMembershipMappings) {
+      if (initialMembershipMappingIDs.contains(membershipMapping.getId())) {
+        detachEntity(membershipMapping);
+        membershipMappingDAO.insert(membershipMapping);
+      }
+    }
   }
 
   private void saveInitialMigrationTrackersIfNeeded() {
@@ -668,7 +693,7 @@ public class TemporaryEntity
     try {
       automaticApplicationsConfigurationDAO.setEnabled(false);
       automaticApplicationsConfigurationDAO.setOrganizationId("");
-      delete(membershipMappings, membershipMappingDAO);
+      restoreInitialMembershipMappings();
       delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
       delete(userFilterDAO.getAll(), userFilterDAO);
       delete(sourceControlOrganizationImportEventDAO.getAll(), sourceControlOrganizationImportEventDAO);
@@ -1093,10 +1118,6 @@ public class TemporaryEntity
     Collections.addAll(this.usernames, usernames);
   }
 
-  public void register(MembershipMapping... membershipMappings) {
-    Collections.addAll(this.membershipMappings, membershipMappings);
-  }
-
   public Application newApplicationWithParent() {
     return newApplicationWithParent("DUMMY-PUBLIC-ID-" + uuid(), "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
   }
@@ -1282,7 +1303,6 @@ public class TemporaryEntity
   {
     MembershipMapping membershipMapping = new MembershipMapping(contextId, roleId, memberName, memberType);
     membershipMappingDAO.insert(membershipMapping);
-    membershipMappings.add(membershipMapping);
     return membershipMapping;
   }
 

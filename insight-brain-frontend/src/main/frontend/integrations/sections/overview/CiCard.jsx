@@ -18,6 +18,12 @@ import { CiUsageAppPreviewTable } from 'MainRoot/integrations/sections/overview/
 export default function CiCard() {
   const { loading, loadError, result: ciUsage, reload } = useLoadCiUsage({ sinceUtcTimestamp: getThreeMonthsAgo() });
   const ciUrl = useGetIntegrationsLink(SECTIONS.CICD);
+  const percentWithoutCiCd = percentAppsWithoutCiCd();
+
+  const integrationMessage =
+    percentWithoutCiCd === 0
+      ? 'All of your apps are integrated with CI'
+      : `${percentWithoutCiCd}% of your apps are not integrated with CI`;
 
   return (
     <NxTile>
@@ -41,7 +47,7 @@ export default function CiCard() {
                 />
 
                 <div className="iq-integrations-cicard__donut-col iq-integrations-cicard__donut-caption">
-                  {percentAppsWithoutCiCd()}% of your apps are not integrated with CI
+                  {integrationMessage}
                 </div>
               </div>
             </NxLoadWrapper>

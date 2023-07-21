@@ -45,6 +45,28 @@ describe('CiUsageAppPreviewTable', () => {
     await assertTableIsRenderedCorrectly(givenAppQueryResults.dashboardResults);
   });
 
+  describe('view all apps button', () => {
+    it('should be visible if response data contains apps without ci integrations', async () => {
+      const givenAppQueryResults = generateRandomAppsWithoutRecentCiUsageResponse();
+
+      givenAppsWithoutRecentCiUsageRequestSucceeds(givenAppQueryResults);
+
+      renderComponent();
+
+      expect(await screen.findByRole('button', { name: /view all apps/i })).toBeInTheDocument();
+    });
+
+    it('should not be visible if response data is empty', async () => {
+      const givenAppQueryResults = generateEmptyResultResponse();
+
+      givenAppsWithoutRecentCiUsageRequestSucceeds(givenAppQueryResults);
+
+      renderComponent();
+
+      expect(screen.queryByRole('button', { name: /view all apps/i })).not.toBeInTheDocument();
+    });
+  });
+
   it('should correctly show an error indicator given the data request failed', async () => {
     givenAppsWithoutRecentCiUsageRequestFails();
 
@@ -117,6 +139,15 @@ describe('CiUsageAppPreviewTable', () => {
     return {
       dashboardResults,
       numResults: faker.datatype.number({ min: dashboardResults.length }),
+    };
+  }
+
+  function generateEmptyResultResponse() {
+    const dashboardResults = [];
+
+    return {
+      dashboardResults,
+      numResults: 0,
     };
   }
 

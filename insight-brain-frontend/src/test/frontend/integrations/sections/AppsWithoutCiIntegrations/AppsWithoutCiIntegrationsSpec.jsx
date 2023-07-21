@@ -43,9 +43,9 @@ describe('AppsWithoutCiIntegrations Page', () => {
       expect(screen.getByText('Loading…')).toBeInTheDocument();
     });
 
-    it('render "no data found" message eventually', async () => {
+    it('render "All of your apps are integrated with CI" message eventually', async () => {
       const msg = await screen.findByRole('cell', {
-        name: /no data found\./i,
+        name: /All of your apps are integrated with CI\./i,
       });
       expect(msg).toBeInTheDocument();
     });

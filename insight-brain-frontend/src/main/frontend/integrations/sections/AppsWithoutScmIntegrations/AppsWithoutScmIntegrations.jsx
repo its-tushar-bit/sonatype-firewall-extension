@@ -43,7 +43,7 @@ export default function AppsWithoutScmIntegrations() {
           </NxTile.Subsection>
           <NxTile.Subsection>
             <NxTile.SubsectionHeader>
-              <NxH3>Apps not set up with Automated Source Control Feedback</NxH3>
+              <NxH3>High risk apps not set up with Automated Source Control Feedback</NxH3>
             </NxTile.SubsectionHeader>
             <NxTable>
               <NxTable.Head>
@@ -52,7 +52,11 @@ export default function AppsWithoutScmIntegrations() {
                   <NxTable.Cell>Total Risk</NxTable.Cell>
                 </NxTable.Row>
               </NxTable.Head>
-              <NxTable.Body isLoading={loading} error={loadError} emptyMessage="No data found.">
+              <NxTable.Body
+                isLoading={loading}
+                error={loadError}
+                emptyMessage="All of your apps are set up with Automatic Source Control Feedback."
+              >
                 {dashboardResults.map(({ applicationName, totalRisk }) => {
                   return (
                     <NxTable.Row key={applicationName.concat(totalRisk)}>

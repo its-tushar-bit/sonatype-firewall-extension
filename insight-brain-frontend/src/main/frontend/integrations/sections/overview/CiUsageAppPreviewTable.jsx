@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { selectappsWithoutRecentCiUsagePreviewSlice } from 'MainRoot/integrations/integrationsSelectors';
 import { SECTIONS } from 'MainRoot/integrations/integrations.module';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { isEmpty } from 'ramda';
 
 export function CiUsageAppPreviewTable() {
   const dispatch = useDispatch();
@@ -28,7 +29,12 @@ export function CiUsageAppPreviewTable() {
           </NxTable.Row>
         </NxTable.Head>
 
-        <NxTable.Body isLoading={loading} error={loadError} retryHandler={reload}>
+        <NxTable.Body
+          isLoading={loading}
+          error={loadError}
+          retryHandler={reload}
+          emptyMessage="All of your apps are integrated with CI"
+        >
           {applicationsWithoutRecentCiUsage.map(({ applicationName, totalRisk }) => (
             <NxTable.Row key={applicationName}>
               <NxTable.Cell>{applicationName}</NxTable.Cell>
@@ -38,9 +44,11 @@ export function CiUsageAppPreviewTable() {
         </NxTable.Body>
       </NxTable>
 
-      <NxButton className="iq-integrations-ci-usage-preview-view-all" onClick={viewAllAppsClicked}>
-        View all apps
-      </NxButton>
+      {!isEmpty(applicationsWithoutRecentCiUsage) && (
+        <NxButton className="iq-integrations-ci-usage-preview-view-all" onClick={viewAllAppsClicked}>
+          View all apps
+        </NxButton>
+      )}
     </>
   );
 

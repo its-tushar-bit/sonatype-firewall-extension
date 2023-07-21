@@ -45,7 +45,10 @@ describe('CiCard', () => {
       givenCiUsageRequestSucceeds(response);
       renderComponent();
 
-      const expectedText = `${expectedPercent}% of your apps are not integrated with CI`;
+      const expectedText =
+        expectedPercent === 0
+          ? 'All of your apps are integrated with CI'
+          : `${expectedPercent}% of your apps are not integrated with CI`;
 
       const { findByText, queryByText, queryByRole } = within(screen.getByTestId(statsSectionId));
       expect(await findByText(expectedText)).toBeInTheDocument();

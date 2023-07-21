@@ -37,9 +37,9 @@ describe('AppsWithoutScmIntegrations Page', () => {
       expect(screen.getByText('Loading…')).toBeInTheDocument();
     });
 
-    it('render "no data found" message eventually', async () => {
+    it('render "All of your apps are set up with Automatic Source Control Feedback." message eventually', async () => {
       const msg = await screen.findByRole('cell', {
-        name: /no data found\./i,
+        name: /all of your apps are set up with automatic source control feedback\./i,
       });
       expect(msg).toBeInTheDocument();
     });

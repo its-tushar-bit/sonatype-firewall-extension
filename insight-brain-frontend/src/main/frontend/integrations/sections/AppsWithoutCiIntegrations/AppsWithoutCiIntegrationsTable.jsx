@@ -70,7 +70,7 @@ export default function AppsWithoutCiIntegrationsTable() {
             <NxTable.Cell />
           </NxTable.Row>
         </NxTable.Head>
-        <NxTable.Body emptyMessage="No data found." isLoading={loading} error={loadError}>
+        <NxTable.Body emptyMessage="All of your apps are integrated with CI." isLoading={loading} error={loadError}>
           {dashboardResults.map(({ applicationName, totalRisk }) => {
             return (
               <NxTable.Row key={applicationName.concat(totalRisk)}>

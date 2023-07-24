@@ -26,7 +26,7 @@ public class UserResourceAuditTest
   @Test
   public void testAddUser() throws Exception {
     User user = new User("john.doe", "secret", "John", "Doe", "john.doe@sonatype.com");
-    tempEntity.register(restRequest().body(user).post().getBody(User.class));
+    restRequest().body(user).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_USER, null);
     assertUserData(auditDTO, user);

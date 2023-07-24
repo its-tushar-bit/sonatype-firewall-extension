@@ -70,7 +70,6 @@ public class UserResourceTest
     response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
-    tempEntity.register(user);
     assertThat(user.getId()).isNotNull();
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(user.getPassword())).isEqualTo(UserService.FAKE_PASSWORD);
@@ -134,7 +133,6 @@ public class UserResourceTest
     HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
-    tempEntity.register(user);
     assertThat(user.getId()).isNotNull();
 
     // log the admin in
@@ -171,7 +169,6 @@ public class UserResourceTest
     HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
-    tempEntity.register(user);
     assertThat(user.getId()).isNotNull();
 
     // create another user
@@ -180,7 +177,6 @@ public class UserResourceTest
     response = restRequest().body(user2).post();
     assertResponseStatus(200, response);
     user2 = response.getBody(User.class);
-    tempEntity.register(user2);
     assertThat(user2.getId()).isNotNull();
 
     // log the first user in to create a session
@@ -215,7 +211,6 @@ public class UserResourceTest
     HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
-    tempEntity.register(user);
     MembershipMapping membershipMapping = new MembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
         Role.SYSTEM_ADMIN_ROLE_ID, user.getUsername(), MemberType.USER);
     new MembershipMappingDAO().insert(membershipMapping);
@@ -240,7 +235,6 @@ public class UserResourceTest
     HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
-    tempEntity.register(user);
 
     HttpRequest request = restRequest().path(UserResource.MY_PASSWORD_PATH).auth(user.getUsername(),
         "testChangePasswordPassword");

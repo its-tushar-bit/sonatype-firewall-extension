@@ -44,7 +44,6 @@ public class ApiUserResourceTest
   public void testCRUD() throws Exception {
     // Create
     ApiUserDTO inputUserDTO = createUserDTOToAdd();
-    tempEntity.registerUsernames(inputUserDTO.username);
 
     HttpResponse response = restRequest().body(inputUserDTO).post();
 

@@ -275,7 +275,6 @@ public class UserServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testAddUser_ByApiUserDTO_Unauthenticated() {
     ApiUserDTO inputUserDTO = createUserDTOToAdd();
-    tempEntity.registerUsernames(inputUserDTO.username);
     userService.addUser(inputUserDTO);
   }
 
@@ -283,7 +282,6 @@ public class UserServiceAuthzTest
   public void testAddUser_ByApiUserDTO_Unauthorized() {
     login();
     ApiUserDTO inputUserDTO = createUserDTOToAdd();
-    tempEntity.registerUsernames(inputUserDTO.username);
     userService.addUser(inputUserDTO);
   }
 
@@ -291,7 +289,6 @@ public class UserServiceAuthzTest
   public void testAddUser_ByApiUserDTO_Authorized() {
     grantConfigureSystemPermission();
     ApiUserDTO inputUserDTO = createUserDTOToAdd();
-    tempEntity.registerUsernames(inputUserDTO.username);
     userService.addUser(inputUserDTO);
   }
 

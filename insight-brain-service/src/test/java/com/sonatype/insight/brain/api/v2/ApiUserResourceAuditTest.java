@@ -33,7 +33,6 @@ public class ApiUserResourceAuditTest
   @Test
   public void testAdd() throws Exception {
     ApiUserDTO inputUserDTO = createUserDTOToAdd();
-    tempEntity.registerUsernames(inputUserDTO.username);
 
     restRequest().body(inputUserDTO).post();
 
@@ -44,7 +43,6 @@ public class ApiUserResourceAuditTest
   @Test
   public void testAdd_Unauthorized() throws Exception {
     ApiUserDTO inputUserDTO = createUserDTOToAdd();
-    tempEntity.registerUsernames(inputUserDTO.username);
     
     restRequest().with(unauthorizedUser()).body(inputUserDTO).post();
 

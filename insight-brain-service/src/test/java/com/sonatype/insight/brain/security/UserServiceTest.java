@@ -500,7 +500,6 @@ public class UserServiceTest
   @Test
   public void testAddUser() {
     ApiUserDTO inputUserDTO = createUserDTOToAdd();
-    tempEntity.registerUsernames(inputUserDTO.username);
 
     userService.addUser(inputUserDTO);
 

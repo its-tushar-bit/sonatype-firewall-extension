@@ -536,10 +536,6 @@ public class TemporaryEntity
 
   private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO();
 
-  private Collection<User> users;
-
-  private Collection<String> usernames;
-
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -550,12 +546,13 @@ public class TemporaryEntity
 
   private static List<SystemConfigurationProperty> initialSystemConfigurationProperties;
 
+  private static List<User> initialUsers;
+
   @Override
   public void before() {
     saveInitialMembershipMappingsIfNeeded();
     saveInitialMigrationTrackersIfNeeded();
-    users = new ArrayList<>();
-    usernames = new ArrayList<>();
+    saveInitialUsersIfNeeded();
     initializePersistedUserSessions();
     deletedTenants = new ArrayList<>();
 
@@ -621,6 +618,25 @@ public class TemporaryEntity
     systemConfigurationPropertyDAO.getAll().forEach(property -> systemConfigurationPropertyDAO.delete(property));
     initialSystemConfigurationProperties.forEach(property -> detachEntity(property));
     initialSystemConfigurationProperties.forEach(property -> systemConfigurationPropertyDAO.insert(property));
+  }
+
+  private void saveInitialUsersIfNeeded() {
+    if (initialUsers == null) {
+      initialUsers = userDAO.getAll();
+    }
+  }
+
+  private void restoreInitialUsers() {
+    Set<String> initialUserIDs = initialUsers.stream().map(User::getId).collect(Collectors.toSet());
+    for (User user : userDAO.getAll()) {
+      if (!initialUserIDs.contains(user.getId())) {
+        userDAO.delete(user);
+      }
+    }
+    for (User user : initialUsers) {
+      detachEntity(user);
+      userDAO.update(user);
+    }
   }
 
   public List<Organization> sortNLevelOrgsWithLeafNodesOnTop(Collection<Organization> orgs) {
@@ -708,11 +724,10 @@ public class TemporaryEntity
       delete(vulnerabilityCustomCweDAO.getAll(), vulnerabilityCustomCweDAO);
       delete(vulnerabilityCustomCvssVectorDAO.getAll(), vulnerabilityCustomCvssVectorDAO);
       delete(vulnerabilityCustomCvssSeverityDAO.getAll(), vulnerabilityCustomCvssSeverityDAO);
-      delete(users, userDAO);
+      restoreInitialUsers();
       samlUserGroupDAO.getAll().forEach(samlUserGroupDAO::delete);
       samlUserDAO.getAll().forEach(samlUserDAO::delete);
       samlGroupDAO.getAll().forEach(samlGroupDAO::delete);
-      delete(usernames, userDAO);
       restoreInitialRoles();
       delete(ldapServerDAO.getAll(), ldapServerDAO);
       delete(hashComponentIdentifierDAO.getAll(), hashComponentIdentifierDAO);
@@ -817,10 +832,6 @@ public class TemporaryEntity
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {
     delete(entities, entity -> dao.getById(entity.getId()), dao::delete);
-  }
-
-  private void delete(Collection<String> usernames, UserDAO dao) {
-    usernames.stream().map(dao::getByUsername).filter(Objects::nonNull).forEach(dao::delete);
   }
 
   private <T> void delete(Collection<T> entities, Function<T, T> reloader, Consumer<T> deleter) {
@@ -1107,14 +1118,6 @@ public class TemporaryEntity
     return orgName;
   }
 
-  public void register(User... users) {
-    Collections.addAll(this.users, users);
-  }
-
-  public void registerUsernames(String... usernames) {
-    Collections.addAll(this.usernames, usernames);
-  }
-
   public Application newApplicationWithParent() {
     return newApplicationWithParent("DUMMY-PUBLIC-ID-" + uuid(), "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
   }
@@ -1227,7 +1230,6 @@ public class TemporaryEntity
   public User newUser(String username, String passwordHash, String firstName, String lastName, String email) {
     User user = new User(username, passwordHash, firstName, lastName, email);
     userDAO.insert(user);
-    users.add(user);
     return user;
   }
 

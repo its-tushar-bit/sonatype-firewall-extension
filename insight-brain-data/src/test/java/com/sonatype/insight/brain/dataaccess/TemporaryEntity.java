@@ -540,8 +540,6 @@ public class TemporaryEntity
 
   private Collection<String> usernames;
 
-  private Collection<UserToken> userTokens;
-
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -558,7 +556,6 @@ public class TemporaryEntity
     saveInitialMigrationTrackersIfNeeded();
     users = new ArrayList<>();
     usernames = new ArrayList<>();
-    userTokens = new ArrayList<>();
     initializePersistedUserSessions();
     deletedTenants = new ArrayList<>();
 
@@ -749,7 +746,7 @@ public class TemporaryEntity
       restoreInitialMigrationTrackers();
       searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
       cleanupPersistedUserSessions();
-      delete(userTokens, userTokenDAO);
+      delete(userTokenDAO.getAll(), userTokenDAO);
       automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(false);
       mailConfigurationDAO.delete();
 
@@ -3693,7 +3690,6 @@ public class TemporaryEntity
     userToken.setRealmId(realmId);
     userToken.setCreateTime(createTime);
     userTokenDAO.insert(userToken);
-    userTokens.add(userToken);
     return userToken;
   }
 

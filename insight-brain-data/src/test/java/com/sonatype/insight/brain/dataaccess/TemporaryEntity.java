@@ -44,6 +44,7 @@ import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.TestEntityLeakDetectionData;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
@@ -804,19 +805,32 @@ public class TemporaryEntity
   }
 
   private void detectEntityLeaks() {
-    if (!AbstractOperationalSqlDAO.creationStackTracesForTestEntities.isEmpty()) {
-      System.err.println(
-          "Detected " + AbstractOperationalSqlDAO.creationStackTracesForTestEntities.size() + " test entity leaks:");
+    if (!AbstractOperationalSqlDAO.testEntityLeaksDetectionData.isEmpty()) {
       int leakCount = 0;
-      for (String leakedEntityId : AbstractOperationalSqlDAO.creationStackTracesForTestEntities.keySet()) {
-        leakCount++;
-        System.err.println("Leaked test entity " + leakCount + ": " + leakedEntityId + "\n"
-            + AbstractOperationalSqlDAO.creationStackTracesForTestEntities.get(leakedEntityId));
+      for (String leakedEntityId : AbstractOperationalSqlDAO.testEntityLeaksDetectionData.keySet()) {
+        TestEntityLeakDetectionData testEntityLeakDetectionData =
+            AbstractOperationalSqlDAO.testEntityLeaksDetectionData.get(leakedEntityId);
+        try {
+          AbstractOperationalSqlDAO<?> dao = testEntityLeakDetectionData.getDAO();
+          if (dao.getById(leakedEntityId) != null) {
+            leakCount++;
+            System.err.println("Leaked test entity " + leakCount + ": " + leakedEntityId + "\n"
+                + testEntityLeakDetectionData.getCreationStackTrace());
+          }
+        }
+        catch (RuntimeException e) {
+          AbstractOperationalSqlDAO.testEntityLeaksDetectionData.clear();
+          e.printStackTrace();
+          throw new RuntimeException("Error detecting entity leaks for "
+              + testEntityLeakDetectionData.getDAO().getClass().getName() + ": " + e.getMessage(), e);
+        }
       }
 
-      AbstractOperationalSqlDAO.creationStackTracesForTestEntities.clear();
+      AbstractOperationalSqlDAO.testEntityLeaksDetectionData.clear();
 
-      throw new RuntimeException("Detected test entity leaks");
+      if (leakCount > 0) {
+        throw new RuntimeException("Detected " + leakCount + " test entity leaks.");
+      }
     }
   }
 

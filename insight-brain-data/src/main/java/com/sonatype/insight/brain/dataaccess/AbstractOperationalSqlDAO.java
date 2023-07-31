@@ -30,7 +30,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   //visible for testing
   public static final int POSTGRES_IN_OPERATOR_THRESHOLD = Short.MAX_VALUE;
 
-  public static Map<String, String> creationStackTracesForTestEntities = new LinkedHashMap<>();
+  public static Map<String, TestEntityLeakDetectionData> testEntityLeaksDetectionData = new LinkedHashMap<>();
 
   private String entityName;
 
@@ -69,7 +69,8 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
       String stackTraceAsString = ExceptionUtils.getStackTrace(e);
       // Assume that any entity created via TemporaryEntity is not leaked.
       if (!stackTraceAsString.contains(".TemporaryEntity")) {
-        creationStackTracesForTestEntities.put(entity.getId(), ExceptionUtils.getStackTrace(e));
+        testEntityLeaksDetectionData.put(entity.getId(),
+            new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
       }
     }
 
@@ -87,7 +88,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     super.delete(tx, entity);
 
     if (entity != null && detectTestEntityLeaks() && OperationalDataStoreProvider.isDatabaseInMemory()) {
-      creationStackTracesForTestEntities.remove(entity.getId());
+      testEntityLeaksDetectionData.remove(entity.getId());
     }
 
     insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
@@ -177,5 +178,28 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   public String getEntityName() {
     return entityName;
+  }
+
+  public static class TestEntityLeakDetectionData
+  {
+    private final String creationStackTrace;
+
+    private final AbstractOperationalSqlDAO<?> dao;
+
+    private TestEntityLeakDetectionData(
+        AbstractOperationalSqlDAO<?> dao,
+        String creationStackTrace)
+    {
+      this.dao = dao;
+      this.creationStackTrace = creationStackTrace;
+    }
+
+    public String getCreationStackTrace() {
+      return creationStackTrace;
+    }
+
+    public AbstractOperationalSqlDAO<?> getDAO() {
+      return dao;
+    }
   }
 }

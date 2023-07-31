@@ -65,7 +65,6 @@
     <httpcomponents.version>4.5.13</httpcomponents.version>
     <nexus-scm-client.version>1.51.6-01</nexus-scm-client.version>
     <nexus-dependency-management.version>1.23.7-01</nexus-dependency-management.version>
-    <swagger.version>2.2.2</swagger.version>
     <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file -->
     <mockito-core.version>4.11.0</mockito-core.version>
     <byte-buddy.version>1.12.19</byte-buddy.version>
@@ -1179,11 +1178,6 @@
         <groupId>net.sourceforge.htmlunit</groupId>
         <artifactId>neko-htmlunit</artifactId>
         <version>2.61.0</version>
-      </dependency>
-      <dependency>
-        <groupId>io.swagger.core.v3</groupId>
-        <artifactId>swagger-jaxrs2</artifactId>
-        <version>${swagger.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>

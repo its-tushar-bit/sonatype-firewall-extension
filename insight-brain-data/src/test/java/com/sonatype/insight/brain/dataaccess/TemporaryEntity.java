@@ -535,6 +535,8 @@ public class TemporaryEntity
       new SourceControlOrganizationImportEventDAO();
 
   private final UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO();
+  
+  private final LockDAO lockDAO = new LockDAO();
 
   private Collection<String> persistedUserSessionIds;
 
@@ -788,6 +790,7 @@ public class TemporaryEntity
         }
       });
       userIdePolicyEvaluationDAO.getAll().forEach(userIdePolicyEvaluationDAO::delete);
+      delete(lockDAO.getAll(), lockDAO);
 
       detectEntityLeaks();
     }

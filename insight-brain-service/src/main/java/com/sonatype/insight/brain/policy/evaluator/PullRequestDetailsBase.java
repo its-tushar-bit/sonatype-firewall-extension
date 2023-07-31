@@ -200,7 +200,8 @@ public class PullRequestDetailsBase
    * @param policyViolations The list of policy violations for which the highest threat level needs to be found
    * @return The highest threat level from the given policy violations, or 0 if there are none.
    */
-  public static int getHighestThreatLevel(final List<PolicyViolation> policyViolations) {
+  @VisibleForTesting
+  static int getHighestThreatLevel(final List<PolicyViolation> policyViolations) {
     return policyViolations
         .stream()
         .map(PolicyViolation::getThreatLevel)

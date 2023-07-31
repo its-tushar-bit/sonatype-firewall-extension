@@ -10,20 +10,7 @@ package com.sonatype.insight.brain.utils;
  */
 public enum ThreatLevel
 {
-  LOW("Low"),
-  MODERATE("Moderate"),
-  SEVERE("Severe"),
-  CRITICAL("Critical");
-
-  ThreatLevel(final String displayName) {
-    this.displayName = displayName;
-  }
-
-  private String displayName;
-
-  public String getDisplayName() {
-    return displayName;
-  }
+  LOW, MODERATE, SEVERE, CRITICAL;
 
   public static ThreatLevel from(int threatLevel) {
     if (threatLevel >= 8) {

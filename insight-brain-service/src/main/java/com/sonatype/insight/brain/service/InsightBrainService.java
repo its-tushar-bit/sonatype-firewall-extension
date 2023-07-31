@@ -522,6 +522,7 @@ public class InsightBrainService
       protected void configure() {
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
         bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
+
         bind(ExecutorThreadPools.class).to(DefaultExecutorThreadPools.class);
         requestStaticInjection(ExecutorThreadPools.class);
 

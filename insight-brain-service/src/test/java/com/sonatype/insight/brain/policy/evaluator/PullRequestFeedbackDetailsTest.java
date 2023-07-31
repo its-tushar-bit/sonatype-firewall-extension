@@ -7,6 +7,10 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -37,7 +41,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DefaultBaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.utils.TemplateHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.DiffPosition;
@@ -50,7 +53,6 @@ import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMU
 import static com.sonatype.insight.brain.policy.evaluator.PullRequestDetailsBaseTest.CONVERT_URLS;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
-import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -122,6 +124,11 @@ public class PullRequestFeedbackDetailsTest
     TimeZone.setDefault(initialTimezone);
   }
 
+  private String readResource(String resourceName) throws Exception {
+    final Path path = Paths.get(getClass().getResource("/PullRequestFeedbackDetailsTest/" + resourceName).toURI());
+    return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+  }
+
   @Test
   public void testPullRequestFeedback_addedOnly() throws Exception {
     //setup test data
@@ -152,12 +159,10 @@ public class PullRequestFeedbackDetailsTest
             lookup(DefaultBaseUrl.class).getConfigured());
 
     //then assert that created contents match expected
+    final String expectedContent = readResource("PullRequestFeedback_Added_noEmbeddedHtml.md");
     final Optional<String> contents = details.renderTemplateAndGetContents();
-    assertRenderedOutput(contents, getClass(),"PullRequestFeedback_Added_noEmbeddedHtml.md");
-  }
-
-  private String readResource(String contentFile) throws Exception {
-    return TemplateHelper.readResource(PullRequestFeedbackDetailsTest.class, contentFile);
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get()).isEqualTo(expectedContent);
   }
 
   @Test

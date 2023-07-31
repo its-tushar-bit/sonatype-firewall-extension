@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
@@ -21,15 +21,14 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import freemarker.template.Template;
-import io.dropwizard.logback.shaded.guava.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 /**
@@ -67,13 +66,17 @@ public class PullRequestLineFeedback
       final Optional<String> codeSuggestion
   )
   {
-    this.violations = checkNotNull(violations, "violations is required and cannot be null");
-    this.displayName = checkNotNull(displayName, "displayName is required and cannot be null");
+    Preconditions.checkNotNull(violations, "violations is required and cannot be null");
+    this.violations = violations;
+    Preconditions.checkNotNull(displayName, "displayName is required and cannot be null");
+    this.displayName = displayName;
     this.remediationVersionDTO = remediationVersionDTO;
     this.iqBaseUrl = iqBaseUrl;
     this.scmBaseUrl = scmBaseUrl;
-    this.applicationPublicId = checkNotNull(applicationPublicId, "applicationPublicId is required and cannot be null");
-    this.featureBranchScanId = checkNotNull(featureBranchScanId, "featureBranchScanId is required and cannot be null");
+    Preconditions.checkNotNull(applicationPublicId, "applicationPublicId is required and cannot be null");
+    this.applicationPublicId = applicationPublicId;
+    Preconditions.checkNotNull(featureBranchScanId, "featureBranchScanId is required and cannot be null");
+    this.featureBranchScanId = featureBranchScanId;
     this.codeSuggestion = codeSuggestion;
   }
 

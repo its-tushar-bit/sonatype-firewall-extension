@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -32,8 +36,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
-import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PullRequestLineFeedbackTest
@@ -102,31 +105,31 @@ public class PullRequestLineFeedbackTest
   @Test
   public void testPullRequestFeedback_multipleNoSuggestion_github() throws Exception {
     assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS),
-        "PullRequestLineFeedback_multipleNoSuggestions.md", GITHUB);
+        "PullRequestLineFeedback_multipleNoSuggestions.md", SourceControlProvider.GITHUB);
   }
 
   @Test
   public void testPullRequestFeedback_multipleWithSuggestion_github() throws Exception {
     assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION),
-        "PullRequestLineFeedback_multipleWithSuggestion.md", GITHUB);
+        "PullRequestLineFeedback_multipleWithSuggestion.md", SourceControlProvider.GITHUB);
   }
 
   @Test
   public void testPullRequestFeedback_multipleWithSuggestionAndDependencyRemediation_github() throws Exception {
     assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION),
-        "PullRequestLineFeedback_multipleWithSuggestionAndDependencyRemediation.md", GITHUB);
+        "PullRequestLineFeedback_multipleWithSuggestionAndDependencyRemediation.md", SourceControlProvider.GITHUB);
   }
 
   @Test
   public void testPullRequestFeedback_singleNoSuggestion_github() throws Exception {
     assertContents(testCases.get(SINGLE_NO_SUGGESTION),
-        "PullRequestLineFeedback_singleNoSuggestions.md", GITHUB);
+        "PullRequestLineFeedback_singleNoSuggestions.md", SourceControlProvider.GITHUB);
   }
 
   @Test
   public void testPullRequestFeedback_singleWithSuggestion_github() throws Exception {
     assertContents(testCases.get(SINGLE_WITH_SUGGESTION),
-        "PullRequestLineFeedback_singleWithSuggestion.md", GITHUB);
+        "PullRequestLineFeedback_singleWithSuggestion.md", SourceControlProvider.GITHUB);
   }
 
   @Test
@@ -195,7 +198,7 @@ public class PullRequestLineFeedbackTest
   public void testPullRequestFeedback_singleWithSuggestion_azureCloud() throws Exception {
     // Azure Cloud uses the standard template with embedded HTML
     assertContents(testCases.get(SINGLE_WITH_SUGGESTION_AZCLOUD),
-        "PullRequestLineFeedback_singleWithSuggestion_azureCloud.md", SourceControlProvider.AZURE);
+        "PullRequestLineFeedback_singleWithSuggestion.md", SourceControlProvider.AZURE);
   }
 
   @Test
@@ -226,7 +229,7 @@ public class PullRequestLineFeedbackTest
         .isThrownBy(() -> new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
             lookup(DefaultBaseUrl.class).getConfigured(), null, null,
             APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null)
-            .renderTemplateAndGetContents(GITHUB))
+            .renderTemplateAndGetContents(SourceControlProvider.GITHUB))
         .withMessageContaining("violations cannot be empty");
   }
 
@@ -283,12 +286,24 @@ public class PullRequestLineFeedbackTest
             null /* constraintId */, Collections.emptyList() /* conditionTriggers */));
   }
 
+  private String removeDateFromOutput(final String value) {
+    return value.trim().replaceAll("as of _.*", "");
+  }
+
+  private String readResource(String resourceName) throws Exception {
+    final Path path = Paths.get(getClass().getResource("/PullRequestLineFeedbackTest/" + resourceName).toURI());
+    return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+  }
+
   private void assertContents(
       final PullRequestLineFeedback details,
       final String expectedContentFile,
-      SourceControlProvider provider) throws Exception
+      SourceControlProvider provider)
+      throws Exception
   {
+    final String expectedContent = readResource(expectedContentFile);
     final Optional<String> contents = details.renderTemplateAndGetContents(provider);
-    assertRenderedOutput(contents, getClass(), expectedContentFile);
+    assertThat(contents).isNotEmpty();
+    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
   }
 }

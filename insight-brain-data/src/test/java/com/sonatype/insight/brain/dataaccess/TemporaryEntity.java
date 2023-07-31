@@ -538,6 +538,8 @@ public class TemporaryEntity
   
   private final LockDAO lockDAO = new LockDAO();
 
+  private final PerpetualLockDAO perpetualLockDAO = new PerpetualLockDAO();
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -791,6 +793,7 @@ public class TemporaryEntity
       });
       userIdePolicyEvaluationDAO.getAll().forEach(userIdePolicyEvaluationDAO::delete);
       delete(lockDAO.getAll(), lockDAO);
+      delete(perpetualLockDAO.getAll(), perpetualLockDAO);
 
       detectEntityLeaks();
     }

@@ -52,7 +52,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
         .atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
-        .build("foo/bar").toString();
+        .build(new String[]{"foo/bar"}, false /* encodeSlashInPath */).toString();
     HttpResponse response = restRequest().path(url).get();
     assertResponseStatus(200, response);
 
@@ -73,7 +73,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
-        .build("foo/bar").toString();
+        .build(new String[]{"foo/bar"}, false /* encodeSlashInPath */).toString();
     HttpResponse response = restRequest().path(url).body("Foo").post();
     assertResponseStatus(200, response);
 

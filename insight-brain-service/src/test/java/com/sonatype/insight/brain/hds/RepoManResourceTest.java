@@ -104,7 +104,8 @@ public class RepoManResourceTest
     getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(RepoManResource.RESOURCE_PATH)
-        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH).build("/foo/bar")
+        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH)
+        .build(new String[]{"/foo/bar"}, false /* encodeSlashInPath */)
         .toString();
 
     HttpResponse response = restRequest().path(url).get();
@@ -118,7 +119,8 @@ public class RepoManResourceTest
     getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(RepoManResource.RESOURCE_PATH)
-        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH).build("/foo/bar")
+        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH)
+        .build(new String[]{"/foo/bar"}, false /* encodeSlashInPath */)
         .toString();
 
     HttpResponse response = restRequest().path(url).post();

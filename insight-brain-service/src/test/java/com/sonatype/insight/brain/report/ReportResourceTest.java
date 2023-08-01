@@ -269,10 +269,10 @@ public class ReportResourceTest
     HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
 
     HttpResponse response = request.subpath("../restricted.txt").get();
-    assertResponseStatus(404, response);
+    assertResponseStatus(400, response);
 
     response = request.subpath("%2E%2E/restricted.txt").get();
-    assertResponseStatus(404, response);
+    assertResponseStatus(400, response);
 
     response = request.subpath("%2E%2E%5Crestricted.txt").get();
     assertResponseStatus(400, response);

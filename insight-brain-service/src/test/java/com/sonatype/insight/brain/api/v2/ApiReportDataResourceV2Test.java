@@ -81,17 +81,17 @@ public class ApiReportDataResourceV2Test
   @Test
   public void testGetData_Redirect() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
-        .parameter("app id", "scan/id").get();
+        .parameter("testAppPublicId", "testScanId").get();
 
     assertResponseStatus(307, response);
     assertThat(response.getHeader("Location"))
-        .isEqualTo(getRestBaseUrl() + "api/v2/applications/app%20id/reports/scan%2Fid/raw");
+        .isEqualTo(getRestBaseUrl() + "api/v2/applications/testAppPublicId/reports/testScanId/raw");
   }
 
   @Test
   public void testGetDataUrl() {
-    assertThat(DefaultApiReportDataResourceV2.getDataUrl("app id", "scan/id"))
-        .isEqualTo("api/v2/applications/app%20id/reports/scan%2Fid/raw");
+    assertThat(DefaultApiReportDataResourceV2.getDataUrl("testAppPublicId", "testScanId"))
+        .isEqualTo("api/v2/applications/testAppPublicId/reports/testScanId/raw");
   }
 
   @Test

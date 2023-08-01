@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,11 +48,6 @@ public class PerpetualLockManagerTest
 
     perpetualLockManager = new PerpetualLockManager(perpetualLockDAO);
     assertThat(perpetualLockDAO.getAll()).hasSize(0);
-  }
-
-  @After
-  public void after() {
-    perpetualLockDAO.getAll().forEach(perpetualLock -> perpetualLockDAO.delete(perpetualLock));
   }
 
   @Test

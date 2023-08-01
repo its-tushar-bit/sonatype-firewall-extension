@@ -13,7 +13,6 @@ import javax.persistence.RollbackException;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,11 +32,6 @@ public class PerpetualLockDAOTest
     super.setup();
     perpetualLockDAO = new PerpetualLockDAO();
     assertThat(perpetualLockDAO.getAll()).hasSize(0);
-  }
-
-  @After
-  public void after() {
-    perpetualLockDAO.getAll().forEach(perpetualLock -> perpetualLockDAO.delete(perpetualLock));
   }
 
   @Test

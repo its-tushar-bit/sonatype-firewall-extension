@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -50,16 +46,31 @@ import com.sonatype.nexus.scm.api.DiffPosition;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
+import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
+import static com.sonatype.insight.brain.utils.TemplateHelper.readResource;
+import static com.sonatype.nexus.scm.SourceControlProvider.AZURE;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PullRequestFeedbackMarkupServiceTest
     extends AbstractComponentTest
 {
+  private static final String DEFAULT_SCM_URL = "https://scm.mycompany.com";
+
+  private static final String AZURE_CLOUD_SCM_URL = "https://dev.azure.com/mycompany";
+
+  @Rule
+  public TestName name = new TestName();
+
   @Inject
   private PolicyEvaluationDiffService policyEvaluationDiffService;
 
@@ -74,11 +85,15 @@ public class PullRequestFeedbackMarkupServiceTest
 
   private TimeZone initialTimezone;
 
+  private String expectedRenderedOutputFilename;
+
   @Before
   public void before() {
     setBaseUrl("http://localhost:1122");
     initialTimezone = TimeZone.getDefault();
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    // The markdown fixture must match the name of the test method
+    this.expectedRenderedOutputFilename = name.getMethodName() + ".md";
   }
 
   @After
@@ -97,13 +112,53 @@ public class PullRequestFeedbackMarkupServiceTest
   }
 
   @Test
-  public void testCreateLineMarkup_noUxImprovement() throws Exception {
-    runCreateLineMarkupTest(false, "PullRequestFeedbackMarkup_singlePolicyWithSuggestion_noUxImprovement.md");
+  public void testCreateLineMarkup_noUXImprovement_github() throws Exception {
+    runCreateLineMarkupTest(GITHUB, false);
   }
 
   @Test
-  public void testCreateLineMarkup_withUxImprovement() throws Exception {
-    runCreateLineMarkupTest(true, "PullRequestFeedbackMarkup_singlePolicyWithSuggestion_withUxImprovement.md");
+  public void testCreateLineMarkup_withUXImprovement_github() throws Exception {
+    runCreateLineMarkupTest(GITHUB, true);
+  }
+
+  @Test
+  public void testCreateLineMarkup_noUXImprovement_gitlab() throws Exception {
+    runCreateLineMarkupTest(GITLAB, false);
+  }
+
+  @Test
+  public void testCreateLineMarkup_withUXImprovement_gitlab() throws Exception {
+    runCreateLineMarkupTest(GITLAB, true);
+  }
+
+  @Test
+  public void testCreateLineMarkup_noUXImprovement_bitbucket() throws Exception {
+    runCreateLineMarkupTest(BITBUCKET, false);
+  }
+
+  @Test
+  public void testCreateLineMarkup_withUXImprovement_bitbucket() throws Exception {
+    runCreateLineMarkupTest(BITBUCKET, true);
+  }
+
+  @Test
+  public void testCreateLineMarkup_noUXImprovement_azureOnPrem() throws Exception {
+    runCreateLineMarkupTest(AZURE, false);
+  }
+
+  @Test
+  public void testCreateLineMarkup_withUXImprovement_azureOnPrem() throws Exception {
+    runCreateLineMarkupTest(AZURE, true);
+  }
+
+  @Test
+  public void testCreateLineMarkup_noUXImprovement_azureCloud() throws Exception {
+    runCreateLineMarkupTest(AZURE, false, AZURE_CLOUD_SCM_URL);
+  }
+
+  @Test
+  public void testCreateLineMarkup_withUXImprovement_azureCloud() throws Exception {
+    runCreateLineMarkupTest(AZURE, true, AZURE_CLOUD_SCM_URL);
   }
 
   private void runCreateSummaryMarkupTest(
@@ -151,7 +206,7 @@ public class PullRequestFeedbackMarkupServiceTest
 
     //setup gitRepositoryInfo
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("http://example.com/project/repository", null, null,
-        "token", SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
+        "token", GITHUB, "master", true, true, true, true, false, null);
 
     //setup source control component details
     SourceControlComponentDetails componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
@@ -181,18 +236,28 @@ public class PullRequestFeedbackMarkupServiceTest
     );
 
     // then: markup is created and telemetry information updated
-    final String expectedContent = readResource(expectedMarkupOutputFile);
+    final String expectedContent = readResource(getClass(), expectedMarkupOutputFile);
     assertThat(markup).isNotEmpty();
     assertThat(commentTelemetry.newViolationsComponentCount).isEqualTo(4);
     assertThat(commentTelemetry.clearedViolationsComponentCount).isEqualTo(0);
     assertThat(markup.get()).isEqualTo(expectedContent);
   }
 
-  public void runCreateLineMarkupTest(
-      final boolean enableUxImprovement,
-      final String expectedMarkupOutputFile) throws Exception
+  private void runCreateLineMarkupTest(
+      final SourceControlProvider provider,
+      final boolean scmUxImprovementFeatureEnabled) throws Exception
   {
-    SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.setEnabled(enableUxImprovement);
+    runCreateLineMarkupTest(provider, scmUxImprovementFeatureEnabled, DEFAULT_SCM_URL);
+  }
+
+  private void runCreateLineMarkupTest(
+      final SourceControlProvider provider,
+      final boolean scmUxImprovementFeatureEnabled,
+      final String scmUrl) throws Exception
+  {
+    // given: the scmUxmprovement flag
+    SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.setEnabled(scmUxImprovementFeatureEnabled);
+
     // given: Evaluation in feature branch with new vulnerabilities
     final String SCAN_ID = "myScanId";
     Application app = tempEntity.newApplicationWithParent("TEST_APP_PUBLIC_ID", "TEST APP", "TEST ORG");
@@ -218,31 +283,19 @@ public class PullRequestFeedbackMarkupServiceTest
     policyViolations.add(policyViolation);
 
     // when: when generating comment line markup
-    final Optional<String> contents =
-        pullRequestFeedbackMarkupService.createLineMarkup(policyViolations, "Test Component",
+    final Optional<String> contents = pullRequestFeedbackMarkupService.createLineMarkup(
+        policyViolations,
+        "Test Component",
             new RemediationVersionDTO(
                 "123",
                 ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
             Optional.ofNullable(null),
-            SourceControlProvider.GITHUB,
-            "https://scm.mycompany.com",
+            provider,
+            scmUrl,
             evaluation.getApplicationId(),
             evaluation.getScanId());
 
     // then: markup is generated
-    final String expectedContent =
-        readResource(expectedMarkupOutputFile);
-    assertThat(contents).isNotEmpty();
-    assertThat(removeDateFromOutput(contents.get())).isEqualTo(removeDateFromOutput(expectedContent));
-  }
-
-  private String readResource(String resourceName) throws Exception {
-    final Path path = Paths.get(
-        getClass().getResource("/PullRequestFeedbackMarkupServiceTest/" + resourceName).toURI());
-    return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-  }
-
-  private String removeDateFromOutput(final String value) {
-    return value.trim().replaceAll("as of _.*", "");
+    assertRenderedOutput(contents, this.getClass(), expectedRenderedOutputFilename);
   }
 }

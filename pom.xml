@@ -254,6 +254,13 @@
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
+      
+      <!-- Avoid security vulnerabilities -->
+      <dependency>
+        <groupId>com.squareup.okio</groupId>
+        <artifactId>okio</artifactId>
+        <version>3.4.0</version>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.commons</groupId>

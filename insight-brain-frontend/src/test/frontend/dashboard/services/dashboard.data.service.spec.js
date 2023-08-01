@@ -36,13 +36,8 @@ describe('dashboard.data.service.spec', function () {
 
   beforeEach(function () {
     classyBrewSpy = jasmine.createSpy('classyBrew').and.returnValue('classyBrew');
-    const dashboardDataService = require('inject-loader!../../../../main/frontend/dashboard/services/dashboard.data.service')(
-      {
-        '../utils/classybrew.factory': {
-          createClassyBrew: classyBrewSpy,
-        },
-      }
-    );
+    const dashboardDataService = require('inject-loader!../../../../main/frontend/dashboard/services/' +
+      'dashboard.data.service')({ '../utils/classybrew.factory': { createClassyBrew: classyBrewSpy } });
     getNewestRisks = dashboardDataService.getNewestRisks;
     getApplicationRisks = dashboardDataService.getApplicationRisks;
     getComponentRisks = dashboardDataService.getComponentRisks;
@@ -217,10 +212,6 @@ describe('dashboard.data.service.spec', function () {
   });
 
   describe('getComponentRisks()', function () {
-    // To be replaced by expectedRequestPayload when CLM-26398 is being done
-    const expectedRequestPayloadWithoutPagination = { ...expectedRequestPayload, pageSize: 100 };
-    delete expectedRequestPayloadWithoutPagination.page;
-
     it('populates component name', function (done) {
       const data = {
         dashboardResults: [
@@ -249,9 +240,9 @@ describe('dashboard.data.service.spec', function () {
         },
       });
 
-      getComponentRisks(filter, []).then(function (data) {
+      getComponentRisks(filter, [], 0).then(function (data) {
         const { results, numResults, classyBrew } = data;
-        expect(axios.post).toHaveBeenCalledWith(componentRiskUrl, expectedRequestPayloadWithoutPagination);
+        expect(axios.post).toHaveBeenCalledWith(componentRiskUrl, { ...expectedRequestPayload, pageSize: 100 });
         expect(results[0].hash).toBe('f60e9504841ba867a692');
         expect(results[0].derivedComponentName).toBe('foo : bar');
         expect(results[1].hash).toBe('1249e25aebb15358bedd');
@@ -276,7 +267,7 @@ describe('dashboard.data.service.spec', function () {
         ];
 
       const expectedRequestData = {
-        ...expectedRequestPayloadWithoutPagination,
+        ...expectedRequestPayload,
         orderBy: expectedSortFields.join(','),
       };
 
@@ -288,15 +279,19 @@ describe('dashboard.data.service.spec', function () {
         },
       });
 
-      getComponentRisks(filter, [
-        '-affectedApplications',
-        'derivedComponentName',
-        '-score',
-        'scoreCritical',
-        '-scoreSevere',
-        'scoreModerate',
-        'scoreLow',
-      ]);
+      getComponentRisks(
+        filter,
+        [
+          '-affectedApplications',
+          'derivedComponentName',
+          '-score',
+          'scoreCritical',
+          '-scoreSevere',
+          'scoreModerate',
+          'scoreLow',
+        ],
+        0
+      );
 
       expect(axios.post).toHaveBeenCalledWith(componentRisksUrl, expectedRequestData);
     });

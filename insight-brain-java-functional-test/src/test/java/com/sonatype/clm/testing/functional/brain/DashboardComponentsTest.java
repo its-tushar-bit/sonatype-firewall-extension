@@ -9,13 +9,13 @@ import java.util.Arrays;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentResultsPaginator;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsHeaders;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -46,8 +46,6 @@ public class DashboardComponentsTest
 {
   private static final String NO_DATA_MSG = "No data available given the applied filters and permissions.";
 
-  private static final String MAX_RESULTS_MSG = "First 100 results shown";
-
   private Application app;
 
   private Policy policy;
@@ -76,7 +74,7 @@ public class DashboardComponentsTest
   }
 
   @Test
-  public void testResultsMessages() {
+  public void testMoreThanOnePage() {
     // no results
     refresh();
     ComponentsResults table = DashboardPage.componentsView().results();
@@ -86,14 +84,26 @@ public class DashboardComponentsTest
     addComponents(100, 5);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(hidden);
+
+    ComponentResultsPaginator paginator = DashboardPage.componentsView().paginator();
+
+    paginator.buttonBar().shouldBe(visible);
+    paginator.paginatorButtons().shouldHaveSize(1);
 
     // 101 results
     addComponentWithViolation(101, 5);
     refreshOrOpen(DashboardPage.urlToComponents());
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
-    ScrollUtil.scrollIntoView(table.maxResultsMessage());
+    paginator.buttonBar().shouldBe(visible);
+    paginator.paginatorButtons().shouldHaveSize(3);
+
+    //Click next page
+    paginator.paginatorButtons().get(2).click();
+    paginator.selectedPage().shouldHave(text("2"));
+
+    //Click back page
+    paginator.paginatorButtons().get(0).click();
+    paginator.selectedPage().shouldHave(text("1"));
   }
 
   @Test
@@ -109,7 +119,6 @@ public class DashboardComponentsTest
     DashboardPage.dashboardContainer().shouldBe(visible);
     eyesWatcher.eyesCheck();
     ComponentsResults table = DashboardPage.componentsView().results();
-    table.maxResultsMessage().shouldBe(hidden);
 
     // components should be sorted by risk
     table.components().shouldHaveSize(4).shouldHave(texts(
@@ -322,7 +331,6 @@ public class DashboardComponentsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(visible);
 
     // default - sorted by total risk desc
     headers.totalRiskHeader().sortArrows().shouldBeDown();

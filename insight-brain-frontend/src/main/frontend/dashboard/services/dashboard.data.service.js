@@ -58,8 +58,13 @@ export function getWaivers(filters, sortFields) {
   return axios.post(getWaiversUrl(), request).then(dashboardRespopnseHandler());
 }
 
-export function getComponentRisks(filters, sortFields) {
-  const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateComponentsSortFields(sortFields));
+export function getComponentRisks(filters, sortFields, page) {
+  const request = createDashboardDataRequestPayload(
+    filters,
+    DASHBOARD_PAGE_SIZE,
+    translateComponentsSortFields(sortFields),
+    page
+  );
   return axios.post(getComponentRisksUrl(), request).then(dashboardRespopnseHandler(generateComponentsSeries));
 }
 

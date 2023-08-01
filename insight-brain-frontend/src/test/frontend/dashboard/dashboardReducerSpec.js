@@ -289,6 +289,10 @@ describe('dashboardReducer', () => {
       testPaginationWithResults('violations');
     });
 
+    it('updates components pagination with results', () => {
+      testPaginationWithResults('components');
+    });
+
     const testPaginationWithResults = (resultsType) => {
       const state = Object.freeze({
         [resultsType]: { results: null, numResults: null, pageCount: 0, page: null },
@@ -309,6 +313,10 @@ describe('dashboardReducer', () => {
 
     it('updates violations pagination without results', () => {
       testPaginationWithoutResults('violations');
+    });
+
+    it('updates components pagination without results', () => {
+      testPaginationWithoutResults('components');
     });
 
     const testPaginationWithoutResults = (resultsType) => {

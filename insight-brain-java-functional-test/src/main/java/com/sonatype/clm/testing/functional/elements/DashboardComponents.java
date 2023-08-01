@@ -17,12 +17,18 @@ public class DashboardComponents
 {
   private static final String ROOT = "#dashboard-components";
 
+  private static final String PAGINATOR = ".nx-btn-bar--pagination";
+
   public ComponentsHeaders headers() {
     return new ComponentsHeaders();
   }
 
   public ComponentsResults results() {
     return new ComponentsResults();
+  }
+
+  public ComponentResultsPaginator paginator() {
+    return new ComponentResultsPaginator();
   }
 
   public ComponentsResultsMask resultsMask() {
@@ -60,12 +66,28 @@ public class DashboardComponents
       return new ComponentElement(childSelector(lastRowSelector));
     }
 
-    public SelenideElement maxResultsMessage() {
-      return child("#max-results-shown");
-    }
-
     public SelenideElement noDataMessage() {
       return child("tr:last-child");
+    }
+  }
+
+  public static class ComponentResultsPaginator
+      extends BasicElement<ComponentResultsPaginator>
+  {
+    ComponentResultsPaginator() {
+      super(ROOT, ".nx-table-container__footer");
+    }
+
+    public  SelenideElement buttonBar() {
+      return child(PAGINATOR);
+    }
+
+    public  ElementsCollection paginatorButtons() {
+      return children(PAGINATOR, "button");
+    }
+
+    public  SelenideElement selectedPage() {
+      return child(PAGINATOR, "button.selected");
     }
   }
 

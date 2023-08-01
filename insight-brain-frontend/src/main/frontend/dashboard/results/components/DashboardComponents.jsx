@@ -19,6 +19,7 @@ export default function DashboardComponents(props) {
       loadComponentResults,
       sortComponents,
       stateGo,
+      setComponentsPage,
     } = props,
     isLoading = !componentResults.results && !componentResults.error;
 
@@ -35,6 +36,7 @@ export default function DashboardComponents(props) {
     needsAcknowledgement,
     sortComponents,
     stateGo,
+    setComponentsPage,
   };
 
   return (
@@ -61,4 +63,5 @@ DashboardComponents.propTypes = {
   loadComponentResults: PropTypes.func.isRequired,
   sortComponents: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
+  setComponentsPage: PropTypes.func.isRequired,
 };

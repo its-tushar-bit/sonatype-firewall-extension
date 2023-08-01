@@ -10,6 +10,7 @@ import {
   loadComponentResults,
   loadViolationResults,
   loadWaiverResults,
+  setComponentsPage,
   setViolationsPage,
   sortApplicationResults,
   sortComponentResults,
@@ -240,16 +241,21 @@ describe('dashboardResultsActions', function () {
   });
 
   describe('loadComponentResults', () => {
-    it('calls loadResults with the components resultsType', (done) => {
-      spyOn(dashboardDataServices, 'getComponentRisks').and.returnValue(
+    let componentRisksSpy;
+
+    beforeEach(function () {
+      componentRisksSpy = spyOn(dashboardDataServices, 'getComponentRisks').and.returnValue(
         Promise.resolve({
-          results: 'componentResults',
+          results: 'componentsResults',
           numResults: 3,
           classyBrew: 'classyBrew',
         })
       );
+    });
 
+    it('calls loadResults with the components resultsType', (done) => {
       const store = SpecUtil.mockReduxStore(initialState);
+
       store.dispatch(loadComponentResults()).then(() => {
         expect(store.getActions()).toHaveActionsInOrder([
           {
@@ -260,12 +266,21 @@ describe('dashboardResultsActions', function () {
             type: 'LOAD_RESULTS_FULFILLED',
             payload: {
               resultsType: 'components',
-              results: 'componentResults',
+              results: 'componentsResults',
               numResults: 3,
               classyBrew: 'classyBrew',
             },
           },
         ]);
+        expect(componentRisksSpy).toHaveBeenCalledWith('current filters', ['-score'], 0);
+        done();
+      });
+    });
+
+    it('loads the current page number from the state (components)', (done) => {
+      const store = SpecUtil.mockReduxStore({ ...initialState, dashboard: { components: { page: 10 } } });
+      store.dispatch(loadComponentResults()).then(() => {
+        expect(componentRisksSpy).toHaveBeenCalledWith('current filters', undefined, 10);
         done();
       });
     });
@@ -359,6 +374,42 @@ describe('dashboardResultsActions', function () {
             payload: {
               resultsType: 'violations',
               results: 'violationResults',
+              numResults: 3,
+              classyBrew: 'classyBrew',
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
+  describe('setComponentsPage', () => {
+    it('calls setPage with the components resultsType', (done) => {
+      spyOn(dashboardDataServices, 'getComponentRisks').and.returnValue(
+        Promise.resolve({
+          results: 'componentsResults',
+          numResults: 3,
+          classyBrew: 'classyBrew',
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(setComponentsPage(10)).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'DASHBOARD_SET_PAGE',
+            payload: { resultsType: 'components', page: 10 },
+          },
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'components',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'components',
+              results: 'componentsResults',
               numResults: 3,
               classyBrew: 'classyBrew',
             },

@@ -8,6 +8,7 @@ import {
   NxButton,
   NxInfoAlert,
   NxLoadError,
+  NxPagination,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -17,7 +18,6 @@ import {
 
 import DashboardComponentsTableRow from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsTableRow';
 import DashboardComponentsTable from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsTable';
-import MaxResultsInfoRow from '../../../../../main/frontend/dashboard/results/MaxResultsInfoRow';
 
 describe('DashboardComponentsTable', function () {
   let minimalProps, getShallowComponent, getMountedComponent;
@@ -30,6 +30,8 @@ describe('DashboardComponentsTable', function () {
       componentResults: {
         results: [{ hash: 'hash1' }, { hash: 'hash2' }],
         sortFields: ['-score'],
+        pageCount: 1,
+        page: 0,
       },
     };
 
@@ -44,6 +46,30 @@ describe('DashboardComponentsTable', function () {
   });
 
   describe('contents of the table', function () {
+    let dashboardComponentMinProps;
+    beforeEach(function () {
+      dashboardComponentMinProps = {
+        componentResults: {
+          pageCount: 1,
+          page: 0,
+        },
+      };
+    });
+
+    it('renders a NxPagination with 1 page', function () {
+      const dashboardComponentTable = getShallowComponent(),
+        paginator = dashboardComponentTable.find(NxPagination);
+      expect(paginator).toExist();
+    });
+
+    it('checks currentPage property is null when pageCount is 0', function () {
+      minimalProps.componentResults.pageCount = 0;
+      const dashboardComponentTable = getShallowComponent(),
+        paginator = dashboardComponentTable.find(NxPagination);
+      expect(paginator).toExist();
+      expect(paginator.props().currentPage).toBeNull();
+    });
+
     it('renders a NxTableHead with a headers row with cells for each header', function () {
       const dashboardComponentTable = getShallowComponent(),
         table = dashboardComponentTable.find(NxTable),
@@ -77,56 +103,10 @@ describe('DashboardComponentsTable', function () {
       expect(rows.at(1).key()).toBe('hash2');
     });
 
-    it('Does not render max results row when there are less than 100 results', function () {
-      const dashboardComponentProps = {
-        componentResults: {
-          numResults: 99,
-        },
-      };
-
-      const dashBoardComponents = getShallowComponent(dashboardComponentProps),
-        table = dashBoardComponents.find(NxTable),
-        body = table.find(NxTableBody),
-        maxResultsInfoRow = body.find(MaxResultsInfoRow);
-      expect(maxResultsInfoRow).not.toExist();
-    });
-
-    it('Does not render max results row when there are exactly 100 results', function () {
-      const dashboardComponentProps = {
-        ...minimalProps,
-        componentResults: {
-          ...minimalProps.componentResults,
-          numResults: 100,
-        },
-      };
-
-      const dashBoardComponents = getShallowComponent(dashboardComponentProps),
-        table = dashBoardComponents.find(NxTable),
-        body = table.find(NxTableBody),
-        maxResultsInfoRow = body.find(MaxResultsInfoRow);
-      expect(maxResultsInfoRow).not.toExist();
-    });
-
-    it('renders max results row when there are more than 100 results', function () {
-      const dashboardComponentProps = {
-        ...minimalProps,
-        componentResults: {
-          ...minimalProps.componentResults,
-          numResults: 101,
-        },
-      };
-
-      const dashBoardComponents = getShallowComponent(dashboardComponentProps),
-        table = dashBoardComponents.find(NxTable),
-        body = table.find(NxTableBody),
-        maxResultsInfoRow = body.find(MaxResultsInfoRow);
-
-      expect(maxResultsInfoRow).toExist();
-    });
-
     it('renders a row with an alert message when the filter needs acknowledgement', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: [],
           sortFields: ['-score'],
         },
@@ -144,6 +124,7 @@ describe('DashboardComponentsTable', function () {
     it('renders an empty message on the NxTableBody if there are no components to display', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: [],
           sortFields: ['-score'],
         },
@@ -162,6 +143,7 @@ describe('DashboardComponentsTable', function () {
           results: [],
           sortFields: ['-score'],
           error: 'error while retrieving results',
+          ...dashboardComponentMinProps.componentResults,
         },
       };
       const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
@@ -181,6 +163,13 @@ describe('DashboardComponentsTable', function () {
   });
 
   describe('Column sorting', function () {
+    const dashboardComponentMinProps = {
+      componentResults: {
+        pageCount: 1,
+        page: 0,
+      },
+    };
+
     const componentsToDisplay = [
       {
         hash: 'hash1',
@@ -208,6 +197,7 @@ describe('DashboardComponentsTable', function () {
       componentResults: {
         results: componentsToDisplay,
         sortFields: ['-score'],
+        ...dashboardComponentMinProps.componentResults,
       },
     };
 
@@ -245,6 +235,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with -derivedComponentName if clicked asc to desc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['derivedComponentName'],
         },
@@ -263,6 +254,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with derivedComponentName if clicked desc to asc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['-derivedComponentName'],
         },
@@ -293,6 +285,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with affectedApplications if clicked desc to asc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['-affectedApplications'],
         },
@@ -311,6 +304,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with -affectedApplications if clicked asc to desc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['affectedApplications'],
         },
@@ -329,6 +323,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with -score if clicked none to desc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['affectedApplications'],
         },
@@ -345,8 +340,7 @@ describe('DashboardComponentsTable', function () {
     });
 
     it('calls sortComponents with score if clicked desc to asc', function () {
-      const dashboardComponentProps = defaultPropsForSortChecks;
-      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
+      const dashboardComponentTable = getMountedComponent(defaultPropsForSortChecks),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -360,6 +354,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with -score if clicked asc to desc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['score'],
         },
@@ -390,6 +385,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with scoreCritical if clicked desc to asc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['-scoreCritical'],
         },
@@ -408,6 +404,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with -scoreCritical if clicked asc to desc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['scoreCritical'],
         },
@@ -438,6 +435,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with scoreSevere if clicked desc to asc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['-scoreSevere'],
         },
@@ -456,6 +454,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with -scoreSevere if clicked asc to desc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['scoreSevere'],
         },
@@ -486,6 +485,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with scoreModerate if clicked desc to asc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['-scoreModerate'],
         },
@@ -504,6 +504,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with -scoreModerate if clicked asc to desc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['scoreModerate'],
         },
@@ -534,6 +535,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with scoreLow if clicked desc to asc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['-scoreLow'],
         },
@@ -552,6 +554,7 @@ describe('DashboardComponentsTable', function () {
     it('calls sortComponents with -scoreLow if clicked asc to desc', function () {
       const dashboardComponentProps = {
         componentResults: {
+          ...dashboardComponentMinProps.componentResults,
           results: componentsToDisplay,
           sortFields: ['scoreLow'],
         },

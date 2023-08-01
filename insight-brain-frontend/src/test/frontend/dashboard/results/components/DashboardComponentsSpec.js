@@ -17,8 +17,10 @@ describe('DashboardComponents', function () {
       sortComponents: jasmine.createSpy('sortComponents'),
       stateGo: jasmine.createSpy('stateGo'),
       componentResults: {
-        results: ['hash1', 'hash2'],
+        results: [{ hash: 'hash1' }, { hash: 'hash2' }],
         sortFields: ['-score'],
+        pageCount: 1,
+        currentPage: 0,
       },
     };
 
@@ -36,13 +38,16 @@ describe('DashboardComponents', function () {
 
     expect(table).toExist();
     expect(table).toHaveProp('componentResults', {
-      results: ['hash1', 'hash2'],
+      results: [{ hash: 'hash1' }, { hash: 'hash2' }],
       sortFields: ['-score'],
+      pageCount: 1,
+      currentPage: 0,
     });
     expect(table).toHaveProp('needsAcknowledgement', true);
     expect(table).toHaveProp('reload', jasmine.any(Function));
     expect(table).toHaveProp('sortComponents', jasmine.any(Function));
     expect(table).toHaveProp('stateGo', jasmine.any(Function));
+    expect(table).toHaveProp('setComponentsPage');
 
     table.prop('reload')();
     expect(minimalProps.loadComponentResults).toHaveBeenCalled();
@@ -107,6 +112,8 @@ describe('DashboardComponents', function () {
       filterLoading: false,
       needsAcknowledgement: false,
     };
+    minimalProps.componentResults.pageCount = 0;
+    minimalProps.componentResults.currentPage = 0;
 
     getMountedComponent(dashboardComponentProps);
     expect(minimalProps.loadComponentResults).toHaveBeenCalledTimes(1);
@@ -117,6 +124,8 @@ describe('DashboardComponents', function () {
       filterLoading: true,
       needsAcknowledgement: false,
     };
+    minimalProps.componentResults.pageCount = 0;
+    minimalProps.componentResults.currentPage = 0;
 
     getMountedComponent(dashboardComponentProps);
     expect(minimalProps.loadComponentResults).not.toHaveBeenCalled();
@@ -127,6 +136,8 @@ describe('DashboardComponents', function () {
       filterLoading: false,
       needsAcknowledgement: true,
     };
+    minimalProps.componentResults.pageCount = 0;
+    minimalProps.componentResults.currentPage = 0;
 
     getMountedComponent(dashboardComponentProps);
     expect(minimalProps.loadComponentResults).not.toHaveBeenCalled();

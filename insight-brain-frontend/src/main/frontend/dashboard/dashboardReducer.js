@@ -33,6 +33,8 @@ const initState = {
     classyBrew: null,
     error: null,
     sortFields: ['-score'],
+    pageCount: 0,
+    page: null,
   },
   applications: {
     results: null,

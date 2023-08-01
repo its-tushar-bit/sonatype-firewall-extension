@@ -37,20 +37,19 @@ public class PerpetualLockDAOTest
   @Test
   public void testCrud() {
     // setup:
-    TransactionContext txn = perpetualLockDAO.createTransactionContext();
-    txn.begin();
     final String lockId = "test-lock-1";
+    try (TransactionContext txn = perpetualLockDAO.createTransactionContext()) {
+      txn.begin();
+      // when: get non-existent lock
+      PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, lockId);
 
-    // when: get non-existent lock
-    PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, lockId);
-
-    // then: lock doesn't exist
-    assertThat(perpetualLock).isNull();
+      // then: lock doesn't exist
+      assertThat(perpetualLock).isNull();
+    }
 
     // when: create the lock
-    txn.close();
     Date expiration = new Date(currentTimeMillis() + 5_000);
-    perpetualLock = perpetualLockDAO.createPerpetualLock(lockId, "test-owner", expiration);
+    PerpetualLock perpetualLock = perpetualLockDAO.createPerpetualLock(lockId, "test-owner", expiration);
 
     // then: lock created
     assertThat(perpetualLock).isNotNull();
@@ -175,23 +174,23 @@ public class PerpetualLockDAOTest
 
   @Test
   public void testReservePerpetualLock_unassignedAndViaSelectForUpdate() {
+    Date expiration = new Date(currentTimeMillis() + 3_000);
     // given: an existing unassigned perpetual lock
     final String lockId = "test-lock-8";
     perpetualLockDAO.createPerpetualLock(lockId, null, null);
 
     // when: select for update
-    TransactionContext txn = perpetualLockDAO.createTransactionContext();
-    txn.begin();
-    PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, lockId);
+    try (TransactionContext txn = perpetualLockDAO.createTransactionContext()) {
+      txn.begin();
+      PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, lockId);
 
-    // then: lock selected
-    assertThat(perpetualLock).isNotNull();
+      // then: lock selected
+      assertThat(perpetualLock).isNotNull();
 
-    // when: reserve lock
-    Date expiration = new Date(currentTimeMillis() + 3_000);
-    assertThat(perpetualLockDAO.reservePerpetualLock(txn, lockId, "test-owner", expiration)).isEqualTo(1);
-    txn.commit();
-    txn.close();
+      // when: reserve lock
+      assertThat(perpetualLockDAO.reservePerpetualLock(txn, lockId, "test-owner", expiration)).isEqualTo(1);
+      txn.commit();
+    }
 
     // then: lock was reserved
     PerpetualLock fetchedLock = perpetualLockDAO.getPerpetualLockById(lockId);
@@ -208,18 +207,18 @@ public class PerpetualLockDAOTest
     perpetualLockDAO.createPerpetualLock(lockId, "test-owner-1", expiration1);
 
     // when: select for update
-    TransactionContext txn = perpetualLockDAO.createTransactionContext();
-    txn.begin();
-    PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, lockId);
+    try (TransactionContext txn = perpetualLockDAO.createTransactionContext()) {
+      txn.begin();
+      PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, lockId);
 
-    // then: lock was selected
-    assertThat(perpetualLock).isNotNull();
+      // then: lock was selected
+      assertThat(perpetualLock).isNotNull();
 
-    // when: reserve lock
-    Date expiration2 = new Date(currentTimeMillis() + 5_000);
-    assertThat(perpetualLockDAO.reservePerpetualLock(txn, lockId, "test-owner-2", expiration2)).isZero();
-    txn.commit();
-    txn.close();
+      // when: reserve lock
+      Date expiration2 = new Date(currentTimeMillis() + 5_000);
+      assertThat(perpetualLockDAO.reservePerpetualLock(txn, lockId, "test-owner-2", expiration2)).isZero();
+      txn.commit();
+    }
 
     // then: lock was NOT reserved
     PerpetualLock fetchedLock = perpetualLockDAO.getPerpetualLockById(lockId);

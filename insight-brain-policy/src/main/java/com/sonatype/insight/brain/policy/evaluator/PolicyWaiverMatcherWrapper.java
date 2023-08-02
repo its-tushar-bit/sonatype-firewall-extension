@@ -146,9 +146,9 @@ public class PolicyWaiverMatcherWrapper
     return !isLegacyWaiver() && policyWaiver.getConstraintFactsJson().equals(constraintFactsJson);
   }
 
-  boolean matchesConstraintFacts(List<ConstraintFact> constraintFacts) {
-    return ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(
-        policyWaiver.getConstraintFacts(), constraintFacts) == 0;
+  public boolean matchesConstraintFacts(List<ConstraintFact> constraintFacts) {
+    return policyWaiver.getConstraintFacts() != null && ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR
+        .compare(policyWaiver.getConstraintFacts(), constraintFacts) == 0;
   }
 
   boolean isLegacyWaiver() {

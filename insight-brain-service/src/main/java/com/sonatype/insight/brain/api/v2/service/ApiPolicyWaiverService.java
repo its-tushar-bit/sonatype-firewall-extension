@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
@@ -418,6 +419,7 @@ public class ApiPolicyWaiverService
 
     String policyId = policyViolation.getPolicyId();
     String constraintFactsJson = policyViolation.getConstraintFactsJson();
+    List<ConstraintFact> constraintFacts = policyViolation.getConstraintFacts();
     String hash = policyViolation.getHash();
     String ownerId = policyViolation.getOwnerId();
     ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
@@ -425,8 +427,8 @@ public class ApiPolicyWaiverService
     Owner owner = ownerDAO.getById(ownerId);
 
     Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers = getAllApplicableWaiversWithAuthzCheck(owner).stream()
-        .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, componentIdentifier, hash,
-            policyWaiver))
+        .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, constraintFacts,
+            componentIdentifier, hash, policyWaiver))
         .map(policyWaiver ->
             ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId()), violationId))
         .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
@@ -530,6 +532,7 @@ public class ApiPolicyWaiverService
   private boolean filterWaiverByCriteria(
       String policyId,
       String constraintFactsJson,
+      List<ConstraintFact> constraintFacts,
       ComponentIdentifier componentIdentifier,
       String hash,
       PolicyWaiver policyWaiver)
@@ -540,7 +543,8 @@ public class ApiPolicyWaiverService
 
     return policyWaiverMatcherWrapper.matchesPolicyId(policyId) &&
         policyWaiverMatcherWrapper.matchesComponent(componentFact) &&
-        policyWaiverMatcherWrapper.matchesConstraintFactsJson(constraintFactsJson);
+        (policyWaiverMatcherWrapper.matchesConstraintFactsJson(constraintFactsJson) ||
+            policyWaiverMatcherWrapper.matchesConstraintFacts(constraintFacts));
   }
 
   private boolean hasWaiverExpired(Date expiryTime) {

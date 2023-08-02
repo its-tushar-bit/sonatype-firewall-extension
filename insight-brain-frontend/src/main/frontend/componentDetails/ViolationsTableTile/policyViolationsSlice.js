@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { always, equals, flatten } from 'ramda';
+import { always, flatten } from 'ramda';
 
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getComponentWaivers, getProductFeaturesUrl, getReportPolicyThreatsUrl } from 'MainRoot/util/CLMLocation';
@@ -16,6 +16,7 @@ import { getAddWaiverPermissionForApplicationPromiseBuilder } from 'MainRoot/wai
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
+import { populateViolationsWithApplicableWaivers } from 'MainRoot/util/waiverUtils';
 
 const REDUCER_NAME = 'componentDetailsPolicyViolations';
 
@@ -66,31 +67,13 @@ const loadFulfilled = (state, { payload }) => {
 
   return {
     ...state,
-    violations: mapWaiversInformationToViolations(componentWaivers, violations),
+    violations: populateViolationsWithApplicableWaivers(componentWaivers, violations),
     waivers: componentWaivers,
     loading: false,
     loadError: null,
     hasPermissionToAddWaivers: permissionResult,
     innerSourceTransitiveWaiver,
   };
-};
-
-const mapWaiversInformationToViolations = (componentWaivers, allViolations) => {
-  // the waivers are already filtered for the component so there's no need for a hash matcher
-  const matchesPolicyId = (waiver, violation) => waiver.policyId === violation.policyId;
-  const matchesConstraintFacts = (waiver, violation) =>
-    waiver.constraintFactsJson != null && equals(waiver.constraintFactsJson, violation.constraintFactsJson);
-
-  const waiverIsApplicableToViolation = (waiver, violation) => {
-    return matchesPolicyId(waiver, violation) && matchesConstraintFacts(waiver, violation);
-  };
-
-  return allViolations?.map((violation) => ({
-    ...violation,
-    applicableWaivers: componentWaivers
-      .filter((waiver) => waiverIsApplicableToViolation(waiver, violation))
-      .map((waiver) => waiver.policyWaiverId),
-  }));
 };
 
 function loadFailed(state, { payload }) {

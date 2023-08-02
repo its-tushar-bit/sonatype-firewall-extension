@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { map, prop, equals } from 'ramda';
+import { map, prop, equals, comparator, tryCatch, F, cond, T } from 'ramda';
 import { getFutureDate } from './jsUtil';
 import { STANDARD_DATE_FORMAT, formatDate } from './dateUtils';
 import { isUnknownComponent } from 'MainRoot/util/componentNameUtils';
@@ -193,14 +193,68 @@ export const formatWaiverDetails = (waiver) => {
   };
 };
 
-export const mapApplicableWaiversToViolations = (componentWaivers, allViolations) => {
+const idComparator = comparator((a, b) => a.constraintId < b.constraintId);
+const conditionTypeComparator = comparator((a, b) => a.conditionTypeId < b.conditionTypeId);
+const triggerJsonComparator = comparator((a, b) => a.triggerJson < b.triggerJson);
+const arraysHaveSameLength = (array1, arra2) => equals(array1?.length, arra2?.length);
+
+const sortConstraintFacts = (constraintFacts) => {
+  return constraintFacts.sort(idComparator);
+};
+
+const sortConditionFacts = (conditionFacts) => {
+  return conditionFacts.sort(conditionTypeComparator).sort(triggerJsonComparator);
+};
+
+const constraintFactsCondition = cond([
+  [
+    arraysHaveSameLength,
+    (constraintFacts1, constraintFacts2) =>
+      constraintFacts1.every((constraintFact, i) => {
+        constraintFact.conditionFacts = sortConditionFacts(constraintFact.conditionFacts);
+        constraintFacts2[i].conditionFacts = sortConditionFacts(constraintFacts2[i].conditionFacts);
+
+        return (
+          idComparator(constraintFact, constraintFacts2[i]) === 0 &&
+          constraintFact?.conditionFacts.every(
+            (conditionFact, j) =>
+              conditionTypeComparator(conditionFact, constraintFacts2[i].conditionFacts[j]) === 0 &&
+              triggerJsonComparator(conditionFact, constraintFacts2[i].conditionFacts[j]) === 0
+          )
+        );
+      }),
+  ],
+  [T, F],
+]);
+
+const matchesConstraintFacts = tryCatch((waiver, violation) => {
+  const violationConstraintFacts = sortConstraintFacts(JSON.parse(violation.constraintFactsJson));
+  const waiverConstraintFacts = sortConstraintFacts(JSON.parse(waiver.constraintFactsJson));
+
+  return constraintFactsCondition(violationConstraintFacts, waiverConstraintFacts);
+}, F);
+
+const matchesConstraintFactsSimple = (waiver, violation) =>
+  waiver.constraintFactsJson != null && equals(waiver.constraintFactsJson, violation.constraintFactsJson);
+
+/**
+ * Populate the applicableWaivers property for all the provided violations,
+ * to identify the applicable waivers first try to compare the constraint facts as plain json
+ * if that fails perform a more in depth comparisson similar to the backend
+ *
+ * @param {*} componentWaivers
+ * @param {*} allViolations
+ * @returns A list of violations with applicable waivers
+ */
+export const populateViolationsWithApplicableWaivers = (componentWaivers, allViolations) => {
   // the waivers are already filtered for the component so there's no need for a hash matcher
   const matchesPolicyId = (waiver, violation) => waiver.policyId === violation.policyId;
-  const matchesConstraintFacts = (waiver, violation) =>
-    waiver.constraintFactsJson != null && equals(waiver.constraintFactsJson, violation.constraintFactsJson);
 
   const waiverIsApplicableToViolation = (waiver, violation) => {
-    return matchesPolicyId(waiver, violation) && matchesConstraintFacts(waiver, violation);
+    return (
+      matchesPolicyId(waiver, violation) &&
+      (matchesConstraintFactsSimple(waiver, violation) || matchesConstraintFacts(waiver, violation))
+    );
   };
 
   return allViolations?.map((violation) => ({

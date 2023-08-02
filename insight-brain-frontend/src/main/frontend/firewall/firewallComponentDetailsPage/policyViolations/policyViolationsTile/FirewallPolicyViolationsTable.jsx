@@ -9,7 +9,7 @@ import { useDispatch } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import { sort } from 'ramda';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
-import { waiverType, mapApplicableWaiversToViolations } from 'MainRoot/util/waiverUtils';
+import { waiverType, populateViolationsWithApplicableWaivers } from 'MainRoot/util/waiverUtils';
 import FirewallPolicyViolationsTableRow from './FirewallPolicyViolationsTableRow';
 import PolicyViolationDetailsPopover from './FirewallPolicyViolationDetailsPopover';
 import FirewallExistingWaiversPopover from './FirewallExistingWaiversPopover';
@@ -33,7 +33,7 @@ export default function FirewallPolicyViolationsTable({
   tabId,
   repositoryId,
 }) {
-  const mutatedViolations = mapApplicableWaiversToViolations(waivers, violations);
+  const mutatedViolations = populateViolationsWithApplicableWaivers(waivers, violations);
   const orderedViolations = violations ? sortPolicyByThreat(mutatedViolations) : [];
   const [showViolationsDetailPopover, showPopover] = useState(false);
   const [selectPolicyId, savePolicyId] = useState('');

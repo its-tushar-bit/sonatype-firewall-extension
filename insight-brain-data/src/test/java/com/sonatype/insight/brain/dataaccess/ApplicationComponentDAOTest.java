@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
-import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -439,79 +438,6 @@ public class ApplicationComponentDAOTest
     assertThat(applicationComponentLicenseDAO.getByApplicationComponentId(applicationComponent2.getId()))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(applicationComponentLicense3, applicationComponentLicense4);
-  }
-
-  @Test
-  public void testGetApplicationIdsAndStageTypeIdsByLicenses() {
-    ApplicationComponent applicationComponent1 = tempEntity.newApplicationComponent(application.getId(),
-        BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-    tempEntity.newApplicationComponentLicense(applicationComponent1.getId(), "Apache-1.0");
-
-    Application otherApplication = tempEntity.newApplication(organization.getId());
-
-    ApplicationComponent applicationComponent2 = tempEntity.newApplicationComponent(otherApplication.getId(),
-        BuildStageType.ID, "hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
-    tempEntity.newApplicationComponentLicense(applicationComponent2.getId(), "Apache-1.0");
-
-    ApplicationComponent applicationComponent3 = tempEntity.newApplicationComponent(application.getId(),
-        DevelopStageType.ID, "hash3", ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
-    tempEntity.newApplicationComponentLicense(applicationComponent3.getId(), "Apache-2.0");
-
-    ApplicationComponent applicationComponent4 = tempEntity.newApplicationComponent(otherApplication.getId(),
-        DevelopStageType.ID, "hash4", ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
-    tempEntity.newApplicationComponentLicense(applicationComponent4.getId(), "Apache-2.0");
-
-    ApplicationComponent applicationComponent5 = tempEntity.newApplicationComponent(application.getId(),
-        BuildStageType.ID, "hash5", ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5"));
-    tempEntity.newApplicationComponentLicense(applicationComponent5.getId(), "MIT");
-    tempEntity.newLicenseOverride(application.getId(), applicationComponent5.getComponentIdentifier(),
-        LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("Apache-1.0"));
-
-    Application otherApplicationForOrg = tempEntity.newApplicationWithParent();
-
-    ApplicationComponent applicationComponent6 = tempEntity.newApplicationComponent(otherApplicationForOrg.getId(),
-        DevelopStageType.ID, "hash6", ComponentIdentifier.createMavenCoordinates("g6", "a6", "v6"));
-    tempEntity.newApplicationComponentLicense(applicationComponent6.getId(), "MIT");
-    tempEntity.newLicenseOverride(otherApplicationForOrg.getOrganizationId(),
-        applicationComponent6.getComponentIdentifier(),
-        LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("Apache-1.0"));
-
-    Application otherApplicationForRootOrg = tempEntity.newApplication(organization.getId());
-
-    ApplicationComponent applicationComponent7 = tempEntity.newApplicationComponent(otherApplicationForRootOrg.getId(),
-        BuildStageType.ID, "hash7", ComponentIdentifier.createMavenCoordinates("g7", "a7", "v7"));
-    tempEntity.newApplicationComponentLicense(applicationComponent7.getId(), "MIT");
-    tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, applicationComponent7.getComponentIdentifier(),
-        LicenseOverrideStatus.OVERRIDDEN, Sets.newHashSet("Apache-2.0"));
-
-    Application oneMoreApplication = tempEntity.newApplication(organization.getId());
-    ApplicationComponent applicationComponent8 = tempEntity.newApplicationComponent(oneMoreApplication.getId(),
-        BuildStageType.ID, "hash8", ComponentIdentifier.createMavenCoordinates("g8", "a8", "v8"));
-    tempEntity.newApplicationComponentLicense(applicationComponent8.getId(), "Apache-1.0");
-
-    ApplicationComponent applicationComponent9 = tempEntity.newApplicationComponent(application.getId(),
-        ReleaseStageType.ID, "hash9", ComponentIdentifier.createMavenCoordinates("g9", "a9", "v9"));
-    tempEntity.newApplicationComponentLicense(applicationComponent9.getId(), "Apache-2.0");
-
-    ApplicationComponent applicationComponent10 = tempEntity.newApplicationComponent(otherApplication.getId(),
-        BuildStageType.ID, "hash10", ComponentIdentifier.createMavenCoordinates("g10", "a10", "v10"));
-    tempEntity.newApplicationComponentLicense(applicationComponent10.getId(), "MIT");
-
-    List<Object[]> result =
-        dao.getApplicationIdsAndStageTypeIdsByLicenses(
-            Sets.newHashSet(application.getId(), otherApplication.getId(), otherApplicationForOrg.getId(),
-                otherApplicationForRootOrg.getId()),
-            Sets.newHashSet(BuildStageType.ID, DevelopStageType.ID), Sets.newHashSet("Apache-1.0", "Apache-2.0"));
-
-    assertThat(result)
-        .isNotEmpty()
-        .containsExactlyInAnyOrder(
-            new Object[]{application.getId(), BuildStageType.ID},
-            new Object[]{otherApplication.getId(), BuildStageType.ID},
-            new Object[]{application.getId(), DevelopStageType.ID},
-            new Object[]{otherApplication.getId(), DevelopStageType.ID},
-            new Object[]{otherApplicationForOrg.getId(), DevelopStageType.ID},
-            new Object[]{otherApplicationForRootOrg.getId(), BuildStageType.ID});
   }
 
   @Test

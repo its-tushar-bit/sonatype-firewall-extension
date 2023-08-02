@@ -306,7 +306,6 @@ public class ApiLicenseLegalService
       Set<String> applicationIds,
       Set<String> tagIds,
       Set<String> stageTypeIds,
-      Set<String> licenseIds,
       Set<LicenseLegalReviewStatus> reviewStatus,
       LicenseLegalResultsOrder order,
       int page,
@@ -333,14 +332,6 @@ public class ApiLicenseLegalService
       List<Object[]> applicationIdsAndStageTypeIds =
           applicationComponentDAO.getApplicationIdsAndStageTypeIdsByReviewStatus(applicationIdsToCheck,
               stageTypeIdsToCheck, reviewStatus.contains(LicenseLegalReviewStatus.OPEN));
-
-      recalculateApplicationIdsAndStateTypeIds(applicationIdsAndStageTypeIds, applicationIdsToCheck,
-          stageTypeIdsToCheck);
-    }
-
-    if (isNotEmpty(applicationIdsToCheck) && isNotEmpty(licenseIds)) {
-      List<Object[]> applicationIdsAndStageTypeIds = applicationComponentDAO
-          .getApplicationIdsAndStageTypeIdsByLicenses(applicationIdsToCheck, stageTypeIdsToCheck, licenseIds);
 
       recalculateApplicationIdsAndStateTypeIds(applicationIdsAndStageTypeIds, applicationIdsToCheck,
           stageTypeIdsToCheck);
@@ -409,20 +400,13 @@ public class ApiLicenseLegalService
             .collect(Collectors.toSet())
         : filter.stageTypeIds;
 
-    if (isNotEmpty(applicationIdsToCheck) && isNotEmpty(filter.licenseIds)) {
-      List<Object[]> applicationIdsAndStageTypeIds = applicationComponentDAO
-          .getApplicationIdsAndStageTypeIdsByLicenses(applicationIdsToCheck, stageTypeIdsToCheck, filter.licenseIds);
-
-      recalculateApplicationIdsAndStateTypeIds(applicationIdsAndStageTypeIds, applicationIdsToCheck,
-          stageTypeIdsToCheck);
-    }
-
     if (isEmpty(applicationIdsToCheck) || isEmpty(stageTypeIdsToCheck)) {
       return new ApiLicenseLegalComponentDashboardResultDTO();
     }
 
-    List<ApplicationComponentLicensesDTO> applicationComponentLicenses = applicationComponentLicenseDAO
-        .getApplicationComponentEffectiveLicenses(applicationIdsToCheck, stageTypeIdsToCheck, true);
+    List<ApplicationComponentLicensesDTO> applicationComponentLicenses =
+        applicationComponentLicenseDAO.getApplicationComponentEffectiveLicensesWithOverridesAtRootOrganization(
+            applicationIdsToCheck, stageTypeIdsToCheck);
 
     Map<String, ApiLicenseLegalComponentDashboardDTO> componentDtoByHash = new HashMap<>();
     Map<String, Set<String>> multiLicenseIdsByHash = new HashMap<>();
@@ -470,8 +454,6 @@ public class ApiLicenseLegalService
 
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
       List<ApiLicenseLegalComponentDashboardDTO> components = componentDtoByHash.values().stream()
-          .filter(dto -> isEmpty(filter.licenseIds)
-              || !Collections.disjoint(singleLicenseIdsByHash.get(dto.hash), filter.licenseIds))
           .map(dto -> {
             if (needsReviewStatusFilter) {
               fillReviewProgress(tx, dto, singleLicenseIdsByHash, obligationNamesByLicenseId);

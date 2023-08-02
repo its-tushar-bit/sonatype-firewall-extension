@@ -17,7 +17,6 @@ public class LicenseLegalFilterDTO
                                Set<String> applicationIds,
                                Set<String> tagIds,
                                Set<String> stageTypeIds,
-                               Set<String> licenseIds,
                                LicenseLegalResultsOrder order,
                                int page,
                                int pageSize,
@@ -27,7 +26,6 @@ public class LicenseLegalFilterDTO
     this.applicationIds = applicationIds;
     this.tagIds = tagIds;
     this.stageTypeIds = stageTypeIds;
-    this.licenseIds = licenseIds;
     this.order = order;
     this.page = page;
     this.pageSize = pageSize;
@@ -38,7 +36,6 @@ public class LicenseLegalFilterDTO
                                Set<String> applicationIds,
                                Set<String> tagIds,
                                Set<String> stageTypeIds,
-                               Set<String> licenseIds,
                                Set<LicenseLegalReviewStatus> reviewStatus,
                                LicenseLegalResultsOrder order,
                                int page,
@@ -49,7 +46,6 @@ public class LicenseLegalFilterDTO
     this.applicationIds = applicationIds;
     this.tagIds = tagIds;
     this.stageTypeIds = stageTypeIds;
-    this.licenseIds = licenseIds;
     this.reviewStatus = reviewStatus;
     this.order = order;
     this.page = page;
@@ -64,8 +60,6 @@ public class LicenseLegalFilterDTO
   public Set<String> stageTypeIds;
 
   public Set<String> tagIds;
-
-  public Set<String> licenseIds;
 
   public Set<LicenseLegalReviewStatus> reviewStatus;
 

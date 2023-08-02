@@ -261,13 +261,13 @@ public class ApiLicenseLegalServiceTest
     setUnlicensedForAdvancedLegalPack();
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
-            null, null, 0, 0));
+            null, 0, 0));
   }
 
   @Test
   public void testGetLicenseLegalApplicationsDashboard_WithoutApplications() {
     ApiLicenseLegalApplicationDashboardResultDTO dto =
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
     assertThat(dto).isNotNull();
     assertThat(dto.results).isEmpty();
     assertThat(dto.totalResultsCount).isZero();
@@ -277,7 +277,7 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationsDashboard_WithoutEvaluations() {
     tempEntity.newApplicationWithParent();
     ApiLicenseLegalApplicationDashboardResultDTO dto =
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
     assertThat(dto).isNotNull();
     assertThat(dto.results).isEmpty();
     assertThat(dto.totalResultsCount).isZero();
@@ -292,7 +292,7 @@ public class ApiLicenseLegalServiceTest
     PolicyEvaluation policyEvaluation = triple.getRight();
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
 
     assertThat(resultDto).isNotNull();
     assertThat(resultDto.results).isNotEmpty();
@@ -315,7 +315,7 @@ public class ApiLicenseLegalServiceTest
     PolicyEvaluation policyEvaluation2 = triple.getRight();
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
 
     assertThat(resultDto).isNotNull();
     assertThat(resultDto.results).isNotEmpty();
@@ -343,7 +343,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
         apiLicenseLegalService.getLicenseLegalApplicationsDashboard(Sets.newHashSet(app.getOrganizationId()), null,
-            null, null, null, null, null, 1, 10);
+            null, null, null, null, 1, 10);
 
     assertThat(resultDto.results).hasSize(1);
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
@@ -361,7 +361,7 @@ public class ApiLicenseLegalServiceTest
     setupApplicationDashboardEntities("Test-Tag-2", BuildStageType.ID);
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto = apiLicenseLegalService
-        .getLicenseLegalApplicationsDashboard(null, Sets.newHashSet(app.getId()), null, null, null, null, null, 1, 10);
+        .getLicenseLegalApplicationsDashboard(null, Sets.newHashSet(app.getId()), null, null, null, null, 1, 10);
 
     assertThat(resultDto.results).hasSize(1);
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
@@ -379,7 +379,7 @@ public class ApiLicenseLegalServiceTest
     setupApplicationDashboardEntities("Test-Tag-2", BuildStageType.ID);
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto = apiLicenseLegalService
-        .getLicenseLegalApplicationsDashboard(null, null, Sets.newHashSet(tag.getId()), null, null, null, null, 1, 10);
+        .getLicenseLegalApplicationsDashboard(null, null, Sets.newHashSet(tag.getId()), null, null, null, 1, 10);
 
     assertThat(resultDto.results).hasSize(1);
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
@@ -398,34 +398,11 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
         apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, Sets.newHashSet(tag.getId()),
-            Sets.newHashSet(ReleaseStageType.ID), null, null, null, 1, 10);
+            Sets.newHashSet(ReleaseStageType.ID), null, null, 1, 10);
 
     assertThat(resultDto.results).hasSize(1);
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
     assertLegalLicenseApplicationDashboardDTO(app, tag, policyEvaluation, resultDto.results.get(0));
-  }
-
-  @Test
-  public void testGetLicenseLegalApplicationsDashboard_ByLicenseIds() {
-    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
-    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
-    Triple<Application, Tag, PolicyEvaluation> appTagEval1 = setupApplicationWithLicenses(componentIdentifier1, "MIT");
-    Triple<Application, Tag, PolicyEvaluation> appTagEval2 =
-        setupApplicationWithLicenses(componentIdentifier2, "Apache-2.0");
-    tempEntity.newLicenseOverride(appTagEval2.getLeft().getId(), componentIdentifier2, LicenseOverrideStatus.OVERRIDDEN,
-        Sets.newHashSet("MIT"));
-    setupApplicationWithLicenses(componentIdentifier3, "LGPL-3.0");
-
-    ApiLicenseLegalApplicationDashboardResultDTO resultDto = apiLicenseLegalService
-        .getLicenseLegalApplicationsDashboard(null, null, null, null, Sets.newHashSet("MIT"), null, null, 1, 10);
-
-    assertThat(resultDto.results).hasSize(2);
-    assertThat(resultDto.totalResultsCount).isEqualTo(2);
-    assertLegalLicenseApplicationDashboardDTO(appTagEval1.getLeft(), appTagEval1.getMiddle(), appTagEval1.getRight(),
-        findResult(resultDto.results, appTagEval1.getLeft().getId()), 1, 1);
-    assertLegalLicenseApplicationDashboardDTO(appTagEval2.getLeft(), appTagEval2.getMiddle(), appTagEval2.getRight(),
-        findResult(resultDto.results, appTagEval2.getLeft().getId()), 1, 1);
   }
 
   @Test
@@ -454,8 +431,8 @@ public class ApiLicenseLegalServiceTest
         InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent2.getComponentIdentifier()).getPackageUrl(),
         otherApp);
 
-    ApiLicenseLegalApplicationDashboardResultDTO resultDto = apiLicenseLegalService
-        .getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+    ApiLicenseLegalApplicationDashboardResultDTO resultDto =
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
 
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
     assertThat(resultDto.results).hasSize(1);
@@ -507,7 +484,7 @@ public class ApiLicenseLegalServiceTest
         .when(mockApiLicenseLegalHdsService).getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
 
     assertThat(resultDto.results).hasSize(2);
     assertThat(resultDto.totalResultsCount).isEqualTo(2);
@@ -528,14 +505,14 @@ public class ApiLicenseLegalServiceTest
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash1", componentIdentifier);
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null,
             Sets.newHashSet(LicenseLegalReviewStatus.NOT_STARTED), null, 1, 10);
 
     assertThat(resultDto.results).hasSize(1);
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
     assertLegalLicenseApplicationDashboardDTO(app, tag, policyEvaluation, resultDto.results.get(0), 1, 1);
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null,
         Sets.newHashSet(LicenseLegalReviewStatus.OPEN), null, 1, 10);
 
     assertThat(resultDto.results).isEmpty();
@@ -544,13 +521,13 @@ public class ApiLicenseLegalServiceTest
     tempEntity.newComponentObligation(componentIdentifier, app.getId(), "name", "comment", ObligationStatus.FULFILLED,
         "hash");
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null,
         Sets.newHashSet(LicenseLegalReviewStatus.NOT_STARTED), null, 1, 10);
 
     assertThat(resultDto.results).isEmpty();
     assertThat(resultDto.totalResultsCount).isZero();
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null,
         Sets.newHashSet(LicenseLegalReviewStatus.OPEN), null, 1, 10);
 
     assertThat(resultDto.results).hasSize(1);
@@ -560,7 +537,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGolangCoordinates("n2", "v2");
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash2", componentIdentifier2);
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null,
         Sets.newHashSet(LicenseLegalReviewStatus.OPEN, LicenseLegalReviewStatus.NOT_STARTED), null, 1, 10);
 
     assertThat(resultDto.results).hasSize(1);
@@ -674,13 +651,13 @@ public class ApiLicenseLegalServiceTest
         .collect(Collectors.toList());
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null,
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
             LicenseLegalResultsOrder.APPLICATION_NAME_ASC, 1, 10);
 
     assertThat(resultDto.results.stream().map(dto -> dto.applicationName).collect(Collectors.toList()))
         .containsExactlyElementsOf(applicationNames);
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null,
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
         LicenseLegalResultsOrder.APPLICATION_NAME_DESC, 1, 10);
     Collections.reverse(applicationNames);
 
@@ -693,28 +670,28 @@ public class ApiLicenseLegalServiceTest
         .sorted()
         .collect(Collectors.toList());
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(
-        null, null, null, null, null, null, LicenseLegalResultsOrder.LAST_SCAN_TIME_ASC, 1, 10);
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
+        LicenseLegalResultsOrder.LAST_SCAN_TIME_ASC, 1, 10);
 
     assertThat(resultDto.results.stream().map(dto -> dto.lastScanTime).collect(Collectors.toList()))
         .containsExactlyElementsOf(scanTimes);
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null,
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
         LicenseLegalResultsOrder.LAST_SCAN_TIME_DESC, 1, 10);
     Collections.reverse(scanTimes);
 
     assertThat(resultDto.results.stream().map(dto -> dto.lastScanTime).collect(Collectors.toList()))
         .containsExactlyElementsOf(scanTimes);
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(
-        null, null, null, null, null, null, LicenseLegalResultsOrder.TAG_NAMES_ASC, 1, 10);
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
+        LicenseLegalResultsOrder.TAG_NAMES_ASC, 1, 10);
 
     assertThat(resultDto.results.stream()
         .flatMap(dto -> dto.applicationTagNames.stream())
         .collect(Collectors.toList()))
         .containsExactly("Tag1", "Tag2", "Tag3");
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null,
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
         LicenseLegalResultsOrder.TAG_NAMES_DESC, 1, 10);
 
     assertThat(resultDto.results.stream()
@@ -727,8 +704,7 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationsDashboard_PaginationInvalidPage() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
-            () -> apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null,
-                0, 1))
+            () -> apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 0, 1))
         .withMessage("Request must include page and pageSize values greater than zero.");
   }
 
@@ -736,8 +712,7 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationsDashboard_PaginationInvalidPageSize() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
-            () -> apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null,
-                1, 0))
+            () -> apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 0))
         .withMessage("Request must include page and pageSize values greater than zero.");
   }
 
@@ -748,7 +723,7 @@ public class ApiLicenseLegalServiceTest
     setupApplicationDashboardEntities("Tag3", BuildStageType.ID);
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null,
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
             LicenseLegalResultsOrder.TAG_NAMES_ASC, 1, 2);
 
     assertThat(resultDto.totalResultsCount).isEqualTo(3);
@@ -756,14 +731,14 @@ public class ApiLicenseLegalServiceTest
     assertThat(resultDto.results.get(0).applicationTagNames.get(0)).isEqualTo("Tag1");
     assertThat(resultDto.results.get(1).applicationTagNames.get(0)).isEqualTo("Tag2");
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null,
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
         LicenseLegalResultsOrder.TAG_NAMES_ASC, 2, 2);
 
     assertThat(resultDto.totalResultsCount).isEqualTo(3);
     assertThat(resultDto.results).hasSize(1);
     assertThat(resultDto.results.get(0).applicationTagNames.get(0)).isEqualTo("Tag3");
 
-    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null,
+    resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
         LicenseLegalResultsOrder.TAG_NAMES_ASC, 3, 2);
 
     assertThat(resultDto.totalResultsCount).isEqualTo(3);
@@ -956,43 +931,6 @@ public class ApiLicenseLegalServiceTest
     ApiLicenseLegalComponentDashboardDTO dto = resultDto.results.get(0);
     assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier, Sets.newHashSet("MIT"), 1, 0, 0,
         "Liberal");
-  }
-
-  @Test
-  public void testGetLicenseLegalComponentsDashboard_ByLicense() {
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier, "Apache-2.0", "MIT");
-    setupComponentDashboardEntities("Tag1", ReleaseStageType.ID, "somHash2", componentIdentifier, "AGPL-3.0");
-
-    ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
-        .getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(
-            null, null, null, null, Sets.newHashSet("MIT", "Apache-2.0"), null, 1, 1, null));
-
-    assertThat(resultDto.totalResultsCount).isEqualTo(1);
-    assertThat(resultDto.results).hasSize(1);
-    ApiLicenseLegalComponentDashboardDTO dto = resultDto.results.get(0);
-    assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier,
-        Sets.newHashSet("Apache-2.0", "MIT"), 1, 0, 0, "Liberal");
-  }
-
-  @Test
-  public void testGetLicenseLegalComponentsDashboard_ByLicenseWithOverride() {
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier,
-        "license-test-1", "license-test-2").getLeft();
-
-    tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, componentIdentifier,
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
-
-    ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
-        .getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(
-            null, null, null, null, Sets.newHashSet("Apache-2.0"), null, 1, 1, null));
-
-    assertThat(resultDto.totalResultsCount).isEqualTo(1);
-    assertThat(resultDto.results).hasSize(1);
-    ApiLicenseLegalComponentDashboardDTO dto = resultDto.results.get(0);
-    assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier, Sets.newHashSet("Apache-2.0"), 1, 0,
-        0, "Liberal");
   }
 
   @Test
@@ -1233,9 +1171,8 @@ public class ApiLicenseLegalServiceTest
     setupLicenseObligations(applicationTagPair3.getLeft(), componentIdentifier3, licenses, ObligationStatus.FULFILLED);
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalComponentsDashboard(
-            new LicenseLegalFilterDTO(null, null, null, null, null,
-                Sets.newHashSet(LicenseLegalReviewStatus.OPEN), null, 1, 5, null));
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(null, null, null, null,
+            Sets.newHashSet(LicenseLegalReviewStatus.OPEN), null, 1, 5, null));
 
     assertThat(resultDto.results).hasSize(3);
     assertThat(resultDto.totalResultsCount).isEqualTo(3);
@@ -1246,10 +1183,8 @@ public class ApiLicenseLegalServiceTest
     assertLegalLicenseComponentDashboardDTO(resultDto.results.get(2), "somHash4", componentIdentifier4,
         Sets.newHashSet("Public Domain"), 1, 0, 0, "Liberal");
 
-    resultDto =
-        apiLicenseLegalService.getLicenseLegalComponentsDashboard(
-            new LicenseLegalFilterDTO(null, null, null, null, null,
-                Sets.newHashSet(LicenseLegalReviewStatus.NOT_STARTED), null, 1, 5, null));
+    resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(null, null, null,
+        null, Sets.newHashSet(LicenseLegalReviewStatus.NOT_STARTED), null, 1, 5, null));
 
     assertThat(resultDto.results).hasSize(1);
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
@@ -1275,9 +1210,8 @@ public class ApiLicenseLegalServiceTest
     setupLicenseObligations(applicationTagPair2.getLeft(), componentIdentifier2, licenses, ObligationStatus.FLAGGED);
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalComponentsDashboard(
-            new LicenseLegalFilterDTO(null, null, null, null, null,
-                Sets.newHashSet(LicenseLegalReviewStatus.NOT_STARTED), null, 1, 5, null));
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(null, null, null, null,
+            Sets.newHashSet(LicenseLegalReviewStatus.NOT_STARTED), null, 1, 5, null));
 
     assertThat(resultDto.results).hasSize(2);
     assertThat(resultDto.totalResultsCount).isEqualTo(2);

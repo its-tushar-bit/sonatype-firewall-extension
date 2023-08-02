@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -174,68 +173,6 @@ public class ApplicationComponentDAO
       String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
           " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)";
       return getList(sQuery, applicationIds, stageTypeIds);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public List<Object[]> getApplicationIdsAndStageTypeIdsByLicenses(
-      Set<String> applicationIds,
-      Set<String> stageTypeIds,
-      Set<String> licenseIds)
-  {
-    try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT DISTINCT ac.application_id, ac.stage_type_id" + //
-          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component ac" + //
-          "   INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application a" + //
-          "     ON a.application_id = ac.application_id" + //
-          "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " +
-          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" +
-          "              WHERE lol.license_override_id = lo.license_override_id) li" + //
-          "     ON li.owner_id = ac.application_id" + //
-          "     AND li.component_id_format = ac.component_id_format" + //
-          "     AND li.component_id_coordinates_json = ac.component_id_coordinates_json" + //
-          "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " +
-          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" +
-          "              WHERE lol.license_override_id = lo.license_override_id) li2" + //
-          "     ON li2.owner_id = a.organization_id" + //
-          "     AND li2.component_id_format = ac.component_id_format" + //
-          "    AND li2.component_id_coordinates_json = ac.component_id_coordinates_json" + //
-          "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " +
-          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" +
-          "              WHERE lol.license_override_id = lo.license_override_id) li3" + //
-          "     ON li3.owner_id = ?1" + //
-          "     AND li3.component_id_format = ac.component_id_format" + //
-          "    AND li3.component_id_coordinates_json = ac.component_id_coordinates_json" + //
-          "   LEFT JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component_license acl" + //
-          "     ON acl.application_component_id = ac.application_component_id" + //
-          " WHERE ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
-          " AND COALESCE(li.license_id, li2.license_id, li3.license_id, acl.effective_license_id) IN " + //
-          buildPositionalParameters(licenseIds, stageTypeIds.size() + 2);
-
-      boolean requiresManualFilter = requiresManualFilter(applicationIds);
-
-      if (!requiresManualFilter) {
-        sQuery += " AND ac.application_id IN "
-            + buildPositionalParameters(applicationIds, stageTypeIds.size() + licenseIds.size() + 2);
-      }
-
-      javax.persistence.Query query = tx.createNativeQuery(sQuery);
-
-      query.setParameter(1, Organization.ROOT_ORGANIZATION_ID);
-      addPositionalParameters(query, stageTypeIds, 2);
-      addPositionalParameters(query, licenseIds, stageTypeIds.size() + 2);
-
-      if (!requiresManualFilter) {
-        addPositionalParameters(query, applicationIds, stageTypeIds.size() + licenseIds.size() + 2);
-        return query.getResultList();
-      }
-
-      return ((Stream<Object[]>) query.getResultStream()).parallel()
-          .filter(array -> applicationIds.contains(array[0].toString()))
-          .collect(Collectors.toList());
     }
   }
 

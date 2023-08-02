@@ -71,4 +71,8 @@ public class ApplicationComponentLicensesDTO
 
     return new HashSet<>(Arrays.asList(licensesString.split(LICENSES_DELIMITER_REGEX)));
   }
+
+  public void setLicenses(Set<String> licenseIds) {
+    licensesString = String.join(String.valueOf(LICENSES_DELIMITER_CHAR), licenseIds);
+  }
 }

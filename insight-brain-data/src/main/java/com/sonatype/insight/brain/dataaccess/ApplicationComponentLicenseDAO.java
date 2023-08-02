@@ -6,18 +6,23 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * @since 1.104
@@ -50,26 +55,8 @@ public class ApplicationComponentLicenseDAO
   /**
    * Gets the effective licenses for components from an evaluation made for an application in a give state type, grouped
    * by {@link ComponentIdentifier}.
-   * An effective license may come from an override (made by application, organization or root organization scope) or an
-   * existing record in the table application_component_license (found during evaluation).
-   *
-   * @param applicationId Application ID to query.
-   * @param stageTypeIds Stage type IDs to query.
-   * @return A list of {@link ApplicationComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
-   *         licenses.
-   */
-  public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicenses(
-      String applicationId,
-      Set<String> stageTypeIds)
-  {
-    return getApplicationComponentEffectiveLicenses(Collections.singleton(applicationId), stageTypeIds, false);
-  }
-
-  /**
-   * Gets the effective licenses for components from an evaluation made for applications in a give state type, grouped
-   * by {@link ComponentIdentifier}.
-   * An effective license may come from an override (made by application, organization or root organization scope) or an
-   * existing record in the table application_component_license (found during evaluation).
+   * An effective license may come from an override made at root organization scope or an existing record in the table
+   * application_component_license (found during evaluation).
    *
    * @param applicationIds Application IDs to query.
    * @param stageTypeIds Stage type IDs to query.
@@ -77,43 +64,26 @@ public class ApplicationComponentLicenseDAO
    *         licenses.
    */
   @SuppressWarnings("unchecked")
-  public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicenses(
+  public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicensesWithOverridesAtRootOrganization(
       Set<String> applicationIds,
-      Set<String> stageTypeIds,
-      boolean isOnlyOrganizationRootScope)
+      Set<String> stageTypeIds)
   {
     try (TransactionContext tx = createTransactionContext()) {
       boolean requiresManualFilter = requiresManualFilter(applicationIds);
 
       String sQuery = "SELECT ac.application_id, ac.hash, ac.component_id_format," + //
           "  ac.component_id_coordinates_json," + //
-          "  STRING_AGG(DISTINCT COALESCE(" + (!isOnlyOrganizationRootScope ? "li.license_id, li2.license_id, " : "") +
-          "    li3.license_id, acl.effective_license_id), CHR(10)) licenses" +
+          "  STRING_AGG(DISTINCT COALESCE(li.license_id, acl.effective_license_id), CHR(10)) licenses" +
           " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component ac" + //
           "   INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application a" + //
           "     ON a.application_id = ac.application_id" + //
-          (!isOnlyOrganizationRootScope ?
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
           "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " + //
           "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" + //
           "              WHERE lol.license_override_id = lo.license_override_id) li" + //
-          "     ON li.owner_id = ac.application_id" + //
+          "     ON li.owner_id = ?1" + //
           "     AND li.component_id_format = ac.component_id_format" + //
           "     AND li.component_id_coordinates_json = ac.component_id_coordinates_json" + //
-          "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " + //
-          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" + //
-          "              WHERE lol.license_override_id = lo.license_override_id) li2" + //
-          "     ON li2.owner_id = a.organization_id" + //
-          "     AND li2.component_id_format = ac.component_id_format" + //
-          "     AND li2.component_id_coordinates_json = ac.component_id_coordinates_json" : "") + //
-          "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " + //
-          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" + //
-          "              WHERE lol.license_override_id = lo.license_override_id) li3" + //
-          "     ON li3.owner_id = ?1" + //
-          "     AND li3.component_id_format = ac.component_id_format" + //
-          "     AND li3.component_id_coordinates_json = ac.component_id_coordinates_json" + //
           "   LEFT JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component_license acl" + //
           "     ON acl.application_component_id = ac.application_component_id" + //
           " WHERE ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
@@ -135,6 +105,74 @@ public class ApplicationComponentLicenseDAO
           .map(array -> new ApplicationComponentLicensesDTO((String) array[0], (String) array[1], (String) array[2],
               (String) array[3], (String) array[4]))
           .collect(Collectors.toList());
+    }
+  }
+
+  /**
+   * Gets the effective licenses for components from an evaluation made for an application in a give state type, grouped
+   * by {@link ComponentIdentifier}.
+   * An effective license may come from an override (made by application, organization or root organization scope) or an
+   * existing record in the table application_component_license (found during evaluation).
+   *
+   * @param applicationId Application ID to query.
+   * @param stageTypeIds Stage type IDs to query.
+   * @return A list of {@link ApplicationComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
+   *         licenses.
+   */
+  @SuppressWarnings("unchecked")
+  public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicenses(
+      String applicationId,
+      Set<String> stageTypeIds)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+
+      // Query original effective licenses
+
+      String sQuery = "SELECT ac.hash, ac.component_id_format, ac.component_id_coordinates_json," + //
+          "  STRING_AGG(DISTINCT acl.effective_license_id, CHR(10)) licenses" +
+          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component ac" + //
+          "   LEFT JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component_license acl" + //
+          "     ON acl.application_component_id = ac.application_component_id" + //
+          " WHERE ac.application_id = ?1" + //
+          " AND ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
+          " GROUP BY ac.hash, ac.component_id_format,ac.component_id_coordinates_json";
+
+      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      query.setParameter(1, applicationId);
+      addPositionalParameters(query, stageTypeIds, 2);
+
+      List<ApplicationComponentLicensesDTO> componentLicenses =
+          ((Stream<Object[]>) query.getResultStream())
+              .filter(array -> array[0] != null && array[1] != null)
+              .map(array -> new ApplicationComponentLicensesDTO(applicationId, (String) array[0], (String) array[1],
+                  (String) array[2], (String) array[3]))
+              .collect(Collectors.toList());
+
+      // Query and replace by license overrides, if any
+
+      Map<ComponentIdentifier, List<ApplicationComponentLicensesDTO>> componentByComponentIdentifier = componentLicenses
+          .stream().collect(Collectors.groupingBy(ApplicationComponentLicensesDTO::getComponentIdentifier));
+
+      LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+      Set<ComponentIdentifier> componentsWithOverrides = new HashSet<>();
+
+      new OwnerDAO().walkHierarchy(tx, applicationId).forEach(owner -> {
+        for (LicenseOverride licenseOverride : licenseOverrideDAO.getByOwnerId(tx, owner.getId())) {
+          List<ApplicationComponentLicensesDTO> componentsWithLicenseOverride =
+              componentByComponentIdentifier.get(licenseOverride.getComponentIdentifier());
+
+          if (componentsWithLicenseOverride != null
+              && !componentsWithOverrides.contains(licenseOverride.getComponentIdentifier())) {
+            if (CollectionUtils.isNotEmpty(licenseOverride.getLicenseIds())) {
+              componentsWithLicenseOverride
+                  .forEach(component -> component.setLicenses(licenseOverride.getLicenseIds()));
+            }
+            componentsWithOverrides.add(licenseOverride.getComponentIdentifier());
+          }
+        }
+      });
+
+      return componentLicenses;
     }
   }
 

@@ -41,7 +41,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   private ParameterizedType getParameterizedSuperClass() {
     Type genericSuperclass = getClass().getGenericSuperclass();
     if (!(genericSuperclass instanceof ParameterizedType)) {
-      genericSuperclass = (ParameterizedType) getClass().getSuperclass().getGenericSuperclass();
+      genericSuperclass = getClass().getSuperclass().getGenericSuperclass();
     }
     
     return (ParameterizedType) genericSuperclass;

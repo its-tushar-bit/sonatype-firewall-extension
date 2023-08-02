@@ -540,6 +540,7 @@ public class ComponentInfoService
       dto.displayName = ComponentDisplayNameUtil.fromIdentifier(componentDetails.getComponentIdentifier());
       dto.componentIdentifier = componentDetails.getComponentIdentifier();
       dto.breakingChangesCount = componentDetails.getBreakingChangesCount();
+      dto.securityVulnerabilities = componentDetails.getSecurityVulnerabilities();
 
       componentDetailsDTOs.add(dto);
     }

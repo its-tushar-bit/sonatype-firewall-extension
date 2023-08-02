@@ -19,7 +19,8 @@ public enum ApiVersionChangeOptionType
   NEXT_NO_VIOLATIONS("next-no-violations"),
   NEXT_NON_FAILING("next-non-failing"),
   NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES("next-no-violations-with-dependencies"),
-  NEXT_NON_FAILING_WITH_DEPENDENCIES("next-non-failing-with-dependencies");
+  NEXT_NON_FAILING_WITH_DEPENDENCIES("next-non-failing-with-dependencies"),
+  NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK("next-with-less-aggregate-security-risk");
 
   private final String displayName;
 
@@ -43,5 +44,9 @@ public enum ApiVersionChangeOptionType
   @JsonCreator
   public static ApiVersionChangeOptionType getByDisplayName(String displayName) {
     return displayNames.get(displayName);
+  }
+
+  public String getNameForTelemetry() {
+    return displayName.replace('-', '_');
   }
 }

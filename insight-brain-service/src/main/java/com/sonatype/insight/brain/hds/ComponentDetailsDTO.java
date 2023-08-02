@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
@@ -58,4 +59,6 @@ public class ComponentDetailsDTO
   public List<PolicyAlert> policyAlerts = Collections.emptyList();
 
   public Integer breakingChangesCount;
+
+  public List<SecurityVulnerability> securityVulnerabilities;
 }

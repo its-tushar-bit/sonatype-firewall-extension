@@ -56,6 +56,8 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import static com.sonatype.insight.brain.hds.AggregateScoring.computeAggregateScore;
+
 /**
  * @since 1.83
  * This code was formerly in ApiComponentRemediationService but was split out to avoid a circular dependency
@@ -78,6 +80,8 @@ public class ComponentRemediationService
 
   private static final String OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR =
       "option_next_non_failing_with_dependencies";
+
+  private static final double MAX_ALLOWABLE_AGGREGATED_RISK = 6.0;
 
   private final TelemetrySender telemetrySender;
 
@@ -161,9 +165,24 @@ public class ComponentRemediationService
             telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
           });
 
+      getLessRiskyVersionBasedOnAggregateScoring(currentIndex, allVersions)
+          .ifPresent(componentWithLessAggregateRisk -> {
+            final ApiVersionChangeOptionType changeType =
+                ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK;
+
+            componentRemediationDto.versionChanges.add(
+                createVersionChangeOption(
+                    componentWithLessAggregateRisk,
+                    changeType
+                ));
+
+            telemetryAttributes.put(changeType.getNameForTelemetry(), String.valueOf(true));
+          });
+
       boolean includeAdvancedStrategies = currentComponent.isMaven() &&
           productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES)
           && SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
+
       if (includeAdvancedStrategies) {
         // non-violating/non-failing with dependencies
         Collection<PackageUrlIdentifier> nonFailingVersionsPurls = nonFailingVersions.stream()
@@ -275,6 +294,24 @@ public class ComponentRemediationService
         .filter(dto -> dto.violatedPolicyCount == 0)
         .map(dto -> dto.componentIdentifier)
         .collect(Collectors.toList());
+  }
+
+  private Optional<ComponentIdentifier> getLessRiskyVersionBasedOnAggregateScoring(
+      final int indexOfCurrentVersion,
+      List<ComponentDetailsDTO> availableVersions
+  )
+  {
+    final double currentRisk = computeAggregateScore(availableVersions.get(indexOfCurrentVersion));
+
+    return availableVersions.stream()
+        .skip(indexOfCurrentVersion)
+        .filter(versionCandidate -> {
+          final double candidateScore = computeAggregateScore(versionCandidate);
+
+          return candidateScore < currentRisk && candidateScore <= MAX_ALLOWABLE_AGGREGATED_RISK;
+        })
+        .map(dto -> dto.componentIdentifier)
+        .findFirst();
   }
 
   private List<ComponentIdentifier> nonFailingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {

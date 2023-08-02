@@ -75,8 +75,12 @@ public class ApiComponentRemediationResourceTest
   @Test
   public void testGetSuggestedRemediationForComponent_Application() throws Exception {
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1,null);
-    assertRemediationApplication(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertRemediationApplication(
+        component,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
+    );
   }
 
   @Test
@@ -154,8 +158,12 @@ public class ApiComponentRemediationResourceTest
   public void testGetSuggestedRemediationForComponent_Application_Purl() throws Exception {
     String purl = "pkg:maven/g1/a1@v1?type=jar";
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
-    assertRemediationApplication(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertRemediationApplication(
+        component,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
+    );
   }
   
   private void assertRemediationApplication(
@@ -187,16 +195,24 @@ public class ApiComponentRemediationResourceTest
   @Test
   public void testGetSuggestedRemediationForComponent_Organization() throws Exception {
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
-    assertRemediationOrganization(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertRemediationOrganization(
+        component,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
+    );
   }
   
   @Test
   public void testGetSuggestedRemediationForComponent_Organization_Purl() throws Exception {
     String purl = "pkg:maven/g1/a1@v1?type=jar";
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
-    assertRemediationOrganization(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertRemediationOrganization(
+        component,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
+    );
   }
 
   @Test
@@ -224,9 +240,15 @@ public class ApiComponentRemediationResourceTest
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
         .parameter(OwnerType.REPOSITORY, repo.getId()).body(component).post();
 
-    assertResponse(response, expectedComponentNoViolations, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
-        expectedComponentNonFailing, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, ApiVersionChangeOptionType.NEXT_NON_FAILING,
+    assertResponse(
+        response,
+        expectedComponentNoViolations,
+        PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
+        expectedComponentNonFailing,
+        PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_NON_FAILING,
+        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
   }
@@ -256,9 +278,15 @@ public class ApiComponentRemediationResourceTest
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
         .parameter(OwnerType.APPLICATION, app.getId()).query("stageId", BuildStageType.ID).body(component).post();
 
-    assertResponse(response, expectedComponentNoViolations, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
-        expectedComponentNonFailing, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, ApiVersionChangeOptionType.NEXT_NON_FAILING,
+    assertResponse(
+        response,
+        expectedComponentNoViolations,
+        PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
+        expectedComponentNonFailing,
+        PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_NON_FAILING,
+        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
   }
@@ -350,6 +378,7 @@ public class ApiComponentRemediationResourceTest
       switch (optionTypes[i]) {
         case NEXT_NO_VIOLATIONS:
         case NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES:
+        case NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK:
           assertThat(versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
               .isEqualTo(expectedComponentNoViolations.componentIdentifier.toComponentIdentifier());
           assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrlNoViolations);

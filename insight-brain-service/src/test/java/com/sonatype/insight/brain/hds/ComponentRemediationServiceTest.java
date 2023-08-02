@@ -11,9 +11,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -1028,5 +1030,137 @@ public class ComponentRemediationServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> componentRemediationService.getSuggestedRemediation(currentComponent,
             allVersions, org.getType(), org.getId(), DevelopStageType.ID));
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_ShouldReturnNextComponentWithLessAggregatedRiskWhenAvailable() {
+    final String givenGroup = "any-group";
+    final String givenArtifact = "any-artifact";
+    final ComponentDetailsDTO currentVersionComponentDetailsDTO =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "1.0.0", 9.0F);
+    final ComponentIdentifier givenCurrentComponentVersion = currentVersionComponentDetailsDTO.componentIdentifier;
+
+    // won't be picked because it's in the past
+    final ComponentDetailsDTO pastVersionWithLessRisk =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "0.1.0", 4.0F);
+
+    // won't be picked because risk is beyond the cut off
+    final ComponentDetailsDTO firstFutureVersionWithLessRisk =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "2.0.0", 7.5F);
+
+    // this one should be picked
+    final ComponentDetailsDTO secondFutureVersionWithLessRisk =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "3.0.0", 5.0F);
+
+    // won't be picked because it's a later version than the  secondFutureVersionWithLessRisk
+    final ComponentDetailsDTO thirdFutureVersionWithLessRisk =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "4.0.0", 4.0F);
+
+    final List<ComponentDetailsDTO> givenAvailableComponentVersions = Arrays.asList(
+        pastVersionWithLessRisk,
+        currentVersionComponentDetailsDTO,
+        firstFutureVersionWithLessRisk,
+        secondFutureVersionWithLessRisk,
+        thirdFutureVersionWithLessRisk
+    );
+
+    final ApiComponentRemediationValueDTO results =  componentRemediationService.getSuggestedRemediation(
+        givenCurrentComponentVersion,
+        givenAvailableComponentVersions,
+        OwnerType.APPLICATION,
+        "any-owner-id",
+        "any-stage-id"
+    );
+
+    final List<ApiVersionChangeOptionDTO> lessAggregatedRiskResult = results.versionChanges.stream()
+        .filter(apiVersionChangeOptionDTO ->
+            apiVersionChangeOptionDTO.getType() == ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK)
+        .collect(Collectors.toList());
+
+    final String expectedPackageUrl = "pkg:maven/any-group/any-artifact@3.0.0";
+
+    assertThat(lessAggregatedRiskResult).hasSize(1);
+
+    final String suggestedPackageUrlReturned =  lessAggregatedRiskResult.get(0)
+        .getData()
+        .getComponent()
+        .packageUrl;
+
+    assertThat(suggestedPackageUrlReturned).isEqualTo(expectedPackageUrl);
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_ShouldNotIncludeNextComponentWithLessAggregatedRiskNotLessThanCurrent() {
+    final String givenGroup = "any-group";
+    final String givenArtifact = "any-artifact";
+    final ComponentDetailsDTO currentVersionComponentDetailsDTO =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "1.0.0", 5.0F);
+    final ComponentIdentifier givenCurrentComponentVersion = currentVersionComponentDetailsDTO.componentIdentifier;
+
+    // future version, less risk and less than cut off but same as current component
+    final ComponentDetailsDTO futureVersionWithSameRisk =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "2.1.0", 5.0F);
+
+    // future version, less risk and less than cut off but greater than current version
+    final ComponentDetailsDTO futureVersionWithGreater =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "2.7.0", 5.5F);
+
+    // future version that should be chosen, it's less than current and less than 6
+    final ComponentDetailsDTO futureVersionThatShouldBePickedUp =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "3.9.2", 4.5F);
+
+    final List<ComponentDetailsDTO> givenAvailableComponentVersions = Arrays.asList(
+        currentVersionComponentDetailsDTO,
+        futureVersionWithSameRisk,
+        futureVersionWithGreater,
+        futureVersionThatShouldBePickedUp
+    );
+
+    final ApiComponentRemediationValueDTO results =  componentRemediationService.getSuggestedRemediation(
+        givenCurrentComponentVersion,
+        givenAvailableComponentVersions,
+        OwnerType.APPLICATION,
+        "any-owner-id",
+        "any-stage-id"
+    );
+
+    final List<ApiVersionChangeOptionDTO> lessAggregatedRiskResult = results.versionChanges.stream()
+        .filter(apiVersionChangeOptionDTO ->
+            apiVersionChangeOptionDTO.getType() == ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK)
+        .collect(Collectors.toList());
+
+    final String expectedPackageUrl = "pkg:maven/any-group/any-artifact@3.9.2";
+
+    assertThat(lessAggregatedRiskResult).hasSize(1);
+
+    final String suggestedPackageUrlReturned =  lessAggregatedRiskResult.get(0)
+        .getData()
+        .getComponent()
+        .packageUrl;
+
+    assertThat(suggestedPackageUrlReturned).isEqualTo(expectedPackageUrl);
+  }
+
+  final ComponentDetailsDTO createComponentDetailsDTO(
+      final String groupId,
+      final String artifactId,
+      final String version,
+      final float highestSecuritySeverity
+  )
+  {
+    final ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+    final ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = componentIdentifier;
+
+    componentDetailsDTO.highestSecurityVulnerabilitySeverity = highestSecuritySeverity;
+
+    final SecurityVulnerability vulnerability = new SecurityVulnerability();
+    vulnerability.setSeverity(highestSecuritySeverity);
+    vulnerability.setCwe("CWE-Any");
+
+    componentDetailsDTO.securityVulnerabilities = Collections.singletonList(vulnerability);
+
+    return componentDetailsDTO;
   }
 }

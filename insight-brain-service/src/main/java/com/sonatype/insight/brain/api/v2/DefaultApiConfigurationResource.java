@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 import com.codahale.metrics.annotation.Timed;
@@ -55,6 +55,7 @@ public class DefaultApiConfigurationResource
   @PUT
   @Audited(AuditEvent.CONFIGURE_PROPERTIES)
   @Consumes(MediaType.APPLICATION_JSON)
+  @BlockIfMultiTenant
   public void setConfiguration(Map<String, Object> properties) {
     service.setConfiguration(properties);
   }
@@ -62,6 +63,7 @@ public class DefaultApiConfigurationResource
   @Override
   @DELETE
   @Audited(AuditEvent.DELETE_PROPERTIES)
+  @BlockIfMultiTenant
   public void deleteConfiguration(@QueryParam("property") Set<String> properties) {
     service.deleteConfiguration(properties);
   }

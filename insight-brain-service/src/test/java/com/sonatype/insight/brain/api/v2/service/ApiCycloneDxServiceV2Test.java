@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -205,7 +206,7 @@ public class ApiCycloneDxServiceV2Test
 
     createReportAndPolicyEvaluation("duplicatedComponents");
     Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_14);
-    Bom bom = ThirdPartyUtils.parseAndValidateSbom(response.getEntity().toString(), "xml");
+    Bom bom = ThirdPartyUtils.parseAndValidateCycloneDx(response.getEntity().toString(), SbomFormat.XML);
 
     assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
     assertMetadata(bom, application, scanId, Version.VERSION_14, null);

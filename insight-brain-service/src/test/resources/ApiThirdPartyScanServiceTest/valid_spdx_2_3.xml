@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <creationInfo>
+    <created>2023-07-13T19:00:03Z</created>
+    <creators>Tool: Sonatype IQ Server - 1.165.0-01</creators>
+  </creationInfo>
+  <name>doc-name</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>http://localhost:8070/ui/links/application/d250688de91244f2bdb44ba4f56c34fb/report/dbfb526ba560483dad0cfb17391e7f8d</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-generic-sonatype-iq-application-Test-App-f39e9e5e7b73437aade319bc133488f4-dbfb526ba560483dad0cfb17391e7f8d</SPDXID>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:generic/sonatype/iq_application_Test%20App%20f39e9e5e7b73437aade319bc133488f4@dbfb526ba560483dad0cfb17391e7f8d</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>sonatype:iq_application_Test App f39e9e5e7b73437aade319bc133488f4</name>
+    <versionInfo>dbfb526ba560483dad0cfb17391e7f8d</versionInfo>
+  </packages>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-generic-sonatype-iq-application-Test-App-f39e9e5e7b73437aade319bc133488f4-dbfb526ba560483dad0cfb17391e7f8d</relatedSpdxElement>
+  </relationships>
+  <relationships>
+    <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>
+    <relationshipType>DESCRIBES</relationshipType>
+    <relatedSpdxElement>SPDXRef-generic-sonatype-iq-application-Test-App-f39e9e5e7b73437aade319bc133488f4-dbfb526ba560483dad0cfb17391e7f8d</relatedSpdxElement>
+  </relationships>
+</Document>

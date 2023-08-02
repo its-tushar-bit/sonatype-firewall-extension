@@ -16,7 +16,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -129,7 +129,7 @@ public class ScannerTest
 
     String scannerDriver = "thirdPartyApiTest";
     ScanResult scanResult = scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
-        ThirdPartyUtils.XML_SBOM, null, scannerDriver);
+        SbomFormat.XML, null, scannerDriver);
     assertThat(scanResult.getScanFile()).isFile();
     assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
     Scan scan = scanReader.read(scanResult.getScanFile());
@@ -153,7 +153,7 @@ public class ScannerTest
 
     String scannerDriver = "thirdPartyApiTest";
     ScanResult scanResult = scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
-        ThirdPartyUtils.JSON_SBOM, null, scannerDriver);
+        SbomFormat.JSON, null, scannerDriver);
     assertThat(scanResult.getScanFile()).isFile();
     assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
     Scan scan = scanReader.read(scanResult.getScanFile());

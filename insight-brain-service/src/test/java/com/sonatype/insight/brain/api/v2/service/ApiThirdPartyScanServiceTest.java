@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -35,11 +36,12 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -73,45 +75,84 @@ public class ApiThirdPartyScanServiceTest
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent();
+    SystemConfigurationPropertyFeature.SPDX_IMPORT.setEnabled(true);
+  }
+
+  @After
+  public void teardown() {
+    SystemConfigurationPropertyFeature.SPDX_IMPORT.setEnabled(false);
   }
 
   @Test
   public void testScanComponents_bom_v1_0() throws Exception {
-    String bom = getBomFile("valid_bom_1_0.xml");
-    String appId = app.getId();
-    assertThatExceptionOfType(NotAcceptableException.class)
-        .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", Stage.ID_BUILD, bom, null,
-            ThirdPartyUtils.XML_SBOM))
-        .withMessage("CycloneDX XML 1.0 version is not supported");
+    testScanComponentsWithFailure("valid_bom_1_0.xml", SbomFormat.XML, "CycloneDX XML 1.0 version is not supported");
   }
 
   @Test
   public void testScanComponents_bom_v1_1() throws Exception {
-    testScanComponents("valid_bom.xml");
+    testScanComponents("valid_bom.xml", SbomFormat.XML);
   }
 
   @Test
   public void testScanComponents_bom_v1_2() throws Exception {
-    testScanComponents("valid_bom_1_2.xml");
+    testScanComponents("valid_bom_1_2.xml", SbomFormat.XML);
   }
 
   @Test
   public void testScanComponents_bom_v1_3() throws Exception {
-    testScanComponents("valid_bom_1_3.xml");
+    testScanComponents("valid_bom_1_3.xml", SbomFormat.XML);
   }
 
   @Test
   public void testScanComponents_bom_json() throws Exception {
-    testScanComponents("valid_bom.json");
+    testScanComponents("valid_bom.json", SbomFormat.JSON);
   }
 
-  public void testScanComponents(String fileName)
+  @Test
+  public void testScanComponents_spdx_2_2_json_notSupported() throws Exception {
+    testScanComponentsWithFailure("valid_spdx_2_2.json", SbomFormat.JSON, "SPDX 2.2 version is not supported");
+  }
+
+  @Test
+  public void testScanComponents_spdx_2_3_json_invalid() throws Exception {
+    testScanComponentsWithFailure("invalid_spdx_2_3.json", SbomFormat.JSON,
+        "The sbom is not valid.\n - Missing required document name");
+  }
+
+  @Test
+  public void testScanComponents_spdx_2_3_xml_invalid() throws Exception {
+    testScanComponentsWithFailure("invalid_spdx_2_3.xml", SbomFormat.XML,
+        "The sbom is not valid.\n - Missing required creators");
+  }
+
+  @Test
+  public void testScanComponents_spdx_2_3_json() throws Exception {
+    testScanComponents("valid_spdx_2_3.json", SbomFormat.JSON);
+  }
+
+  @Test
+  public void testScanComponents_spdx_2_3_xml() throws Exception {
+    testScanComponents("valid_spdx_2_3.xml", SbomFormat.XML);
+  }
+
+  public void testScanComponentsWithFailure(String fileName, SbomFormat format, String expectedMessage)
+      throws Exception
+  {
+    String bom = getBomFile(fileName);
+    String appId = app.getId();
+    assertThatExceptionOfType(NotAcceptableException.class)
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "source", Stage.ID_BUILD, bom, null,
+            format))
+        .withMessage(expectedMessage);
+  }
+
+  public void testScanComponents(String fileName, SbomFormat format)
       throws Exception
   {
     String bom = getBomFile(fileName);
 
     ApiThirdPartyScanTicketDTO scanResult =
-        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, ThirdPartyUtils.XML_SBOM);
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, format);
     assertThat(scanResult).isNotNull();
     assertThat(scanResult.statusUrl).isNotNull();
     assertThat(new URI(scanResult.statusUrl)).isNotNull();
@@ -239,7 +280,7 @@ public class ApiThirdPartyScanServiceTest
 
     String bom = getBomFile(fileName);
 
-    thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null, ThirdPartyUtils.XML_SBOM);
+    thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null, SbomFormat.XML);
 
     ApiThirdPartyScanResultDTO resultDTO = thirdPartyScanService.getScanStatus(app.getId(), scanId);
     assertThat(resultDTO.policyAction).isEqualTo(policyAction);
@@ -293,7 +334,7 @@ public class ApiThirdPartyScanServiceTest
     String bom = getBomFile("invalid_bom_id_vulnerability.xml");
 
     ApiThirdPartyScanTicketDTO scanResult =
-        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, ThirdPartyUtils.XML_SBOM);
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, SbomFormat.XML);
     assertThat(scanResult).isNotNull();
     assertThat(scanResult.statusUrl).isNotNull();
     assertThat(new URI(scanResult.statusUrl)).isNotNull();
@@ -304,7 +345,7 @@ public class ApiThirdPartyScanServiceTest
     String bom = getBomFile("invalid_bom_base_score_vulnerability.xml");
 
     ApiThirdPartyScanTicketDTO scanResult =
-        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, ThirdPartyUtils.XML_SBOM);
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, SbomFormat.XML);
     assertThat(scanResult).isNotNull();
     assertThat(scanResult.statusUrl).isNotNull();
     assertThat(new URI(scanResult.statusUrl)).isNotNull();
@@ -316,7 +357,7 @@ public class ApiThirdPartyScanServiceTest
     String appId = app.getId();
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", Stage.ID_BUILD, "bom", null,
-            ThirdPartyUtils.XML_SBOM))
+            SbomFormat.XML))
         .withMessage("Stage 'build' is not supported by your license.");
   }
 
@@ -325,7 +366,7 @@ public class ApiThirdPartyScanServiceTest
     String appId = app.getId();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", Stage.ID_BUILD, null, null,
-            ThirdPartyUtils.XML_SBOM))
+            SbomFormat.XML))
         .withMessage("sbom content is null or empty");
   }
 
@@ -335,7 +376,7 @@ public class ApiThirdPartyScanServiceTest
     String appId = app.getId();
     assertThatExceptionOfType(InvalidStageException.class)
         .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", "invalidStage", bom, null,
-            ThirdPartyUtils.XML_SBOM))
+            SbomFormat.XML))
         .withMessage("Invalid stage id=invalidStage");
   }
 
@@ -360,7 +401,7 @@ public class ApiThirdPartyScanServiceTest
     String appId = app.getId();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", "build", bom, null,
-            ThirdPartyUtils.JSON_SBOM))
+            SbomFormat.JSON))
         .withMessage("sbom content cannot be parsed");
   }
 
@@ -370,14 +411,14 @@ public class ApiThirdPartyScanServiceTest
     String appId = app.getId();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", "build", bom, null,
-            ThirdPartyUtils.XML_SBOM))
+            SbomFormat.XML))
         .withMessage("sbom content cannot be parsed");
   }
 
   private void testScanComponents_Invalid_Content(String fileName) throws Exception {
     String bom = getBomFile(fileName);
     ApiThirdPartyScanTicketDTO scanResult =
-        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, ThirdPartyUtils.XML_SBOM);
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, SbomFormat.XML);
     assertThat(scanResult).isNotNull();
     assertThat(scanResult.statusUrl).isNotNull();
     assertThat(new URI(scanResult.statusUrl)).isNotNull();

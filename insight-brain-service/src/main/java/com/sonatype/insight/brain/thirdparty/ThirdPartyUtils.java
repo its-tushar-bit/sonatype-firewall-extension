@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -19,12 +22,21 @@ import org.cyclonedx.model.Bom;
 import org.cyclonedx.parsers.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spdx.jacksonstore.MultiFormatStore;
+import org.spdx.jacksonstore.MultiFormatStore.Format;
+import org.spdx.jacksonstore.MultiFormatStore.Verbose;
+import org.spdx.library.DefaultModelStore;
+import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.library.model.SpdxDocument;
+import org.spdx.storage.IModelStore;
+import org.spdx.storage.simple.InMemSpdxStore;
 
 public final class ThirdPartyUtils
 {
-  public static final String XML_SBOM = "XML";
-
-  public static final String JSON_SBOM = "JSON";
+  public enum SbomFormat
+  {
+    XML, JSON;
+  }
 
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyUtils.class);
 
@@ -37,21 +49,24 @@ public final class ThirdPartyUtils
   public static final Map<String, Version> CYCLONEDX_ACCEPTED_VERSIONS_JSON =
       ImmutableMap.of(Version.VERSION_14.getVersionString(), Version.VERSION_14);
 
+  public static final Map<String, String> SPDX_ACCEPTED_VERSIONS =
+      ImmutableMap.of("SPDX-2.3", "2.3");
+
   public static Bom parseBom(final String content) throws ParseException {
     byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(bytes);
     return parser.parse(bytes);
   }
 
-  public static Bom parseAndValidateSbom(final String content, String type) throws InvalidSbomException,
-                                                                                   ParseException, IOException
+  public static Bom parseAndValidateCycloneDx(final String content, SbomFormat format)
+      throws InvalidSbomException, ParseException, IOException
   {
     byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(bytes);
 
     Bom bom = parser.parse(bytes);
 
-    validateCycloneDxVersion(type, bom);
+    validateCycloneDxVersion(format, bom);
 
     Version schemaVersion = getSchemaVersion(bom.getSpecVersion());
     List<ParseException> validate = parser.validate(bytes, schemaVersion);
@@ -66,6 +81,39 @@ public final class ThirdPartyUtils
     return bom;
   }
 
+  public static SpdxDocument parseAndValidateSpdx(final String content, SbomFormat sbomFormat)
+      throws InvalidSPDXAnalysisException, InvalidSbomException, IOException
+  {
+    Format format = sbomFormat == SbomFormat.JSON ? Format.JSON : Format.XML;
+    DefaultModelStore.reset();
+    IModelStore modelStore = new InMemSpdxStore();
+
+    String uri;
+    try (MultiFormatStore multiFormatStore = new MultiFormatStore(modelStore, format, Verbose.COMPACT);
+         InputStream in = new BufferedInputStream(new ByteArrayInputStream(content.getBytes()))) {
+      uri = multiFormatStore.deSerialize(in, true);
+    }
+    catch (Exception e) {
+      throw new IOException("Resource cannot be closed", e);
+    }
+    SpdxDocument spdxDocument = new SpdxDocument(modelStore, uri, DefaultModelStore.getDefaultCopyManager(), true);
+
+    validateSpdxVersion(sbomFormat, spdxDocument);
+
+    List<String> verificationErrors = spdxDocument.verify();
+
+    if (!verificationErrors.isEmpty()) {
+      InvalidSbomException invalidSbomException = new InvalidSbomException("The sbom is not valid.");
+      // the "Relationship error: " prefix is added sometimes multiple times and doesn't bring any value in itself
+      verificationErrors.forEach(ve -> invalidSbomException.addSuppressed(
+          new InvalidSPDXAnalysisException(ve.replace("Relationship error: ", ""))));
+      log.error(invalidSbomException.getMessage() + " There were " + verificationErrors.size() +
+          " errors." , invalidSbomException);
+      throw invalidSbomException;
+    }
+    return spdxDocument;
+  }
+
   public static Version getSchemaVersion(final String versionBom) {
     for (final Version version : Version.values()) {
       if (version.getVersionString().equals(versionBom)) {
@@ -75,26 +123,46 @@ public final class ThirdPartyUtils
     return null;
   }
 
-  public static void validateCycloneDxVersion(final String encodingType, final Bom bom) throws InvalidSbomException {
-    if (StringUtils.isNotBlank(encodingType)) {
-      if (ThirdPartyUtils.XML_SBOM.equalsIgnoreCase(encodingType)) {
+  public static void validateCycloneDxVersion(final SbomFormat format, final Bom bom) throws InvalidSbomException {
+    if (format != null) {
+      if (format == SbomFormat.XML) {
         Version version = ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS_XML.get(bom.getSpecVersion());
         if (version == null) {
           throw new InvalidSbomException("CycloneDX XML " + bom.getSpecVersion() + " version is not supported");
         }
       }
-      else if (ThirdPartyUtils.JSON_SBOM.equalsIgnoreCase(encodingType)) {
+      else if (format == SbomFormat.JSON) {
         Version version = ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS_JSON.get(bom.getSpecVersion());
         if (version == null) {
           throw new InvalidSbomException("CycloneDX JSON " + bom.getSpecVersion() + " version is not supported");
         }
       }
       else {
-        throw new InvalidSbomException("CycloneDX content encodingType (" + encodingType + ") is not supported");
+        throw new InvalidSbomException("CycloneDX content encodingType (" + format + ") is not supported");
       }
     }
     else {
       throw new InvalidSbomException("Missing CycloneDX encoding type");
+    }
+  }
+
+  public static void validateSpdxVersion(SbomFormat format,  SpdxDocument spdxDocument) throws InvalidSbomException {
+    if (format != null) {
+      try {
+        final String specVersion = spdxDocument.getSpecVersion();
+        if (StringUtils.isBlank(specVersion)) {
+          throw new InvalidSbomException("SPDX version is not specified");
+        }
+        if (!ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.containsKey(specVersion)) {
+          throw new InvalidSbomException("SPDX " + specVersion.replace("SPDX-", "") + " version is not supported");
+        }
+      }
+      catch (InvalidSPDXAnalysisException e) {
+        throw new InvalidSbomException("SPDX version is not specified");
+      }
+    }
+    else {
+      throw new InvalidSbomException("Missing SPDX encoding type");
     }
   }
 }

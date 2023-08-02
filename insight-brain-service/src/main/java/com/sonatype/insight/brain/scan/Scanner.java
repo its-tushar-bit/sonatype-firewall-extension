@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigur
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.client.ClientScanner;
@@ -181,7 +182,7 @@ public class Scanner
       File scanDir,
       ItemContentType contentType,
       String source,
-      String encodingType,
+      SbomFormat format,
       ProprietaryConfig proprietaryConfig,
       String scannerDriver) throws IOException
   {
@@ -203,7 +204,12 @@ public class Scanner
 
         ScanItem scanItem = new ScanItem();
         scanItem.setContentType(contentType);
-        scanItem.setPath(String.format("%s-bom.%s", source, encodingType.toLowerCase(Locale.ROOT)));
+        if (contentType == ItemContentType.SPDX) {
+          scanItem.setPath(String.format("%s.spdx.%s", source, format.name().toLowerCase(Locale.ROOT)));
+        }
+        else {
+          scanItem.setPath(String.format("%s-bom.%s", source, format.name().toLowerCase(Locale.ROOT)));
+        }
         scanItem.setContent(content);
         scanItem.setLastModified(new Date().getTime());
         scanItem.setSha1(getHashForContent(content));

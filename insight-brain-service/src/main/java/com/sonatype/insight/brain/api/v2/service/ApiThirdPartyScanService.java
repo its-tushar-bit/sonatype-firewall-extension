@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -49,7 +50,9 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.InvalidSbomException;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -60,6 +63,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.exception.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spdx.library.InvalidSPDXAnalysisException;
 
 /**
  * @since 1.76
@@ -114,7 +118,7 @@ public class ApiThirdPartyScanService
       final String stageTypeId,
       final String sbom,
       final String clientUserAgent,
-      final String encodingType)
+      final SbomFormat format)
   {
     if (!Stage.isValidStageTypeId(stageTypeId)) {
       throw new InvalidStageException(stageTypeId);
@@ -125,14 +129,18 @@ public class ApiThirdPartyScanService
 
     userIdePolicyEvaluationDao.upsert(currentUser.getUsername());
 
-    validateSbom(sbom, encodingType);
+    ItemContentType type = detectAndValidateSbom(sbom, format);
+    if (type == ItemContentType.SPDX && !SystemConfigurationPropertyFeature.SPDX_IMPORT.isEnabled()) {
+      throw new ConflictException("SPDX import is currently disabled.");
+    }
+
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     ApiThirdPartyScanTicketDTO scanTicketDTO = createScanTicket(applicationId, scanRequestId);
 
     log.debug("Received request to scan SBOM for app id {}, source {}, stageTypeId {}. "
         + "The status ID of the operation is {}.", applicationId, source, stageTypeId, scanRequestId);
     Application app = new ApplicationDAO().getById(applicationId);
-    ScanResult scanResult = createScanFile(app, sbom, source, encodingType);
+    ScanResult scanResult = createScanFile(app, sbom, source, format, type);
 
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
         new Stage(stageTypeId), ScanTriggerType.THIRD_PARTY, scanResult.getScanFile(),
@@ -141,27 +149,48 @@ public class ApiThirdPartyScanService
     return scanTicketDTO;
   }
 
-  private void validateSbom(final String sbom, final String type) {
+  private ItemContentType detectAndValidateSbom(final String sbom, final SbomFormat format) {
     if (StringUtils.isBlank(sbom)) {
       throw new BadRequestException("sbom content is null or empty");
     }
     try {
-      ThirdPartyUtils.parseAndValidateSbom(sbom, type);
+      if (format == SbomFormat.XML && (sbom.contains("<spdxVersion>") || sbom.contains("<SPDXID>")) &&
+              !sbom.contains("<bom") ||
+          format == SbomFormat.JSON && (sbom.contains("\"spdxVersion\"") || sbom.contains("\"SPDXID\"")) &&
+              !sbom.contains("\"bomFormat\"")
+      ) {
+        ThirdPartyUtils.parseAndValidateSpdx(sbom, format);
+        return ItemContentType.SPDX;
+      }
+      else {
+        ThirdPartyUtils.parseAndValidateCycloneDx(sbom, format);
+        return ItemContentType.SBOM;
+      }
     }
-    catch (ParseException | IOException e) {
+    catch (ParseException | IOException | InvalidSPDXAnalysisException e) {
       throw new BadRequestException("sbom content cannot be parsed", e);
     }
     catch (InvalidSbomException e) {
-      throw new NotAcceptableException(e.getMessage());
+      StringBuilder message = new StringBuilder(e.getMessage());
+      for (Throwable suppressedEx : e.getSuppressed()) {
+        message.append("\n - ").append(suppressedEx.getMessage());
+      }
+      throw new NotAcceptableException(message.toString());
     }
   }
 
-  private ScanResult createScanFile(final Application app, final String sbom, final String source, final String type) {
+  private ScanResult createScanFile(
+      final Application app,
+      final String sbom,
+      final String source,
+      final SbomFormat format,
+      final ItemContentType type)
+  {
     try {
       ProprietaryConfig proprietaryConfig =
           proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
-      return scanner.scanContent(sbom, work.getScanDir(app.getId()), ItemContentType.SBOM, source, type,
-          proprietaryConfig, ScannerDriver.THIRD_PARTY_API.getValue());
+      return scanner.scanContent(sbom, work.getScanDir(app.getId()), type,
+          source, format, proprietaryConfig, ScannerDriver.THIRD_PARTY_API.getValue());
     }
     catch (IOException ex) {
       log.error("Error processing sbom content", ex);

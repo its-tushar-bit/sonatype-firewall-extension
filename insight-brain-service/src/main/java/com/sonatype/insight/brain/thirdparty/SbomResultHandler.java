@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -132,7 +133,8 @@ public class SbomResultHandler
   //visible for testing
   Bom parseBom(final ThirdPartyScanContent content) throws ParseException, IOException {
     String extension = FilenameUtils.getExtension(content.getPath());
-    return ThirdPartyUtils.parseAndValidateSbom(content.getContent(), extension);
+    SbomFormat sbomFormat = SbomFormat.valueOf(extension.toUpperCase(Locale.ROOT));
+    return ThirdPartyUtils.parseAndValidateCycloneDx(content.getContent(), sbomFormat);
   }
 
   void processSbom(

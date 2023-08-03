@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -399,6 +402,89 @@ public class ComponentDAOTest
     assertThat(customData.getCweId()).isEqualTo("123");
     assertThat(customData.getCvssVector()).isEqualTo("custom/vector");
     assertThat(customData.getCvssSeverity()).isEqualTo(4.4f);
+  }
+
+  @Test
+  public void testProcessComponentsWithoutLicenses_LicenseOverride() throws Exception {
+    String hash = "abc123";
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode bom = objectMapper.createObjectNode();
+    ArrayNode aaData = objectMapper.createArrayNode();
+    Component component = new Component();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    component.setComponentIdentifier(componentIdentifier);
+    component.setHash(hash);
+    component.setMatchState(MatchState.EXACT);
+    component.setDisplayName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).getName());
+    component.setProprietary(false);
+    component.setRelativePopularity(100);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    Component component1 = new Component();
+    component1.setComponentIdentifier(componentIdentifier1);
+    component1.setHash(hash);
+    component1.setMatchState(MatchState.EXACT);
+    component1.setDisplayName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).getName());
+    component1.setProprietary(false);
+    component1.setRelativePopularity(100);
+
+    aaData.add(objectMapper.valueToTree(component));
+    aaData.add(objectMapper.valueToTree(component1));
+    bom.set("aaData", aaData);
+
+    aaData.add(objectMapper.valueToTree(component));
+
+    tempEntity.newLicenseOverride(application.getId(),
+        componentIdentifier1,
+        LicenseOverrideStatus.OVERRIDDEN,
+        "BSD-2-Clause",
+        "comment");
+
+    Map<ComponentIdentifier, List<Component>> componentsByIdentifier = new HashMap<>();
+    componentsByIdentifier.put(componentIdentifier, Collections.singletonList(component));
+    componentsByIdentifier.put(componentIdentifier1, Collections.singletonList(component1));
+
+    List<ComponentIdentifier> componentIdentifiersWithLicenses = new ArrayList<>();
+    componentIdentifiersWithLicenses.add(componentIdentifier);
+
+    ComponentDAO componentDAO = new ComponentDAO(application);
+    componentDAO.processComponentsWithoutLicenses(
+        componentsByIdentifier,
+        componentIdentifiersWithLicenses,
+        false);
+    assertThat(component1.getLicenseOverrideStatus()).isEqualTo(LicenseOverrideStatus.OVERRIDDEN);
+    assertThat(component1.getLicenseOverrideIds()).containsExactly("BSD-2-Clause");
+    assertThat(component.getLicenseOverrideStatus()).isEqualTo(LicenseOverrideStatus.OPEN);
+    assertThat(component.getLicenseOverrideIds()).isEmpty();
+  }
+
+  @Test
+  public void testProcessComponentsWithoutLicenses_LicenseOverride_NullComponentIdentifier() throws Exception {
+    String hash = "abc123";
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode bom = objectMapper.createObjectNode();
+    ArrayNode aaData = objectMapper.createArrayNode();
+    Component unknownComponent = new Component();
+    unknownComponent.setHash(hash);
+    unknownComponent.setMatchState(MatchState.UNKNOWN);
+    unknownComponent.setProprietary(false);
+
+    aaData.add(objectMapper.valueToTree(unknownComponent));
+    bom.set("aaData", aaData);
+
+    Map<ComponentIdentifier, List<Component>> componentsByIdentifier = new HashMap<>();
+    componentsByIdentifier.put(null, Collections.singletonList(unknownComponent));
+
+    List<ComponentIdentifier> componentIdentifiersWithLicenses = new ArrayList<>();
+
+    ComponentDAO componentDAO = new ComponentDAO(application);
+    componentDAO.processComponentsWithoutLicenses(
+        componentsByIdentifier,
+        componentIdentifiersWithLicenses,
+        false);
+
+    assertThat(unknownComponent.getLicenseOverrideStatus()).isEqualTo(LicenseOverrideStatus.OPEN);
+    assertThat(unknownComponent.getLicenseOverrideIds()).isEmpty();
   }
 
   @Test

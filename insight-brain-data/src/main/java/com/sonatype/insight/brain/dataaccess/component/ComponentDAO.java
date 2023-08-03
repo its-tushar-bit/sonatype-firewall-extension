@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -66,6 +67,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -224,7 +226,7 @@ public class ComponentDAO
     }
     ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
     LicenseOverride licenseOverride = getLicenseOverrides().get(componentIdentifier);
-    if (componentIdentifier.isMaven()) {
+    if (componentIdentifier != null && componentIdentifier.isMaven()) {
       // for Maven components, there can still be legacy license overrides that only use the GAV coordinates
       ComponentIdentifier legacyComponentIdentifier = new ComponentIdentifier(ComponentIdentifier.FORMAT_MAVEN,
           ComponentIdentifierAdapter.toGavOnlyCoordinates(componentIdentifier.getCoordinates()));
@@ -480,6 +482,8 @@ public class ComponentDAO
       }
     }
 
+    List<ComponentIdentifier> componentIdentifiersWithLicenses = new ArrayList<>();
+
     // Load license data
     JsonNode licenseJson = loadJson(licenseData);
     if (licenseJson != null) {
@@ -491,6 +495,7 @@ public class ComponentDAO
           ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonLicenseNode);
           List<Component> components = componentsByIdentifier.get(componentIdentifier);
           if (components != null) {
+            componentIdentifiersWithLicenses.add(componentIdentifier);
             for (Component component : components) {
               processJsonLicenseData(component, jsonLicenseNode, useLicensesJsonOverriddenLicenses);
               loadLicenseOverride(component, useLicensesJsonOverriddenLicenses);
@@ -499,6 +504,10 @@ public class ComponentDAO
         }
       }
     }
+
+    processComponentsWithoutLicenses(componentsByIdentifier,
+        componentIdentifiersWithLicenses,
+        useLicensesJsonOverriddenLicenses);
 
     // Load security data
     JsonNode securityJson = loadJson(securityData);
@@ -588,6 +597,21 @@ public class ComponentDAO
       loadComponentLabels(component);
     }
     return result;
+  }
+
+  @VisibleForTesting
+  void processComponentsWithoutLicenses(
+      Map<ComponentIdentifier, List<Component>> componentsByIdentifier,
+      List<ComponentIdentifier> componentIdentifiersWithLicenses,
+      boolean useLicensesJsonOverriddenLicenses)
+  {
+    for (Entry<ComponentIdentifier, List<Component>> entry : componentsByIdentifier.entrySet()) {
+      if (!componentIdentifiersWithLicenses.contains(entry.getKey())) {
+        for (Component componentWithoutLicenses : entry.getValue()) {
+          loadLicenseOverride(componentWithoutLicenses, useLicensesJsonOverriddenLicenses);
+        }
+      }
+    }
   }
 
   private Map<ComponentIdentifier, Boolean> getDependencyTypes(final JsonNode dependencyJson) {

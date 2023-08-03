@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../../enzymeUtils';
+import { lensPath, set } from 'ramda';
 import {
   NxButton,
   NxInfoAlert,
@@ -13,23 +14,27 @@ import {
   NxTableCell,
   NxTableHead,
   NxTableRow,
+  NxPagination,
 } from '@sonatype/react-shared-components';
 
 import DashboardApplicationsTableRow from '../../../../../main/frontend/dashboard/results/applications/DashboardApplicationsTableRow';
 import DashboardApplicationsTable from '../../../../../main/frontend/dashboard/results/applications/DashboardApplicationsTable';
-import MaxResultsInfoRow from '../../../../../main/frontend/dashboard/results/MaxResultsInfoRow';
 
 describe('DashboardApplicationsTable', function () {
-  let minimalProps, getShallowComponent, getMountedComponent;
+  let minimalProps, getShallowComponent, getMountedComponent, setApplicationsPageSpy;
 
   beforeEach(function () {
+    setApplicationsPageSpy = jasmine.createSpy('setViolationsPage');
     minimalProps = {
       reload: jasmine.createSpy('reload'),
       sortApplications: jasmine.createSpy('sortApplications'),
       applicationResults: {
         results: [{ applicationId: 'app1' }, { applicationId: 'app2' }],
         sortFields: ['-totalApplicationRisk.totalRisk'],
+        pageCount: 1,
+        page: 0,
       },
+      setApplicationsPage: setApplicationsPageSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardApplicationsTable, minimalProps);
@@ -78,58 +83,12 @@ describe('DashboardApplicationsTable', function () {
       expect(rows.at(1).key()).toBe('app2');
     });
 
-    it('Does not render max results row when there are less than 100 results', function () {
-      const dashboardApplicationsProps = {
-        ...minimalProps,
-        applicationResults: {
-          ...minimalProps.applicationResults,
-          numResults: 99,
-        },
-      };
-
-      const dashboardApplicationsTable = getShallowComponent(dashboardApplicationsProps),
-        table = dashboardApplicationsTable.find(NxTable),
-        body = table.find(NxTableBody),
-        maxResultsInfoRow = body.find(MaxResultsInfoRow);
-      expect(maxResultsInfoRow).not.toExist();
-    });
-
-    it('Does not render max results row when there are exactly 100 results', function () {
-      const dashboardApplicationsProps = {
-        ...minimalProps,
-        applicationResults: {
-          ...minimalProps.applicationResults,
-          numResults: 100,
-        },
-      };
-
-      const dashboardApplicationsTable = getShallowComponent(dashboardApplicationsProps),
-        table = dashboardApplicationsTable.find(NxTable),
-        body = table.find(NxTableBody),
-        maxResultsInfoRow = body.find(MaxResultsInfoRow);
-      expect(maxResultsInfoRow).not.toExist();
-    });
-
-    it('renders max results row when there are more than 100 results', function () {
-      const dashboardApplicationsProps = {
-        ...minimalProps,
-        applicationResults: {
-          ...minimalProps.applicationResults,
-          numResults: 101,
-        },
-      };
-
-      const dashboardApplicationsTable = getShallowComponent(dashboardApplicationsProps),
-        table = dashboardApplicationsTable.find(NxTable),
-        body = table.find(NxTableBody),
-        maxResultsInfoRow = body.find(MaxResultsInfoRow);
-      expect(maxResultsInfoRow).toExist();
-    });
-
     it('renders an empty message row if there are no applications to display', function () {
       const dashboardApplicationsProps = {
         applicationResults: {
           results: [],
+          pageCount: 0,
+          page: null,
         },
       };
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
@@ -144,6 +103,8 @@ describe('DashboardApplicationsTable', function () {
       const dashboardApplicationsProps = {
         applicationResults: {
           results: [],
+          pageCount: 0,
+          page: null,
         },
         needsAcknowledgement: true,
       };
@@ -161,6 +122,8 @@ describe('DashboardApplicationsTable', function () {
         applicationResults: {
           results: [],
           error: 'error while retrieving results',
+          pageCount: 0,
+          page: null,
         },
       };
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
@@ -196,9 +159,22 @@ describe('DashboardApplicationsTable', function () {
     const defaultPropsForSortChecks = {
       applicationResults: {
         results: applicationsToDisplay,
-        numResults: 0,
+        numResults: 2,
         sortFields: ['-totalApplicationRisk.totalRisk'],
+        pageCount: 1,
+        page: 0,
       },
+    };
+
+    const defaultApplicationResults = defaultPropsForSortChecks.applicationResults;
+
+    const defaultPropsSortBy = (field) => {
+      return {
+        applicationResults: {
+          ...defaultApplicationResults,
+          sortFields: [field],
+        },
+      };
     };
 
     it('identifies default direction of sorting for the columns on render', function () {
@@ -232,12 +208,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with -applicationName if clicked asc to desc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['applicationName'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('applicationName');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -250,12 +221,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with applicationName if clicked desc to asc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['-applicationName'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('-applicationName');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -268,12 +234,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with -totalApplicationRisk.totalRisk if clicked none to desc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['applicationName'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('applicationName');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -305,12 +266,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with -totalApplicationRisk.totalRisk if clicked asc to desc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['totalApplicationRisk.totalRisk'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('totalApplicationRisk.totalRisk');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -335,12 +291,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with totalApplicationRisk.criticalRisk if clicked desc to asc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['-totalApplicationRisk.criticalRisk'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('-totalApplicationRisk.criticalRisk');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -353,12 +304,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with -totalApplicationRisk.criticalRisk if clicked asc to desc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['totalApplicationRisk.criticalRisk'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('totalApplicationRisk.criticalRisk');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -383,12 +329,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with totalApplicationRisk.severeRisk if clicked desc to asc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['-totalApplicationRisk.severeRisk'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('-totalApplicationRisk.severeRisk');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -401,12 +342,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with -totalApplicationRisk.severeRisk if clicked asc to desc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['totalApplicationRisk.severeRisk'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('totalApplicationRisk.severeRisk');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -431,12 +367,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with totalApplicationRisk.moderateRisk if clicked desc to asc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['-totalApplicationRisk.moderateRisk'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('-totalApplicationRisk.moderateRisk');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -449,12 +380,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with -totalApplicationRisk.moderateRisk if clicked asc to desc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['totalApplicationRisk.moderateRisk'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('totalApplicationRisk.moderateRisk');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -479,12 +405,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with totalApplicationRisk.lowRisk if clicked desc to asc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['-totalApplicationRisk.lowRisk'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('-totalApplicationRisk.lowRisk');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -497,12 +418,7 @@ describe('DashboardApplicationsTable', function () {
     });
 
     it('calls sortApplications with -totalApplicationRisk.lowRisk if clicked asc to desc', function () {
-      const dashboardApplicationsProps = {
-        applicationResults: {
-          results: applicationsToDisplay,
-          sortFields: ['totalApplicationRisk.lowRisk'],
-        },
-      };
+      const dashboardApplicationsProps = defaultPropsSortBy('totalApplicationRisk.lowRisk');
       const dashboardApplicationsTable = getMountedComponent(dashboardApplicationsProps),
         table = dashboardApplicationsTable.find(NxTable),
         head = table.find(NxTableHead),
@@ -512,6 +428,33 @@ describe('DashboardApplicationsTable', function () {
       expect(totalRiskHeader).toHaveProp('sortDir', 'asc');
       totalRiskHeader.simulate('click');
       expect(minimalProps.sortApplications).toHaveBeenCalledWith(['-totalApplicationRisk.lowRisk']);
+    });
+  });
+
+  describe('pagination', () => {
+    it('renders a NxPagination component', () => {
+      const pagination = getShallowComponent().find(NxPagination);
+      expect(pagination).toExist();
+      expect(pagination).toHaveProp('pageCount', 1);
+      expect(pagination).toHaveProp('currentPage', 0);
+      expect(pagination).toHaveProp('onChange', setApplicationsPageSpy);
+    });
+
+    it('sets currentPage to null when there are no results', () => {
+      const minimalProps = {
+        reload: jasmine.createSpy('reload'),
+        sortApplications: jasmine.createSpy('sortApplications'),
+        applicationResults: {
+          results: [],
+          sortFields: ['-totalApplicationRisk.totalRisk'],
+          pageCount: 0,
+          page: null,
+        },
+        setApplicationsPage: setApplicationsPageSpy,
+      };
+      const props = set(lensPath(['applications', 'pageCount']), 0, minimalProps);
+      const pagination = getShallowComponent(props).find(NxPagination);
+      expect(pagination).toHaveProp('currentPage', null);
     });
   });
 });

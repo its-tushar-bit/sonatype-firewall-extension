@@ -42,6 +42,8 @@ const initState = {
     classyBrew: null,
     error: null,
     sortFields: ['-totalApplicationRisk.totalRisk'],
+    pageCount: 0,
+    page: null,
   },
   waivers: {
     results: null,

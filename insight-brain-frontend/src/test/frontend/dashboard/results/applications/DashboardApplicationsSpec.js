@@ -21,7 +21,10 @@ describe('DashboardApplications', function () {
           { applicationId: 'app2', totalApplicationRisk: {}, stageRisks: [] },
         ],
         sortFields: ['-totalApplicationRisk.totalRisk'],
+        pageCount: 1,
+        page: 0,
       },
+      setApplicationsPage: () => {},
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardApplications, minimalProps);
@@ -36,6 +39,8 @@ describe('DashboardApplications', function () {
           isWhiteText: () => true,
           getColor: () => 'test-background-color',
         },
+        pageCount: 1,
+        page: 0,
       },
       needsAcknowledgement: true,
     };
@@ -47,6 +52,8 @@ describe('DashboardApplications', function () {
     expect(table).toHaveProp('applicationResults', {
       results: [{ applicationId: 'app1' }, { applicationId: 'app2' }],
       classyBrew: jasmine.any(Object),
+      pageCount: 1,
+      page: 0,
     });
     expect(table).toHaveProp('needsAcknowledgement', true);
     expect(table).toHaveProp('reload', jasmine.any(Function));
@@ -55,7 +62,7 @@ describe('DashboardApplications', function () {
       getColor: jasmine.any(Function),
     });
     expect(table).toHaveProp('sortApplications', jasmine.any(Function));
-
+    expect(table).toHaveProp('setApplicationsPage');
     table.prop('reload')();
     expect(minimalProps.loadApplicationResults).toHaveBeenCalled();
 
@@ -83,6 +90,8 @@ describe('DashboardApplications', function () {
       filtersAreDirty: true,
       applicationResults: {
         results: null,
+        pageCount: 0,
+        page: null,
       },
     });
     expect(dashBoardApplications.find(DashboardMask)).not.toExist();
@@ -94,6 +103,8 @@ describe('DashboardApplications', function () {
       applicationResults: {
         results: null,
         error: 'error',
+        pageCount: 0,
+        page: null,
       },
     });
     expect(dashBoardApplications.find(DashboardMask)).toExist();

@@ -6,9 +6,11 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import {
+  NxPagination,
   NxTable,
   NxTableBody,
   NxTableCell,
+  NxTableContainer,
   NxTableHead,
   NxTableRow,
   NxThreatIndicator,
@@ -19,13 +21,12 @@ import { Messages } from '../../../utilAngular/CommonServices';
 import { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
 import { sortColumn, getColumnDirection, extractSortFieldName } from '../../../util/sortUtils';
 import { isNilOrEmpty } from '../../../util/jsUtil';
-import MaxResultsInfoRow from '../MaxResultsInfoRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
-import { MAX_RESULTS } from '../../services/dashboard.data.service';
 
 export default function DashboardApplicationsTable(props) {
   const {
-      applicationResults: { results, numResults, sortFields, error },
+      applicationResults: { results, sortFields, error, pageCount, page },
+      setApplicationsPage,
       colorStyler,
       needsAcknowledgement,
       reload,
@@ -55,7 +56,6 @@ export default function DashboardApplicationsTable(props) {
             tableRowIndex={rowIndex}
           />
         ))}
-        {numResults > MAX_RESULTS && <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} />}
       </Fragment>
     );
   };
@@ -123,6 +123,9 @@ export default function DashboardApplicationsTable(props) {
           {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : generateTableBodyRows()}
         </NxTableBody>
       </NxTable>
+      <NxTableContainer.Footer>
+        <NxPagination pageCount={pageCount} currentPage={pageCount > 0 ? page : null} onChange={setApplicationsPage} />
+      </NxTableContainer.Footer>
     </div>
   );
 }
@@ -133,9 +136,12 @@ DashboardApplicationsTable.propTypes = {
     numResults: PropTypes.number,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
+    pageCount: PropTypes.number,
+    page: PropTypes.number,
   }),
   colorStyler: heatMapColorStylerPropTypes,
   needsAcknowledgement: PropTypes.bool,
   reload: PropTypes.func.isRequired,
   sortApplications: PropTypes.func.isRequired,
+  setApplicationsPage: PropTypes.func.isRequired,
 };

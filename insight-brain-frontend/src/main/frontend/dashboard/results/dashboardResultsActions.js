@@ -80,6 +80,7 @@ export const loadWaiverResults = partial(loadResults, [WAIVERS_RESULTS_TYPE]);
 
 export const setViolationsPage = partial(setPage, [VIOLATIONS_RESULTS_TYPE]);
 export const setComponentsPage = partial(setPage, [COMPONENTS_RESULTS_TYPE]);
+export const setApplicationsPage = partial(setPage, [APPLICATIONS_RESULTS_TYPE]);
 
 function sortResults(resultsType, sortFields) {
   return (dispatch, getState) => {

@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.time.Duration;
 import java.util.Arrays;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -15,7 +16,6 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -39,6 +39,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
@@ -46,6 +49,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.sonatype.clm.testing.functional.utils.IqConditions.allHaveClass;
 import static com.sonatype.clm.testing.functional.utils.IqConditions.cssValues;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,7 +59,9 @@ public class DashboardApplicationsTest
 {
   private static final String NO_DATA_MSG = "No data available given the applied filters and permissions.";
 
-  private static final String MAX_RESULTS_MSG = "First 100 results shown";
+  ApplicationsResults table = DashboardPage.applicationsView().results();
+  
+  ApplicationsHeaders headers = DashboardPage.applicationsView().headers();
 
   private int componentCounter;
 
@@ -89,26 +95,11 @@ public class DashboardApplicationsTest
   }
 
   @Test
-  public void testResultsMessages() {
+  public void testResultsMessageNoData() {
     ApplicationsResults table = DashboardPage.applicationsView().results();
 
-    // no results
     refresh();
     table.noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
-
-    // 100 results
-    createApplicationsWithViolation(100);
-    refresh();
-    DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(hidden);
-    table.applications().shouldHaveSize(100);
-
-    // 101 results
-    createViolation(createApp("101"), BuildStageType.ID, 5);
-    refresh();
-    table.maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
-    ScrollUtil.scrollIntoView(table.maxResultsMessage());
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -130,7 +121,6 @@ public class DashboardApplicationsTest
     refresh();
     showLowRiskViolations();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    ApplicationsResults table = DashboardPage.applicationsView().results();
 
     // applications should be sorted by total risk
     table.applications().shouldHaveSize(5).shouldHave(texts(
@@ -193,7 +183,6 @@ public class DashboardApplicationsTest
     assertApplicationsCsv(exportCsv, expectedResults);
 
     // sort by name
-    ApplicationsHeaders headers = DashboardPage.applicationsView().headers();
     headers.applicationNameHeader().click();
     table.applications().shouldHave(texts(
         "App1", //
@@ -346,7 +335,6 @@ public class DashboardApplicationsTest
     createViolation(tempEntity.newApplication(appName, "long", org.getId()),
         BuildStageType.ID, 8, "scan123");
     createViolation(tempEntity.newApplication("A", "short", org.getId()), BuildStageType.ID, 5, "scan123");
-    ApplicationsResults table = DashboardPage.applicationsView().results();
     refresh();
 
     Tooltip.get().shouldBe(hidden);
@@ -358,8 +346,6 @@ public class DashboardApplicationsTest
 
   @Test
   public void testSortsOnBackend() {
-    ApplicationsResults table = DashboardPage.applicationsView().results();
-    ApplicationsHeaders headers = DashboardPage.applicationsView().headers();
     showLowRiskViolations();
     createApplicationsWithViolation(40, "low", 1);
     createApplicationsWithViolation(40, "moderate", 2);
@@ -367,7 +353,6 @@ public class DashboardApplicationsTest
     createApplicationsWithViolation(40, "critical", 8);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(visible);
 
     // default - sorted by total risk desc
     headers.totalRiskHeader().sortArrows().shouldBeDown();
@@ -458,6 +443,56 @@ public class DashboardApplicationsTest
 
   }
 
+  @Test
+  public void testApplicationsTableMultiplePages() {
+    for (int i = 0; i <= 49; i++) {
+      createViolation(createApp(String.valueOf(i)), BuildStageType.ID, 1);
+    }
+
+    for (int i = 50; i <= 99; i++) {
+      createViolation(createApp(String.valueOf(i)), BuildStageType.ID, 3);
+    }
+
+    for (int i = 100; i <= 124; i++) {
+      createViolation(createApp(String.valueOf(i)), BuildStageType.ID, 7);
+    }
+
+    for (int i = 125; i <= 150; i++) {
+      createViolation(createApp(String.valueOf(i)), BuildStageType.ID, 10);
+    }
+
+    refresh();
+    showLowRiskViolations();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    DashboardPage.applicationsView().paginationButtons().shouldHaveSize(2);
+    table.firstApplication().totalRisk().shouldBe(text("10"));
+    table.lastApplication().totalRisk().shouldBe(text("3"));
+    eyesWatcher.eyesCheck("Dashboard applications tab with multiple pages");
+    changePage(1);
+    table.firstApplication().totalRisk().shouldBe(text("3"));
+    table.lastApplication().totalRisk().shouldBe(text("1"));
+
+    // sort by total risk asc
+    headers.totalRiskHeader().click();
+    // should be at first page after sorting
+    DashboardPage.applicationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
+    table.firstApplication().totalRisk().shouldBe(text("1"));
+    changePage(1);
+    table.lastApplication().totalRisk().shouldBe(text("10"));
+
+    refresh();
+    DashboardPage.filterToggle().click();
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
+    DashboardFilters.policyThreatLevelFilter().slider().setValues(3, 7);
+    DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
+    // should be at first page after filtering
+    DashboardPage.applicationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
+    DashboardPage.applicationsView().paginationButtons().shouldHaveSize(1);
+    table.firstApplication().totalRisk().shouldBe(text("7"));
+    table.lastApplication().totalRisk().shouldBe(text("3"));
+  }
+
   private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
     assertThat(lines[0]).isEqualTo("Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low");
@@ -506,5 +541,15 @@ public class DashboardApplicationsTest
 
   private void clearFilters() {
     new DashboardFilterDAO().deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
+  }
+
+  private void changePage(int page) {
+    DashboardPage.applicationsView().paginationButtons().get(page).click();
+
+    new FluentWait<>(getWebDriver())
+        .withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
+        .ignoring(NoSuchElementException.class)
+        .until(ExpectedConditions.visibilityOf(table.firstApplication().totalRisk()));
   }
 }

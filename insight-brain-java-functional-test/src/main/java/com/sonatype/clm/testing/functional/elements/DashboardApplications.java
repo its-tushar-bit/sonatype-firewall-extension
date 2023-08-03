@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -23,6 +24,10 @@ public class DashboardApplications
 
   public ApplicationsResults results() {
     return new ApplicationsResults();
+  }
+
+  public ElementsCollection paginationButtons() {
+    return $$(".nx-btn--pagination");
   }
 
   public ApplicationsResultsMask resultsMask() {
@@ -87,10 +92,6 @@ public class DashboardApplications
 
     public ApplicationElement lastApplication() {
       return application(applications().size() - 1);
-    }
-
-    public SelenideElement maxResultsMessage() {
-      return child("#max-results-shown");
     }
 
     public SelenideElement noDataMessage() {

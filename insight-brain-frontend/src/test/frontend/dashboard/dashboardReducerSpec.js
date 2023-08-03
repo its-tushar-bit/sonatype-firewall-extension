@@ -37,10 +37,18 @@ describe('dashboardReducer', () => {
       expect(applications.sortFields).toEqual(['-totalApplicationRisk.totalRisk']);
     });
 
-    it('starts at page 0', () => {
-      const { violations } = reduce(undefined, { type: 'UNKNOWN' });
-      expect(violations.pageCount).toBe(0);
-      expect(violations.page).toBeNull();
+    describe('Initial page tests', () => {
+      it('shows page 0 for the violation table', () => {
+        const { violations } = reduce(undefined, { type: 'UNKNOWN' });
+        expect(violations.pageCount).toBe(0);
+        expect(violations.page).toBeNull();
+      });
+
+      it('shows page 0 for the applications table', () => {
+        const { applications } = reduce(undefined, { type: 'UNKNOWN' });
+        expect(applications.pageCount).toBe(0);
+        expect(applications.page).toBeNull();
+      });
     });
   });
 
@@ -293,6 +301,10 @@ describe('dashboardReducer', () => {
       testPaginationWithResults('components');
     });
 
+    it('updates applications pagination with results', () => {
+      testPaginationWithResults('applications');
+    });
+
     const testPaginationWithResults = (resultsType) => {
       const state = Object.freeze({
         [resultsType]: { results: null, numResults: null, pageCount: 0, page: null },
@@ -317,6 +329,10 @@ describe('dashboardReducer', () => {
 
     it('updates components pagination without results', () => {
       testPaginationWithoutResults('components');
+    });
+
+    it('updates applications pagination without results', () => {
+      testPaginationWithoutResults('applications');
     });
 
     const testPaginationWithoutResults = (resultsType) => {
@@ -499,6 +515,7 @@ describe('dashboardReducer', () => {
         components: { sortFields: ['-score'] },
         applications: {
           sortFields: ['-totalApplicationRisk.totalRisk'],
+          page: 10,
           other: otherObject,
         },
         currentTab: 'applications',
@@ -513,6 +530,7 @@ describe('dashboardReducer', () => {
       const { components, violations, applications } = reduce(state, action);
 
       expect(applications.sortFields).toBe(action.payload.sortFields);
+      expect(applications.page).toBe(0);
       expect(applications.other).toBe(otherObject); // other properties are not modified
       expect(violations.sortFields).toBe(state.violations.sortFields);
       expect(components.sortFields).toBe(state.components.sortFields);

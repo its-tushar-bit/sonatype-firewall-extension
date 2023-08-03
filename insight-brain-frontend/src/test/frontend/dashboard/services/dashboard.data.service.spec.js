@@ -114,10 +114,6 @@ describe('dashboard.data.service.spec', function () {
   });
 
   describe('getApplicationRisks()', function () {
-    // To be replaced by expectedRequestPayload when CLM-26399 is being done
-    const expectedRequestPayloadWithoutPagination = { ...expectedRequestPayload, pageSize: 100 };
-    delete expectedRequestPayloadWithoutPagination.page;
-
     function createRisk(total, critical, severe, moderate, low) {
       return {
         totalRisk: total,
@@ -172,7 +168,7 @@ describe('dashboard.data.service.spec', function () {
 
       getApplicationRisks(filter, [], 0).then((response) => {
         const { results, numResults, classyBrew } = response;
-        expect(axios.post).toHaveBeenCalledWith(applicationRiskUrl, expectedRequestPayloadWithoutPagination);
+        expect(axios.post).toHaveBeenCalledWith(applicationRiskUrl, expectedRequestPayload);
         expect(results).toEqual(originalRisks);
         expect(numResults).toEqual(2);
         expect(classyBrew).toEqual('classyBrew');
@@ -187,7 +183,7 @@ describe('dashboard.data.service.spec', function () {
         expectedSortFields = ['-LOW_RISK', 'SEVERE_RISK', '-MODERATE_RISK', '-CRITICAL_RISK', 'NAME'];
 
       const expectedRequestData = {
-        ...expectedRequestPayloadWithoutPagination,
+        ...expectedRequestPayload,
         orderBy: expectedSortFields.join(','),
       };
 
@@ -199,13 +195,17 @@ describe('dashboard.data.service.spec', function () {
         },
       });
 
-      getApplicationRisks(filter, [
-        '-totalApplicationRisk.lowRisk',
-        'totalApplicationRisk.severeRisk',
-        '-totalApplicationRisk.moderateRisk',
-        '-totalApplicationRisk.criticalRisk',
-        'applicationName',
-      ]);
+      getApplicationRisks(
+        filter,
+        [
+          '-totalApplicationRisk.lowRisk',
+          'totalApplicationRisk.severeRisk',
+          '-totalApplicationRisk.moderateRisk',
+          '-totalApplicationRisk.criticalRisk',
+          'applicationName',
+        ],
+        0
+      );
 
       expect(axios.post).toHaveBeenCalledWith(applicationsRiskUrl, expectedRequestData);
     });

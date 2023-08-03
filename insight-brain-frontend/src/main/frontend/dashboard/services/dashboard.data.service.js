@@ -31,8 +31,13 @@ export function getNewestRisks(filters, sortFields, page) {
   return axios.post(getNewestRisksUrl(), request).then(dashboardRespopnseHandler());
 }
 
-export function getApplicationRisks(filters, sortFields) {
-  const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateApplicationsSortFields(sortFields));
+export function getApplicationRisks(filters, sortFields, page) {
+  const request = createDashboardDataRequestPayload(
+    filters,
+    DASHBOARD_PAGE_SIZE,
+    translateApplicationsSortFields(sortFields),
+    page
+  );
   return axios.post(getApplicationRisksUrl(), request).then(dashboardRespopnseHandler(generateApplicationsSeries));
 }
 

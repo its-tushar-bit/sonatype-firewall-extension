@@ -5,7 +5,7 @@
  */
 import { connect } from 'react-redux';
 
-import { loadApplicationResults, sortApplicationResults } from '../dashboardResultsActions';
+import { loadApplicationResults, sortApplicationResults, setApplicationsPage } from '../dashboardResultsActions';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import DashboardApplications from './DashboardApplications';
 import { selectApplicationResults } from 'MainRoot/dashboard/dashboardSelectors';
@@ -26,6 +26,7 @@ const mapDispatchToProps = {
   sortApplications: sortApplicationResults,
   loadApplicationResults,
   stateGo,
+  setApplicationsPage,
 };
 
 const DashboardApplicationsContainer = connect(mapStateToProps, mapDispatchToProps)(DashboardApplications);

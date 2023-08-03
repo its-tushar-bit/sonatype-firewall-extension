@@ -12,6 +12,7 @@ import {
   loadWaiverResults,
   setComponentsPage,
   setViolationsPage,
+  setApplicationsPage,
   sortApplicationResults,
   sortComponentResults,
   sortViolationResults,
@@ -287,15 +288,19 @@ describe('dashboardResultsActions', function () {
   });
 
   describe('loadApplicationResults', () => {
-    it('calls loadResults with the applications resultsType', (done) => {
-      spyOn(dashboardDataServices, 'getApplicationRisks').and.returnValue(
+    let getApplicationRisksSpy;
+
+    beforeEach(function () {
+      getApplicationRisksSpy = spyOn(dashboardDataServices, 'getApplicationRisks').and.returnValue(
         Promise.resolve({
           results: 'applicationResults',
           numResults: 3,
           classyBrew: 'classyBrew',
         })
       );
+    });
 
+    it('calls loadResults with the applications resultsType', (done) => {
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(loadApplicationResults()).then(() => {
         expect(store.getActions()).toHaveActionsInOrder([
@@ -313,6 +318,15 @@ describe('dashboardResultsActions', function () {
             },
           },
         ]);
+        expect(getApplicationRisksSpy).toHaveBeenCalledWith('current filters', ['-totalApplicationRisk.totalRisk'], 0);
+        done();
+      });
+    });
+
+    it('loads the current page number from the state', (done) => {
+      const store = SpecUtil.mockReduxStore({ ...initialState, dashboard: { applications: { page: 10 } } });
+      store.dispatch(loadApplicationResults()).then(() => {
+        expect(getApplicationRisksSpy).toHaveBeenCalledWith('current filters', undefined, 10);
         done();
       });
     });
@@ -374,6 +388,42 @@ describe('dashboardResultsActions', function () {
             payload: {
               resultsType: 'violations',
               results: 'violationResults',
+              numResults: 3,
+              classyBrew: 'classyBrew',
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
+  describe('setApplicationsPage', () => {
+    it('calls setPage with the applications resultsType', (done) => {
+      spyOn(dashboardDataServices, 'getApplicationRisks').and.returnValue(
+        Promise.resolve({
+          results: 'applicationResults',
+          numResults: 3,
+          classyBrew: 'classyBrew',
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(setApplicationsPage(10)).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'DASHBOARD_SET_PAGE',
+            payload: { resultsType: 'applications', page: 10 },
+          },
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'applications',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'applications',
+              results: 'applicationResults',
               numResults: 3,
               classyBrew: 'classyBrew',
             },

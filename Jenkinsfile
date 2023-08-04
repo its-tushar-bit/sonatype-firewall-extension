@@ -12,15 +12,16 @@ make(
     javaVersion: 'Java 8',
     mavenVersion: 'Maven 3.6.x',
     mavenOptions: "-D skipTests -D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
-    prepare: {
-      if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
-        String fixVersion = 'brain-next'
-        List<String> newFixVersions = ['saas-next']
-        echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
-        List<String> issues = getIssuesByFixVersion('CLM', fixVersion)
-        replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
-      }
-    },
+// hotfix - disable prepare block while Jira fix version issue is addressed. See CLM-26664.
+//  prepare: {
+//    if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
+//      String fixVersion = 'brain-next'
+//      List<String> newFixVersions = ['saas-next']
+//      echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
+//      List<String> issues = getIssuesByFixVersion('CLM', fixVersion)
+//      replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
+//    }
+//  },
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
       runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
     },

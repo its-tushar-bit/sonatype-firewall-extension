@@ -50,6 +50,8 @@ const initState = {
     numResults: null,
     error: null,
     sortFields: ['expiryTime'],
+    pageCount: 0,
+    page: null,
   },
 };
 

@@ -17,6 +17,7 @@ import {
   sortComponentResults,
   sortViolationResults,
   sortWaiversResults,
+  setWaiversPage,
 } from 'MainRoot/dashboard/results/dashboardResultsActions';
 import * as dashboardDataServices from 'MainRoot/dashboard/services/dashboard.data.service';
 
@@ -189,12 +190,19 @@ describe('dashboardResultsActions', function () {
   tabs.forEach(testSetPageAction);
 
   describe('loadViolationResults', () => {
-    let getNewestRisksSpy;
+    let getNewestRisksSpy, getWaiverRiskySpy;
 
     beforeEach(function () {
       getNewestRisksSpy = spyOn(dashboardDataServices, 'getNewestRisks').and.returnValue(
         Promise.resolve({
           results: 'violationResults',
+          numResults: 3,
+          classyBrew: 'classyBrew',
+        })
+      );
+      getWaiverRiskySpy = spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
+        Promise.resolve({
+          results: 'waiverResults',
           numResults: 3,
           classyBrew: 'classyBrew',
         })
@@ -224,6 +232,29 @@ describe('dashboardResultsActions', function () {
       });
     });
 
+    it('calls loadResults with the waivers resultsType', (done) => {
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(loadWaiverResults()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'waivers',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'waivers',
+              results: 'waiverResults',
+              numResults: 3,
+              classyBrew: 'classyBrew',
+            },
+          },
+        ]);
+        expect(getWaiverRiskySpy).toHaveBeenCalledWith('current filters', ['expiryTime'], 0);
+        done();
+      });
+    });
+
     it('loads the current page number from the state', (done) => {
       const store = SpecUtil.mockReduxStore({ ...initialState, dashboard: { violations: { page: 10 } } });
       store.dispatch(loadViolationResults()).then(() => {
@@ -232,10 +263,26 @@ describe('dashboardResultsActions', function () {
       });
     });
 
+    it('loads the current page number from the state waivers', (done) => {
+      const store = SpecUtil.mockReduxStore({ ...initialState, dashboard: { waivers: { page: 10 } } });
+      store.dispatch(loadWaiverResults()).then(() => {
+        expect(getWaiverRiskySpy).toHaveBeenCalledWith('current filters', undefined, 10);
+        done();
+      });
+    });
+
     it('loads the current page number from route params as fallback', (done) => {
       const store = SpecUtil.mockReduxStore({ ...initialState, router: { currentParams: { page: 45 } } });
       store.dispatch(loadViolationResults()).then(() => {
         expect(getNewestRisksSpy).toHaveBeenCalledWith('current filters', ['-time', '-threatLevel'], 44);
+        done();
+      });
+    });
+
+    it('loads the current page number from route params as fallback waivers', (done) => {
+      const store = SpecUtil.mockReduxStore({ ...initialState, router: { currentParams: { page: 45 } } });
+      store.dispatch(loadWaiverResults()).then(() => {
+        expect(getWaiverRiskySpy).toHaveBeenCalledWith('current filters', ['expiryTime'], 44);
         done();
       });
     });
@@ -398,6 +445,41 @@ describe('dashboardResultsActions', function () {
     });
   });
 
+  describe('setWaiversPage', () => {
+    it('calls setPage with the waivers resultsType', (done) => {
+      spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
+        Promise.resolve({
+          results: 'waiverResults',
+          numResults: 3,
+          classyBrew: 'classyBrew',
+        })
+      );
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(setWaiversPage(10)).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'DASHBOARD_SET_PAGE',
+            payload: { resultsType: 'waivers', page: 10 },
+          },
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'waivers',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'waivers',
+              results: 'waiverResults',
+              numResults: 3,
+              classyBrew: 'classyBrew',
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
   describe('setApplicationsPage', () => {
     it('calls setPage with the applications resultsType', (done) => {
       spyOn(dashboardDataServices, 'getApplicationRisks').and.returnValue(
@@ -407,7 +489,6 @@ describe('dashboardResultsActions', function () {
           classyBrew: 'classyBrew',
         })
       );
-
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(setApplicationsPage(10)).then(() => {
         expect(store.getActions()).toHaveActionsInOrder([

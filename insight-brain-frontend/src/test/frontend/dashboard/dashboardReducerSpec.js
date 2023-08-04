@@ -297,6 +297,10 @@ describe('dashboardReducer', () => {
       testPaginationWithResults('violations');
     });
 
+    it('updates waivers pagination with results', () => {
+      testPaginationWithResults('waivers');
+    });
+
     it('updates components pagination with results', () => {
       testPaginationWithResults('components');
     });
@@ -325,6 +329,10 @@ describe('dashboardReducer', () => {
 
     it('updates violations pagination without results', () => {
       testPaginationWithoutResults('violations');
+    });
+
+    it('updates waivers pagination without results', () => {
+      testPaginationWithoutResults('waivers');
     });
 
     it('updates components pagination without results', () => {

@@ -7,12 +7,14 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
@@ -29,11 +31,15 @@ import com.sonatype.insight.brain.dashboard.DashboardPolicyWaiverDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -42,10 +48,12 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
 
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.CRITICAL;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.MODERATE;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
@@ -155,7 +163,6 @@ public class DashboardWaiversTest
     refresh();
 
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.maxResultsMessage().shouldBe(hidden);
     table.waivers().shouldHaveSize(9);
 
     // check the tile details
@@ -429,7 +436,6 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.maxResultsMessage().shouldBe(visible);
     table.waivers().shouldHaveSize(100);
 
     // sort by threat desc
@@ -502,7 +508,6 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.maxResultsMessage().shouldBe(visible);
     table.waivers().shouldHaveSize(100);
 
     // sort by creation date asc
@@ -571,7 +576,6 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.maxResultsMessage().shouldBe(visible);
     table.waivers().shouldHaveSize(100);
 
     // sort by expiration date desc
@@ -632,7 +636,6 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.maxResultsMessage().shouldBe(visible);
     table.waivers().shouldHaveSize(100);
 
     // sort by policy asc
@@ -709,7 +712,6 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.maxResultsMessage().shouldBe(visible);
     table.waivers().shouldHaveSize(100);
 
     // sort by scope asc
@@ -752,21 +754,21 @@ public class DashboardWaiversTest
     // get first waiver row in table
     table.firstWaiver().click();
     waitUntilUrl(WaiverDetailsPage.urlWithQueryParams("organization",
-        organization.getId(), policyWaivers.get(0).getId(), "waiver", "filter"));
+        organization.getId(), policyWaivers.get(0).getId(), "waiver", "filter", 1));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
 
     // get second waiver row in table
     table.waiver(1).click();
     waitUntilUrl(WaiverDetailsPage.urlWithQueryParams("application",
-            application2.getId(), policyWaivers.get(1).getId(), "waiver", "filter"));
+            application2.getId(), policyWaivers.get(1).getId(), "waiver", "filter", 1));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
 
     // get third waiver row in table
     table.waiver(2).click();
     waitUntilUrl(WaiverDetailsPage.urlWithQueryParams("organization",
-        organization.getId(), policyWaivers.get(3).getId(), "waiver", "filter"));
+        organization.getId(), policyWaivers.get(3).getId(), "waiver", "filter", 1));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
   }
@@ -1065,6 +1067,92 @@ public class DashboardWaiversTest
             waiver1String, waiver2String, waiver3String, waiver4String, waiver5String, waiverRepoString,
             waiverRepoContainerString, waiverParentOrgString, waiver6String
         };
+    }
+  }
+
+  private Policy createLicensePolicy(String ownerId, String name, int threatLevel) {
+    Policy policy = new Policy(null, name);
+    policy.setThreatLevel(threatLevel);
+    policy.setOwnerId(ownerId);
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+    policy.addConstraint(constraint);
+    return tempEntity.newPolicy(policy);
+  }
+
+  @Test
+  public void testMoreThanOnePage() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+
+    createWaiversForPagination();
+
+    refresh();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    DashboardPage.waiversView().paginationButtons().shouldHaveSize(2);
+    table.waivers().shouldHaveSize(100);
+    table.firstWaiver().policy().shouldHave(text("Policy 1"));
+    table.firstWaiver().threatNumber().shouldHave(text("7"));
+
+    //Click next page
+    changePage(1);
+    table.waivers().shouldHaveSize(50);
+    table.firstWaiver().policy().shouldHave(text("Policy 1"));
+    table.firstWaiver().threatNumber().shouldHave(text("7"));
+
+    //Click back page
+    changePage(0);
+    table.waivers().shouldHaveSize(100);
+    table.firstWaiver().policy().shouldHave(text("Policy 1"));
+    table.firstWaiver().threatNumber().shouldHave(text("7"));
+  }
+
+  private void changePage(int page) {
+    DashboardPage.waiversView().paginationButtons().get(page).click();
+
+    new FluentWait<>(getWebDriver())
+        .withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
+        .ignoring(NoSuchElementException.class)
+        .until(ExpectedConditions.visibilityOf(table.firstWaiver().policy()));
+  }
+
+  private void createWaiversForPagination() {
+    parentOrganization = tempEntity.newOrganization("Parent Org 1");
+    organization = tempEntity.newOrganization("Org 1", parentOrganization);
+    application = tempEntity.newApplication("App 1", "app1", organization.getId());
+
+    Policy securityPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
+        StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
+
+    tempEntity.newPolicyViolation(policyEvaluation, securityPolicy, "Group1",
+        "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
+
+    // Component identifier for waivers
+    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+        this.put("artifactId", "Artifact1");
+        this.put("groupId", "Group1");
+        this.put("version", "1.2.3");
+      }};
+
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
+    String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
+
+    for (int i = 0; i < 150; i++) {
+      tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+          .withHash("hash1" + i)
+          .withPolicyId(securityPolicy.getId())
+          .withOwnerId(organization.getId())
+          .withAssociatedPackageUrl(purl)
+          .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+          .withComment("comment org")
+          .withCreateTime(Date.from(twoDaysAgo))
+          .withExpiryTime(Date.from(threeDaysFromNow))
+          .withCreatorId("testuser1")
+          .withCreatorName("Test User1")
+          .withComponentUpgradeAvailable(true)
+          .build());
     }
   }
 }

@@ -54,7 +54,7 @@ function routes($stateProvider) {
       data: {
         title: 'Waiver detail view',
       },
-      url: '/{ownerType}/{ownerId}/{waiverId}?type&sidebarReference&sidebarId',
+      url: '/{ownerType}/{ownerId}/{waiverId}?type&sidebarReference&sidebarId&page',
     });
 }
 

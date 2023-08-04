@@ -22,6 +22,7 @@ describe('DashboardWaiversTableRow', function () {
     stateGoSpy = jasmine.createSpy('stateGo');
     minimalProps = {
       stateGo: stateGoSpy,
+      page: 2,
       waiver: {
         id: 'waiverId',
         threatLevel: 8,
@@ -87,6 +88,7 @@ describe('DashboardWaiversTableRow', function () {
       ownerType: 'organization',
       type: 'waiver',
       sidebarReference: 'filter',
+      page: 3,
     });
   });
 

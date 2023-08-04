@@ -10,7 +10,8 @@
   position: relative;
 
   .nx-table-container.nx-scrollable {
-    border-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
 
   .iq-size-controlled-cell {

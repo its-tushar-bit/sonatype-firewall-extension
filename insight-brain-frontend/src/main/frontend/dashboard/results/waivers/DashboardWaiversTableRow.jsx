@@ -11,7 +11,7 @@ import UpgradeAvailableIndicator from 'MainRoot/react/upgradeAvailableIndicator/
 import { NxTable, NxThreatIndicator, NxOverflowTooltip } from '@sonatype/react-shared-components';
 import { isWaiverAllVersionsOrExact, shouldShowUpgradeIndicator } from 'MainRoot/util/waiverUtils';
 
-export default function DashboardWaiversTableRow({ stateGo, waiver }) {
+export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
   const {
     id: waiverId,
     threatLevel,
@@ -32,6 +32,7 @@ export default function DashboardWaiversTableRow({ stateGo, waiver }) {
       ownerType,
       type: 'waiver',
       sidebarReference: 'filter',
+      page: page + 1,
     });
   };
 
@@ -102,4 +103,5 @@ export const waiverPropTypes = PropTypes.shape({
 DashboardWaiversTableRow.propTypes = {
   stateGo: PropTypes.func.isRequired,
   waiver: waiverPropTypes,
+  page: PropTypes.number,
 };

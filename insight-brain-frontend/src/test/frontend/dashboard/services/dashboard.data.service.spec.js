@@ -298,10 +298,6 @@ describe('dashboard.data.service.spec', function () {
   });
 
   describe('getWaivers()', function () {
-    // To be replaced by expectedRequestPayload when CLM-26400 is being done
-    const expectedRequestPayloadWithoutPagination = { ...expectedRequestPayload, pageSize: 100 };
-    delete expectedRequestPayloadWithoutPagination.page;
-
     it('populates component name', function (done) {
       const data = {
         dashboardResults: [
@@ -338,9 +334,9 @@ describe('dashboard.data.service.spec', function () {
         },
       });
 
-      getWaivers(filter, []).then(function (data) {
+      getWaivers(filter, [], 0).then(function (data) {
         const { results, numResults } = data;
-        expect(axios.post).toHaveBeenCalledWith(waiverDetailsUrl, expectedRequestPayloadWithoutPagination);
+        expect(axios.post).toHaveBeenCalledWith(waiverDetailsUrl, { ...expectedRequestPayload, pageSize: 100 });
         expect(results[0].id).toBe('35513cecc0214e0cb0207238dc1fba6e');
         expect(results[0].displayName).toBe('org.sonatype.nexus : nexus-rest-client');
         expect(results[0].ownerName).toBe('Root Organization');
@@ -370,7 +366,7 @@ describe('dashboard.data.service.spec', function () {
         ];
 
       const expectedRequestData = {
-        ...expectedRequestPayloadWithoutPagination,
+        ...expectedRequestPayload,
         orderBy: expectedSortFields.join(','),
       };
 
@@ -382,7 +378,7 @@ describe('dashboard.data.service.spec', function () {
         },
       });
 
-      getWaivers(filter, ['-component', 'createTime', '-expiryTime', '-scope', 'policyName', 'threatLevel']);
+      getWaivers(filter, ['-component', 'createTime', '-expiryTime', '-scope', 'policyName', 'threatLevel'], 0);
 
       expect(axios.post).toHaveBeenCalledWith(waiversUrl, expectedRequestData);
     });

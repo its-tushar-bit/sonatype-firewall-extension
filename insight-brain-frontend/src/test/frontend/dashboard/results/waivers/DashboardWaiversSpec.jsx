@@ -32,19 +32,40 @@ describe('DashboardWaivers', function () {
       filtersAreDirty: false,
       appliedFilter: { maxDaysOld: 20 },
     };
+
     waivers = {
       error: null,
-      numResults: 5,
+      numResults: 200,
       sortFields: ['expiryTime'],
-      results: [{}, {}, {}, {}, {}],
+      results: [],
+      pageCount: 2,
+      page: 0,
     };
+
+    for (let i = 0; i < 100; i++) {
+      const resultObject = {
+        id: '4ac5e46025c941e68a335b61eb3165d2' + i,
+        threatLevel: 5,
+        createTime: 1661532973306,
+        expiryTime: null,
+        policyId: 'ce6ca7e95261441586a0e3f1f934dd37',
+        policyName: 'Figue-policy',
+        ownerId: '642a106467c74f6eb5f90eade8ceb5f9',
+        ownerName: 'root-org',
+        ownerType: 'organization',
+        scope: 'Organization - root-org',
+        componentMatchStrategy: 'ALL_COMPONENTS',
+        hash: null,
+      };
+      waivers.results.push(resultObject);
+    }
 
     // these spys will be removed in CLM-22474
     selectDashboardFilterSpy = spyOn(DashboardSelectors, 'selectDashboardFilter').and.returnValue(dashboardFilter);
     selectWaiversResultsSpy = spyOn(DashboardSelectors, 'selectWaiversResults').and.returnValue(waivers);
 
     policyWaiversUrl = getWaiversUrl();
-    axiosMock.onPost(policyWaiversUrl).reply(200, { dashboardResults: waivers.results, numResults: 5 });
+    axiosMock.onPost(policyWaiversUrl).reply(200, { dashboardResults: waivers.results, numResults: 200 });
 
     // this spy will be removed in CLM-22474
     loadWaiversResultsSpy = spyOn(dashboardActions, 'loadWaiverResults').and.callThrough();
@@ -58,7 +79,7 @@ describe('DashboardWaivers', function () {
     const [tableHeaders, tableEntries] = await screen.findAllByRole('rowgroup');
     expect(tableHeaders).toBeVisible();
     expect(tableEntries).toBeVisible();
-    expect(tableEntries.children.length).toBe(5);
+    expect(tableEntries.children.length).toBe(100);
 
     // this spy will be removed in CLM-22474
     expect(loadWaiversResultsSpy).toHaveBeenCalled();

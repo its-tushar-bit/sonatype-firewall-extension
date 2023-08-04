@@ -4,9 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import DashboardWaiversTable from 'MainRoot/dashboard/results/waivers/DashboardWaiversTable';
 import * as DashboardSelectors from 'MainRoot/dashboard/dashboardSelectors';
+import { getWaiversUrl } from 'MainRoot/util/CLMLocation';
 
 describe('DashboardWaiversTable', function () {
   let renderComponent, dashboardWaiversProps, sortWaiversSpy;
@@ -18,6 +19,8 @@ describe('DashboardWaiversTable', function () {
         error: null,
         numResults: 5,
         sortFields: ['expiryTime'],
+        pageCount: 5,
+        page: 1,
         results: [
           {
             id: 'a815dd98fdfc448fb69c800bb6d13cc9',
@@ -92,6 +95,7 @@ describe('DashboardWaiversTable', function () {
         ],
       },
       sortWaivers: sortWaiversSpy,
+      dispatchPagination: () => {},
       stateGo: () => {},
       maxDaysOld: 0,
       needsAcknowledgement: false,
@@ -113,6 +117,36 @@ describe('DashboardWaiversTable', function () {
     expect(screen.getByText('Components')).toBeVisible();
     expect(screen.getByText('Upgrade')).toBeVisible();
     expect(tableEntries).toBeVisible();
+  });
+
+  it('renders NxTable next page', async () => {
+    let axiosMock;
+    axiosMock = axiosMockAdapter();
+    axiosMock.onPost(getWaiversUrl()).reply(200, {
+      dashboardResults: [],
+      numResults: 150,
+    });
+
+    for (let i = 0; i < 100; i++) {
+      const resultObject = {
+        id: '4ac5e46025c941e68a335b61eb3165d2' + i,
+        threatLevel: 5,
+        createTime: 1661532973306,
+        expiryTime: null,
+        policyId: 'ce6ca7e95261441586a0e3f1f934dd37',
+        policyName: 'Figue-policy',
+        ownerId: '642a106467c74f6eb5f90eade8ceb5f9',
+        ownerName: 'root-org',
+        ownerType: 'organization',
+        scope: 'Organization - root-org',
+        componentMatchStrategy: 'ALL_COMPONENTS',
+        hash: null,
+      };
+      dashboardWaiversProps.waivers.results.push(resultObject);
+    }
+    renderComponent(dashboardWaiversProps);
+    const nextButton = document.querySelector('[aria-label="goto next page"]');
+    fireEvent.click(nextButton);
   });
 
   it('renders a row with an alert message when the filter needs acknowledgement', () => {
@@ -140,14 +174,6 @@ describe('DashboardWaiversTable', function () {
     expect(
       screen.getByText('No data available in the last 20 days given the applied filters and permissions.')
     ).toBeVisible();
-  });
-
-  it('renders max results info when numResult is higher than 100', () => {
-    dashboardWaiversProps.waivers.numResults = 101;
-    dashboardWaiversProps.waivers.results.length = 101;
-    renderComponent(dashboardWaiversProps);
-
-    expect(screen.getByText(`First 100 results shown`)).toBeVisible();
   });
 
   describe('Cell sorting', () => {

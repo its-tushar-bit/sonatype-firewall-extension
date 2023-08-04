@@ -36,8 +36,32 @@ public class WaiverDetailsPage
       String sidebarReference
   )
   {
+    return urlWithQueryParams( ownerType, ownerId, waiverId, type, sidebarReference, null);
+  }
+
+  public static String urlWithQueryParams(
+      String ownerType,
+      String ownerId,
+      String waiverId,
+      String type,
+      String sidebarReference,
+      Integer page
+  )
+  {
+    String path = "/waiver/{ownerType}/{ownerId}/{waiverId}?type={type}&sidebarReference={sidebarReference}";
+    if (page != null) {
+      return BaseUrl.resolvePageUrl(
+          path + "&page={page}",
+          ownerType,
+          ownerId,
+          waiverId,
+          type,
+          sidebarReference,
+          page
+      );
+    }
     return BaseUrl.resolvePageUrl(
-        "/waiver/{ownerType}/{ownerId}/{waiverId}?type={type}&sidebarReference={sidebarReference}",
+        path,
         ownerType,
         ownerId,
         waiverId,

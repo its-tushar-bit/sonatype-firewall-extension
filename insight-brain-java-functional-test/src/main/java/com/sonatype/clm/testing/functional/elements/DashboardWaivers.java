@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -20,12 +21,22 @@ public class DashboardWaivers
 {
   private static final String ROOT = "#dashboard-waivers";
 
+  private static final String PAGINATOR = ".nx-btn-bar--pagination";
+
   public WaiversHeaders headers() {
     return new WaiversHeaders();
   }
 
   public WaiversResults results() {
     return new WaiversResults();
+  }
+
+  public WaiverResultsPaginator paginator() {
+    return new WaiverResultsPaginator();
+  }
+
+  public ElementsCollection paginationButtons() {
+    return $$(".nx-btn--pagination");
   }
 
   public class WaiversResults
@@ -60,12 +71,28 @@ public class DashboardWaivers
       return allWaivers;
     }
 
-    public SelenideElement maxResultsMessage() {
-      return child("#max-results-shown");
-    }
-
     public SelenideElement noDataMessage() {
       return child(".nx-table-row:last-child");
+    }
+  }
+
+  public static class WaiverResultsPaginator
+      extends BasicElement<WaiverResultsPaginator>
+  {
+    WaiverResultsPaginator() {
+      super(ROOT, ".nx-table-container__footer");
+    }
+
+    public  SelenideElement buttonBar() {
+      return child(PAGINATOR);
+    }
+
+    public  ElementsCollection paginatorButtons() {
+      return children(PAGINATOR, "button");
+    }
+
+    public  SelenideElement selectedPage() {
+      return child(PAGINATOR, "button.selected");
     }
   }
 

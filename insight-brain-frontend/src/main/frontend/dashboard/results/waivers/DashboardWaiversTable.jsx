@@ -5,17 +5,15 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxTable } from '@sonatype/react-shared-components';
+import { NxTable, NxPagination, NxTableContainer } from '@sonatype/react-shared-components';
 import { equals } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import DashboardWaiversTableRow, { waiverPropTypes } from './DashboardWaiversTableRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
-import MaxResultsInfoRow from '../MaxResultsInfoRow';
 
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { extractSortFieldName } from 'MainRoot/util/sortUtils';
-import { MAX_RESULTS } from '../../services/dashboard.data.service';
 
 const DEFAULT_SORT_FIELDS = [
   ['-threatLevel'],
@@ -28,8 +26,9 @@ const DEFAULT_SORT_FIELDS = [
 
 export default function DashboardWaiversTable(props) {
   const {
-    waivers: { results, numResults, sortFields, error },
+    waivers: { results, sortFields, error, pageCount, page },
     sortWaivers,
+    dispatchPagination,
     stateGo,
     maxDaysOld,
     needsAcknowledgement,
@@ -78,9 +77,8 @@ export default function DashboardWaiversTable(props) {
       return (
         <>
           {results.map((waiver) => (
-            <DashboardWaiversTableRow {...{ stateGo, waiver }} key={waiver.id} />
+            <DashboardWaiversTableRow {...{ stateGo, waiver, page }} key={waiver.id} />
           ))}
-          {numResults > MAX_RESULTS && <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} />}
         </>
       );
     }
@@ -123,6 +121,9 @@ export default function DashboardWaiversTable(props) {
           {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : bodyFragment()}
         </NxTable.Body>
       </NxTable>
+      <NxTableContainer.Footer>
+        <NxPagination pageCount={pageCount} currentPage={pageCount > 0 ? page : null} onChange={dispatchPagination} />
+      </NxTableContainer.Footer>
     </div>
   );
 }
@@ -131,12 +132,14 @@ DashboardWaiversTable.propTypes = {
   reload: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   sortWaivers: PropTypes.func.isRequired,
+  dispatchPagination: PropTypes.func.isRequired,
   maxDaysOld: PropTypes.number,
   needsAcknowledgement: PropTypes.bool.isRequired,
   waivers: PropTypes.shape({
     results: PropTypes.arrayOf(waiverPropTypes),
-    numResults: PropTypes.number,
     sortFields: PropTypes.arrayOf(PropTypes.string),
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
+    pageCount: PropTypes.number,
+    page: PropTypes.number,
   }),
 };

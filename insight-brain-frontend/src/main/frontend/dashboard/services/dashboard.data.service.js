@@ -58,8 +58,13 @@ function generateApplicationsSeries(applications) {
   });
 }
 
-export function getWaivers(filters, sortFields) {
-  const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateWaiversSortFields(sortFields));
+export function getWaivers(filters, sortFields, page) {
+  const request = createDashboardDataRequestPayload(
+    filters,
+    DASHBOARD_PAGE_SIZE,
+    translateWaiversSortFields(sortFields),
+    page
+  );
   return axios.post(getWaiversUrl(), request).then(dashboardRespopnseHandler());
 }
 

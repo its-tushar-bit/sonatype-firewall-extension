@@ -259,18 +259,10 @@ public class ComponentDAO
   }
 
   private void loadSecurityVulnerabilityCustomData() {
-    if (customRemediations == null) {
-      customRemediations = vulnerabilityCustomRemediationDAO.getByOwnerIdWithHierarchy(owner.getId());
-    }
-    if (customCwes == null) {
-      customCwes = vulnerabilityCustomCweDAO.getByOwnerIdWithHierarchy(owner.getId());
-    }
-    if (customCvssVectors == null) {
-      customCvssVectors = vulnerabilityCustomCvssVectorDAO.getByOwnerIdWithHierarchy(owner.getId());
-    }
-    if (customCvssSeverities == null) {
-      customCvssSeverities = vulnerabilityCustomCvssSeverityDAO.getByOwnerIdWithHierarchy(owner.getId());
-    }
+    customRemediations = vulnerabilityCustomRemediationDAO.getByOwnerIdWithHierarchy(owner.getId());
+    customCwes = vulnerabilityCustomCweDAO.getByOwnerIdWithHierarchy(owner.getId());
+    customCvssVectors = vulnerabilityCustomCvssVectorDAO.getByOwnerIdWithHierarchy(owner.getId());
+    customCvssSeverities = vulnerabilityCustomCvssSeverityDAO.getByOwnerIdWithHierarchy(owner.getId());
   }
 
   private void fillSecurityVulnerabilityCustomData(Component component, SecurityVulnerability securityVulnerability) {

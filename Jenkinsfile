@@ -17,7 +17,7 @@ make(
         String fixVersion = 'brain-next'
         List<String> newFixVersions = ['saas-next']
         echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
-        List<String> issues = getIssuesByFixVersion(fixVersion)
+        List<String> issues = getIssuesByFixVersion('CLM', fixVersion)
         replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
       }
     },

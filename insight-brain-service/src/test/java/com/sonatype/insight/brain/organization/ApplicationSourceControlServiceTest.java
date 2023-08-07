@@ -205,6 +205,33 @@ public class ApplicationSourceControlServiceTest
     results.forEach(app -> assertThat(app.totalRisk).isZero());
   }
 
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_NullPRCommentingAndNullCommitEnabled() {
+    createAppWithAutomatedSourceControlFeedbackValues(null, null);
+    final List<ApplicationTotalRiskDTO> resultsWhenBothNull =
+        applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+            LIMIT_LARGER_THAN_RESULT_SIZE);
+    assertThat(resultsWhenBothNull).hasSize(1);
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_NullCommitStatusEnabled() {
+    createAppWithAutomatedSourceControlFeedbackValues(null, true);
+    final List<ApplicationTotalRiskDTO> resultsWhenOnlyPullRequestNull =
+        applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+            LIMIT_LARGER_THAN_RESULT_SIZE);
+    assertThat(resultsWhenOnlyPullRequestNull).hasSize(1);
+  }
+
+  @Test
+  public void testGetApplicationsWithAutomatedSourceControlFeedbackDisabled_NullPRCommentingEnabled() {
+    createAppWithAutomatedSourceControlFeedbackValues(true, null);
+    final List<ApplicationTotalRiskDTO> resultsWhenOnlyCommitStatusNull =
+        applicationSourceControlService.getApplicationsWithAutomatedSourceControlFeedbackDisabled(
+            LIMIT_LARGER_THAN_RESULT_SIZE);
+    assertThat(resultsWhenOnlyCommitStatusNull).hasSize(1);
+  }
+
   private List<Application> givenApplicationsWithNoRisk(final int numApplications) {
     return IntStream.range(0, numApplications)
         .mapToObj(i -> tempEntity.newApplication(org.getId()))
@@ -292,5 +319,29 @@ public class ApplicationSourceControlServiceTest
     Collections.reverse(listCopy);
 
     return listCopy;
+  }
+
+  private void createAppWithAutomatedSourceControlFeedbackValues(
+      final Boolean pullRequestCommentingEnabled,
+      final Boolean commitStatusEnabled
+  )
+  {
+    final Application appWithMissingScmEntries = tempEntity.newApplication(org.getId());
+    tempEntity.newSourceControl(
+        appWithMissingScmEntries.getId(),
+        REPO_URL,
+        null,
+        null,
+        null,
+        null,
+        false,
+        null,
+        null,
+        null,
+        pullRequestCommentingEnabled,
+        null,
+        "/target/*",
+        true,
+        commitStatusEnabled);
   }
 }

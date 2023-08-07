@@ -83,10 +83,10 @@ public class ApplicationSourceControlService
   // Automated source control feedback is considered disabled when either pull request commenting or commit statuses are
   // disabled
   private boolean isAutomatedSourceControlFeedbackDisabled(final SourceControl sourceControl) {
-    // If inheritance was properly resolved, the flags should not be null
     if (sourceControl.getPullRequestCommentingEnabled() == null || sourceControl.getCommitStatusEnabled() == null) {
-      throw new IllegalArgumentException("Composite source control configurations cannot be null");
+      return true;
     }
+
     return !sourceControl.getPullRequestCommentingEnabled() || !sourceControl.getCommitStatusEnabled();
   }
 

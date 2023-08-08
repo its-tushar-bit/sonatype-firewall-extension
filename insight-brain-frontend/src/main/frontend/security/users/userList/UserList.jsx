@@ -59,7 +59,10 @@ export default function UserList(props) {
             </div>
           </header>
           <div className="nx-tile-content">
-            <NxList emptyMessage="There are no users configured. Click the Invite button to add more users.">
+            <NxList
+              id="user-management-list"
+              emptyMessage="There are no users configured. Click the Invite button to add more users."
+            >
               {users.map((user) => (
                 <UserListItem
                   key={user.id}

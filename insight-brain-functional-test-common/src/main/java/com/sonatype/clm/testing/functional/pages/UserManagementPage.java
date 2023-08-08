@@ -38,6 +38,10 @@ public class UserManagementPage
     return child(".iq-user-list-item-current");
   }
 
+  public SelenideElement loadError() {
+    return child(".nx-alert--load-error");
+  }
+
   public ResetPasswordModal resetPasswordModal() {
     return new ResetPasswordModal();
   }

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useState } from 'react';
+import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { NxButton, NxFontAwesomeIcon, NxList } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
@@ -37,7 +38,7 @@ export default function UserListItem({ user, currentUsername, editable, deleteUs
           <NxList.Actions>
             <NxButton
               variant="icon-only"
-              className={isCurrentUser ? 'disabled' : undefined}
+              className={classnames('iq-user-list-item__delete-btn', isCurrentUser ? 'disabled' : undefined)}
               onClick={isCurrentUser ? undefined : () => setShowDeleteModal(true)}
               title={isCurrentUser ? 'Current user cannot be deleted' : 'Delete user'}
             >

@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response.Status;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.UserSessionRepresentation;
@@ -232,6 +233,43 @@ public class KeycloakServerUtil
 
   public String getBaseUrl() {
     return url;
+  }
+
+  /**
+   * Maps SAML attribute firstName to users first name. Maps SAML attribute lastName to users last name. Maps SAML
+   * attribute groups to users groups.
+   *
+   * @return All the mappings created in a list.
+   */
+  public static List<ProtocolMapperRepresentation> protocolMappers() {
+    ProtocolMapperRepresentation firstNameMapping = new ProtocolMapperRepresentation();
+    firstNameMapping.setName("firstName");
+    firstNameMapping.setProtocol("saml");
+    firstNameMapping.setProtocolMapper("saml-user-property-mapper");
+    firstNameMapping.getConfig().put("attribute.nameformat", "Basic");
+    firstNameMapping.getConfig().put("user.attribute", "firstName");
+    firstNameMapping.getConfig().put("friendly.name", "firstName");
+    firstNameMapping.getConfig().put("attribute.name", "firstName");
+
+    ProtocolMapperRepresentation lastNameMapping = new ProtocolMapperRepresentation();
+    lastNameMapping.setName("lastName");
+    lastNameMapping.setProtocol("saml");
+    lastNameMapping.setProtocolMapper("saml-user-property-mapper");
+    lastNameMapping.getConfig().put("attribute.nameformat", "Basic");
+    lastNameMapping.getConfig().put("user.attribute", "lastName");
+    lastNameMapping.getConfig().put("friendly.name", "lastName");
+    lastNameMapping.getConfig().put("attribute.name", "lastName");
+
+    ProtocolMapperRepresentation groupsMapping = new ProtocolMapperRepresentation();
+    groupsMapping.setName("groups");
+    groupsMapping.setProtocol("saml");
+    groupsMapping.setProtocolMapper("saml-group-membership-mapper");
+    groupsMapping.getConfig().put("attribute.nameformat", "Basic");
+    groupsMapping.getConfig().put("name", "Group List");
+    groupsMapping.getConfig().put("friendly.name", "Groups");
+    groupsMapping.getConfig().put("attribute.name", "groups");
+
+    return Arrays.asList(firstNameMapping, lastNameMapping, groupsMapping);
   }
 
   public void clean() {

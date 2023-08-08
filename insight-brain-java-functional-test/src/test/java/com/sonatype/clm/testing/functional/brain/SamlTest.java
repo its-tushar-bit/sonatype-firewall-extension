@@ -5,9 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
@@ -35,7 +32,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.keycloak.representations.idm.ClientRepresentation;
-import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.focused;
@@ -76,7 +72,7 @@ public class SamlTest
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
     String metadata = apiSamlConfigurationService.getMetadata();
     ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(protocolMappers());
+    clientRepresentation.setProtocolMappers(keycloak.protocolMappers());
     keycloak.createClient(clientRepresentation);
 
     LoginModal loginModal = new LoginModal();
@@ -122,7 +118,7 @@ public class SamlTest
     // Register IQ in Keycloak
     String metadata = apiSamlConfigurationService.getMetadata();
     ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(protocolMappers());
+    clientRepresentation.setProtocolMappers(keycloak.protocolMappers());
     keycloak.createClient(clientRepresentation);
 
     // Create a group and a user
@@ -212,7 +208,7 @@ public class SamlTest
     // Register IQ in Keycloak
     String metadata = apiSamlConfigurationService.getMetadata();
     ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(protocolMappers());
+    clientRepresentation.setProtocolMappers(keycloak.protocolMappers());
     keycloak.createClient(clientRepresentation);
 
     String username = "william.gibson";
@@ -247,7 +243,7 @@ public class SamlTest
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
     String metadata = apiSamlConfigurationService.getMetadata();
     ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(protocolMappers());
+    clientRepresentation.setProtocolMappers(keycloak.protocolMappers());
     keycloak.createClient(clientRepresentation);
     String username = "johanne.doanne";
     String password = "her-secret";
@@ -263,42 +259,5 @@ public class SamlTest
     KeycloakLoginPage.login(username, password);
 
     waitUntilUrl(urlEncoded);
-  }
-
-  /**
-   * Maps SAML attribute firstName to users first name. Maps SAML attribute lastName to users last name. Maps SAML
-   * attribute groups to users groups.
-   *
-   * @return All the mappings created in a list.
-   */
-  private List<ProtocolMapperRepresentation> protocolMappers() {
-    ProtocolMapperRepresentation firstNameMapping = new ProtocolMapperRepresentation();
-    firstNameMapping.setName("firstName");
-    firstNameMapping.setProtocol("saml");
-    firstNameMapping.setProtocolMapper("saml-user-property-mapper");
-    firstNameMapping.getConfig().put("attribute.nameformat", "Basic");
-    firstNameMapping.getConfig().put("user.attribute", "firstName");
-    firstNameMapping.getConfig().put("friendly.name", "firstName");
-    firstNameMapping.getConfig().put("attribute.name", "firstName");
-
-    ProtocolMapperRepresentation lastNameMapping = new ProtocolMapperRepresentation();
-    lastNameMapping.setName("lastName");
-    lastNameMapping.setProtocol("saml");
-    lastNameMapping.setProtocolMapper("saml-user-property-mapper");
-    lastNameMapping.getConfig().put("attribute.nameformat", "Basic");
-    lastNameMapping.getConfig().put("user.attribute", "lastName");
-    lastNameMapping.getConfig().put("friendly.name", "lastName");
-    lastNameMapping.getConfig().put("attribute.name", "lastName");
-
-    ProtocolMapperRepresentation groupsMapping = new ProtocolMapperRepresentation();
-    groupsMapping.setName("groups");
-    groupsMapping.setProtocol("saml");
-    groupsMapping.setProtocolMapper("saml-group-membership-mapper");
-    groupsMapping.getConfig().put("attribute.nameformat", "Basic");
-    groupsMapping.getConfig().put("name", "Group List");
-    groupsMapping.getConfig().put("friendly.name", "Groups");
-    groupsMapping.getConfig().put("attribute.name", "groups");
-
-    return Arrays.asList(firstNameMapping, lastNameMapping, groupsMapping);
   }
 }

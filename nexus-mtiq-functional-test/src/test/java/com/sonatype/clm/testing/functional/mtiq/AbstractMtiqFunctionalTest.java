@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.admin.service.TenantProvisioningService;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.auth.MultiTenantAuth0ApiSupplier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -43,6 +45,7 @@ import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestHelper;
 import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestService;
@@ -58,6 +61,10 @@ import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
+import com.auth0.client.auth.Auth0AuthAPI;
+import com.auth0.client.mgmt.Auth0ManagementAPI;
+import com.auth0.json.auth.TokenHolder;
+import com.auth0.net.TokenRequest;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
@@ -67,6 +74,10 @@ import com.codeborne.selenide.ex.UIAssertionError;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import io.dropwizard.server.DefaultServerFactory;
+
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -99,6 +110,9 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
 public abstract class AbstractMtiqFunctionalTest
 {
@@ -111,6 +125,12 @@ public abstract class AbstractMtiqFunctionalTest
   protected static final TestProductLicense testProductLicense;
 
   protected static final JiraService jiraService;
+
+  protected static final MultiTenantAuth0ApiSupplier auth0ApiSupplier;
+
+  protected static final Auth0ManagementAPI auth0ManagementAPI;
+
+  protected static final Auth0AuthAPI auth0AuthAPI;
 
   protected static final TestCLMServer testCLMServer;
 
@@ -140,6 +160,9 @@ public abstract class AbstractMtiqFunctionalTest
     licenseFingerprinter = new TestLicenseFingerprinter();
     testRestTenantUtil = new TestRestTenantUtil();
     jiraService = Mockito.mock(JiraService.class);
+    auth0ApiSupplier = Mockito.mock(MultiTenantAuth0ApiSupplier.class);
+    auth0ManagementAPI = Mockito.mock(Auth0ManagementAPI.class);
+    auth0AuthAPI = Mockito.mock(Auth0AuthAPI.class);
     initMocks();
 
     MultiTenantBrainServiceTestHelper.setup();
@@ -233,8 +256,23 @@ public abstract class AbstractMtiqFunctionalTest
   private static void initMocks() {
     try {
       Mockito.reset(jiraService);
+      Mockito.reset(auth0ApiSupplier);
+      Mockito.reset(auth0ManagementAPI);
+      Mockito.reset(auth0AuthAPI);
+
       Mockito.when(jiraService.isEnabled()).thenReturn(false);
       Mockito.doThrow(new IllegalStateException()).when(jiraService).getProjectsWithAcceptableIssueTypes();
+
+      TokenHolder mockAuth0TokenHolder = Mockito.mock(TokenHolder.class);
+      TokenRequest mockAuth0TokenRequest = Mockito.mock(TokenRequest.class);
+      Mockito.when(mockAuth0TokenHolder.getAccessToken()).thenReturn("");
+      Mockito.when(mockAuth0TokenRequest.execute()).thenReturn(mockAuth0TokenHolder);
+      Mockito.when(auth0AuthAPI.requestToken(Mockito.anyString())).thenReturn(mockAuth0TokenRequest);
+
+      Mockito.when(auth0ApiSupplier.getManagementApi(Mockito.anyString(), Mockito.anyString()))
+          .thenReturn(auth0ManagementAPI);
+      Mockito.when(auth0ApiSupplier.getAuthApi(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+          .thenReturn(auth0AuthAPI);
     }
     catch (Exception e) {
       throw new IllegalStateException(e);
@@ -249,6 +287,12 @@ public abstract class AbstractMtiqFunctionalTest
   @BeforeClass
   public static void setUpClass() {
     setupWebDriver();
+    Subject subject = mock(Subject.class);
+    lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Admin", InternalRealm.ID));
+    SecurityManager securityManager = mock(SecurityManager.class);
+    lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
+    ThreadContext.bind(securityManager);
+    ThreadContext.bind(subject);
   }
 
   protected static void setupWebDriver() {
@@ -374,6 +418,7 @@ public abstract class AbstractMtiqFunctionalTest
         bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
         bind(JiraService.class).toInstance(jiraService);
+        bind(MultiTenantAuth0ApiSupplier.class).toInstance(auth0ApiSupplier);
         bind(QuartzJobStoreTX.class).to(MultiTenantQuartzJobStoreTX.class);
         bind(TaskScheduler.class).to(MultiTenantTaskScheduler.class);
       }

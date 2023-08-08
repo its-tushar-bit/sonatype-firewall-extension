@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,7 +36,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 @Tag(name = "Config SAML")
 public class DefaultApiSamlConfigurationResource implements ApiSamlConfigurationResource
 {
-  static final String METADATA = "metadata";
+  public static final String METADATA = "metadata";
 
   private final ApiSamlConfigurationService apiSamlConfigurationService;
 
@@ -47,6 +48,7 @@ public class DefaultApiSamlConfigurationResource implements ApiSamlConfiguration
   @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @BlockIfMultiTenant
   public ApiSamlConfigurationResponseDTO getSamlConfiguration() {
     return apiSamlConfigurationService.getSamlConfiguration();
   }
@@ -55,6 +57,7 @@ public class DefaultApiSamlConfigurationResource implements ApiSamlConfiguration
   @PUT
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Audited(AuditEvent.CONFIGURE_SAML)
+  @BlockIfMultiTenant
   public void insertOrUpdateSamlConfiguration(
       @FormDataParam("identityProviderXml") String identityProviderXml,
       @FormDataParam("samlConfiguration") ApiSamlConfigurationDTO samlConfiguration)
@@ -65,6 +68,7 @@ public class DefaultApiSamlConfigurationResource implements ApiSamlConfiguration
   @Override
   @DELETE
   @Audited(AuditEvent.DELETE_SAML)
+  @BlockIfMultiTenant
   public void deleteSamlConfiguration() {
     apiSamlConfigurationService.deleteSamlConfiguration();
   }

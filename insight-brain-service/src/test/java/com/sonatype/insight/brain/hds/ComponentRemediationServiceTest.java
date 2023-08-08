@@ -159,6 +159,20 @@ public class ComponentRemediationServiceTest
   private static final PolicyAlert failAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10),
       Collections.singletonList(new Action(Action.ID_FAIL)));
 
+  private static final int BREAKING_CHANGES_1 = getRandomRangedInt();
+
+  private static final int BREAKING_CHANGES_2 = getRandomRangedInt();
+
+  private static final int BREAKING_CHANGES_3 = getRandomRangedInt();
+
+  private static final int BREAKING_CHANGES_4 = getRandomRangedInt();
+
+  private static final int BREAKING_CHANGES_5 = getRandomRangedInt();
+
+  private static final int BREAKING_CHANGES_6 = getRandomRangedInt();
+
+  private static final int BREAKING_CHANGES_11 = getRandomRangedInt();
+
   private Organization org;
 
   private final ApiComponentDTOV2 componentDtoA1V1 = new ApiComponentDTOV2();
@@ -209,45 +223,59 @@ public class ComponentRemediationServiceTest
 
     componentDtoA1V1.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A1_V1);
     componentDtoA1V1.packageUrl = "pkg:maven/g1/a1@v1?type=jar";
+    componentDtoA1V1.breakingChangesCount = BREAKING_CHANGES_1;
     componentDtoA1V2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A1_V2);
     componentDtoA1V2.packageUrl = "pkg:maven/g1/a1@v2?type=jar";
+    componentDtoA1V2.breakingChangesCount = BREAKING_CHANGES_2;
     componentDtoA1V3.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A1_V3);
     componentDtoA1V3.packageUrl = "pkg:maven/g1/a1@v3?type=jar";
+    componentDtoA1V3.breakingChangesCount = BREAKING_CHANGES_3;
     componentDtoA1V4.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A1_V4);
     componentDtoA1V4.packageUrl = "pkg:maven/g1/a1@v4?type=jar";
+    componentDtoA1V4.breakingChangesCount = BREAKING_CHANGES_4;
     componentDtoA1V5.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A1_V5);
     componentDtoA1V5.packageUrl = "pkg:maven/g1/a1@v5?type=jar";
+    componentDtoA1V5.breakingChangesCount = BREAKING_CHANGES_5;
     componentDtoA1V6.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A1_V6);
     componentDtoA1V6.packageUrl = "pkg:maven/g1/a1@v6?type=jar";
+    componentDtoA1V6.breakingChangesCount = BREAKING_CHANGES_6;
     componentDtoA1V11.componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A1_V11);
     componentDtoA1V11.packageUrl = "pkg:maven/g1/a1@v11?type=jar";
+    componentDtoA1V11.breakingChangesCount = BREAKING_CHANGES_11;
 
     // A1
     detailsDtoA1V1.componentIdentifier = MAVEN_COORDINATES_A1_V1;
     detailsDtoA1V1.violatedPolicyCount = 2;
     detailsDtoA1V1.policyAlerts = Arrays.asList(warnAlert, failAlert);
+    detailsDtoA1V1.breakingChangesCount = BREAKING_CHANGES_1;
 
     detailsDtoA1V2.componentIdentifier = MAVEN_COORDINATES_A1_V2;
     detailsDtoA1V2.violatedPolicyCount = 1;
     detailsDtoA1V2.policyAlerts = Collections.singletonList(warnAlert);
+    detailsDtoA1V2.breakingChangesCount = BREAKING_CHANGES_2;
 
     detailsDtoA1V3.componentIdentifier = MAVEN_COORDINATES_A1_V3;
     detailsDtoA1V3.violatedPolicyCount = 0;
+    detailsDtoA1V3.breakingChangesCount = BREAKING_CHANGES_3;
 
     detailsDtoA1V4.componentIdentifier = MAVEN_COORDINATES_A1_V4;
     detailsDtoA1V4.violatedPolicyCount = 0;
+    detailsDtoA1V4.breakingChangesCount = BREAKING_CHANGES_4;
 
     detailsDtoA1V5.componentIdentifier = MAVEN_COORDINATES_A1_V5;
     detailsDtoA1V5.violatedPolicyCount = 1;
     detailsDtoA1V5.policyAlerts = Collections.singletonList(warnAlert);
+    detailsDtoA1V5.breakingChangesCount = BREAKING_CHANGES_5;
 
     detailsDtoA1V6.componentIdentifier = MAVEN_COORDINATES_A1_V6;
     detailsDtoA1V6.violatedPolicyCount = 1;
     detailsDtoA1V6.policyAlerts = Collections.singletonList(failAlert);
+    detailsDtoA1V6.breakingChangesCount = BREAKING_CHANGES_6;
 
     detailsDtoA1V11.componentIdentifier = MAVEN_COORDINATES_A1_V11;
     detailsDtoA1V11.violatedPolicyCount = 0;
+    detailsDtoA1V11.breakingChangesCount = BREAKING_CHANGES_11;
 
     // A2
     detailsA2V1 = buildComponentDetails(MAVEN_COORDINATES_A2_V1, Arrays.asList(warnAlert, failAlert));
@@ -503,12 +531,15 @@ public class ComponentRemediationServiceTest
     ComponentDetailsDTO ngDtoA1 = new ComponentDetailsDTO();
     ngDtoA1.componentIdentifier = compIdNgA1;
     ngDtoA1.violatedPolicyCount = 1;
+    ngDtoA1.breakingChangesCount = BREAKING_CHANGES_1;
     ComponentDetailsDTO ngDtoA2 = new ComponentDetailsDTO();
     ngDtoA2.componentIdentifier = compIdNgA2;
     ngDtoA2.violatedPolicyCount = 1;
+    ngDtoA2.breakingChangesCount = BREAKING_CHANGES_2;
     ComponentDetailsDTO ngDtoA3 = new ComponentDetailsDTO();
     ngDtoA3.componentIdentifier = compIdNgA3;
     ngDtoA3.violatedPolicyCount = 0;
+    ngDtoA3.breakingChangesCount = BREAKING_CHANGES_3;
     List<ComponentDetailsDTO> allVersions = Arrays.asList(ngDtoA1, ngDtoA2, ngDtoA3);
 
     mockHdsGetComponentDependencies(returnDto);
@@ -519,9 +550,11 @@ public class ComponentRemediationServiceTest
     ApiComponentDTOV2 ngApiDtoA1 = new ApiComponentDTOV2();
     ngApiDtoA1.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(compIdNgA1);
     ngApiDtoA1.packageUrl = "pkg:nuget/a1@v";
+    ngApiDtoA1.breakingChangesCount = BREAKING_CHANGES_1;
     ApiComponentDTOV2 ngApiDtoA3 = new ApiComponentDTOV2();
     ngApiDtoA3.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(compIdNgA3);
     ngApiDtoA3.packageUrl = "pkg:nuget/a3@v";
+    ngApiDtoA3.breakingChangesCount = BREAKING_CHANGES_3;
 
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, ngApiDtoA1));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, ngApiDtoA3));
@@ -939,6 +972,7 @@ public class ComponentRemediationServiceTest
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.packageUrl = dto.packageUrl;
     component.componentIdentifier = dto.componentIdentifier;
+    component.breakingChangesCount = dto.breakingChangesCount;
     data.setComponent(component);
     changeDto.setData(data);
     return changeDto;
@@ -951,12 +985,16 @@ public class ComponentRemediationServiceTest
       boolean found = false;
       for (ApiVersionChangeOptionDTO dto : remediationDto.versionChanges) {
         if (dto.getType().equals(expected.getType())) {
-          assertThat(dto.getData().getComponent().packageUrl).isEqualTo(expected.getData().getComponent().packageUrl);
-          assertThat(dto.getData().getComponent().componentIdentifier.toComponentIdentifier())
-              .isEqualTo(expected.getData().getComponent().componentIdentifier.toComponentIdentifier());
-          assertThat(dto.getData().getComponent().displayName)
-              .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expected.getData().getComponent().componentIdentifier
+          final ApiComponentDTOV2 actualComponentDto = dto.getData().getComponent();
+          final ApiComponentDTOV2 expectedComponentDto = expected.getData().getComponent();
+          assertThat(actualComponentDto.packageUrl).isEqualTo(expectedComponentDto.packageUrl);
+          assertThat(actualComponentDto.componentIdentifier.toComponentIdentifier())
+              .isEqualTo(expectedComponentDto.componentIdentifier.toComponentIdentifier());
+          assertThat(actualComponentDto.displayName)
+              .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponentDto.componentIdentifier
                   .toComponentIdentifier()).toString());
+          assertThat(actualComponentDto.breakingChangesCount)
+              .isEqualTo(expectedComponentDto.breakingChangesCount);
           found = true;
           break;
         }
@@ -976,15 +1014,18 @@ public class ComponentRemediationServiceTest
     detailsDtoConan.violatedPolicyCount = 1;
     detailsDtoConan.componentIdentifier = cd1;
     detailsDtoConan.policyAlerts = Arrays.asList(warnAlert, failAlert);
+    detailsDtoConan.breakingChangesCount = BREAKING_CHANGES_1;
 
     ComponentDetailsDTO detailsDtoConan1 = new ComponentDetailsDTO();
     detailsDtoConan1.violatedPolicyCount = 2;
     detailsDtoConan1.componentIdentifier = cd2;
     detailsDtoConan1.policyAlerts = Arrays.asList(warnAlert, failAlert);
+    detailsDtoConan1.breakingChangesCount = BREAKING_CHANGES_2;
 
     ComponentDetailsDTO detailsDtoConan3 = new ComponentDetailsDTO();
     detailsDtoConan3.violatedPolicyCount = 0;
     detailsDtoConan3.componentIdentifier = cd3;
+    detailsDtoConan3.breakingChangesCount = BREAKING_CHANGES_3;
 
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoConan, detailsDtoConan1, detailsDtoConan3);
 
@@ -995,6 +1036,7 @@ public class ComponentRemediationServiceTest
     ApiComponentDTOV2 conanDto = new ApiComponentDTOV2();
     conanDto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(cd3);
     conanDto.packageUrl = PackageUrlIdentifier.toPackageUrl(cd3);
+    conanDto.breakingChangesCount = BREAKING_CHANGES_3;
 
     assertThat(dto.versionChanges).hasSize(2);
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, conanDto));
@@ -1162,5 +1204,11 @@ public class ComponentRemediationServiceTest
     componentDetailsDTO.securityVulnerabilities = Collections.singletonList(vulnerability);
 
     return componentDetailsDTO;
+  }
+
+  private static int getRandomRangedInt() {
+    final int min = 0;
+    final int max = 20;
+    return (int) ((Math.random() * (max - min)) + min);
   }
 }

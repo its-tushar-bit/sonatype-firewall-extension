@@ -139,41 +139,42 @@ public class ComponentRemediationService
 
     if (currentIndex >= 0) { // only process if we find a current version of the component
       // find non-violating and non-failing versions
-      List<ComponentIdentifier> nonViolatingVersions = nonViolatingVersions(currentIndex, allVersions);
+      List<ComponentDetailsDTO> nonViolatingVersions = nonViolatingVersions(currentIndex, allVersions);
 
       // find first non violating version
       nonViolatingVersions.stream()
           .findFirst()
-          .ifPresent(identifier -> {
+          .ifPresent(dto -> {
             componentRemediationDto.versionChanges.add(
-                createVersionChangeOption(identifier, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
+                createVersionChangeOption(dto.componentIdentifier, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+                    dto.breakingChangesCount));
             telemetryAttributes.put(OPTION_NEXT_NO_VIOLATIONS_ATTR, String.valueOf(true));
           });
 
       // nonFailingVersions will be empty if stage is not specified
       // and we won't add non-failing/non-failing with dependencies remedies.
-      List<ComponentIdentifier> nonFailingVersions = (stageId == null) ?
+      List<ComponentDetailsDTO> nonFailingVersions = (stageId == null) ?
           Collections.emptyList() :
           nonFailingVersions(currentIndex, allVersions);
 
       // find first non failing version
       nonFailingVersions.stream()
           .findFirst()
-          .ifPresent(identifier -> {
+          .ifPresent(dto -> {
             componentRemediationDto.versionChanges.add(
-                createVersionChangeOption(identifier, ApiVersionChangeOptionType.NEXT_NON_FAILING));
+                createVersionChangeOption(dto.componentIdentifier, ApiVersionChangeOptionType.NEXT_NON_FAILING,
+                    dto.breakingChangesCount));
             telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
           });
 
       getLessRiskyVersionBasedOnAggregateScoring(currentIndex, allVersions)
-          .ifPresent(componentWithLessAggregateRisk -> {
+          .ifPresent(dto -> {
             final ApiVersionChangeOptionType changeType =
                 ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK;
 
             componentRemediationDto.versionChanges.add(
                 createVersionChangeOption(
-                    componentWithLessAggregateRisk,
-                    changeType
+                    dto.componentIdentifier, changeType, dto.breakingChangesCount
                 ));
 
             telemetryAttributes.put(changeType.getNameForTelemetry(), String.valueOf(true));
@@ -184,39 +185,25 @@ public class ComponentRemediationService
           && SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
 
       if (includeAdvancedStrategies) {
-        // non-violating/non-failing with dependencies
-        Collection<PackageUrlIdentifier> nonFailingVersionsPurls = nonFailingVersions.stream()
-            .map(PackageUrlIdentifier::fromComponentIdentifier)
-            .collect(Collectors.toList());
-
-        Collection<PackageUrlIdentifier> nonViolatingVersionsPurls = nonViolatingVersions.stream()
-            .map(PackageUrlIdentifier::fromComponentIdentifier)
-            .collect(Collectors.toList());
-
-        // create collection of purls of all non violating, non failing versions
-        // since nonFailingVersions is a super set which includes nonViolatingVersions, use that if calculated
-        Collection<PackageUrlIdentifier> candidatePurls = CollectionUtils.isNotEmpty(nonFailingVersionsPurls) ?
-            nonFailingVersionsPurls :
-            nonViolatingVersionsPurls;
-
-        Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = getDependencyAlerts(candidatePurls,
-            ownerType, ownerId, stageId);
+        Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = getDependencyAlerts(nonFailingVersions,
+            nonViolatingVersions, ownerType, ownerId, stageId);
 
         // find first non violating where dependencies have no violations
-        nonViolatingWithDependencies(nonViolatingVersionsPurls, dependencyAlerts)
-            .ifPresent(identifier -> {
+        nonViolatingWithDependencies(nonViolatingVersions, dependencyAlerts)
+            .ifPresent(dto -> {
               componentRemediationDto.versionChanges.add(
-                  createVersionChangeOption(identifier,
-                      ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES)
+                  createVersionChangeOption(dto.componentIdentifier,
+                      ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, dto.breakingChangesCount)
               );
               telemetryAttributes.put(OPTION_NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
             });
 
         // find first non failing where dependencies have no violations
-        nonFailingWithDependencies(nonFailingVersionsPurls, dependencyAlerts)
-            .ifPresent(identifier -> {
+        nonFailingWithDependencies(nonFailingVersions, dependencyAlerts)
+            .ifPresent(dto -> {
               componentRemediationDto.versionChanges.add(
-                  createVersionChangeOption(identifier, ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES)
+                  createVersionChangeOption(dto.componentIdentifier,
+                      ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, dto.breakingChangesCount)
               );
               telemetryAttributes.put(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
             });
@@ -231,11 +218,27 @@ public class ComponentRemediationService
    * evaluates dependencies and returns a map of each version's component identifier to its dependencies policy alerts
    */
   private Map<PackageUrlIdentifier, List<PolicyAlert>> getDependencyAlerts(
-      Collection<PackageUrlIdentifier> candidatePurls,
+      final List<ComponentDetailsDTO> nonFailingVersions,
+      final List<ComponentDetailsDTO> nonViolatingVersions,
       final OwnerType ownerType,
       final String ownerId,
       final String stageId)
   {
+    // non-violating/non-failing with dependencies
+    Collection<PackageUrlIdentifier> nonFailingVersionsPurls = nonFailingVersions.stream()
+        .map(dto -> PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier))
+        .collect(Collectors.toList());
+
+    Collection<PackageUrlIdentifier> nonViolatingVersionsPurls = nonViolatingVersions.stream()
+        .map(dto -> PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier))
+        .collect(Collectors.toList());
+
+    // create collection of purls of all non violating, non failing versions
+    // since nonFailingVersions is a super set which includes nonViolatingVersions, use that if calculated
+    Collection<PackageUrlIdentifier> candidatePurls = CollectionUtils.isNotEmpty(nonFailingVersionsPurls) ?
+        nonFailingVersionsPurls :
+        nonViolatingVersionsPurls;
+
     // get dependencies of all non violating, non failing versions
     ComponentDependenciesDTO dependenciesDto = getComponentDependencies(candidatePurls);
 
@@ -288,15 +291,14 @@ public class ComponentRemediationService
     return policyAlertsByComponent;
   }
 
-  private List<ComponentIdentifier> nonViolatingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
+  private List<ComponentDetailsDTO> nonViolatingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
     return dtos.stream()
         .skip(startingIndex)
         .filter(dto -> dto.violatedPolicyCount == 0)
-        .map(dto -> dto.componentIdentifier)
         .collect(Collectors.toList());
   }
 
-  private Optional<ComponentIdentifier> getLessRiskyVersionBasedOnAggregateScoring(
+  private Optional<ComponentDetailsDTO> getLessRiskyVersionBasedOnAggregateScoring(
       final int indexOfCurrentVersion,
       List<ComponentDetailsDTO> availableVersions
   )
@@ -310,15 +312,13 @@ public class ComponentRemediationService
 
           return candidateScore < currentRisk && candidateScore <= MAX_ALLOWABLE_AGGREGATED_RISK;
         })
-        .map(dto -> dto.componentIdentifier)
         .findFirst();
   }
 
-  private List<ComponentIdentifier> nonFailingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
+  private List<ComponentDetailsDTO> nonFailingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
     return dtos.stream()
         .skip(startingIndex)
         .filter(dto -> !hasFailAction(dto.policyAlerts))
-        .map(dto -> dto.componentIdentifier)
         .collect(Collectors.toList());
   }
 
@@ -331,28 +331,32 @@ public class ComponentRemediationService
     }
   }
 
-  private Optional<ComponentIdentifier> nonViolatingWithDependencies(
-      Collection<PackageUrlIdentifier> nonViolatingVersions,
+  private Optional<ComponentDetailsDTO> nonViolatingWithDependencies(
+      Collection<ComponentDetailsDTO> nonViolatingVersions,
       Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts)
   {
-    for (PackageUrlIdentifier versionPurl : nonViolatingVersions) {
+    for (ComponentDetailsDTO dto : nonViolatingVersions) {
+      final PackageUrlIdentifier versionPurl = PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier);
       if (CollectionUtils.isEmpty(dependencyAlerts.get(versionPurl)))
       {
-        return Optional.of(tryEnsureCompleteIdentifier(versionPurl));
+        dto.componentIdentifier = tryEnsureCompleteIdentifier(versionPurl);
+        return Optional.of(dto);
       }
     }
     return Optional.empty();
   }
 
-  private Optional<ComponentIdentifier> nonFailingWithDependencies(
-      Collection<PackageUrlIdentifier> nonFailingVersions,
+  private Optional<ComponentDetailsDTO> nonFailingWithDependencies(
+      Collection<ComponentDetailsDTO> nonFailingVersions,
       Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts)
   {
-    for (PackageUrlIdentifier versionPurl : nonFailingVersions) {
+    for (ComponentDetailsDTO dto : nonFailingVersions) {
+      final PackageUrlIdentifier versionPurl = PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier);
       List<PolicyAlert> policyAlerts = dependencyAlerts.get(versionPurl);
       if (policyAlerts == null || !hasFailAction(policyAlerts))
       {
-        return Optional.of(tryEnsureCompleteIdentifier(versionPurl));
+        dto.componentIdentifier = tryEnsureCompleteIdentifier(versionPurl);
+        return Optional.of(dto);
       }
     }
     return Optional.empty();
@@ -382,7 +386,8 @@ public class ComponentRemediationService
   }
 
   private ApiVersionChangeOptionDTO createVersionChangeOption(ComponentIdentifier componentIdentifier,
-                                                              ApiVersionChangeOptionType apiVersionChangeOptionType)
+                                                              ApiVersionChangeOptionType apiVersionChangeOptionType,
+                                                              Integer breakingChangesCount)
   {
     ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
     componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
@@ -391,6 +396,7 @@ public class ComponentRemediationService
         ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
     componentDTOV2.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
     componentDTOV2.proprietary = null; // not applicable
+    componentDTOV2.breakingChangesCount = breakingChangesCount;
     return new ApiVersionChangeOptionDTO(apiVersionChangeOptionType, new ApiComponentChangeActionDTO(componentDTOV2));
   }
 

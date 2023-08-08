@@ -30,4 +30,6 @@ public class ApiComponentDTOV2
 
   @JsonInclude(Include.NON_NULL)
   public Boolean thirdParty;
+
+  public Integer breakingChangesCount;
 }

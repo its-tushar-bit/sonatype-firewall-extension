@@ -47,7 +47,8 @@
         "hash": "0d47936a4ce57483848a",
         "componentIdentifier": null,
         "proprietary": false,
-        "displayName": "com.fasterxml.jackson.core : jackson-annotations : 2.9.0"
+        "displayName": "com.fasterxml.jackson.core : jackson-annotations : 2.9.0",
+        "breakingChangesCount": null
       }
     },
     {
@@ -98,7 +99,8 @@
           }
         },
         "proprietary": false,
-        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE"
+        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE",
+        "breakingChangesCount": null
       }
     },
     {
@@ -149,7 +151,8 @@
           }
         },
         "proprietary": false,
-        "displayName": "org.springframework.boot : spring-boot-starter-actuator : 2.1.2.RELEASE"
+        "displayName": "org.springframework.boot : spring-boot-starter-actuator : 2.1.2.RELEASE",
+        "breakingChangesCount": null
       }
     },
     {
@@ -200,7 +203,8 @@
           }
         },
         "proprietary": false,
-        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE"
+        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE",
+        "breakingChangesCount": null
       }
     }
   ],
@@ -253,7 +257,8 @@
           }
         },
         "proprietary": false,
-        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE"
+        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE",
+        "breakingChangesCount": null
       }
     },
     {
@@ -304,7 +309,8 @@
           }
         },
         "proprietary": false,
-        "displayName": "org.slf4j : jul-to-slf4j : 1.7.25"
+        "displayName": "org.slf4j : jul-to-slf4j : 1.7.25",
+        "breakingChangesCount": null
       }
     },
     {
@@ -355,7 +361,8 @@
           }
         },
         "proprietary": false,
-        "displayName": "com.fasterxml.jackson.core : jackson-core : 2.9.8"
+        "displayName": "com.fasterxml.jackson.core : jackson-core : 2.9.8",
+        "breakingChangesCount": null
       }
     }
   ],
@@ -386,7 +393,8 @@
         "hash": "b280b42422bb101124a4",
         "componentIdentifier": null,
         "proprietary": false,
-        "displayName": "com.fasterxml.jackson.core : jackson-annotations : 2.9.0"
+        "displayName": "com.fasterxml.jackson.core : jackson-annotations : 2.9.0",
+        "breakingChangesCount": null
       }
     },
     {
@@ -437,7 +445,8 @@
           }
         },
         "proprietary": false,
-        "displayName": "org.springframework.boot : spring-boot-starter-actuator : 2.1.2.RELEASE"
+        "displayName": "org.springframework.boot : spring-boot-starter-actuator : 2.1.2.RELEASE",
+        "breakingChangesCount": null
       }
     },
     {
@@ -488,7 +497,8 @@
           }
         },
         "proprietary": false,
-        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE"
+        "displayName": "org.springframework : spring-expression : 5.1.4.RELEASE",
+        "breakingChangesCount": null
       }
     },
     {
@@ -537,7 +547,8 @@
           }
         },
         "proprietary": false,
-        "displayName": "com.fasterxml.jackson.core : jackson-databind : 2.9.8"
+        "displayName": "com.fasterxml.jackson.core : jackson-databind : 2.9.8",
+        "breakingChangesCount": null
       }
     }
   ]

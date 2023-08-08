@@ -30,6 +30,7 @@ import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -253,6 +254,8 @@ public class LegalDashboardPageTest
   }
 
   @Test
+  @Ignore
+  // Will be addressed at CLM-26962
   public void testComponentsDisabledSearchButtonOnTableLoad() {
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();

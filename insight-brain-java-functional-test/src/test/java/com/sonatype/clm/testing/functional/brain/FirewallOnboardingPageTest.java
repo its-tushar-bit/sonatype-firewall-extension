@@ -181,7 +181,7 @@ public class FirewallOnboardingPageTest
     page.shouldBe(visible);
     page.getStartedButton().click();
     page.namespaceAttacksDocumentationLink()
-        .shouldBe(attribute("href", "http://links.sonatype.com/nexus-firewall/preventing-namespace-confusion"))
+        .shouldBe(attribute("href", "http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion"))
         .shouldHave(attribute("target", "_blank"));
   }
 
@@ -559,7 +559,12 @@ public class FirewallOnboardingPageTest
       page.shouldHave(Condition.text("Protect your internal components from namespace attacks"));
       page.shouldHave(Condition.text(
           "The component names from the selected hosted repositories will be used to protect "
-          + "against namespace confusion attacks against your hosted repositories."
+          + "against namespace confusion attacks against your proxy repositories."
+      ));
+      page.shouldHave(Condition.text(
+          "This capability should only be turned on for repositories with proprietary components only."
+          + " Enabling it on hosted repositories containing open-source components will cause those namespaces "
+          + "to be quarantined."
       ));
 
       page.previousButton().click();
@@ -570,7 +575,7 @@ public class FirewallOnboardingPageTest
       page.namespaceConfusionProtectionRuleCheckbox().shouldBe(Condition.selected);
 
       page.continueButton().click();
-      page.shouldHave(Condition.text("Enable protection from malicious components"));
+      page.shouldHave(Condition.text("You have not enabled recommended protection"));
       page.shouldHave(Condition.text(
           "The selected proxy repositories will have namespace confusion protection enabled. "
           + "You can also enable supply chain attacks protection by going back to the previous step."
@@ -579,7 +584,12 @@ public class FirewallOnboardingPageTest
       page.shouldHave(Condition.text("Protect your internal components from namespace attacks"));
       page.shouldHave(Condition.text(
           "The component names from the selected hosted repositories will be used to protect "
-          + "against namespace confusion attacks against your hosted repositories."
+          + "against namespace confusion attacks against your proxy repositories."
+      ));
+      page.shouldHave(Condition.text(
+          "This capability should only be turned on for repositories with proprietary components only."
+          + " Enabling it on hosted repositories containing open-source components will cause those namespaces "
+          + "to be quarantined."
       ));
 
       page.previousButton().click();
@@ -600,8 +610,13 @@ public class FirewallOnboardingPageTest
       page.shouldHave(Condition.text("Protect your internal components from namespace attacks"));
       page.shouldHave(Condition.text(
           "The component names from the selected hosted repositories will not be used to protect against "
-          + "namespace confusion attacks against your hosted repositories. "
+          + "namespace confusion attacks against your proxy repositories. "
           + "You can enable namespace confusion protection by going back to the previous step."
+      ));
+      page.shouldHave(Condition.text(
+          "This capability should only be turned on for repositories with proprietary components only."
+          + " Enabling it on hosted repositories containing open-source components will cause those namespaces "
+          + "to be quarantined."
       ));
 
       page.previousButton().click();
@@ -622,8 +637,13 @@ public class FirewallOnboardingPageTest
       page.shouldHave(Condition.text("Protect your internal components from namespace attacks"));
       page.shouldHave(Condition.text(
           "The component names from the selected hosted repositories will not be used to protect "
-          + "against namespace confusion attacks against your hosted repositories. "
+          + "against namespace confusion attacks against your proxy repositories. "
           + "You can enable namespace confusion protection by going back to the previous step."
+      ));
+      page.shouldHave(Condition.text(
+          "This capability should only be turned on for repositories with proprietary components only."
+          + " Enabling it on hosted repositories containing open-source components will cause those namespaces "
+          + "to be quarantined."
       ));
     }
     finally {

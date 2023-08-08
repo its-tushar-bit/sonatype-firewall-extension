@@ -21,13 +21,14 @@ import { faShieldCheck } from '@fortawesome/pro-solid-svg-icons';
 
 import ActionsFooter from './ActionsFooter';
 import { actions } from './firewallOnboardingSlice';
-import { stepsById } from './firewallOnboardingUtils';
+import {
+  stepsById,
+  NAMESPACE_CONFUSION_PROTECTION_URL,
+  MALICIOUS_COMPONENTS_PROTECTION_URL,
+} from './firewallOnboardingUtils';
 import { selectProtectionRules } from './firewallOnboardingSelectors';
 
 const currentStep = stepsById.rules;
-const NAMESPACE_CONFUSION_PROTECTION_URL = 'http://links.sonatype.com/nexus-firewall/preventing-namespace-confusion';
-const MALICIOUS_COMPONENTS_PROTECTION_URL =
-  'http://links.sonatype.com/nexus-firewall/protection-from-pending-and-suspicious-components';
 
 export default function FirewallRulesSelector() {
   const dispatch = useDispatch();

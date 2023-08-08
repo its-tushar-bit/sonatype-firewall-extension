@@ -147,13 +147,19 @@ export const updateRepositories = (repositoriesList, updateRepositories) => {
   });
 };
 
+export const NAMESPACE_CONFUSION_PROTECTION_URL =
+  'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
+
+export const MALICIOUS_COMPONENTS_PROTECTION_URL =
+  'http://links.sonatype.com/nexus-firewall/protection-from-pending-and-suspicious-components';
+
 /**
  * @param {Boolean} supplyChainAttacksProtectionEnabled
  * @param {Boolean} namespaceConfusionProtectionEnabled
  * @returns {String}
  */
-const getProxyPageTitle = (supplyChainAttacksProtectionEnabled, namespaceConfusionProtectionEnabled) =>
-  !supplyChainAttacksProtectionEnabled && !namespaceConfusionProtectionEnabled
+const getProxyPageTitle = (supplyChainAttacksProtectionEnabled) =>
+  !supplyChainAttacksProtectionEnabled
     ? 'You have not enabled recommended protection'
     : 'Enable protection from malicious components';
 
@@ -167,30 +173,71 @@ const getProxyPageSubtitle = (supplyChainAttacksProtectionEnabled, namespaceConf
     [
       equals([true, true]),
       always(
-        'The selected proxy repositories will have supply chain attacks protection and namespace confusion protection enabled.'
+        <>
+          The selected proxy repositories will have{' '}
+          <NxTextLink href={MALICIOUS_COMPONENTS_PROTECTION_URL} external>
+            supply chain attacks protection
+          </NxTextLink>{' '}
+          and{' '}
+          <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
+            namespace confusion protection
+          </NxTextLink>{' '}
+          enabled.
+        </>
       ),
     ],
     [
       equals([true, false]),
       always(
-        'The selected proxy repositories will have supply chain attacks protection enabled. You can also enable namespace confusion protection by going back to the previous step.'
+        <>
+          The selected proxy repositories will have{' '}
+          <NxTextLink href={MALICIOUS_COMPONENTS_PROTECTION_URL} external>
+            supply chain attacks protection
+          </NxTextLink>{' '}
+          enabled. <br />
+          You can also enable{' '}
+          <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
+            namespace confusion protection
+          </NxTextLink>{' '}
+          by going back to the previous step.
+        </>
       ),
     ],
     [
       equals([false, true]),
       always(
-        'The selected proxy repositories will have namespace confusion protection enabled. You can also enable supply chain attacks protection by going back to the previous step.'
+        <>
+          The selected proxy repositories will have{' '}
+          <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
+            namespace confusion protection
+          </NxTextLink>{' '}
+          enabled. <br />
+          You can also enable{' '}
+          <NxTextLink href={MALICIOUS_COMPONENTS_PROTECTION_URL} external>
+            supply chain attacks protection
+          </NxTextLink>{' '}
+          by going back to the previous step.
+        </>
       ),
     ],
     [
       equals([false, false]),
       always(
-        'The selected proxy repositories will not have supply chain attacks protection or namespace confusion protection enabled. You can enable protection by going back to the previous step.'
+        <>
+          The selected proxy repositories will not have{' '}
+          <NxTextLink href={MALICIOUS_COMPONENTS_PROTECTION_URL} external>
+            supply chain attacks protection
+          </NxTextLink>{' '}
+          or{' '}
+          <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
+            namespace confusion protection
+          </NxTextLink>{' '}
+          enabled. <br />
+          You can enable protection by going back to the previous step.
+        </>
       ),
     ],
   ])([supplyChainAttacksProtectionEnabled, namespaceConfusionProtectionEnabled]);
-
-const NAMESPACE_CONFUSION_PROTECTION_URL = 'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
 
 const getHostedPageTitle = () => 'Protect your internal components from namespace attacks';
 
@@ -205,7 +252,10 @@ const getHostedPageSubtitle = (_, namespaceConfusionProtectionEnabled) =>
       <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
         namespace confusion
       </NxTextLink>{' '}
-      attacks against your hosted repositories.
+      attacks against your proxy repositories. <br />
+      <br />
+      This capability should only be turned on for repositories with proprietary components only. Enabling it on hosted
+      repositories containing open-source components <b>will</b> cause those namespaces to be quarantined.
     </>
   ) : (
     <>
@@ -213,8 +263,11 @@ const getHostedPageSubtitle = (_, namespaceConfusionProtectionEnabled) =>
       <NxTextLink href={NAMESPACE_CONFUSION_PROTECTION_URL} external>
         namespace confusion
       </NxTextLink>{' '}
-      attacks against your hosted repositories. You can enable namespace confusion protection by going back to the
-      previous step.
+      attacks against your proxy repositories. You can enable namespace confusion protection by going back to the
+      previous step. <br />
+      <br />
+      This capability should only be turned on for repositories with proprietary components only. Enabling it on hosted
+      repositories containing open-source components <b>will</b> cause those namespaces to be quarantined.
     </>
   );
 

@@ -10,7 +10,11 @@ import { render, screen, axiosMockAdapter, fireEvent } from 'TestRoot/SpecUtil';
 import RepositoriesSelector from 'MainRoot/firewallOnboarding/RepositoriesSelector';
 import { getRepositoryListUrl, getSupportedRepositoriesFormat } from 'MainRoot/util/CLMLocation';
 import { hostedRepoItems, proxyRepoItems } from './repositoriesSelectorListItems';
-import { stepsById } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
+import {
+  stepsById,
+  MALICIOUS_COMPONENTS_PROTECTION_URL,
+  NAMESPACE_CONFUSION_PROTECTION_URL,
+} from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
 
 let renderComponent,
   axiosMock,
@@ -111,38 +115,82 @@ describe('RepositoriesSelector', function () {
 
     it('renders correct subtitle when both supplyChainAttacksProtection and namespaceConfusionProtection are enabled', async () => {
       renderComponent(initialState);
-      const subtitleEl = await screen.getByText(
+      const subtitleEl = await screen.getByText('The selected proxy repositories will have', {
+        exact: false,
+      });
+
+      expect(subtitleEl.textContent).toEqual(
         'The selected proxy repositories will have supply chain attacks protection and namespace confusion protection enabled.'
       );
-      expect(subtitleEl).toBeVisible();
+      expect(screen.getByRole('link', { name: 'namespace confusion protection' })).toHaveAttribute(
+        'href',
+        NAMESPACE_CONFUSION_PROTECTION_URL
+      );
+      expect(screen.getByRole('link', { name: 'supply chain attacks protection' })).toHaveAttribute(
+        'href',
+        MALICIOUS_COMPONENTS_PROTECTION_URL
+      );
     });
 
     it('renders correct subtitle when only supplyChainAttacksProtection is enabled', async () => {
       initialState.firewallOnboarding.protectionRules.namespaceConfusionProtectionEnabled = false;
       renderComponent(initialState);
-      const subtitleEl = await screen.getByText(
+      const subtitleEl = await screen.getByText('The selected proxy repositories will have', {
+        exact: false,
+      });
+
+      expect(subtitleEl.textContent).toEqual(
         'The selected proxy repositories will have supply chain attacks protection enabled. You can also enable namespace confusion protection by going back to the previous step.'
       );
-      expect(subtitleEl).toBeVisible();
+      expect(screen.getByRole('link', { name: 'namespace confusion protection' })).toHaveAttribute(
+        'href',
+        NAMESPACE_CONFUSION_PROTECTION_URL
+      );
+      expect(screen.getByRole('link', { name: 'supply chain attacks protection' })).toHaveAttribute(
+        'href',
+        MALICIOUS_COMPONENTS_PROTECTION_URL
+      );
     });
 
     it('renders correct subtitle when only namespaceConfusionProtection is enabled', async () => {
       initialState.firewallOnboarding.protectionRules.supplyChainAttacksProtectionEnabled = false;
       renderComponent(initialState);
-      const subtitleEl = await screen.getByText(
+      const subtitleEl = await screen.getByText('The selected proxy repositories will have', {
+        exact: false,
+      });
+
+      expect(subtitleEl.textContent).toEqual(
         'The selected proxy repositories will have namespace confusion protection enabled. You can also enable supply chain attacks protection by going back to the previous step.'
       );
-      expect(subtitleEl).toBeVisible();
+      expect(screen.getByRole('link', { name: 'namespace confusion protection' })).toHaveAttribute(
+        'href',
+        NAMESPACE_CONFUSION_PROTECTION_URL
+      );
+      expect(screen.getByRole('link', { name: 'supply chain attacks protection' })).toHaveAttribute(
+        'href',
+        MALICIOUS_COMPONENTS_PROTECTION_URL
+      );
     });
 
     it('renders correct subtitle when both supplyChainAttacksProtection and namespaceConfusionProtection are DISABLED', async () => {
       initialState.firewallOnboarding.protectionRules.namespaceConfusionProtectionEnabled = false;
       initialState.firewallOnboarding.protectionRules.supplyChainAttacksProtectionEnabled = false;
       renderComponent(initialState);
-      const subtitleEl = await screen.getByText(
+      const subtitleEl = await screen.getByText('The selected proxy repositories will not have', {
+        exact: false,
+      });
+
+      expect(subtitleEl.textContent).toEqual(
         'The selected proxy repositories will not have supply chain attacks protection or namespace confusion protection enabled. You can enable protection by going back to the previous step.'
       );
-      expect(subtitleEl).toBeVisible();
+      expect(screen.getByRole('link', { name: 'namespace confusion protection' })).toHaveAttribute(
+        'href',
+        NAMESPACE_CONFUSION_PROTECTION_URL
+      );
+      expect(screen.getByRole('link', { name: 'supply chain attacks protection' })).toHaveAttribute(
+        'href',
+        MALICIOUS_COMPONENTS_PROTECTION_URL
+      );
     });
 
     it('renders the expected proxy repositories grouped by format', async () => {
@@ -212,11 +260,11 @@ describe('RepositoriesSelector', function () {
         exact: false,
       });
       expect(subtitleEl.textContent).toEqual(
-        'The component names from the selected hosted repositories will be used to protect against namespace confusion attacks against your hosted repositories.'
+        'The component names from the selected hosted repositories will be used to protect against namespace confusion attacks against your proxy repositories.' +
+          ' This capability should only be turned on for repositories with proprietary components only.' +
+          ' Enabling it on hosted repositories containing open-source components will cause those namespaces to be quarantined.'
       );
 
-      const NAMESPACE_CONFUSION_PROTECTION_URL =
-        'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
       expect(screen.getByRole('link', { name: 'namespace confusion' })).toHaveAttribute(
         'href',
         NAMESPACE_CONFUSION_PROTECTION_URL
@@ -231,11 +279,11 @@ describe('RepositoriesSelector', function () {
         exact: false,
       });
       expect(subtitleEl.textContent).toEqual(
-        'The component names from the selected hosted repositories will be used to protect against namespace confusion attacks against your hosted repositories.'
+        'The component names from the selected hosted repositories will be used to protect against namespace confusion attacks against your proxy repositories.' +
+          ' This capability should only be turned on for repositories with proprietary components only.' +
+          ' Enabling it on hosted repositories containing open-source components will cause those namespaces to be quarantined.'
       );
 
-      const NAMESPACE_CONFUSION_PROTECTION_URL =
-        'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
       expect(screen.getByRole('link', { name: 'namespace confusion' })).toHaveAttribute(
         'href',
         NAMESPACE_CONFUSION_PROTECTION_URL
@@ -249,12 +297,13 @@ describe('RepositoriesSelector', function () {
       const subtitleEl = await screen.getByText('The component names from the selected hosted repositories', {
         exact: false,
       });
-      expect(subtitleEl.textContent).toEqual(
-        'The component names from the selected hosted repositories will not be used to protect against namespace confusion attacks against your hosted repositories. You can enable namespace confusion protection by going back to the previous step.'
-      );
 
-      const NAMESPACE_CONFUSION_PROTECTION_URL =
-        'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
+      expect(subtitleEl.textContent).toEqual(
+        'The component names from the selected hosted repositories will not be used to protect against namespace confusion attacks against your proxy repositories.' +
+          ' You can enable namespace confusion protection by going back to the previous step.' +
+          ' This capability should only be turned on for repositories with proprietary components only.' +
+          ' Enabling it on hosted repositories containing open-source components will cause those namespaces to be quarantined.'
+      );
       expect(screen.getByRole('link', { name: 'namespace confusion' })).toHaveAttribute(
         'href',
         NAMESPACE_CONFUSION_PROTECTION_URL
@@ -269,12 +318,13 @@ describe('RepositoriesSelector', function () {
       const subtitleEl = await screen.getByText('The component names from the selected hosted repositories', {
         exact: false,
       });
-      expect(subtitleEl.textContent).toEqual(
-        'The component names from the selected hosted repositories will not be used to protect against namespace confusion attacks against your hosted repositories. You can enable namespace confusion protection by going back to the previous step.'
-      );
 
-      const NAMESPACE_CONFUSION_PROTECTION_URL =
-        'http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion';
+      expect(subtitleEl.textContent).toEqual(
+        'The component names from the selected hosted repositories will not be used to protect against namespace confusion attacks against your proxy repositories.' +
+          ' You can enable namespace confusion protection by going back to the previous step.' +
+          ' This capability should only be turned on for repositories with proprietary components only.' +
+          ' Enabling it on hosted repositories containing open-source components will cause those namespaces to be quarantined.'
+      );
       expect(screen.getByRole('link', { name: 'namespace confusion' })).toHaveAttribute(
         'href',
         NAMESPACE_CONFUSION_PROTECTION_URL

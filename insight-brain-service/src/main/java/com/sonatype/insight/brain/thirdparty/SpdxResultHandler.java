@@ -1,0 +1,493 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.thirdparty;
+
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.purl.InvalidPackageURLException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.model.ProjectScanItem;
+
+import com.github.packageurl.MalformedPackageURLException;
+import com.github.packageurl.PackageURLBuilder;
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Component.Type;
+import org.cyclonedx.model.Dependency;
+import org.cyclonedx.model.Hash;
+import org.cyclonedx.model.Hash.Algorithm;
+import org.cyclonedx.model.Metadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.library.Read;
+import org.spdx.library.SpdxConstants;
+import org.spdx.library.model.Checksum;
+import org.spdx.library.model.ExternalRef;
+import org.spdx.library.model.ModelObject;
+import org.spdx.library.model.Relationship;
+import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.SpdxElement;
+import org.spdx.library.model.SpdxPackage;
+import org.spdx.library.model.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.enumerations.ReferenceCategory;
+import org.spdx.library.model.enumerations.RelationshipType;
+
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedIdentificationSource;
+
+public class SpdxResultHandler
+    extends SbomResultHandler
+    implements ThirdPartyScanResultHandler
+{
+  private static final Logger log = LoggerFactory.getLogger(SpdxResultHandler.class);
+
+  private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
+
+  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
+
+  @Override
+  public FilteredThirdPartyContent handleAndFilterContents(
+      final ThirdPartyScanContent content,
+      final ThirdPartyFile thirdPartyFile)
+  {
+    try {
+      if (!StringUtils.isBlank(content.getContent())) {
+        SpdxDocument spdxDocument = parseSpdxContent(content);
+        Bom targetBom = new Bom();
+        List<ProjectScanItem> moduleDependencies = new ArrayList<>();
+        log.info("Processing SPDX content for file: {}", content.getPath());
+        processSpdxDocument(content.getPath(), spdxDocument, targetBom, thirdPartyFile, moduleDependencies);
+        if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
+          return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
+        }
+        else {
+          return new FilteredThirdPartyContent(generateFilteredSbom(targetBom), moduleDependencies);
+        }
+      }
+      return new FilteredThirdPartyContent(content.getContent());
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Error filtering SPDX file " + content.getPath(), e);
+    }
+  }
+
+  private void processSpdxDocument(
+      final String contentPath,
+      final SpdxDocument spdxDocument,
+      final Bom targetBom,
+      final ThirdPartyFile thirdPartyFile,
+      final List<ProjectScanItem> moduleDependencies) throws InvalidSPDXAnalysisException
+  {
+    String identificationSource = getTruncatedIdentificationSource(determineIdentificationSource(contentPath));
+    try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
+      tx.begin();
+      String rootPackageId = collectFilteredMetadata(spdxDocument, targetBom);
+      Map<String, String> componentRefs = new HashMap<>();
+      processComponents(
+          spdxDocument, targetBom, componentRefs, rootPackageId, identificationSource, thirdPartyFile, tx);
+      // processVulnerabilities(spdxDocument, targetBom, componentRefs, tx);
+      tx.commit();
+    }
+    processDependencyGraph(spdxDocument, targetBom, moduleDependencies, thirdPartyFile);
+  }
+
+  private void processComponents(
+      final SpdxDocument spdxDocument,
+      final Bom targetBom,
+      final Map<String, String> componentRefs,
+      final String rootPackageId,
+      final String identificationSource,
+      final ThirdPartyFile thirdPartyFile,
+      final TransactionContext tx) throws InvalidSPDXAnalysisException
+  {
+    List<? extends ModelObject> items = getSpdxPackages(spdxDocument);
+    if (!items.isEmpty()) {
+      Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
+      for (ModelObject item : items) {
+        SpdxPackage spdxPackage = (SpdxPackage) item;
+        processSpdxPackage(spdxPackage, thirdPartyFile.getId(), targetBom, identificationSource, resolvedComponents,
+            componentRefs, rootPackageId, tx);
+      }
+    }
+  }
+
+  private List<? extends ModelObject> getSpdxPackages(final SpdxDocument spdxDocument)
+      throws InvalidSPDXAnalysisException
+  {
+    return
+        Read.getAllItems(spdxDocument.getModelStore(), spdxDocument.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
+            .collect(Collectors.toList());
+  }
+
+  private void processSpdxPackage(
+      final SpdxPackage spdxPackage,
+      final String thirdPartyFileId,
+      final Bom targetBom,
+      final String identificationSource,
+      final Set<ComponentIdentifier> resolvedComponents,
+      final Map<String, String> componentRefs,
+      final String rootPackageId,
+      final TransactionContext tx) throws InvalidSPDXAnalysisException
+  {
+    try {
+      Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(spdxPackage, rootPackageId);
+      if (resolvedComponent != null) {
+        ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
+        if (componentIdentifier == null) {
+          targetBom.addComponent(resolvedComponent.getRight());
+        }
+        else if (resolvedComponents.add(componentIdentifier)) {
+          PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
+          String coordinateId =
+              saveComponent(thirdPartyFileId, identificationSource, spdxPackage, resolvedComponent, tx);
+          if (StringUtils.isNotBlank(spdxPackage.getId())) {
+            componentRefs.put(spdxPackage.getId(), coordinateId);
+          }
+          targetBom.addComponent(resolvedComponent.getRight());
+        }
+      }
+    }
+    catch (InvalidPackageURLException e) {
+      log.debug("Component {} {} is missing coordinates. " + e.getMessage().replace(" for given format", ""),
+          spdxPackage.getName(), spdxPackage.getVersionInfo().orElse(""), e);
+    }
+    catch (Exception e) {
+      log.debug("Error processing component : {} {}", spdxPackage.getName(), spdxPackage.getVersionInfo().orElse(""),
+          e);
+    }
+  }
+
+  private String saveComponent(
+      final String thirdPartyFileId,
+      final String identificationSource,
+      final SpdxPackage spdxPackage,
+      final Pair<ComponentIdentifier, Component> resolvedComponent,
+      final TransactionContext tx) throws InvalidSPDXAnalysisException
+  {
+    Component component = resolvedComponent.getRight();
+    ComponentIdentifier componentIdentifier;
+    Optional<String> purlOptional = getPurl(spdxPackage);
+    if (purlOptional.isPresent()) {
+      PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(purlOptional.get());
+      componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
+    }
+    else {
+      componentIdentifier = resolvedComponent.getLeft();
+    }
+
+    String fakeHash = ThirdPartyScanResultUtils.hash(
+        componentIdentifier.getFormat() + ":" + StringUtils.join(componentIdentifier.getCoordinates().values(), ":"));
+    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(fakeHash, identificationSource,
+        componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
+    fileCoordinate.setPackageUrl(component.getPurl());
+    thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
+
+    return fileCoordinate.getId();
+  }
+
+  private Pair<ComponentIdentifier, Component> getResolvedComponent(
+      final SpdxPackage spdxPackage,
+      final String rootPackageId)
+      throws InvalidSPDXAnalysisException, MalformedPackageURLException
+  {
+    Optional<String> purlOptional = getPurl(spdxPackage);
+    try {
+      if (purlOptional.isPresent()) {
+        String packageUrl = purlOptional.get();
+        PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
+        if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
+          return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, false);
+        }
+        else {
+          log.debug("PackageUrl is not valid {}", packageUrl);
+        }
+      }
+    }
+    catch (InvalidPackageURLException e) {
+      log.debug("Fallback to coordinates due to invalid purl: {}", purlOptional.orElse(""));
+    }
+    return processComponentFromHashOrCoordinates(spdxPackage, rootPackageId);
+  }
+
+  private Pair<ComponentIdentifier, Component> createComponent(
+      final SpdxPackage spdxPackage,
+      final PackageUrlIdentifier packageUrlIdentifier,
+      final String rootPackageId,
+      final boolean coordinates) throws InvalidSPDXAnalysisException
+  {
+    ComponentIdentifier componentIdentifier;
+    Component component = new Component();
+    component.setType(spdxPackage.getId().equals(rootPackageId) ? Type.APPLICATION : Type.LIBRARY);
+    component.setBomRef(spdxPackage.getId());
+
+    final Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
+    boolean hasHash = sha1Optional.isPresent();
+    if (hasHash) {
+      setHash(sha1Optional.get(), component);
+    }
+    if (!hasHash || !coordinates) {
+      component.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
+    }
+    componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
+    component.setName(packageUrlIdentifier.getName());
+    component.setVersion(packageUrlIdentifier.getVersion());
+    String namespace = packageUrlIdentifier.getNamespace();
+    if (StringUtils.isNotBlank(namespace)) {
+      component.setGroup(namespace);
+    }
+    // Process sha-256 only when BFS is enabled
+    if (SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()) {
+      getChecksum(spdxPackage, ChecksumAlgorithm.SHA256).ifPresent(
+          v -> component.addHash(new Hash(Algorithm.SHA_256, v))
+      );
+    }
+    return Pair.of(componentIdentifier, component);
+  }
+
+  private Pair<ComponentIdentifier, Component> processComponentFromHashOrCoordinates(
+      final SpdxPackage spdxPackage,
+      final String rootPackageId)
+      throws InvalidSPDXAnalysisException, MalformedPackageURLException
+  {
+    String name = spdxPackage.getName().orElse(MISSING_COMPONENT_NAME);
+    String version = spdxPackage.getVersionInfo().orElse("");
+    boolean isRootPackage = spdxPackage.getId().equals(rootPackageId);
+    if (StringUtils.isNotBlank(version)) {
+      PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(
+          getPackageUrlFromCoordinates(name, version, isRootPackage));
+      return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, true);
+    }
+    else {
+      // This scenario is only possible when only the hash is sent without coordinates or purl
+      Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
+      if (sha1Optional.isPresent()) {
+        Component component = new Component();
+        component.setType(isRootPackage ? Type.APPLICATION : Type.LIBRARY);
+        component.setBomRef(spdxPackage.getId());
+        spdxPackage.getName().ifPresent(component::setName);
+        setHash(sha1Optional.get(), component);
+        return Pair.of(null, component);
+      }
+      else {
+        log.debug("Component with invalid information, name {} and version {}", name, version);
+      }
+    }
+    return null;
+  }
+
+  private String getPackageUrlFromCoordinates(String  name, String version, boolean isRootPackage)
+      throws MalformedPackageURLException
+  {
+    String group = null;
+    if (name.contains(":")) {
+      // some SPDX generators set the name value as 'group:name' because there's no other placeholder for the group
+      final String[] parts = name.split(":");
+      if (parts.length == 2) {
+        group = parts[0];
+        name = parts[1];
+      }
+    }
+    PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL()
+        .withType(isRootPackage ? Type.APPLICATION.getTypeName() : Type.LIBRARY.getTypeName())
+        .withName(name)
+        .withVersion(version);
+    if (StringUtils.isNotBlank(group)) {
+      packageURLBuilder.withNamespace(group);
+    }
+    return packageURLBuilder.build().toString();
+  }
+
+  @VisibleForTesting
+  void processDependencyGraph(
+      final SpdxDocument spdxDocument,
+      final Bom targetBom,
+      final List<ProjectScanItem> moduleDependencies,
+      final ThirdPartyFile thirdPartyFile)
+  {
+    try {
+      if (CollectionUtils.isNotEmpty(targetBom.getComponents())) {
+        List<Dependency> bomDependencies = getDependencyList(spdxDocument);
+        if (CollectionUtils.isNotEmpty(bomDependencies)) {
+          Pair<Dependency, String> rootModuleAndRef =
+              resolveRootModuleAndRef(bomDependencies, targetBom);
+          if (rootModuleAndRef != null) {
+            processValidDependencyGraph(rootModuleAndRef, thirdPartyFile, targetBom,
+                moduleDependencies, bomDependencies);
+          }
+          else {
+            log.debug("Unable to process dependency graph. The root component of the bom {} cannot be determined",
+                thirdPartyFile.getFilename());
+          }
+        }
+      }
+    }
+    catch (Exception e) {
+      log.warn("There was an error processing dependency graph", e);
+    }
+  }
+
+  private List<Dependency> getDependencyList(final SpdxDocument spdxDocument) throws InvalidSPDXAnalysisException {
+    Map<String, Dependency> dependencyMap = new HashMap<>();
+
+    // relationships are attached to packages in the SPDX object model
+    List<? extends ModelObject> items = getSpdxPackages(spdxDocument);
+    for (ModelObject item : items) {
+      SpdxPackage spdxPackage = (SpdxPackage) item;
+      Collection<Relationship> relationships = spdxPackage.getRelationships();
+      for (Relationship relationship : relationships) {
+        if (relationship.getRelationshipType() == RelationshipType.DESCRIBES ||
+            !relationship.getRelatedSpdxElement().isPresent()) {
+          continue;
+        }
+        String refId1 = spdxPackage.getId();
+        String refId2 = relationship.getRelatedSpdxElement().get().getId();
+        Dependency dependency1 = dependencyMap.computeIfAbsent(refId1, Dependency::new);
+        Dependency dependency2 = dependencyMap.computeIfAbsent(refId2, Dependency::new);
+
+        switch (relationship.getRelationshipType()) {
+          case DEPENDS_ON:
+            dependency1.addDependency(dependency2);
+            break;
+          case DEPENDENCY_OF:
+          case BUILD_DEPENDENCY_OF:
+          case DEV_DEPENDENCY_OF:
+          case OPTIONAL_DEPENDENCY_OF:
+          case PROVIDED_DEPENDENCY_OF:
+          case RUNTIME_DEPENDENCY_OF:
+          case TEST_DEPENDENCY_OF:
+            dependency2.addDependency(dependency1);
+            break;
+          default:
+        }
+      }
+    }
+    return new ArrayList<>(dependencyMap.values());
+  }
+
+  /**
+   * Collects metadata
+   * @return the ID of the root package, if any; otherwise, it returns an empty string.
+   */
+  private String collectFilteredMetadata(final SpdxDocument spdxDocument, final Bom targetBom)
+      throws InvalidSPDXAnalysisException
+  {
+    String rootElementId = "";
+    Metadata metadata = new Metadata();
+
+    final Collection<SpdxElement> describes = spdxDocument.getDocumentDescribes();
+    if (!describes.isEmpty()) {
+      final SpdxElement rootElement = describes.iterator().next();
+      if (rootElement instanceof SpdxPackage) {
+        SpdxPackage spdxPackage = (SpdxPackage) rootElement;
+        rootElementId = spdxPackage.getId();
+        Component component = new Component();
+        component.setType(Type.APPLICATION);
+        component.setBomRef(rootElementId);
+        spdxPackage.getName().ifPresent(name -> {
+          if (name.contains(":")) {
+            final String[] parts = name.split(":");
+            component.setGroup(parts[0]);
+            component.setName(parts[1]);
+          }
+          else {
+            component.setName(name);
+          }
+        });
+        spdxPackage.getVersionInfo().ifPresent(component::setVersion);
+        getPurl(spdxPackage).ifPresent(component::setPurl);
+        metadata.setComponent(component);
+      }
+    }
+    if (spdxDocument.getCreationInfo() != null) {
+      final String created = spdxDocument.getCreationInfo().getCreated();
+      if (StringUtils.isNotBlank(created)) {
+        try {
+          DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+          metadata.setTimestamp(dateFormat.parse(created));
+        }
+        catch (ParseException e) {
+          log.warn("Cannot parse creation date: " + created);
+        }
+      }
+    }
+    targetBom.setMetadata(metadata);
+    return rootElementId;
+  }
+
+  private Optional<String> getPurl(final SpdxPackage spdxPackage)
+      throws InvalidSPDXAnalysisException
+  {
+    final Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
+    for (ExternalRef externalRef : externalRefs) {
+      if (externalRef.getReferenceCategory() == ReferenceCategory.PACKAGE_MANAGER) {
+        return Optional.of(externalRef.getReferenceLocator());
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<String> getChecksum(final SpdxPackage spdxPackage, ChecksumAlgorithm algorithm)
+      throws InvalidSPDXAnalysisException
+  {
+    final Collection<Checksum> checksums = spdxPackage.getChecksums();
+    for (Checksum checksum : checksums) {
+      if (checksum.getAlgorithm() == algorithm) {
+        return Optional.of(checksum.getValue());
+      }
+    }
+    return Optional.empty();
+  }
+
+  @VisibleForTesting
+  @Override
+  String determineIdentificationSource(final String contentPath) {
+    String fileName = StringUtils.contains(contentPath, "/") ?
+        StringUtils.substringAfterLast(contentPath, "/") : contentPath;
+    String identificationSource = RegExUtils.removePattern(fileName, "\\.(?i)spdx\\.(xml|json)(?i)$");
+    if (StringUtils.isBlank(identificationSource) || StringUtils.endsWithIgnoreCase(identificationSource, "spdx.xml") ||
+        StringUtils.endsWithIgnoreCase(identificationSource, "spdx.json")) {
+      return "Third-Party";
+    }
+    else {
+      return identificationSource;
+    }
+  }
+
+  private SpdxDocument parseSpdxContent(final ThirdPartyScanContent content)
+      throws IOException, InvalidSPDXAnalysisException
+  {
+    String extension = FilenameUtils.getExtension(content.getPath());
+    SbomFormat sbomFormat = SbomFormat.valueOf(extension.toUpperCase(Locale.ROOT));
+    return ThirdPartyUtils.parseAndValidateSpdx(content.getContent(), sbomFormat);
+  }
+}

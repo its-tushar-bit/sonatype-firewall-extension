@@ -90,7 +90,7 @@ public class SbomResultHandler
 {
   private static final Logger log = LoggerFactory.getLogger(SbomResultHandler.class);
 
-  private static final String MISSING_COMPONENT_NAME = "[Not Provided]";
+  protected static final String MISSING_COMPONENT_NAME = "[Not Provided]";
 
   private static final String VULNERABILITY_KEY = "vulnerabilities";
 
@@ -374,14 +374,14 @@ public class SbomResultHandler
     return Pair.of(componentIdentifier, component);
   }
 
-  private void setHash(final String sha1, final Component component) {
+  protected void setHash(final String sha1, final Component component) {
     Property property = new Property();
     property.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
     property.setValue(StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH));
     component.addProperty(property);
   }
 
-  private PackageUrlIdentifier resolvePackageUrl(String packageUrlIdentifier) {
+  protected PackageUrlIdentifier resolvePackageUrl(String packageUrlIdentifier) {
     try {
       PackageUrlIdentifier sourcePurl = new PackageUrlIdentifier(packageUrlIdentifier);
 
@@ -723,7 +723,7 @@ public class SbomResultHandler
     }
   }
 
-  private void processValidDependencyGraph(
+  protected void processValidDependencyGraph(
       final Pair<Dependency, String> rootModuleAndRef,
       final ThirdPartyFile thirdPartyFile,
       final Bom targetBom,
@@ -747,7 +747,7 @@ public class SbomResultHandler
     }
   }
 
-  private Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> getValidDirectDependencies(
+  protected Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> getValidDirectDependencies(
       final Dependency rootDependency,
       final Bom targetBom,
       final Map<String, String> bomRefsToPurls)
@@ -765,7 +765,10 @@ public class SbomResultHandler
     return directDeps;
   }
 
-  private Pair<Dependency, String> resolveRootModuleAndRef(final List<Dependency> dependencies, final Bom targetBom) {
+  protected Pair<Dependency, String> resolveRootModuleAndRef(
+      final List<Dependency> dependencies,
+      final Bom targetBom)
+  {
     // Check we have the metadata component to compare
     if (targetBom.getMetadata() == null) {
       return null;

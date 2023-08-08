@@ -254,7 +254,7 @@
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
-      
+
       <!-- Avoid security vulnerabilities -->
       <dependency>
         <groupId>com.squareup.okio</groupId>

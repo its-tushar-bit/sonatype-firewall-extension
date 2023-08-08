@@ -42,6 +42,10 @@ public class SystemConfigMenu
     return $("#system-configuration-ldap");
   }
 
+  public SelenideElement automaticScmConfiguration() {
+    return $("#system-configuration-automatic-scm-configuration");
+  }
+
   public SelenideElement webhooks() {
     return child("#system-configuration-webhooks");
   }

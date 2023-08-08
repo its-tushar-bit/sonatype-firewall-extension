@@ -130,6 +130,7 @@ export const SystemPreferencesMenu = ({
       </NavLink>
       <NavLink
         stateName="automaticSourceControlConfiguration"
+        id="system-configuration-automatic-scm-configuration"
         showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION && isAutomaticScmConfigurationEnabled}
       >
         Automatic SCM Configuration

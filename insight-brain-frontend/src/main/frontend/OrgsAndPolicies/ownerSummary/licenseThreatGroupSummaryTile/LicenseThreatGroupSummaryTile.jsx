@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { NxButton, NxTile, NxLoadWrapper, NxH2, NxFontAwesomeIcon, NxH3 } from '@sonatype/react-shared-components';
+import { NxButton, NxTile, NxLoadWrapper, NxH2, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { prop } from 'ramda';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSlice';

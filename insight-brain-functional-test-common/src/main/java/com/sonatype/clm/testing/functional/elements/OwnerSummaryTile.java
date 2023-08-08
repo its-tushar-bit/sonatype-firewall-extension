@@ -69,6 +69,6 @@ public class OwnerSummaryTile
   }
 
   public PillButton accessButton() {
-    return new PillButton("#owner-pill-access-button");
+    return new PillButton("#access-tile-pill-access-button");
   }
 }

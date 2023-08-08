@@ -22,30 +22,34 @@ public class DeleteModal
   }
 
   public static SelenideElement root() {
-    return $("#delete-modal");
+    return $("#reset-source-control-modal");
   }
 
   public static SelenideElement header() {
-    return root().$(".iq-modal-header");
+    return root().$(".nx-modal-header");
   }
 
   public static SelenideElement body() {
-    return root().$(".iq-modal-content");
+    return root().$(".nx-modal-content");
+  }
+
+  public static SelenideElement warning() {
+    return root().$(".nx-alert--warning");
   }
 
   public static SelenideElement error() {
-    return root().$(".iq-alert--error");
+    return root().$(".nx-alert--error");
   }
 
   public static SelenideElement continueButton() {
-    return root().$(".iq-btn--primary");
+    return root().$(".nx-form__submit-btn");
   }
 
   public static SelenideElement cancelButton() {
-    return root().$(".iq-btn:not(.iq-btn--primary)[type='button']");
+    return root().$(".nx-form__cancel-btn");
   }
   
   public static SelenideElement retryButton() {
-    return root().$(".iq-btn--error");
+    return root().$(".nx-load-error__retry");
   }
 }

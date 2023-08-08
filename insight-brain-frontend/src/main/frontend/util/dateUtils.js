@@ -7,6 +7,8 @@ import moment from 'moment-timezone';
 import momentJs from 'moment';
 
 export const STANDARD_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss [UTC]Z';
+export const SIMPLE_TIME_FORMAT = 'h:mm A';
+
 export const STANDARD_DATE_FORMAT = 'YYYY-MM-DD';
 export const FIREWALL_TIME_DATE_FORMAT = 'h:mm:ss A YYYY-MM-DD';
 export const formatDate = (date, format = STANDARD_DATE_TIME_FORMAT) => {

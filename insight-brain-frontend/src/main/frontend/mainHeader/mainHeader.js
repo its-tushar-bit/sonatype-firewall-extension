@@ -6,7 +6,7 @@
 import { faUserAlt } from '@fortawesome/pro-regular-svg-icons';
 import template from './mainHeader.html';
 import {
-  selectIsSourceControlSupported,
+  selectIsAutomationSupported,
   selectIsWebhooksSupported,
   selectIsCrowdIntegrationSupported,
   selectIsWebhookConfigurationEnabled,
@@ -89,7 +89,7 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
 
 export const mapStateToThis = (state) => ({
   isWebhooksSupported: selectIsWebhooksSupported(state),
-  isSourceControlSupported: selectIsSourceControlSupported(state),
+  isSourceControlSupported: selectIsAutomationSupported(state),
   isCrowdIntegrationEnabled: selectIsCrowdIntegrationSupported(state),
   isWebhookConfigurationEnabled: selectIsWebhookConfigurationEnabled(state),
   isProductLicenseConfigurationEnabled: selectIsProductLicenseConfigurationEnabled(state),

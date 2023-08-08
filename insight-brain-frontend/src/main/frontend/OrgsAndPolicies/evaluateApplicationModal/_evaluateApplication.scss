@@ -4,26 +4,23 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-evaluate-application-modal {
-  display: contents;
-  .evaluation-status {
-    .nx-modal-content {
-      padding-bottom: 0;
-    }
-
-    .nx-btn--primary {
-      margin: 0;
+#evaluate-application-modal {
+  .nx-progress-bar {
+    width: 100%;
+    .nx-progress-bar__progress,
+    .nx-progress-bar__progress::-webkit-progress-bar,
+    .nx-progress-bar__progress::-webkit-progress-value {
+      width: 100%;
     }
   }
+}
 
-  #evaluate-application-modal {
-    .nx-progress-bar {
-      width: 100%;
-      .nx-progress-bar__progress,
-      .nx-progress-bar__progress::-webkit-progress-bar,
-      .nx-progress-bar__progress::-webkit-progress-value {
-        width: 100%;
-      }
-    }
+#evaluation-status-modal {
+  .nx-modal-content {
+    padding-bottom: 0;
+  }
+
+  .nx-btn--primary {
+    margin: 0;
   }
 }

@@ -15,7 +15,7 @@ import atlassianCrowdConfigurationModule from './configuration/crowd/module';
 import reduxConfigModule from './reduxConfig/module';
 import changeDefaultAdminPasswordModule from './changeDefaultAdminPasswordNotice/module';
 import applicationReportModule from './applicationReport/module';
-import ownerManagerModule from './owner.manager/owner.manager.module';
+import ownerManagerModule from './OrgsAndPolicies/owner.manager.module';
 import { MainModule } from './MainModule';
 import { UserModule } from './security/users/UserModule';
 import { SecurityModule } from './security/SecurityModule';

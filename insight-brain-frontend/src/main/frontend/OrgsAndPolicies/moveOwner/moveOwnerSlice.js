@@ -15,6 +15,7 @@ import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { actions as policyMonitoringActions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
+import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
@@ -137,6 +138,7 @@ const moveApplication = createAsyncThunk(
             })
           );
           startSaveMaskSuccessTimer(dispatch, actions.closeMoveOwnerModal).then(() => {
+            dispatch(ownerSummaryActions.loadOwnerSummary());
             dispatch(actions.showSuccessModal());
             dispatch(ownerSideNavActions.load());
           });
@@ -165,6 +167,7 @@ const moveOrganization = createAsyncThunk(
       .then((response) => {
         dispatch(rootActions.selectedOwnerParentOrganizationUpdated({ parentOrganizationId: organizationId }));
         startSaveMaskSuccessTimer(dispatch, actions.closeMoveOwnerModal).then(() => {
+          dispatch(ownerSummaryActions.loadOwnerSummary());
           dispatch(actions.showSuccessModal());
           dispatch(ownerSideNavActions.load());
           dispatch(policyMonitoringActions.loadContinuousMonitoringSummaryTileInformation());

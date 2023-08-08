@@ -12,6 +12,7 @@ import * as rootSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelector
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 import SourceControlTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SourceControlTile';
+import { SOURCE_CONTROL_UNSUPPORTED_MESSAGE } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
 describe('SourceControlTile', () => {
   let renderComponent, selectIsOrganizationSpy, selectIsSourceControlForSourceTileSupportedSpy;
@@ -90,7 +91,7 @@ describe('SourceControlTile', () => {
 
     renderComponent();
 
-    expect(screen.getByText('Source Control is not supported by your license')).toBeVisible();
+    expect(screen.getByText(SOURCE_CONTROL_UNSUPPORTED_MESSAGE)).toBeVisible();
   });
 
   it('renders item text and subtext', () => {

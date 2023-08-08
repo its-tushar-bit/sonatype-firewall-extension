@@ -8,15 +8,15 @@ import { debounce } from 'debounce';
 import { any, always, propEq } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { NX_STANDARD_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
+import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
+import { propSet, isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { formatMembersForTransferList } from 'MainRoot/util/formatGroupUsers';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { getUsersRoleMappingUrl, getApplicationsUrl } from 'MainRoot/util/CLMLocation';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { selectOwnerProperties, selectSelectedOwner, selectSelectedOwnerContact } from '../orgsAndPoliciesSelectors';
 import { selectContactSlice } from './selectContactModalSelectors';
-import { getUsersRoleMappingUrl, getApplicationsUrl } from 'MainRoot/util/CLMLocation';
-import { formatMembersForTransferList } from 'MainRoot/util/formatGroupUsers';
-import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
-import { propSet } from 'MainRoot/util/jsUtil';
-import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
-import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 const REDUCER_NAME = `${OWNER_ACTIONS}/selectContact`;
 
@@ -211,7 +211,8 @@ export const saveContact = createAsyncThunk(
     };
     return axios
       .put(getApplicationsUrl(), submitData)
-      .then(() => {
+      .then(({ data }) => {
+        dispatch(rootActions.setSelectedOwnerContact(data.contact));
         startSaveMaskSuccessTimer(dispatch, actions.closeContactModal);
       })
       .catch(rejectWithValue);

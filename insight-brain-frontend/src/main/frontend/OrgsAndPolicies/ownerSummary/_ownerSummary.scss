@@ -4,6 +4,44 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '../../scss/variables' as *;
+
+owner-summary {
+  display: contents;
+}
+
+#owner-summary {
+  & .page-repository-url {
+    line-height: var(--nx-line-height);
+    margin-bottom: var(--nx-spacing-6x);
+
+    .nx-icon {
+      margin-left: unset;
+    }
+  }
+
+  .nx-page-title {
+    margin-bottom: var(--nx-spacing-2x);
+    .nx-h1 .nx-icon {
+      vertical-align: -2px;
+      img {
+        height: 26px;
+        vertical-align: baseline;
+      }
+    }
+  }
+
+  .nx-page-title__description .iq-owner-contact-icon.nx-icon {
+    margin-right: 8px;
+    margin-left: 0;
+    font-size: 12px;
+    line-height: 12px;
+  }
+}
+
+#owner-manager-main {
+  padding-bottom: 0;
+}
 
 .iq-tile-scroll-container .nx-tile {
   margin-right: var(--nx-spacing-3x);
@@ -13,11 +51,12 @@
   fill: var(--nx-selectable-color-dark);
 }
 
-// this style will be removed once the whole policy tile is migrated to React
-policies-header-tile {
-  .nx-tile-header {
-    padding-bottom: var(--nx-spacing-4x);
-  }
+.iq-tile-scroll-container--owner-summary-view {
+  width: calc(100% - #{$iq-spacing-sm});
+}
+
+.iq-owner-public-id {
+  font-weight: normal;
 }
 
 @mixin margin-header {

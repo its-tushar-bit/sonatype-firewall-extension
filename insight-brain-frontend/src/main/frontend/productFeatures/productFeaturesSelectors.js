@@ -29,7 +29,7 @@ export const selectIsPolicyWebhooksSupported = createSelector(
     features['webhooks-for-applications'] && !isRepositories && !isRepositoryContainer
 );
 
-export const selectIsSourceControlSupported = createSelector(selectProductFeatures, prop('automation'));
+export const selectIsAutomationSupported = createSelector(selectProductFeatures, prop('automation'));
 export const selectIsInnerSourceRepositorySupported = createSelector(
   selectProductFeatures,
   prop('inner-source-repository-integration')
@@ -38,7 +38,7 @@ export const selectIsArtifactoryRepositorySupported = createSelector(selectProdu
 export const selectIsEvaluateApplicationAvailable = createSelector(selectProductFeatures, prop('cli-integration'));
 export const selectIsSourceControlForSourceTileSupported = createSelector(
   selectIsNotificationsSupported,
-  selectIsSourceControlSupported,
+  selectIsAutomationSupported,
   (notifications, automation) => notifications || automation
 );
 export const selectIsAdvancedLegalPackSupported = createSelector(selectProductFeatures, prop('advanced-legal-pack'));

@@ -3,12 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
-select-contact-modal {
-  display: contents;
-  .nx-modal,
-  .nx-modal > .nx-form,
-  .nx-modal-content {
+#select-contact-modal {
+  overflow-y: visible;
+  & > .nx-form,
+  & .nx-modal-content {
     overflow-y: visible;
   }
 }

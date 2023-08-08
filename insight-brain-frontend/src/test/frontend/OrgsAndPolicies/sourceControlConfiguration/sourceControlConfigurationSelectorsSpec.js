@@ -1,0 +1,427 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import {
+  selectIsLoading,
+  selectSourceControlConfigurationSlice,
+} from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
+import { selectValidationError } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
+
+import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
+
+describe('selectSourceControlConfigurationSelectors', () => {
+  const mockState = {
+    orgsAndPolicies: {
+      sourceControlConfiguration: {
+        sourceControl: {
+          provider: {
+            value: 'github',
+            validationErrors: [],
+            isPristine: false,
+          },
+        },
+        serverSourceControl: null,
+        sourceControlMetrics: undefined,
+        isShowAccessTokenWarning: null,
+        isResetModalOpen: false,
+        someOtherfields: true,
+      },
+    },
+  };
+
+  describe('sourceControlConfiguration', () => {
+    it('selects source control configuration state', () => {
+      expect(selectSourceControlConfigurationSlice(mockState)).toEqual({
+        sourceControl: {
+          provider: {
+            value: 'github',
+            validationErrors: [],
+            isPristine: false,
+          },
+        },
+        serverSourceControl: null,
+        sourceControlMetrics: undefined,
+        isShowAccessTokenWarning: null,
+        isResetModalOpen: false,
+        someOtherfields: true,
+      });
+    });
+  });
+
+  describe('selectValidationError', () => {
+    it('returns validation error if no provider is chosen', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: '',
+                  validationErrors: ['Must be non-empty'],
+                  isPristine: false,
+                },
+              },
+              username: {
+                rscValue: {
+                  value: 'admin',
+                  trimmedValue: 'admin',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              token: {
+                rscValue: {
+                  value: 'password1',
+                  trimmedValue: 'password1',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              baseBranch: {
+                rscValue: {
+                  value: 'main',
+                  trimmedValue: 'main',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+            },
+          },
+        },
+      };
+      const actual = selectValidationError(state);
+      expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
+    });
+
+    it('returns validation error if user insert not valid username', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'azure',
+                  validationErrors: [],
+                  isPristine: false,
+                },
+              },
+              username: {
+                rscValue: {
+                  value: 'a'.repeat(256),
+                  trimmedValue: 'a'.repeat(256),
+                  validationErrors: ['Please enter less than 255 characters'],
+                  isPristine: false,
+                },
+              },
+              token: {
+                rscValue: {
+                  value: 'password1',
+                  trimmedValue: 'password1',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              baseBranch: {
+                rscValue: {
+                  value: 'main',
+                  trimmedValue: 'main',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+            },
+          },
+        },
+      };
+      const actual = selectValidationError(state);
+      expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
+    });
+
+    it('returns validation error if provider requires username, username has value, but there is no token value', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'azure',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              username: {
+                rscValue: {
+                  value: 'admin',
+                  trimmedValue: 'admin',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              token: {
+                rscValue: {
+                  value: '',
+                  trimmedValue: '',
+                  validationErrors: ['Must be non-empty'],
+                  isPristine: false,
+                },
+              },
+              baseBranch: {
+                rscValue: {
+                  value: 'main',
+                  trimmedValue: 'main',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+            },
+          },
+        },
+      };
+      const actual = selectValidationError(state);
+      expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
+    });
+
+    it('returns validation error if provider requires username, token has value, but there is no username value', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'azure',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              username: {
+                rscValue: {
+                  value: '',
+                  trimmedValue: '',
+                  validationErrors: ['Must be non-empty'],
+                  isPristine: false,
+                },
+              },
+              token: {
+                rscValue: {
+                  value: 'token',
+                  trimmedValue: 'token',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              baseBranch: {
+                rscValue: {
+                  value: 'main',
+                  trimmedValue: 'main',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+            },
+          },
+        },
+      };
+      const actual = selectValidationError(state);
+      expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
+    });
+
+    it('shows no validation error if provider requires username, but token and username have"t any values', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'azure',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              username: {
+                rscValue: {
+                  value: '',
+                  trimmedValue: '',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              token: {
+                rscValue: {
+                  value: '',
+                  trimmedValue: '',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              baseBranch: {
+                rscValue: {
+                  value: 'main',
+                  trimmedValue: 'main',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+            },
+          },
+        },
+      };
+      const actual = selectValidationError(state);
+      expect(actual).toEqual(null);
+    });
+
+    it('shows no validation error if provider doesn"t require username, and token has"t any value', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'github',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              username: {
+                rscValue: {
+                  value: '',
+                  trimmedValue: '',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              token: {
+                rscValue: {
+                  value: '',
+                  trimmedValue: '',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              baseBranch: {
+                rscValue: {
+                  value: 'main',
+                  trimmedValue: 'main',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+            },
+          },
+        },
+      };
+      const actual = selectValidationError(state);
+      expect(actual).toEqual(null);
+    });
+
+    it('returns validation error if branch name is missed', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'azure',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              username: {
+                rscValue: {
+                  value: 'admin',
+                  trimmedValue: 'admin',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              token: {
+                rscValue: {
+                  value: 'password1',
+                  trimmedValue: 'password1',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              baseBranch: {
+                rscValue: {
+                  value: '',
+                  trimmedValue: '',
+                  validationErrors: ['Must be non-empty'],
+                  isPristine: false,
+                },
+              },
+            },
+          },
+        },
+      };
+      const actual = selectValidationError(state);
+      expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
+    });
+  });
+
+  describe('selectIsLoading', () => {
+    let state;
+    beforeEach(() => {
+      state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            formLoading: true,
+          },
+          root: {
+            selectedOwner: {
+              id: 'ROOT_ORGANIZATION_ID',
+            },
+          },
+        },
+        productFeatures: {
+          productFeatures: {
+            notifications: true,
+            automation: true,
+          },
+        },
+      };
+    });
+    it('returns true if isSourceControlSupported and ownerId is not defined yet', () => {
+      state.productFeatures.productFeatures = {};
+      state.orgsAndPolicies.root.selectedOwner = {};
+      const isLoading = selectIsLoading(state);
+      expect(isLoading).toBe(true);
+    });
+
+    it('returns true if isSourceControlSupported is not defined yet', () => {
+      state.productFeatures.productFeatures = {};
+      const isLoading = selectIsLoading(state);
+      expect(isLoading).toBe(true);
+    });
+
+    it('returns true if ownerId is not defined yet', () => {
+      state.orgsAndPolicies.root.selectedOwner = {};
+      const isLoading = selectIsLoading(state);
+      expect(isLoading).toBe(true);
+    });
+
+    it('returns true if formLoading is true and isSourceControlSupported also true', () => {
+      state.orgsAndPolicies.root.selectedOwner = {};
+      const isLoading = selectIsLoading(state);
+      expect(isLoading).toBe(true);
+    });
+
+    it('returns false if formLoading is false(after form initialization), isSourceControlSupported is true and ownerId is defined and has not falsy value', () => {
+      state.orgsAndPolicies.sourceControlConfiguration.formLoading = false;
+      const isLoading = selectIsLoading(state);
+      expect(isLoading).toBe(false);
+    });
+
+    it('returns false if isSourceControlSupported is false', () => {
+      state.productFeatures = {
+        productFeatures: {
+          notifications: false,
+          automation: false,
+        },
+      };
+      const isLoading = selectIsLoading(state);
+      expect(isLoading).toBe(false);
+    });
+  });
+});

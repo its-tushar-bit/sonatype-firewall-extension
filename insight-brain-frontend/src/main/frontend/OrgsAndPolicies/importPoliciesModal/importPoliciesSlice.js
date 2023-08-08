@@ -9,11 +9,11 @@ import { getImportPoliciesUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectImportPoliciesSlice } from './importPoliciesSelectors';
-import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
+import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 
 const REDUCER_NAME = `${OWNER_ACTIONS}/importPolicies`;
 
@@ -58,11 +58,7 @@ const importPolicies = createAsyncThunk(REDUCER_NAME, (_, { getState, dispatch, 
     .post(url, formData)
     .then(() => {
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
-        dispatch(
-          stateGo('management.view.organization.app', {
-            organizationId: owner.organizationId,
-          })
-        );
+        dispatch(ownerSummaryActions.loadOwnerSummary());
       });
     })
     .catch((err) => rejectWithValue(err));

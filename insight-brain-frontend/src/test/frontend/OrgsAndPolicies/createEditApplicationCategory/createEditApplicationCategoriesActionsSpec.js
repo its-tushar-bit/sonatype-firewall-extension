@@ -19,7 +19,7 @@ import {
   getApplicationsUrl,
   getApplicablePolicies,
 } from 'MainRoot/util/CLMLocation';
-import TagResourceMockData from 'TestRoot/owner.manager/mock.data/tag.resource.mock.data';
+import TagResourceMockData from 'TestRoot/OrgsAndPolicies/mock.data/tag.resource.mock.data';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 const { initialState: rscInitialState } = nxTextInputStateHelpers;
 

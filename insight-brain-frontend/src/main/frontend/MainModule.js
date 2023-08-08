@@ -30,7 +30,7 @@ import unsavedChangesModalModule from './unsavedChangesModal/module';
 import loginModalModule from './user/LoginModal/module';
 import legalModule from './legal/legal.module';
 import toastContainerModule from './toastContainer/module';
-import { contains, isEmpty, not, path } from 'ramda';
+import { contains, isEmpty, not, path, tryCatch } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
 import { requestNotificationPermission } from './utility/services/notificationService';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
@@ -42,6 +42,8 @@ import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/lice
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 import { selectUnconfiguredRepoManager } from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
 import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
+import { fab } from '@fortawesome/free-brands-svg-icons';
+import { library } from '@fortawesome/fontawesome-svg-core';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -324,6 +326,8 @@ export const InitModule = angular
           .then(onLicenseSuccess, onLicenseFailure);
       }
 
+      const loadFontAwesomeBrandIcons = tryCatch(() => library.add(fab), console.error);
+
       function initSuccess() {
         $rootScope.$state = $state;
 
@@ -336,6 +340,7 @@ export const InitModule = angular
         }
         requestNotificationPermission();
         SessionSecurityService.init();
+        loadFontAwesomeBrandIcons();
       }
 
       function initFailure(err) {

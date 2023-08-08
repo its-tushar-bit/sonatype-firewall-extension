@@ -9,10 +9,7 @@ import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 
 import { selectActionStageTypes, selectCliStagesWithInheritOrNoMonitorOption } from './stagesSelectors';
 
-import {
-  createInheritOrNoMonitorOption,
-  getMonitoredStage,
-} from 'MainRoot/owner.manager/utility/monitored.stage.service';
+import { createInheritOrNoMonitorOption, getMonitoredStage } from 'MainRoot/OrgsAndPolicies/utility/monitoredStageUtil';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 

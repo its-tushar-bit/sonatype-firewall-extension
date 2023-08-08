@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { always, compose, equals, has, hasPath, ifElse, path, prop } from 'ramda';
+import { always, compose, equals, has, ifElse, path, prop } from 'ramda';
 import { valueFromHierarchy } from 'MainRoot/configuration/scmOnboarding/utils/providers';
 import { selectOrgsAndPoliciesSlice, selectSelectedOwnerName } from './orgsAndPoliciesSelectors';
 import { selectIsOrganization, selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -72,12 +72,19 @@ export const selectItemSubText = createSelector(
 
 export const selectRepositoryUrl = createSelector(selectSourceControl, prop('repositoryUrl'));
 
+const ifProviderIsAzureSetItToGit = ifElse(equals('azure'), always('git'), (provider) => provider);
+const getScmProviderValue = ifElse(
+  path(['provider', 'value']),
+  path(['provider', 'value']),
+  path(['provider', 'parentValue'])
+);
+
 export const selectScmProviderIcon = createSelector(
   selectSourceControl,
   compose(
     // no Font Awesome icon for Azure, use Microsoft instead once FA v5 is available (eg: React migration)
     // see: https://github.com/FortAwesome/Font-Awesome/issues/14058
-    ifElse(equals('azure'), always('git'), (icon) => icon),
-    ifElse(hasPath(['provider', 'value']), path(['provider', 'value']), path(['provider', 'parentValue']))
+    ifProviderIsAzureSetItToGit,
+    getScmProviderValue
   )
 );

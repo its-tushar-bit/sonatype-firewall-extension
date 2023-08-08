@@ -23,6 +23,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
 import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
+import { SOURCE_CONTROL_UNSUPPORTED_MESSAGE } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
 export default function SourceControlTile() {
   const dispatch = useDispatch();
@@ -61,9 +62,7 @@ export default function SourceControlTile() {
 
   const renderContent = () => {
     if (!isSourceControlSupported) {
-      return (
-        <NxInfoAlert id="source-control-not-supported">Source Control is not supported by your license</NxInfoAlert>
-      );
+      return <NxInfoAlert id="source-control-not-supported">{SOURCE_CONTROL_UNSUPPORTED_MESSAGE}</NxInfoAlert>;
     }
 
     const showText = !!(sourceControl && effectiveProvider);

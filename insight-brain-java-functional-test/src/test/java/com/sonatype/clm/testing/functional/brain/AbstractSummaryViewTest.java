@@ -19,7 +19,6 @@ import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.ArtifactoryRepositoryTile;
-import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
 import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
@@ -30,6 +29,7 @@ import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTil
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.LicenseThreatGroupElement;
 import com.sonatype.clm.testing.functional.elements.NavPills;
+import com.sonatype.clm.testing.functional.elements.NxAlert;
 import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxList;
@@ -130,17 +130,17 @@ public abstract class AbstractSummaryViewTest
   public void testSummaryTile_missing() {
     refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType(), "fakeid"));
 
-    ErrorBox error = OwnerSummaryPage.summaryTile().error();
+    NxAlert error = OwnerSummaryPage.loadErrorMessage();
     error.shouldBe(visible);
     if (currentOwner.getType().equals(OwnerType.APPLICATION)) {
       error.shouldHave(text("An error occurred loading data. Could not find an "
           + currentOwner.getType().toString() + " with public ID fakeid."));
     }
     else {
-      error.shouldHave(text("An error occurred loading data. "
-          + currentOwner.getType().toString() + " with ID fakeid does not exist."));
+      error.shouldHave(text("An error occurred loading data. Could not find an "
+          + currentOwner.getType().toString() + " with ID fakeid."));
     }
-    error.retryButton().shouldBe(visible, enabled);
+    error.button().shouldBe(visible, enabled);
   }
 
   @Test

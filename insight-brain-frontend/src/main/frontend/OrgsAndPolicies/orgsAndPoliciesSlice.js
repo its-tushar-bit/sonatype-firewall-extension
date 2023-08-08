@@ -33,6 +33,7 @@ import ownerSideNavSlice from './ownerSideNav/ownerSideNavSlice';
 import selectContactModalSlice from './selectContactModal/selectContactModalSlice';
 import evaluateApplicationSlice from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSlice';
 import actionDropdownSlice from './actionDropdown/actionDropdownSlice';
+import sourceControlConfigurationSlice from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import ownersTreeSlice from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
 
 export default combineReducers({
@@ -62,6 +63,7 @@ export default combineReducers({
     evaluateApplication: evaluateApplicationSlice,
     actionDropdown: actionDropdownSlice,
   }),
+  sourceControlConfiguration: sourceControlConfigurationSlice,
   sourceControl: sourceControlSlice,
   ownerSummary: ownerSummarySlice,
   ownerDetailTree: ownerDetailTreeSlice,

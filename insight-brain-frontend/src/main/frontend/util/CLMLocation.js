@@ -235,6 +235,10 @@ export function getValidateScmConfigUrl(scmProvider, scmHostUrl) {
   return uriTemplate`/rest/onboarding/validate/${scmProvider}?scmHostUrl=${scmHostUrl}`;
 }
 
+export function getValidateScmConfigButtonUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/compositeSourceControlConfigValidator/${ownerType}/${ownerId}`;
+}
+
 export function getCompositeSourceControlUrl(ownerType, ownerId) {
   return uriTemplate`/api/v2/compositeSourceControl/${ownerType}/${ownerId}`;
 }
@@ -248,6 +252,14 @@ export const getRepositoryEvaluateUrl = (repositoryId) => uriTemplate`/rest/repo
 
 export const getRepositoryComponentsUrl = (repositoryId) =>
   uriTemplate`/api/experimental/repositories/${repositoryId}/results/details`;
+
+export function getSourceControlMetricsUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/sourceControlMetrics/${ownerType}/${ownerId}`;
+}
+
+export function getSourceControlUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/sourceControl/${ownerType}/${ownerId}`;
+}
 
 export function getDashboardDeleteFilterUrl(filterName) {
   return uriTemplate`/rest/dashboard/filters/named/delete?filterName=${filterName}`;
@@ -1565,19 +1577,9 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getVulnerabilityJsonDetailUrl,
 
-      /**
-       * @since 1.79.0
-       */
-      getSourceControlUrl: function (ownerType, ownerId) {
-        return baseUrl.get() + `/api/v2/sourceControl/${ownerType}/${ownerId}`;
-      },
+      getSourceControlUrl,
 
-      /**
-       * @since 1.79.0
-       */
-      getCompositeSourceControlUrl: function (ownerType, ownerId) {
-        return baseUrl.get() + `/api/v2/compositeSourceControl/${ownerType}/${ownerId}`;
-      },
+      getCompositeSourceControlUrl,
 
       getValidateScmConfigUrl: function (ownerType, ownerId) {
         return baseUrl.get() + `/api/v2/compositeSourceControlConfigValidator/${ownerType}/${ownerId}`;
@@ -1586,9 +1588,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       /**
        * @since 1.97.0
        */
-      getSourceControlMetricsUrl: function (ownerType, ownerId) {
-        return baseUrl.get() + `/api/v2/sourceControlMetrics/${ownerType}/${ownerId}`;
-      },
+      getSourceControlMetricsUrl: (ownerType, ownerId) => getSourceControlMetricsUrl(ownerType, ownerId),
 
       /**
        * @since 1.102.0

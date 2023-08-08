@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import pendoModule from '../../../main/frontend/pendo/module';
-import ownerManagerModule from '../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/OrgsAndPolicies/owner.manager.module';
 import dashboardModule from '../../../main/frontend/dashboard/dashboard.module';
 import labsModule from '../../../main/frontend/labs/module';
 

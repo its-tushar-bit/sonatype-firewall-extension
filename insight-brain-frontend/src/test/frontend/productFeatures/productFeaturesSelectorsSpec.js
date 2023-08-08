@@ -10,7 +10,7 @@ import {
   selectIsGrandfatheringSupported,
   selectIsNotificationsSupported,
   selectIsWebhooksSupported,
-  selectIsSourceControlSupported,
+  selectIsAutomationSupported,
   selectIsInnerSourceRepositorySupported,
   selectIsArtifactoryRepositorySupported,
   selectIsEvaluateApplicationAvailable,
@@ -123,9 +123,9 @@ describe('productFeaturesSelectors', () => {
     });
   });
 
-  describe('selectIsSourceControlSupported', () => {
+  describe('selectIsAutomationSupported', () => {
     it('returns true if automation enabled', () => {
-      expect(selectIsSourceControlSupported(mockState)).toBeTrue();
+      expect(selectIsAutomationSupported(mockState)).toBeTrue();
     });
   });
 

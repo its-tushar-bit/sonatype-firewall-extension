@@ -294,7 +294,13 @@ const ActionDropdown = () => {
   };
 
   return (
-    <NxDropdown className="nx-dropdown--short" label="Actions" isOpen={isOpen} onToggleCollapse={onToggleCollapse}>
+    <NxDropdown
+      id="iq-owner-actions-dropdown"
+      className="nx-dropdown--short"
+      label="Actions"
+      isOpen={isOpen}
+      onToggleCollapse={onToggleCollapse}
+    >
       {dropdownOptions()}
     </NxDropdown>
   );

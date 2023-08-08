@@ -9,21 +9,21 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -73,16 +73,22 @@ public abstract class AbstractSourceControlEditorTest
     sourceControlDAO.delete(sourceControl);
   }
 
-  void assertSourceControl(final String ownerId,
-                           final String repositoryUrl,
-                           final String token,
-                           final SourceControlProvider provider)
+  void assertSourceControl(
+      final String ownerId,
+      final String repositoryUrl,
+      final String token,
+      final SourceControlProvider provider)
   {
     final SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
     assertThat(sourceControl.getProvider()).isEqualTo(provider);
     assertThat(sourceControl.getRepositoryUrl()).isEqualTo(repositoryUrl);
     assertThat(sourceControl.getOwnerId()).isEqualTo(ownerId);
-    assertThat(sourceControl.getToken()).isEqualTo(token);
+    assertThat(sourceControl.getToken()).satisfiesAnyOf(daoToken -> assertThat(daoToken).isEqualTo(token),
+        daoToken -> assertThat(getDecryptedToken(daoToken)).isEqualTo(token));
+  }
+
+  private String getDecryptedToken(String token) {
+    return new String(new PasswordHandler(new DefaultPlexusCipher()).decryptPassword(token.toCharArray()));
   }
 
   void assertSourceControlDoesNotExist(final String ownerId) {
@@ -99,43 +105,62 @@ public abstract class AbstractSourceControlEditorTest
   abstract void verifyStartWithSourceControl();
 
   protected void verifyNotificationFeaturesOnly() {
-    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
+    final String unsupportedMessage = "This feature is not supported by your license";
 
-    SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.pullRequestCommentingToggle().shouldNotExist();
-    SourceControlEditorPage.pullRequestCommentingInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestCommentingEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestCommentingDisableRadio().shouldNotBe(visible);
+    // Unsupported fields should be disabled and show tooltip
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.baseBranchInput());
+    SourceControlEditorPage.baseBranchInput().shouldBe(disabled);
+    SourceControlEditorPage.baseBranchInput().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
 
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.remediationPullRequestsToggle().shouldNotExist();
-    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.remediationPullRequestsFieldset().mainLabel());
+    SourceControlEditorPage.remediationPullRequestsFieldset().radioInputs().forEach(radio -> radio.shouldBe(disabled));
+    SourceControlEditorPage.remediationPullRequestsFieldset().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
 
-    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.sourceControlEvaluationsToggle().shouldNotExist();
-    SourceControlEditorPage.sourceControlEvaluationsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.sourceControlEvaluationsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.sourceControlEvaluationsDisableRadio().shouldNotBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.pullRequestCommentingFieldset().mainLabel());
+    SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs().forEach(radio -> radio.shouldBe(disabled));
+    SourceControlEditorPage.pullRequestCommentingFieldset().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
 
-    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.sourceControlCommitStatusToggle().shouldNotExist();
-    SourceControlEditorPage.sourceControlCommitStatusInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.sourceControlCommitStatusEnabledRadio().shouldNotBe(visible);
-    SourceControlEditorPage.sourceControlCommitStatusDisabledRadio().shouldNotBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.sourceControlEvaluationsFieldset().mainLabel());
+    SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs().forEach(radio -> radio.shouldBe(disabled));
+    SourceControlEditorPage.sourceControlEvaluationsFieldset().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
+
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.automatedCommitFeedbackFieldset().mainLabel());
+    SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs().forEach(radio -> radio.shouldBe(disabled));
+    SourceControlEditorPage.automatedCommitFeedbackFieldset().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
+  }
+
+  protected void rootOrgVerifyNotificationFeaturesOnly() {
+    final String unsupportedMessage = "This feature is not supported by your license";
+
+    // Test tooltips
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.baseBranchInput());
+    SourceControlEditorPage.baseBranchInput().shouldBe(disabled);
+    SourceControlEditorPage.baseBranchInput().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
+
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.remediationPullRequestsFieldset().toggle());
+    SourceControlEditorPage.remediationPullRequestsFieldset().toggle().shouldBe(disabled);
+    SourceControlEditorPage.remediationPullRequestsFieldset().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
+
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.pullRequestCommentingFieldset().toggle());
+    SourceControlEditorPage.pullRequestCommentingFieldset().toggle().shouldBe(disabled);
+    SourceControlEditorPage.pullRequestCommentingFieldset().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
+
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.sourceControlEvaluationsFieldset().toggle());
+    SourceControlEditorPage.sourceControlEvaluationsFieldset().toggle().shouldBe(disabled);
+    SourceControlEditorPage.sourceControlEvaluationsFieldset().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
+
+    ScrollUtil.scrollIntoViewInstantly(SourceControlEditorPage.automatedCommitFeedbackFieldset().toggle());
+    SourceControlEditorPage.automatedCommitFeedbackFieldset().toggle().shouldBe(disabled);
+    SourceControlEditorPage.automatedCommitFeedbackFieldset().hover();
+    Tooltip.get().shouldHave(text(unsupportedMessage));
   }
 }

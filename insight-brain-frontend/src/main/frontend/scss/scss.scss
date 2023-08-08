@@ -40,7 +40,7 @@
 // Directives
 @use '../directives/directives';
 @use '../utility/widgets/age.in.days.input.directive';
-@use '../owner.manager/navigation/ownerTreeView';
+@use '../OrgsAndPolicies/navigation/ownerTreeView';
 
 // Services
 @use '../externalLink/externalLinkModalService';
@@ -52,18 +52,15 @@
 @use '../configuration/configuration';
 @use '../integrations/integrations';
 @use 'policy-editor';
-@use '../owner.manager/summary/owner.summary.view';
 @use '../OrgsAndPolicies/repositories/repositoriesSummaryView';
 @use '../applicationReport/applicationReport';
 @use '../role.membership/role.membership.view';
 @use '../security/users/user-list';
-@use '../owner.manager/retention/retentionEditor';
 @use '../vulnerabilitySearch/vulnerabilitySearch';
 @use '../vulnerabilityCustomize/vulnerabilityCustomize';
 @use '../configuration/saml/samlConfiguration';
 @use '../configuration/systemConfiguration';
 @use '../advancedSearch/advancedSearch';
-@use '../owner.manager/source.control/source.control.editor';
 @use '../report/react/report';
 @use '../report/report/report' as legacy-report;
 @use '../configuration/scmOnboarding/scmOnboarding';
@@ -137,8 +134,7 @@
 @use '../OrgsAndPolicies/ownerSummary/labelsTile/labelsTile';
 @use '../OrgsAndPolicies/ownerSummary/policiesTile/policiesTile';
 @use '../OrgsAndPolicies/ownerSummary/retentionTile/retentionTile';
-@use '../OrgsAndPolicies/OwnerSummaryPills/ownerSummaryPills';
-@use '../owner.manager/repositories/RepositoriesPills/repositoriesPills';
+@use '../OrgsAndPolicies/repositories/repositoriesPills';
 @use '../navPills/navPills';
 @use '../OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/applicableLicenseThreatGroupTable';
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
@@ -153,9 +149,10 @@
 @use '../OrgsAndPolicies/selectContactModal/selectContactModal';
 @use '../OrgsAndPolicies/dataRetentionEditor/dataRetentionEditor';
 @use '../OrgsAndPolicies/evaluateApplicationModal/evaluateApplication';
+@use '../OrgsAndPolicies/sourceControlConfiguration/sourceControlConfiguration';
 @use '../toastContainer/toastContainer';
 @use '../OrgsAndPolicies/actionDropdown/actionDropdown';
-@use '../../frontend/owner.manager/navigation/ownerDetailSidebar';
+@use '../OrgsAndPolicies/navigation/ownerDetailSidebar';
 @use '../firewallOnboarding/firewallOnboarding';
 @use '../configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfiguration';
 @use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';

@@ -9,8 +9,8 @@ import { actions, initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as selectors from 'MainRoot/OrgsAndPolicies/policySelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
-import PolicyResourceMockData from 'TestRoot/owner.manager/mock.data/policy.resource.mock.data';
-import TagResourceMockData from 'TestRoot/owner.manager/mock.data/tag.resource.mock.data';
+import PolicyResourceMockData from 'TestRoot/OrgsAndPolicies/mock.data/policy.resource.mock.data';
+import TagResourceMockData from 'TestRoot/OrgsAndPolicies/mock.data/tag.resource.mock.data';
 import {
   getApplicableCategoriesUrl,
   getApplicablePolicies,

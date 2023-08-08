@@ -1,0 +1,120 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { NxH1, NxPageTitle, NxLoadWrapper, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { faUser } from '@fortawesome/free-solid-svg-icons';
+import { findIconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { getOwnerImageUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectSelectedOwner, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
+import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
+import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
+import OwnerSummaryPills from 'MainRoot/OrgsAndPolicies/OwnerSummaryPills/OwnerSummaryPills';
+import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ApplicationCategoriesTile';
+import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
+import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
+import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
+import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
+import LabelsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/labelsTile/LabelsTile';
+import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
+import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/RetentionTile';
+import SourceControlTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SourceControlTile';
+import ArtifactoryRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ArtifactoryRepositoryTile';
+import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
+import AccessTile from 'MainRoot/react/accessTile/AccessTile';
+import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
+import GrandfatheringModal from 'MainRoot/OrgsAndPolicies/grandfatheringModal/GrandfatheringModal';
+import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/ChangeApplicationIdModal';
+import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/RevokeGrandfatheringModal';
+import ImportPoliciesModal from 'MainRoot/OrgsAndPolicies/importPoliciesModal/ImportPoliciesModal';
+import SelectContactModal from 'MainRoot/OrgsAndPolicies/selectContactModal/SelectContactModal';
+import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
+import MoveOwnerModal from 'MainRoot/OrgsAndPolicies/moveOwner/MoveOwnerModal';
+import { selectIsDisplayedOrganizationSynthetic } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
+
+export default function OwnerSummary() {
+  const dispatch = useDispatch();
+  const loading = useSelector(selectLoading);
+  const loadError = useSelector(selectLoadError);
+  const owner = useSelector(selectSelectedOwner);
+  const isApp = useSelector(selectIsApplication);
+  const repositoryUrl = useSelector(selectRepositoryUrl);
+  const scmProviderIcon = useSelector(selectScmProviderIcon);
+  const entityId = useSelector(selectEntityId);
+  const isSyntheticOrg = useSelector(selectIsDisplayedOrganizationSynthetic) && !isApp;
+
+  const doLoad = () => dispatch(ownerSummaryActions.loadOwnerSummary());
+
+  useEffect(() => {
+    if (entityId) {
+      doLoad();
+    }
+  }, [entityId]);
+
+  return isSyntheticOrg ? (
+    <InsufficientPermissionOwnerHierarchyTree />
+  ) : (
+    <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
+      <div id="owner-summary">
+        <NxPageTitle className="iq-page-title">
+          <NxH1>
+            <span className="nx-icon">
+              <img src={getOwnerImageUrl(owner)} />
+            </span>
+            <span>{owner.name}</span>
+            {isApp && <span className="iq-owner-public-id"> ({owner.publicId})</span>}
+          </NxH1>
+          {owner.contact && (
+            <NxPageTitle.Description>
+              <NxFontAwesomeIcon icon={faUser} className="iq-owner-contact-icon" /> {owner.contact.displayName}
+            </NxPageTitle.Description>
+          )}
+          <div className="nx-btn-bar">
+            <ActionDropdown />
+          </div>
+        </NxPageTitle>
+        {isApp && repositoryUrl && (
+          <div className="page-repository-url nx-truncate-ellipsis">
+            <NxFontAwesomeIcon icon={findIconDefinition({ prefix: 'fab', iconName: scmProviderIcon })} />
+            <a href={repositoryUrl} target="_blank" rel="noreferrer">
+              {repositoryUrl}
+            </a>
+          </div>
+        )}
+        <OwnerSummaryPills />
+      </div>
+      <div
+        className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
+        id="owner-summary-sections"
+      >
+        <ApplicationCategoriesTile />
+        <PoliciesTile />
+        <PolicyGrandfatheringTile />
+        <ContinuousMonitoringSummaryTile />
+        <ProprietaryComponentConfigurationTile />
+        <LabelsTile />
+        <LicenseThreatGroupSummaryTile />
+        <RetentionTile />
+        <SourceControlTile />
+        <InnerSourceRepositoryTile />
+        <ArtifactoryRepositoryTile />
+        <AccessTile />
+      </div>
+      <DeleteOwnerModal />
+      <GrandfatheringModal />
+      <ChangeApplicationIdModal />
+      <RevokeGrandfatheringModal />
+      <ImportPoliciesModal />
+      <MoveOwnerModal />
+      <SelectContactModal />
+      <EvaluateApplicationModal />
+    </NxLoadWrapper>
+  );
+}

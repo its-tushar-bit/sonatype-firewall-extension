@@ -33,6 +33,12 @@ public class CLM
       attribute("aria-disabled", "true" )
   );
 
+  public static final Condition RSC_TERTIARY_DISABLED = and(
+      "is disabled",
+      attribute("disabled"),
+      attribute("aria-disabled", "true" )
+  );
+
   public static final Condition CSS_SIDEBAR_OPEN = cssClass("open");
 
   public static final Condition CSS_SIDEBAR_CLOSED = cssClass("closed");

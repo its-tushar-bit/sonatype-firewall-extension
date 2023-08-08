@@ -6,16 +6,15 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
-import com.sonatype.clm.testing.functional.elements.IqRadio;
-import com.sonatype.clm.testing.functional.elements.IqToggle;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 
 public class SourceControlEditorPage
@@ -38,59 +37,39 @@ public class SourceControlEditorPage
   }
 
   public static SelenideElement title() {
-    return root().$("h2");
+    return root().$("h1");
   }
 
   public static SelenideElement subTitle() {
-    return $(".iq-tile-header__subtitle");
+    return $(".nx-page-title__description");
   }
 
-  public static Dropdown provider() {
-    return new Dropdown(SOURCE_CONTROL_EDITOR_ID, "dropdown-selector");
+  public static NxFormSelect providerSelect() {
+    return new NxFormSelect("#source-control-provider-select");
   }
 
-  public static IqRadio tokenInheritRadio() {
-    return new IqRadio($("#editor-source-control-token-inherit"));
-  }
-
-  public static IqRadio tokenOverrideRadio() {
-    return new IqRadio($("#editor-source-control-token-override"));
+  public static SourceControlFieldset credentailsFieldset() {
+    return new SourceControlFieldset("#editor-source-control-token");
   }
 
   public static SelenideElement token() {
-    return $("#editor-source-control-token");
+    return $("#source-control-token");
   }
 
-  public static SelenideElement credentialsUsername() {
-    return $("#editor-source-control-credentials-username");
+  public static SelenideElement username() {
+    return $("#source-control-username");
   }
 
-  public static SelenideElement credentialsToken() {
-    return $("#editor-source-control-credentials-token");
-  }
-
-  public static IqRadio credentialsInheritRadio() {
-    return new IqRadio($("#editor-source-control-credentials-inherit"));
-  }
-
-  public static IqRadio credentialsOverrideRadio() {
-    return new IqRadio($("#editor-source-control-credentials-override"));
-  }
-
-  public static IqRadio providerInheritRadio() {
-    return new IqRadio($("#editor-source-control-provider-inherit"));
-  }
-
-  public static IqRadio providerOverrideRadio() {
-    return new IqRadio($("#editor-source-control-provider-override"));
+  public static SourceControlFieldset providerFieldset() {
+    return new SourceControlFieldset("#editor-source-control-provider");
   }
 
   public static SelenideElement saveButton() {
-    return root().$("button[type^=submit]");
+    return root().$(".nx-form__submit-btn");
   }
 
-  public static SelenideElement deleteButton() {
-    return $("#delete-source-control-button");
+  public static SelenideElement resetButton() {
+    return $("#reset-source-control-button");
   }
 
   public static SelenideElement testConfigButton() {
@@ -106,135 +85,55 @@ public class SourceControlEditorPage
   }
 
   public static SelenideElement repositoryUrlControls() {
-    return $("#repository-url-row");
+    return $("#editor-source-control-url");
   }
 
   public static SelenideElement repositoryUrl() {
     return $("#editor-source-control-url");
   }
 
-  public static SelenideElement advancedSettingsTree() {
-    return $(".iq-tree-view--source-control-editor");
-  }
-
-  public static SelenideElement advancedSettings() {
-    return $("#source-control-advanced-section");
-  }
-
-  public static IqToggle sshEnabledToggle() {
-    return new IqToggle($("#editor-source-control-ssh-enabled-toggle"));
-  }
-
-  public static IqRadio sshEnabledInheritRadio() {
-    return new IqRadio($("#editor-source-control-ssh-enabled-inherit"));
-  }
-
-  public static IqRadio sshEnabledEnableRadio() {
-    return new IqRadio($("#editor-source-control-ssh-enabled-enable"));
-  }
-
-  public static IqRadio sshEnabledDisableRadio() {
-    return new IqRadio($("#editor-source-control-ssh-enabled-disable"));
-  }
-
-  public static IqRadio remediationPullRequestsInheritRadio() {
-    return new IqRadio($("#editor-source-control-remediation-pull-requests-inherit"));
-  }
-
-  public static IqRadio remediationPullRequestsEnableRadio() {
-    return new IqRadio($("#editor-source-control-remediation-pull-requests-enable"));
-  }
-
-  public static IqRadio remediationPullRequestsDisableRadio() {
-    return new IqRadio($("#editor-source-control-remediation-pull-requests-disable"));
+  public static SourceControlFieldset sshEnabledFieldset() {
+    return new SourceControlFieldset("#source-control-ssh");
   }
 
   public static SelenideElement remediationPullRequestNotSupportedAlert() {
     return $("#source-control-remediation-pull-requests-unavailable");
   }
 
-  public static IqRadio pullRequestCommentingInheritRadio() {
-    return new IqRadio($("#editor-source-control-pull-request-commenting-inherit"));
-  }
-
-  public static IqRadio pullRequestCommentingEnableRadio() {
-    return new IqRadio($("#editor-source-control-pull-request-commenting-enable"));
-  }
-
-  public static IqRadio pullRequestCommentingDisableRadio() {
-    return new IqRadio($("#editor-source-control-pull-request-commenting-disable"));
-  }
-
   public static SelenideElement pullRequestCommentingNotSupportedAlert() {
     return $("#source-control-pull-request-commenting-unavailable");
-  }
-
-  public static IqRadio sourceControlEvaluationsInheritRadio() {
-    return new IqRadio($("#editor-source-control-evaluations-inherit"));
-  }
-
-  public static IqRadio sourceControlEvaluationsEnableRadio() {
-    return new IqRadio($("#editor-source-control-evaluations-enable"));
-  }
-
-  public static IqRadio sourceControlEvaluationsDisableRadio() {
-    return new IqRadio($("#editor-source-control-evaluations-disable"));
-  }
-
-  public static IqRadio sourceControlCommitStatusInheritRadio() {
-    return new IqRadio($("#editor-source-control-commit-status-inherit"));
-  }
-
-  public static IqRadio sourceControlCommitStatusEnabledRadio() {
-    return new IqRadio($("#editor-source-control-commit-status-enable"));
-  }
-
-  public static IqRadio sourceControlCommitStatusDisabledRadio() {
-    return new IqRadio($("#editor-source-control-commit-status-disable"));
   }
 
   public static SelenideElement sourceControlEvaluationsNotSupportedAlert() {
     return $("#source-control-evaluations-unavailable");
   }
 
-  public static IqToggle remediationPullRequestsToggle() {
-    return new IqToggle($("#editor-source-control-remediation-pull-requests-toggle"));
+  public static SourceControlFieldset remediationPullRequestsFieldset() {
+    return new SourceControlFieldset("#source-control-remediation-pull-requests");
   }
 
-  public static IqToggle pullRequestCommentingToggle() {
-    return new IqToggle($("#editor-source-control-pull-request-commenting-toggle"));
+  public static SourceControlFieldset pullRequestCommentingFieldset() {
+    return new SourceControlFieldset("#source-control-pull-request-commenting");
   }
 
-  public static IqToggle sourceControlEvaluationsToggle() {
-    return new IqToggle($("#editor-source-control-evaluations-toggle"));
+  public static SourceControlFieldset sourceControlEvaluationsFieldset() {
+    return new SourceControlFieldset("#source-control-evaluations");
   }
 
-  public static IqToggle sourceControlCommitStatusToggle() {
-    return new IqToggle($("#editor-source-control-commit-status-toggle"));
+  public static SourceControlFieldset automatedCommitFeedbackFieldset() {
+    return new SourceControlFieldset("#automated-commit-feedback");
   }
 
-  public static IqRadio baseBranchInheritRadio() {
-    return new IqRadio($("#editor-source-control-branch-inherit"));
-  }
-
-  public static IqRadio baseBranchOverrideRadio() {
-    return new IqRadio($("#editor-source-control-branch-override"));
+  public static SourceControlFieldset baseBranchFieldset() {
+    return new SourceControlFieldset("#source-control-default-branch");
   }
 
   public static SelenideElement baseBranchInput() {
     return $("#editor-source-control-branch");
   }
 
-  public static SelenideElement advancedElementsTrigger() {
-    return $("#source-control-advanced-settings-trigger");
-  }
-
   public static SelenideElement defaultBranchNotSupportedAlert() {
     return $("#source-control-base-branch-unavailable");
-  }
-
-  public static SelenideElement advancedSectionRule() {
-    return $(".iq-hr");
   }
 
   public static SelenideElement notSupported() {
@@ -242,7 +141,7 @@ public class SourceControlEditorPage
   }
 
   public static SelenideElement form() {
-    return $(".iq-form");
+    return $(".nx-form");
   }
 
   public static MetricsTable metricsTable() {
@@ -257,20 +156,44 @@ public class SourceControlEditorPage
     return new TestResults("#scm-config-results");
   }
 
+  public static class SourceControlFieldset
+      extends BasicElement<SourceControlFieldset>
+  {
+    public SourceControlFieldset(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement mainLabel() {
+      return this.getElement().$(".nx-radio-checkbox.nx-radio");
+    }
+
+    public SelenideElement toggle() {
+      return this.getElement().$(".nx-toggle__input");
+    }
+
+    public ElementsCollection radioInputs() {
+      return this.getElement().$$(".nx-radio__input");
+    }
+
+    public ElementsCollection labels() {
+      return this.getElement().$$(".nx-radio-checkbox__content");
+    }
+  }
+
   public static class TestResults
       extends BasicElement<TestResults>
   {
-    public TestResults(String selector)  {
+    public TestResults(String selector) {
       super(selector);
       $(selector).scrollIntoView(false);
     }
 
     public SelenideElement title() {
-      return child("h4");
+      return child("#scm-config-results-title");
     }
 
     public ElementsCollection rows() {
-      return children("ul li.iq-list__item");
+      return children("ul li.nx-list__item");
     }
   }
 
@@ -281,7 +204,7 @@ public class SourceControlEditorPage
       extends BasicElement<MetricsTable>
   {
     public MetricsTable() {
-      super("#metricsTable");
+      super(".iq-automated-pr-table");
     }
 
     public int rowCount() {
@@ -289,7 +212,7 @@ public class SourceControlEditorPage
     }
 
     public ElementsCollection rows() {
-      return children("table tbody tr");
+      return getElement().$$("table tbody tr");
     }
 
     public MetricsTableRow getRow(int index) {
@@ -330,7 +253,7 @@ public class SourceControlEditorPage
     }
 
     public boolean created() {
-      return columns().get(1).find("i").has(cssClass("fa-check-circle"));
+      return columns().get(1).find("svg").has(cssClass("fa-check-circle"));
     }
 
     public String totalTime() {

@@ -11,7 +11,7 @@ import NamespaceConfusionProtectionTile from './namespaceConfusionProtectionTile
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { useDispatch } from 'react-redux';
-import RepositoriesPills from 'MainRoot/owner.manager/repositories/RepositoriesPills/RepositoriesPills';
+import RepositoriesPills from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesPills';
 
 export default function RepositoriesSummaryView() {
   const dispatch = useDispatch();

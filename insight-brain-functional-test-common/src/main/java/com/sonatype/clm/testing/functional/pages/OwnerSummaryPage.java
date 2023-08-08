@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
 import com.sonatype.clm.testing.functional.elements.NavPills;
+import com.sonatype.clm.testing.functional.elements.NxAlert;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
@@ -68,6 +69,10 @@ public class OwnerSummaryPage
     return $("#continuous-monitoring");
   }
 
+  public static NxAlert loadErrorMessage() {
+    return NxAlert.getErrorAlert();
+  }
+
   public static SelenideElement proprietaryComponentMatchers() {
     return $("#proprietary-component-matchers");
   }
@@ -97,7 +102,7 @@ public class OwnerSummaryPage
   }
 
   public static AccessTile accessTile() {
-    return new AccessTile("#owner-pill-access");
+    return new AccessTile("#access-tile-pill-access");
   }
 
   public static NavPills navigationPills() {
@@ -109,6 +114,6 @@ public class OwnerSummaryPage
   }
 
   public static SelenideElement repositoryUrlIcon() {
-    return $(".page-repository-url i");
+    return $(".page-repository-url .nx-icon");
   }
 }

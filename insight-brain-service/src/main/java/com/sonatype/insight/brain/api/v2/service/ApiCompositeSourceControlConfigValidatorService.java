@@ -45,6 +45,9 @@ public class ApiCompositeSourceControlConfigValidatorService
 
   private final SourceControlSshService sourceControlSshService;
 
+  // Only meant to be used in functional tests
+  public static boolean disableSshForFunctionalTest = false;
+
   @Inject
   public ApiCompositeSourceControlConfigValidatorService(
       SourceControlUtils sourceControlUtils,
@@ -99,7 +102,9 @@ public class ApiCompositeSourceControlConfigValidatorService
       result.setTokenPermissions(new ValidationResult(false, "Unable to test permissions: " + e.getMessage()));
     }
 
-    validateSshConfiguration(applicationId, result, gitInfo);
+    if (Boolean.FALSE.equals(disableSshForFunctionalTest)) {
+      validateSshConfiguration(applicationId, result, gitInfo);
+    }
 
     return result;
   }

@@ -15,7 +15,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSele
 
 public class ActionDropDown
 {
-  private static final String ROOT = "action-dropdown .nx-dropdown";
+  private static final String ROOT = "#iq-owner-actions-dropdown.nx-dropdown";
 
   public static SelenideElement root() {
     return $(ROOT);

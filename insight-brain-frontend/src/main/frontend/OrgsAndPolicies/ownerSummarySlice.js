@@ -3,7 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { propEq, find } from 'ramda';
+import axios from 'axios';
+import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+
+import { selectApplicationId, selectIsApplication, selectOrganizationId } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
+import { getApplicationSummaryUrl } from 'MainRoot/util/CLMLocation';
 import { propSet } from '../util/reduxToolkitUtil';
 import { selectIsRepositoriesRelated, selectOwnerInfo } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
@@ -38,6 +49,56 @@ const checkEditIqPermissionFailed = (state) => {
   state.hasEditIqPermission = false;
 };
 
+const loadOwnerSummaryRequested = (state) => {
+  state.loading = true;
+  state.loadError = null;
+};
+
+const loadOwnerSummaryFulfilled = (state) => {
+  state.loading = initialState.loading;
+  state.loadError = initialState.loadError;
+};
+
+const loadOwnerSummaryFailed = (state, { payload }) => {
+  state.loading = false;
+  state.loadError = Messages.getHttpErrorMessage(payload);
+};
+
+const loadOwnerSummary = createAsyncThunk(
+  `${REDUCER_NAME}/loadOwnerSummary`,
+  (_, { getState, dispatch, rejectWithValue }) => {
+    const state = getState();
+    const isApp = selectIsApplication(state);
+    const ownerId = isApp ? selectApplicationId(state) : selectOrganizationId(state);
+
+    const promises = [
+      dispatch(isApp ? applicationsActions.loadApplications(true) : organizationsActions.loadOrganizations(true)),
+      dispatch(rootActions.loadApplicablePoliciesByOwner()),
+    ];
+    if (isApp) {
+      promises.push(dispatch(stagesActions.loadDashboardStages()));
+      promises.push(axios.get(getApplicationSummaryUrl(ownerId)));
+    }
+
+    return Promise.all(promises)
+      .then((results) => {
+        const siblings = unwrapResult(results[0]);
+        const entityId = selectEntityId(state);
+        const owner = find(propEq(isApp ? 'publicId' : 'id', entityId))(siblings);
+        if (!owner) {
+          throw `Could not find an ${isApp ? 'application' : 'organization'} with ID ${entityId}.`;
+        }
+        dispatch(rootActions.setSelectedOwner(owner));
+        if (isApp) {
+          const applicationSummary = results[3].data;
+          dispatch(rootActions.setSelectedOwnerContact(applicationSummary.contact));
+        }
+        return dispatch(actions.checkEditIqPermission());
+      })
+      .catch(rejectWithValue);
+  }
+);
+
 const ownerSummarySlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -46,6 +107,9 @@ const ownerSummarySlice = createSlice({
     setLoadError: propSet('loadError'),
   },
   extraReducers: {
+    [loadOwnerSummary.pending]: loadOwnerSummaryRequested,
+    [loadOwnerSummary.fulfilled]: loadOwnerSummaryFulfilled,
+    [loadOwnerSummary.rejected]: loadOwnerSummaryFailed,
     [checkEditIqPermission.fulfilled]: checkEditIqPermissionFulfilled,
     [checkEditIqPermission.rejected]: checkEditIqPermissionFailed,
   },
@@ -53,6 +117,7 @@ const ownerSummarySlice = createSlice({
 
 export const actions = {
   ...ownerSummarySlice.actions,
+  loadOwnerSummary,
   checkEditIqPermission,
 };
 

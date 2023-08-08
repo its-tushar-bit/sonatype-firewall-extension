@@ -81,7 +81,7 @@ export default function OwnerSummaryPills() {
       },
       {
         label: 'Access',
-        target: 'owner-pill-access',
+        target: 'access-tile-pill-access',
         isDisplayed: true,
       },
     ],

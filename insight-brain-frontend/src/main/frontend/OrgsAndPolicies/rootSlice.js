@@ -19,11 +19,6 @@ export const initialState = {
   policiesByOwner: null,
 };
 
-// TODO:
-// now payload contains all Request properties
-// ['$clone', '$getOriginal', '$new', '$revert', '$updateOriginal', '$delete', '$save', 'isDirty'];
-// Once we get rid off  EventNameConstant.OWNER_UPDATED and 'owner.deleted' events it won't store
-// those additional values
 const setSelectedOwner = (state, { payload }) => {
   state.selectedOwner = payload;
 };

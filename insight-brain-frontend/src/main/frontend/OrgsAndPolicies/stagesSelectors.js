@@ -6,7 +6,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { path, prop } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
-import { createInheritOrNoMonitorOption } from 'MainRoot/owner.manager/utility/monitored.stage.service';
+import { createInheritOrNoMonitorOption } from 'MainRoot/OrgsAndPolicies/utility/monitoredStageUtil';
 
 export const selectStagesSlice = createSelector(selectOrgsAndPoliciesSlice, prop('stages'));
 

@@ -249,7 +249,6 @@ public class ApiSpdxServiceTest
     List<String> filteredErrors = verificationErrors.stream()
         .filter(s -> !s.matches(".*Relationship error: [^\\s]+ is deprecated\\..*"))
         .collect(Collectors.toList());
-        ;
     assertThat(filteredErrors).isEmpty();
   }
 

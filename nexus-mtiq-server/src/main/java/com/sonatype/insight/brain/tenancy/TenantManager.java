@@ -247,18 +247,21 @@ public class TenantManager
   }
 
   public void deregisterTenant(String tenantSlug) {
-    for (TenantManaged tenantManagedBean : tenantManagedBeans) {
-      runAs(new Tenant(tenantSlug), () -> {
-        try {
-          tenantManagedBean.deregister();
-        }
-        catch (Exception e) {
-          log.error("Failed to deregister managed bean {} for tenant {}", tenantManagedBean.getClass(), tenantSlug, e);
-        }
-        return null;
-      });
-    }
+    if (StringUtils.isNotBlank(tenantSlug)) {
+      for (TenantManaged tenantManagedBean : tenantManagedBeans) {
+        runAs(new Tenant(tenantSlug), () -> {
+          try {
+            tenantManagedBean.deregister();
+          }
+          catch (Exception e) {
+            log.error("Failed to deregister managed bean {} for tenant {}", tenantManagedBean.getClass(), tenantSlug,
+                e);
+          }
+          return null;
+        });
+      }
 
-    registeredTenants.remove(new Tenant(tenantSlug));
+      registeredTenants.remove(new Tenant(tenantSlug));
+    }
   }
 }

@@ -30,6 +30,7 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -241,6 +242,22 @@ public class TenantManagerTest
     order.verify(tenantManaged1).register();
     order.verify(job).register();
     order.verifyNoMoreInteractions();
+  }
+
+  @Test
+  public void shouldDeregisterTenantIfTenantSlugIsNotBlank() {
+    underTest.deregisterTenant("tenant-slug");
+
+    verify(tenantManagedBeans.get(0), atMostOnce()).deregister();
+  }
+
+  @Test
+  public void shouldNotDeregisterTenantIfTenantSlugIsBlank() {
+    underTest.deregisterTenant(null);
+    verify(tenantManagedBeans.get(0), never()).deregister();
+
+    underTest.deregisterTenant("");
+    verify(tenantManagedBeans.get(0), never()).deregister();
   }
 
   @Test

@@ -1027,8 +1027,12 @@ export const getVulnerabilitiesUrl = ({
   return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/vulnerabilities?` + params;
 };
 
-export const getComponentPolicyViolationsUrl = (pathname, repositoryId) =>
-  uriTemplate`/rest/repositories/${repositoryId}/policyViolations/${pathname}`;
+export const getComponentPolicyViolationsUrl = (pathname, repositoryId) => {
+  const firstPart = uriTemplate`/rest/repositories/${repositoryId}/policyViolations/`;
+  // Don't url encode forward slashes in pathname, see CLM-26938
+  const lastPart = encodeURIComponent(pathname).replaceAll('%2F', '/');
+  return firstPart + lastPart;
+};
 
 export function getAttributionReportUrl(applicationPublicId, stageTypeId) {
   return uriTemplate`/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;

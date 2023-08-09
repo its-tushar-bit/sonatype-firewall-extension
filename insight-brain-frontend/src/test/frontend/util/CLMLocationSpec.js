@@ -1027,8 +1027,14 @@ describe('CLMLocation.js', function () {
 
   describe('getComponentPolicyViolationsUrl', () => {
     it('returns url to get component policy violations', () => {
-      const expectedUrl = '/rest/repositories/repositoryId/policyViolations/pathname';
-      expect(clmLocation.getComponentPolicyViolationsUrl('pathname', 'repositoryId')).toEqual(expectedUrl);
+      const expectedUrl =
+        '/rest/repositories/repositoryId/policyViolations/some/component-path/1.0.0/component-name-1.0.0.jar';
+      expect(
+        clmLocation.getComponentPolicyViolationsUrl(
+          'some/component-path/1.0.0/component-name-1.0.0.jar',
+          'repositoryId'
+        )
+      ).toEqual(expectedUrl);
     });
   });
 

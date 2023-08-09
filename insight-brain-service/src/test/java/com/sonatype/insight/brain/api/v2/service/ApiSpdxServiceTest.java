@@ -61,6 +61,7 @@ import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.ConjunctiveLicenseSet;
 import org.spdx.library.model.license.DisjunctiveLicenseSet;
+import org.spdx.library.model.license.ExtractedLicenseInfo;
 import org.spdx.library.model.license.SimpleLicensingInfo;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
@@ -237,11 +238,19 @@ public class ApiSpdxServiceTest
   }
 
   private void assertDocument(final SpdxDocument document, final String spdxVersion, boolean isSage) throws Exception {
-
     String dataDate = isSage ? "20230716" : null;
     assertMetadata(document, spdxVersion, dataDate);
     assertPackages(document);
+    assertExtractedLicenseInfo(document);
     assertTopLevelRelationship(document);
+
+    // validate generated SPDX doc; filter out license deprecation warnings
+    List<String> verificationErrors = document.verify();
+    List<String> filteredErrors = verificationErrors.stream()
+        .filter(s -> !s.matches(".*Relationship error: [^\\s]+ is deprecated\\..*"))
+        .collect(Collectors.toList());
+        ;
+    assertThat(filteredErrors).isEmpty();
   }
 
   @Test
@@ -393,6 +402,11 @@ public class ApiSpdxServiceTest
     }
   }
 
+  private void assertExtractedLicenseInfo(SpdxDocument document) throws Exception {
+    final Collection<ExtractedLicenseInfo> extractedLicenseInfos = document.getExtractedLicenseInfos();
+    assertThat(extractedLicenseInfos).hasSize(5);
+  }
+
   private static final Set<String> expectedSecurityRefs = ImmutableSet.of(
       "com.sonatype.testing:pr-comment-02 -> 0",
       "org.apache.logging.log4j:log4j-core -> 3",
@@ -407,10 +421,11 @@ public class ApiSpdxServiceTest
 
   private static final Set<String> expectedLicenses = ImmutableSet.of(
       "NOASSERTION", "Apache-2.0", "MIT", "(Apache-2.0 AND MIT)",
-      "(Apache-2.0 AND COMMERCIAL)", "(Apache-2.0 AND COMMERCIAL AND No-Source-License)",
+      "(Apache-2.0 AND LicenseRef-COMMERCIAL)",
+      "(Apache-2.0 AND LicenseRef-COMMERCIAL AND LicenseRef-No-Source-License)",
       "((Apache-2.0 OR EPL-1.0) AND (Apache-2.0 OR LGPL-2.1 OR LGPL-3.0 OR MPL-1.1) AND " +
-          "(CDDL-UNSPECIFIED OR GPL-2.0-with-classpath-exception) AND Apache-2.0 AND CC0-1.0 AND " +
-          "EPL-1.0 AND MIT AND PUBLIC-DOMAIN AND See-License-Clause)"
+          "(GPL-2.0-with-classpath-exception OR LicenseRef-CDDL-UNSPECIFIED) AND Apache-2.0 AND CC0-1.0 AND " +
+          "EPL-1.0 AND LicenseRef-PUBLIC-DOMAIN AND LicenseRef-See-License-Clause AND MIT)"
   );
 
   private void assertLicenses(final SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {

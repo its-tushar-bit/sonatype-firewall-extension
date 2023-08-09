@@ -88,6 +88,8 @@ import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
 import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.library.model.license.AnyLicenseInfo;
+import org.spdx.library.model.license.ExtractedLicenseInfo;
+import org.spdx.library.model.license.ListedLicenses;
 import org.spdx.library.model.license.SpdxListedLicense;
 import org.spdx.library.model.license.SpdxNoAssertionLicense;
 
@@ -104,6 +106,8 @@ public class ApiSpdxService
   static final Set<String> SPDX_VERSIONS = ImmutableSet.of("2.3");
 
   static final String SPDX_REF_PREFIX = "SPDXRef-";
+
+  static final String LICENSE_REF_PREFIX = "LicenseRef-";
 
   static final String NVD = "NVD";
 
@@ -288,17 +292,22 @@ public class ApiSpdxService
                            final Map<String, SpdxPackage> purlElementMap)
       throws InvalidSPDXAnalysisException, UnsupportedEncodingException
   {
+    Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap =  new HashMap<>();
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
       if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
-        addPackage(reportComponent, document, purlElementMap);
+        addPackage(reportComponent, document, purlElementMap, extractedLicenseInfoMap);
       }
+    }
+    if (!extractedLicenseInfoMap.isEmpty()) {
+      document.setExtractedLicenseInfos(new ArrayList<>(extractedLicenseInfoMap.values()));
     }
   }
 
   private void addPackage(
       final ApiReportComponentDTOV2 reportComponent,
       final SpdxDocument document,
-      final Map<String, SpdxPackage> purlElementMap)
+      final Map<String, SpdxPackage> purlElementMap,
+      final Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap)
       throws InvalidSPDXAnalysisException, UnsupportedEncodingException
   {
     String packageUrl = getPackageUrl(reportComponent);
@@ -312,11 +321,11 @@ public class ApiSpdxService
     // SPDX declared-license-field combines Sonatype's declared and observed license sets
     Set<AnyLicenseInfo> licenses = new LinkedHashSet<>();
     for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.declaredLicenses) {
-      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document);
+      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document, extractedLicenseInfoMap);
       licenses.add(licenseInfo);
     }
     for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.observedLicenses) {
-      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document);
+      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document, extractedLicenseInfoMap);
       licenses.add(licenseInfo);
     }
     AnyLicenseInfo declaredLicenseInfo = createLicenseInfo(licenses, document);
@@ -324,7 +333,7 @@ public class ApiSpdxService
     // SPDX concluded-license-field is the same as Sonatype's effective license set
     licenses = new LinkedHashSet<>();
     for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.effectiveLicenses) {
-      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document);
+      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document, extractedLicenseInfoMap);
       licenses.add(licenseInfo);
     }
     AnyLicenseInfo concludedLicenseInfo = createLicenseInfo(licenses, document);
@@ -370,7 +379,10 @@ public class ApiSpdxService
     return document.createConjunctiveLicenseSet(licenses);
   }
 
-  private AnyLicenseInfo createLicenseInfo(ApiLicenseDTO apiLicense, SpdxDocument document)
+  private AnyLicenseInfo createLicenseInfo(
+      ApiLicenseDTO apiLicense,
+      SpdxDocument document,
+      Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap)
       throws InvalidSPDXAnalysisException
   {
     final Set<License> licenseSet = multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId);
@@ -379,13 +391,29 @@ public class ApiSpdxService
     }
     if (licenseSet.size() == 1) {
       String licenseId = licenseSet.iterator().next().getId();
-      return new SpdxListedLicense(licenseId);
+      return createLicenseObject(licenseId, extractedLicenseInfoMap);
     }
     List<AnyLicenseInfo> members = new ArrayList<>();
     for (License license : licenseSet) {
-      members.add(new SpdxListedLicense(license.getId()));
+      members.add(createLicenseObject(license.getId(), extractedLicenseInfoMap));
     }
     return document.createDisjunctiveLicenseSet(members);
+  }
+
+  private AnyLicenseInfo createLicenseObject(
+      String licenseId,
+      Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap)
+      throws InvalidSPDXAnalysisException
+  {
+    if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
+      return ListedLicenses.getListedLicenses().getListedLicenseById(licenseId);
+    }
+    if (extractedLicenseInfoMap.containsKey(licenseId)) {
+      return extractedLicenseInfoMap.get(licenseId);
+    }
+    ExtractedLicenseInfo licenseInfo = new ExtractedLicenseInfo(LICENSE_REF_PREFIX + licenseId, licenseId);
+    extractedLicenseInfoMap.put(licenseId, licenseInfo);
+    return licenseInfo;
   }
 
   private void addPackage(

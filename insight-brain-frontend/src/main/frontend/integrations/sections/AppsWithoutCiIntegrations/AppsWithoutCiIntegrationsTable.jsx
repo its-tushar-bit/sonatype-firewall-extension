@@ -4,7 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useCallback, useEffect } from 'react';
-import { NxFilterInput, NxPagination, NxTable, NX_STANDARD_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
+import {
+  NxFilterInput,
+  NxPagination,
+  NxTable,
+  NxTableContainer,
+  NX_STANDARD_DEBOUNCE_TIME,
+} from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions, COLUMNS } from './appsWithoutCiIntegrationsSlice';
 import { appsWithoutCiIntegrationsSelector } from 'MainRoot/integrations/sections/AppsWithoutCiIntegrations/appsWithoutCiIntegrationsSelectors';
@@ -48,7 +54,7 @@ export default function AppsWithoutCiIntegrationsTable() {
   };
 
   return (
-    <div id="iq-integrations-apps-without-ci-integrations-section-table">
+    <NxTableContainer id="iq-integrations-apps-without-ci-integrations-section-table">
       <NxTable>
         <NxTable.Head>
           <NxTable.Row>
@@ -84,7 +90,7 @@ export default function AppsWithoutCiIntegrationsTable() {
       <div className="nx-table-container__footer">
         <NxPagination pageCount={pageCount} currentPage={getCurrentPage()} onChange={handleChange} />
       </div>
-    </div>
+    </NxTableContainer>
   );
 
   function getCurrentPage() {

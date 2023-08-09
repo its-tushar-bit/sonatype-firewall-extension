@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxH2, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import { NxH2, NxP, NxTextLink, NxTile } from '@sonatype/react-shared-components';
 import AppsWithoutCiIntegrationsTable from './AppsWithoutCiIntegrationsTable';
 import React from 'react';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -25,9 +25,11 @@ export default function AppsWithoutCiIntegrations() {
       <NxTile>
         <NxH2>Apps without CI System Integrations</NxH2>
         <NxTile.Content>
-          Learn more about our <NxTextLink href={pathToCICD}>CI System Integration Plugins</NxTextLink> in details.
+          <NxP>
+            Learn more about our <NxTextLink href={pathToCICD}>CI System Integration Plugins</NxTextLink> in details.
+          </NxP>
+          <AppsWithoutCiIntegrationsTable />
         </NxTile.Content>
-        <AppsWithoutCiIntegrationsTable />
       </NxTile>
     </div>
   );

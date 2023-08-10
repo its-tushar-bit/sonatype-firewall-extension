@@ -188,7 +188,8 @@ public class ScanPolicyEvaluator
       ClientScanType clientScanType)
       throws IOException
   {
-    return evaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */, clientScanType);
+    return doEvaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */,
+            clientScanType);
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -201,7 +202,7 @@ public class ScanPolicyEvaluator
       ClientScanType clientScanType)
       throws IOException
   {
-    return evaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+    return doEvaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
         false /* forMonitoring */, clientScanType);
   }
 
@@ -213,10 +214,15 @@ public class ScanPolicyEvaluator
       ClientScanType clientScanType)
       throws IOException
   {
-    return evaluate(application, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */, clientScanType);
+    return doEvaluate(application, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */,
+            clientScanType);
   }
 
-  private ScanPolicyEvaluatorResults evaluate(
+  /*
+    please note:  this method was renamed from 'evaluate' so as to facilitate instrumentation by a java agent
+    that captures metrics during a load test;  the agent cannot instrument overloaded methods
+   */
+  private ScanPolicyEvaluatorResults doEvaluate(
       final Application application,
       final String scanId,
       final Stage stage,

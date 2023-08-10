@@ -481,13 +481,11 @@ public class RepositoryPolicyEvaluator
       RepositoryPolicyViolationLogger policyViolationLogger)
   {
     String pathname = component.getPathnames().get(0);
-    // Delete the current RepositoryPolicyViolations for this component
+    // Get the persisted RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> oldPolicyViolations =
         repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
-    for (RepositoryPolicyViolation policyViolation : oldPolicyViolations) {
-      repositoryPolicyViolationDAO.delete(tx, policyViolation);
-    }
-    // Insert new RepositoryPolicyViolations for this component
+
+    // Build the list of current RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> newPolicyViolations = new ArrayList<>();
     List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
     allPolicyAlerts.addAll(policyResults.getActiveAlerts());
@@ -505,56 +503,52 @@ public class RepositoryPolicyEvaluator
       RepositoryPolicyViolation policyViolation = createRepositoryPolicyViolation(policyAlert, policy, componentFact,
           pathname,
           repository, evaluationTime, policyResults.getPolicyWaiver(componentFact));
-      repositoryPolicyViolationDAO.insert(tx, policyViolation);
       newPolicyViolations.add(policyViolation);
     }
 
+    // Diff old and new
     PolicyViolationDiff<RepositoryPolicyViolation> policyViolationDiff =
         PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations, newPolicyViolations);
 
-    /**
-     * Since we create new records for repository policy violations even though the policy violation previously
-     * existed, we need to preserve the waive time from the existing record. Note, that for older installs that did
-     * not have the waive time previously set, we are ok simply using the new record's waive time and preserving that
-     * moving forward.
-     */
+    // Remove the cleared violations
+    for (RepositoryPolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {
+      repositoryPolicyViolationDAO.delete(tx, clearedPolicyViolation);
+      policyViolationLogger.add(PolicyViolationLogEvent.FIX, clearedPolicyViolation);
+    }
+
+    // Insert the new policy violations
+    for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
+      repositoryPolicyViolationDAO.insert(tx, newPolicyViolation);
+
+      policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
+      if (newPolicyViolation.isWaived()) {
+        policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
+      }
+    }
+
+    // Update the existing violations so that 'time' is set and the original violation waive time, if it exists,
+    // is brought forward
     for (Map.Entry<RepositoryPolicyViolation, RepositoryPolicyViolation> entry : policyViolationDiff.getSame()
         .entrySet()) {
       RepositoryPolicyViolation oldPolicyViolation = entry.getKey();
       RepositoryPolicyViolation newPolicyViolation = entry.getValue();
-      if (newPolicyViolation.isWaived() && oldPolicyViolation.isWaived() && oldPolicyViolation.getWaiveTime() != null) {
-        // Preserve the original waive time
-        newPolicyViolation.setWaiveTime(oldPolicyViolation.getWaiveTime());
-        repositoryPolicyViolationDAO.update(tx, newPolicyViolation);
-      }
-    }
 
-    // Log policy violations
-    if (policyViolationLogger.isEnabled()) {
-      // New policy violations.
-      for (RepositoryPolicyViolation newPolicyViolation : policyViolationDiff.getAppeared()) {
-        policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
-        if (newPolicyViolation.isWaived()) {
-          policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
-        }
+      boolean isOldPolicyViolationWaived = oldPolicyViolation.isWaived();
+      boolean isNewPolicyViolationWaived = newPolicyViolation.isWaived();
+
+      if (isNewPolicyViolationWaived && isOldPolicyViolationWaived && null != oldPolicyViolation.getWaiveTime()) {
+        newPolicyViolation.setWaiveTime(oldPolicyViolation.getWaiveTime());
       }
-      // Fixed policy violations.
-      for (RepositoryPolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
-        policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
+      newPolicyViolation.setId(oldPolicyViolation.getId());
+      repositoryPolicyViolationDAO.update(tx, newPolicyViolation);
+
+      if (!isNewPolicyViolationWaived && isOldPolicyViolationWaived) {
+        // The policy violation was un-waived.
+        policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
       }
-      // Existing policy violations.
-      for (Map.Entry<RepositoryPolicyViolation, RepositoryPolicyViolation> entry : policyViolationDiff.getSame()
-          .entrySet()) {
-        RepositoryPolicyViolation oldPolicyViolation = entry.getKey();
-        RepositoryPolicyViolation newPolicyViolation = entry.getValue();
-        if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
-          // The policy violation was un-waived.
-          policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
-        }
-        else if (newPolicyViolation.isWaived() && !oldPolicyViolation.isWaived()) {
-          // The policy violation was waived.
-          policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
-        }
+      else if (isNewPolicyViolationWaived && !isOldPolicyViolationWaived) {
+        // The policy violation was waived.
+        policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
       }
     }
   }

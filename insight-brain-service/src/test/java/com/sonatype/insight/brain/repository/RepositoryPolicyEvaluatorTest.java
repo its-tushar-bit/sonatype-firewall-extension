@@ -164,9 +164,10 @@ public class RepositoryPolicyEvaluatorTest
         eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
   }
 
-  private void mockHdsRequest(RepositoryComponentEvaluationDataRequestList serviceRequest,
-                              ComponentEvaluationDataList hdsResult,
-                              boolean quarantine)
+  private void mockHdsRequest(
+      RepositoryComponentEvaluationDataRequestList serviceRequest,
+      ComponentEvaluationDataList hdsResult,
+      boolean quarantine)
   {
     RepositoryComponentEvaluationDataRequestList hdsRequest = new RepositoryComponentEvaluationDataRequestList();
     hdsRequest.cause = serviceRequest.cause;
@@ -181,14 +182,15 @@ public class RepositoryPolicyEvaluatorTest
         eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), isNull(), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
-  private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
-                                                                String hash,
-                                                                MatchState matchState,
-                                                                int index,
-                                                                Set<License> declaredLicenses,
-                                                                Set<License> observedLicenses,
-                                                                List<SecurityVulnerability> securityVulnerabilities,
-                                                                Integer relativePopularity)
+  private ComponentEvaluationData createComponentEvaluationData(
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      MatchState matchState,
+      int index,
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      List<SecurityVulnerability> securityVulnerabilities,
+      Integer relativePopularity)
   {
     AnalyzerFeatures analyzerFeatures = new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.HASH, "client");
     return createComponentEvaluationData(componentIdentifier, hash, matchState, index, declaredLicenses,
@@ -224,11 +226,12 @@ public class RepositoryPolicyEvaluatorTest
     return Collections.singletonList(new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f, ""));
   }
 
-  private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
-                                            Repository repository,
-                                            Date before,
-                                            Date after,
-                                            List<RepositoryPolicyViolation> policyViolations)
+  private void assertPolicyViolationsLogged(
+      PolicyViolationLogEvent policyViolationLogEvent,
+      Repository repository,
+      Date before,
+      Date after,
+      List<RepositoryPolicyViolation> policyViolations)
       throws Exception
   {
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
@@ -347,7 +350,7 @@ public class RepositoryPolicyEvaluatorTest
 
     Policy policy1 = tempEntity.newPolicy(repository.getParentOwnerId());
     Policy policy2 = tempEntity.newPolicy(repository.getParentOwnerId());
-    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy2.getId(), repository.getId());
+    PolicyWaiver policy2Waiver = tempEntity.newWaiver(policy2.getId(), repository.getId());
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -382,7 +385,7 @@ public class RepositoryPolicyEvaluatorTest
     policyViolationLoggerOutput.clear();
 
     // remove the original waiver, add a waiver for the other policy and re-evaluate
-    new PolicyWaiverDAO().delete(policyWaiver);
+    new PolicyWaiverDAO().delete(policy2Waiver);
     tempEntity.newWaiver(policy1.getId(), repository.getId());
     Date before2 = new Date();
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
@@ -457,22 +460,26 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(activeViolations).hasSize(2);
 
     // ... and two ARE waived
-    waivedViolations = activeViolations.stream().filter(violation -> policy1.getId().equals(violation.getPolicyId()))
+    waivedViolations = activeViolations.stream().filter(RepositoryPolicyViolation::isWaived)
         .collect(toList());
-    assertThat(waivedViolations).hasSize(1);
+    assertThat(waivedViolations).hasSize(2);
+
+    RepositoryPolicyViolation waivedViolation1 = waivedViolations.stream()
+        .filter(violation -> violation.getPolicyId().equals(policy1.getId())).findFirst().orElse(null);
+    assertThat(waivedViolation1).isNotNull();
+
+    RepositoryPolicyViolation waivedViolation2 = waivedViolations.stream()
+        .filter(violation -> violation.getPolicyId().equals(policy2.getId())).findFirst().orElse(null);
+    assertThat(waivedViolation2).isNotNull();
 
     // first waived violation should still use the original evaluation time
-    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver1, policy1ViolationWaiveTime);
-
-    waivedViolations = activeViolations.stream()
-        .filter(violation -> policy2.getId().equals(violation.getPolicyId())).collect(toList());
-    assertThat(waivedViolations).hasSize(1);
+    assertViolationWaiverDetails(waivedViolation1, policyWaiver1, policy1ViolationWaiveTime);
 
     // second waived violation should use the most recent evaluation time
     repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), waivedViolations.get(0).getPathname());
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), waivedViolation2.getPathname());
     Date policy2ViolationWaiveTime = repositoryComponent.getLastEvaluationTime();
-    assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver2, policy2ViolationWaiveTime);
+    assertViolationWaiverDetails(waivedViolation2, policyWaiver2, policy2ViolationWaiveTime);
 
     // remove the original waiver re-evaluate
     new PolicyWaiverDAO().delete(policyWaiver1);
@@ -529,7 +536,7 @@ public class RepositoryPolicyEvaluatorTest
     RepositoryPolicyViolation existingPolicyViolation = tempEntity
         .newRepositoryPolicyViolation(repositoryComponent.getRepositoryId(), policy.getThreatLevel(),
             repositoryComponent.getPathname(), "hash", Collections.singletonList(constraintFact), true, null,
-            policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier(), 
+            policy.getId(), policy.getName(), repositoryComponent.getComponentIdentifier(),
             repositoryComponent.getTime(), null, null, null);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -668,7 +675,7 @@ public class RepositoryPolicyEvaluatorTest
 
   private ComponentEvaluationData createdComponentMetadata() {
     return createComponentEvaluationData(
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "h1" ,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "h1",
         MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
         createSecurityVulnerabilities(), 1 /* popularity */, fromHds());
   }

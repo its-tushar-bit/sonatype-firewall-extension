@@ -27,7 +27,7 @@ pipeline {
   stages {
     stage('Release JIRA Version') {
       steps {
-        releaseJiraVersion('brain', "${params.releaseVersion}")
+        releaseJiraVersion('selfhosted', "${params.releaseVersion}")
       }
     }
   }

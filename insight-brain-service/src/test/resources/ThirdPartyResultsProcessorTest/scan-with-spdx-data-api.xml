@@ -1,0 +1,204 @@
+<scan version="2.24">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="anonymizeArtifactIds" value="false"/>
+      <property name="fileExcludes" value=""/>
+      <property name="anonymizePaths" value="false"/>
+      <property name="maxDepth" value="256"/>
+      <property name="operatingSystem" value="true"/>
+      <property name="hashFiles" value="true"/>
+      <property name="fileIncludes" value=""/>
+      <property name="procArch" value="true"/>
+      <property name="maxSymlinkDepth" value="5"/>
+      <property name="jreInfo" value="true"/>
+      <property name="proprietaryPackages" value=""/>
+      <property name="pomProperties" value="true"/>
+      <property name="fileSizes" value="false"/>
+      <property name="nameHashes" value="true"/>
+      <property name="dirExcludes" value="**/.*, **/CVS"/>
+      <property name="hashJavaTypes" value="true"/>
+      <property name="ipAddresses" value="false"/>
+      <property name="dirIncludes" value=""/>
+      <property name="proprietaryRegexes" value=""/>
+      <property name="resourceNames" value="true"/>
+    </properties>
+  </configuration>
+  <item path="spdx.spdx.json" contentType="SPDX" lastModified="1690994395752" sha1="c8eebaf0a3d8b2807804">
+    <content>{
+      &quot;SPDXID&quot;: &quot;SPDXRef-DOCUMENT&quot;,
+      &quot;spdxVersion&quot;: &quot;SPDX-2.3&quot;,
+      &quot;creationInfo&quot;: {
+      &quot;created&quot;: &quot;2023-07-20T16:39:54Z&quot;,
+      &quot;creators&quot;: [
+      &quot;Tool: Sonatype IQ Server - 1.166.0-SNAPSHOT&quot;
+      ]
+      },
+      &quot;name&quot;: &quot;pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar&quot;,
+      &quot;dataLicense&quot;: &quot;CC0-1.0&quot;,
+      &quot;documentNamespace&quot;: &quot;http://localhost:8070/ui/links/application/local-iq-app/report/d6ffc430f2594d2480c7af837eb2a5b6&quot;,
+      &quot;packages&quot;: [
+      {
+      &quot;SPDXID&quot;: &quot;SPDXRef-maven-com.fasterxml.jackson.core-jackson-annotations-2.14.0&quot;,
+      &quot;downloadLocation&quot;: &quot;NOASSERTION&quot;,
+      &quot;externalRefs&quot;: [
+      {
+      &quot;referenceCategory&quot;: &quot;PACKAGE-MANAGER&quot;,
+      &quot;referenceLocator&quot;: &quot;pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.14.0?type=jar&quot;,
+      &quot;referenceType&quot;: &quot;purl&quot;
+      }
+      ],
+      &quot;filesAnalyzed&quot;: false,
+      &quot;licenseConcluded&quot;: &quot;(Apache-2.0 AND MIT)&quot;,
+      &quot;licenseDeclared&quot;: &quot;Apache-2.0&quot;,
+      &quot;name&quot;: &quot;com.fasterxml.jackson.core:jackson-annotations&quot;,
+      &quot;versionInfo&quot;: &quot;2.14.0&quot;
+      },
+      {
+      &quot;SPDXID&quot;: &quot;SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT&quot;,
+      &quot;downloadLocation&quot;: &quot;NOASSERTION&quot;,
+      &quot;externalRefs&quot;: [
+      {
+      &quot;referenceCategory&quot;: &quot;PACKAGE-MANAGER&quot;,
+      &quot;referenceLocator&quot;: &quot;pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar&quot;,
+      &quot;referenceType&quot;: &quot;purl&quot;
+      }
+      ],
+      &quot;filesAnalyzed&quot;: false,
+      &quot;licenseConcluded&quot;: &quot;Apache-2.0&quot;,
+      &quot;licenseDeclared&quot;: &quot;Apache-2.0&quot;,
+      &quot;name&quot;: &quot;com.sonatype.testing:pr-comment-02&quot;,
+      &quot;versionInfo&quot;: &quot;1.0-SNAPSHOT&quot;
+      },
+      {
+      &quot;SPDXID&quot;: &quot;SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.16.0&quot;,
+      &quot;downloadLocation&quot;: &quot;NOASSERTION&quot;,
+      &quot;externalRefs&quot;: [
+      {
+      &quot;referenceCategory&quot;: &quot;PACKAGE-MANAGER&quot;,
+      &quot;referenceLocator&quot;: &quot;pkg:maven/org.apache.logging.log4j/log4j-core@2.16.0?type=jar&quot;,
+      &quot;referenceType&quot;: &quot;purl&quot;
+      },
+      {
+      &quot;comment&quot;: &quot;source: NVD&quot;,
+      &quot;referenceCategory&quot;: &quot;SECURITY&quot;,
+      &quot;referenceLocator&quot;: &quot;http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45105&quot;,
+      &quot;referenceType&quot;: &quot;advisory&quot;
+      },
+      {
+      &quot;comment&quot;: &quot;source: NVD&quot;,
+      &quot;referenceCategory&quot;: &quot;SECURITY&quot;,
+      &quot;referenceLocator&quot;: &quot;http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44832&quot;,
+      &quot;referenceType&quot;: &quot;advisory&quot;
+      },
+      {
+      &quot;comment&quot;: &quot;source: NVD&quot;,
+      &quot;referenceCategory&quot;: &quot;SECURITY&quot;,
+      &quot;referenceLocator&quot;: &quot;http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228&quot;,
+      &quot;referenceType&quot;: &quot;advisory&quot;
+      }
+      ],
+      &quot;filesAnalyzed&quot;: false,
+      &quot;licenseConcluded&quot;: &quot;Apache-2.0&quot;,
+      &quot;licenseDeclared&quot;: &quot;Apache-2.0&quot;,
+      &quot;name&quot;: &quot;org.apache.logging.log4j:log4j-core&quot;,
+      &quot;versionInfo&quot;: &quot;2.16.0&quot;
+      },
+      {
+      &quot;SPDXID&quot;: &quot;SPDXRef-maven-com.fasterxml.jackson.core-jackson-core-2.14.0&quot;,
+      &quot;downloadLocation&quot;: &quot;NOASSERTION&quot;,
+      &quot;externalRefs&quot;: [
+      {
+      &quot;referenceCategory&quot;: &quot;PACKAGE-MANAGER&quot;,
+      &quot;referenceLocator&quot;: &quot;pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.0?type=jar&quot;,
+      &quot;referenceType&quot;: &quot;purl&quot;
+      },
+      {
+      &quot;comment&quot;: &quot;source: SONATYPE&quot;,
+      &quot;referenceCategory&quot;: &quot;SECURITY&quot;,
+      &quot;referenceLocator&quot;: &quot;http://localhost:8070/ui/links/vln/sonatype-2022-6438&quot;,
+      &quot;referenceType&quot;: &quot;advisory&quot;
+      }
+      ],
+      &quot;filesAnalyzed&quot;: false,
+      &quot;licenseConcluded&quot;: &quot;(Apache-2.0 AND MIT)&quot;,
+      &quot;licenseDeclared&quot;: &quot;(Apache-2.0 AND MIT)&quot;,
+      &quot;name&quot;: &quot;com.fasterxml.jackson.core:jackson-core&quot;,
+      &quot;versionInfo&quot;: &quot;2.14.0&quot;
+      },
+      {
+      &quot;SPDXID&quot;: &quot;SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.16.0&quot;,
+      &quot;downloadLocation&quot;: &quot;NOASSERTION&quot;,
+      &quot;externalRefs&quot;: [
+      {
+      &quot;referenceCategory&quot;: &quot;PACKAGE-MANAGER&quot;,
+      &quot;referenceLocator&quot;: &quot;pkg:maven/org.apache.logging.log4j/log4j-api@2.16.0?type=jar&quot;,
+      &quot;referenceType&quot;: &quot;purl&quot;
+      }
+      ],
+      &quot;filesAnalyzed&quot;: false,
+      &quot;licenseConcluded&quot;: &quot;Apache-2.0&quot;,
+      &quot;licenseDeclared&quot;: &quot;Apache-2.0&quot;,
+      &quot;name&quot;: &quot;org.apache.logging.log4j:log4j-api&quot;,
+      &quot;versionInfo&quot;: &quot;2.16.0&quot;
+      },
+      {
+      &quot;SPDXID&quot;: &quot;SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.14.0&quot;,
+      &quot;downloadLocation&quot;: &quot;NOASSERTION&quot;,
+      &quot;externalRefs&quot;: [
+      {
+      &quot;referenceCategory&quot;: &quot;PACKAGE-MANAGER&quot;,
+      &quot;referenceLocator&quot;: &quot;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.0?type=jar&quot;,
+      &quot;referenceType&quot;: &quot;purl&quot;
+      }
+      ],
+      &quot;filesAnalyzed&quot;: false,
+      &quot;licenseConcluded&quot;: &quot;Apache-2.0&quot;,
+      &quot;licenseDeclared&quot;: &quot;Apache-2.0&quot;,
+      &quot;name&quot;: &quot;com.fasterxml.jackson.core:jackson-databind&quot;,
+      &quot;versionInfo&quot;: &quot;2.14.0&quot;
+      }
+      ],
+      &quot;relationships&quot;: [
+      {
+      &quot;spdxElementId&quot;: &quot;SPDXRef-DOCUMENT&quot;,
+      &quot;relationshipType&quot;: &quot;DESCRIBES&quot;,
+      &quot;relatedSpdxElement&quot;: &quot;SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT&quot;
+      },
+      {
+      &quot;spdxElementId&quot;: &quot;SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT&quot;,
+      &quot;relationshipType&quot;: &quot;DEPENDS_ON&quot;,
+      &quot;relatedSpdxElement&quot;: &quot;SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.14.0&quot;
+      },
+      {
+      &quot;spdxElementId&quot;: &quot;SPDXRef-maven-com.sonatype.testing-pr-comment-02-1.0-SNAPSHOT&quot;,
+      &quot;relationshipType&quot;: &quot;DEPENDS_ON&quot;,
+      &quot;relatedSpdxElement&quot;: &quot;SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.16.0&quot;
+      },
+      {
+      &quot;spdxElementId&quot;: &quot;SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.16.0&quot;,
+      &quot;relationshipType&quot;: &quot;DEPENDS_ON&quot;,
+      &quot;relatedSpdxElement&quot;: &quot;SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.16.0&quot;
+      },
+      {
+      &quot;spdxElementId&quot;: &quot;SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.14.0&quot;,
+      &quot;relationshipType&quot;: &quot;DEPENDS_ON&quot;,
+      &quot;relatedSpdxElement&quot;: &quot;SPDXRef-maven-com.fasterxml.jackson.core-jackson-annotations-2.14.0&quot;
+      },
+      {
+      &quot;spdxElementId&quot;: &quot;SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.14.0&quot;,
+      &quot;relationshipType&quot;: &quot;DEPENDS_ON&quot;,
+      &quot;relatedSpdxElement&quot;: &quot;SPDXRef-maven-com.fasterxml.jackson.core-jackson-core-2.14.0&quot;
+      }
+      ]
+      }</content>
+  </item>
+  <summary>
+    <scannerDriver>thirdPartyApi</scannerDriver>
+    <startTime>2023-08-02T16:39:55+0000</startTime>
+    <endTime>2023-08-02T16:39:55+0000</endTime>
+    <clientInfo>
+      <property name="insight.scannerDriver" value="thirdPartyApi"/>
+    </clientInfo>
+  </summary>
+</scan>

@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
@@ -62,6 +63,13 @@ import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
 import org.spdx.library.model.enumerations.RelationshipType;
+import org.spdx.library.model.license.AnyLicenseInfo;
+import org.spdx.library.model.license.ConjunctiveLicenseSet;
+import org.spdx.library.model.license.DisjunctiveLicenseSet;
+import org.spdx.library.model.license.ExtractedLicenseInfo;
+import org.spdx.library.model.license.SpdxListedLicense;
+import org.spdx.library.model.license.SpdxNoAssertionLicense;
+import org.spdx.library.model.license.SpdxNoneLicense;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedIdentificationSource;
 
@@ -81,13 +89,13 @@ public class SpdxResultHandler
       final ThirdPartyFile thirdPartyFile)
   {
     try {
-      if (!StringUtils.isBlank(content.getContent())) {
+      if (StringUtils.isNotBlank(content.getContent())) {
         SpdxDocument spdxDocument = parseSpdxContent(content);
         Bom targetBom = new Bom();
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();
         log.info("Processing SPDX content for file: {}", content.getPath());
         processSpdxDocument(content.getPath(), spdxDocument, targetBom, thirdPartyFile, moduleDependencies);
-        if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
+        if (CollectionUtils.isEmpty(targetBom.getComponents())) {
           return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
         }
         else {
@@ -211,8 +219,132 @@ public class SpdxResultHandler
         componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
     fileCoordinate.setPackageUrl(component.getPurl());
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
+    saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
 
     return fileCoordinate.getId();
+  }
+
+  private void saveLicenses(
+      final SpdxPackage spdxPackage,
+      final String fileCoordinateId,
+      final String packageUrl,
+      final TransactionContext tx) throws InvalidSPDXAnalysisException
+  {
+    AnyLicenseInfo license = spdxPackage.getLicenseConcluded(); // preferred
+    if (license instanceof SpdxNoAssertionLicense) {
+      license = spdxPackage.getLicenseDeclared(); // fallback
+    }
+    if (license instanceof SpdxNoAssertionLicense) {
+      log.debug("No licenses provided for Component with packageUrl {}", packageUrl);
+    }
+    else {
+      if (license instanceof SpdxNoneLicense) {
+        log.debug("Found empty licenses element for Component with packageUrl {}", packageUrl);
+      }
+      else {
+        Map<String, String> processedLicenses = new HashMap<>();
+        parseLicenses(license, processedLicenses, packageUrl);
+        for (String licenseId : processedLicenses.keySet()) {
+          saveLicense(licenseId, processedLicenses.get(licenseId), null, fileCoordinateId, tx);
+        }
+      }
+    }
+  }
+
+  /**
+   * Extracts license information from SPDX license expressions
+   */
+  private void parseLicenses(
+      final AnyLicenseInfo license,
+      final Map<String, String> processedLicenses,
+      final String packageUrl) throws InvalidSPDXAnalysisException
+  {
+    if (license instanceof SpdxListedLicense) {
+      processSpdxListedLicense((SpdxListedLicense) license, processedLicenses);
+    }
+    else if (license instanceof ExtractedLicenseInfo) {
+      processExtractedLicenseInfo((ExtractedLicenseInfo) license, processedLicenses);
+    }
+    else if (license instanceof DisjunctiveLicenseSet) {
+      processDisjunctiveLicenseSet((DisjunctiveLicenseSet) license, processedLicenses, packageUrl);
+    }
+    else if (license instanceof ConjunctiveLicenseSet) {
+      processConjunctiveLicenseSet((ConjunctiveLicenseSet) license, processedLicenses, packageUrl);
+    }
+    else {
+      log.debug("Component with packageUrl {} has unknown license with ID {}", packageUrl, license.getId());
+    }
+  }
+
+  private void processConjunctiveLicenseSet(
+      ConjunctiveLicenseSet licenseSet,
+      Map<String, String> processedLicenses,
+      String packageUrl)
+      throws InvalidSPDXAnalysisException
+  {
+    // process the members as individual licenses
+    for (AnyLicenseInfo licenseInfo : licenseSet.getMembers()) {
+      parseLicenses(licenseInfo, processedLicenses, packageUrl);
+    }
+  }
+
+  private void processDisjunctiveLicenseSet(
+      DisjunctiveLicenseSet licenseSet,
+      Map<String, String> processedLicenses,
+      String packageUrl)
+      throws InvalidSPDXAnalysisException
+  {
+    // check if the disjunctive license set is one of Sonatype's multi-licenses
+    MultiLicense sonatypeLicense = getMultiLicenseIfAny(licenseSet);
+    if (sonatypeLicense != null && !processedLicenses.containsKey(sonatypeLicense.getId())) {
+      processedLicenses.put(sonatypeLicense.getId(), sonatypeLicense.getShortDisplayName());
+    }
+    else {
+      // process the members as individual licenses
+      for (AnyLicenseInfo licenseInfo : licenseSet.getMembers()) {
+        parseLicenses(licenseInfo, processedLicenses, packageUrl);
+      }
+    }
+  }
+
+  private void processExtractedLicenseInfo(ExtractedLicenseInfo license, Map<String, String> processedLicenses)
+      throws InvalidSPDXAnalysisException
+  {
+    if (!processedLicenses.containsKey(license.getId())) {
+      processedLicenses.put(license.getId(), license.getExtractedText());
+    }
+  }
+
+  private void processSpdxListedLicense(SpdxListedLicense listedLicense, Map<String, String> processedLicenses) {
+    MultiLicense sonatypeLicense = getSonatypeLicense(listedLicense.getLicenseId());
+    if (sonatypeLicense != null) {
+      if (!processedLicenses.containsKey(sonatypeLicense.getId())) {
+        processedLicenses.put(sonatypeLicense.getId(), sonatypeLicense.getShortDisplayName());
+      }
+    }
+    else {
+      if (!processedLicenses.containsKey(listedLicense.getId())) {
+        processedLicenses.put(listedLicense.getId(), listedLicense.getLicenseId());
+      }
+    }
+  }
+
+  private MultiLicense getMultiLicenseIfAny(final DisjunctiveLicenseSet licenseSet)
+      throws InvalidSPDXAnalysisException
+  {
+    // build a possible license name by adding member license IDs (sorted) joined by "or" operator
+    List<String> sortedLicenseIds =
+        licenseSet.getMembers().stream().map(AnyLicenseInfo::getId).sorted().collect(Collectors.toList());
+    String licenseName = StringUtils.join(sortedLicenseIds, " or ");
+    return getSonatypeLicense(licenseName);
+  }
+
+  private MultiLicense getSonatypeLicense(String licenseId) {
+    MultiLicense multiLicense = multiLicenseDAO.getByIdNoReload(licenseId);
+    if (multiLicense == null) { // fallback, try the ID as name
+      multiLicense = multiLicenseDAO.getByNameNoReload(licenseId);
+    }
+    return multiLicense;
   }
 
   private Pair<ComponentIdentifier, Component> getResolvedComponent(

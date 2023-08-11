@@ -13,15 +13,20 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.test.LogOutput;
 
@@ -48,6 +53,9 @@ public class SpdxResultHandlerTest
 
   @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  @Spy
+  private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
   private final String loggerName = SpdxResultHandler.class.getName();
 
@@ -173,6 +181,48 @@ public class SpdxResultHandlerTest
             "pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar",
             "pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar",
             "pkg:maven/org.yaml/snakeyaml@1.29?type=jar");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_Json_Licenses() throws Exception {
+    String sbomContent = getSbomJsonFile("spdx-licenses.json");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("spdx-licenses.json", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    FilteredThirdPartyContent filteredContent =
+        spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String sbomXml = filteredContent.getContent();
+    Bom bom = assertFilteredSbomFile(sbomXml, 9);
+    assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo(
+        "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar");
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(9);
+    List<String> coordinateIds = coordinates.stream().map(ThirdPartyFileCoordinate::getId).collect(Collectors.toList());
+
+    try (TransactionContext tx = thirdPartyCoordinateLicenseDAO.createTransactionContext()) {
+      List<ThirdPartyCoordinateLicense> coordinatesLicenses = new ArrayList<>();
+      for (String coordinateId : coordinateIds) {
+        List<ThirdPartyCoordinateLicense> licenses =
+            thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, coordinateId);
+        coordinatesLicenses.addAll(licenses);
+      }
+      Set<String> licenseIdSet =
+          coordinatesLicenses.stream().map(ThirdPartyCoordinateLicense::getLicenseId).collect(Collectors.toSet());
+      assertThat(licenseIdSet).containsExactlyInAnyOrder(
+          "Apache-2.0",
+          "Apache-2.0-EPL-1.0",
+          "CC0-1.0",
+          "EPL-1.0",
+          "GPL-2.0-with-classpath-exception",
+          "LGPL-2.1",
+          "LGPL-3.0",
+          "MIT",
+          "MPL-1.1",
+          "LicenseRef-COMMERCIAL",
+          "LicenseRef-PUBLIC-DOMAIN"
+      );
+    }
   }
 
   @Test

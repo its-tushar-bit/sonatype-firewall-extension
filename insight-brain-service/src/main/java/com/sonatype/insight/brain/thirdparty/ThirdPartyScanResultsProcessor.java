@@ -64,7 +64,7 @@ public class ThirdPartyScanResultsProcessor
 
   private static final List<String> thirdPartyItemContentTypes =
       asList(ItemContentType.CLAIR_SCANNER.name(), ItemContentType.SBOM.name(), ItemContentType.CONTAINER_URI.name(),
-          ItemContentType.IAC_FILE.name());
+          ItemContentType.SPDX.name(), ItemContentType.IAC_FILE.name());
 
   private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newInstance();
 

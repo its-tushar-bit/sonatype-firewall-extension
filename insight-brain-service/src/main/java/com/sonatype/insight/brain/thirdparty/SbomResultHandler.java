@@ -102,7 +102,7 @@ public class SbomResultHandler
 
   private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
 
-  private final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+  protected final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(
@@ -679,7 +679,7 @@ public class SbomResultHandler
     return null;
   }
 
-  private void saveLicense(
+  void saveLicense(
       String licenseId,
       String licenseName,
       String licenseUrl,

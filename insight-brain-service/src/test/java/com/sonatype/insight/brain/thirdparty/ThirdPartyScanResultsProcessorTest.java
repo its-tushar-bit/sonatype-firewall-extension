@@ -114,6 +114,25 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
+  public void testHandle_spdx_api() throws Exception {
+    File scanFile = getScanFile("scan-with-spdx-data-api.xml");
+    File tempScanFile = tempDir.newFile();
+
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SPDX));
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SPDX, true, 2);
+  }
+
+  @Test
+  public void testHandle_spdx_api_TelemetryData() throws Exception {
+    File scanFile = getScanFile("scan-with-spdx-data-api.xml");
+    TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), telemetryData);
+    verify(telemetrySender).send(telemetryData);
+    assertTelemetryData(telemetryData, "SPDX");
+  }
+
+  @Test
   public void testHandle_sbom_api() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
     File tempScanFile = tempDir.newFile();

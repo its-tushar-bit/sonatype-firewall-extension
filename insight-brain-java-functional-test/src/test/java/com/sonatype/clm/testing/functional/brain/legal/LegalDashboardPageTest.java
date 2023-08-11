@@ -30,7 +30,6 @@ import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -254,16 +253,20 @@ public class LegalDashboardPageTest
   }
 
   @Test
-  @Ignore
-  // Will be addressed at CLM-26962
   public void testComponentsDisabledSearchButtonOnTableLoad() {
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
+
+    Wait<WebDriver> wait = getWebDriverAwait();
+    // Wait until the tab page is fully loaded.
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    wait.until(ExpectedConditions.elementToBeClickable(ldp.componentsSearchButton()));
+
     ldp.componentsSearchInput().setValue("package");
     ldp.componentsSearchInput().pressEnter();
     ldp.componentsSearchButton().shouldBe(Condition.disabled);
-    Wait<WebDriver> wait = getWebDriverAwait();
+    
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
     ldp.componentsSearchButton().shouldBe(Condition.enabled);
   }

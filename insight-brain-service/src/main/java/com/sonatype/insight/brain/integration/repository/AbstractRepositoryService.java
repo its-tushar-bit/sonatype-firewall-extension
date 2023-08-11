@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -1039,7 +1038,7 @@ public abstract class AbstractRepositoryService
    */
   List<RepositoryDTO> getConfiguredRepositories(
       String repositoryManagerInstanceId,
-      long sinceUtcTimestamp,
+      Long sinceUtcTimestamp,
       String clientUserAgent)
   {
     checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
@@ -1050,9 +1049,15 @@ public abstract class AbstractRepositoryService
 
     long start = System.currentTimeMillis();
 
-    List<Repository> repositories =
-        repositoryDAO.getByRepositoryManagerIdAndLastManualConfigureTime(repositoryManager.getId(),
-            new Date(sinceUtcTimestamp));
+    List<Repository> repositories;
+    if (sinceUtcTimestamp == null) {
+      repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    }
+    else {
+      repositories =
+          repositoryDAO.getByRepositoryManagerIdAndLastManualConfigureTime(repositoryManager.getId(),
+              new Date(sinceUtcTimestamp));
+    }
 
     List<RepositoryDTO> repositoryDTOS = repositories.stream().map(this::toRepositoryDTO).collect(Collectors.toList());
 

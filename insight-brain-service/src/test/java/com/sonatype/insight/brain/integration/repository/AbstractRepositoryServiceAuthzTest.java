@@ -333,17 +333,17 @@ public abstract class AbstractRepositoryServiceAuthzTest
 
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
-    getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0, null);
+    getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0L, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetConfiguredRepositories_Unauthenticated() {
-    getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0, null);
+    getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0L, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetConfiguredRepositories_Unauthorized() {
     login();
-    getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0, null);
+    getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0L, null);
   }
 }

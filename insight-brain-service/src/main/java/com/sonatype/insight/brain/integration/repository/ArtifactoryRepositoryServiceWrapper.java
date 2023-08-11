@@ -325,7 +325,7 @@ class ArtifactoryRepositoryServiceWrapper
 
   List<RepositoryDTO> getConfiguredRepositories(
       String repositoryManagerInstanceId,
-      long sinceUtcTimestamp,
+      Long sinceUtcTimestamp,
       String clientUserAgent)
   {
     return repositoryService.getConfiguredRepositories(repositoryManagerInstanceId, sinceUtcTimestamp, clientUserAgent);

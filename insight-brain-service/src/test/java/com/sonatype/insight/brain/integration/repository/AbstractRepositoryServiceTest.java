@@ -15,7 +15,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.mail.Message;
 
@@ -3047,11 +3046,30 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testGetConfiguredRepositories_NullTimestamp() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository1 = tempEntity.newRepository(repositoryManager, tempEntity.uuid());
+    repository1.setLastManualConfigureTime(new Date(0));
+    repositoryDAO.update(repository1);
+    Repository repository2 = tempEntity.newRepository(repositoryManager, tempEntity.uuid());
+    repository2.setLastManualConfigureTime(new Date(1));
+    repositoryDAO.update(repository2);
+    Repository repository3 = tempEntity.newRepository(repositoryManager, tempEntity.uuid());
+    String clientUserAgent = getUserAgent();
+
+    List<RepositoryDTO> repositoryDTOS =
+        getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), null, clientUserAgent);
+
+    assertThat(repositoryDTOS).extracting(r -> r.name)
+        .containsExactlyInAnyOrder(repository1.getName(), repository2.getName(), repository3.getName());
+  }
+
+  @Test
   public void testGetConfiguredRepositories_UpdateUserAgent() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     String clientUserAgent = getUserAgent();
 
-    getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0, clientUserAgent);
+    getRepositoryService().getConfiguredRepositories(repositoryManager.getInstanceId(), 0L, clientUserAgent);
 
     assertThat(repositoryManagerDAO.getById(repositoryManager.getId()).getUserAgent()).isEqualTo(clientUserAgent);
   }
@@ -3059,7 +3077,7 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testGetConfiguredRepositories_NotExistingRepositoryManager() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0, null);
+      getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0L, null);
     }).withMessage("Cannot find a repository manager with instance ID " + MANUAL_REPO_MAN_INSTANCE_ID + ".");
   }
 

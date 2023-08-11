@@ -269,7 +269,7 @@ public class ArtifactoryRepositoryResource
   @Timed
   public List<RepositoryDTO> getConfiguredRepositories(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @QueryParam("sinceUtcTimestamp") long sinceUtcTimestamp,
+      @QueryParam("sinceUtcTimestamp") Long sinceUtcTimestamp,
       @Context final HttpServletRequest request)
   {
     return repositoryService.getConfiguredRepositories(repositoryManagerInstanceId, sinceUtcTimestamp,

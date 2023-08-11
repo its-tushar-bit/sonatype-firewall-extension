@@ -28,6 +28,8 @@ public class OwnerResource
 {
   public static final String RESOURCE_PATH = "rest/owner/{ownerType}/{ownerId}/hierarchy";
 
+  static final String LEGAL_REVIEWER_PATH = "/legalReviewer";
+
   private final OwnerService ownerService;
 
   @Inject
@@ -41,6 +43,16 @@ public class OwnerResource
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId)
   {
-    return ownerService.getHierarchy(ownerType, ownerId);
+    return ownerService.getHierarchyForRead(ownerType, ownerId);
+  }
+
+  @GET
+  @Path(LEGAL_REVIEWER_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public OwnerHierarchyDTO getHierarchyForLegalReviewer(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    return ownerService.getHierarchyForLegalReviewer(ownerType, ownerId);
   }
 }

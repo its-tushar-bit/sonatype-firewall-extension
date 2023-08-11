@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * @since 1.105
  */
@@ -33,10 +35,23 @@ public class OwnerService
   }
 
   @Authorize(permission = Permission.READ)
-  public OwnerHierarchyDTO getHierarchy(
+  public OwnerHierarchyDTO getHierarchyForRead(
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
+    return getHierarchyNoAuth(ownerType, ownerId);
+  }
+
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public OwnerHierarchyDTO getHierarchyForLegalReviewer(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  {
+    return getHierarchyNoAuth(ownerType, ownerId);
+  }
+
+  @VisibleForTesting
+  OwnerHierarchyDTO getHierarchyNoAuth(OwnerType ownerType, String ownerId) {
     Owner currentOwner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     OwnerHierarchyDTO currentHierarchy = null;
     for (Owner owner : ownerDAO.walkHierarchy(currentOwner)) {

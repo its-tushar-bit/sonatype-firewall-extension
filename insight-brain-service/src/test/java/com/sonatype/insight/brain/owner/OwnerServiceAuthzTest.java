@@ -27,56 +27,110 @@ public class OwnerServiceAuthzTest
   private OwnerDAO ownerDAO;
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetHierarchy_RootOrganization_Unauthenticated() {
+  public void testGetHierarchyForRead_RootOrganization_Unauthenticated() {
     Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    ownerService.getHierarchy(rootOrg.getType(), rootOrg.getPublicId());
+    ownerService.getHierarchyForRead(rootOrg.getType(), rootOrg.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetHierarchy_RootOrganization_Unauthorized() {
+  public void testGetHierarchyForRead_RootOrganization_Unauthorized() {
     login();
     Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    ownerService.getHierarchy(rootOrg.getType(), rootOrg.getPublicId());
+    ownerService.getHierarchyForRead(rootOrg.getType(), rootOrg.getPublicId());
   }
 
   @Test
-  public void testGetHierarchy_RootOrganization_Authorized() {
+  public void testGetHierarchyForRead_RootOrganization_Authorized() {
     Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     grantPermission(rootOrg.getId(), Permission.READ);
-    ownerService.getHierarchy(rootOrg.getType(), rootOrg.getPublicId());
+    ownerService.getHierarchyForRead(rootOrg.getType(), rootOrg.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetHierarchy_Organization_Unauthenticated() {
-    ownerService.getHierarchy(org.getType(), org.getPublicId());
+  public void testGetHierarchyForRead_Organization_Unauthenticated() {
+    ownerService.getHierarchyForRead(org.getType(), org.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetHierarchy_Organization_Unauthorized() {
+  public void testGetHierarchyForRead_Organization_Unauthorized() {
     login();
-    ownerService.getHierarchy(org.getType(), org.getPublicId());
+    ownerService.getHierarchyForRead(org.getType(), org.getPublicId());
   }
 
   @Test
-  public void testGetHierarchy_Organization_Authorized() {
+  public void testGetHierarchyForRead_Organization_Authorized() {
     grantPermission(org.getId(), Permission.READ);
-    ownerService.getHierarchy(org.getType(), org.getPublicId());
+    ownerService.getHierarchyForRead(org.getType(), org.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetHierarchy_Application_Unauthenticated() {
-    ownerService.getHierarchy(app.getType(), app.getPublicId());
+  public void testGetHierarchyForRead_Application_Unauthenticated() {
+    ownerService.getHierarchyForRead(app.getType(), app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetHierarchy_Application_Unauthorized() {
+  public void testGetHierarchyForRead_Application_Unauthorized() {
     login();
-    ownerService.getHierarchy(app.getType(), app.getPublicId());
+    ownerService.getHierarchyForRead(app.getType(), app.getPublicId());
   }
 
   @Test
-  public void testGetHierarchy_Application_Authorized() {
+  public void testGetHierarchyForRead_Application_Authorized() {
     grantPermission(app.getId(), Permission.READ);
-    ownerService.getHierarchy(app.getType(), app.getPublicId());
+    ownerService.getHierarchyForRead(app.getType(), app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetHierarchyForLegalReviewer_RootOrganization_Unauthenticated() {
+    Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    ownerService.getHierarchyForLegalReviewer(rootOrg.getType(), rootOrg.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetHierarchyForLegalReviewer_RootOrganization_Unauthorized() {
+    login();
+    Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    ownerService.getHierarchyForLegalReviewer(rootOrg.getType(), rootOrg.getPublicId());
+  }
+
+  @Test
+  public void testGetHierarchyForLegalReviewer_RootOrganization_Authorized() {
+    Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    grantPermission(rootOrg.getId(), Permission.LEGAL_REVIEWER);
+    ownerService.getHierarchyForLegalReviewer(rootOrg.getType(), rootOrg.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetHierarchyForLegalReviewer_Organization_Unauthenticated() {
+    ownerService.getHierarchyForLegalReviewer(org.getType(), org.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetHierarchyForLegalReviewer_Organization_Unauthorized() {
+    login();
+    ownerService.getHierarchyForLegalReviewer(org.getType(), org.getPublicId());
+  }
+
+  @Test
+  public void testGetHierarchyForLegalReviewer_Organization_Authorized() {
+    grantPermission(org.getId(), Permission.LEGAL_REVIEWER);
+    ownerService.getHierarchyForLegalReviewer(org.getType(), org.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetHierarchyForLegalReviewer_Application_Unauthenticated() {
+    ownerService.getHierarchyForLegalReviewer(app.getType(), app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetHierarchyForLegalReviewer_Application_Unauthorized() {
+    login();
+    ownerService.getHierarchyForLegalReviewer(app.getType(), app.getPublicId());
+  }
+
+  @Test
+  public void testGetHierarchyForLegalReviewer_Application_Authorized() {
+    grantPermission(app.getId(), Permission.LEGAL_REVIEWER);
+    ownerService.getHierarchyForLegalReviewer(app.getType(), app.getPublicId());
   }
 }

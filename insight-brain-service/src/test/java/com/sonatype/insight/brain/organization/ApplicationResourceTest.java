@@ -409,6 +409,22 @@ public class ApplicationResourceTest
     testValidIconResponse(response);
   }
 
+  @Test
+  public void testGetApplicationByPublicIdForLegalReviewer() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    HttpResponse response = restRequest()
+        .path(ApplicationResource.GET_APPLICATION_LEGAL_REVIEWER_PATH)
+        .parameter(application.getPublicId())
+        .get();
+    assertResponseStatus(200, response);
+    ApplicationDTO dto = response.getBody(ApplicationDTO.class);
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.getId()).isEqualTo(application.getId());
+    assertThat(dto.getPublicId()).isEqualTo(application.getPublicId());
+  }
+
   private void makeScanReceipt() {
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");

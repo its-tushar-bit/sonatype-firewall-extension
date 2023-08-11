@@ -218,89 +218,175 @@ public class LicenseOverrideServiceAuthzTest
     testDeleteLicenseOverride_Unauthenticated(RepositoryContainer.SINGLETON);
   }
 
-  private void testGetAppliedLicenseOverrides_Authorized(final Owner owner) throws Exception {
-    testGetAppliedLicenseOverrides_Authorized(owner, owner.getId());
+  private void testGetAppliedLicenseOverridesForRead_Authorized(final Owner owner) throws Exception {
+    testGetAppliedLicenseOverridesForRead_Authorized(owner, owner.getId());
   }
 
-  private void testGetAppliedLicenseOverrides_Authorized(final Owner owner, final String ownerId) {
+  private void testGetAppliedLicenseOverridesForRead_Authorized(final Owner owner, final String ownerId) {
     grantReadPermission(owner.getId());
-    licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
+    licenseOverrideService.getAppliedLicenseOverridesForRead(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
   }
 
   @Test
-  public void testGetAppliedLicenseOverrides_Authorized_App() throws Exception {
-    testGetAppliedLicenseOverrides_Authorized(app, app.getPublicId());
+  public void testGetAppliedLicenseOverridesForRead_Authorized_App() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Authorized(app, app.getPublicId());
   }
 
   @Test
-  public void testGetAppliedLicenseOverrides_Authorized_Org() throws Exception {
-    testGetAppliedLicenseOverrides_Authorized(org);
+  public void testGetAppliedLicenseOverridesForRead_Authorized_Org() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Authorized(org);
   }
 
   @Test
-  public void testGetAppliedLicenseOverrides_Authorized_Repository() throws Exception {
-    testGetAppliedLicenseOverrides_Authorized(repository);
+  public void testGetAppliedLicenseOverridesForRead_Authorized_Repository() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Authorized(repository);
   }
 
   @Test
-  public void testGetAppliedLicenseOverrides_Authorized_RepositoryContainer() throws Exception {
-    testGetAppliedLicenseOverrides_Authorized(RepositoryContainer.SINGLETON);
+  public void testGetAppliedLicenseOverridesForRead_Authorized_RepositoryContainer() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Authorized(RepositoryContainer.SINGLETON);
   }
 
-  private void testGetAppliedLicenseOverrides_Unauthorized(final Owner owner) throws Exception {
-    testGetAppliedLicenseOverrides_Unauthorized(owner, owner.getId());
+  private void testGetAppliedLicenseOverridesForRead_Unauthorized(final Owner owner) throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthorized(owner, owner.getId());
   }
 
-  private void testGetAppliedLicenseOverrides_Unauthorized(final Owner owner, final String ownerId) {
+  private void testGetAppliedLicenseOverridesForRead_Unauthorized(final Owner owner, final String ownerId) {
     login();
-    licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
+    licenseOverrideService.getAppliedLicenseOverridesForRead(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAppliedLicenseOverrides_Unauthorized_App() throws Exception {
-    testGetAppliedLicenseOverrides_Unauthorized(app, app.getPublicId());
+  public void testGetAppliedLicenseOverridesForRead_Unauthorized_App() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthorized(app, app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAppliedLicenseOverrides_Unauthorized_Org() throws Exception {
-    testGetAppliedLicenseOverrides_Unauthorized(org);
+  public void testGetAppliedLicenseOverridesForRead_Unauthorized_Org() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthorized(org);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAppliedLicenseOverrides_Unauthorized_Repository() throws Exception {
-    testGetAppliedLicenseOverrides_Unauthorized(repository);
+  public void testGetAppliedLicenseOverridesForRead_Unauthorized_Repository() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthorized(repository);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAppliedLicenseOverrides_Unauthorized_RepositoryContainer() throws Exception {
-    testGetAppliedLicenseOverrides_Unauthorized(RepositoryContainer.SINGLETON);
+  public void testGetAppliedLicenseOverridesForRead_Unauthorized_RepositoryContainer() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthorized(RepositoryContainer.SINGLETON);
   }
 
-  private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner) throws Exception {
-    testGetAppliedLicenseOverrides_Unauthenticated(owner, owner.getId());
+  private void testGetAppliedLicenseOverridesForRead_Unauthenticated(final Owner owner) throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthenticated(owner, owner.getId());
   }
 
-  private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner, final String ownerId) {
-    licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetAppliedLicenseOverrides_Unauthenticated_App() throws Exception {
-    testGetAppliedLicenseOverrides_Unauthenticated(app, app.getPublicIdLowercase());
+  private void testGetAppliedLicenseOverridesForRead_Unauthenticated(final Owner owner, final String ownerId) {
+    licenseOverrideService.getAppliedLicenseOverridesForRead(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetAppliedLicenseOverrides_Unauthenticated_Org() throws Exception {
-    testGetAppliedLicenseOverrides_Unauthenticated(org);
+  public void testGetAppliedLicenseOverridesForRead_Unauthenticated_App() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthenticated(app, app.getPublicIdLowercase());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetAppliedLicenseOverrides_Unauthenticated_Repository() throws Exception {
-    testGetAppliedLicenseOverrides_Unauthenticated(repository);
+  public void testGetAppliedLicenseOverridesForRead_Unauthenticated_Org() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthenticated(org);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetAppliedLicenseOverrides_Unauthenticated_RepositoryContainer() throws Exception {
-    testGetAppliedLicenseOverrides_Unauthenticated(RepositoryContainer.SINGLETON);
+  public void testGetAppliedLicenseOverridesForRead_Unauthenticated_Repository() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthenticated(repository);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAppliedLicenseOverridesForRead_Unauthenticated_RepositoryContainer() throws Exception {
+    testGetAppliedLicenseOverridesForRead_Unauthenticated(RepositoryContainer.SINGLETON);
+  }
+
+  private void testGetAppliedLicenseOverridesForLegalReviewer_Authorized(final Owner owner) throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Authorized(owner, owner.getId());
+  }
+
+  private void testGetAppliedLicenseOverridesForLegalReviewer_Authorized(final Owner owner, final String ownerId) {
+    grantPermission(owner.getId(), Permission.LEGAL_REVIEWER);
+    licenseOverrideService.getAppliedLicenseOverridesForLegalReviewer(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Authorized_App() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Authorized(app, app.getPublicId());
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Authorized_Org() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Authorized(org);
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Authorized_Repository() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Authorized(repository);
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Authorized_RepositoryContainer() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Authorized(RepositoryContainer.SINGLETON);
+  }
+
+  private void testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized(final Owner owner) throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized(owner, owner.getId());
+  }
+
+  private void testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized(final Owner owner, final String ownerId) {
+    login();
+    licenseOverrideService.getAppliedLicenseOverridesForLegalReviewer(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized_App() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized(app, app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized_Org() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized(org);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized_Repository() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized(repository);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized_RepositoryContainer() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthorized(RepositoryContainer.SINGLETON);
+  }
+
+  private void testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated(final Owner owner) throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated(owner, owner.getId());
+  }
+
+  private void testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated(final Owner owner, final String ownerId) {
+    licenseOverrideService.getAppliedLicenseOverridesForLegalReviewer(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated_App() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated(app, app.getPublicIdLowercase());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated_Org() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated(org);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated_Repository() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated(repository);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated_RepositoryContainer() throws Exception {
+    testGetAppliedLicenseOverridesForLegalReviewer_Unauthenticated(RepositoryContainer.SINGLETON);
   }
 }

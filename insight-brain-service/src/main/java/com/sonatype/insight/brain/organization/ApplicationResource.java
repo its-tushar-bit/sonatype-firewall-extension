@@ -63,6 +63,8 @@ public class ApplicationResource
 
   public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
+  static final String GET_APPLICATION_LEGAL_REVIEWER_PATH = "legalReviewer/{applicationPublicId}";
+
   public static final String GET_APPLICATION_ICON_PATH = ICON_PATH + "/{applicationPublicId}";
 
   public static final String SET_APPLICATION_ICON_PATH = ICON_PATH + "/{applicationId}";
@@ -144,6 +146,19 @@ public class ApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicationDTO getApplication(@PathParam("applicationPublicId") final String applicationPublicId) {
     Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
+    return ApplicationAdapter.getInstance(userDirectory).convert(application);
+  }
+
+  /**
+   * @since 1.167
+   */
+  @GET
+  @Path(GET_APPLICATION_LEGAL_REVIEWER_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApplicationDTO getApplicationByPublicIdForLegalReviewer(
+      @PathParam("applicationPublicId") String applicationPublicId)
+  {
+    Application application = applicationService.getApplicationByPublicIdForLegalReviewer(applicationPublicId);
     return ApplicationAdapter.getInstance(userDirectory).convert(application);
   }
 

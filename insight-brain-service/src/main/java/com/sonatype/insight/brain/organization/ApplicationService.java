@@ -164,6 +164,13 @@ public class ApplicationService
     return applicationDAO.getByPublicId(applicationPublicId);
   }
 
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  Application getApplicationByPublicIdForLegalReviewer(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  {
+    return applicationDAO.getByPublicId(applicationPublicId);
+  }
+
   @Authorize(permission = Permission.READ)
   public Application getApplicationByIdForRead(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId) {
     return applicationDAO.getById(applicationId);

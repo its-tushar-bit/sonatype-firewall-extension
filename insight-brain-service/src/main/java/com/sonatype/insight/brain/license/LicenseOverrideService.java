@@ -38,6 +38,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
@@ -171,10 +173,28 @@ public class LicenseOverrideService
   }
 
   @Authorize(permission = Permission.READ)
-  public AppliedLicenseOverrides getAppliedLicenseOverrides(
+  public AppliedLicenseOverrides getAppliedLicenseOverridesForRead(
       @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
       final ComponentIdentifier componentIdentifier)
+  {
+    return getAppliedLicenseOverridesNoAuth(ownerType, ownerId, componentIdentifier);
+  }
+
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public AppliedLicenseOverrides getAppliedLicenseOverridesForLegalReviewer(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      final ComponentIdentifier componentIdentifier)
+  {
+    return getAppliedLicenseOverridesNoAuth(ownerType, ownerId, componentIdentifier);
+  }
+
+  @VisibleForTesting
+  AppliedLicenseOverrides getAppliedLicenseOverridesNoAuth(
+      OwnerType ownerType,
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
   {
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");

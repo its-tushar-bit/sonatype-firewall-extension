@@ -41,6 +41,8 @@ public class LicenseOverrideResource
   public static final String RESOURCE_PATH = "rest/licenseOverride/"
       + "{ownerType: application|organization|repository|repository_container}/{ownerId}";
 
+  static final String LEGAL_REVIEWER_PATH = "/legalReviewer";
+
   private final LicenseOverrideService licenseOverrideService;
 
   @Inject
@@ -80,6 +82,17 @@ public class LicenseOverrideResource
       @PathParam("ownerId") String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
-    return licenseOverrideService.getAppliedLicenseOverrides(ownerType, ownerId, componentIdentifier);
+    return licenseOverrideService.getAppliedLicenseOverridesForRead(ownerType, ownerId, componentIdentifier);
+  }
+
+  @GET
+  @Path(LEGAL_REVIEWER_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public AppliedLicenseOverrides getAppliedLicenseOverridesForLegalReviewer(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+  {
+    return licenseOverrideService.getAppliedLicenseOverridesForLegalReviewer(ownerType, ownerId, componentIdentifier);
   }
 }

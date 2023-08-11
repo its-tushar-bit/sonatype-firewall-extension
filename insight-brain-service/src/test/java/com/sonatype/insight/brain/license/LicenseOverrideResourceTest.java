@@ -37,12 +37,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LicenseOverrideResourceTest
     extends AbstractResourceTest
 {
-  private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
-    return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).parameter(ownerType, ownerId);
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId, String... paths) {
+    return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).path(paths).parameter(ownerType, ownerId);
   }
 
-  private HttpRequest restRequest(OwnerType ownerType, String ownerId, ComponentIdentifier componentIdentifier) {
-    return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).query("componentIdentifier", componentIdentifier)
+  private HttpRequest restRequest(
+      OwnerType ownerType,
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String... paths)
+  {
+    return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).path(paths)
+        .query("componentIdentifier", componentIdentifier)
         .parameter(ownerType, ownerId);
   }
 
@@ -252,18 +258,36 @@ public class LicenseOverrideResourceTest
 
   @Test
   public void testGetAppliedLicenseOverrides_NoComponentIdentifier() throws Exception {
+    doTestGetAppliedLicenseOverrides_NoComponentIdentifier("");
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverridesForLegalReviewer_NoComponentIdentifier() throws Exception {
+    doTestGetAppliedLicenseOverrides_NoComponentIdentifier(LicenseOverrideResource.LEGAL_REVIEWER_PATH);
+  }
+
+  private void doTestGetAppliedLicenseOverrides_NoComponentIdentifier(String path) throws Exception {
     // Create an organization and an application
     String orgName = "testGetAppliedLicenseOverrides";
     Organization organization = tempEntity.newOrganization(orgName);
     String appPublicId = "testGetAppliedLicenseOverrides";
     tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
-    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId, path).get();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("componentIdentifier is required");
   }
 
   @Test
   public void testGetAppliedLicenseOverrides() throws Exception {
+    doTestGetAppliedLicenseOverrides("");
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverridesForLegalReviewer() throws Exception {
+    doTestGetAppliedLicenseOverrides(LicenseOverrideResource.LEGAL_REVIEWER_PATH);
+  }
+
+  private void doTestGetAppliedLicenseOverrides(String path) throws Exception {
     // Create an organization, an application, and a repository
     String orgName = "testGetAppliedLicenseOverrides";
     Organization organization = tempEntity.newOrganization(orgName);
@@ -276,7 +300,7 @@ public class LicenseOverrideResourceTest
 
     // Verify the applied license overrides for the application
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId, componentIdentifier).get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId, componentIdentifier, path).get();
     assertResponseStatus(200, response);
     AppliedLicenseOverrides appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertThat(appliedLicenseOverrides).isNotNull();

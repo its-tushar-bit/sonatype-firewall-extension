@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.inject.Binder;
@@ -264,45 +265,87 @@ public class ComponentInfoServiceAuthzTest
   }
 
   @Test
-  public void testGetMultiLicensesApplication_Authorized() throws Exception {
+  public void testGetMultiLicensesForRead_ApplicationAuthorized() throws Exception {
     configureHdsClientMock();
     grantReadPermission(app.getId());
-    componentInfoService.getMultiLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
+    componentInfoService.getMultiLicensesForRead(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
         null /* httpRequest */, null, null);
   }
 
   @Test
-  public void testGetMultiLicensesRepository_Authorized() throws Exception {
+  public void testGetMultiLicenses_RepositoryAuthorized() throws Exception {
     configureHdsClientMock();
     grantReadPermission(repository.getId());
-    componentInfoService.getMultiLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
+    componentInfoService.getMultiLicensesForRead(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
         null /* httpRequest */, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetMultiLicensesApplication_Unauthorized() throws Exception {
+  public void testGetMultiLicensesForRead_ApplicationUnauthorized() throws Exception {
     login();
-    componentInfoService.getMultiLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
+    componentInfoService.getMultiLicensesForRead(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
         null /* httpRequest */, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetMultiLicensesRepository_Unauthorized() throws Exception {
+  public void testGetMultiLicensesForRead_RepositoryUnauthorized() throws Exception {
     login();
-    componentInfoService.getMultiLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
+    componentInfoService.getMultiLicensesForRead(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
         null /* httpRequest */, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetMultiLicensesApplication_Unauthenticated() throws Exception {
-    componentInfoService.getMultiLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
+  public void testGetMultiLicensesForRead_ApplicationUnauthenticated() throws Exception {
+    componentInfoService.getMultiLicensesForRead(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
         null /* httpRequest */, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetMultiLicensesRepository_Unauthenticated() throws Exception {
-    componentInfoService.getMultiLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
+  public void testGetMultiLicensesForRead_RepositoryUnauthenticated() throws Exception {
+    componentInfoService.getMultiLicensesForRead(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
         null /* httpRequest */, null, null);
+  }
+
+  @Test
+  public void testGetMultiLicensesForLegalReviewer_ApplicationAuthorized() throws Exception {
+    configureHdsClientMock();
+    grantPermission(app.getId(), Permission.LEGAL_REVIEWER);
+    componentInfoService.getMultiLicensesForLegalReviewer(OwnerType.APPLICATION, app.getPublicId(),
+        COMPONENT_IDENTIFIER, null /* httpRequest */, null, null);
+  }
+
+  @Test
+  public void testGetMultiLicensesForLegalReviewer_RepositoryAuthorized() throws Exception {
+    configureHdsClientMock();
+    grantPermission(repository.getId(), Permission.LEGAL_REVIEWER);
+    componentInfoService.getMultiLicensesForLegalReviewer(OwnerType.REPOSITORY, repository.getId(),
+        COMPONENT_IDENTIFIER, null /* httpRequest */, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetMultiLicensesForLegalReviewer_ApplicationUnauthorized() throws Exception {
+    login();
+    componentInfoService.getMultiLicensesForLegalReviewer(OwnerType.APPLICATION, app.getPublicId(),
+        COMPONENT_IDENTIFIER, null /* httpRequest */, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetMultiLicensesForLegalReviewer_RepositoryUnauthorized() throws Exception {
+    login();
+    componentInfoService.getMultiLicensesForLegalReviewer(OwnerType.REPOSITORY, repository.getId(),
+        COMPONENT_IDENTIFIER, null /* httpRequest */, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetMultiLicensesForLegalReviewer_ApplicationUnauthenticated() throws Exception {
+    componentInfoService.getMultiLicensesForLegalReviewer(OwnerType.APPLICATION, app.getPublicId(),
+        COMPONENT_IDENTIFIER, null /* httpRequest */, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetMultiLicensesForLegalReviewer_RepositoryUnauthenticated() throws Exception {
+    componentInfoService.getMultiLicensesForLegalReviewer(OwnerType.REPOSITORY, repository.getId(),
+        COMPONENT_IDENTIFIER, null /* httpRequest */, null, null);
   }
 
   @Test

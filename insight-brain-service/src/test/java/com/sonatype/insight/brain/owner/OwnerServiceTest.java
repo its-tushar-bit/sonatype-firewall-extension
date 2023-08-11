@@ -33,26 +33,26 @@ public class OwnerServiceTest
   private OwnerDAO ownerDAO;
 
   @Test
-  public void testGetHierarchy_OwnerDoesNotExist() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> ownerService.getHierarchy(
+  public void testGetHierarchyNoAuth_OwnerDoesNotExist() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> ownerService.getHierarchyNoAuth(
         OwnerType.APPLICATION, "doesNotExist"));
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> ownerService.getHierarchy(
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> ownerService.getHierarchyNoAuth(
         OwnerType.ORGANIZATION, "doesNotExist"));
   }
 
   @Test
-  public void testGetHierarchy_RootOrganization() {
+  public void testGetHierarchyNoAuth_RootOrganization() {
     Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     OwnerHierarchyDTO expectedHierarchy = new OwnerHierarchyDTO(rootOrg.getId(), rootOrg.getPublicId(),
         rootOrg.getName(), rootOrg.getType(), null);
 
-    OwnerHierarchyDTO hierarchy = ownerService.getHierarchy(rootOrg.getType(), rootOrg.getPublicId());
+    OwnerHierarchyDTO hierarchy = ownerService.getHierarchyNoAuth(rootOrg.getType(), rootOrg.getPublicId());
 
     assertThat(hierarchy).usingRecursiveComparison().isEqualTo(expectedHierarchy);
   }
 
   @Test
-  public void testGetHierarchy_Organization() {
+  public void testGetHierarchyNoAuth_Organization() {
     Organization organization = tempEntity.newOrganization();
     OwnerHierarchyDTO organizationHierarchy = new OwnerHierarchyDTO(organization.getId(), organization.getPublicId(),
         organization.getName(), organization.getType(), null);
@@ -61,13 +61,13 @@ public class OwnerServiceTest
         rootOrganization.getPublicId(), rootOrganization.getName(), rootOrganization.getType(),
         Collections.singletonList(organizationHierarchy));
 
-    OwnerHierarchyDTO hierarchy = ownerService.getHierarchy(organization.getType(), organization.getPublicId());
+    OwnerHierarchyDTO hierarchy = ownerService.getHierarchyNoAuth(organization.getType(), organization.getPublicId());
 
     assertThat(hierarchy).usingRecursiveComparison().isEqualTo(expectedHierarchy);
   }
 
   @Test
-  public void testGetHierarchy_Application() {
+  public void testGetHierarchyNoAuth_Application() {
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
     OwnerHierarchyDTO applicationHierarchy = new OwnerHierarchyDTO(application.getId(), application.getPublicId(),
@@ -79,7 +79,7 @@ public class OwnerServiceTest
         rootOrganization.getPublicId(), rootOrganization.getName(), rootOrganization.getType(),
         Collections.singletonList(organizationHierarchy));
 
-    OwnerHierarchyDTO hierarchy = ownerService.getHierarchy(application.getType(), application.getPublicId());
+    OwnerHierarchyDTO hierarchy = ownerService.getHierarchyNoAuth(application.getType(), application.getPublicId());
 
     assertThat(hierarchy).usingRecursiveComparison().isEqualTo(expectedHierarchy);
   }

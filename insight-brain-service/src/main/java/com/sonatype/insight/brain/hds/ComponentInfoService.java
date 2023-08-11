@@ -78,6 +78,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.scan.util.HashUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -843,9 +844,37 @@ public class ComponentInfoService
    * @since 1.134
    */
   @Authorize(permission = Permission.READ)
-  public ComponentMultiLicenses getMultiLicenses(
+  public ComponentMultiLicenses getMultiLicensesForRead(
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      ComponentIdentifier componentIdentifier,
+      HttpServletRequest httpRequest,
+      String identificationSource,
+      String scanId) throws IOException
+  {
+    return getMultiLicensesNoAuth(ownerType, ownerId, componentIdentifier, httpRequest, identificationSource, scanId);
+  }
+
+  /**
+   *
+   * @since 1.167
+   */
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public ComponentMultiLicenses getMultiLicensesForLegalReviewer(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      ComponentIdentifier componentIdentifier,
+      HttpServletRequest httpRequest,
+      String identificationSource,
+      String scanId) throws IOException
+  {
+    return getMultiLicensesNoAuth(ownerType, ownerId, componentIdentifier, httpRequest, identificationSource, scanId);
+  }
+
+  @VisibleForTesting
+  ComponentMultiLicenses getMultiLicensesNoAuth(
+      OwnerType ownerType,
+      String ownerId,
       ComponentIdentifier componentIdentifier,
       HttpServletRequest httpRequest,
       String identificationSource,

@@ -540,6 +540,15 @@ public class ApplicationServiceTest
     );
   }
 
+  @Test
+  public void testGetApplicationByPublicIdForLegalReviewer() {
+    Application application = tempEntity.newApplicationWithParent();
+    Application result = applicationService.getApplicationByPublicIdForLegalReviewer(application.getPublicId());
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(application.getId());
+    assertThat(result.getPublicId()).isEqualTo(application.getPublicId());
+  }
+
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {
     orgs.addAll(new OrganizationDAO().getAll().stream()
         .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID)).collect(Collectors.toList()));

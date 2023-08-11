@@ -45,6 +45,8 @@ public class ComponentInfoResource
   public static final String MULTI_LICENSES_PATH =
       "{ownerType: application|repository|organization}/{ownerId}/multiLicenses";
 
+  static final String MULTI_LICENSES_LEGAL_REVIEWER_PATH = MULTI_LICENSES_PATH + "/legalReviewer";
+
   public static final String VULNERABILITIES_PATH = COMPONENT_DETAILS_PATH + "/vulnerabilities";
 
   private final ComponentInfoService componentInfoService;
@@ -140,7 +142,22 @@ public class ComponentInfoResource
       @QueryParam("identificationSource") String identificationSource,
       @QueryParam("scanId") String scanId) throws IOException
   {
-    return componentInfoService.getMultiLicenses(ownerType, ownerId, componentIdentifier, httpRequest,
+    return componentInfoService.getMultiLicensesForRead(ownerType, ownerId, componentIdentifier, httpRequest,
+        identificationSource, scanId);
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(MULTI_LICENSES_LEGAL_REVIEWER_PATH)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  public ComponentMultiLicenses getMultiLicensesForLegalReviewer(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("identificationSource") String identificationSource,
+      @QueryParam("scanId") String scanId) throws IOException
+  {
+    return componentInfoService.getMultiLicensesForLegalReviewer(ownerType, ownerId, componentIdentifier, httpRequest,
         identificationSource, scanId);
   }
 

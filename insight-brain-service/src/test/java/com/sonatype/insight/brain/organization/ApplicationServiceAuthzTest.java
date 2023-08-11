@@ -134,6 +134,18 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicationByPublicIdForLegalReviewer_Unauthenticated() {
+    applicationService.getApplicationByPublicIdForLegalReviewer(app.getPublicId());
+  }
+
+  @Test
+  public void testGetApplicationByPublicIdForLegalReviewer_Authorized() {
+    grantPermission(app.getId(), Permission.LEGAL_REVIEWER);
+
+    applicationService.getApplicationByPublicIdForLegalReviewer(app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
   public void testGetApplicationByPublicIdForRead_Unauthenticated() {
     applicationService.getApplicationByPublicIdForRead(app.getPublicId());
   }

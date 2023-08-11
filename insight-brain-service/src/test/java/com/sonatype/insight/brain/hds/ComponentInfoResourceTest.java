@@ -96,9 +96,10 @@ public class ComponentInfoResourceTest
   protected HttpRequest multiLicensesRequest(
       ComponentIdentifier componentIdentifier,
       String identificationSource,
-      String scanId)
+      String scanId,
+      String path)
   {
-    return restRequest().path(ComponentInfoResource.MULTI_LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
+    return restRequest().path(path).parameter(getOwner().getType(), getOwnerId())
         .query("componentIdentifier", componentIdentifier).query("identificationSource", identificationSource)
         .query("scanId", scanId);
   }
@@ -107,8 +108,8 @@ public class ComponentInfoResourceTest
     return licensesRequest(componentIdentifier, null, null);
   }
 
-  protected HttpRequest multiLicensesRequest(ComponentIdentifier componentIdentifier) {
-    return multiLicensesRequest(componentIdentifier, null, null);
+  protected HttpRequest multiLicensesRequest(ComponentIdentifier componentIdentifier, String path) {
+    return multiLicensesRequest(componentIdentifier, null, null, path);
   }
 
   @Before
@@ -241,11 +242,20 @@ public class ComponentInfoResourceTest
 
   @Test
   public void testGetMultiLicenses_ThirdParty() throws Exception {
+    doTestGetMultiLicenses_ThirdParty(ComponentInfoResource.MULTI_LICENSES_PATH);
+  }
+
+  @Test
+  public void testGetMultiLicensesForLegalReviewer_ThirdParty() throws Exception {
+    doTestGetMultiLicenses_ThirdParty(ComponentInfoResource.MULTI_LICENSES_LEGAL_REVIEWER_PATH);
+  }
+
+  private void doTestGetMultiLicenses_ThirdParty(String path) throws Exception {
     final String scanId = "ScanId";
     createReportFile(getOwner().getId(), scanId, "/CIComponentInfoResourceTest/report");
     final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "glibc", "2.24-11+deb9u3");
 
-    HttpResponse response = multiLicensesRequest(tpComponentIdentifier, "Clair", scanId).get();
+    HttpResponse response = multiLicensesRequest(tpComponentIdentifier, "Clair", scanId, path).get();
     assertResponseStatus(200, response);
     ComponentMultiLicenses licenses = response.getBody(ComponentMultiLicenses.class);
     assertThat(licenses.declaredLicenses)
@@ -267,8 +277,18 @@ public class ComponentInfoResourceTest
 
   @Test
   public void testGetMultiLicenses_Unlicensed() throws Exception {
+    doTestGetMultiLicenses_Unlicensed(ComponentInfoResource.MULTI_LICENSES_PATH);
+  }
+
+  @Test
+  public void testGetMultiLicensesForLegalReviewer_Unlicensed() throws Exception {
+    doTestGetMultiLicenses_Unlicensed(ComponentInfoResource.MULTI_LICENSES_LEGAL_REVIEWER_PATH);
+  }
+
+  private void doTestGetMultiLicenses_Unlicensed(String path) throws Exception {
     uninstallLicense();
-    HttpResponse response = multiLicensesRequest(ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
+    HttpResponse response =
+        multiLicensesRequest(ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv"), path).get();
     assertResponseStatus(402, response);
   }
 
@@ -293,12 +313,21 @@ public class ComponentInfoResourceTest
 
   @Test
   public void testGetMultiLicenses() throws Exception {
+    doTestGetMultiLicenses(ComponentInfoResource.MULTI_LICENSES_PATH);
+  }
+
+  @Test
+  public void testGetMultiLicensesForLegalReviewer() throws Exception {
+    doTestGetMultiLicenses(ComponentInfoResource.MULTI_LICENSES_PATH);
+  }
+
+  private void doTestGetMultiLicenses(String path) throws Exception {
     ComponentDetails hdsComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
     hdsRespondWith(hdsComponentDetails)
         .atUri(convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl()));
 
-    HttpResponse response = multiLicensesRequest(MAVEN_COORDINATES).get();
+    HttpResponse response = multiLicensesRequest(MAVEN_COORDINATES, path).get();
     assertResponseStatus(200, response);
     ComponentMultiLicenses licenses = response.getBody(ComponentMultiLicenses.class);
     assertThat(licenses.declaredLicenses)

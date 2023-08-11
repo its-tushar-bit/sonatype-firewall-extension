@@ -28,9 +28,18 @@ public class OwnerResourceTest
 
   @Test
   public void testGetHierarchy_RootOrganization() throws Exception {
+    doTestGetHierarchy_RootOrganization("");
+  }
+
+  @Test
+  public void testGetHierarchyForLegalReviewer_RootOrganization() throws Exception {
+    doTestGetHierarchy_RootOrganization(OwnerResource.LEGAL_REVIEWER_PATH);
+  }
+
+  private void doTestGetHierarchy_RootOrganization(String path) throws Exception {
     Owner rootOrganization = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
 
-    HttpResponse response = restRequest(rootOrganization).get();
+    HttpResponse response = restRequest(rootOrganization).path(path).get();
 
     assertResponseStatus(200, response);
     OwnerHierarchyDTO rootHierarchy = response.getBody(OwnerHierarchyDTO.class);
@@ -44,10 +53,19 @@ public class OwnerResourceTest
 
   @Test
   public void testGetHierarchy_Organization() throws Exception {
+    doTestGetHierarchy_Organization("");
+  }
+
+  @Test
+  public void testGetHierarchyForLegalReviewer_Organization() throws Exception {
+    doTestGetHierarchy_Organization(OwnerResource.LEGAL_REVIEWER_PATH);
+  }
+
+  private void doTestGetHierarchy_Organization(String path) throws Exception {
     Owner rootOrganization = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Owner organization = tempEntity.newOrganization();
 
-    HttpResponse response = restRequest(organization).get();
+    HttpResponse response = restRequest(organization).path(path).get();
 
     assertResponseStatus(200, response);
     OwnerHierarchyDTO rootHierarchy = response.getBody(OwnerHierarchyDTO.class);
@@ -67,11 +85,20 @@ public class OwnerResourceTest
 
   @Test
   public void testGetHierarchy_Application() throws Exception {
+    doTestGetHierarchy_Application("");
+  }
+
+  @Test
+  public void testGetHierarchyForLegalReviewer_Application() throws Exception {
+    doTestGetHierarchy_Application(OwnerResource.LEGAL_REVIEWER_PATH);
+  }
+
+  private void doTestGetHierarchy_Application(String path) throws Exception {
     Owner rootOrganization = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Owner organization = tempEntity.newOrganization();
     Owner application = tempEntity.newApplication(organization.getId());
 
-    HttpResponse response = restRequest(application).get();
+    HttpResponse response = restRequest(application).path(path).get();
 
     assertResponseStatus(200, response);
     OwnerHierarchyDTO rootHierarchy = response.getBody(OwnerHierarchyDTO.class);

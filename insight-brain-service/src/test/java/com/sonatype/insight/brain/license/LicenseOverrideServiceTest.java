@@ -77,12 +77,12 @@ public class LicenseOverrideServiceTest
         licenseOverrideEventService);
   }
 
-  private void testGetAppliedLicenseOverrides_hierarchy(final Owner owner) {
-    testGetAppliedLicenseOverrides_hierarchy(owner, owner.getId());
+  private void testGetAppliedLicenseOverridesNoAuth_hierarchy(final Owner owner) {
+    testGetAppliedLicenseOverridesNoAuth_hierarchy(owner, owner.getId());
   }
 
-  private void testGetAppliedLicenseOverrides_hierarchy(final Owner owner, final String ownerId) {
-    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), ownerId,
+  private void testGetAppliedLicenseOverridesNoAuth_hierarchy(final Owner owner, final String ownerId) {
+    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverridesNoAuth(owner.getType(), ownerId,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
 
     assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
@@ -90,20 +90,20 @@ public class LicenseOverrideServiceTest
   }
 
   @Test
-  public void testGetAppliedLicenseOverrides_hierarchy_App() {
+  public void testGetAppliedLicenseOverridesNoAuth_hierarchy_App() {
     final Application app = tempEntity.newApplicationWithParent("test");
-    testGetAppliedLicenseOverrides_hierarchy(app, app.getPublicId());
+    testGetAppliedLicenseOverridesNoAuth_hierarchy(app, app.getPublicId());
   }
 
   @Test
-  public void testGetAppliedLicenseOverrides_hierarchy_Repository() {
-    testGetAppliedLicenseOverrides_hierarchy(tempEntity.newRepository());
+  public void testGetAppliedLicenseOverridesNoAuth_hierarchy_Repository() {
+    testGetAppliedLicenseOverridesNoAuth_hierarchy(tempEntity.newRepository());
   }
 
   @Test
-  public void testGetAppliedLicenseOverrides_hierarchy_RepositoryContainer() {
+  public void testGetAppliedLicenseOverridesNoAuth_hierarchy_RepositoryContainer() {
     Owner owner = RepositoryContainer.SINGLETON;
-    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), owner.getId(),
+    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverridesNoAuth(owner.getType(), owner.getId(),
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
         .containsExactlyInAnyOrder(owner.getId(), Organization.ROOT_ORGANIZATION_ID);

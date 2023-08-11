@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.security;
 
 import java.util.Locale;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;

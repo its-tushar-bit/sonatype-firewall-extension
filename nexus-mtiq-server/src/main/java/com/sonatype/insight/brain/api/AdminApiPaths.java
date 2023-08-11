@@ -24,4 +24,6 @@ public class AdminApiPaths
   public static final String ADMIN_CONFIG_PATH = ADMIN_PATH + "tenants/{tenantSlug}/config";
 
   public static final String ADMIN_TENANT_METADATA_PATH = ADMIN_PATH + "tenants/{tenantSlug}/metadata";
+
+  public static final String ADMIN_TENANT_CACHE_PATH = ADMIN_PATH + "tenants/{tenantSlug}/cache";
 }

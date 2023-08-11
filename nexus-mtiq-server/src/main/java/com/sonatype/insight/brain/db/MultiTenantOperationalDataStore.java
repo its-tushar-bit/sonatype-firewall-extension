@@ -12,11 +12,13 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.cache.MultiTenantQueryCache;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.db.DatabaseConfig;
 
+import org.apache.openjpa.datacache.DataCacheMode;
 import org.apache.openjpa.lib.jdbc.JDBCListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +66,11 @@ public class MultiTenantOperationalDataStore
           new JDBCListener[]{SqlCallCounterMetrics.getInstance().getJDBCListener()});
       log.info("Enabled JPA JDBC listener for performance testing.");
     }
+
+    props.put("openjpa.DataCache", "true(CacheSize=8192, SoftReferenceSize=0, EnableStatistics=true)");
+    props.put("openjpa.QueryCache", MultiTenantQueryCache.class.getName() + "(CacheSize=1000, SoftReferenceSize=0)");
+    props.put("javax.persistence.sharedCache.mode", DataCacheMode.ENABLE_SELECTIVE.name());
+    props.put("openjpa.RemoteCommitProvider", "sjvm");
   }
 
   @Override

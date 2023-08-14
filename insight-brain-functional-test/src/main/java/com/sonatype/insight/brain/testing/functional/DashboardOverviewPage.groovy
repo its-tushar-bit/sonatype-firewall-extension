@@ -24,7 +24,6 @@ class DashboardOverviewPage
     noDataAvailable(required: false) { $('#dashboard-common-results-no-data') }
 
     highestRiskDiv(required: false) { $('#highest-risk').module(ThreatTableModule) }
-    maxResults(required: false) { $('#max-results-shown').module(ThreatTableModule) }
 
     tabLinks { $('ul.nav.nav-tabs').module(DashboardTabsModule) }
 

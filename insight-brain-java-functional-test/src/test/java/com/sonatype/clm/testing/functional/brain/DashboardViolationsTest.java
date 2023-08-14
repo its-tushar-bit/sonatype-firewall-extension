@@ -465,10 +465,12 @@ public class DashboardViolationsTest
   }
 
   @Test
-  public void testShouldNotShowMaxResultsMessageWhen100Results() {
-    createViolations(100, buildEvalNow);
+  public void test100ResultsFitOnFirstPage() {
+    int maxNumResultsPerPage = 100;
+    createViolations(maxNumResultsPerPage, buildEvalNow);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
+    DashboardPage.violationsView().paginationButtons().shouldHaveSize(1);
   }
 
   @Test

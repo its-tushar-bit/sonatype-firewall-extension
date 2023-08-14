@@ -28,6 +28,7 @@ const initialState = Object.freeze({
   expiredWaivers: Object.freeze([]),
   selectedViolationId: null,
   hasPermissionForAppWaivers: false,
+  isVulnerabilityDetailsOutdated: false,
 });
 
 const reducerActionMap = {
@@ -90,16 +91,19 @@ function loadVulnerabilityDetailsFulfilled(payload, state) {
     ...state,
     vulnerabilityDetailsLoading: false,
     vulnerabilityDetailsError: null,
+    isVulnerabilityDetailsOutdated: false,
     vulnerabilityDetails: payload,
     hasEditIqPermission: payload.hasEditIqPermission,
   };
 }
 
 function loadVulnerabilityDetailsFailed(payload, state) {
+  const httpStatusCode = payload?.response?.status ?? null;
   return {
     ...state,
+    isVulnerabilityDetailsOutdated: httpStatusCode === 404,
     vulnerabilityDetailsLoading: false,
-    vulnerabilityDetailsError: payload,
+    vulnerabilityDetailsError: httpStatusCode !== 404 ? payload : null,
   };
 }
 

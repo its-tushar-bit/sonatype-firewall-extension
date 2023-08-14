@@ -26,6 +26,7 @@ export default function ViolationPage(props) {
     vulnerabilityDetailsLoading,
     vulnerabilityDetails,
     vulnerabilityDetailsError,
+    isVulnerabilityDetailsOutdated,
     activeWaivers,
     selectedViolationId,
     goToWaivers,
@@ -119,6 +120,7 @@ export default function ViolationPage(props) {
             showTitle={!isFromPolicyViolations}
             vulnerabilityDetails={vulnerabilityDetails}
             error={vulnerabilityDetailsError}
+            isVulnerabilityDetailsOutdated={isVulnerabilityDetailsOutdated}
             loading={vulnerabilityDetailsLoading}
             retryLoad={loadVulnerabilityDetails}
             componentName={violationDetails ? getComponentName(violationDetails) : null}
@@ -160,6 +162,7 @@ export const violationPageTypes = {
   vulnerabilityDetailsLoading: PropTypes.bool.isRequired,
   vulnerabilityDetails: PropTypes.object,
   vulnerabilityDetailsError: LoadWrapper.propTypes.error,
+  isVulnerabilityDetailsOutdated: PropTypes.bool.isRequired,
   activeWaivers: ViolationDetailsTile.propTypes.activeWaivers,
   goToWaivers: PropTypes.func.isRequired,
   onGoToRepositoryComponentWaiversPage: PropTypes.func.isRequired,

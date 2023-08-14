@@ -83,6 +83,7 @@ describe('violationReducer', function () {
         expiredWaivers: [321],
         hasPermissionForAppWaivers: false,
         hasEditIqPermission: false,
+        isVulnerabilityDetailsOutdated: false,
       };
 
       const newState = reducer(initialState, {
@@ -101,6 +102,7 @@ describe('violationReducer', function () {
         selectedViolationId: null,
         hasPermissionForAppWaivers: false,
         hasEditIqPermission: false,
+        isVulnerabilityDetailsOutdated: false,
       });
     });
   });
@@ -217,6 +219,7 @@ describe('violationReducer', function () {
           vulnerabilityDetailsLoading: true,
           otherProp: 'asdf',
           hasEditIqPermission: undefined,
+          isVulnerabilityDetailsOutdated: false,
         };
 
         const newState = reducer(initialState, {
@@ -230,6 +233,7 @@ describe('violationReducer', function () {
           vulnerabilityDetails: { foo: 'bar', hasEditIqPermission: true },
           otherProp: 'asdf',
           hasEditIqPermission: true,
+          isVulnerabilityDetailsOutdated: false,
         });
       }
     );
@@ -242,6 +246,7 @@ describe('violationReducer', function () {
         vulnerabilityDetails: null,
         vulnerabilityDetailsError: null,
         otherProp: 'asdf',
+        isVulnerabilityDetailsOutdated: false,
       };
 
       const newState = reducer(initialState, {
@@ -254,6 +259,7 @@ describe('violationReducer', function () {
         vulnerabilityDetailsError: 'ERRRRRRRRRRRRRRRRR',
         vulnerabilityDetails: null,
         otherProp: 'asdf',
+        isVulnerabilityDetailsOutdated: false,
       });
     });
   });

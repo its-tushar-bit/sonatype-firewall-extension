@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 
 @Named
 @Singleton
@@ -99,7 +100,8 @@ public class PullRequestFeedbackMarkupService
     final String applicationPublicId = applicationDAO.getByIdNotNull(applicationId).getPublicId();
     final boolean supportsHtml = provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl);
     // Refer to https://sonatype.atlassian.net/browse/SDEV-365 for why we need the `supportsHtml` condition
-    if (SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.isEnabled() && supportsHtml && provider == GITHUB) {
+    if (SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.isEnabled() && supportsHtml &&
+            (provider == GITHUB || provider == GITLAB)) {
       final ComponentFeedbackContext context = contextFactory.build(provider,
               violations,
               componentNameAndVersion,

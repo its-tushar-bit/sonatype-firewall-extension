@@ -13,7 +13,24 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 export default function ComponentRiskItemTable({ policyViolations, publicId, totalRisk }) {
   const uiRouterState = useRouterState();
 
-  const policyThreatStageCell = ({ time, scanId }) => {
+  const renderStages = (stageDetails) => {
+    const stages = new Map(stageDetails.map((stageDetail) => [stageDetail.stageTypeId, stageDetail]));
+
+    return (
+      <>
+        {policyThreatStageCell(stages.get('source'))}
+        {policyThreatStageCell(stages.get('build'))}
+        {policyThreatStageCell(stages.get('stage-release'))}
+        {policyThreatStageCell(stages.get('release'))}
+        {policyThreatStageCell(stages.get('operate'))}
+      </>
+    );
+  };
+
+  const policyThreatStageCell = (stageDetail) => {
+    if (!stageDetail) return <NxTable.Cell className="iq-component-risk-cell stage"></NxTable.Cell>;
+
+    const { time, scanId } = stageDetail;
     const timeDiff = formatTimeAgo(time, true);
     return (
       <NxTable.Cell className="iq-component-risk-cell stage">
@@ -47,11 +64,7 @@ export default function ComponentRiskItemTable({ policyViolations, publicId, tot
           {formatViolationRiskPercentage(threatLevel, totalRisk)}
         </NxTable.Cell>
         <NxTable.Cell className="iq-component-risk-cell">{threatLevel}</NxTable.Cell>
-        {policyThreatStageCell(stageDetails[0])}
-        {policyThreatStageCell(stageDetails[1])}
-        {policyThreatStageCell(stageDetails[2])}
-        {policyThreatStageCell(stageDetails[3])}
-        {policyThreatStageCell(stageDetails[4])}
+        {renderStages(stageDetails)}
       </NxTable.Row>
     ));
   };

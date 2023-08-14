@@ -5,7 +5,12 @@
  */
 package com.sonatype.clm.testing.functional.mtiq.user;
 
+import java.util.Arrays;
+import java.util.List;
+
+import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxTextInput;
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.mtiq.pages.MtiqUserManagementPage;
 import com.sonatype.clm.testing.functional.pages.KeycloakLoginPage;
@@ -19,6 +24,7 @@ import com.sonatype.insight.keycloak.KeycloakServerRule;
 import com.sonatype.insight.keycloak.KeycloakServerUtil;
 
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
 
 import org.junit.After;
 import org.junit.Before;
@@ -27,13 +33,20 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.mockito.Mockito;
+import org.openqa.selenium.Keys;
 
 import static com.sonatype.clm.testing.functional.elements.CLM.RSC_DISABLED;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.CollectionCondition.size;
+
+import static com.sonatype.clm.testing.functional.mtiq.pages.MtiqUserManagementPage.NewUserForm;
 
 public class MtiqUserManagementTest
     extends AbstractMtiqFunctionalTest
@@ -153,6 +166,7 @@ public class MtiqUserManagementTest
     deleteModal.header().shouldHave(text("Delete User"));
     deleteModal.alertContent().shouldHave(text("You are about to permanently remove " +
          KEYCLOAK_USER_EMAIL_2 + ". This action cannot be undone."));
+
     deleteModal.submitButton().click();
     deleteModal.should(disappear);
 
@@ -160,6 +174,100 @@ public class MtiqUserManagementTest
 
     // verify that the API call to delete the use from Auth0 was made as well
     Mockito.verify(auth0ManagementAPI).deleteUserByEmailFromConnection(KEYCLOAK_USER_EMAIL_2, "connectionId");
+  }
+
+  @Test
+  public void openInviteUserForm() {
+    KeycloakLoginPage.login(KEYCLOAK_USER_EMAIL_1, password);
+
+    NewUserForm newUserForm = goToInviteUserForm();
+    newUserForm.shouldBe(visible);
+    newUserForm.saveButton().shouldBe(visible);
+
+    List<SelenideElement> formInputs = Arrays.asList(newUserForm.firstNameInput(), newUserForm.lastNameInput(),
+        newUserForm.emailInput());
+
+    formInputs.forEach(input -> input.shouldBe(empty));
+    formInputs.forEach(input -> input.shouldNotBe(disabled));
+  }
+
+  @Test
+  public void testInviteUserForm_spaceValidations() {
+    KeycloakLoginPage.login(KEYCLOAK_USER_EMAIL_1, password);
+
+    NewUserForm newUserForm = goToInviteUserForm();
+    String invalidSpacingError = "No leading, trailing or double spaces or tabs";
+
+    keyInElementValue("a  a", Arrays.asList(newUserForm.firstNameInput(), newUserForm.lastNameInput()));
+
+    new NxTextInput(newUserForm.firstNameInput()).errorMessage().shouldHave(exactText(invalidSpacingError));
+    new NxTextInput(newUserForm.lastNameInput()).errorMessage().shouldHave(exactText(invalidSpacingError));
+  }
+
+  @Test
+  public void testInviteUserForm_invalidCharacters() {
+    KeycloakLoginPage.login(KEYCLOAK_USER_EMAIL_1, password);
+
+    NewUserForm newUserForm = goToInviteUserForm();
+    String nameValidationText = "Use valid characters: alphanumeric, \"_\", \".\", \"-\", or spaces";
+
+    List<SelenideElement> nameInputElements = Arrays.asList(newUserForm.firstNameInput(), newUserForm.lastNameInput());
+    keyInElementValue("#", nameInputElements);
+
+    assertInputValidation(nameValidationText, nameInputElements);
+  }
+
+  @Test
+  public void testInviteUserForm_emailValidations() {
+    KeycloakLoginPage.login(KEYCLOAK_USER_EMAIL_1, password);
+
+    NewUserForm newUserForm = goToInviteUserForm();
+    String emailValidationText = "Use valid format: abc@xyz.com";
+
+    List<SelenideElement> emailInput = Arrays.asList(newUserForm.emailInput());
+    keyInElementValue("a", emailInput);
+
+    assertInputValidation(emailValidationText, emailInput);
+  }
+
+  @Test
+  public void testInviteUserForm_emptyValues() {
+    KeycloakLoginPage.login(KEYCLOAK_USER_EMAIL_1, password);
+
+    NewUserForm newUserForm = goToInviteUserForm();
+    String validationText = "Must be non-empty";
+
+    List<SelenideElement> inputElements = Arrays.asList(newUserForm.firstNameInput(), newUserForm.lastNameInput(),
+        newUserForm.emailInput());
+    keyInElementValue("a", inputElements);
+    inputElements.forEach(element -> element.sendKeys(Keys.BACK_SPACE));
+
+    assertInputValidation(validationText, inputElements);
+
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testInviteUser_success() {
+    loginBothSamlUsers();
+    page.userItems().shouldHave(size(2));
+
+    NewUserForm newUserForm = goToInviteUserForm();
+    
+    newUserForm.firstNameInput().val("User");
+    newUserForm.lastNameInput().val("Three");
+    newUserForm.emailInput().val("user3@example.com");
+
+    newUserForm.saveButton().click();
+    newUserForm.shouldBe(hidden);
+
+    page.userItems().shouldHaveSize(3);
+
+    page.userItems().get(2).shouldHave(text("User Three"));
+    page.userItems().get(2).shouldHave(text("user3@example.com"));
+
+    // verify that the API call to create the user from Auth0 was made
+    Mockito.verify(auth0ManagementAPI).createOrGetUser("user3@example.com", "User", "Three", "connectionName");
   }
 
   /**
@@ -173,5 +281,21 @@ public class MtiqUserManagementTest
     logout();
     refreshOrOpen(MtiqUserManagementPage.url());
     KeycloakLoginPage.login(KEYCLOAK_USER_EMAIL_1, password);
+  }
+
+  private NewUserForm goToInviteUserForm() {
+    Button newUserButton = page.newUserButton();
+    newUserButton.click();
+
+    newUserButton.shouldBe(hidden);
+    return page.newUserForm();
+  }
+
+  private void assertInputValidation(final String validationText, final List<SelenideElement> elements) {
+    elements.forEach(element -> new NxTextInput(element).errorMessage().shouldHave(exactText(validationText)));
+  }
+
+  private void keyInElementValue(final String inputText, final List<SelenideElement> elements) {
+    elements.forEach(element -> element.val(inputText));
   }
 }

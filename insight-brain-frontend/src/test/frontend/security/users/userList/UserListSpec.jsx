@@ -104,4 +104,11 @@ describe('UserList', () => {
       expect(stateGoSpy).toHaveBeenCalledWith('createUser');
     });
   });
+
+  it('renders an "Invite User" button when the multi-tenant feature flag is set', function () {
+    const component = getShallowComponent({ tenantMode: 'multi-tenant' });
+    const inviteBtn = component.find('#invite-user');
+    expect(inviteBtn).toExist();
+    expect(inviteBtn.text()).toBe('Invite User');
+  });
 });

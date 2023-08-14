@@ -266,6 +266,7 @@ public abstract class AbstractMtiqFunctionalTest
       TokenHolder mockAuth0TokenHolder = Mockito.mock(TokenHolder.class);
       TokenRequest mockAuth0TokenRequest = Mockito.mock(TokenRequest.class);
       Mockito.when(mockAuth0TokenHolder.getAccessToken()).thenReturn("");
+      Mockito.when(mockAuth0TokenHolder.getExpiresAt()).thenReturn(new Date(Long.MAX_VALUE));
       Mockito.when(mockAuth0TokenRequest.execute()).thenReturn(mockAuth0TokenHolder);
       Mockito.when(auth0AuthAPI.requestToken(Mockito.anyString())).thenReturn(mockAuth0TokenRequest);
 

@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.mtiq.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -14,6 +15,11 @@ import com.codeborne.selenide.SelenideElement;
 public class MtiqUserManagementPage
     extends UserManagementPage
 {
+  @Override
+  public Button newUserButton() {
+    return new Button("#invite-user");
+  }
+
   @Override
   public ElementsCollection userItems() {
     return children(".nx-list__item");

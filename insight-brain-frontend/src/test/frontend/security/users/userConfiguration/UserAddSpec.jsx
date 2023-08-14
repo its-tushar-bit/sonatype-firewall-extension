@@ -122,6 +122,33 @@ describe('UserAdd', () => {
       });
     });
 
+    it('renders all inputs', function () {
+      const component = getShallowComponent({ tenantMode: 'single-tenant' });
+      const renderedInputs = component.find('.nx-text-input');
+      expect(renderedInputs.length).toBe(6);
+    });
+
+    describe('when the multi-tenant feature flag is set', function () {
+      it('only renders the necessary inputs', function () {
+        const component = getShallowComponent({ tenantMode: 'multi-tenant' });
+        const renderedInputs = component.find('.nx-text-input'),
+          usernameInput = component.find('#username'),
+          passwordInput = component.find('#password'),
+          passwordMatchInput = component.find('#passwordValidate');
+
+        expect(renderedInputs.length).toBe(3);
+        expect(usernameInput).not.toExist();
+        expect(passwordInput).not.toExist();
+        expect(passwordMatchInput).not.toExist();
+      });
+
+      it('renders "Invite User" as its title', function () {
+        const component = getShallowComponent({ tenantMode: 'multi-tenant' });
+        const title = component.find('#user-title').text();
+        expect(title).toBe('Invite User');
+      });
+    });
+
     describe('firstName text input onChange handler', () => {
       it('calls setFirstName action', () => {
         const component = getShallowComponent();

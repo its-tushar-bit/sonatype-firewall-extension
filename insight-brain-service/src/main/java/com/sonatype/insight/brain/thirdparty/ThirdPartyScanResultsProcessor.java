@@ -242,7 +242,14 @@ public class ThirdPartyScanResultsProcessor
   private void addElementAttributes(XmlPullParser parser, XMLEventWriter writer) throws XMLStreamException {
     Map<String, String> attributes = Xpp3Util.loadAttributes(parser);
     for (Map.Entry<String, String> attribute : attributes.entrySet()) {
-      writer.add(EVENT_FACTORY.createAttribute(attribute.getKey(), attribute.getValue()));
+      // the SPDX content is converted to CycloneDx during content handling and filtering,
+      // so the contentType attribute has to be set to SBOM in this case
+      if (attribute.getKey().equals("contentType") && attribute.getValue().equals(ItemContentType.SPDX.name())) {
+        writer.add(EVENT_FACTORY.createAttribute(attribute.getKey(), ItemContentType.SBOM.name()));
+      }
+      else {
+        writer.add(EVENT_FACTORY.createAttribute(attribute.getKey(), attribute.getValue()));
+      }
     }
   }
 

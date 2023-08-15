@@ -71,7 +71,7 @@ public class SpdxResultHandlerTest
   public LogOutput logOutputUtils = new LogOutput(ThirdPartyUtils.class.getName());
 
   @Test
-  public void testHandleAndFilterContents_Purl_Then_Coordinates_Then_Sha1() throws Exception {
+  public void testHandleAndFilterContents_Purl_Then_Sha1_Then_Coordinates() throws Exception {
     String sbomContent = getSbomXmlFile("purl-hashes-coordinates.xml");
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("spdx.xml", null, null, null, sbomContent);
@@ -84,6 +84,7 @@ public class SpdxResultHandlerTest
         .containsExactlyInAnyOrder("iq_application_SCM Test 1", "log4j-core", "log4j-api", "joda-time");
     assertThat(components).extracting(Component::getVersion)
         .containsExactlyInAnyOrder("76b10b862e7b42009f2415097620928c", "2.13.2", "2.13.2", null);
+    // 3 purls were collected: 2 original purls, 1 from coordinates, 1 not collected (hash beats coordinates)
     assertThat(components).extracting(Component::getPurl)
         .containsExactlyInAnyOrder(
             "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c",
@@ -92,6 +93,7 @@ public class SpdxResultHandlerTest
             null);
     assertThat(components).extracting("properties.size")
         .containsOnly(null, null, null, 1);
+    // 1 component hash was collected
     assertThat(components.get(3).getProperties())
         .flatExtracting(Property::getValue)
         .contains("9188560f22e0b73070d2");

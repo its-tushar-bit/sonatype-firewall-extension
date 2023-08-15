@@ -481,33 +481,37 @@ public class SpdxResultHandler
     return Pair.of(componentIdentifier, component);
   }
 
+  /**
+   * Collect the component hash (SHA1) and coordinates, if possible. The hash has priority, if exists.
+   */
   private Pair<ComponentIdentifier, Component> processComponentFromHashOrCoordinates(
       final SpdxPackage spdxPackage,
       final String rootPackageId)
       throws InvalidSPDXAnalysisException, MalformedPackageURLException
   {
+    boolean isRootPackage = spdxPackage.getId().equals(rootPackageId);
+
+    // The hash has priority over coordinates
+    Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
+    if (sha1Optional.isPresent()) {
+      Component component = new Component();
+      component.setType(isRootPackage ? Type.APPLICATION : Type.LIBRARY);
+      component.setBomRef(spdxPackage.getId());
+      spdxPackage.getName().ifPresent(component::setName);
+      setHash(sha1Optional.get(), component);
+      return Pair.of(null, component);
+    }
+
+    // try using the SPDX package name and version
     String name = spdxPackage.getName().orElse(MISSING_COMPONENT_NAME);
     String version = spdxPackage.getVersionInfo().orElse("");
-    boolean isRootPackage = spdxPackage.getId().equals(rootPackageId);
     if (StringUtils.isNotBlank(version)) {
       PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(
           getPackageUrlFromCoordinates(name, version, isRootPackage));
       return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, true);
     }
     else {
-      // This scenario is only possible when only the hash is sent without coordinates or purl
-      Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
-      if (sha1Optional.isPresent()) {
-        Component component = new Component();
-        component.setType(isRootPackage ? Type.APPLICATION : Type.LIBRARY);
-        component.setBomRef(spdxPackage.getId());
-        spdxPackage.getName().ifPresent(component::setName);
-        setHash(sha1Optional.get(), component);
-        return Pair.of(null, component);
-      }
-      else {
-        log.debug("Component with invalid information, name {} and version {}", name, version);
-      }
+      log.debug("Component with invalid information, name {}", name);
     }
     return null;
   }

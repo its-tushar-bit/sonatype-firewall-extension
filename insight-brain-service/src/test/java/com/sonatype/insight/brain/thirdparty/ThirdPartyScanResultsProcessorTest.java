@@ -120,7 +120,7 @@ public class ThirdPartyScanResultsProcessorTest
 
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SPDX));
-    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SPDX, true, 2);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SPDX, true, 6);
   }
 
   @Test
@@ -418,6 +418,12 @@ public class ThirdPartyScanResultsProcessorTest
               assertThat(contentElement.getValue()).isNotNull();
               if (ItemContentType.CLAIR_SCANNER == itemContentType) {
                 assertFilteredClairScanContentFile(contentElement.getValue(), contentType, expectedComponentCount);
+              }
+              // the SPDX content is converted to CycloneDx during content handling and filtering,
+              // so the contentType for the filtered content is SBOM not SPDX
+              else if (ItemContentType.SPDX == itemContentType) {
+                assertFilteredScanContentFile(contentElement.getValue(), contentType, optionalValuesPresent,
+                    expectedComponentCount, ItemContentType.SBOM);
               }
               else if (ItemContentType.SBOM == itemContentType) {
                 assertFilteredScanContentFile(contentElement.getValue(), contentType, optionalValuesPresent,

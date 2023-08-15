@@ -18,7 +18,7 @@
         {
           "comment": "source: NVD",
           "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45105",
+          "referenceLocator": "https://nvd.nist.gov/vuln/detail/CVE-2021-45105",
           "referenceType": "advisory"
         },
         {
@@ -39,15 +39,9 @@
           "referenceType": "advisory"
         },
         {
-          "comment": "source: NVD",
+          "comment": "source: OSV",
           "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44832",
-          "referenceType": "advisory"
-        },
-        {
-          "comment": "source: NVD",
-          "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228",
+          "referenceLocator": "https://osv.dev/vulnerability/GHSA-5469-c5p2-xv5g",
           "referenceType": "advisory"
         }
       ],
@@ -131,48 +125,6 @@
       "SPDXID": "SPDXRef-maven-org.yaml-snakeyaml-1.29",
       "downloadLocation": "NOASSERTION",
       "externalRefs": [
-        {
-          "comment": "source: NVD",
-          "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38751",
-          "referenceType": "advisory"
-        },
-        {
-          "comment": "source: NVD",
-          "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38750",
-          "referenceType": "advisory"
-        },
-        {
-          "comment": "source: NVD",
-          "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-41854",
-          "referenceType": "advisory"
-        },
-        {
-          "comment": "source: NVD",
-          "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38752",
-          "referenceType": "advisory"
-        },
-        {
-          "comment": "source: NVD",
-          "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-1471",
-          "referenceType": "advisory"
-        },
-        {
-          "comment": "source: NVD",
-          "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38749",
-          "referenceType": "advisory"
-        },
-        {
-          "comment": "source: NVD",
-          "referenceCategory": "SECURITY",
-          "referenceLocator": "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25857",
-          "referenceType": "advisory"
-        },
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceLocator": "pkg:maven/org.yaml/snakeyaml@1.29?type=jar",

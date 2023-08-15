@@ -16,15 +16,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
@@ -79,10 +82,6 @@ public class SpdxResultHandler
 {
   private static final Logger log = LoggerFactory.getLogger(SpdxResultHandler.class);
 
-  private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
-
-  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
-
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(
       final ThirdPartyScanContent content,
@@ -123,7 +122,6 @@ public class SpdxResultHandler
       Map<String, String> componentRefs = new HashMap<>();
       processComponents(
           spdxDocument, targetBom, componentRefs, rootPackageId, identificationSource, thirdPartyFile, tx);
-      // processVulnerabilities(spdxDocument, targetBom, componentRefs, tx);
       tx.commit();
     }
     processDependencyGraph(spdxDocument, targetBom, moduleDependencies, thirdPartyFile);
@@ -220,8 +218,83 @@ public class SpdxResultHandler
     fileCoordinate.setPackageUrl(component.getPurl());
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
+    saveVulnerabilities(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
 
     return fileCoordinate.getId();
+  }
+
+  private void saveVulnerabilities(
+      final SpdxPackage spdxPackage,
+      final String fileCoordinateId,
+      final String packageUrl,
+      final TransactionContext tx)
+      throws InvalidSPDXAnalysisException
+  {
+    Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
+    Set<String> processedVulnerabilityIds = new HashSet<>();
+    for (ExternalRef externalRef : externalRefs) {
+      if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
+        ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerability(externalRef, fileCoordinateId);
+        if (coordinateSecurity != null) {
+          if (processedVulnerabilityIds.add(coordinateSecurity.getRefId())) {
+            thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+          }
+          else {
+            log.debug("Component with packageUrl {} has duplicate vulnerability with ID {}", packageUrl,
+                coordinateSecurity.getRefId());
+          }
+        }
+      }
+    }
+  }
+
+  private static final Pattern CVE_LINK_PATTERN =
+      Pattern.compile("https?://cve.mitre.org/cgi-bin/cvename.cgi\\?name=([^=]+)");
+
+  private static final Pattern NVD_LINK_PATTERN = Pattern.compile("https?://nvd.nist.gov/vuln/detail/([^/]+)");
+
+  private static final Pattern OSV_LINK_PATTERN = Pattern.compile("https?://osv.dev/vulnerability/([^/]+)");
+
+  private static final Pattern SONATYPE_LINK_PATTERN = Pattern.compile("https?://.+/vln/(sonatype-[0-9-]+)");
+
+  private ThirdPartyCoordinateSecurity parseVulnerability(
+      final ExternalRef externalRef,
+      final String fileCoordinateId)
+      throws InvalidSPDXAnalysisException
+  {
+    String link = externalRef.getReferenceLocator();
+    if (StringUtils.isBlank(link)) {
+      return null;
+    }
+    Matcher matcher = CVE_LINK_PATTERN.matcher(link);
+    if (matcher.matches()) {
+      return createThirdPartyCoordinateSecurity(fileCoordinateId, matcher.group(1), link, "NVD");
+    }
+    matcher = NVD_LINK_PATTERN.matcher(link);
+    if (matcher.matches()) {
+      return createThirdPartyCoordinateSecurity(fileCoordinateId, matcher.group(1), link, "NVD");
+    }
+    matcher = OSV_LINK_PATTERN.matcher(link);
+    if (matcher.matches()) {
+      return createThirdPartyCoordinateSecurity(fileCoordinateId, matcher.group(1), link, "OSV");
+    }
+    matcher = SONATYPE_LINK_PATTERN.matcher(link);
+    if (matcher.matches()) {
+      return createThirdPartyCoordinateSecurity(fileCoordinateId, matcher.group(1), link, "SONATYPE");
+    }
+    return null;
+  }
+
+  private ThirdPartyCoordinateSecurity createThirdPartyCoordinateSecurity(
+      final String fileCoordinateId,
+      final String refId,
+      final String link,
+      final String source)
+  {
+    ThirdPartyCoordinateSecurity coordinateSecurity =
+        new ThirdPartyCoordinateSecurity(fileCoordinateId, refId, null, link, 0.0f, null);
+    coordinateSecurity.setVulnerabilitySource(source);
+    return coordinateSecurity;
   }
 
   private void saveLicenses(
@@ -244,8 +317,10 @@ public class SpdxResultHandler
       else {
         Map<String, String> processedLicenses = new HashMap<>();
         parseLicenses(license, processedLicenses, packageUrl);
-        for (String licenseId : processedLicenses.keySet()) {
-          saveLicense(licenseId, processedLicenses.get(licenseId), null, fileCoordinateId, tx);
+        for (Entry<String, String> licenseEntry : processedLicenses.entrySet()) {
+          ThirdPartyCoordinateLicense coordinateLicense =
+              new ThirdPartyCoordinateLicense(fileCoordinateId, licenseEntry.getKey(), licenseEntry.getValue(), null);
+          thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
         }
       }
     }

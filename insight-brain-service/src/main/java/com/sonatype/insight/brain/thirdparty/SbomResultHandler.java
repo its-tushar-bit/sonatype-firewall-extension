@@ -94,13 +94,14 @@ public class SbomResultHandler
 
   private static final String VULNERABILITY_KEY = "vulnerabilities";
 
-  private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
+  protected final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
 
-  private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
+  protected final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
 
-  private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = new ThirdPartyCoordinateSecurityDAO();
+  protected final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO =
+      new ThirdPartyCoordinateSecurityDAO();
 
-  private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
+  protected final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
 
   protected final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
@@ -679,7 +680,7 @@ public class SbomResultHandler
     return null;
   }
 
-  void saveLicense(
+  private void saveLicense(
       String licenseId,
       String licenseName,
       String licenseUrl,

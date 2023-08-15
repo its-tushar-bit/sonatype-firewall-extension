@@ -20,8 +20,10 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -56,6 +58,9 @@ public class SpdxResultHandlerTest
 
   @Spy
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
+
+  @Spy
+  private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
   private final String loggerName = SpdxResultHandler.class.getName();
 
@@ -221,6 +226,37 @@ public class SpdxResultHandlerTest
           "MPL-1.1",
           "LicenseRef-COMMERCIAL",
           "LicenseRef-PUBLIC-DOMAIN"
+      );
+    }
+  }
+
+  @Test
+  public void testHandleAndFilterContents_Json_Vulnerabilities() throws Exception {
+    String sbomContent = getSbomJsonFile("spdx-v2_3.json");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("spdx-v2_3.json", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    FilteredThirdPartyContent filteredContent =
+        spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String sbomXml = filteredContent.getContent();
+    Bom bom = assertFilteredSbomFile(sbomXml, 6);
+    assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/sonatype/iq_application_SCM_Test");
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(6);
+    List<String> coordinateIds = coordinates.stream().map(ThirdPartyFileCoordinate::getId).collect(Collectors.toList());
+
+    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
+      List<ThirdPartyCoordinateSecurity> allSecurityRecords = new ArrayList<>();
+      for (String coordinateId : coordinateIds) {
+        List<ThirdPartyCoordinateSecurity> securityRecords =
+            thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, coordinateId);
+        allSecurityRecords.addAll(securityRecords);
+      }
+      Set<String> refIdSet =
+          allSecurityRecords.stream().map(ThirdPartyCoordinateSecurity::getRefId).collect(Collectors.toSet());
+      assertThat(refIdSet).containsExactlyInAnyOrder(
+          "CVE-2021-45046", "CVE-2021-45105", "CVE-2020-15250", "sonatype-2021-4560", "GHSA-5469-c5p2-xv5g"
       );
     }
   }

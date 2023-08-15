@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
@@ -100,7 +102,7 @@ public final class ThirdPartyUtils
 
     validateSpdxVersion(sbomFormat, spdxDocument);
 
-    List<String> verificationErrors = spdxDocument.verify();
+    List<String> verificationErrors = filerOutDeprecationWarnings(spdxDocument.verify());
 
     if (!verificationErrors.isEmpty()) {
       InvalidSbomException invalidSbomException = new InvalidSbomException("The sbom is not valid.");
@@ -112,6 +114,15 @@ public final class ThirdPartyUtils
       throw invalidSbomException;
     }
     return spdxDocument;
+  }
+
+  private static final Pattern DEPRECATION_PATTERN =
+      Pattern.compile(".*Relationship error: [^\\s]+ is deprecated\\..*");
+
+  private static List<String> filerOutDeprecationWarnings(final List<String> verificationErrors) {
+    return verificationErrors.stream()
+        .filter(s -> !DEPRECATION_PATTERN.matcher(s).matches())
+        .collect(Collectors.toList());
   }
 
   public static Version getSchemaVersion(final String versionBom) {

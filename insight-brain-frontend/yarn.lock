@@ -1035,17 +1035,12 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-0.2.36.tgz"
   integrity sha512-a/7BiSgobHAgBWeN7N0w+lAhInrGxksn13uK7231n2m8EDPE3BMCl9NZLTGrj9ZXfCmC6LM0QLqXidIizVQ6yg==
 
-"@fortawesome/fontawesome-common-types@^0.3.0":
-  version "0.3.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-0.3.0.tgz#949995a05c0d8801be7e0a594f775f1dbaa0d893"
-  integrity sha512-CA3MAZBTxVsF6SkfkHXDerkhcQs0QPofy43eFdbWJJkZiq3SfiaH1msOkac59rQaqto5EqWnASboY1dBuKen5w==
-
-"@fortawesome/fontawesome-svg-core@^1.2.32":
-  version "1.3.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-svg-core/-/fontawesome-svg-core-1.3.0.tgz#343fac91fa87daa630d26420bfedfba560f85885"
-  integrity sha512-UIL6crBWhjTNQcONt96ExjUnKt1D68foe3xjEensLDclqQ6YagwCRYVQdrp/hW0ALRp/5Fv/VKw+MqTUWYYvPg==
+"@fortawesome/fontawesome-svg-core@1.2.36":
+  version "1.2.36"
+  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-svg-core/-/fontawesome-svg-core-1.2.36.tgz#4f2ea6f778298e0c47c6524ce2e7fd58eb6930e3"
+  integrity sha512-YUcsLQKYb6DmaJjIHdDWpBIGCcyE/W+p/LMGvjQem55Mm2XWVAP5kWTMKWLv9lwpCVjpLxPyOMOyUocP1GxrtA==
   dependencies:
-    "@fortawesome/fontawesome-common-types" "^0.3.0"
+    "@fortawesome/fontawesome-common-types" "^0.2.36"
 
 "@fortawesome/free-brands-svg-icons@^5.11.2":
   version "5.15.4"
@@ -1216,7 +1211,7 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/latest/-/latest-1.0.3.tgz#c2d1d0b0af8b69ec6e2b3a2412ba0768ac82db80"
   integrity sha512-dy6duzl+JnAZcDbNTfmaP3xHiKtbXYOaz3G51MGVljh548Y8MWzTr+PHLOfvpypEVW9zwvl+VyKjbWKEVbV1Rg==
 
-"@react-hook/merged-ref@^1.3.0":
+"@react-hook/merged-ref@^1.3.2":
   version "1.3.2"
   resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/merged-ref/-/merged-ref-1.3.2.tgz#919b387a5f79ed67f2578f2015ab7b7d337787d2"
   integrity sha512-cQ9Y8m4zlrw/qotReo33E+3Sy9FVqMZb5JwUlb3wj3IJJ1cNJtxcgfWF6rS2NZQrfBJ2nAnckUdPJjMyIJTNZg==
@@ -1225,17 +1220,6 @@
   version "1.2.1"
   resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/passive-layout-effect/-/passive-layout-effect-1.2.1.tgz#c06dac2d011f36d61259aa1c6df4f0d5e28bc55e"
   integrity sha512-IwEphTD75liO8g+6taS+4oqz+nnroocNfWVHWz7j+N+ZO2vYrc6PV1q7GQhuahL0IOR7JccFTsFKQ/mb6iZWAg==
-
-"@react-hook/resize-observer@^1.2.5":
-  version "1.2.5"
-  resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/resize-observer/-/resize-observer-1.2.5.tgz#b59e2300de98bc6ddc6946942f21243cde10f984"
-  integrity sha512-qa0pPvRxq5VbdI8mMK2apPFsZOckhQ6D3Jc9yLuyHMNhui8yEih4qyFCZBDzzK3ymZS6LAltVSVg3l1Dg9vA0w==
-  dependencies:
-    "@juggle/resize-observer" "^3.3.1"
-    "@react-hook/latest" "^1.0.2"
-    "@react-hook/passive-layout-effect" "^1.2.0"
-    "@types/raf-schd" "^4.0.0"
-    raf-schd "^4.0.2"
 
 "@react-hook/resize-observer@^1.2.6":
   version "1.2.6"
@@ -1263,7 +1247,7 @@
     redux-thunk "^2.3.0"
     reselect "^4.0.0"
 
-"@rooks/use-mutation-observer@^4.11.0":
+"@rooks/use-mutation-observer@^4.11.2":
   version "4.11.2"
   resolved "https://repo.sonatype.com/repository/npm-all/@rooks/use-mutation-observer/-/use-mutation-observer-4.11.2.tgz#a0466c4338e0a4487ea19253c86bcd427c29f4af"
   integrity sha512-vpsdrZdr6TkB1zZJcHx+fR1YC/pHs2BaqcuYiEGjBVbwY5xcC49+h0hAUtQKHth3oJqXfIX/Ng8S7s5HFHdM/A==
@@ -1288,29 +1272,29 @@
     in-publish "^2.0.0"
     prop-types "^15.5.10"
 
-"@sonatype/react-shared-components@12.9.0":
-  version "12.9.0"
-  resolved "https://registry.npmjs.org/@sonatype/react-shared-components/-/react-shared-components-12.9.0.tgz#0bdd90923ccc822bcc08b630602337e8864ad1b5"
-  integrity sha512-w7hOryqYmgclgVDzoRs+cR+B1EcWQpc/znRhrplj8BPnKZkuoDXpgZC+f2S6UGNvWEzlMsDXCgF+2JNMN18xog==
+"@sonatype/react-shared-components@12.16.7":
+  version "12.16.7"
+  resolved "https://registry.npmjs.org/@sonatype/react-shared-components/-/react-shared-components-12.16.7.tgz#cd06072bd92c306dcba4ebad454f705ab40a48fd"
+  integrity sha512-OEC0nyvaOHEfn1A2E5e+ZFKXpsBMaCFVmhVbV44OMVRLiPO6cC5BKfSsGdyWBH3YcN1lhqgVQ9IC5cXYl3UPyA==
   dependencies:
-    "@fortawesome/fontawesome-svg-core" "^1.2.32"
+    "@fortawesome/fontawesome-svg-core" "1.2.36"
     "@fortawesome/free-regular-svg-icons" "^5.15.4"
     "@fortawesome/free-solid-svg-icons" "^5.15.4"
     "@fortawesome/react-fontawesome" "^0.1.18"
     "@material-ui/core" "^4.11.2"
-    "@react-hook/merged-ref" "^1.3.0"
-    "@react-hook/resize-observer" "^1.2.5"
+    "@react-hook/merged-ref" "^1.3.2"
+    "@react-hook/resize-observer" "^1.2.6"
     "@react-hook/throttle" "^2.2.0"
-    "@rooks/use-mutation-observer" "^4.11.0"
+    "@rooks/use-mutation-observer" "^4.11.2"
     "@sonatype/react-commonmark" "^3.0.1"
-    "@types/classnames" "^2.2.11"
-    "@types/prop-types" "^15.7.3"
-    "@types/ramda" "^0.27.64"
-    classnames "^2.2.6"
-    fuse.js "^6.4.6"
-    pretty-bytes "^6.0.0"
-    prop-types "^15.7.2"
-    ramda "^0.28.0"
+    "@types/classnames" "^2.3.1"
+    "@types/prop-types" "^15.7.5"
+    "@types/ramda" "^0.29.1"
+    classnames "^2.3.2"
+    fuse.js "^6.6.2"
+    pretty-bytes "^6.1.0"
+    prop-types "^15.8.1"
+    ramda "^0.29.0"
 
 "@sonatype/version-graph@^1.0.2":
   version "1.0.2"
@@ -1376,7 +1360,7 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@types/aria-query/-/aria-query-4.2.2.tgz#ed4e0ad92306a704f9fb132a0cfcf77486dbe2bc"
   integrity sha512-HnYpAE1Y6kRyKM/XkEuiRQhTHvkzMBurTHnpFLYLBGPIylZNPs9jJcuOOYWxPLJCSEtmZT0Y8rHDokKN7rRTig==
 
-"@types/classnames@^2.2.11":
+"@types/classnames@^2.3.1":
   version "2.3.1"
   resolved "https://repo.sonatype.com/repository/npm-all/@types/classnames/-/classnames-2.3.1.tgz#3c2467aa0f1a93f1f021e3b9bcf938bd5dfdc0dd"
   integrity sha512-zeOWb0JGBoVmlQoznvqXbE0tEC/HONsnoUNH19Hc96NFsTAwTXbTqb8FMYkru1F/iqp7a18Ws3nWJvtA1sHD1A==
@@ -1721,22 +1705,17 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@types/parse-json/-/parse-json-4.0.0.tgz"
   integrity sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==
 
-"@types/prop-types@*", "@types/prop-types@^15.7.3":
+"@types/prop-types@*", "@types/prop-types@^15.7.5":
   version "15.7.5"
   resolved "https://repo.sonatype.com/repository/npm-all/@types/prop-types/-/prop-types-15.7.5.tgz#5f19d2b85a98e9558036f6a3cacc8819420f05cf"
   integrity sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==
 
-"@types/raf-schd@^4.0.0":
-  version "4.0.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/@types/raf-schd/-/raf-schd-4.0.1.tgz#1f9e03736f277fe9c7b82102bf18570a6ee19f82"
-  integrity sha512-Ha+EnKHFIh9EKW0/XZJPUd3EGDFisEvauaBd4VVCRPKeOqUxNEc9TodiY2Zhk33XCgzJucoFEcaoNcBAPHTQ2A==
-
-"@types/ramda@^0.27.64":
-  version "0.27.66"
-  resolved "https://repo.sonatype.com/repository/npm-all/@types/ramda/-/ramda-0.27.66.tgz#f1a23d13b0087d806a62e3ff941e5e59b3318999"
-  integrity sha512-i2YW+E2U6NfMt3dp0RxNcejox+bxJUNDjB7BpYuRuoHIzv5juPHkJkNgcUOu+YSQEmaWu8cnAo/8r63C0NnuVA==
+"@types/ramda@^0.29.1":
+  version "0.29.3"
+  resolved "https://repo.sonatype.com/repository/npm-all/@types/ramda/-/ramda-0.29.3.tgz#6e4d4066df900a3456cf402bcef9b78b6990a754"
+  integrity sha512-Yh/RHkjN0ru6LVhSQtTkCRo6HXkfL9trot/2elzM/yXLJmbLm2v6kJc8yftTnwv1zvUob6TEtqI2cYjdqG3U0Q==
   dependencies:
-    ts-toolbelt "^6.15.1"
+    types-ramda "^0.29.4"
 
 "@types/react-redux@^7.1.20":
   version "7.1.24"
@@ -2830,6 +2809,11 @@ classnames@^2.2.6:
   version "2.2.6"
   resolved "https://repo.sonatype.com/repository/npm-all/classnames/-/classnames-2.2.6.tgz"
   integrity sha512-JR/iSQOSt+LQIWwrwEzJ9uk0xfN3mTVYMwt1Ir5mUcSN6pU+V4zQFFaJsclJbPuAUQH+yfWef6tm7l1quW3C8Q==
+
+classnames@^2.3.2:
+  version "2.3.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/classnames/-/classnames-2.3.2.tgz#351d813bf0137fcc6a76a16b88208d2560a0d924"
+  integrity sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==
 
 classybrew@^0.0.3:
   version "0.0.3"
@@ -4655,7 +4639,7 @@ fuse.js@^6.4.0:
   resolved "https://repo.sonatype.com/repository/npm-all/fuse.js/-/fuse.js-6.4.6.tgz"
   integrity sha512-/gYxR/0VpXmWSfZOIPS3rWwU8SHgsRTwWuXhyb2O6s7aRuVtHtxCkR33bNYu3wyLyNx/Wpv0vU7FZy8Vj53VNw==
 
-fuse.js@^6.4.6:
+fuse.js@^6.6.2:
   version "6.6.2"
   resolved "https://repo.sonatype.com/repository/npm-all/fuse.js/-/fuse.js-6.6.2.tgz#fe463fed4b98c0226ac3da2856a415576dc9a111"
   integrity sha512-cJaJkxCCxC8qIIcPBF9yGxY0W/tVZS3uEISDxhYIdtk8OL93pe+6Zj7LjCqVV4dzbqcriOZ+kQ/NE4RXZHsIGA==
@@ -7183,10 +7167,10 @@ prettier@^2.2.1:
   resolved "https://repo.sonatype.com/repository/npm-all/prettier/-/prettier-2.2.1.tgz"
   integrity sha512-PqyhM2yCjg/oKkFPtTGUojv7gnZAoG80ttl45O6x2Ug/rMJw4wcc9k6aaf2hibP7BGVCCM33gZoGjyvt9mm16Q==
 
-pretty-bytes@^6.0.0:
-  version "6.0.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/pretty-bytes/-/pretty-bytes-6.0.0.tgz#928be2ad1f51a2e336add8ba764739f9776a8140"
-  integrity sha512-6UqkYefdogmzqAZWzJ7laYeJnaXDy2/J+ZqiiMtS7t7OfpXWTlaeGMwX8U6EFvPV/YWWEKRkS8hKS4k60WHTOg==
+pretty-bytes@^6.1.0:
+  version "6.1.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/pretty-bytes/-/pretty-bytes-6.1.1.tgz#38cd6bb46f47afbf667c202cfc754bffd2016a3b"
+  integrity sha512-mQUvGU6aUFQ+rNvTIAcZuWGRT9a6f6Yrg9bHs4ImKF+HZCEK+plBvnAZYSIQztknZF2qnzNtr6F8s0+IuptdlQ==
 
 pretty-format@^27.0.2:
   version "27.2.4"
@@ -7329,11 +7313,6 @@ quick-lru@^4.0.1:
   resolved "https://repo.sonatype.com/repository/npm-all/quick-lru/-/quick-lru-4.0.1.tgz"
   integrity sha512-ARhCpm70fzdcvNQfPoy49IaanKkTlRWF2JMzqhcJbhSFRZv7nPTvZJdcY7301IPmvW+/p0RgIWnQDLJxifsQ7g==
 
-raf-schd@^4.0.2:
-  version "4.0.3"
-  resolved "https://repo.sonatype.com/repository/npm-all/raf-schd/-/raf-schd-4.0.3.tgz#5d6c34ef46f8b2a0e880a8fcdb743efc5bfdbc1a"
-  integrity sha512-tQkJl2GRWh83ui2DiPTJz9wEiMN20syf+5oKfB03yYP7ioZcJwsIK8FjrtLwH1m7C7e+Tt2yYBlrOpdT+dyeIQ==
-
 raf@^3.4.1:
   version "3.4.1"
   resolved "https://repo.sonatype.com/repository/npm-all/raf/-/raf-3.4.1.tgz"
@@ -7351,10 +7330,10 @@ ramda@^0.27.2:
   resolved "https://repo.sonatype.com/repository/npm-all/ramda/-/ramda-0.27.2.tgz#84463226f7f36dc33592f6f4ed6374c48306c3f1"
   integrity sha512-SbiLPU40JuJniHexQSAgad32hfwd+DRUdwF2PlVuI5RZD0/vahUco7R8vD86J/tcEKKF9vZrUVwgtmGCqlCKyA==
 
-ramda@^0.28.0:
-  version "0.28.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/ramda/-/ramda-0.28.0.tgz#acd785690100337e8b063cab3470019be427cc97"
-  integrity sha512-9QnLuG/kPVgWvMQ4aODhsBUFKOUmnbUnsSXACv+NCQZcHbeb+v8Lodp8OVxtRULN1/xOyYLLaL6npE6dMq5QTA==
+ramda@^0.29.0:
+  version "0.29.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/ramda/-/ramda-0.29.0.tgz#fbbb67a740a754c8a4cbb41e2a6e0eb8507f55fb"
+  integrity sha512-BBea6L67bYLtdbOqfp8f58fPMqEwx0doL+pAi8TZyp2YWz8R9G8z9x75CZI8W+ftqhFHCpEX2cRnUUXK130iKA==
 
 randexp@0.4.6:
   version "0.4.6"
@@ -8807,10 +8786,10 @@ trough@^1.0.0:
   resolved "https://repo.sonatype.com/repository/npm-all/trough/-/trough-1.0.5.tgz"
   integrity sha512-rvuRbTarPXmMb79SmzEp8aqXNKcK+y0XaB298IXueQ8I2PsrATcPBCSPyK/dDNa2iWOhKlfNnOjdAOTBU/nkFA==
 
-ts-toolbelt@^6.15.1:
-  version "6.15.5"
-  resolved "https://repo.sonatype.com/repository/npm-all/ts-toolbelt/-/ts-toolbelt-6.15.5.tgz#cb3b43ed725cb63644782c64fbcad7d8f28c0a83"
-  integrity sha512-FZIXf1ksVyLcfr7M317jbB67XFJhOO1YqdTcuGaq9q5jLUoTikukZ+98TPjKiP2jC5CgmYdWWYs0s2nLSU0/1A==
+ts-toolbelt@^9.6.0:
+  version "9.6.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/ts-toolbelt/-/ts-toolbelt-9.6.0.tgz#50a25426cfed500d4a09bd1b3afb6f28879edfd5"
+  integrity sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==
 
 tslib@^1.9.0:
   version "1.14.1"
@@ -8878,6 +8857,13 @@ typedarray-to-buffer@^3.1.5:
   integrity sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==
   dependencies:
     is-typedarray "^1.0.0"
+
+types-ramda@^0.29.4:
+  version "0.29.4"
+  resolved "https://repo.sonatype.com/repository/npm-all/types-ramda/-/types-ramda-0.29.4.tgz#8d9b51df2e550a05cedab541cc75dcd72972c625"
+  integrity sha512-XO/820iRsCDwqLjE8XE+b57cVGPyk1h+U9lBGpDWvbEky+NQChvHVwaKM05WnW1c5z3EVQh8NhXFmh2E/1YazQ==
+  dependencies:
+    ts-toolbelt "^9.6.0"
 
 typesettable@4.1.0:
   version "4.1.0"

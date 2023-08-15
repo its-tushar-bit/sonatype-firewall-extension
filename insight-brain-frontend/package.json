@@ -29,7 +29,7 @@
     "@react-hook/resize-observer": "^1.2.6",
     "@reduxjs/toolkit": "^1.5.1",
     "@sonatype/react-commonmark": "^3.0.1",
-    "@sonatype/react-shared-components": "12.9.0",
+    "@sonatype/react-shared-components": "12.16.7",
     "@sonatype/version-graph": "^1.0.2",
     "@uirouter/angularjs": "^1.0.5",
     "angular": "~1.6.10",

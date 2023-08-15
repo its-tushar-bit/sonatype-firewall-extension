@@ -57,8 +57,8 @@ function FirewallRepositoryList({
     }
   }, [repositories]);
 
-  const handleSelectAll = ({ target }) => {
-    onChange(supportedItems.map(({ id }) => ({ id, key: checkItemPropName, value: target.checked })));
+  const handleSelectAll = (value) => {
+    onChange(supportedItems.map(({ id }) => ({ id, key: checkItemPropName, value })));
   };
 
   const handleSelectItem = (item) => {
@@ -107,18 +107,14 @@ function FirewallRepositoryList({
 
     return (
       <NxTable.Row key={index}>
-        <NxTable.Cell
-          className={
-            isAllItemsSameFormat ? 'firewall-repository-list__item-check' : 'firewall-repository-list__item-check-large'
-          }
-        >
+        <NxTable.Cell>
           <NxCheckbox
             name={repo[labelItemPropName]}
             aria-label={ariaLabel}
             isChecked={isChecked}
             onChange={() => handleSelectItem(repo)}
             disabled={!isSupportedFormat(repo.format)}
-          ></NxCheckbox>
+          />
         </NxTable.Cell>
         <NxTable.Cell className="firewall-repository-list__item-name">
           <NxOverflowTooltip>

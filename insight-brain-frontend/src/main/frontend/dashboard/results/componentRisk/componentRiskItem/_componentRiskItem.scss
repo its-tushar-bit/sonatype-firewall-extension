@@ -28,6 +28,7 @@ section.iq-component-risk-item-content {
     .nx-accordion__summary-wrapper {
       padding-left: 0;
       border-top: var(--nx-border-default);
+      outline-offset: 0;
     }
 
     .nx-accordion__content {

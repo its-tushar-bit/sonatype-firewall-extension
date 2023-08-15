@@ -35,10 +35,10 @@ owner-detail-sidebar {
       margin-left: 0;
     }
 
-    &:hover,
-    &:focus {
-      color: initial;
-      border: 1px solid var(--nx-swatch-indigo-90);
+    &:active,
+    &:focus,
+    &:focus:active {
+      color: inherit;
     }
   }
 
@@ -46,8 +46,8 @@ owner-detail-sidebar {
     width: calc(100% + var(--nx-spacing-2x));
     font-weight: 600;
     color: var(--nx-color-text-dark);
-    padding: calc(var(--nx-spacing-base) - 1px) calc(var(--nx-spacing-2x) - 1px) calc(var(--nx-spacing-base) - 1px)
-      calc(var(--nx-spacing-6x) + var(--nx-spacing-base));
+    padding: calc(var(--nx-spacing-base)) calc(var(--nx-spacing-2x)) calc(var(--nx-spacing-base))
+      calc(var(--nx-spacing-6x) + var(--nx-spacing-base) + 1px);
 
     &:not(:last-of-type) {
       margin-bottom: var(--nx-spacing-4x);
@@ -69,6 +69,11 @@ owner-detail-sidebar {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    // nx-collapsible-item__child added for specificity
+    &.nx-collapsible-items__child.selected {
+      background-color: var(--nx-color-site-background);
     }
   }
 

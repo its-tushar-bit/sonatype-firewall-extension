@@ -227,6 +227,9 @@ owner-side-nav.nx-viewport-sized__container {
     @include focusable;
     color: var(--nx-swatch-white);
     padding-right: var(--nx-spacing-4x);
+    padding-top: calc(var(--nx-spacing-base) - 1px);
+    padding-bottom: calc(var(--nx-spacing-base) - 1px);
+    padding-left: calc(var(--nx-spacing-2x) - 1px);
     border-radius: $sidebar-border-radius;
 
     &:hover {
@@ -243,6 +246,10 @@ owner-side-nav.nx-viewport-sized__container {
     color: var(--nx-swatch-white);
     font-size: var(--nx-font-size-s);
     align-items: first baseline;
+
+    padding-top: calc(var(--nx-spacing-base) - 1px);
+    padding-bottom: calc(var(--nx-spacing-base) - 1px);
+    padding-left: calc(var(--nx-spacing-2x) + var(--nx-spacing-6x) + var(--nx-spacing-3x) - 1px);
   }
 
   .iq-owner-name {

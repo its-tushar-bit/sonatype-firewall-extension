@@ -211,6 +211,7 @@
   Fix to properly show items in NxTransferList.
 */
 .nx-transfer-list__select {
+  line-height: var(--nx-line-height);
   margin: 0;
 }
 

@@ -68,20 +68,8 @@
 
       tbody {
         .nx-table-row {
-          .nx-cell.firewall-repository-list__item-check {
-            align-items: center;
-            display: flex;
-            min-height: var(--nx-spacing-6x);
-          }
-          .nx-cell.firewall-repository-list__item-check-large {
-            align-items: center;
-            display: flex;
-          }
-          .nx-cell.firewall-repository-list__item-name {
-            vertical-align: middle;
-          }
-          .nx-cell.firewall-repository-list__item-icon {
-            vertical-align: middle;
+          .nx-radio-checkbox {
+            display: inline-block;
           }
         }
       }

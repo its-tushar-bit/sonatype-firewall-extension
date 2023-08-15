@@ -156,6 +156,27 @@ public class PullRequestFeedbackDetailsTest
     assertRenderedOutput(contents, getClass(),"PullRequestFeedback_Added_noEmbeddedHtml.md");
   }
 
+  @Test
+  public void testPullRequestFeedback_addedOnly_noEmbeddedHtml_WithContext_Bitbucket() throws Exception {
+    //setup test data
+    setupTestData();
+
+    // override repository information to include webContext
+    bitbucketGitRepositoryInfo =
+        new GitRepositoryInfo("https://bitbucket.com/webContext/scm/sonatype/enhanced-commit-information", null,
+            "user", "token", SourceControlProvider.BITBUCKET, "master", true, true, true, true, false, null);
+
+    //when
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
+            lookup(DefaultBaseUrl.class).getConfigured());
+
+    //then assert that created contents match expected
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertRenderedOutput(contents, getClass(),"PullRequestFeedback_Added_noEmbeddedHtml_WithContext.md");
+  }
+
   private String readResource(String contentFile) throws Exception {
     return TemplateHelper.readResource(PullRequestFeedbackDetailsTest.class, contentFile);
   }

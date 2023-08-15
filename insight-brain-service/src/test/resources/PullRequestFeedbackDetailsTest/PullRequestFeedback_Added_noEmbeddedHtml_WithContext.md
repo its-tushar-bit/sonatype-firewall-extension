@@ -2,7 +2,7 @@
 
 &#8192;
 
-\[Direct\] **com.h2database : h2 : 1.4.190** - [line comment](/projects/sonatype/repos/enhanced-commit-information/pull-requests/10/overview?commentId=12345)
+\[Direct\] **com.h2database : h2 : 1.4.190** - [line comment](/webContext/projects/sonatype/repos/enhanced-commit-information/pull-requests/10/overview?commentId=12345)
 
 :shield: **Bumping to version 1.4.200** will resolve all policy violations for this component
   - Few breaking changes - This version upgrade may require moderate effort.

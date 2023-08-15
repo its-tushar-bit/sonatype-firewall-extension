@@ -337,7 +337,8 @@ public class PullRequestFeedbackDetails
           break;
         case BITBUCKET:
           projectUri = new BitbucketServerProjectUri(repositoryUrl);
-          linkUrl = "/bitbucket/projects/" + projectUri.getNamespace() + "/repos/" + projectUri.getProject() +
+          String context = StringUtils.isBlank(projectUri.getContext()) ? "" : "/" + projectUri.getContext();
+          linkUrl = context + "/projects/" + projectUri.getNamespace() + "/repos/" + projectUri.getProject() +
               "/pull-requests/" + prNumber + "/overview?commentId=" + scmId;
           break;
         default:

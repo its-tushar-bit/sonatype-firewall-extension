@@ -587,6 +587,72 @@ public class QuarantinedComponentServiceTest
   }
 
   @Test
+  public void testGetQuarantinedComponentOtherVersions_MatchAllCoordinates() {
+    // setup
+    Date date = new Date();
+    // Quarantined component
+    RepositoryComponent repositoryComponent =
+            tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+                    "com/lingocoder/abi.cli/0.5.1/abi.cli-0.5.1.jar", "hash", ComponentIdentifier
+                            .createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.1", null /* classifier */, "jar"),
+                    date, new DateTime(date).minusDays(1).toDate(), null);
+    // Never quarantined component
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.3-sources.jar", "hash",
+            ComponentIdentifier
+                    .createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.3", "source" /* classifier */, "jar"),
+            date, null);
+    QuarantinedComponentAccess quarantinedComponentAccess =
+            tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
+
+    String encodedToken = encodeToken(quarantinedComponentAccess);
+
+    // when
+    ApiPageResult<String> result =
+            quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5, true /* asc */);
+
+    // then
+    assertThat(result.getTotal()).isEqualTo(0);
+    assertThat(result.getPage()).isEqualTo(1);
+    assertThat(result.getPageSize()).isEqualTo(5);
+    assertThat(result.getPageCount()).isEqualTo(0);
+    assertThat(result.getResults()).isEmpty();
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+  }
+
+  @Test
+  public void testGetQuarantinedComponentOtherVersions_npm() {
+    //given
+    Date date = new Date();
+    // Quarantined component
+    RepositoryComponent repositoryComponent =
+            tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+                    "comp1/-/comp1-1.tgz", "hash1-1", ComponentIdentifier
+                            .createNpmCoordinates("comp1", "3"), true);
+    // Never quarantined component
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "comp1/-/comp1-2.tgz", "hash1-2", ComponentIdentifier
+                    .createNpmCoordinates("comp1", "2"), false);
+
+    QuarantinedComponentAccess quarantinedComponentAccess =
+            tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
+
+    String encodedToken = encodeToken(quarantinedComponentAccess);
+
+    // when
+    ApiPageResult<String> result =
+            quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5, true /* asc */);
+
+    // then
+    assertThat(result.getTotal()).isEqualTo(1);
+    assertThat(result.getPage()).isEqualTo(1);
+    assertThat(result.getPageSize()).isEqualTo(5);
+    assertThat(result.getPageCount()).isEqualTo(1);
+    assertThat(result.getResults()).containsExactly("comp1 : 2");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+  }
+
+  @Test
   public void testGetQuarantinedComponentOtherVersions_InvalidPage() {
     Date date = new Date();
     // Quarantined component

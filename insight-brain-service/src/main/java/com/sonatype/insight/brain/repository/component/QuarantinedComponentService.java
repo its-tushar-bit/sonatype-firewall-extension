@@ -224,7 +224,10 @@ public class QuarantinedComponentService
     int skipCount = (page - 1) * pageSize;
 
     List<RepositoryComponent> otherVersionComponents = repositoryComponentDAO
-        .getOtherVersionRepositoryComponentsByPathnameFilter(repositoryId, pathnamePrefix, pathname);
+        .getOtherVersionRepositoryComponentsByPathnameFilter(repositoryId, pathnamePrefix, pathname)
+          .stream()
+          .filter(component -> filterAllowedVersions(repositoryComponent.getComponentIdentifier(),
+                  component.getComponentIdentifier())).collect(Collectors.toList());
 
     Comparator<RepositoryComponent> comparator = Comparator.comparing(component -> new ComparableVersion(
         component.getComponentIdentifier().get(ComponentIdentifier.VERSION)));
@@ -240,6 +243,16 @@ public class QuarantinedComponentService
             .skip(skipCount).limit(pageSize).collect(Collectors.toList());
 
     return new ApiPageResult<>(otherVersionComponents.size(), page, pageSize, otherVersionComponentDisplayNames);
+  }
+
+  private boolean filterAllowedVersions(
+      ComponentIdentifier componentIdentifier,
+      ComponentIdentifier otherComponentIdentifier)
+  {
+    ComponentIdentifier otherAlternativeVersion = otherComponentIdentifier
+        .createAlternativeVersion(componentIdentifier.get(ComponentIdentifier.VERSION));
+
+    return componentIdentifier.equals(otherAlternativeVersion);
   }
 
   String getPathnamePrefix(String pathname) {

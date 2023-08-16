@@ -108,6 +108,18 @@ If you want to limit which tests run, you can change any `it` test function to `
 commands that may be issued to the test runner in order to manage filters. Be aware that Jest's test filtering appears
 to be somewhat unreliable – always double check that it actually ran what you wanted it to.
 
+Both suites of tests live within the `src/test/frontend` directory. Jest tests must be placed within files whose names
+end in ".jestspec.js" or ".jestspec.jsx". Jasmine tests must be placed within files whose names end in "Spec.js",
+"spec.js", "Spec.jsx", or "spec.jsx", without that "spec" token being part of the word "jestspec".
+
+Examples:
+
+- vulnerabilitySearchReducerSpec.js - Jasmine test
+- roleEditorPermissionListSpec.jsx - Jasmine test
+- classybrew.factory.spec.js - Jasmine test
+- AddWaiverPage.jestspec.jsx - Jest test
+- waiverActions.jestspec.js - Jest test
+
 A special note for testing `NxToolip`: There is a delay when rendering a tooltip from `NxToolip`. In order to test it properly call `requestIdleCallbackInvokeImmediate` found in `SpecUtil.js` before you call the `render` function from RTL. See `react-shared-components/components/NxTooltip/updateBatcher.js` for details on requestIdleCallback usage.
 
 #### Linting and Formatting

@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentMap;
 import javax.persistence.EntityNotFoundException;
 
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
@@ -34,7 +35,8 @@ public class ShiroSessionDAO
   static final Duration CACHE_DURATION = Duration.ofSeconds(10);
 
   // Visible for testing
-  static final ConcurrentMap<Serializable, SessionAndStoredJson> SESSION_CACHE = new ConcurrentHashMap<>();
+  static final TenantReference<ConcurrentMap<Serializable, SessionAndStoredJson>> SESSION_CACHE =
+      new TenantReference<>(ConcurrentHashMap::new);
 
   // Visible for testing
   static final long DELAY_BETWEEN_LAST_ACCESS_TIME_UPDATES = Duration.ofSeconds(5).toMillis();
@@ -62,7 +64,7 @@ public class ShiroSessionDAO
 
   @Override
   protected Session doReadSession(Serializable sessionId) {
-    SessionAndStoredJson cachedSession = SESSION_CACHE.get(sessionId);
+    SessionAndStoredJson cachedSession = SESSION_CACHE.get().get(sessionId);
     if (cachedSession != null &&
         System.currentTimeMillis() - cachedSession.getSession().getLastAccessTime().getTime() <=
             CACHE_DURATION.toMillis()) {
@@ -82,7 +84,7 @@ public class ShiroSessionDAO
   public void update(Session session) {
     checkSimpleSession(session);
     checkId(session.getId());
-    SessionAndStoredJson cachedSession = SESSION_CACHE.get(session.getId());
+    SessionAndStoredJson cachedSession = SESSION_CACHE.get().get(session.getId());
     if (cachedSession != null &&
         isOnlyLastAccessTimeUpdate((SimpleSession) session, cachedSession.getStoredSessionJson()) &&
         isLastAccessTimeUpdatedRecently(session, cachedSession.getStoredSessionJson())) {
@@ -137,12 +139,12 @@ public class ShiroSessionDAO
     if (samlCurrentAction != null && samlCurrentAction != CurrentAction.NONE) {
       return;
     }
-    SESSION_CACHE
+    SESSION_CACHE.get()
         .put(session.getId(), new SessionAndStoredJson((SimpleSession) session, persistedUserSession.getSessionJson()));
   }
 
   private void uncacheSession(Serializable id) {
-    SESSION_CACHE.remove(id);
+    SESSION_CACHE.get().remove(id);
   }
 
   @Override

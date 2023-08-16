@@ -45,8 +45,6 @@ public class TenantManager
 
   static final String TENANT_PARAMETER_CANNOT_BE_NULL = "Tenant parameter cannot be null";
 
-  static final String TENANT_DOES_NOT_EXIST = "Tenant does not exist";
-
   private final Map<Tenant, Boolean> registeredTenants = new ConcurrentHashMap<>();
 
   private final Collection<TenantManaged> tenantManagedBeans;
@@ -165,7 +163,7 @@ public class TenantManager
 
     if (!tenantValidator.validateTenantExists(tenant)) {
       log.debug("Tenant doesn't exist: {}", tenant.tenantSlug);
-      throw new IllegalArgumentException(TENANT_DOES_NOT_EXIST);
+      throw new IllegalArgumentException(TenantUtil.TENANT_DOES_NOT_EXIST);
     }
 
     return runAs(tenant, () -> {
@@ -192,12 +190,12 @@ public class TenantManager
   private void validateTenant(final Tenant tenant) {
     if (!tenantValidator.validateTenantExists(tenant)) {
       log.debug("Tenant doesn't exist: {}", tenant.tenantSlug);
-      throw new IllegalArgumentException(TENANT_DOES_NOT_EXIST);
+      throw new IllegalArgumentException(TenantUtil.TENANT_DOES_NOT_EXIST);
     }
 
     if (deletedTenantDAO.isScheduledForDeletion(tenant.tenantSlug)) {
       log.debug("Tenant has been scheduled for deletion and therefore cannot be used: {}", tenant.tenantSlug);
-      throw new IllegalArgumentException(TENANT_DOES_NOT_EXIST);
+      throw new IllegalArgumentException(TenantUtil.TENANT_DOES_NOT_EXIST);
     }
   }
 

@@ -22,8 +22,10 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantUtil.IS_MTIQ_BATCH;
+import static com.sonatype.insight.brain.tenancy.TenantUtil.TENANT_DOES_NOT_EXIST;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -100,6 +102,18 @@ public class TenantUtilTest
   public void shouldThrowAnExceptionOnLocalhost() {
     assertThatThrownBy(() -> new TenantUtil().getTenantName("localhost")).hasMessage(
         "You should not be accessing multi-tenant IQ via localhost. Use a fake vanity URL");
+  }
+
+  @Test
+  public void shouldThrowAnExceptionIfGlobalTenantNameUsed() {
+    assertThatThrownBy(() -> new TenantUtil().getTenantName(GLOBAL_TENANT.tenantSlug + ".")).hasMessage(
+        TENANT_DOES_NOT_EXIST);
+  }
+
+  @Test
+  public void shouldThrowAnExceptionIfSingleTenantNameUsed() {
+    assertThatThrownBy(() -> new TenantUtil().getTenantName(SINGLE_TENANT.tenantSlug + ".")).hasMessage(
+        TENANT_DOES_NOT_EXIST);
   }
 
   @Test

@@ -94,7 +94,7 @@ public class ShiroSessionDAOTest
     PersistedUserSession persistedUserSession = new PersistedUserSession(session);
     new PersistedUserSessionDAO().insert(persistedUserSession);
     session.setAttribute("key1", "value2");
-    ShiroSessionDAO.SESSION_CACHE
+    ShiroSessionDAO.SESSION_CACHE.get()
         .put(session.getId(), new SessionAndStoredJson(session, persistedUserSession.getSessionJson()));
 
     assertThat(shiroSessionDAO.doReadSession(session.getId()).getAttribute("key1")).isEqualTo("value2");
@@ -113,7 +113,7 @@ public class ShiroSessionDAOTest
     PersistedUserSession persistedUserSession = new PersistedUserSession(session);
     new PersistedUserSessionDAO().insert(persistedUserSession);
     session.setAttribute("key1", "value2");
-    ShiroSessionDAO.SESSION_CACHE
+    ShiroSessionDAO.SESSION_CACHE.get()
         .put(session.getId(), new SessionAndStoredJson(session, persistedUserSession.getSessionJson()));
 
     assertThat(shiroSessionDAO.doReadSession(session.getId()).getAttribute("key1")).isEqualTo("value1");
@@ -137,7 +137,7 @@ public class ShiroSessionDAOTest
     SimpleSession session = createSession();
     session.setId("doesNotExistInDatabaseAndOld");
     session.setLastAccessTime(new Date(System.currentTimeMillis() - ShiroSessionDAO.CACHE_DURATION.toMillis() - 1));
-    ShiroSessionDAO.SESSION_CACHE
+    ShiroSessionDAO.SESSION_CACHE.get()
         .put(session.getId(), new SessionAndStoredJson(session, PersistedUserSession.simpleSessionToJson(session)));
 
     assertThat(shiroSessionDAO.doReadSession(session.getId())).isNull();
@@ -149,7 +149,7 @@ public class ShiroSessionDAOTest
   public void testDoReadSession_DoesNotExistInDatabase_AndYoung() {
     SimpleSession session = createSession();
     session.setId("doesNotExistInDatabaseAndYoung");
-    ShiroSessionDAO.SESSION_CACHE
+    ShiroSessionDAO.SESSION_CACHE.get()
         .put(session.getId(), new SessionAndStoredJson(session, PersistedUserSession.simpleSessionToJson(session)));
 
     assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
@@ -211,7 +211,7 @@ public class ShiroSessionDAOTest
 
     assertThatExceptionOfType(UnknownSessionException.class)
         .isThrownBy(() -> shiroSessionDAO.doReadSession(badSession.getId()));
-    assertThat(ShiroSessionDAO.SESSION_CACHE.get(persistedUserSession.getId())).isNull();
+    assertThat(ShiroSessionDAO.SESSION_CACHE.get().get(persistedUserSession.getId())).isNull();
     assertThat(new PersistedUserSessionDAO().getById(persistedUserSession.getId())).isNull();
   }
 
@@ -261,7 +261,7 @@ public class ShiroSessionDAOTest
   public void testUpdate_DoesNotExistInDatabase() {
     SimpleSession session = createSession();
     session.setId("doesNotExistInDatabase");
-    ShiroSessionDAO.SESSION_CACHE
+    ShiroSessionDAO.SESSION_CACHE.get()
         .put(session.getId(), new SessionAndStoredJson(session, PersistedUserSession.simpleSessionToJson(session)));
     session.setAttribute("key", "value");
 
@@ -338,13 +338,13 @@ public class ShiroSessionDAOTest
     badSession.setId(persistedUserSession.getId());
     persistedUserSession.setSession(badSession);
     new PersistedUserSessionDAO().insert(persistedUserSession);
-    ShiroSessionDAO.SESSION_CACHE
+    ShiroSessionDAO.SESSION_CACHE.get()
         .put(persistedUserSession.getId(), new SessionAndStoredJson(badSession, persistedUserSession.getSessionJson()));
 
     assertThat(shiroSessionDAO.getActiveSessions()).extracting(Session::getId)
         .containsExactly(session1.getId(), session2.getId());
     assertThat(new PersistedUserSessionDAO().getById(persistedUserSession.getId())).isNull();
-    assertThat(ShiroSessionDAO.SESSION_CACHE.get(persistedUserSession.getId())).isNull();
+    assertThat(ShiroSessionDAO.SESSION_CACHE.get().get(persistedUserSession.getId())).isNull();
   }
 
   @Test
@@ -461,7 +461,7 @@ public class ShiroSessionDAOTest
     PersistedUserSession persistedUserSession = new PersistedUserSession(session);
     new PersistedUserSessionDAO().insert(persistedUserSession);
     if (!shouldStoreInCache) {
-      ShiroSessionDAO.SESSION_CACHE
+      ShiroSessionDAO.SESSION_CACHE.get()
           .put(session.getId(), new SessionAndStoredJson(session, PersistedUserSession.simpleSessionToJson(session)));
     }
 
@@ -473,7 +473,7 @@ public class ShiroSessionDAOTest
   }
 
   private SessionAndStoredJson getSessionFromCache(Serializable id) {
-    return ShiroSessionDAO.SESSION_CACHE.get(id);
+    return ShiroSessionDAO.SESSION_CACHE.get().get(id);
   }
 
   private Session getSessionFromDatabase(Serializable id) {

@@ -25,6 +25,8 @@ import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 @Named
 public class TenantUtil
 {
+  static final String TENANT_DOES_NOT_EXIST = "Tenant does not exist";
+
   private static final Logger log = LoggerFactory.getLogger(TenantUtil.class);
 
   static final String IS_MTIQ_BATCH = "IS_MTIQ_BATCH";
@@ -108,6 +110,14 @@ public class TenantUtil
   private static void validateTenantName(String serverName) {
     if ("localhost".equals(serverName)) {
       throw new RuntimeException("You should not be accessing multi-tenant IQ via localhost. Use a fake vanity URL");
+    }
+
+    if (serverName.startsWith(GLOBAL_TENANT.tenantSlug + ".")) {
+      throw new RuntimeException(TENANT_DOES_NOT_EXIST);
+    }
+
+    if (serverName.startsWith(SINGLE_TENANT.tenantSlug + ".")) {
+      throw new RuntimeException(TENANT_DOES_NOT_EXIST);
     }
 
     if (!isSupportedUrl(serverName)) {

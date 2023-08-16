@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import { NxSubmitMask, NxButton, NxModal, NxLoadError } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 import DeleteWaiverModal from '../../../../main/frontend/waivers/deleteWaiverModal/DeleteWaiverModal';
@@ -11,8 +12,8 @@ describe('DeleteWaiverModal', function () {
   let minimalProps, deleteWaiverSpy, hideDeleteWaiverModalSpy, getShallowComponent, getMountedComponent, mountPoint;
 
   beforeEach(function () {
-    deleteWaiverSpy = jasmine.createSpy('deleteWaiver');
-    hideDeleteWaiverModalSpy = jasmine.createSpy('hideDeleteWaiverModal');
+    deleteWaiverSpy = jest.fn();
+    hideDeleteWaiverModalSpy = jest.fn();
 
     minimalProps = {
       waiverToDelete: {
@@ -62,7 +63,7 @@ describe('DeleteWaiverModal', function () {
     const yesButton = modalFooter.find('#delete-waiver-modal-continue-button');
     expect(yesButton).toMatchSelector(NxButton);
     expect(yesButton).toHaveText('Delete Waiver');
-    expect(yesButton.prop('onClick')).toEqual(jasmine.any(Function));
+    expect(yesButton.prop('onClick')).toEqual(expect.any(Function));
   });
 
   it('calls hideDeleteWaiverModal when No is clicked', function () {

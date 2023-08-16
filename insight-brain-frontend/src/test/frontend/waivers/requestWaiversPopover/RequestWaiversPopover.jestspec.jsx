@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import { NxInfoAlert, NxCodeSnippet, NxTextLink } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../enzymeUtils';

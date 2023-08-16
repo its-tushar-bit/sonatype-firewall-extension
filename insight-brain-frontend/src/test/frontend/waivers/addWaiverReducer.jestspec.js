@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer from '../../../main/frontend/waivers/addWaiverReducer';
-import { initialState as initState } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
-import { nxDateInputStateHelpers } from '@sonatype/react-shared-components';
+import { nxDateInputStateHelpers, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
 describe('addWaiverReducer', function () {
   describe('unknown action', function () {
@@ -38,18 +37,16 @@ describe('addWaiverReducer', function () {
       expect(newState.fieldsPristineState).toBeNull();
     });
 
-    it('calls textHelpers.initialState for waiverComments', function () {
-      const textHelperInitialStateSpy = jasmine.createSpy('initialState').and.callFake((val) => ({ value: val }));
-      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')({
-        '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
-          initialState: textHelperInitialStateSpy,
-        },
-      }).default;
+    it('initializes waiverComments with the specified value, isPristine true, and no validation errors', function () {
       const action = { type: 'UNKNOWN' };
-      const newState = reducerWithMockDeps(undefined, action);
+      const newState = reducer(undefined, action);
 
-      expect(textHelperInitialStateSpy).toHaveBeenCalledWith('');
-      expect(newState.waiverComments).toEqual({ value: '' });
+      expect(newState.waiverComments).toEqual({
+        value: '',
+        trimmedValue: '',
+        isPristine: true,
+        validationErrors: null,
+      });
     });
 
     it('is immutable', function () {
@@ -302,13 +299,6 @@ describe('addWaiverReducer', function () {
 
   describe('WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT action', function () {
     it('sets waiverComments and isDiry props', function () {
-      const textHelperUserInputSpy = jasmine.createSpy('userInput').and.callFake((validator, val) => ({ value: val }));
-      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')({
-        '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
-          userInput: textHelperUserInputSpy,
-          initialState: () => {},
-        },
-      }).default;
       const initialState = {
         isDirty: false,
         loading: false,
@@ -329,13 +319,17 @@ describe('addWaiverReducer', function () {
         },
       };
 
-      const newState = reducerWithMockDeps(initialState, {
+      const newState = reducer(initialState, {
         type: 'WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT',
         payload: 'Bar',
       });
 
-      expect(textHelperUserInputSpy).toHaveBeenCalledWith(null, 'Bar');
-      expect(newState.waiverComments).toEqual({ value: 'Bar' });
+      expect(newState.waiverComments).toEqual({
+        value: 'Bar',
+        trimmedValue: 'Bar',
+        isPristine: false,
+        validationErrors: null,
+      });
       expect(newState.otherProp).toBe(initialState.otherProp);
       expect(newState.isDirty).toBe(true);
     });
@@ -592,7 +586,7 @@ describe('addWaiverReducer', function () {
         loadError: 'load error',
         submitMaskState: true,
         submitError: 'submit error',
-        waiverComments: initState('A comment'),
+        waiverComments: nxTextInputStateHelpers.initialState('A comment'),
         availableWaiverScopes: 'abc',
         selectedWaiverScope: 'pqr',
         componentMatcherStrategy: 'ALL_COMPONENTS',
@@ -611,7 +605,12 @@ describe('addWaiverReducer', function () {
       expect(newState.availableWaiverScopes).toBeNull();
       expect(newState.selectedWaiverScope).toBeNull();
       expect(newState.componentMatcherStrategy).toBe('EXACT_COMPONENT');
-      expect(newState.waiverComments).toEqual(initState(''));
+      expect(newState.waiverComments).toEqual({
+        value: '',
+        trimmedValue: '',
+        isPristine: true,
+        validationErrors: null,
+      });
       expect(newState.otherProp).toBeUndefined();
     });
   });

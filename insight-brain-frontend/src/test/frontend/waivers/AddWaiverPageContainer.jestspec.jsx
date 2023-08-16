@@ -3,88 +3,62 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
-import * as routeSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
-import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
+import AddWaiverPageContainer from 'MainRoot/waivers/AddWaiverPageContainer';
 
 import AddWaiverPage from '../../../main/frontend/waivers/AddWaiverPage';
 
+jest.mock('MainRoot/waivers/waiverActions', () => ({
+  loadAddWaiverData: () => ({ type: 'LOAD_ADD_WAIVER_DATA' }),
+  saveWaiverAndRedirect: () => ({ type: 'SAVE_WAIVER' }),
+  setWaiverComment: () => ({ type: 'SET_WAIVER_COMMENT' }),
+  setWaiverScope: () => ({ type: 'SET_WAIVER_SCOPE' }),
+  setComponentMatcherStrategy: () => ({ type: 'SET_COMPONENT_MATCHER_STRATEGY' }),
+  returnToAddWaiverOriginPage: () => ({ type: '@@reduxUiRouter/stateGo' }),
+  setExpiryTime: () => ({ type: 'ADD_WAIVER_SET_EXPIRY_TIME' }),
+}));
+
+jest.mock('MainRoot/vulnerabilityDetails/vulnerabilityDetailsModalActions', () => ({
+  openVulnerabilityDetailsModal: () => ({ type: 'OPEN_VULNERABILITY_DETAILS_MODAL' }),
+}));
+
+jest.mock('MainRoot/reduxUiRouter/routerSelectors', () => {
+  const actual = jest.requireActual('MainRoot/reduxUiRouter/routerSelectors');
+
+  return {
+    ...actual,
+    selectIsFirewall: () => false,
+  };
+});
+
+jest.mock('MainRoot/firewall/firewallSelectors', () => ({
+  selectFirewallComponentDetailsPageRouteParams: () => ({
+    componentHash: 'componentHash',
+    componentIdentifier: {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'ant',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'ant',
+        version: '1.6',
+      },
+    },
+    repositoryId: 'repositoryId',
+    matchState: 'matchState',
+    proprietary: 'proprietary',
+    identificationSource: 'identificationSource',
+    pathname: 'pathname',
+  }),
+}));
+
 describe('AddWaiverPageContainer', function () {
-  let AddWaiverPageContainer,
-    saveWaiverMock,
-    loadAddWaiverDataMock,
-    setWaiverCommentMock,
-    setWaiverScopeMock,
-    setComponentMatcherStrategyMock,
-    setExpiryTimeMock,
-    openVulnerabilityDetailsModalMock,
-    cancelActionMock,
-    store,
-    state,
-    vdom;
+  let store, state, vdom;
 
   beforeEach(function () {
-    loadAddWaiverDataMock = jasmine.createSpy('loadAddWaiverData').and.returnValue({
-      type: 'LOAD_ADD_WAIVER_DATA',
-    });
-    saveWaiverMock = jasmine.createSpy('saveWaiver').and.returnValue({
-      type: 'SAVE_WAIVER',
-    });
-    setWaiverCommentMock = jasmine.createSpy('setWaiverComment').and.returnValue({
-      type: 'SET_WAIVER_COMMENT',
-    });
-    setWaiverScopeMock = jasmine.createSpy('setWaiverScope').and.returnValue({
-      type: 'SET_WAIVER_SCOPE',
-    });
-    setComponentMatcherStrategyMock = jasmine.createSpy('setComponentMatcherStrategy').and.returnValue({
-      type: 'SET_COMPONENT_MATCHER_STRATEGY',
-    });
-    openVulnerabilityDetailsModalMock = jasmine.createSpy('openVulnerabilityDetailsModal').and.returnValue({
-      type: 'OPEN_VULNERABILITY_DETAILS_MODAL',
-    });
-    cancelActionMock = jasmine.createSpy('cancelAction').and.returnValue({
-      type: '@@reduxUiRouter/stateGo',
-    });
-    setExpiryTimeMock = jasmine.createSpy('setExpiryTime').and.returnValue({
-      type: 'ADD_WAIVER_SET_EXPIRY_TIME',
-    });
-    spyOn(routeSelectors, 'selectIsFirewall').and.returnValue(false);
-    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPageRouteParams').and.returnValue({
-      componentHash: 'componentHash',
-      componentIdentifier: {
-        format: 'maven',
-        coordinates: {
-          artifactId: 'ant',
-          classifier: '',
-          extension: 'jar',
-          groupId: 'ant',
-          version: '1.6',
-        },
-      },
-      repositoryId: 'repositoryId',
-      matchState: 'matchState',
-      proprietary: 'proprietary',
-      identificationSource: 'identificationSource',
-      pathname: 'pathname',
-    });
-
-    AddWaiverPageContainer = require('inject-loader!../../../main/frontend/waivers/AddWaiverPageContainer')({
-      './waiverActions': {
-        loadAddWaiverData: loadAddWaiverDataMock,
-        saveWaiverAndRedirect: saveWaiverMock,
-        setWaiverComment: setWaiverCommentMock,
-        setWaiverScope: setWaiverScopeMock,
-        setExpiryTime: setExpiryTimeMock,
-        setComponentMatcherStrategy: setComponentMatcherStrategyMock,
-        returnToAddWaiverOriginPage: cancelActionMock,
-      },
-      '../vulnerabilityDetails/vulnerabilityDetailsModalActions': {
-        openVulnerabilityDetailsModal: openVulnerabilityDetailsModalMock,
-      },
-    }).default;
-
     state = {
       addWaiver: {
         loading: false,
@@ -185,14 +159,14 @@ describe('AddWaiverPageContainer', function () {
       returnToAddWaiverOriginPageActionCreator = wrapper.prop('cancelAction'),
       setExpiryTimeActionCreator = wrapper.prop('setExpiryTime');
 
-    expect(loadAddWaiverDataActionCreator).toEqual(jasmine.any(Function));
-    expect(saveWaiverActionCreator).toEqual(jasmine.any(Function));
-    expect(setComponentMatcherStrategyCreator).toEqual(jasmine.any(Function));
-    expect(setWaiverScopeActionCreator).toEqual(jasmine.any(Function));
-    expect(setWaiverCommentActionCreator).toEqual(jasmine.any(Function));
-    expect(openVulnerabilityDetailsModalActionCreator).toEqual(jasmine.any(Function));
-    expect(returnToAddWaiverOriginPageActionCreator).toEqual(jasmine.any(Function));
-    expect(setExpiryTimeActionCreator).toEqual(jasmine.any(Function));
+    expect(loadAddWaiverDataActionCreator).toEqual(expect.any(Function));
+    expect(saveWaiverActionCreator).toEqual(expect.any(Function));
+    expect(setComponentMatcherStrategyCreator).toEqual(expect.any(Function));
+    expect(setWaiverScopeActionCreator).toEqual(expect.any(Function));
+    expect(setWaiverCommentActionCreator).toEqual(expect.any(Function));
+    expect(openVulnerabilityDetailsModalActionCreator).toEqual(expect.any(Function));
+    expect(returnToAddWaiverOriginPageActionCreator).toEqual(expect.any(Function));
+    expect(setExpiryTimeActionCreator).toEqual(expect.any(Function));
 
     expect(store.getActions()).toEqual([]);
 

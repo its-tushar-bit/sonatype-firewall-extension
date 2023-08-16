@@ -736,7 +736,7 @@ describe('AccessTile', () => {
     });
 
     it('renders disabled button', async () => {
-      spyOn(accessSelectors, 'selectRolesWithoutLocalMembersExist').and.returnValue(false);
+      jest.spyOn(accessSelectors, 'selectRolesWithoutLocalMembersExist').mockReturnValue(false);
 
       mock
         .onGet(getAccessPageRolesUrl('organization', '6a9be797916a4c12a6f8d8bc410aba86'))

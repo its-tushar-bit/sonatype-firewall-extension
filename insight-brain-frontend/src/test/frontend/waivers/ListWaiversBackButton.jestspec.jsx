@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import * as enzymeUtils from '../enzymeUtils';
 import ListWaiversBackButton from '../../../main/frontend/waivers/ListWaiversBackButton';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
@@ -23,7 +24,7 @@ describe('ListWaiversBackButton', function () {
       tabId: 'violations',
       isFirewall: false,
     };
-    hrefSpy = jasmine.createSpy('href').and.callFake((stateName) => {
+    hrefSpy = jest.fn('href').mockImplementation((stateName) => {
       switch (stateName) {
         case 'applicationReport.componentDetails.violations':
           return 'componentDetailsHref';
@@ -36,7 +37,7 @@ describe('ListWaiversBackButton', function () {
       }
     });
     routerContextMock = { href: hrefSpy };
-    spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
+    jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
 
     getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversBackButton, minimalProps);
   });

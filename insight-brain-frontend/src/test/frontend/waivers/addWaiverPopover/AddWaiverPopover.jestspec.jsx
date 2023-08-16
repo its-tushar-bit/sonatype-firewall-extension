@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import { nxDateInputStateHelpers, NxSubmitMask } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
@@ -20,9 +21,9 @@ describe('AddWaiverPopover', function () {
     mountedComponent;
 
   beforeEach(function () {
-    loadAddWaiverDataSpy = jasmine.createSpy('loadAddWaiverDataSpy');
+    loadAddWaiverDataSpy = jest.fn();
 
-    openVulnerabilityDetailsModalMock = jasmine.createSpy('openVulnerabilityDetailsModal').and.returnValue({
+    openVulnerabilityDetailsModalMock = jest.fn().mockReturnValue({
       type: 'OPEN_VULNERABILITY_DETAILS_MODAL',
     });
 
@@ -73,7 +74,7 @@ describe('AddWaiverPopover', function () {
     const el = getShallowComponent();
     const header = el.find(IqPopover.Header);
     expect(header).toHaveProp('headerTitle', 'Add Waiver');
-    expect(header).toHaveProp('onClose', jasmine.any(Function));
+    expect(header).toHaveProp('onClose', expect.any(Function));
   });
 
   it('renders a loading LoadWrapper when loading is true', function () {
@@ -204,6 +205,6 @@ describe('AddWaiverPopover', function () {
       violationId: 'violationId2',
     });
     expect(loadAddWaiverDataSpy).toHaveBeenCalledTimes(2);
-    expect(loadAddWaiverDataSpy.calls.argsFor(1)[0]).toEqual('violationId2');
+    expect(loadAddWaiverDataSpy.mock.calls[1][0]).toEqual('violationId2');
   });
 });

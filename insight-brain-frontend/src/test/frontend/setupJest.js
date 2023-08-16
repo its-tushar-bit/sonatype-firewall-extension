@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import '@testing-library/jest-dom';
+import 'angular';
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+import customMatchers from './customMatchers';
+
+Enzyme.configure({ adapter: new Adapter() });
+
+for (const [name, matcherProvider] of Object.entries(customMatchers)) {
+  expect.extend({ [name]: matcherProvider().compare });
+}
+
+beforeEach(function () {
+  Range.prototype.getBoundingClientRect = jest.fn().mockReturnValue({
+    bottom: 0,
+    height: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+    width: 0,
+  });
+});
+
+afterEach(function () {
+  jest.restoreAllMocks();
+  jest.useRealTimers();
+});

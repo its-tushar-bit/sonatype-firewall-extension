@@ -120,6 +120,9 @@ describe('When the WaiverDetailsPage', function () {
           ownerId,
           waiverId,
         },
+        currentState: {
+          name: 'waiver.details',
+        },
       },
     };
 
@@ -246,7 +249,7 @@ describe('When the WaiverDetailsPage', function () {
 
   describe('when pressing the delete button', () => {
     it('successfully delete a waiver', async () => {
-      spyOn(routeSelectors, 'selectIsFirewall').and.returnValue(false);
+      jest.spyOn(routeSelectors, 'selectIsFirewall').mockReturnValue(false);
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
       axiosMock.onDelete(expectedDeleteWaiverUrl).reply(204);
 
@@ -263,9 +266,11 @@ describe('When the WaiverDetailsPage', function () {
         return element.id === 'delete-waiver-modal-continue-button' && content === 'Delete Waiver';
       });
 
+      //jest.useFakeTimers(); // prevent Success from disappearing before assertion can run
       fireEvent.click(deleteWaiverModalButton);
+      const el = await screen.findByText('Success!');
 
-      expect(await screen.findByText('Success!')).toBeVisible();
+      expect(el).toBeVisible();
     });
   });
 });

@@ -68,21 +68,21 @@ describe('RequestWaiverPage', function () {
   };
 
   beforeEach(() => {
-    mock = axiosMockAdapter();
+    mock = axiosMockAdapter({ delayResponse: 200 }); // delay necessary for loading test
 
-    const routerContext = { href: null };
-
-    spyOn(routerContext, 'href').and.callFake((url, params) => {
-      if (url.includes('sidebarView.violation')) {
-        const violationId = params.id;
-        return `#/violation/${violationId}`;
-      }
-      if (url.includes('addWaiver')) {
-        const violationId = params.violationId;
-        return `#/addWaiver/${violationId}`;
-      }
-      return '#';
-    });
+    const routerContext = {
+      href: jest.fn((url, params) => {
+        if (url.includes('sidebarView.violation')) {
+          const violationId = params.id;
+          return `#/violation/${violationId}`;
+        }
+        if (url.includes('addWaiver')) {
+          const violationId = params.violationId;
+          return `#/addWaiver/${violationId}`;
+        }
+        return '#';
+      }),
+    };
 
     mock.onGet(getApplicableWaiversUrl(violationId)).reply(200, { activeWaivers: [], expiredWaivers: [] });
     mock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {

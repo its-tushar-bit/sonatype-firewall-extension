@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import { shallow } from 'enzyme';
 
 import * as enzymeUtils from '../enzymeUtils';
@@ -20,13 +21,13 @@ import moment from 'moment';
 import ComponentDisplay from '../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
 import NxExternalLink from '../../../main/frontend/react/NxExternalLink';
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
+import ListWaiversTable from 'MainRoot/waivers/ListWaiversTable';
 
 describe('ListWaiversTable', function () {
-  let minimalProps, ListWaiversTable, violationDetailsMock, getShallowComponent, setWaiverToDeleteSpy;
+  let minimalProps, violationDetailsMock, getShallowComponent, setWaiverToDeleteSpy;
 
   beforeEach(function () {
-    setWaiverToDeleteSpy = jasmine.createSpy('setWaiverToDelete');
-    ListWaiversTable = require('inject-loader!../../../main/frontend/waivers/ListWaiversTable')().default;
+    setWaiverToDeleteSpy = jest.fn();
 
     violationDetailsMock = {
       filename: 'filename',
@@ -100,7 +101,7 @@ describe('ListWaiversTable', function () {
   });
 
   it('sets the retryHandler on NxTableBody', function () {
-    const reloadApplicableWaiversSpy = jasmine.createSpy();
+    const reloadApplicableWaiversSpy = jest.fn();
     const component = getShallowComponent({
       reloadApplicableWaivers: reloadApplicableWaiversSpy,
     });
@@ -111,7 +112,7 @@ describe('ListWaiversTable', function () {
   const assertDeleteWaiverBtn = (tableCell, waiver) => {
     const btn = tableCell.childAt(0);
     expect(btn).toMatchSelector(NxButton);
-    expect(btn.prop('onClick')).toEqual(jasmine.any(Function));
+    expect(btn.prop('onClick')).toEqual(expect.any(Function));
 
     btn.simulate('click');
     expect(setWaiverToDeleteSpy).toHaveBeenCalledWith(waiver);

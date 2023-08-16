@@ -3,32 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
 
 import DeleteWaiverModal from '../../../../main/frontend/waivers/deleteWaiverModal/DeleteWaiverModal';
+import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
+
+jest.mock('MainRoot/waivers/waiverActions', () => ({
+  deleteWaiver: () => ({ type: 'DELETE_WAIVER' }),
+  hideDeleteWaiverModal: () => ({ type: 'HIDE_DELETE_WAIVER_MODAL' }),
+}));
 
 describe('DeleteWaiverModalContainer', function () {
-  let DeleteWaiverModalContainer, deleteWaiverMock, hideDeleteWaiverModalMock, state, store, vdom;
+  let state, store, vdom;
 
   beforeEach(function () {
-    deleteWaiverMock = jasmine.createSpy('deleteWaiver').and.returnValue({
-      type: 'DELETE_WAIVER',
-    });
-    hideDeleteWaiverModalMock = jasmine.createSpy('hideDeleteWaiverModal').and.returnValue({
-      type: 'HIDE_DELETE_WAIVER_MODAL',
-    });
-
-    DeleteWaiverModalContainer = require('inject-loader!../../../../main/frontend/waivers/deleteWaiverModal/DeleteWaiverModalContainer')(
-      {
-        '../waiverActions': {
-          deleteWaiver: deleteWaiverMock,
-          hideDeleteWaiverModal: hideDeleteWaiverModalMock,
-        },
-      }
-    ).default;
-
     state = {
       deleteWaiver: {
         deleteWaiverSaving: null,
@@ -54,8 +45,8 @@ describe('DeleteWaiverModalContainer', function () {
       deleteWaiverActionCreator = wrapper.prop('deleteWaiver'),
       hideDeleteWaiverModalActionCreator = wrapper.prop('hideDeleteWaiverModal');
 
-    expect(deleteWaiverActionCreator).toEqual(jasmine.any(Function));
-    expect(hideDeleteWaiverModalActionCreator).toEqual(jasmine.any(Function));
+    expect(deleteWaiverActionCreator).toEqual(expect.any(Function));
+    expect(hideDeleteWaiverModalActionCreator).toEqual(expect.any(Function));
     expect(store.getActions()).toEqual([]);
 
     deleteWaiverActionCreator();

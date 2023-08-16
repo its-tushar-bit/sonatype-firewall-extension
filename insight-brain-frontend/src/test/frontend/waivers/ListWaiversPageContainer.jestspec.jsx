@@ -3,31 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
 import ListWaiversPage from '../../../main/frontend/waivers/ListWaiversPage';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import ListWaiversPageContainer from 'MainRoot/waivers/ListWaiversPageContainer';
+
+jest.mock('MainRoot/waivers/waiverActions', () => ({
+  loadManageWaiversData: () => ({ type: 'LOAD_MANAGE_WAIVERS_DATA' }),
+  setWaiverToDelete: () => ({ type: 'SET_WAIVER_TO_DELETE' }),
+}));
 
 describe('ListWaiversPageContainer', function () {
-  let ListWaiversPageContainer, loadManageWaiversDataMock, setWaiverToDeleteMock, store, state, vdom;
+  let store, state, vdom;
 
   beforeEach(function () {
-    loadManageWaiversDataMock = jasmine.createSpy('loadManageWaiversData').and.returnValue({
-      type: 'LOAD_MANAGE_WAIVERS_DATA',
-    });
-
-    setWaiverToDeleteMock = jasmine.createSpy('setWaiverToDelete').and.returnValue({
-      type: 'SET_WAIVER_TO_DELETE',
-    });
-
-    ListWaiversPageContainer = require('inject-loader!../../../main/frontend/waivers/ListWaiversPageContainer')({
-      './waiverActions': {
-        loadManageWaiversData: loadManageWaiversDataMock,
-        setWaiverToDelete: setWaiverToDeleteMock,
-      },
-    }).default;
-
     state = {
       violation: {
         activeWaivers: [],
@@ -65,7 +57,7 @@ describe('ListWaiversPageContainer', function () {
       },
     };
 
-    spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+    jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
 
     store = configureStore()(() => state);
     vdom = <ListWaiversPageContainer store={store} />;
@@ -110,8 +102,8 @@ describe('ListWaiversPageContainer', function () {
     const loadMAnageWaiversDataActionCreator = wrapper.prop('loadManageWaiversData');
     const setWaiverToDeleteActionCreator = wrapper.prop('setWaiverToDelete');
 
-    expect(loadMAnageWaiversDataActionCreator).toEqual(jasmine.any(Function));
-    expect(setWaiverToDeleteActionCreator).toEqual(jasmine.any(Function));
+    expect(loadMAnageWaiversDataActionCreator).toEqual(expect.any(Function));
+    expect(setWaiverToDeleteActionCreator).toEqual(expect.any(Function));
 
     expect(store.getActions()).toEqual([]);
 

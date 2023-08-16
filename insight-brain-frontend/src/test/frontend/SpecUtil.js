@@ -17,6 +17,37 @@ import { faker } from '@faker-js/faker';
 export const WAIVER_CREATE_TIME = '2022-08-18';
 export const WAIVER_EXPIRATION_TIME = '2023-08-18';
 
+const isJest = typeof jest !== 'undefined';
+const createSpy = isJest
+  ? (name, impl) => {
+      const spy = jest.fn().mockName(name);
+      if (impl) {
+        spy.mockImplementation(impl);
+      }
+      return spy;
+    }
+  : (name, impl) => {
+      const spy = jasmine.createSpy(name);
+      if (impl) {
+        spy.and.callFake(impl);
+      }
+      return spy;
+    };
+
+const spyOn = isJest
+  ? (obj, method, impl) => {
+      const spy = jest.spyOn(obj, method);
+      if (impl) {
+        spy.mockImplementation(impl);
+      }
+    }
+  : (obj, method, impl) => {
+      const spy = window.spyOn(obj, method);
+      if (impl) {
+        spy.and.callFake(impl);
+      }
+    };
+
 window.CLM = {
   path: '../brain/',
 };
@@ -137,19 +168,19 @@ window.SpecUtil = {
    *  Also connect() returns a spy to enable testing of unsubscribe.
    */
   mockNgRedux: function ($provide) {
-    var unsubscribeSpy = jasmine.createSpy('unsubscribe');
+    var unsubscribeSpy = createSpy('unsubscribe');
 
     $provide.service('$ngRedux', function () {
       this.actions = [];
-      this.connect = jasmine.createSpy('connect').and.callFake(function (mapStateToThis, actions) {
+      this.connect = createSpy('connect', function (mapStateToThis, actions) {
         if (actions) {
           // stub each action creator with spy
           Object.keys(actions).forEach(function (actionCreator) {
             // check if spy already created
-            if (actions[actionCreator].and) {
+            if (actions[actionCreator].and || (isJest && jest.isMockFunction(actions[actionCreator]))) {
               return;
             }
-            spyOn(actions, actionCreator);
+            (isJest ? jest.spyOn : window.spyOn)(actions, actionCreator);
           });
         }
         return function (vm) {
@@ -157,9 +188,9 @@ window.SpecUtil = {
           return unsubscribeSpy;
         };
       });
-      this.getState = jasmine.createSpy('getState');
-      this.subscribe = jasmine.createSpy('subscribe').and.returnValue(unsubscribeSpy);
-      this.dispatch = jasmine.createSpy('dispatch').and.callFake((action) => {
+      this.getState = createSpy('getState');
+      this.subscribe = createSpy('subscribe', unsubscribeSpy);
+      this.dispatch = createSpy('dispatch', (action) => {
         if (angular.isFunction(action)) {
           return action(this.dispatch, this.getState);
         } else {
@@ -279,7 +310,7 @@ window.SpecUtil = {
       var del = responses.del;
 
       if (get) {
-        spyOn(axios, 'get').and.callFake(function (url) {
+        spyOn(axios, 'get', function (url) {
           const mock = get[url];
 
           if (typeof mock === 'function') {
@@ -291,7 +322,7 @@ window.SpecUtil = {
       }
 
       if (post) {
-        spyOn(axios, 'post').and.callFake(function (url) {
+        spyOn(axios, 'post', function (url) {
           const mock = post[url];
 
           if (typeof mock === 'function') {
@@ -303,7 +334,7 @@ window.SpecUtil = {
       }
 
       if (put) {
-        spyOn(axios, 'put').and.callFake(function (url) {
+        spyOn(axios, 'put', function (url) {
           const mock = put[url];
 
           if (typeof mock === 'function') {
@@ -315,7 +346,7 @@ window.SpecUtil = {
       }
 
       if (del) {
-        spyOn(axios, 'delete').and.callFake(function (url) {
+        spyOn(axios, 'delete', function (url) {
           const mock = del[url];
 
           if (typeof mock === 'function') {
@@ -330,7 +361,7 @@ window.SpecUtil = {
   // Removes the delay rendering of NxTooltip.
   // see react-shared-components/components/NxTooltip/updateBatcher.js for details on requestIdleCallback usage
   requestIdleCallbackInvokeImmediate: () =>
-    spyOn(window, 'requestIdleCallback').and.callFake((cb) => {
+    spyOn(window, 'requestIdleCallback', (cb) => {
       setTimeout(() => {
         cb();
       }, 0);
@@ -364,7 +395,9 @@ function isIn(as) {
 
 // customize jasmine globally for all Specs
 beforeEach(function () {
-  jasmine.addCustomEqualityTester(customEqualityTesterForSets);
+  if (typeof jasmine !== 'undefined') {
+    jasmine.addCustomEqualityTester(customEqualityTesterForSets);
+  }
 });
 
 // render wrapper for React Testing Library
@@ -372,7 +405,9 @@ function render(
   ui,
   { preloadedState, store = configureStore({ reducer: reducers, preloadedState }), ...renderOptions } = {}
 ) {
-  jasmine.addMatchers(JasmineDOM);
+  if (typeof jasmine !== 'undefined') {
+    jasmine.addMatchers(JasmineDOM);
+  }
   function Wrapper({ children }) {
     return <Provider store={store}>{children}</Provider>;
   }
@@ -400,8 +435,8 @@ let mock;
  *   mock = axiosMockAdapter();
  * });
  */
-export function axiosMockAdapter() {
-  mock = new MockAdapter(axios);
+export function axiosMockAdapter(options) {
+  mock = new MockAdapter(axios, options);
   return mock;
 }
 

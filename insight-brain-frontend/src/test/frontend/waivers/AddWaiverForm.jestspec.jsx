@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import React from 'react';
 import moment from 'moment';
 import {
@@ -40,15 +41,15 @@ describe('AddWaiverForm', function () {
     cancelActionSpy;
 
   beforeEach(function () {
-    saveWaiverSpy = jasmine.createSpy('saveWaiver');
-    setWaiverCommentSpy = jasmine.createSpy('setWaiverComment');
-    setWaiverScopeSpy = jasmine.createSpy('setWaiverScope');
-    setComponentMatcherStrategySpy = jasmine.createSpy('setComponentMatcherStrategy');
-    openVulnerabilityDetailsModalSpy = jasmine.createSpy('openVulnerabilityDetailsModal');
-    closeVulnerabilityDetailsModalSpy = jasmine.createSpy('closeVulnerabilityDetailsModal');
-    cancelActionSpy = jasmine.createSpy('cancelAction');
-    setExpiryTimeSpy = jasmine.createSpy('setExpiryTime');
-    setCustomExpiryTimeSpy = jasmine.createSpy('setCustomExpiryTime');
+    saveWaiverSpy = jest.fn();
+    setWaiverCommentSpy = jest.fn();
+    setWaiverScopeSpy = jest.fn();
+    setComponentMatcherStrategySpy = jest.fn();
+    openVulnerabilityDetailsModalSpy = jest.fn();
+    closeVulnerabilityDetailsModalSpy = jest.fn();
+    cancelActionSpy = jest.fn();
+    setExpiryTimeSpy = jest.fn();
+    setCustomExpiryTimeSpy = jest.fn();
 
     minimalProps = {
       componentIdentifier: { format: 'maven', coordinates: 'test' },
@@ -127,8 +128,10 @@ describe('AddWaiverForm', function () {
   });
 
   it('calls closeVulnerabilityDetailsModal when unmounting', function () {
-    spyOn(VulnerabilityDetailsModalContainer, 'default').and.returnValue(
-      <div>Vulnerability Details Modal Container</div>
+    jest.replaceProperty(
+      jest.requireActual('MainRoot/vulnerabilityDetails/VulnerabilityDetailsModalContainer'),
+      'default',
+      () => <div>Vulnerability Details Modal Container</div>
     );
 
     // manual unmounting needed for this case
@@ -358,7 +361,7 @@ describe('AddWaiverForm', function () {
   });
 
   it('calls saveWaiver when the user has a valid custom waiver expiration', () => {
-    const preventDefaultSpy = jasmine.createSpy('preventDefault');
+    const preventDefaultSpy = jest.fn();
     const dayAfterToday = moment().add(1, 'days').format('YYYY-MM-DD');
     const component = getShallowComponent({
       expiryTime: 'custom',
@@ -425,8 +428,10 @@ describe('AddWaiverForm', function () {
   });
 
   it('renders a btn bar with action buttons in the footer', function () {
-    spyOn(VulnerabilityDetailsModalContainer, 'default').and.returnValue(
-      <div>Vulnerability Details Modal Container</div>
+    jest.replaceProperty(
+      jest.requireActual('MainRoot/vulnerabilityDetails/VulnerabilityDetailsModalContainer'),
+      'default',
+      () => <div>Vulnerability Details Modal Container</div>
     );
 
     const component = getMountedComponentWithAutoClean(),
@@ -436,7 +441,7 @@ describe('AddWaiverForm', function () {
     expect(buttons.length).toBe(2);
 
     expect(buttons.at(0)).toHaveProp('className', 'nx-form__cancel-btn');
-    expect(buttons.at(0)).toHaveProp('onClick', jasmine.any(Function));
+    expect(buttons.at(0)).toHaveProp('onClick', expect.any(Function));
     expect(buttons.at(0)).toHaveText('Cancel');
 
     expect(buttons.at(1)).toHaveProp('className', 'nx-form__submit-btn add-waiver-submit');
@@ -445,7 +450,7 @@ describe('AddWaiverForm', function () {
   });
 
   describe('it calls `saveWaiver` when form is submitted', function () {
-    const preventDefaultSpy = jasmine.createSpy('preventDefault');
+    const preventDefaultSpy = jest.fn();
 
     it('passes null as expiryTime if never is chosen as expiry time', function () {
       const component = getShallowComponent({ expiryTime: 'never' }),
@@ -499,11 +504,15 @@ describe('AddWaiverForm', function () {
   });
 
   it('calls `cancelAction` when cancel button is clicked', function () {
-    spyOn(VulnerabilityDetailsModalContainer, 'default').and.returnValue(
-      <div>Vulnerability Details Modal Container</div>
+    // see https://stackoverflow.com/a/70115321, and also consider that as the output of a connect() call,
+    // VulnerabilityDetailsModalContainer isn't actually a function, so we must use replaceProperty
+    jest.replaceProperty(
+      jest.requireActual('MainRoot/vulnerabilityDetails/VulnerabilityDetailsModalContainer'),
+      'default',
+      () => <div>Vulnerability Details Modal Container</div>
     );
 
-    const preventDefaultSpy = jasmine.createSpy('preventDefault');
+    const preventDefaultSpy = jest.fn();
     const component = getMountedComponentWithAutoClean();
 
     const cancelButton = component.findWhere((node) => {
@@ -515,8 +524,10 @@ describe('AddWaiverForm', function () {
   });
 
   it('renders an LoadError when submitError is present', function () {
-    spyOn(VulnerabilityDetailsModalContainer, 'default').and.returnValue(
-      <div>Vulnerability Details Modal Container</div>
+    jest.replaceProperty(
+      jest.requireActual('MainRoot/vulnerabilityDetails/VulnerabilityDetailsModalContainer'),
+      'default',
+      () => <div>Vulnerability Details Modal Container</div>
     );
 
     const submitErrorObject = new Error('an error');

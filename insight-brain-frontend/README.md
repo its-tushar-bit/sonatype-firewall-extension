@@ -80,25 +80,35 @@ That will enable all the functionality you're likely to need.
 
 #### Running tests
 
-Unit tests are written using the [Jasmine](https://jasmine.github.io/) BDD framework.
+There are two groups of unit tests: those written in the older [Jasmine](https://jasmine.github.io/) BDD framework, and
+those written in [Jest](https://jestjs.io/), a newer successor to Jasmine. Generally, new tests should be written in
+Jest, and hopefully the Jasmine tests will gradually be ported over and Jasmine eventually removed. Jasmine runs tests
+within a headless browser instance while Jest runs them within node.js with [jsdom](https://github.com/jsdom/jsdom).
 
-NOTE for MAC OS users: Before running tests locally, set Safari to always show scroll bars as our tests depend on scroll bars to be visible (refer to https://support.apple.com/en-nz/guide/mac-help/mchlp1225/mac for instructions.)
+NOTE for MAC OS users: Before running Jasmine tests locally, set Safari to always show scroll bars as our tests depend on scroll bars to be visible (refer to https://support.apple.com/en-nz/guide/mac-help/mchlp1225/mac for instructions.)
 
 To run all JavaScript unit tests in the CLI and see the results there, simply run the `test` task:
 
 `yarn run test`
 
-You can also run tests in 'watch' mode which opens a visible browser window and allows repeated re-execution. To do so, use the `test-watch` task (note that you do NOT need a back-end server running):
+Jest and Jasmine also each have a 'watch' mode which repeated re-execution. Jest's watch mode can be activated with the
+`jest-watch` npm script:
+
+`yarn run jest-watch`
+
+For Jasmine's watch mode, use the `test-watch` task:
 
 `yarn run test-watch`
 
-In this interactive environment, as you make changes to your tests, the runner will automatically re-run your tests. The
-test report can be seen in the your terminal.
+In these interactive environments, as you make changes to your tests, the runner will automatically re-run your tests.
+The test report can be seen in the your terminal.
 
 If you want to limit which tests run, you can change any `it` test function to `fit` to run only that test, or any
-`describe` to `fdescribe` to only run the contained tests.
+`describe` to `fdescribe` to only run the contained tests. Additionally, the jest runner has various keyboard driven
+commands that may be issued to the test runner in order to manage filters. Be aware that Jest's test filtering appears
+to be somewhat unreliable – always double check that it actually ran what you wanted it to.
 
-A special note for testing `NxToolip`: There is a delay when rendering a tooltip from `NxToolip`. In order to test it properly call `requestIdleCallbackInvokeImmediate` found in `SpecUtil.js` before you call the `render` function from RLT. See `react-shared-components/components/NxTooltip/updateBatcher.js` for details on requestIdleCallback usage.
+A special note for testing `NxToolip`: There is a delay when rendering a tooltip from `NxToolip`. In order to test it properly call `requestIdleCallbackInvokeImmediate` found in `SpecUtil.js` before you call the `render` function from RTL. See `react-shared-components/components/NxTooltip/updateBatcher.js` for details on requestIdleCallback usage.
 
 #### Linting and Formatting
 

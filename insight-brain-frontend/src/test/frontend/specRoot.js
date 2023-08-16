@@ -42,7 +42,7 @@ import customMatchers from './customMatchers';
 
 import '../../main/frontend/utilAngular/Globals';
 
-importAll(require.context('.', true, /[sS]pec.jsx?$/));
+importAll(require.context('.', true, /(?<!(jest))[sS]pec.jsx?$/));
 
 // explicitly import all of our implementation code to ensure accurate code coverage numbers
 // (i.e., make sure that even modules with no tests at all get counted)

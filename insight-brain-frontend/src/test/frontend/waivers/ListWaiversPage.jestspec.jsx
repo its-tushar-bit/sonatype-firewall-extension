@@ -3,39 +3,44 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import 'jest-enzyme';
 import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
 import { NxPageTitle, NxH1, NxH2, NxFontAwesomeIcon, NxTile } from '@sonatype/react-shared-components';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import ListWaiversPage from 'MainRoot/waivers/ListWaiversPage';
 
 describe('ListWaiversPage', function () {
   let minimalProps,
-    ListWaiversPage,
     ListWaiversTableMock,
     loadManageWaiversDataSpy,
     violationDetailsMock,
     getShallowComponent,
-    DeleteWaiverModalMock,
+    getMountedComponent,
     setWaiverToDeleteMock,
     BackButtonMock,
     stateGoSpy;
 
   beforeEach(function () {
-    ListWaiversTableMock = jasmine.createSpy('ListWaiversTableMock').and.returnValue(<div>ListWaiversTable</div>);
-    DeleteWaiverModalMock = jasmine.createSpy('DeleteWaiverModalMock').and.returnValue(<div>Delete Waiver Modal</div>);
-    BackButtonMock = jasmine.createSpy('ListWaiversBackButton').and.returnValue(<div>List Waivers Back Button</div>);
+    ListWaiversTableMock = jest
+      .spyOn(jest.requireActual('MainRoot/waivers/ListWaiversTable'), 'default')
+      .mockReturnValue(<div>ListWaiversTable</div>);
+    BackButtonMock = jest
+      .spyOn(jest.requireActual('MainRoot/waivers/ListWaiversBackButton'), 'default')
+      .mockReturnValue(<div>List Waivers Back Button</div>);
 
-    ListWaiversPage = require('inject-loader!../../../main/frontend/waivers/ListWaiversPage')({
-      './ListWaiversTable': ListWaiversTableMock,
-      './deleteWaiverModal/DeleteWaiverModalContainer': DeleteWaiverModalMock,
-      './ListWaiversBackButton': BackButtonMock,
-    }).default;
+    // have to use replaceProperty for this one because the return value of connect() is not a function
+    jest.replaceProperty(
+      jest.requireActual('MainRoot/waivers/deleteWaiverModal/DeleteWaiverModalContainer'),
+      'default',
+      () => <div id="delete-waiver-modal">Delete Waiver Modal</div>
+    );
 
-    loadManageWaiversDataSpy = jasmine.createSpy('loadManageWaiversDataSpy');
+    loadManageWaiversDataSpy = jest.fn();
     setWaiverToDeleteMock = () => {};
-    stateGoSpy = jasmine.createSpy();
+    stateGoSpy = jest.fn();
 
     violationDetailsMock = {
       filename: 'filename',
@@ -74,6 +79,7 @@ describe('ListWaiversPage', function () {
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversPage, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(ListWaiversPage, minimalProps);
   });
 
   it('renders a component with the "nx-page-main" class', function () {
@@ -123,15 +129,15 @@ describe('ListWaiversPage', function () {
   });
 
   it('renders the DeleteWaiverModal component if there is a waiverToDelete in the state', function () {
-    const component = getShallowComponent({
+    const component = getMountedComponent({
       waiverToDelete: { waiverId: 'foo' },
     });
-    expect(component.find(DeleteWaiverModalMock)).toExist();
+    expect(component.find('#delete-waiver-modal')).toExist();
   });
 
   it('does not render the DeleteWaiverModal if there is not a waiverToDelete in the state', function () {
-    const component = getShallowComponent();
-    expect(component.find(DeleteWaiverModalMock)).not.toExist();
+    const component = getMountedComponent();
+    expect(component.find('#delete-waiver-modal')).not.toExist();
   });
 
   it('renders a loading LoadWrapper when loadingManageWaiversData is true', function () {
@@ -270,7 +276,7 @@ describe('ListWaiversPage', function () {
       expiredWaivers = [{ foo: 'bar2' }],
       loadingApplicableWaivers = false,
       loadApplicableWaiversError = 'error',
-      loadApplicableWaiversSpy = jasmine.createSpy();
+      loadApplicableWaiversSpy = jest.fn();
     const component = getShallowComponent({
       activeWaivers: activeWaivers,
       expiredWaivers: expiredWaivers,

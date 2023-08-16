@@ -74,8 +74,24 @@
               <arguments>run test-compile</arguments>
             </configuration>
           </execution>
+          <!--
+            There are currently two suites of frontend unit tests: newer tests in jest and
+            older tests in jasmine (the latter are run by karma). The two executions below run these
+            two suites respentively
+          -->
           <execution>
-            <id>test</id>
+            <id>jest</id>
+            <phase>test</phase>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <configuration>
+              <skip>${jasmine.tests.skip}</skip>
+              <arguments>run jest</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>jasmine</id>
             <phase>test</phase>
             <goals>
               <goal>yarn</goal>

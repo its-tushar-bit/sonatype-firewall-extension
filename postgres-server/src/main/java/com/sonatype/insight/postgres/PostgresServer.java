@@ -211,4 +211,23 @@ public class PostgresServer
       throw new IllegalStateException("Could not load SQL dump into postgres server", e);
     }
   }
+
+  public String dumpSchema(String schema) {
+    log.info("Generating dump for schema {}", schema);
+    try {
+      String connectionUrl =
+          String.format("postgresql://%s:%s@%s:%s/%s", getUsername(), getPassword(), "127.0.0.1", "5432", getName());
+      String[] cmd = {
+          "/usr/local/bin/pg_dump", "--schema-only", "--schema=" + schema, "--dbname=" + connectionUrl
+      };
+      ExecResult execResult = container.execInContainer(cmd);
+      if (execResult.getExitCode() != 0) {
+        throw new Exception("pg_dump returned " + execResult.getExitCode());
+      }
+      return execResult.getStdout();
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(String.format("Could dump schema %s", schema), e);
+    }
+  }
 }

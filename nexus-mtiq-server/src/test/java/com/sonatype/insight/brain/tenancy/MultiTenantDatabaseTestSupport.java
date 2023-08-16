@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import javax.inject.Provider;
@@ -53,5 +54,17 @@ public class MultiTenantDatabaseTestSupport
     return super.testAsNewTenant(t -> {
       multiTenantDatabaseTestRule.provisionDatabaseForTenant(t);
     });
+  }
+
+  protected void migrateTenant(Tenant tenant) {
+    multiTenantDatabaseTestRule.provisionDatabaseForTenant(tenant);
+  }
+
+  protected void loadSqlDump(Path sqlFile) {
+    multiTenantDatabaseTestRule.postgresServer.loadSqlDump(sqlFile);
+  }
+
+  protected String dumpSchema(String schema) {
+    return multiTenantDatabaseTestRule.postgresServer.dumpSchema(schema);
   }
 }

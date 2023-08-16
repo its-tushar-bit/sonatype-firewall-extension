@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -56,6 +58,7 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyCollection;
@@ -1119,7 +1122,7 @@ public class ComponentRemediationServiceTest
             apiVersionChangeOptionDTO.getType() == ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK)
         .collect(Collectors.toList());
 
-    final String expectedPackageUrl = "pkg:maven/any-group/any-artifact@3.0.0";
+    final String expectedPackageUrl = "pkg:maven/any-group/any-artifact@3.0.0?type=any-ext";
 
     assertThat(lessAggregatedRiskResult).hasSize(1);
 
@@ -1171,7 +1174,7 @@ public class ComponentRemediationServiceTest
             apiVersionChangeOptionDTO.getType() == ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK)
         .collect(Collectors.toList());
 
-    final String expectedPackageUrl = "pkg:maven/any-group/any-artifact@3.9.2";
+    final String expectedPackageUrl = "pkg:maven/any-group/any-artifact@3.9.2?type=any-ext";
 
     assertThat(lessAggregatedRiskResult).hasSize(1);
 
@@ -1183,6 +1186,214 @@ public class ComponentRemediationServiceTest
     assertThat(suggestedPackageUrlReturned).isEqualTo(expectedPackageUrl);
   }
 
+  @Test
+  @SuppressWarnings("checkstyle:LineLength")
+  public void testGetSuggestedRemediation_ShouldFactorTransitiveScoreOfCurrentComponentWhenComparingToTransitiveRiskOfCandidates() {
+    // === Given ===
+    final Application givenApp = tempEntity.newApplication(org.getId());
+
+    final String givenGroup = "any-group";
+    final String givenArtifact = "any-artifact";
+
+    // our current version, only a 6 by its self but has transitive risk
+    final ComponentDetailsDTO currentVersionComponentDetailsDTO =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "1.0.0", 5.0F);
+
+    // this will be chosen, the direct risk appears higher, but the full transitive risk is less
+    final ComponentDetailsDTO versionToBeChosen =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "2.0.0", 6.0F);
+
+    final List<ComponentDetailsDTO> givenAvailableComponentVersions = Arrays.asList(
+        currentVersionComponentDetailsDTO,
+        versionToBeChosen
+    );
+
+    // add high risk vulnerabilities to the current versions transitive dependency map
+    final Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMapReturnedFromHds = new HashMap<>();
+    final Map<PackageUrlIdentifier, ComponentDetails> componentDependenciesReturnedFromHds = new HashMap<>();
+    appendTransitiveVulnerabilities(
+        dependenciesMapReturnedFromHds,
+        componentDependenciesReturnedFromHds,
+        currentVersionComponentDetailsDTO,
+        Arrays.asList(
+            Collections.singletonList(new SecurityVulnerability("any-ref-1", "any-source-1", 9.0F)),
+            Collections.singletonList(new SecurityVulnerability("any-ref-2", "any-source-2", 10.0F))
+        )
+    );
+
+    final ComponentDependenciesDTO componentDependenciesDTO = new ComponentDependenciesDTO(
+        dependenciesMapReturnedFromHds,
+        componentDependenciesReturnedFromHds
+    );
+
+    // === When ===
+    mockHdsGetComponentDependencies(componentDependenciesDTO);
+
+    mockLicenseFeature(true);
+    setTransitiveSolverValue(true);
+
+    final ApiComponentRemediationValueDTO results = componentRemediationService.getSuggestedRemediation(
+        currentVersionComponentDetailsDTO.componentIdentifier,
+        givenAvailableComponentVersions,
+        OwnerType.APPLICATION,
+        givenApp.getPublicId(),
+        "any-stage-id"
+    );
+
+    /// === Then ===
+    final List<ApiVersionChangeOptionDTO> lessAggregatedRiskResult = results.versionChanges.stream()
+        .filter(apiVersionChangeOptionDTO ->
+            apiVersionChangeOptionDTO.getType() ==
+                ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK
+        )
+        .collect(Collectors.toList());
+
+    assertThat(lessAggregatedRiskResult).hasSize(1);
+
+    final String suggestedPackageUrlReturned =  lessAggregatedRiskResult.get(0)
+        .getData()
+        .getComponent()
+        .packageUrl;
+
+    final String expectedPackageUrl = "pkg:maven/any-group/any-artifact@2.0.0?type=any-ext";
+    assertThat(suggestedPackageUrlReturned).isEqualTo(expectedPackageUrl);
+  }
+
+  @Test
+  @SuppressWarnings("checkstyle:LineLength")
+  public void testGetSuggestedRemediation_ShouldReturnNextComponentWithDependenciesAndLessAggregatedRiskWhenAvailable() {
+    // === Given ===
+    final Application givenApp = tempEntity.newApplication(org.getId());
+
+    final String givenGroup = "any-group";
+    final String givenArtifact = "any-artifact";
+
+    // won't be picked because it's in the past
+    final ComponentDetailsDTO pastVersionWithLessRisk =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "0.1.0", 4.0F);
+
+    // our current version
+    final ComponentDetailsDTO currentVersionComponentDetailsDTO =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "1.0.0", 9.0F);
+
+    // won't be picked because risk is beyond the cutoff
+    final ComponentDetailsDTO futureVersionWithLessRiskButOutsideCutOff =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "2.0.0", 7.5F);
+
+    // this one won't be picked by transitive strategy because it brings in too much transitive risk
+    final ComponentDetailsDTO futureVersionWithLessRiskButTooMuchTransitiveRiskSpreadAcrossDependencies =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "3.0.0", 5.0F);
+
+    // this one won't be picked by transitive strategy because it brings in too much transitive risk
+    final ComponentDetailsDTO futureVersionWithLessRiskButTooMuchTransitiveRiskOnOneDependency =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "4.0.0", 5.0F);
+
+    // this will be picked because it has less risk even when accounting for transitives
+    final ComponentDetailsDTO versionToBeChosen =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "5.0.0", 4.0F);
+
+    // this would be good, but it won't be chosen because it's not the first to qualify
+    final ComponentDetailsDTO versionWithLessRiskButNotTheFirst =
+        createComponentDetailsDTO(givenGroup, givenArtifact, "6.0.0", 2.0F);
+
+    final List<ComponentDetailsDTO> givenAvailableComponentVersions = Arrays.asList(
+        pastVersionWithLessRisk,
+        currentVersionComponentDetailsDTO,
+        futureVersionWithLessRiskButOutsideCutOff,
+        futureVersionWithLessRiskButTooMuchTransitiveRiskSpreadAcrossDependencies,
+        futureVersionWithLessRiskButTooMuchTransitiveRiskOnOneDependency,
+        versionToBeChosen,
+        versionWithLessRiskButNotTheFirst
+    );
+
+    final Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMapReturnedFromHds = new HashMap<>();
+    final Map<PackageUrlIdentifier, ComponentDetails> componentDependenciesReturnedFromHds = new HashMap<>();
+    appendTransitiveVulnerabilities(
+        dependenciesMapReturnedFromHds,
+        componentDependenciesReturnedFromHds,
+        pastVersionWithLessRisk,
+        Collections.emptyList());
+    appendTransitiveVulnerabilities(
+        dependenciesMapReturnedFromHds,
+        componentDependenciesReturnedFromHds,
+        currentVersionComponentDetailsDTO,
+        Collections.emptyList()
+    );
+    appendTransitiveVulnerabilities(
+        dependenciesMapReturnedFromHds,
+        componentDependenciesReturnedFromHds,
+        futureVersionWithLessRiskButOutsideCutOff,
+        Collections.emptyList()
+    );
+    appendTransitiveVulnerabilities(
+        dependenciesMapReturnedFromHds,
+        componentDependenciesReturnedFromHds,
+        futureVersionWithLessRiskButTooMuchTransitiveRiskSpreadAcrossDependencies,
+        // each vulnerability will live under its own child component
+        Arrays.asList(
+            Collections.singletonList(new SecurityVulnerability("any-ref-1", "any-source-1", 9.0F)),
+            Collections.singletonList(new SecurityVulnerability("any-ref-2", "any-source-2", 10.0F))
+        )
+    );
+    appendTransitiveVulnerabilities(
+        dependenciesMapReturnedFromHds,
+        componentDependenciesReturnedFromHds,
+        futureVersionWithLessRiskButTooMuchTransitiveRiskOnOneDependency,
+        // a single child component will contain both vulnerabilities
+        Collections.singletonList(
+            Arrays.asList(
+                new SecurityVulnerability("any-ref-3", "any-source-3", 9.0F),
+                new SecurityVulnerability("any-ref-4", "any-source-4", 10.0F)
+            )
+        )
+    );
+    appendTransitiveVulnerabilities(
+        dependenciesMapReturnedFromHds,
+        componentDependenciesReturnedFromHds,
+        versionToBeChosen,
+        Arrays.asList(
+            Collections.singletonList(new SecurityVulnerability("any-ref-5", "any-source-5", 2.0F))
+        )
+    );
+
+    final ComponentDependenciesDTO componentDependenciesDTO = new ComponentDependenciesDTO(
+        dependenciesMapReturnedFromHds,
+        componentDependenciesReturnedFromHds
+    );
+
+    // === When ===
+    mockHdsGetComponentDependencies(componentDependenciesDTO);
+
+    mockLicenseFeature(true);
+    setTransitiveSolverValue(true);
+
+    final ApiComponentRemediationValueDTO results = componentRemediationService.getSuggestedRemediation(
+        currentVersionComponentDetailsDTO.componentIdentifier,
+        givenAvailableComponentVersions,
+        OwnerType.APPLICATION,
+        givenApp.getPublicId(),
+        "any-stage-id"
+    );
+
+    /// === Then ===
+    final List<ApiVersionChangeOptionDTO> lessAggregatedRiskResult = results.versionChanges.stream()
+        .filter(apiVersionChangeOptionDTO ->
+            apiVersionChangeOptionDTO.getType() ==
+                ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK
+        )
+        .collect(Collectors.toList());
+
+    assertThat(lessAggregatedRiskResult).hasSize(1);
+
+    final String suggestedPackageUrlReturned =  lessAggregatedRiskResult.get(0)
+        .getData()
+        .getComponent()
+        .packageUrl;
+
+    final String expectedPackageUrl = "pkg:maven/any-group/any-artifact@5.0.0?type=any-ext";
+    assertThat(suggestedPackageUrlReturned).isEqualTo(expectedPackageUrl);
+  }
+
   final ComponentDetailsDTO createComponentDetailsDTO(
       final String groupId,
       final String artifactId,
@@ -1191,7 +1402,7 @@ public class ComponentRemediationServiceTest
   )
   {
     final ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version, null, "any-ext");
     final ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
     componentDetailsDTO.componentIdentifier = componentIdentifier;
 
@@ -1210,5 +1421,46 @@ public class ComponentRemediationServiceTest
     final int min = 0;
     final int max = 20;
     return (int) ((Math.random() * (max - min)) + min);
+  }
+
+  // works via side effect, modifying dependencyMap and detailsMap
+  private void appendTransitiveVulnerabilities(
+      final Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>>  dependencyMap,
+      final Map<PackageUrlIdentifier, ComponentDetails> detailsMap,
+      final ComponentDetailsDTO candidateDirectDependencyVersion,
+      final List<List<SecurityVulnerability>> transitiveVulnerabilities
+  )
+  {
+    for (int ndx = 0; ndx < transitiveVulnerabilities.size(); ndx++) {
+      final ComponentIdentifier childComponentIdentifier = ComponentIdentifier.createMavenCoordinates(
+          "any-group",
+          "any-artifact-transitive-artifact-" + randomUUID(),
+          "any-version-" + randomUUID(),
+          "",
+          "any-ext"
+      );
+
+      final List<SecurityVulnerability> vulnsForComponent = transitiveVulnerabilities.get(ndx);
+
+      final PackageUrlIdentifier childIdentifier = PackageUrlIdentifier
+          .fromComponentIdentifier(childComponentIdentifier);
+      final PackageUrlIdentifier directIdentifier = PackageUrlIdentifier
+          .fromComponentIdentifier(candidateDirectDependencyVersion.componentIdentifier);
+
+      final List<PackageUrlIdentifier> dependenciesForComponent = dependencyMap.get(directIdentifier) != null
+          ? (List<PackageUrlIdentifier>) dependencyMap.get(directIdentifier)
+          : new ArrayList<>();
+
+      dependenciesForComponent.add(childIdentifier);
+      dependencyMap.put(directIdentifier, dependenciesForComponent);
+
+      final ComponentDetails componentDetails = new ComponentDetails();
+      componentDetails.setSecurityVulnerabilities(vulnsForComponent);
+
+      detailsMap.put(
+          childIdentifier,
+          componentDetails
+      );
+    }
   }
 }

@@ -88,11 +88,18 @@ public class AggregateScoringTest
   }
 
   @Test
-  public void computeAggregateScore_shouldComputeCorrectValue() {
+  public void testComputeAggregateScore_shouldComputeCorrectValueFromComponentDetailsDto() {
     final ComponentDetailsDTO givenComponentDetails = generateComponentDetailsDto(givenHighestSeverity,
         givenVulnerabilities);
 
     final double result = computeAggregateScore(givenComponentDetails);
+
+    assertThat(result).isEqualTo(expectedScore);
+  }
+
+  @Test
+  public void testComputeAggregateScore_shouldComputeCorrectValueFromSecurityVulnerabilities() {
+    final double result = computeAggregateScore(givenVulnerabilities);
 
     assertThat(result).isEqualTo(expectedScore);
   }

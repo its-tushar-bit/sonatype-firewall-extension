@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -185,8 +186,13 @@ public class ComponentRemediationService
           && SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
 
       if (includeAdvancedStrategies) {
-        Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = getDependencyAlerts(nonFailingVersions,
-            nonViolatingVersions, ownerType, ownerId, stageId);
+        final ComponentDependenciesDTO componentDependencies =
+            fetchDependencyInformation(
+                allVersions,
+                currentIndex
+            );
+        Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = getDependencyAlerts(componentDependencies,
+            ownerType, ownerId, stageId);
 
         // find first non violating where dependencies have no violations
         nonViolatingWithDependencies(nonViolatingVersions, dependencyAlerts)
@@ -207,6 +213,25 @@ public class ComponentRemediationService
               );
               telemetryAttributes.put(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
             });
+
+        getLessRiskyVersionBasedOnAggregateScoringAccountingForTransitives(
+            currentIndex,
+            allVersions,
+            componentDependencies
+        )
+            .ifPresent(componentWithLessAggregateRisk -> {
+              final ApiVersionChangeOptionType changeType =
+                  ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK;
+
+              componentRemediationDto.versionChanges.add(
+                  createVersionChangeOption(
+                      componentWithLessAggregateRisk.componentIdentifier,
+                      changeType,
+                      componentWithLessAggregateRisk.breakingChangesCount
+                  ));
+
+              telemetryAttributes.put(changeType.getNameForTelemetry(), String.valueOf(true));
+            });
       }
     }
 
@@ -218,30 +243,11 @@ public class ComponentRemediationService
    * evaluates dependencies and returns a map of each version's component identifier to its dependencies policy alerts
    */
   private Map<PackageUrlIdentifier, List<PolicyAlert>> getDependencyAlerts(
-      final List<ComponentDetailsDTO> nonFailingVersions,
-      final List<ComponentDetailsDTO> nonViolatingVersions,
+      final ComponentDependenciesDTO dependenciesDto,
       final OwnerType ownerType,
       final String ownerId,
       final String stageId)
   {
-    // non-violating/non-failing with dependencies
-    Collection<PackageUrlIdentifier> nonFailingVersionsPurls = nonFailingVersions.stream()
-        .map(dto -> PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier))
-        .collect(Collectors.toList());
-
-    Collection<PackageUrlIdentifier> nonViolatingVersionsPurls = nonViolatingVersions.stream()
-        .map(dto -> PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier))
-        .collect(Collectors.toList());
-
-    // create collection of purls of all non violating, non failing versions
-    // since nonFailingVersions is a super set which includes nonViolatingVersions, use that if calculated
-    Collection<PackageUrlIdentifier> candidatePurls = CollectionUtils.isNotEmpty(nonFailingVersionsPurls) ?
-        nonFailingVersionsPurls :
-        nonViolatingVersionsPurls;
-
-    // get dependencies of all non violating, non failing versions
-    ComponentDependenciesDTO dependenciesDto = getComponentDependencies(candidatePurls);
-
     Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = new HashMap<>();
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     final Collection<ComponentDetails> componentDetailsList = dependenciesDto.getDetailsMap().values();
@@ -269,6 +275,20 @@ public class ComponentRemediationService
     }
 
     return dependencyAlerts;
+  }
+
+  private ComponentDependenciesDTO fetchDependencyInformation(
+      final Collection<ComponentDetailsDTO> allVersions,
+      final int currentComponentIndex
+  )
+  {
+    final Collection<PackageUrlIdentifier> candidatePurls = allVersions.stream()
+        .skip(currentComponentIndex)
+        .map(version -> version.componentIdentifier)
+        .map(PackageUrlIdentifier::fromComponentIdentifier)
+        .collect(Collectors.toList());
+
+    return getComponentDependencies(candidatePurls);
   }
 
   private Map<PackageUrlIdentifier, List<PolicyAlert>> evaluateAndGetPolicyAlertsByComponent(
@@ -313,6 +333,79 @@ public class ComponentRemediationService
           return candidateScore < currentRisk && candidateScore <= MAX_ALLOWABLE_AGGREGATED_RISK;
         })
         .findFirst();
+  }
+
+  private Optional<ComponentDetailsDTO> getLessRiskyVersionBasedOnAggregateScoringAccountingForTransitives(
+      final int currentVersionIndex,
+      final List<ComponentDetailsDTO> allSortedVersions,
+      final ComponentDependenciesDTO componentDependenciesDTO
+  )
+  {
+    final ComponentDetailsDTO currentVersion = allSortedVersions.get(currentVersionIndex);
+    final double currentRisk = computeAggregateScoreForComponent(
+        currentVersion,
+        componentDependenciesDTO
+    );
+
+    return allSortedVersions.stream()
+        .skip(currentVersionIndex)
+        .filter(versionCandidate -> {
+          final double candidateScore = computeAggregateScoreForComponent(
+              versionCandidate,
+              componentDependenciesDTO
+          );
+
+          return candidateScore < currentRisk && candidateScore <= MAX_ALLOWABLE_AGGREGATED_RISK;
+        })
+        .findFirst();
+  }
+
+  private double computeAggregateScoreForComponent(
+      final ComponentDetailsDTO directComponentDetailsDTO,
+      final ComponentDependenciesDTO dependenciesInfo
+  )
+  {
+    final PackageUrlIdentifier identifier =
+        PackageUrlIdentifier.fromComponentIdentifier(directComponentDetailsDTO.componentIdentifier);
+
+    final List<SecurityVulnerability> directVulnerabilities = directComponentDetailsDTO.securityVulnerabilities != null
+        ? directComponentDetailsDTO.securityVulnerabilities
+        : Collections.emptyList();
+
+    final List<SecurityVulnerability> childVulnerabilities = getTransitiveVulnerabilities(identifier, dependenciesInfo);
+
+    final List<SecurityVulnerability> allVulnerabilities = new ArrayList<>();
+    allVulnerabilities.addAll(directVulnerabilities);
+    allVulnerabilities.addAll(childVulnerabilities);
+
+    return computeAggregateScore(allVulnerabilities);
+  }
+
+  private List<SecurityVulnerability> getTransitiveVulnerabilities(
+      final PackageUrlIdentifier parentIdentifier,
+      final ComponentDependenciesDTO componentDependenciesDTO
+  )
+  {
+    final Collection<PackageUrlIdentifier> childIdentifiers =
+        componentDependenciesDTO.getDependenciesMap().get(parentIdentifier);
+
+    if (childIdentifiers == null) {
+      return Collections.emptyList();
+    }
+
+    return childIdentifiers
+        .stream()
+        .map(child -> {
+          final ComponentDetails childComponentDetails = componentDependenciesDTO.getDetailsMap().get(child);
+
+          if (childComponentDetails == null || childComponentDetails.getSecurityVulnerabilities() == null) {
+            return Collections.<SecurityVulnerability>emptyList();
+          }
+
+          return childComponentDetails.getSecurityVulnerabilities();
+        })
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
   }
 
   private List<ComponentDetailsDTO> nonFailingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {

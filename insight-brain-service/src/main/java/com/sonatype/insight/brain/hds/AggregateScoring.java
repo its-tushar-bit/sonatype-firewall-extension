@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -24,12 +25,37 @@ class AggregateScoring
         ? componentDetailsDTO.highestSecurityVulnerabilitySeverity
         : 0.0F;
 
+    return computeAggregateScore(vulnerabilities, maxScore);
+  }
+
+  public static double computeAggregateScore(final List<SecurityVulnerability> vulnerabilities) {
+    if (vulnerabilities == null) {
+      return computeAggregateScore(Collections.emptyList(), 0.0F);
+    }
+
+    final float maxScore = findMaxSeverity(vulnerabilities);
+
+    return computeAggregateScore(vulnerabilities, maxScore);
+  }
+
+  private static double computeAggregateScore(
+      final List<SecurityVulnerability> vulnerabilities,
+      final float maxScore
+  )
+  {
     final double averageScore = getAverageSeverityScore(vulnerabilities);
     final int uniqueCWEs = getNumberOfUniqueCwes(vulnerabilities);
 
     final double score = maxScore + (uniqueCWEs - 1) * averageScore * 0.01;
 
     return Math.min(score, 10.0);
+  }
+
+  private static float findMaxSeverity(final Collection<SecurityVulnerability> vulnerabilities) {
+    return (float) vulnerabilities.stream()
+        .mapToDouble(SecurityVulnerability::getSeverity)
+        .max()
+        .orElse(0.0F);
   }
 
   private static int getNumberOfUniqueCwes(List<com.sonatype.clm.dto.model.SecurityVulnerability> vulnerabilities) {

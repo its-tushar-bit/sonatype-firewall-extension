@@ -166,6 +166,7 @@ public class SecurityModule
     String filters = String.format(CUSTOM_CSRF_FILTERS, AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED);
     manager.createChain("/rest/ide/scan/**", filters);
     manager.createChain("/rest/integration/repositories/**", filters);
+    manager.createChain("/rest/integration/artifactory/**", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);
     manager.createChain("/rest/report/*/*/downloadBundle", filters);
 

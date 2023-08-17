@@ -50,6 +50,12 @@ public abstract class AbstractRepositoryResourceAuditTest
   
   protected abstract String getResourcePath();
 
+  @Override
+  protected HttpRequest restRequest() {
+    // Integration REST endpoints don't use/require CSRF
+    return super.restRequest().noCsrfToken();
+  }
+
   @Test
   public void testSetAuditEnabled_Connect() throws Exception {
     tempEntity.newRepositoryManager(REPOSITORY_MANAGER_INSTANCE_ID);

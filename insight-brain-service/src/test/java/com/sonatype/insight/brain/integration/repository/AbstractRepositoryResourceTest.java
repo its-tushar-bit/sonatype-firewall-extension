@@ -45,6 +45,12 @@ public abstract class AbstractRepositoryResourceTest
 
   protected abstract String getUserAgent();
 
+  @Override
+  protected HttpRequest restRequest() {
+    // Integration REST endpoints don't use/require CSRF
+    return super.restRequest().noCsrfToken();
+  }
+
   private HttpRequest summaryRequest() {
     return restRequest().path(AbstractRepositoryResource.SUMMARY_PATH);
   }

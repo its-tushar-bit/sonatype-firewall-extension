@@ -771,7 +771,10 @@ public class DefaultHdsClient
         // Jersey 1.18+ sees the "{" and "}" (e.g. a JSON object) as defining a template parameter, to avoid that we
         // encode the curly braces
 
-        uriBuilder.queryParam(queryParam.getKey(), queryParam.getValue().replace("{", "%7B").replace("}", "%7D"));
+        String paramValue = queryParam.getValue();
+        if (paramValue != null) {
+          uriBuilder.queryParam(queryParam.getKey(), paramValue.replace("{", "%7B").replace("}", "%7D"));
+        }
       }
     }
 

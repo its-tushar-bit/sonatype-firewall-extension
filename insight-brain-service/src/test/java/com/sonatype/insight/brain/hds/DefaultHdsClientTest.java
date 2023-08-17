@@ -614,12 +614,16 @@ public class DefaultHdsClientTest
     queryParams.put("name2", "{\"format\":\"a-name\",\"coordinates\":{\"name\":\"org.dojotoolkit dojo\",\"qualifier\"" +
         ":\"\",\"version\":\"1.8.14\"}} ");
 
+    // Null params should not cause exceptions and should not be included
+    queryParams.put("name3", null);
+
     //making sure reserved characters are preserved where they should be and encoded in the query values
     String requestUri = client.relay(httpServletRequest, String.class, "rest/ci/componentDetails", queryParams).content;
     assertThat("&" + requestUri).contains(
         "&name2=%7B%22format%22%3A%22a-name%22%2C%22coordinates%22%3A%7B%22name%22%3A%22org.dojotoolkit"
             + "+dojo%22%2C%22qualifier%22%3A%22%22%2C%22version%22%3A%221.8.14%22%7D%7D",
         "&name1=%7B+%7D%2B%26%3B%2F%3F%3A%40%3D%3C%3E%23%25%7C%5C%5E~%5B%5D%60");
+    assertThat("&" + requestUri).doesNotContain("name3");
   }
 
   private static class ServletInputStreamImpl
@@ -747,6 +751,11 @@ public class DefaultHdsClientTest
 
     client.put(null, String.class, "client_user_agent", testPath, tempDir.newFile(), testQueryParams);
     assertThat(queryString[0]).contains(queryParam + "=" + queryParamValue);
+
+    // Null params should not cause exceptions and should not be included
+    testQueryParams.put(queryParam, null);
+    client.put(null, String.class, "client_user_agent", testPath, tempDir.newFile(), testQueryParams);
+    assertThat(queryString[0]).isNull();
 
     client.put(null, String.class, "client_user_agent", testPath, tempDir.newFile(), Collections.emptyMap());
     assertThat(queryString[0]).isNull();

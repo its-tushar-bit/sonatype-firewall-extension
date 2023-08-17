@@ -50,6 +50,11 @@ public class LastPolicyEvaluationDAO
     }
   }
 
+  @Override
+  public LastPolicyEvaluation getById(String evaluationId) {
+    return getByEvaluationId(evaluationId);
+  }
+
   public LastPolicyEvaluation getByApplicationIdAndStageTypeId(final String applicationId, final String stageTypeId) {
     String sQuery = "SELECT entity FROM LastPolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1" + //

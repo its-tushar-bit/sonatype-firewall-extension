@@ -66,12 +66,8 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
     if (detectTestEntityLeaks() && OperationalDataStoreProvider.isDatabaseInMemory()) {
       Exception e = new Exception("Entity of type " + entity.getClass().getName() + " created at:");
-      String stackTraceAsString = ExceptionUtils.getStackTrace(e);
-      // Assume that any entity created via TemporaryEntity is not leaked.
-      if (!stackTraceAsString.contains(".TemporaryEntity")) {
-        testEntityLeaksDetectionData.put(entity.getId(),
-            new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
-      }
+      testEntityLeaksDetectionData.put(entity.getId(),
+          new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
     }
 
     insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));

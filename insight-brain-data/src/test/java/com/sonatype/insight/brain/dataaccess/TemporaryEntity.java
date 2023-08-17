@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -709,6 +710,11 @@ public class TemporaryEntity
     // - VulnerabilityCustomRemediationTag: cascaded from VulnerabilityCustomRemediation
     // - VulnerabilityGroupVulnerability: cascaded from VulnerabilityGroup
     try {
+      // Make a copy of the testEntityLeaksDetectionData before we start restoring the db state.
+      // We don't want db inserts for db restore included in the testEntityLeaksDetectionData.
+      Map<String, TestEntityLeakDetectionData> testEntityLeaksDetectionData = new LinkedHashMap<>();
+      testEntityLeaksDetectionData.putAll(AbstractOperationalSqlDAO.testEntityLeaksDetectionData);
+
       automaticApplicationsConfigurationDAO.setEnabled(false);
       automaticApplicationsConfigurationDAO.setOrganizationId("");
       restoreInitialMembershipMappings();
@@ -796,7 +802,7 @@ public class TemporaryEntity
       delete(lockDAO.getAll(), lockDAO);
       delete(perpetualLockDAO.getAll(), perpetualLockDAO);
 
-      detectEntityLeaks();
+      detectEntityLeaks(testEntityLeaksDetectionData);
     }
     catch (RuntimeException e) {
       e.printStackTrace();
@@ -804,12 +810,13 @@ public class TemporaryEntity
     }
   }
 
-  private void detectEntityLeaks() {
-    if (!AbstractOperationalSqlDAO.testEntityLeaksDetectionData.isEmpty()) {
+  private void detectEntityLeaks(Map<String, TestEntityLeakDetectionData> testEntityLeaksDetectionData) {
+    AbstractOperationalSqlDAO.testEntityLeaksDetectionData.clear();
+
+    if (!testEntityLeaksDetectionData.isEmpty()) {
       int leakCount = 0;
-      for (String leakedEntityId : AbstractOperationalSqlDAO.testEntityLeaksDetectionData.keySet()) {
-        TestEntityLeakDetectionData testEntityLeakDetectionData =
-            AbstractOperationalSqlDAO.testEntityLeaksDetectionData.get(leakedEntityId);
+      for (String leakedEntityId : testEntityLeaksDetectionData.keySet()) {
+        TestEntityLeakDetectionData testEntityLeakDetectionData = testEntityLeaksDetectionData.get(leakedEntityId);
         try {
           AbstractOperationalSqlDAO<?> dao = testEntityLeakDetectionData.getDAO();
           if (dao.getById(leakedEntityId) != null) {
@@ -819,14 +826,11 @@ public class TemporaryEntity
           }
         }
         catch (RuntimeException e) {
-          AbstractOperationalSqlDAO.testEntityLeaksDetectionData.clear();
           e.printStackTrace();
           throw new RuntimeException("Error detecting entity leaks for "
               + testEntityLeakDetectionData.getDAO().getClass().getName() + ": " + e.getMessage(), e);
         }
       }
-
-      AbstractOperationalSqlDAO.testEntityLeaksDetectionData.clear();
 
       if (leakCount > 0) {
         throw new RuntimeException("Detected " + leakCount + " test entity leaks.");

@@ -27,4 +27,12 @@ public class PersistedUserSessionDAO
     String sQuery = "DELETE FROM PersistedUserSession entity WHERE entity.id=?1";
     createQuery(sQuery, id).executeUpdate();
   }
+
+  @Override
+  protected boolean detectTestEntityLeaks() {
+    // Functional tests login the user once per test class (logins are expensive),
+    // so we cannot delete the PersistedUserSession after each test,
+    // so we cannot detect PersistedUserSession leaks.
+    return false;
+  }
 }

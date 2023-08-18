@@ -34,6 +34,8 @@ const integrationsModule = angular
   .component('appsWithoutCiIntegrations', iqReact2Angular(AppsWithoutCiIntegrations, [], ['$ngRedux', '$state']))
   .config(routes);
 
+const additionalPageClass = 'iq-integrations-page-wrapper';
+
 function routes($stateProvider) {
   $stateProvider
     .state('integrations', {
@@ -42,6 +44,7 @@ function routes($stateProvider) {
       redirectTo: `integrations.${SECTIONS.OVERVIEW}`,
       data: {
         title: 'Integrations',
+        additionalPageClass,
       },
     })
     .state(`integrations.${SECTIONS.OVERVIEW}`, {
@@ -49,27 +52,43 @@ function routes($stateProvider) {
       component: 'overview',
       data: {
         title: 'Overview',
+        additionalPageClass,
       },
     })
     .state(`integrations.${SECTIONS.CICD}`, {
       url: '/ci-cd',
       component: 'ciCd',
+      data: {
+        additionalPageClass,
+      },
     })
     .state(`integrations.${SECTIONS.SCM}`, {
       url: '/scm',
       component: 'scm',
+      data: {
+        additionalPageClass,
+      },
     })
     .state(`integrations.${SECTIONS.ISSUE_TRACKING}`, {
       url: '/issue-tracking',
       component: 'issueTracking',
+      data: {
+        additionalPageClass,
+      },
     })
     .state(`integrations.${SECTIONS.IDE}`, {
       url: '/ide',
       component: 'ide',
+      data: {
+        additionalPageClass,
+      },
     })
     .state(`integrations.${SECTIONS.APPS_WITHOUT_CI_INTEGRATIONS}`, {
       url: '/apps-without-ci-integrations',
       component: 'appsWithoutCiIntegrations',
+      data: {
+        additionalPageClass,
+      },
     });
 }
 

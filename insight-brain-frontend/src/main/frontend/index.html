@@ -25,7 +25,9 @@
     <script src="bundle.js?CLM_BUILD_TIMESTAMP"></script>
   </head>
   <body class="nx-body" ng-csp="no-unsafe-eval">
-    <div class="nx-page">
+    <div
+      ng-class="$state.current.data.additionalPageClass ? ['nx-page', $state.current.data.additionalPageClass] : ['nx-page']"
+    >
       <div class="nx-system-notice-container">
         <system-notice id="system-notice" ng-if="!error"></system-notice>
         <change-default-admin-password-notice ng-if="!error"></change-default-admin-password-notice>

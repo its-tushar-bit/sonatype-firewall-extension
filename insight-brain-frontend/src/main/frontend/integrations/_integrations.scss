@@ -19,6 +19,10 @@ $apps-without-ci-preview-table-place-holder-width: 483px;
   }
 }
 
+.nx-page.iq-integrations-page-wrapper {
+  --nx-width-sidebar-max: 250px;
+}
+
 .nx-text-link.integrations-link {
   &,
   &:hover,

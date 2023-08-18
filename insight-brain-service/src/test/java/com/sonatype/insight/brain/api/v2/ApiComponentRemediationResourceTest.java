@@ -78,9 +78,7 @@ public class ApiComponentRemediationResourceTest
     assertRemediationApplication(
         component,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
-        ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
     );
   }
 
@@ -162,9 +160,7 @@ public class ApiComponentRemediationResourceTest
     assertRemediationApplication(
         component,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
-        ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
     );
   }
   
@@ -200,9 +196,7 @@ public class ApiComponentRemediationResourceTest
     assertRemediationOrganization(
         component,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
-        ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
     );
   }
   
@@ -213,9 +207,7 @@ public class ApiComponentRemediationResourceTest
     assertRemediationOrganization(
         component,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
-        ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
     );
   }
 
@@ -252,10 +244,8 @@ public class ApiComponentRemediationResourceTest
         PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NON_FAILING,
-        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
-        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES,
-        ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK);
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
   }
 
   @Test
@@ -291,10 +281,8 @@ public class ApiComponentRemediationResourceTest
         PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NON_FAILING,
-        ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
-        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES,
-        ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK);
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
   }
 
   private void assertRemediationOrganization(
@@ -384,8 +372,6 @@ public class ApiComponentRemediationResourceTest
       switch (optionTypes[i]) {
         case NEXT_NO_VIOLATIONS:
         case NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES:
-        case NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK:
-        case NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK:
           assertThat(versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
               .isEqualTo(expectedComponentNoViolations.componentIdentifier.toComponentIdentifier());
           assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrlNoViolations);

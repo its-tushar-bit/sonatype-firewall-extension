@@ -19,9 +19,7 @@ public enum ApiVersionChangeOptionType
   NEXT_NO_VIOLATIONS("next-no-violations"),
   NEXT_NON_FAILING("next-non-failing"),
   NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES("next-no-violations-with-dependencies"),
-  NEXT_NON_FAILING_WITH_DEPENDENCIES("next-non-failing-with-dependencies"),
-  NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK("next-with-less-aggregate-security-risk"),
-  NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK("next-with-dependencies-and-less-aggregate-security-risk");
+  NEXT_NON_FAILING_WITH_DEPENDENCIES("next-non-failing-with-dependencies");
 
   private final String displayName;
 

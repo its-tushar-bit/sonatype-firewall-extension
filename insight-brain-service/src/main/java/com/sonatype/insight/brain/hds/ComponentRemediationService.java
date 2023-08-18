@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -57,8 +56,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.collections.CollectionUtils;
 
-import static com.sonatype.insight.brain.hds.AggregateScoring.computeAggregateScore;
-
 /**
  * @since 1.83
  * This code was formerly in ApiComponentRemediationService but was split out to avoid a circular dependency
@@ -81,8 +78,6 @@ public class ComponentRemediationService
 
   private static final String OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR =
       "option_next_non_failing_with_dependencies";
-
-  private static final double MAX_ALLOWABLE_AGGREGATED_RISK = 6.0;
 
   private final TelemetrySender telemetrySender;
 
@@ -168,19 +163,6 @@ public class ComponentRemediationService
             telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
           });
 
-      getLessRiskyVersionBasedOnAggregateScoring(currentIndex, allVersions)
-          .ifPresent(dto -> {
-            final ApiVersionChangeOptionType changeType =
-                ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK;
-
-            componentRemediationDto.versionChanges.add(
-                createVersionChangeOption(
-                    dto.componentIdentifier, changeType, dto.breakingChangesCount
-                ));
-
-            telemetryAttributes.put(changeType.getNameForTelemetry(), String.valueOf(true));
-          });
-
       boolean includeAdvancedStrategies = currentComponent.isMaven() &&
           productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES)
           && SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
@@ -212,25 +194,6 @@ public class ComponentRemediationService
                       ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, dto.breakingChangesCount)
               );
               telemetryAttributes.put(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
-            });
-
-        getLessRiskyVersionBasedOnAggregateScoringAccountingForTransitives(
-            currentIndex,
-            allVersions,
-            componentDependencies
-        )
-            .ifPresent(componentWithLessAggregateRisk -> {
-              final ApiVersionChangeOptionType changeType =
-                  ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK;
-
-              componentRemediationDto.versionChanges.add(
-                  createVersionChangeOption(
-                      componentWithLessAggregateRisk.componentIdentifier,
-                      changeType,
-                      componentWithLessAggregateRisk.breakingChangesCount
-                  ));
-
-              telemetryAttributes.put(changeType.getNameForTelemetry(), String.valueOf(true));
             });
       }
     }
@@ -315,96 +278,6 @@ public class ComponentRemediationService
     return dtos.stream()
         .skip(startingIndex)
         .filter(dto -> dto.violatedPolicyCount == 0)
-        .collect(Collectors.toList());
-  }
-
-  private Optional<ComponentDetailsDTO> getLessRiskyVersionBasedOnAggregateScoring(
-      final int indexOfCurrentVersion,
-      List<ComponentDetailsDTO> availableVersions
-  )
-  {
-    final double currentRisk = computeAggregateScore(availableVersions.get(indexOfCurrentVersion));
-
-    return availableVersions.stream()
-        .skip(indexOfCurrentVersion)
-        .filter(versionCandidate -> {
-          final double candidateScore = computeAggregateScore(versionCandidate);
-
-          return candidateScore < currentRisk && candidateScore <= MAX_ALLOWABLE_AGGREGATED_RISK;
-        })
-        .findFirst();
-  }
-
-  private Optional<ComponentDetailsDTO> getLessRiskyVersionBasedOnAggregateScoringAccountingForTransitives(
-      final int currentVersionIndex,
-      final List<ComponentDetailsDTO> allSortedVersions,
-      final ComponentDependenciesDTO componentDependenciesDTO
-  )
-  {
-    final ComponentDetailsDTO currentVersion = allSortedVersions.get(currentVersionIndex);
-    final double currentRisk = computeAggregateScoreForComponent(
-        currentVersion,
-        componentDependenciesDTO
-    );
-
-    return allSortedVersions.stream()
-        .skip(currentVersionIndex)
-        .filter(versionCandidate -> {
-          final double candidateScore = computeAggregateScoreForComponent(
-              versionCandidate,
-              componentDependenciesDTO
-          );
-
-          return candidateScore < currentRisk && candidateScore <= MAX_ALLOWABLE_AGGREGATED_RISK;
-        })
-        .findFirst();
-  }
-
-  private double computeAggregateScoreForComponent(
-      final ComponentDetailsDTO directComponentDetailsDTO,
-      final ComponentDependenciesDTO dependenciesInfo
-  )
-  {
-    final PackageUrlIdentifier identifier =
-        PackageUrlIdentifier.fromComponentIdentifier(directComponentDetailsDTO.componentIdentifier);
-
-    final List<SecurityVulnerability> directVulnerabilities = directComponentDetailsDTO.securityVulnerabilities != null
-        ? directComponentDetailsDTO.securityVulnerabilities
-        : Collections.emptyList();
-
-    final List<SecurityVulnerability> childVulnerabilities = getTransitiveVulnerabilities(identifier, dependenciesInfo);
-
-    final List<SecurityVulnerability> allVulnerabilities = new ArrayList<>();
-    allVulnerabilities.addAll(directVulnerabilities);
-    allVulnerabilities.addAll(childVulnerabilities);
-
-    return computeAggregateScore(allVulnerabilities);
-  }
-
-  private List<SecurityVulnerability> getTransitiveVulnerabilities(
-      final PackageUrlIdentifier parentIdentifier,
-      final ComponentDependenciesDTO componentDependenciesDTO
-  )
-  {
-    final Collection<PackageUrlIdentifier> childIdentifiers =
-        componentDependenciesDTO.getDependenciesMap().get(parentIdentifier);
-
-    if (childIdentifiers == null) {
-      return Collections.emptyList();
-    }
-
-    return childIdentifiers
-        .stream()
-        .map(child -> {
-          final ComponentDetails childComponentDetails = componentDependenciesDTO.getDetailsMap().get(child);
-
-          if (childComponentDetails == null || childComponentDetails.getSecurityVulnerabilities() == null) {
-            return Collections.<SecurityVulnerability>emptyList();
-          }
-
-          return childComponentDetails.getSecurityVulnerabilities();
-        })
-        .flatMap(Collection::stream)
         .collect(Collectors.toList());
   }
 

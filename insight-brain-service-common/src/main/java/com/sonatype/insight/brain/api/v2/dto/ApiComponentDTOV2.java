@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -31,5 +32,6 @@ public class ApiComponentDTOV2
   @JsonInclude(Include.NON_NULL)
   public Boolean thirdParty;
 
+  @JsonIgnore
   public Integer breakingChangesCount;
 }

@@ -109,8 +109,6 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK;
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED;
 import static com.sonatype.insight.brain.model.license.License.NOT_SUPPORTED_ID;
 import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
@@ -1826,7 +1824,7 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails2.policyAlerts.get(0).getActions()).hasSize(0);
 
     assertThat(dto.remediation.versionChanges).isNotNull();
-    assertThat(dto.remediation.versionChanges).hasSize(1);
+    assertThat(dto.remediation.versionChanges).hasSize(0);
   }
 
   @Test
@@ -1871,7 +1869,7 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails2.policyAlerts.get(0).getActions()).extracting(Action::getActionTypeId).contains("warn");
 
     assertThat(dto.remediation.versionChanges).isNotNull();
-    assertThat(dto.remediation.versionChanges).hasSize(2);
+    assertThat(dto.remediation.versionChanges).hasSize(1);
     assertThat(dto.remediation.versionChanges.get(0).getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
     assertThat(dto.remediation.versionChanges.get(0).getData().getComponent().packageUrl)
         .isEqualTo("pkg:maven/g1/a2@v1?type=jar");
@@ -2510,23 +2508,19 @@ public class ComponentInfoServiceTest
         testGetComponentVersionInfo(application, application.getPublicId(), ReleaseStageType.ID);
 
     assertThat(dto.remediation.versionChanges).isNotNull();
-    assertThat(dto.remediation.versionChanges).hasSize(6);
+    assertThat(dto.remediation.versionChanges).hasSize(4);
     assertThat(dto.remediation.versionChanges).extracting(vc -> vc.getType().name())
         .containsExactlyInAnyOrder(
             NEXT_NO_VIOLATIONS.name(),
             NEXT_NON_FAILING.name(),
             NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES.name(),
-            NEXT_NON_FAILING_WITH_DEPENDENCIES.name(),
-            NEXT_WITH_LESS_AGGREGATE_SECURITY_RISK.name(),
-            NEXT_WITH_DEPENDENCIES_AND_LESS_AGGREGATE_SECURITY_RISK.name());
+            NEXT_NON_FAILING_WITH_DEPENDENCIES.name());
     assertThat(dto.remediation.versionChanges).extracting(vc -> vc.getData().getComponent().packageUrl)
         .containsExactlyInAnyOrder(
             depPurlId.getPackageUrl(),
             mvnPurlId.getPackageUrl(),
             depPurlId.getPackageUrl(),
-            depPurlId.getPackageUrl(),
-            mvnPurlId.getPackageUrl(),
-            depPurlId.getPackageUrl());
+            mvnPurlId.getPackageUrl());
   }
 
   @Test

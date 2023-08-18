@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 
@@ -94,5 +95,10 @@ public class RepositoryServiceAuthzTest
 
     repositoryService.removeExtraComponents(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID,
         null /* repositoryComponentPathnames */);
+  }
+
+  @Override
+  protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest() {
+    return new ConfigureRepositoriesRequest("Nexus", "3.60.0", null /* repositories */);
   }
 }

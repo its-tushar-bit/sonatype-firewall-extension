@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
@@ -313,10 +314,10 @@ class ArtifactoryRepositoryServiceWrapper
 
   void configureRepositories(
       String repositoryManagerInstanceId,
-      List<RepositoryDTO> repositoryDTOs,
+      ConfigureRepositoriesRequest configureRepositoriesRequest,
       String clientUserAgent)
   {
-    repositoryService.configureRepositories(repositoryManagerInstanceId, repositoryDTOs, clientUserAgent);
+    repositoryService.configureRepositories(repositoryManagerInstanceId, configureRepositoriesRequest, clientUserAgent);
   }
 
   void removeRepository(String repositoryManagerInstanceId, String repositoryPublicId) {

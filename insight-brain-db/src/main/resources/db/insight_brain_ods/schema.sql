@@ -505,6 +505,8 @@ CREATE TABLE repository_manager (
   configure_time timestamp NULL,
   name varchar(200) default NULL,
   name_lowercase_no_whitespace varchar(200) default NULL,
+  product_name varchar(50) NULL, -- For ex, "Nexus", "JFrog Artifactory"
+  product_version varchar(100) NULL, -- For ex, "3.59.0"
   CONSTRAINT repository_manager_pk PRIMARY KEY (repository_manager_id),
   CONSTRAINT repository_manager_uk UNIQUE (instance_id),
   CONSTRAINT repository_manager_name_uk UNIQUE (name_lowercase_no_whitespace)

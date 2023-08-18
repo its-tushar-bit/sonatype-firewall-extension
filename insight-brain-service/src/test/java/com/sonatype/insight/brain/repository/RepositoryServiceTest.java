@@ -917,7 +917,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repositoryManagerDAO.update(configuredRepoManager);
 
     RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
-    unconfiguredRepoManager.setUserAgent("Nexus/3.56.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    unconfiguredRepoManager.setProductName("Nexus");
+    unconfiguredRepoManager.setProductVersion("3.60.0");
+    unconfiguredRepoManager.setUserAgent("Nexus/3.60.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
     repositoryManagerDAO.update(unconfiguredRepoManager);
 
     // By default, Firewall Onboarding is disabled
@@ -927,6 +929,84 @@ public class RepositoryServiceTest extends AbstractComponentTest
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
     try {
       List<RepositoryManager> repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+      assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+      assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+      assertThat(repoManagers).hasSize(1);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
+      // Sanity check
+      assertThat(repositoryService.getUnconfiguredRepositoryManagers().isEmpty());
+    }
+  }
+
+  @Test
+  public void testGetUnconfiguredRepositoryManagers_ProductNameAndVersion() {
+    RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
+    unconfiguredRepoManager.setUserAgent("Nexus/3.60.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    repositoryManagerDAO.update(unconfiguredRepoManager);
+    // Sanity checks
+    assertThat(unconfiguredRepoManager.getProductName()).isNull();
+    assertThat(unconfiguredRepoManager.getProductVersion()).isNull();
+
+    // By default, Firewall Onboarding is disabled
+    assertThat(repositoryService.getUnconfiguredRepositoryManagers()).isEmpty();
+
+    // Enable Firewall Onboarding
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
+    try {
+      // No product name and version
+      List<RepositoryManager> repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+      assertThat(repoManagers).isEmpty();
+
+      // Unsupported product name
+      unconfiguredRepoManager.setProductName("Foo");
+      repositoryManagerDAO.update(unconfiguredRepoManager);
+      repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+      assertThat(repoManagers).isEmpty();
+
+      // Supported product name, but unsupported version
+      unconfiguredRepoManager.setProductName("Nexus");
+      unconfiguredRepoManager.setProductVersion("3.58.0");
+      repositoryManagerDAO.update(unconfiguredRepoManager);
+      repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+      assertThat(repoManagers).isEmpty();
+
+      // Supported product name and supported snapshot version
+      unconfiguredRepoManager.setProductVersion("3.60.0-SNAPSHOT");
+      repositoryManagerDAO.update(unconfiguredRepoManager);
+      repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+      assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+      assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+      assertThat(repoManagers).hasSize(1);
+
+      // Supported product name and first supported release version
+      unconfiguredRepoManager.setProductVersion("3.60.0");
+      repositoryManagerDAO.update(unconfiguredRepoManager);
+      repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+      assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+      assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+      assertThat(repoManagers).hasSize(1);
+
+      unconfiguredRepoManager.setProductVersion("3.60.0-01");
+      repositoryManagerDAO.update(unconfiguredRepoManager);
+      repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+      assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+      assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+      assertThat(repoManagers).hasSize(1);
+
+      // Supported product name and later supported release version
+      unconfiguredRepoManager.setProductVersion("3.60.1");
+      repositoryManagerDAO.update(unconfiguredRepoManager);
+      repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+      assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+      assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+      assertThat(repoManagers).hasSize(1);
+
+      // Supported product name and later supported release version
+      unconfiguredRepoManager.setProductVersion("3.60.0");
+      repositoryManagerDAO.update(unconfiguredRepoManager);
+      repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
       assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
       assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
       assertThat(repoManagers).hasSize(1);

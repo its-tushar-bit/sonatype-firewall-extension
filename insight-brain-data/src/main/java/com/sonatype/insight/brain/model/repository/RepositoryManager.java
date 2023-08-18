@@ -26,6 +26,12 @@ public class RepositoryManager extends Nameable implements HasStringId
   @Column(name = "instance_id")
   private String instanceId;
 
+  @Column(name = "product_name")
+  private String productName;
+
+  @Column(name = "product_version")
+  private String productVersion;
+
   @Column(name = "user_agent")
   private String userAgent;
 
@@ -82,5 +88,21 @@ public class RepositoryManager extends Nameable implements HasStringId
 
   public void setConfigureTime(Date configureTime) {
     this.configureTime = configureTime;
+  }
+
+  public String getProductName() {
+    return productName;
+  }
+
+  public void setProductName(String productName) {
+    this.productName = productName;
+  }
+
+  public String getProductVersion() {
+    return productVersion;
+  }
+
+  public void setProductVersion(String productVersion) {
+    this.productVersion = productVersion;
   }
 }

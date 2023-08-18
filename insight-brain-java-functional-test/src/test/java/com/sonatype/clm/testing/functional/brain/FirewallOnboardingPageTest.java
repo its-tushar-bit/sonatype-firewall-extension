@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FirewallRepositoryList;
 import com.sonatype.clm.testing.functional.elements.FirewallRepositoryList.HeaderColumn;
 import com.sonatype.clm.testing.functional.elements.HelpMenu;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
@@ -30,6 +31,7 @@ import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -39,11 +41,10 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
 
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -1331,7 +1332,11 @@ public class FirewallOnboardingPageTest
   }
 
   private RepositoryManager createUnconfiguredRepositoryManager(String repositoryManagerInstanceId) {
-    return tempEntity.newRepositoryManager(repositoryManagerInstanceId,
-        "Nexus/3.56.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(repositoryManagerInstanceId,
+        "Nexus/3.60.0-01 (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    repoManager.setProductName("Nexus");
+    repoManager.setProductVersion("3.60.0-01");
+    new RepositoryManagerDAO().update(repoManager);
+    return repoManager;
   }
 }

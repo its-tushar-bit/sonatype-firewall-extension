@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -29,5 +30,10 @@ public class ArtifactoryRepositoryServiceAuthzTest
   @Before
   public void init() {
     licenseManager.setFeatures(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
+  }
+
+  @Override
+  protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest() {
+    return new ConfigureRepositoriesRequest("JFrog Artifactory", "7.37.15", null /* repositories */);
   }
 }

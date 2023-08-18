@@ -28,6 +28,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
@@ -323,10 +324,10 @@ public class RepositoryResource
   @Timed
   public void configureRepositories(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      List<RepositoryDTO> repositories,
+      ConfigureRepositoriesRequest configureRepositoriesRequest,
       @Context HttpServletRequest request)
   {
-    repositoryService.configureRepositories(repositoryManagerInstanceId, repositories,
+    repositoryService.configureRepositories(repositoryManagerInstanceId, configureRepositoriesRequest,
         DefaultHdsClient.getClientUserAgent(request));
   }
 

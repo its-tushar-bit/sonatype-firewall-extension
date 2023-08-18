@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.Collections;
+
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
@@ -20,5 +24,10 @@ public class ArtifactoryRepositoryResourceAuditTest
   @Override
   protected String getResourcePath() {
     return ArtifactoryRepositoryResource.RESOURCE_PATH;
+  }
+
+  @Override
+  protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest(RepositoryDTO repositoryDTO) {
+    return new ConfigureRepositoriesRequest("JFrog Artifactory", "7.37.15", Collections.singletonList(repositoryDTO));
   }
 }

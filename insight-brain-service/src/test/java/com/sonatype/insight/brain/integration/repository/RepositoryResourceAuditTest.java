@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.Collections;
+
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -85,5 +89,10 @@ public class RepositoryResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_PROPRIETARY_COMPONENT_NAMES, "unauthorized");
     assertCustomData(auditDTO, "repositoryManagerInstanceId", REPOSITORY_MANAGER_INSTANCE_ID);
     assertCustomData(auditDTO, "repositoryPublicId", REPOSITORY_PUBLIC_ID);
+  }
+
+  @Override
+  protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest(RepositoryDTO repositoryDTO) {
+    return new ConfigureRepositoriesRequest("Nexus", "3.60.0", Collections.singletonList(repositoryDTO));
   }
 }

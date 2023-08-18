@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
@@ -55,6 +56,8 @@ public abstract class AbstractRepositoryResourceAuditTest
     // Integration REST endpoints don't use/require CSRF
     return super.restRequest().noCsrfToken();
   }
+
+  protected abstract ConfigureRepositoriesRequest createConfigureRepositoriesRequest(RepositoryDTO repositoryDTO);
 
   @Test
   public void testSetAuditEnabled_Connect() throws Exception {
@@ -392,8 +395,6 @@ public abstract class AbstractRepositoryResourceAuditTest
   public void testConfigureRepositories_NewRepository() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
-    List<RepositoryDTO> repositoryDTOs = new ArrayList<>();
-
     RepositoryDTO repositoryDTO = new RepositoryDTO();
     repositoryDTO.name = "testRepoName";
     repositoryDTO.format = "npm";
@@ -402,10 +403,10 @@ public abstract class AbstractRepositoryResourceAuditTest
     repositoryDTO.quarantineEnabled = true;
     repositoryDTO.policyCompliantComponentSelectionEnabled = true;
     repositoryDTO.namespaceConfusionProtectionEnabled = false;
-    repositoryDTOs.add(repositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest = createConfigureRepositoriesRequest(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
-        .parameter(repositoryManager.getInstanceId()).body(repositoryDTOs).post();
+        .parameter(repositoryManager.getInstanceId()).body(configureRepositoriesRequest).post();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_REPOSITORY, 2, null /* error */);
     for (AuditDTO auditDTO : auditDTOs) {
@@ -424,8 +425,6 @@ public abstract class AbstractRepositoryResourceAuditTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName");
 
-    List<RepositoryDTO> repositoryDTOs = new ArrayList<>();
-
     RepositoryDTO repositoryDTO = new RepositoryDTO();
     repositoryDTO.name = "testRepoName";
     repositoryDTO.format = "npm";
@@ -434,10 +433,10 @@ public abstract class AbstractRepositoryResourceAuditTest
     repositoryDTO.quarantineEnabled = true;
     repositoryDTO.policyCompliantComponentSelectionEnabled = true;
     repositoryDTO.namespaceConfusionProtectionEnabled = false;
-    repositoryDTOs.add(repositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest = createConfigureRepositoriesRequest(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
-        .parameter(repositoryManager.getInstanceId()).body(repositoryDTOs).post();
+        .parameter(repositoryManager.getInstanceId()).body(configureRepositoriesRequest).post();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_REPOSITORY, 2, null /* error */);
     for (AuditDTO auditDTO : auditDTOs) {
@@ -456,8 +455,6 @@ public abstract class AbstractRepositoryResourceAuditTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, "testRepoName", ComponentIdentifier.FORMAT_NPM);
 
-    List<RepositoryDTO> repositoryDTOs = new ArrayList<>();
-
     RepositoryDTO repositoryDTO = new RepositoryDTO();
     repositoryDTO.name = repository.getName();
     repositoryDTO.format = repository.getFormat();
@@ -466,10 +463,10 @@ public abstract class AbstractRepositoryResourceAuditTest
     repositoryDTO.quarantineEnabled = repository.isQuarantineEnabled();
     repositoryDTO.policyCompliantComponentSelectionEnabled = repository.isPolicyCompliantComponentSelectionEnabled();
     repositoryDTO.namespaceConfusionProtectionEnabled = repository.isNamespaceConfusionProtectionEnabled();
-    repositoryDTOs.add(repositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest = createConfigureRepositoriesRequest(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
-        .parameter(repositoryManager.getInstanceId()).body(repositoryDTOs).post();
+        .parameter(repositoryManager.getInstanceId()).body(configureRepositoriesRequest).post();
 
     List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
     for (AuditDTO auditDTO : auditDTOs) {
@@ -496,8 +493,6 @@ public abstract class AbstractRepositoryResourceAuditTest
     repository.setFormat("maven2");
     new RepositoryDAO().update(repository);
 
-    List<RepositoryDTO> repositoryDTOs = new ArrayList<>();
-
     RepositoryDTO repositoryDTO = new RepositoryDTO();
     repositoryDTO.name = "testRepoName";
     repositoryDTO.format = "npm";
@@ -506,10 +501,10 @@ public abstract class AbstractRepositoryResourceAuditTest
     repositoryDTO.quarantineEnabled = false;
     repositoryDTO.policyCompliantComponentSelectionEnabled = false;
     repositoryDTO.namespaceConfusionProtectionEnabled = false;
-    repositoryDTOs.add(repositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest = createConfigureRepositoriesRequest(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
-        .parameter(repositoryManager.getInstanceId()).body(repositoryDTOs).post();
+        .parameter(repositoryManager.getInstanceId()).body(configureRepositoriesRequest).post();
 
     List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
     for (AuditDTO auditDTO : auditDTOs) {

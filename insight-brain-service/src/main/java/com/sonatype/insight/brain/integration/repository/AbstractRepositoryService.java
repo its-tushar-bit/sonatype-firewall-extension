@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
@@ -914,7 +915,7 @@ public abstract class AbstractRepositoryService
 
   void configureRepositories(
       String repositoryManagerInstanceId,
-      List<RepositoryDTO> repositoryDTOs,
+      ConfigureRepositoriesRequest configureRepositoriesRequest,
       String clientUserAgent)
   {
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
@@ -923,8 +924,18 @@ public abstract class AbstractRepositoryService
 
     checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
 
+    validateConfigureRepositoriesRequest(configureRepositoriesRequest);
+
     RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
+    if (!configureRepositoriesRequest.repositoryManagerProductName.equals(repositoryManager.getProductName())
+        || !configureRepositoriesRequest.repositoryManagerProductVersion
+            .equals(repositoryManager.getProductVersion())) {
+      repositoryManager.setProductName(configureRepositoriesRequest.repositoryManagerProductName);
+      repositoryManager.setProductVersion(configureRepositoriesRequest.repositoryManagerProductVersion);
+      repositoryManagerDAO.update(repositoryManager);
+    }
     
+    List<RepositoryDTO> repositoryDTOs = configureRepositoriesRequest.repositories;
     if (repositoryDTOs == null) {
       repositoryDTOs = Collections.emptyList();
     }
@@ -1011,6 +1022,18 @@ public abstract class AbstractRepositoryService
     }
     finally {
       AuditData.get().commitSubEvents();
+    }
+  }
+
+  private void validateConfigureRepositoriesRequest(ConfigureRepositoriesRequest configureRepositoriesRequest) {
+    if (configureRepositoriesRequest == null) {
+      throw new BadRequestException("The configureRepositoriesRequest parameter is required.");
+    }
+    if (StringUtils.isBlank(configureRepositoriesRequest.repositoryManagerProductName)) {
+      throw new BadRequestException("The repositoryManagerProductName parameter is required.");
+    }
+    if (StringUtils.isBlank(configureRepositoriesRequest.repositoryManagerProductVersion)) {
+      throw new BadRequestException("The repositoryManagerProductVersion parameter is required.");
     }
   }
 

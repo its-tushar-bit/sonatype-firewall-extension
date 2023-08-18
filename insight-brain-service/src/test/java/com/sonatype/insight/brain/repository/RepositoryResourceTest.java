@@ -303,7 +303,9 @@ public class RepositoryResourceTest
     new RepositoryManagerDAO().update(configuredRepoManager);
 
     RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
-    unconfiguredRepoManager.setUserAgent("Nexus/3.56.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    unconfiguredRepoManager.setUserAgent("Nexus/3.60.0-01 (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    unconfiguredRepoManager.setProductName("Nexus");
+    unconfiguredRepoManager.setProductVersion("3.60.0-01");
     new RepositoryManagerDAO().update(unconfiguredRepoManager);
 
     // By default, Firewall Onboarding is disabled

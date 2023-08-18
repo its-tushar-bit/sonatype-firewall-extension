@@ -33,6 +33,7 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
@@ -167,6 +168,11 @@ public abstract class AbstractRepositoryServiceTest
   private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
   protected abstract AbstractRepositoryService getRepositoryService();
+
+  protected abstract String getUserAgent();
+
+  protected abstract ConfigureRepositoriesRequest createConfigureRepositoriesRequest(
+      List<RepositoryDTO> repositoryDTOs);
 
   @Mock
   private DbQuarantinedComponentAccessManager quarantinedComponentAccessManager;
@@ -2331,7 +2337,7 @@ public abstract class AbstractRepositoryServiceTest
     long start = System.currentTimeMillis();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = getRepositoryService()
         .evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
-            "testClientUserAgent");
+            getUserAgent());
 
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
     RepositoryComponentEvaluationData repositoryComponentEvaluationData =
@@ -2552,7 +2558,7 @@ public abstract class AbstractRepositoryServiceTest
     long start = System.currentTimeMillis();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
         getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, "testClientUserAgent");
+            componentEvaluationDataRequestList, getUserAgent());
 
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
 
@@ -2611,7 +2617,7 @@ public abstract class AbstractRepositoryServiceTest
     long start = System.currentTimeMillis();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
         getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, "testClientUserAgent");
+            componentEvaluationDataRequestList, getUserAgent());
 
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
 
@@ -2670,7 +2676,7 @@ public abstract class AbstractRepositoryServiceTest
     long start = System.currentTimeMillis();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
         getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, "testClientUserAgent");
+            componentEvaluationDataRequestList, getUserAgent());
 
     assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
 
@@ -2693,14 +2699,18 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testConfigureRepositories_NewRepositoryManager() {
     String clientUserAgent = getUserAgent();
-    RepositoryManager repositoryManager = new RepositoryManager(MANUAL_REPO_MAN_INSTANCE_ID);
 
     // Call the service
-    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), null /* repositoryDTOs */,
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, configureRepositoriesRequest,
         clientUserAgent);
 
-    repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManager.getInstanceId());
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
     assertThat(repositoryManager.getUserAgent()).isEqualTo(clientUserAgent);
+    assertThat(repositoryManager.getProductName()).isEqualTo(configureRepositoriesRequest.repositoryManagerProductName);
+    assertThat(repositoryManager.getProductVersion())
+        .isEqualTo(configureRepositoriesRequest.repositoryManagerProductVersion);
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
     assertThat(repositories).isEmpty();
@@ -2710,13 +2720,22 @@ public abstract class AbstractRepositoryServiceTest
   public void testConfigureRepositories_ExistingRepositoryManager() {
     String clientUserAgent = getUserAgent();
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    // Sanity checks
+    assertThat(repositoryManager.getUserAgent()).isNull();
+    assertThat(repositoryManager.getProductName()).isNull();
+    assertThat(repositoryManager.getProductVersion()).isNull();
 
     // Call the service
-    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), null /* repositoryDTOs */,
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
         clientUserAgent);
 
     repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManager.getInstanceId());
     assertThat(repositoryManager.getUserAgent()).isEqualTo(clientUserAgent);
+    assertThat(repositoryManager.getProductName()).isEqualTo(configureRepositoriesRequest.repositoryManagerProductName);
+    assertThat(repositoryManager.getProductVersion())
+        .isEqualTo(configureRepositoriesRequest.repositoryManagerProductVersion);
   }
 
   @Test
@@ -2730,10 +2749,11 @@ public abstract class AbstractRepositoryServiceTest
     repositoryDTO.quarantineEnabled = false;
     repositoryDTO.policyCompliantComponentSelectionEnabled = false;
     repositoryDTO.namespaceConfusionProtectionEnabled = true;
-    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.singletonList(repositoryDTO));
 
     // Call the service
-    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
         "testClientUserAgent");
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
@@ -2760,11 +2780,12 @@ public abstract class AbstractRepositoryServiceTest
     repositoryDTO.quarantineEnabled = true;
     repositoryDTO.policyCompliantComponentSelectionEnabled = true;
     repositoryDTO.namespaceConfusionProtectionEnabled = false;
-    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.singletonList(repositoryDTO));
 
     // Call the service
-    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
-        "testClientUserAgent");
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
     assertThat(repositories).hasSize(1);
@@ -2799,11 +2820,12 @@ public abstract class AbstractRepositoryServiceTest
     goodRepositoryDTO.quarantineEnabled = true;
     goodRepositoryDTO.policyCompliantComponentSelectionEnabled = true;
     goodRepositoryDTO.namespaceConfusionProtectionEnabled = false;
-    List<RepositoryDTO> repositoryDTOs = Arrays.asList(badRepositoryDTO, goodRepositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Arrays.asList(badRepositoryDTO, goodRepositoryDTO));
 
     // Call the service
-    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
-        "testClientUserAgent");
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
     assertThat(repositories).hasSize(2);
@@ -2848,11 +2870,12 @@ public abstract class AbstractRepositoryServiceTest
     badRepositoryDTO.quarantineEnabled = true;
     badRepositoryDTO.policyCompliantComponentSelectionEnabled = true;
     badRepositoryDTO.namespaceConfusionProtectionEnabled = true;
-    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(badRepositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.singletonList(badRepositoryDTO));
 
     // Call the service
-    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
-        "testClientUserAgent");
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
     assertThat(repositories).hasSize(1);
@@ -2888,11 +2911,12 @@ public abstract class AbstractRepositoryServiceTest
     badRepositoryDTO.quarantineEnabled = true;
     badRepositoryDTO.policyCompliantComponentSelectionEnabled = true;
     badRepositoryDTO.namespaceConfusionProtectionEnabled = true;
-    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(badRepositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.singletonList(badRepositoryDTO));
 
     // Call the service
-    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
-        "testClientUserAgent");
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
     assertThat(repositories).hasSize(1);
@@ -2924,11 +2948,12 @@ public abstract class AbstractRepositoryServiceTest
     repositoryDTO.quarantineEnabled = true;
     repositoryDTO.policyCompliantComponentSelectionEnabled = true;
     repositoryDTO.namespaceConfusionProtectionEnabled = false;
-    List<RepositoryDTO> repositoryDTOs = Collections.singletonList(repositoryDTO);
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.singletonList(repositoryDTO));
 
     // Call the service
-    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), repositoryDTOs,
-        "testClientUserAgent");
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
     assertThat(repositories).hasSize(1);
@@ -2946,9 +2971,105 @@ public abstract class AbstractRepositoryServiceTest
 
     // Call the service
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), null /* repositoryDTOs */,
-          "testClientUserAgent");
+      getRepositoryService().configureRepositories(repositoryManager.getInstanceId(),
+          null /* configureRepositoriesRequest */, getUserAgent());
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
+  @Test
+  public void testConfigureRepositories_NullRequestParameter() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    // Call the service
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().configureRepositories(repositoryManager.getInstanceId(),
+          null /* configureRepositoriesRequest */, getUserAgent());
+    }).withMessage("The configureRepositoriesRequest parameter is required.");
+  }
+
+  @Test
+  public void testConfigureRepositories_NullRepositoryManagerProductName() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    configureRepositoriesRequest.repositoryManagerProductName = null;
+    // Call the service
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+          getUserAgent());
+    }).withMessage("The repositoryManagerProductName parameter is required.");
+  }
+
+  @Test
+  public void testConfigureRepositories_EmptyRepositoryManagerProductName() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    configureRepositoriesRequest.repositoryManagerProductName = " ";
+    // Call the service
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+          getUserAgent());
+    }).withMessage("The repositoryManagerProductName parameter is required.");
+  }
+
+  @Test
+  public void testConfigureRepositories_NullRepositoryManagerProductVersion() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    configureRepositoriesRequest.repositoryManagerProductVersion = null;
+    // Call the service
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+          getUserAgent());
+    }).withMessage("The repositoryManagerProductVersion parameter is required.");
+  }
+
+  @Test
+  public void testConfigureRepositories_EmptyRepositoryManagerProductVersion() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    configureRepositoriesRequest.repositoryManagerProductVersion = " ";
+    // Call the service
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+          getUserAgent());
+    }).withMessage("The repositoryManagerProductVersion parameter is required.");
+  }
+
+  @Test
+  public void testConfigureRepositories_UpdatesRepositoryManagerProductNameAndVersion() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    // Sanity checks
+    assertThat(repositoryManager.getProductName()).isNull();
+    assertThat(repositoryManager.getProductVersion()).isNull();
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
+    repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
+    assertThat(repositoryManager.getProductName()).isEqualTo(configureRepositoriesRequest.repositoryManagerProductName);
+    assertThat(repositoryManager.getProductVersion())
+        .isEqualTo(configureRepositoriesRequest.repositoryManagerProductVersion);
+
+    // Change the product version
+    configureRepositoriesRequest.repositoryManagerProductVersion =
+        configureRepositoriesRequest.repositoryManagerProductVersion + "otherVersion";
+    // Call the service
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
+    repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
+    assertThat(repositoryManager.getProductName()).isEqualTo(configureRepositoriesRequest.repositoryManagerProductName);
+    assertThat(repositoryManager.getProductVersion())
+        .isEqualTo(configureRepositoriesRequest.repositoryManagerProductVersion);
   }
 
   @Test
@@ -3079,9 +3200,5 @@ public abstract class AbstractRepositoryServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       getRepositoryService().getConfiguredRepositories(MANUAL_REPO_MAN_INSTANCE_ID, 0L, null);
     }).withMessage("Cannot find a repository manager with instance ID " + MANUAL_REPO_MAN_INSTANCE_ID + ".");
-  }
-
-  private String getUserAgent() {
-    return "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
   }
 }

@@ -25,6 +25,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -451,5 +453,15 @@ public class RepositoryServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
         () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             componentEvaluationDataRequestList, null)).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
+  @Override
+  protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest(List<RepositoryDTO> repositoryDTOs) {
+    return new ConfigureRepositoriesRequest("Nexus", "3.60.0-01", repositoryDTOs);
+  }
+
+  @Override
+  protected String getUserAgent() {
+    return "Nexus/3.60.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
   }
 }

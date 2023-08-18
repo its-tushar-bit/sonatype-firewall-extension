@@ -70,6 +70,9 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.eclipse.aether.util.version.GenericVersionScheme;
+import org.eclipse.aether.version.InvalidVersionSpecificationException;
+import org.eclipse.aether.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -513,8 +516,26 @@ public class RepositoryService
     }
 
     List<RepositoryManager> unconfiguredRepositoryManagers = repositoryManagerDAO.getUnconfigured();
+    String nxrmMinimalVersion = "3.60.0-SNAPSHOT";
+    unconfiguredRepositoryManagers = unconfiguredRepositoryManagers.stream()
+        .filter(repositoryManager -> "Nexus".equals(repositoryManager.getProductName())
+            && compareVersions(repositoryManager.getProductVersion(), nxrmMinimalVersion) >= 0)
+        .collect(Collectors.toList());
     log.debug("Found {} unconfigured repository managers.", unconfiguredRepositoryManagers.size());
     return unconfiguredRepositoryManagers;
+  }
+
+  public static int compareVersions(String version1, String version2) {
+    try {
+      GenericVersionScheme scheme = new GenericVersionScheme();
+      Version ver1 = scheme.parseVersion(version1);
+      Version ver2 = scheme.parseVersion(version2);
+      return ver1.compareTo(ver2);
+    }
+    catch (InvalidVersionSpecificationException e) {
+      // the generic version scheme should accept anything
+      throw new IllegalStateException(e);
+    }
   }
 
   private void auditConfigureRepository(Repository repository, String errorMessage) {

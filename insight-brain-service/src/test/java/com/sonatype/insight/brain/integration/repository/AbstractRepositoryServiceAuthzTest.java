@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
+import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -38,6 +39,8 @@ public abstract class AbstractRepositoryServiceAuthzTest
   private RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
   protected abstract AbstractRepositoryService getRepositoryService();
+
+  protected abstract ConfigureRepositoriesRequest createConfigureRepositoriesRequest();
 
   @Mock
   private DbQuarantinedComponentAccessManager quarantinedComponentAccessManager;
@@ -292,18 +295,21 @@ public abstract class AbstractRepositoryServiceAuthzTest
   @Test
   public void testConfigureRepositories_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* repositoryDTOs */, null);
+    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, createConfigureRepositoriesRequest(),
+        null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testConfigureRepositories_Unauthenticated() {
-    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* repositoryDTOs */, null);
+    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* configureRepositoriesRequest */,
+        null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testConfigureRepositories_Unauthorized() {
     login();
-    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* repositoryDTOs */, null);
+    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, null /* configureRepositoriesRequest */,
+        null);
   }
 
   @Test(expected = UnauthenticatedException.class)

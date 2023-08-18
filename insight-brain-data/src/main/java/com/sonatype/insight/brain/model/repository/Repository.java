@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.model.repository;
 
 import java.util.Date;
-
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -20,7 +20,10 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.openjpa.persistence.DataCache;
 
+@DataCache(timeout = 10000)
+@Cacheable
 @Entity
 @Table(name = "repository")
 public class Repository

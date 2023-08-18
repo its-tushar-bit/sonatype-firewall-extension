@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantResourceTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
@@ -29,6 +30,8 @@ public class TenantCacheResourceTest
 
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
+  private RoleDAO roleDAO = new RoleDAO();
+
   protected HttpRequest restRequest(String path) {
     return super.adminRequest().path("api/").path(path);
   }
@@ -45,6 +48,27 @@ public class TenantCacheResourceTest
   @Test
   public void statisticShowNoCachingWhenCachingDisabled_whenStatisticsRequestedFromDifferentTenants() throws Exception {
     Tenant tenant1 = getTestTenant();
+    String tenantSlug2 = generateTestTenantName();
+
+    provisionTenant(tenant1.tenantSlug);
+    provisionTenant(tenantSlug2);
+
+    long initialCount1 = getCacheStatistics(tenant1.tenantSlug).totalHitCount;
+    long initialCount2 = getCacheStatistics(tenantSlug2).totalHitCount;
+
+    // Use a DAO for an entity that is not cached (Role) and verify that the cache hits does not increase
+    TenantTestHelper.testAs(tenant1, tenant -> roleDAO.getAll());
+
+    TestCacheStatistics stats1 = getCacheStatistics(tenant1.tenantSlug);
+    TestCacheStatistics stats2 = getCacheStatistics(tenantSlug2);
+
+    assertThat(stats1.totalHitCount).isEqualTo(initialCount1);
+    assertThat(stats2.totalHitCount).isEqualTo(initialCount2);
+  }
+
+  @Test
+  public void shouldSendPerTenantData_whenStatisticsRequestedFromDifferentTenants() throws Exception {
+    Tenant tenant1 = getTestTenant();
     provisionTenant(tenant1.tenantSlug);
     String tenantSlug2 = generateTestTenantName();
     provisionTenant(tenantSlug2);
@@ -54,13 +78,13 @@ public class TenantCacheResourceTest
     TestCacheStatistics stats1 = getCacheStatistics(tenant1.tenantSlug);
     TestCacheStatistics stats2 = getCacheStatistics(tenantSlug2);
 
-    assertThat(stats1.totalHitCount).isEqualTo(0);
-    assertThat(stats2.totalHitCount).isEqualTo(0);
+    // We stats1 should have cached the get org call so should be one ahead
+    assertThat(stats2.totalHitCount + 1).isEqualTo(stats1.totalHitCount);
 
     TenantTestHelper.testAs(tenant1, tenant -> organizationDAO.getAll());
 
     stats1 = getCacheStatistics(tenant1.tenantSlug);
-    assertThat(stats1.totalHitCount).isEqualTo(0);
+    assertThat(stats2.totalHitCount + 2).isEqualTo(stats1.totalHitCount);
   }
 
   private TestCacheStatistics getCacheStatistics(final String tenant) throws Exception {

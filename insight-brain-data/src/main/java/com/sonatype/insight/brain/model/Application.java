@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.model;
 
 import java.util.Locale;
-
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -18,7 +18,10 @@ import com.sonatype.insight.model.HasStringId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import org.apache.openjpa.persistence.DataCache;
 
+@DataCache(timeout = 10000)
+@Cacheable
 @Entity
 @Table(name = "application")
 public class Application extends Nameable

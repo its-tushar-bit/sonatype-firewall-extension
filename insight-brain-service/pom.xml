@@ -582,6 +582,7 @@
       <artifactId>graphics2d</artifactId>
       <version>0.41</version>
     </dependency>
+    <!-- Breaking changes in >=3.8.0 -->
     <dependency>
       <groupId>org.knowm.xchart</groupId>
       <artifactId>xchart</artifactId>

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.builders;
 
+import java.util.Random;
+
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -12,7 +14,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
 
 public class TestPolicyBuilder
 {
@@ -27,9 +28,8 @@ public class TestPolicyBuilder
   }
 
   public TestPolicyBuilder withSampleTestValues() {
-
     this.policy.setId(null);
-    this.policy.setThreatLevel(RandomUtils.nextInt(2, 11));
+    this.policy.setThreatLevel(new Random().nextInt(9) + 2);
     this.policy.setName(RandomStringUtils.randomAlphabetic(10));
 
     // add default constraint

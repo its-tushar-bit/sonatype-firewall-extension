@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,7 +17,6 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +43,7 @@ public class InsightProxy
   public <T extends HttpClientUtils.Configuration> T contextualize(final T httpConfig, final String serverUrl) {
     httpConfig.setServerUrl(serverUrl);
     String userAgentSuffix = configuration.getUserAgentSuffix();
-    httpConfig.setUserAgent(httpConfig.getUserAgent() + " " + StringUtils.defaultString(userAgentSuffix, ""));
+    httpConfig.setUserAgent(httpConfig.getUserAgent() + " " + Objects.toString(userAgentSuffix, ""));
 
     ProxyServerConfiguration proxyServerConfiguration = configuration.getProxyServerConfiguration();
     if (proxyServerConfiguration != null) {

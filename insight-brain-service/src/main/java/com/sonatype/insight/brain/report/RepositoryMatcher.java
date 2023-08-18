@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -636,7 +637,7 @@ public class RepositoryMatcher
         Integer componentQueryLimit = configuration.getBfsComponentLimit();
         Set<String> repositories =
             new LinkedHashSet<>(Arrays.asList(
-                StringUtils.defaultString(configuration.getBfsQueryRepositoriesList(), "").split(",")));
+                Objects.toString(configuration.getBfsQueryRepositoriesList(), "").split(",")));
         if (componentQueryLimit == null || componentQueryLimit > 0) {
           if (StringUtils.isNotBlank(artifactoryConnection.getUsername())) {
             queryUsingAQL(artifactoryClient, sha256s, componentQueryLimit, result, repositories);

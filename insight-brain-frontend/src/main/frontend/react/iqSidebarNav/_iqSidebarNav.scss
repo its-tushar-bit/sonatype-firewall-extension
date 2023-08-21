@@ -34,7 +34,8 @@ iq-sidebar-nav {
   }
 }
 
-.iq-data-insights-nav-link {
+.iq-data-insights-nav-link,
+.iq-integrations-nav-link {
   &.nx-global-sidebar__navigation-link {
     &,
     .nx-global-sidebar__navigation-text {
@@ -67,6 +68,11 @@ iq-sidebar-nav {
     margin-left: auto;
     padding: 0 var(--nx-spacing-3x);
     vertical-align: bottom;
+
+    &.preview {
+      background-color: var(--nx-swatch-blue-50);
+      color: var(--nx-swatch-white);
+    }
   }
 
   &__tooltip-only-text {

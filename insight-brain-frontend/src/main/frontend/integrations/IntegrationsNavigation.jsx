@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { NxH2, NxTextLink } from '@sonatype/react-shared-components';
+import { NxTextLink } from '@sonatype/react-shared-components';
 import { useSelector } from 'react-redux';
 import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SECTIONS } from 'MainRoot/integrations/integrations.module';
@@ -16,8 +16,6 @@ export default function IntegrationsNavigation() {
 
   return (
     <div className="nx-viewport-sized__container">
-      <NxH2>Integrations</NxH2>
-
       <ul className="nx-list">
         <li>
           <IntegrationsLink id="integrations-sidebar__overview-link" sectionName={OVERVIEW}>

@@ -6,6 +6,7 @@
 
 $donut-size: 72px;
 $apps-without-ci-preview-table-place-holder-width: 483px;
+$page-max-width: 1550px;
 
 #integrations-sidebar {
   background-color: var(--nx-swatch-indigo-30);
@@ -73,7 +74,7 @@ a.nx-text-link.integrations-link.integrations-link-selected {
 }
 
 .iq-integrations-content {
-  max-width: 1550px;
+  max-width: $page-max-width;
 }
 
 .iq-integrations-cicard__content {
@@ -83,18 +84,19 @@ a.nx-text-link.integrations-link.integrations-link-selected {
 }
 
 .iq-integrations-cicard__donut-wrapper {
-  display: grid;
-  grid-template-columns: $donut-size 293px;
-  grid-column-gap: var(--nx-spacing-4x);
+  display: flex;
+  gap: var(--nx-spacing-4x);
+  flex-direction: row;
   align-items: center;
-  margin-left: auto;
-  margin-right: auto;
   max-width: 468px;
-  width: fit-content;
 
   .iq-integrations-cicard__donut {
     &.nx-binary-donut-chart {
       height: $donut-size;
+
+      .nx-binary-donut-chart__arc {
+        stroke: var(--nx-swatch-red-40);
+      }
     }
   }
 
@@ -102,6 +104,8 @@ a.nx-text-link.integrations-link.integrations-link-selected {
     font-weight: bold;
     color: var(--nx-color-text-dark);
     text-align: center;
+    max-width: 311px;
+    text-align: left;
   }
 }
 
@@ -162,4 +166,18 @@ a.nx-text-link.integrations-link.integrations-link-selected {
       margin-bottom: var(--nx-spacing-4x);
     }
   }
+}
+
+.nx-alert.iq-integrations-page-top-level-alert {
+  width: 100%;
+  max-width: $page-max-width;
+}
+
+svg.nx-icon.iq-total-risk-info-icon {
+  margin-left: var(--nx-spacing-2x);
+  color: var(--nx-color-text-dark);
+}
+
+.nx-p.iq-integrations-page-full-width {
+  max-width: 100%;
 }

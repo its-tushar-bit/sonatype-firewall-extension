@@ -6,6 +6,7 @@
 
 import React, { useEffect } from 'react';
 import { NxH3, NxP, NxTable, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import IntegrationsAppRiskTooltip from '../../IntegrationsAppRiskTooltip';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './appsWithoutScmIntegrationsSlice';
 import { appsWithoutScmIntegrationsSliceSelector } from './appsWithoutScmIntegrationsSelectors';
@@ -35,10 +36,12 @@ export default function AppsWithoutScmIntegrations() {
             <NxTile.SubsectionHeader>
               <NxH3>Automated Source Control Feedback</NxH3>
             </NxTile.SubsectionHeader>
-            <NxP>
-              Identify and remediate open source issues earlier in development where they have the least impact. With
-              automated source control feedback via SCM Integration, developers are only notified on policy violations
-              and how to remediate them within a pull request.
+            <NxP className="iq-integrations-page-full-width">
+              Enhance your software composition analysis coverage with automatic source control feedback by enabling
+              features like pull request commenting and automated commit feedback.
+            </NxP>
+            <NxP className="iq-integrations-page-full-width">
+              We recommend this combination of settings to help your developers get the most out of Lifecycle.
             </NxP>
           </NxTile.Subsection>
           <NxTile.Subsection>
@@ -49,7 +52,9 @@ export default function AppsWithoutScmIntegrations() {
               <NxTable.Head>
                 <NxTable.Row>
                   <NxTable.Cell>Apps</NxTable.Cell>
-                  <NxTable.Cell>Total Risk</NxTable.Cell>
+                  <NxTable.Cell isNumeric>
+                    <IntegrationsAppRiskTooltip />
+                  </NxTable.Cell>
                 </NxTable.Row>
               </NxTable.Head>
               <NxTable.Body
@@ -61,7 +66,7 @@ export default function AppsWithoutScmIntegrations() {
                   return (
                     <NxTable.Row key={applicationName.concat(totalRisk)}>
                       <NxTable.Cell>{applicationName}</NxTable.Cell>
-                      <NxTable.Cell>{totalRisk}</NxTable.Cell>
+                      <NxTable.Cell isNumeric>{totalRisk}</NxTable.Cell>
                     </NxTable.Row>
                   );
                 })}

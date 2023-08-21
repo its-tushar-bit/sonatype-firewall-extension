@@ -162,19 +162,31 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for the integrations page if allowed', function () {
-      expect(getShallowComponent({}).find('#integrations-navigation-button')).not.toExist();
-      expect(getShallowComponent({ isLoggedIn: true }).find('#integrations-navigation-button')).not.toExist();
+    it('does not render NxGlobalSidebarNavigationLink for Developer if it is not enabled', function () {
       expect(
-        getShallowComponent({ isIntegrationsPageEnabled: true }).find('#integrations-navigation-button')
+        getShallowComponent({
+          isLoggedIn: true,
+          isLicensed: true,
+          isIntegrationsPageEnabled: false,
+        }).find('#integrations-navigation-button')
       ).not.toExist();
-      const component = getShallowComponent({ isLoggedIn: true, isIntegrationsPageEnabled: true });
-      const navLink = component.find('#integrations-navigation-button');
+    });
+
+    it('renders an NxGlobalSidebarNavigationLink for Developers with "Preview" badge if allowed', function () {
+      const component = getMountedComponent({
+        isLoggedIn: true,
+        isLicensed: true,
+        isIntegrationsPageEnabled: true,
+      });
+
+      const navLink = component.find('#integrations-navigation-button').at(0);
+
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
       expect(navLink).toHaveProp('icon', faWrench);
-      expect(navLink).toHaveProp('text', 'Integrations');
       expect(navLink).toHaveProp('href', 'href-integrations');
       expect(navLink).toHaveProp('isSelected', false);
+
+      expect(navLink.find('a').getDOMNode().textContent).toBe('Developer (Preview)');
     });
 
     it('renders an NxGlobalSidebarNavigationLink for the dashboard if allowed when is firewall only license', function () {

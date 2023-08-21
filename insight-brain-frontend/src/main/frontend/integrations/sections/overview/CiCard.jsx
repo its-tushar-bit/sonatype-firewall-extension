@@ -27,17 +27,9 @@ export default function CiCard() {
 
   return (
     <NxTile>
-      <NxTile.Header className="iq-integrations-card--align-left">
-        <NxH3>Apps Without CI System Integrations</NxH3>
-      </NxTile.Header>
-
       <NxTile.Content>
         <div className="iq-integrations-cicard__content iq-integrations-card--align-left">
-          <div className="iq-integrations-cicard__left">
-            <CiUsageAppPreviewTable />
-          </div>
-
-          <div data-testid="iq-integrations-cicard--stats-section" className="iq-integrations-cicard__right">
+          <div data-testid="iq-integrations-cicard--stats-section" className="iq-integrations-cicard__left">
             <NxLoadWrapper loading={loading} error={loadError} retryHandler={reload}>
               <div className="iq-integrations-cicard__donut-wrapper">
                 <NxBinaryDonutChart
@@ -75,6 +67,12 @@ export default function CiCard() {
             <NxP>
               Learn more <NxTextLink href={ciUrl}>about our CI systems integrations</NxTextLink>.
             </NxP>
+          </div>
+
+          <div className="iq-integrations-cicard__right">
+            <NxH3>Apps Without CI System Integrations</NxH3>
+
+            <CiUsageAppPreviewTable />
           </div>
         </div>
       </NxTile.Content>

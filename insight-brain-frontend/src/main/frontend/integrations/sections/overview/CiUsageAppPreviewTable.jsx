@@ -13,6 +13,7 @@ import { selectappsWithoutRecentCiUsagePreviewSlice } from 'MainRoot/integration
 import { SECTIONS } from 'MainRoot/integrations/integrations.module';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { isEmpty } from 'ramda';
+import IntegrationsAppRiskTooltip from '../../IntegrationsAppRiskTooltip';
 
 export function CiUsageAppPreviewTable() {
   const dispatch = useDispatch();
@@ -25,7 +26,9 @@ export function CiUsageAppPreviewTable() {
         <NxTable.Head>
           <NxTable.Row>
             <NxTable.Cell>Apps</NxTable.Cell>
-            <NxTable.Cell isNumeric>Total Risk</NxTable.Cell>
+            <NxTable.Cell isNumeric>
+              <IntegrationsAppRiskTooltip />
+            </NxTable.Cell>
           </NxTable.Row>
         </NxTable.Head>
 

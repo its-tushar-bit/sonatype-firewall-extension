@@ -7,15 +7,8 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -490,10 +483,23 @@ public class ApiPolicyViolationServiceV2
       ComponentIdentifier dependency,
       List<Component> components)
   {
-    List<Component> childComponents = getComponentsByParentComponentIdentifier(components, dependency);
-    transitiveComponents.addAll(childComponents);
-    childComponents.forEach(childComponent ->
-        addTransitiveComponents(transitiveComponents, childComponent.getComponentIdentifier(), components));
+    Set<ComponentIdentifier> processedComponentIdentifiers = new LinkedHashSet<>();
+    Queue<ComponentIdentifier> queue = new LinkedList<>();
+    processedComponentIdentifiers.add(dependency);
+    queue.add(dependency);
+
+    while (!queue.isEmpty()) {
+      ComponentIdentifier currentDependency = queue.remove();
+      List<Component> childComponents = getComponentsByParentComponentIdentifier(components, currentDependency);
+      transitiveComponents.addAll(childComponents);
+
+      List<ComponentIdentifier> childIdentifierList = childComponents.stream()
+          .map(Component::getComponentIdentifier)
+          .filter(ci -> !processedComponentIdentifiers.contains(ci))
+          .collect(Collectors.toList());
+      processedComponentIdentifiers.addAll(childIdentifierList);
+      queue.addAll(childIdentifierList);
+    }
   }
 
   private ComponentIdentifier getComplete(ComponentIdentifier componentIdentifier) {

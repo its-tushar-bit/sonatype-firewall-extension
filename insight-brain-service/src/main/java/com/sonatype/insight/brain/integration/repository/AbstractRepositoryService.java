@@ -368,7 +368,7 @@ public abstract class AbstractRepositoryService
     if (componentEvaluationDataRequestList == null || componentEvaluationDataRequestList.isEmpty()) {
       return new RepositoryComponentEvaluationDataList();
     }
-    validateEvaluateRequest(componentEvaluationDataRequestList);
+    validateComponentMetadataEvaluateRequest(componentEvaluationDataRequestList);
 
     String format = componentEvaluationDataRequestList.components.get(0).format;
     normalizeComponents(componentEvaluationDataRequestList);
@@ -385,6 +385,7 @@ public abstract class AbstractRepositoryService
     // HDS will return data for all versions/variants for the pathname,
     // so it doesn't matter which pathname we send to HDS.
     String pathname = componentEvaluationDataRequestList.components.get(0).pathname;
+    // The hash is missing (aka null) for PyPI
     String hash = componentEvaluationDataRequestList.components.get(0).hash;
     ComponentEvaluationDataList componentDetailsFromHds =
         getComponentMetadataFromHds(repository.getFormat(), pathname, hash, clientUserAgent);
@@ -454,7 +455,9 @@ public abstract class AbstractRepositoryService
   }
 
   private static String toHashFilenameKey(ComponentEvaluationData componentEvaluationData) {
-    return componentEvaluationData.hash + "|" + componentEvaluationData.filename;
+    String hash = ComponentIdentifier.FORMAT_PYPI.equals(componentEvaluationData.componentIdentifier.getFormat()) ? null
+        : componentEvaluationData.hash;
+    return hash + "|" + componentEvaluationData.filename;
   }
 
   private ComponentEvaluationDataList getComponentMetadataFromHds(
@@ -499,13 +502,31 @@ public abstract class AbstractRepositoryService
     componentEvaluationDataRequest.hash = HashHelper.truncateHash(componentEvaluationDataRequest.hash);
   }
 
-  private void validateEvaluateRequest(RepositoryComponentEvaluationDataRequestList componentEvalRequestList) {
+  private void validateComponentEvaluateRequest(RepositoryComponentEvaluationDataRequestList componentEvalRequestList) {
     for (RepositoryComponentEvaluationDataRequest componentEvalRequest : componentEvalRequestList.components) {
-      validateEvaluateRequest(componentEvalRequest);
+      validateEvaluateRequest(componentEvalRequest, false /* allowNullHash */);
+    }
+  }
+  
+  private void validateComponentMetadataEvaluateRequest(
+      RepositoryComponentEvaluationDataRequestList componentEvalRequestList)
+  {
+    if (componentEvalRequestList.components.isEmpty()) {
+      return;
+    }
+
+    // Hashes are null for PyPI
+    boolean allowNullHash = ComponentIdentifier.FORMAT_PYPI.equals(componentEvalRequestList.components.get(0).format);
+
+    for (RepositoryComponentEvaluationDataRequest componentEvalRequest : componentEvalRequestList.components) {
+      validateEvaluateRequest(componentEvalRequest, allowNullHash);
     }
   }
 
-  private void validateEvaluateRequest(final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest) {
+  private void validateEvaluateRequest(
+      final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest,
+      boolean allowNullHash)
+  {
     if (componentEvaluationDataRequest == null) {
       throw new BadRequestException("The componentEvaluationDataRequest cannot be null.");
     }
@@ -515,7 +536,8 @@ public abstract class AbstractRepositoryService
     if (StringUtils.isBlank(componentEvaluationDataRequest.format)) {
       throw new BadRequestException("The format cannot be null or empty.");
     }
-    if (StringUtils.isBlank(componentEvaluationDataRequest.hash)) {
+    if (!allowNullHash
+        && StringUtils.isBlank(componentEvaluationDataRequest.hash)) {
       throw new BadRequestException("The hash cannot be null or empty.");
     }
   }
@@ -564,7 +586,7 @@ public abstract class AbstractRepositoryService
     if (componentEvaluationDataRequestList == null || componentEvaluationDataRequestList.isEmpty()) {
       return new RepositoryComponentEvaluationDataList();
     }
-    validateEvaluateRequest(componentEvaluationDataRequestList);
+    validateComponentEvaluateRequest(componentEvaluationDataRequestList);
 
     normalizeComponents(componentEvaluationDataRequestList);
 

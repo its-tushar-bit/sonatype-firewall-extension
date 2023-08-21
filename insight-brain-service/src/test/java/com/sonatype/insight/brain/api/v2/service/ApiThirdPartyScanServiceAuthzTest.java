@@ -13,8 +13,8 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;

@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
 import com.codahale.metrics.annotation.Timed;
 import org.apache.commons.collections4.CollectionUtils;
@@ -80,7 +80,7 @@ public class ApiCycloneDxResourceV2
   {
     String acceptType = determineAcceptableMediaType(headers);
     return apiCycloneDxService.getLatest(applicationId, stageId, acceptType,
-        ThirdPartyUtils.getSchemaVersion(cycloneDxVersion));
+        ThirdPartyUtils.getCycloneDxSchemaVersion(cycloneDxVersion));
   }
 
   @GET
@@ -107,7 +107,7 @@ public class ApiCycloneDxResourceV2
   {
     String acceptType = determineAcceptableMediaType(headers);
     return apiCycloneDxService.getByScanId(applicationId, reportId, acceptType,
-        ThirdPartyUtils.getSchemaVersion(cycloneDxVersion));
+        ThirdPartyUtils.getCycloneDxSchemaVersion(cycloneDxVersion));
   }
 
   private String determineAcceptableMediaType(final HttpHeaders headers) {

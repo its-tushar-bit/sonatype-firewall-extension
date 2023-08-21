@@ -34,6 +34,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.file.InvalidSbomException;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
+import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.util.SbomUtils;
@@ -230,7 +233,7 @@ public class SbomResultHandlerTest
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
     assertThat(coordinatesSecurity).hasSize(1);
     assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-        true);
+        SbomFormat.XML, true);
   }
 
   @Test
@@ -255,7 +258,7 @@ public class SbomResultHandlerTest
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
     assertThat(coordinatesSecurity).hasSize(1);
     assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-        true);
+        SbomFormat.XML, true);
   }
 
   @Test
@@ -451,7 +454,7 @@ public class SbomResultHandlerTest
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesSecurity).hasSize(1);
       assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          false);
+          SbomFormat.XML, false);
     }
   }
 
@@ -478,7 +481,7 @@ public class SbomResultHandlerTest
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesSecurity).hasSize(1);
       assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          true, false);
+          SbomFormat.XML, true, false);
     }
   }
 
@@ -505,7 +508,7 @@ public class SbomResultHandlerTest
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesSecurity).hasSize(1);
       assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          true, false);
+          SbomFormat.JSON, true, false);
     }
   }
 
@@ -532,7 +535,7 @@ public class SbomResultHandlerTest
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesSecurity).hasSize(1);
       assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          true, false);
+          SbomFormat.JSON, true, false);
     }
   }
 
@@ -1774,18 +1777,20 @@ public class SbomResultHandlerTest
       String content,
       String coordinateId,
       ThirdPartyCoordinateSecurity coordinateSecurity,
-      boolean optionalValuesPresent) throws ParseException, RuntimeException
+      SbomFormat format,
+      boolean optionalValuesPresent) throws Exception
   {
-    assertThirdPartyCoordinateSecurity(content, coordinateId, coordinateSecurity, optionalValuesPresent, true);
+    assertThirdPartyCoordinateSecurity(content, coordinateId, coordinateSecurity, format, optionalValuesPresent, true);
   }
 
   private void assertThirdPartyCoordinateSecurity(
       String content,
       String coordinateId,
       ThirdPartyCoordinateSecurity coordinateSecurity,
-      boolean optionalValuesPresent, boolean extensionVulnerability) throws ParseException, RuntimeException
+      SbomFormat format,
+      boolean optionalValuesPresent, boolean extensionVulnerability) throws Exception
   {
-    Bom expectedBom = ThirdPartyUtils.parseBom(content);
+    Bom expectedBom = ThirdPartyUtils.parseAndValidateCycloneDx(content, format);
 
     if (extensionVulnerability) {
       assertExtensionVulnerability(coordinateSecurity,
@@ -1800,9 +1805,9 @@ public class SbomResultHandlerTest
 
   private void assertThirdPartyCoordinateSecurities(
       String content,
-      List<ThirdPartyCoordinateSecurity> actualVulnerabilities) throws ParseException, RuntimeException
+      List<ThirdPartyCoordinateSecurity> actualVulnerabilities) throws Exception
   {
-    Bom expectedBom = ThirdPartyUtils.parseBom(content);
+    Bom expectedBom = ThirdPartyUtils.parseAndValidateCycloneDx(content, SbomFormat.XML);
 
     List<ThirdPartyCoordinateSecurity> expectedVulnerabilities = new ArrayList<>();
 

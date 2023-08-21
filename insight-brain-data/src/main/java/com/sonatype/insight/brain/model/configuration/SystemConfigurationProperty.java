@@ -201,8 +201,6 @@ public class SystemConfigurationProperty
    */
   public static final String INTERNAL_FIREWALL_ONBOARDING_ENABLED = "internalFirewallOnboardingEnabled";
 
-  public static final String SPDX_IMPORT = "spdxImport";
-
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

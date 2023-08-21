@@ -24,7 +24,6 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -41,7 +40,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
 
 import com.google.inject.Binder;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -75,12 +73,6 @@ public class ApiThirdPartyScanServiceTest
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent();
-    SystemConfigurationPropertyFeature.SPDX_IMPORT.setEnabled(true);
-  }
-
-  @After
-  public void teardown() {
-    SystemConfigurationPropertyFeature.SPDX_IMPORT.setEnabled(false);
   }
 
   @Test

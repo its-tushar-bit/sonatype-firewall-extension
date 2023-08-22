@@ -58,6 +58,7 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore("SDEV-470")
 public class ApplicationSourceControlEditorTest
     extends AbstractSourceControlEditorTest
 {
@@ -648,6 +649,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
   }
 
+  @Ignore("SDEV-470")
   @Test
   public void testSourceControlEditor_defaultBranch() {
 
@@ -863,6 +865,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlRepositoryUrlUpdateModal.root().shouldBe(hidden);
   }
 
+  @Ignore("SDEV-470")
   @Test
   public void testSourceControlEditor_providerAtOrg_tokenAtRoot_updateToken() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));

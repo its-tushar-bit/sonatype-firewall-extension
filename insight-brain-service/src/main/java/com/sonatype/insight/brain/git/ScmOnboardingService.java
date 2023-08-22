@@ -808,22 +808,26 @@ public class ScmOnboardingService
         subOrganizationsDesired ?
             event.getDesiredSubOrganizationCount() :
             determineRequiredNumberOfBatches(selectedReposToImport.size(), SCM_IMPORT_BATCH_SIZE);
+    log.debug("Creating {} batches for import event {}", numberOfBatches, event.getId());
     List<List<SCMRepository>> batches = partition(selectedReposToImport, numberOfBatches);
     List<ImportFailure> importFailures = Collections.synchronizedList(new ArrayList<>());
     List<CompletableFuture<Void>> taskList = new ArrayList<>(batches.size());
-    for (int i = 0; i < batches.size(); i++) {
+    for (List<SCMRepository> repositories : batches) {
       String organizationId = subOrganizationsDesired ?
-          newChildOrganization(event.getOrganizationId(), i).getId() :
+          newChildOrganization(event.getOrganizationId()).getId() :
           event.getOrganizationId();
-      if (batches.get(i).size() > scmParallelImportMaxRepositoriesPerBatch ) {
-        int numberOfSubBatches = batches.get(i).size() / scmParallelImportMaxRepositoriesPerBatch;
-        List<List<SCMRepository>> partitionedBatches = partition(batches.get(i), numberOfSubBatches);
-        for (List<SCMRepository> batch: partitionedBatches) {
-          submitBatch(event, batch, importFailures, i + 1, organizationId, taskList);
+      if (repositories.size() > scmParallelImportMaxRepositoriesPerBatch) {
+        int numberOfSubBatches = repositories.size() / scmParallelImportMaxRepositoriesPerBatch;
+        List<List<SCMRepository>> partitionedBatches = partition(repositories, numberOfSubBatches);
+        log.debug("Creating {} import sub-batches for organization ID {}", numberOfSubBatches, organizationId);
+        for (List<SCMRepository> batch : partitionedBatches) {
+          log.debug("Submitting sub-batch for organization ID {} with size {}", organizationId, batch.size());
+          submitBatch(event, batch, importFailures, organizationId, taskList);
         }
       }
       else {
-        submitBatch(event, batches.get(i), importFailures, i + 1, organizationId, taskList);
+        log.debug("Submitting batch for organization ID {} with size {}", organizationId, repositories.size());
+        submitBatch(event, repositories, importFailures, organizationId, taskList);
       }
     }
     CompletableFuture.allOf(taskList.toArray(new CompletableFuture[0])).join();
@@ -833,14 +837,12 @@ public class ScmOnboardingService
   private void submitBatch(final SourceControlOrganizationImportEvent event,
                            final List<SCMRepository> batch,
                            final List<ImportFailure> importFailures,
-                           final int batchIndex,
                            String organizationId,
                            List<CompletableFuture<Void>> taskList)
   {
     RepositoryBatchImportTask importTask = new RepositoryBatchImportTask(event,
         batch,
         importFailures,
-        batchIndex,
         organizationId);
     taskList.add(CompletableFuture.runAsync(importTask, executor));
   }
@@ -954,18 +956,14 @@ public class ScmOnboardingService
 
     private final List<ImportFailure> importFailures;
 
-    private final int batchIndex;
-
     private final String organizationId;
 
     public RepositoryBatchImportTask(
         final SourceControlOrganizationImportEvent event,
         final List<SCMRepository> repoBatch,
         final List<ImportFailure> importFailures,
-        final int batchIndex,
         String organizationId)
     {
-      this.batchIndex = batchIndex;
       this.event = event;
       this.repoBatch = repoBatch;
       this.importFailures = importFailures;
@@ -974,8 +972,8 @@ public class ScmOnboardingService
 
     @Override
     public void run() {
-      log.debug("Event {} - Task {}: importing batch of {} repositories in to organization {}", event.getId(),
-          batchIndex, repoBatch.size(), organizationId);
+      log.debug("Event {} : importing batch of {} repositories in to organization {}",
+          event.getId(), repoBatch.size(), organizationId);
       ImportRepositoriesRequest importRepoRequest =
           new ImportRepositoriesRequest(repoBatch, repoBatch.size(), 0);
       ImportResults results =
@@ -984,11 +982,18 @@ public class ScmOnboardingService
     }
   }
 
-  Organization newChildOrganization(final String parentOrgId, final int i) {
+  private Organization newChildOrganization(final String parentOrgId) {
     Organization parentOrg = orgDAO.getByIdNotNull(parentOrgId);
-    Organization child = new Organization(parentOrg.getName() + "-" + i);
+    String childName = parentOrg.getName() + "-" + RandomStringUtils.randomAlphabetic(8);
+    Organization child = new Organization(childName);
     child.setParentOrganizationId(parentOrg.getId());
-    orgDAO.insert(child);
+    try {
+      orgDAO.insert(child);
+    }
+    catch (InvalidNameException e) {
+      log.debug("Sub-organization {} already exists. Fetching existing sub-organization", child.getName());
+      return orgDAO.getByName(childName);
+    }
     return child;
   }
 

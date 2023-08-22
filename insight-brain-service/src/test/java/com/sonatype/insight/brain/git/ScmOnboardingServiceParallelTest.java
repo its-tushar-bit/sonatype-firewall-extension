@@ -268,6 +268,72 @@ public class ScmOnboardingServiceParallelTest
   }
 
   @Test
+  public void testImportScmOrganization_ImportTwiceUnderSameParentOrg() throws Exception {
+    org = tempEntity.newOrganization();
+    List<Organization> childOrgsBeforeImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsBeforeImport).isEmpty();
+
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
+
+    SourceControlOrganizationImportEvent importEvent =
+        tempEntity.newSourceControlOrganizationImportEvent(org.getId(), gitService.baseUrl(), 7, 3);
+    SourceControlOrganizationImportEvent secondImportEvent =
+        tempEntity.newSourceControlOrganizationImportEvent(org.getId(), gitService.baseUrl(), -1, 3);
+
+    scmOnboardingService.doScmOrganizationImport(importEvent);
+    scmOnboardingService.doScmOrganizationImport(secondImportEvent);
+
+    SourceControlOrganizationImportEvent updatedEvent =
+        sourceControlOrganizationImportEventDAO.getById(importEvent.getId());
+
+    SourceControlOrganizationImportEvent secondUpdatedEvent =
+        sourceControlOrganizationImportEventDAO.getById(secondImportEvent.getId());
+
+    assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
+    assertThat(updatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedEvent.getImportSuccessCount()).isEqualTo(7);
+    assertThat(updatedEvent.getImportFailureCount()).isZero();
+    assertThat(updatedEvent.getImportErrors()).isNull();
+
+    assertThat(secondUpdatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
+    assertThat(secondUpdatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(secondUpdatedEvent.getImportSuccessCount()).isEqualTo(6);
+    assertThat(secondUpdatedEvent.getImportFailureCount()).isZero();
+    assertThat(secondUpdatedEvent.getImportErrors()).isNull();
+
+    List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsAfterImport).hasSize(6);
+
+    List<Integer> importedAppCountsPerOrg =
+        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+            .collect(Collectors.toList());
+    assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(3, 2, 2, 2, 2, 2);
+    assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
+
+    //verify source control evaluations triggered for all imported apps
+    verifySourceControlEvaluationEventsCreated(13);
+    verify(sourceControlOrganizationImportEventDAO, times(8)).update(any(SourceControlOrganizationImportEvent.class));
+
+    //check the telemetry was sent properly
+    final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock, times(19)).send(telemetryDataArgumentCaptor.capture());
+    final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
+    assertThat(telemetryDataList).hasSize(19);
+    List<TelemetryData> telemetryData = telemetryDataList.stream()
+        .filter(td -> td.getPurpose().equals(TelemetryPurpose.SOURCE_CONTROL_ONBOARDING))
+        .collect(Collectors.toList());
+    assertThat(telemetryData).hasSize(6);
+
+    int prevImportedCount = 0;
+    // By passing the total repo count equal to batch count we are asserting the entire batch was successful
+    telemetryData.forEach(data -> assertBatchedImportTelemetries(data,
+        (Integer) data.getAttributes().get("onboarding_batch_count"),
+        (Integer) data.getAttributes().get("onboarding_batch_count"),
+        prevImportedCount));
+  }
+
+  @Test
   public void testImportScmOrganization_DistributeIntoChildOrgsWithLimit() throws Exception {
     org = tempEntity.newOrganization();
     List<Organization> childOrgsBeforeImport = organizationDAO.getByParentOrganizationId(org.getId());

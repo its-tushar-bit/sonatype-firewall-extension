@@ -299,6 +299,7 @@ Map<String, Closure> createFunctionalTests(
               mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
               mavenOptions += " -DapplitoolsEnabled=${isEyesEnabled()}"
               mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+              mavenOptions += " -DdetectTestEntityLeaks"
               mavenOptions += " --threads 4"
               Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
               mvn testConfig, 'verify'
@@ -321,7 +322,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
           copyRepo()
           Map<String, ?> testConfig = testConfig(
                 "-pl '!com.sonatype.insight.brain:nexus-mtiq-server' -Dtest=%regex[${regex}] " +
-                    "-Dit.test=%regex[${regex}] -Dskip-functional-test " +
+                    "-Dit.test=%regex[${regex}] -Dskip-functional-test -DdetectTestEntityLeaks " +
                     "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)
           mvn testConfig, 'install'
@@ -344,7 +345,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
         try {
           copyRepo()
           Map<String, ?> testConfig = testConfig(
-                "-pl com.sonatype.insight.brain:nexus-mtiq-server -Dskip-functional-test " +
+                "-pl com.sonatype.insight.brain:nexus-mtiq-server -Dskip-functional-test -DdetectTestEntityLeaks " +
                     "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)
           mvn testConfig, 'install'

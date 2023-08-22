@@ -139,7 +139,7 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   }
 
   protected boolean detectTestEntityLeaks() {
-    return false;
+    return System.getProperty("detectTestEntityLeaks") != null;
   }
 
   @Override

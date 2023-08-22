@@ -813,6 +813,11 @@ public class TemporaryEntity
   private void detectEntityLeaks(Map<String, TestEntityLeakDetectionData> testEntityLeaksDetectionData) {
     AbstractOperationalSqlDAO.testEntityLeaksDetectionData.clear();
 
+    // Sometimes the code uses insert for records that already exist in the initial data. Those are not leaks.
+    initialMigrationTrackers.forEach(migrationTracker -> testEntityLeaksDetectionData.remove(migrationTracker.getId()));
+    initialSystemConfigurationProperties
+        .forEach(configProperty -> testEntityLeaksDetectionData.remove(configProperty.getId()));
+
     if (!testEntityLeaksDetectionData.isEmpty()) {
       int leakCount = 0;
       for (String leakedEntityId : testEntityLeaksDetectionData.keySet()) {

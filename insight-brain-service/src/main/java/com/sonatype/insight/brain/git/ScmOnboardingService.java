@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -90,6 +91,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_AUTHN_FAILURE;
 import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_AUTHZ_FAILURE;
+import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_UNKNOWN_HOST_FAILURE;
 import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -239,6 +241,9 @@ public class ScmOnboardingService
       List<SCMRepository> allRepositories = postProcess(generalClient.listAllRepositories());
       List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
       return new SCMRepositories(allRepositories.size(), availableRepositories);
+    }
+    catch (UnknownHostException e) {
+      return new SCMRepositories(SCM_UNKNOWN_HOST_FAILURE);
     }
     catch (HttpResponseException e) {
       switch (e.getStatusCode()) {

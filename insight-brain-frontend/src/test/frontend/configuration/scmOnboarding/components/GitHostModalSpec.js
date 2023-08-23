@@ -120,6 +120,7 @@ describe('GitHostModal', function () {
       { loadRepositoriesErrorCode: null, expectedTitle: 'SCM Server Needed' },
       { loadRepositoriesErrorCode: 'SCM_AUTHN_FAILURE', expectedTitle: 'Authentication Error' },
       { loadRepositoriesErrorCode: 'SCM_AUTHZ_FAILURE', expectedTitle: 'Authorization Error' },
+      { loadRepositoriesErrorCode: 'SCM_UNKNOWN_HOST_FAILURE', expectedTitle: 'Unknown Host Error' },
       { loadRepositoriesErrorCode: 'DOESNT_EXIST', expectedTitle: 'Connection Error' },
     ].forEach(({ loadRepositoriesErrorCode, expectedTitle }) => {
       it(`displays title '${expectedTitle}' when there is a ${loadRepositoriesErrorCode} error`, () => {

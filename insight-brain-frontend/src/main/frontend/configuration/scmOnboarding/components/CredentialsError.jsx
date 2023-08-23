@@ -31,6 +31,7 @@ function CredentialsError(props) {
   const ERROR_SHORT_DESC = {
     SCM_AUTHN_FAILURE: 'Authentication Error',
     SCM_AUTHZ_FAILURE: 'Authorization Error',
+    SCM_UNKNOWN_HOST_FAILURE: 'Unknown Host Error',
   };
   const errorShortDescription = () => {
     const description = ERROR_SHORT_DESC[errorCode];

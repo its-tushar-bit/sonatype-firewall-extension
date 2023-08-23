@@ -196,8 +196,7 @@ public class SystemConfigurationProperty
   public static final String SCM_UX_IMPROVEMENTS = "scmUxImprovements";
 
   /**
-   * Internal feature flag to enable Firewall Onboarding. It will be removed right before we release Firewall
-   * Onboarding for external customers.
+   * Internal feature flag to enable/disable Firewall Onboarding. It is enabled by default.
    */
   public static final String INTERNAL_FIREWALL_ONBOARDING_ENABLED = "internalFirewallOnboardingEnabled";
 

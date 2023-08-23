@@ -31,9 +31,17 @@ import {
   ADVANCED_LEGAL_LOAD_MULTI_LICENSES_FULFILLED,
   ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED,
 } from 'MainRoot/legal/advancedLegalActions';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('originalSourcesFormActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+
+  beforeEach(function () {
+    spyOn(routerSelectors, 'selectOwnerInfo').and.returnValue({
+      ownerType: 'organization',
+      ownerId: 'org',
+    });
+  });
 
   describe('save original sources override', function () {
     let store;
@@ -97,7 +105,6 @@ describe('originalSourcesFormActions', function () {
       store.dispatch(
         saveOriginalSourcesOverride({
           sources: sourceLinks,
-          scopeOwnerId: 'org',
           areSourcesDirty: true,
           isObligationDirty: false,
         })
@@ -113,7 +120,6 @@ describe('originalSourcesFormActions', function () {
       store.dispatch(
         saveOriginalSourcesOverride({
           sources: sourceLinks,
-          scopeOwnerId: 'org',
           areSourcesDirty: false,
           isObligationDirty: false,
         })
@@ -196,7 +202,6 @@ describe('originalSourcesFormActions', function () {
           .dispatch(
             saveOriginalSourcesOverride({
               sources: sourceLinks,
-              scopeOwnerId: 'org',
               existingObligation: {
                 name: 'Required Disclosure of Original Source Code with Distribution',
                 status: 'FULFILLED',
@@ -282,7 +287,6 @@ describe('originalSourcesFormActions', function () {
         .dispatch(
           saveOriginalSourcesOverride({
             sources: sourceLinks,
-            scopeOwnerId: 'org',
             areSourcesDirty: true,
             isObligationDirty: false,
           })
@@ -343,7 +347,6 @@ describe('originalSourcesFormActions', function () {
         .dispatch(
           saveOriginalSourcesOverride({
             sources: sourceLinks,
-            scopeOwnerId: 'org',
             areSourcesDirty: true,
             isObligationDirty: false,
           })
@@ -366,7 +369,7 @@ describe('originalSourcesFormActions', function () {
     });
   });
 
-  describe('save original source override at different scope', function () {
+  describe('save original source override with obligation at different scope', function () {
     let store;
     let initialState = {
       router: {
@@ -385,7 +388,7 @@ describe('originalSourcesFormActions', function () {
                   name: 'Required Disclosure of Original Source Code with Distribution',
                   status: 'FLAGGED',
                   comment: 'comment',
-                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  ownerId: 'org',
                   lastUpdatedByUsername: 'admin',
                   lastUpdatedAt: 1618873200000,
                 },
@@ -422,7 +425,7 @@ describe('originalSourcesFormActions', function () {
       },
     ];
 
-    it('ComponentCopyright exists at appScope, change to root scope', function (done) {
+    it('component obligation exists at appScope, change to root scope', function (done) {
       store = SpecUtil.mockReduxStore(initialState);
       const expectedPostBody = {
         componentIdentifier: 'componentIdentifier',
@@ -443,7 +446,7 @@ describe('originalSourcesFormActions', function () {
         ],
       };
 
-      assertExpectedHighScopeCalls('ROOT_ORGANIZATION_ID', 'organization', expectedPostBody, done);
+      assertExpectedHighScopeCalls('org', 'organization', expectedPostBody, done);
     });
 
     function assertExpectedHighScopeCalls(persistedAtScope, orgOrApp, expectedPostBody, done) {
@@ -454,7 +457,7 @@ describe('originalSourcesFormActions', function () {
               data: 'dataPOST',
             },
           }),
-          [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
+          [getSaveComponentObligationUrl('organization', persistedAtScope)]: Promise.resolve({
             data: {
               data: 'dataPOST2',
             },
@@ -466,7 +469,7 @@ describe('originalSourcesFormActions', function () {
           }),
           [getComponentObligationUrl(
             orgOrApp,
-            persistedAtScope,
+            'ROOT_ORGANIZATION_ID',
             'componentIdentifier',
             'Required Disclosure of Original Source Code with Distribution'
           )]: Promise.resolve({
@@ -485,7 +488,6 @@ describe('originalSourcesFormActions', function () {
         .dispatch(
           saveOriginalSourcesOverride({
             sources: sourceLinks,
-            scopeOwnerId: persistedAtScope,
             existingObligation: {
               name: 'Required Disclosure of Original Source Code with Distribution',
               status: 'FULFILLED',
@@ -581,7 +583,7 @@ describe('originalSourcesFormActions', function () {
       };
       mockAxiosCalls({
         post: {
-          [getSaveComponentOriginalSourcesOverrideUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
+          [getSaveComponentOriginalSourcesOverrideUrl('organization', 'org')]: Promise.resolve({
             data: {
               data: 'dataPOST1',
             },
@@ -607,7 +609,7 @@ describe('originalSourcesFormActions', function () {
               ownerId: 'ROOT_ORGANIZATION_ID',
             },
           }),
-          [getLicenseLegalComponentUrl('organization', 'ROOT_ORGANIZATION_ID', 'componentHash')]: Promise.resolve({
+          [getLicenseLegalComponentUrl('organization', 'org', 'componentHash')]: Promise.resolve({
             data: { component: { componentIdentifier: 'componentIdentifier' } },
           }),
           [getComponentObligationUrl(
@@ -632,7 +634,6 @@ describe('originalSourcesFormActions', function () {
         .dispatch(
           saveOriginalSourcesOverride({
             sources,
-            scopeOwnerId: 'ROOT_ORGANIZATION_ID',
             existingObligation: {
               name: 'Required Disclosure of Original Source Code with Distribution',
               status: 'FLAGGED',
@@ -645,11 +646,11 @@ describe('originalSourcesFormActions', function () {
           setTimeout(() => {
             const actions = store.getActions();
             expect(axios.post).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/sourceLink',
+              '/api/experimental/licenseLegalMetadata/organization/org/component/sourceLink',
               expectedPostBody
             );
             expect(axios.get).toHaveBeenCalledWith(
-              '/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?hash=componentHash'
+              '/api/v2/licenseLegalMetadata/organization/org/component?hash=componentHash'
             );
             expect(axios.post).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',

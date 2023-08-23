@@ -19,7 +19,7 @@ import {
   loadApplication,
 } from '../../../../main/frontend/legal/application/legalApplicationDetailsActions';
 import {
-  getApplicationUrl,
+  getApplicationLegalReviewerUrl,
   getActionStageUrl,
   getLegalDashboardApplicationUrl,
 } from '../../../../main/frontend/util/CLMLocation';
@@ -59,7 +59,7 @@ describe('legalApplicationDetailsActions', function () {
 
       mockAxiosCalls({
         get: {
-          [getApplicationUrl(applicationPublicId)]: Promise.resolve({
+          [getApplicationLegalReviewerUrl(applicationPublicId)]: Promise.resolve({
             data: 'result application',
           }),
           [getActionStageUrl()]: Promise.resolve({ data: stageTypes }),
@@ -106,7 +106,7 @@ describe('legalApplicationDetailsActions', function () {
 
       mockAxiosCalls({
         get: {
-          [getApplicationUrl(applicationPublicId)]: () => Promise.reject('error application'),
+          [getApplicationLegalReviewerUrl(applicationPublicId)]: () => Promise.reject('error application'),
         },
       });
 
@@ -126,7 +126,7 @@ describe('legalApplicationDetailsActions', function () {
 
       mockAxiosCalls({
         get: {
-          [getApplicationUrl(applicationPublicId)]: Promise.resolve({
+          [getApplicationLegalReviewerUrl(applicationPublicId)]: Promise.resolve({
             data: 'result application',
           }),
         },
@@ -157,7 +157,7 @@ describe('legalApplicationDetailsActions', function () {
 
       mockAxiosCalls({
         get: {
-          [getApplicationUrl(applicationPublicId)]: Promise.resolve({
+          [getApplicationLegalReviewerUrl(applicationPublicId)]: Promise.resolve({
             data: 'result application',
           }),
           [getActionStageUrl()]: () => Promise.reject('error stage type'),
@@ -194,7 +194,7 @@ describe('legalApplicationDetailsActions', function () {
 
       mockAxiosCalls({
         get: {
-          [getApplicationUrl(applicationPublicId)]: Promise.resolve({
+          [getApplicationLegalReviewerUrl(applicationPublicId)]: Promise.resolve({
             data: 'result application',
           }),
           [getActionStageUrl()]: Promise.resolve({ data: stageTypes }),

@@ -6,7 +6,11 @@
 
 import axios from 'axios';
 import { find, propEq } from 'ramda';
-import { getLegalDashboardApplicationUrl, getApplicationUrl, getActionStageUrl } from '../../util/CLMLocation';
+import {
+  getLegalDashboardApplicationUrl,
+  getActionStageUrl,
+  getApplicationLegalReviewerUrl,
+} from '../../util/CLMLocation';
 import { payloadParamActionCreator, noPayloadActionCreator } from '../../util/reduxUtil';
 
 export const LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED = 'LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED';
@@ -54,7 +58,7 @@ export function loadApplication(applicationPublicId, stageTypeId) {
     dispatch(legalApplicationDetailsLoadAppRequested());
 
     return axios
-      .get(getApplicationUrl(applicationPublicId))
+      .get(getApplicationLegalReviewerUrl(applicationPublicId))
       .then((response) => {
         dispatch(legalApplicationDetailsLoadAppFulfilled(response.data));
         return dispatch(loadStageType(stageTypeId));

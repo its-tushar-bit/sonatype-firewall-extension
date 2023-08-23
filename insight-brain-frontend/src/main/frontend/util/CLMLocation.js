@@ -126,6 +126,10 @@ export function getApplicationUrl(applicationPublicId) {
   return uriTemplate`/rest/application/${applicationPublicId}`;
 }
 
+export function getApplicationLegalReviewerUrl(applicationPublicId) {
+  return uriTemplate`/rest/application/legalReviewer/${applicationPublicId}`;
+}
+
 export function getDashboardStageUrl() {
   return uriTemplate`/rest/policy/stages?context=dashboard`;
 }
@@ -338,6 +342,24 @@ export const getComponentMultiLicensesUrl = ({
     scanId,
   });
   return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/multiLicenses?` + params;
+};
+
+export const getComponentMultiLicensesLegalReviewerUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    identificationSource,
+    scanId,
+  });
+  return (
+    uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/multiLicenses/legalReviewer?` + params
+  );
 };
 
 export function getSuccessMetricsConfigUrl() {
@@ -576,6 +598,10 @@ export function getLegalDashboardApplicationUrl(applicationPublicId) {
 
 export function getOwnerHierarchyUrl(ownerType, ownerId) {
   return uriTemplate`/rest/owner/${ownerType}/${ownerId}/hierarchy`;
+}
+
+export function getOwnerHierarchyLegalReviewerUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/owner/${ownerType}/${ownerId}/hierarchy/legalReviewer`;
 }
 
 export function getOwnerDetailsUrl(ownerType, ownerId, isRepositories) {
@@ -922,6 +948,18 @@ export function getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier) {
   }
 
   return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}`;
+}
+
+export function getLicenseOverrideLegalReviewerUrl(ownerType, ownerId, componentIdentifier) {
+  if (componentIdentifier) {
+    /**
+     * `componentIdentifier` is already a stringified json, but it still needs encoding
+     * `uriTemplate` handles that encoding for us.
+     */
+    return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}/legalReviewer?componentIdentifier=${componentIdentifier}`;
+  }
+
+  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}/legalReviewer`;
 }
 
 export function getBaseLicenseOverrideUrl(ownerType, ownerId) {

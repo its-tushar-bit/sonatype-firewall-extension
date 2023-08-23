@@ -8,7 +8,7 @@ import axios from 'axios';
 import {
   getLicenseLegalComponentByComponentIdentifierUrl,
   getLicenseLegalComponentUrl,
-  getOwnerHierarchyUrl,
+  getOwnerHierarchyLegalReviewerUrl,
 } from 'MainRoot/util/CLMLocation';
 import { pathSet } from 'MainRoot/util/jsUtil';
 import {
@@ -70,7 +70,7 @@ describe('ComponentLicenseFileDetailsAction', function () {
     it('fetches license file details by hash when not loaded', function (done) {
       store = SpecUtil.mockReduxStore(pathSet(['advancedLegal', 'component', 'component'], undefined, initialState));
 
-      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
+      const ownerHierarchyUrl = getOwnerHierarchyLegalReviewerUrl('organization', 'org');
       const licenseLegalComponent = getLicenseLegalComponentUrl('organization', 'org', 'componentHash');
 
       mockAxiosCalls({
@@ -92,7 +92,7 @@ describe('ComponentLicenseFileDetailsAction', function () {
       state = pathSet(['router', 'currentParams', 'hash'], undefined, state);
       store = SpecUtil.mockReduxStore(state);
 
-      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
+      const ownerHierarchyUrl = getOwnerHierarchyLegalReviewerUrl('organization', 'org');
       const licenseLegalCompByCompIdentifier = getLicenseLegalComponentByComponentIdentifierUrl('componentIdentifier');
 
       mockAxiosCalls({

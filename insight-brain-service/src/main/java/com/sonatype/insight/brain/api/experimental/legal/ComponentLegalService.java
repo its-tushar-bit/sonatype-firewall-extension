@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.legal.LegalFileOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.legal.SourceLinkOverrideDAO;
 import com.sonatype.insight.brain.model.HasOwnerId;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
@@ -567,10 +568,10 @@ public class ComponentLegalService
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     validateComponentSourceLinkDTO(componentSourceLinkDTO);
-    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    // ownerType and ownerId from the params are meant to check for permissions, but the custom data is not scoped
     ComponentSourceLink componentSourceLink =
-        new ComponentSourceLink(componentSourceLinkDTO.getComponentIdentifier().toComponentIdentifier(), owner.getId(),
-            currentUser.getUsername());
+        new ComponentSourceLink(componentSourceLinkDTO.getComponentIdentifier().toComponentIdentifier(),
+            Organization.ROOT_ORGANIZATION_ID, currentUser.getUsername());
     componentSourceLink.setId(componentSourceLinkDTO.getId());
     List<SourceLinkOverride> sourceLinkOverrides = componentSourceLinkDTO.getSourceLinkOverrides().stream().map(dto -> {
       final String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();

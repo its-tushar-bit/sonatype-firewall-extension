@@ -29,8 +29,9 @@ import {
   getLicenseLegalComponentUrl,
   getLicenseLegalComponentByComponentIdentifierUrl,
   getLicenseOverrideUrl,
+  getLicenseOverrideLegalReviewerUrl,
   getLicensesWithSyntheticFilterUrl,
-  getOwnerHierarchyUrl,
+  getOwnerHierarchyLegalReviewerUrl,
   getSaveLegalFileUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 import {
@@ -165,12 +166,14 @@ describe('advancedLegalFileActions', function () {
           [getLicenseOverrideUrl(ownerType, ownerId)]: Promise.resolve({ data: 'postData' }),
         },
         get: {
-          [getOwnerHierarchyUrl('application', 'app')]: Promise.resolve({ data: 'getData' }),
+          [getOwnerHierarchyLegalReviewerUrl('application', 'app')]: Promise.resolve({ data: 'getData' }),
           [getLicenseLegalComponentUrl('application', 'app', hash)]: Promise.resolve({
             data: { component: { componentIdentifier: 'componentIdentifier' } },
           }),
           [getLicensesWithSyntheticFilterUrl()]: Promise.resolve({ data: 'getData3' }),
-          [getLicenseOverrideUrl(ownerType, ownerId, 'componentIdentifier')]: Promise.resolve({ data: 'getData4' }),
+          [getLicenseOverrideLegalReviewerUrl(ownerType, ownerId, 'componentIdentifier')]: Promise.resolve({
+            data: 'getData4',
+          }),
         },
       });
       store.dispatch(saveLicenses({ ownerType, ownerId, postBody, hash, closeModalFn })).then(() => {
@@ -187,7 +190,7 @@ describe('advancedLegalFileActions', function () {
         };
         expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', expectedPostBody);
         expect(axios.get).toHaveBeenCalledWith('/api/v2/licenseLegalMetadata/application/app/component?hash=hash123');
-        expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy');
+        expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy/legalReviewer');
         expect(actions.length).toBe(7);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
         expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
@@ -225,7 +228,9 @@ describe('advancedLegalFileActions', function () {
           [getLicenseOverrideUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({ data: 'postData' }),
         },
         get: {
-          [getOwnerHierarchyUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({ data: 'getData' }),
+          [getOwnerHierarchyLegalReviewerUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
+            data: 'getData',
+          }),
           [getLicenseLegalComponentByComponentIdentifierUrl('"componentIdentifier"')]: Promise.resolve({
             data: { component: { componentIdentifier: 'componentIdentifier' } },
           }),
@@ -260,7 +265,9 @@ describe('advancedLegalFileActions', function () {
           expect(axios.get).toHaveBeenCalledWith(
             '/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?componentIdentifier=%22componentIdentifier%22'
           );
-          expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/ROOT_ORGANIZATION_ID/hierarchy');
+          expect(axios.get).toHaveBeenCalledWith(
+            '/rest/owner/organization/ROOT_ORGANIZATION_ID/hierarchy/legalReviewer'
+          );
           expect(actions.length).toBe(7);
           expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
           expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);

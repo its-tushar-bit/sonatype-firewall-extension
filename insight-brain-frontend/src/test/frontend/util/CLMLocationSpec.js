@@ -389,6 +389,12 @@ describe('CLMLocation.js', function () {
     expect(CLMLocation.getOwnerHierarchyUrl('ownerType', 'ownerId')).toBe('/rest/owner/ownerType/ownerId/hierarchy');
   });
 
+  it('should return the owner hierarchy url for legal reviewers', function () {
+    expect(CLMLocation.getOwnerHierarchyLegalReviewerUrl('ownerType', 'ownerId')).toBe(
+      '/rest/owner/ownerType/ownerId/hierarchy/legalReviewer'
+    );
+  });
+
   it('should return the saml sso login url', function () {
     expect(CLMLocation.getSamlSsoLoginUrl('http://localhost:8080/hola/mundo')).toBe(
       '/saml/login?hash=http%3A%2F%2Flocalhost%3A8080%2Fhola%2Fmundo'
@@ -499,6 +505,21 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the get component multi-licenses url for legal reviewers', function () {
+    expect(
+      CLMLocation.getComponentMultiLicensesLegalReviewerUrl({
+        clientType: 'ci',
+        componentIdentifier: JSON.stringify({ format: 'format', coordinates: 'coordinates' }),
+        ownerType: 'application',
+        ownerId: 'appPublicId',
+        identificationSource: 'identificationSource',
+        scanId: 'currentScanId',
+      })
+    ).toBe(
+      '/rest/ci/componentDetails/application/appPublicId/multiLicenses/legalReviewer?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D&identificationSource=identificationSource&scanId=currentScanId'
+    );
+  });
+
   it('should return the get component obligation url', function () {
     const componentIdentifier = {
       format: 'maven',
@@ -564,6 +585,12 @@ describe('CLMLocation.js', function () {
 
   it('should return the application details url', function () {
     expect(CLMLocation.getApplicationUrl('application-id')).toBe('/rest/application/application-id');
+  });
+
+  it('should return the application details url for legal reviewers', function () {
+    expect(CLMLocation.getApplicationLegalReviewerUrl('application-id')).toBe(
+      '/rest/application/legalReviewer/application-id'
+    );
   });
 
   it('should return the legal application details url', function () {
@@ -695,6 +722,25 @@ describe('CLMLocation.js', function () {
       const expectedUrl =
         '/rest/licenseOverride/app/appId?componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22version%22%3A%22version%22%2C%22group%22%3A%22group%22%7D%7D';
       expect(clmLocation.getLicenseOverrideUrl('app', 'appId', stringComponentIdentifier)).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getLicenseOverrideLegalReviewerUrl', function () {
+    it('should return a URL without componentIdentifier if it is not provided', function () {
+      const expectedUrl = '/rest/licenseOverride/app/appId/legalReviewer';
+      expect(clmLocation.getLicenseOverrideLegalReviewerUrl('app', 'appId')).toEqual(expectedUrl);
+    });
+
+    it('should return a URL with encoded componentIdentifier if it is provided', function () {
+      const stringComponentIdentifier = JSON.stringify({
+        format: 'maven',
+        coordinates: { version: 'version', group: 'group' },
+      });
+      const expectedUrl =
+        '/rest/licenseOverride/app/appId/legalReviewer?componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22version%22%3A%22version%22%2C%22group%22%3A%22group%22%7D%7D';
+      expect(clmLocation.getLicenseOverrideLegalReviewerUrl('app', 'appId', stringComponentIdentifier)).toEqual(
+        expectedUrl
+      );
     });
   });
 

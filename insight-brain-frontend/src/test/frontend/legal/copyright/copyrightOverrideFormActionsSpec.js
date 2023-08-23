@@ -763,8 +763,8 @@ describe('copyrightOverrideFormAction', function () {
             },
           }),
           [getComponentObligationUrl(
-            orgOrApp,
-            persistedAtScope,
+            'application',
+            'app',
             'componentIdentifier',
             'Inclusion of Copyright'
           )]: Promise.resolve({

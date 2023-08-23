@@ -120,7 +120,6 @@ export default function OriginalSourcesForm(props) {
           content: content.trimmedValue,
           ...rest,
         })),
-      scopeOwnerId: scope,
       existingObligation,
       areSourcesDirty: areSourcesDirty(),
       isObligationDirty: isObligationDirty(),

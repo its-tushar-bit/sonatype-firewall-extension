@@ -13,7 +13,7 @@ import axios from 'axios';
 import {
   getLicenseLegalComponentByComponentIdentifierUrl,
   getLicenseLegalComponentUrl,
-  getOwnerHierarchyUrl,
+  getOwnerHierarchyLegalReviewerUrl,
 } from 'MainRoot/util/CLMLocation';
 import { pathSet } from 'MainRoot/util/jsUtil';
 
@@ -84,7 +84,7 @@ describe('ComponentNoticeDetailsAction', function () {
     it('fetches notice file details by hash when not loaded', function (done) {
       store = SpecUtil.mockReduxStore(pathSet(['advancedLegal', 'component', 'component'], undefined, initialState));
 
-      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
+      const ownerHierarchyUrl = getOwnerHierarchyLegalReviewerUrl('organization', 'org');
       const licenseLegalComponentUrl = getLicenseLegalComponentUrl('organization', 'org', 'componentHash');
 
       mockAxiosCalls({

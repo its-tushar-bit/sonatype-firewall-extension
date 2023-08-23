@@ -10,6 +10,7 @@ import axios from 'axios';
 import { saveObligation } from '../obligation/advancedLegalObligationActions';
 import { loadComponent, loadComponentByComponentIdentifier } from 'MainRoot/legal/advancedLegalActions';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { selectOwnerInfo } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const ORIGINAL_SOURCES_OVERRIDE_SAVE_REQUESTED = 'ORIGINAL_SOURCES_OVERRIDE_SAVE_REQUESTED';
 export const ORIGINAL_SOURCES_OVERRIDE_SAVE_FULFILLED = 'ORIGINAL_SOURCES_OVERRIDE_SAVE_FULFILLED';
@@ -17,19 +18,17 @@ export const ORIGINAL_SOURCES_OVERRIDE_FAILED = 'ORIGINAL_SOURCES_OVERRIDE_FAILE
 export const ORIGINAL_SOURCES_OVERRIDE_SUBMIT_MASK_DONE = 'ORIGINAL_SOURCES_OVERRIDE_SUBMIT_MASK_DONE';
 export const SET_DISPLAY_ORIGINAL_SOURCES_OVERRIDE_MODAL = 'SET_DISPLAY_ORIGINAL_SOURCES_OVERRIDE_MODAL';
 
-export function saveOriginalSourcesOverride({
-  sources,
-  scopeOwnerId,
-  existingObligation,
-  areSourcesDirty,
-  isObligationDirty,
-}) {
+export function saveOriginalSourcesOverride({ sources, existingObligation, areSourcesDirty, isObligationDirty }) {
   return function (dispatch, getState) {
     if (areSourcesDirty) {
       const advancedLegalState = getState().advancedLegal;
-      const { availableScopes } = advancedLegalState;
       const { componentIdentifier } = advancedLegalState.component.component;
       const hash = getState().router?.currentParams?.hash;
+      let { ownerType, ownerId } = selectOwnerInfo(getState());
+      if (ownerType === 'global') {
+        ownerType = 'organization';
+        ownerId = 'ROOT_ORGANIZATION_ID';
+      }
       const packageUrl = advancedLegalState.component.component.packageUrl;
       const payload = {
         componentIdentifier,
@@ -41,12 +40,11 @@ export function saveOriginalSourcesOverride({
       };
 
       dispatch(saveRequested());
-      const matchingScope = availableScopes.values.find((s) => s.id === scopeOwnerId);
       const componentPromise = hash
-        ? loadComponent(matchingScope.type, matchingScope.publicId, hash)
+        ? loadComponent(ownerType, ownerId, hash)
         : loadComponentByComponentIdentifier(JSON.stringify(componentIdentifier));
       return axios
-        .post(getSaveComponentOriginalSourcesOverrideUrl(matchingScope.type, matchingScope.publicId), payload)
+        .post(getSaveComponentOriginalSourcesOverrideUrl(ownerType, ownerId), payload)
         .then(() => {
           dispatch(saveFulfilled());
           dispatch(componentPromise).then(

@@ -1958,9 +1958,6 @@ public class ComponentLegalServiceTest
 
   @Test
   public void testUpdatedExistingComponentSourceLink() {
-    Application application = tempEntity.newApplicationWithParent();
-    Organization organization = tempEntity.newOrganization();
-
     ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
 
@@ -1985,7 +1982,7 @@ public class ComponentLegalServiceTest
     //Persist original componentSourceLink
     ComponentSourceLinkDTO existingComponentSourceLink =
         componentLegalService
-            .saveComponentSourceLink(OwnerType.APPLICATION, application.getPublicId(), componentSourceLinkDTO);
+            .saveComponentSourceLink(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentSourceLinkDTO);
 
     //Modify certain properties
     existingComponentSourceLink.getSourceLinkOverrides().get(0).setContent("updated content");
@@ -1996,13 +1993,13 @@ public class ComponentLegalServiceTest
             ComponentLegalPartStatus.ENABLED
         ));
     assertThat(componentSourceLinkDAO
-        .getByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier.toComponentIdentifier()))
+        .getByOwnerIdAndComponentIdentifier(Organization.ROOT_ORGANIZATION_ID,
+            componentIdentifier.toComponentIdentifier()))
         .isNotNull();
 
     //Persist the updated values
-    ComponentSourceLinkDTO updatedComponentSourceLinkDTO =
-        componentLegalService
-            .saveComponentSourceLink(OwnerType.ORGANIZATION, organization.getPublicId(), existingComponentSourceLink);
+    ComponentSourceLinkDTO updatedComponentSourceLinkDTO = componentLegalService.saveComponentSourceLink(
+        OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, existingComponentSourceLink);
 
     assertThat(updatedComponentSourceLinkDTO.getId()).isNotNull();
     assertThat(updatedComponentSourceLinkDTO.getSourceLinkOverrides()).hasSize(3);
@@ -2024,9 +2021,7 @@ public class ComponentLegalServiceTest
     assertThat(sourceLinkOverrideDTO2.getContent()).isEqualTo("content3");
 
     ComponentSourceLink componentSourceLink = componentSourceLinkDAO.getById(updatedComponentSourceLinkDTO.getId());
-    assertThat(componentSourceLink.getOwnerId()).isEqualTo(organization.getId());
-    assertThat(componentSourceLinkDAO
-        .getByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier.toComponentIdentifier())).isNull();
+    assertThat(componentSourceLink.getOwnerId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
   }
 
   /**
@@ -2065,58 +2060,6 @@ public class ComponentLegalServiceTest
   }
 
   /**
-   * The scenario is the following: - a ComponentSourceLink with ID A exists at the OrgScope - a ComponentSourceLink
-   * with ID B exists at the ApplicationScope - user modifies ComponentSourceLink B to OrgScope. ComponentSourceLink A
-   * is updated to match ComponentSourceLink B except in scope and ComponentSourceLink A is deleted.
-   */
-  @Test
-  public void testConflictingComponentSourceLinkWhileUpdating() {
-    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
-        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
-
-    Organization organization = tempEntity.newOrganization();
-    Application application = tempEntity.newApplication(organization.getId());
-
-    ComponentSourceLink orgComponentSourceLink =
-        tempEntity.newComponentSourceLink(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
-            organization.getId());
-    ComponentSourceLink appComponentSourceLink =
-        tempEntity.newComponentSourceLink(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
-            application.getId());
-
-    assertThat(componentSourceLinkDAO.getById(appComponentSourceLink.getId())).isNotNull();
-
-    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(
-        appComponentSourceLink.getId(),
-        componentIdentifier,
-        Lists.newArrayList(new SourceLinkOverrideDTO(
-                null,
-                "content",
-                ComponentLegalPartStatus.ENABLED
-            ),
-            new SourceLinkOverrideDTO(
-                null,
-                "content2",
-                ComponentLegalPartStatus.DISABLED
-            )
-        ),
-        null,
-        null
-    );
-
-    ComponentSourceLinkDTO returnedComponentSourceLinkDTO = componentLegalService
-        .saveComponentSourceLink(OwnerType.ORGANIZATION, organization.getPublicId(), componentSourceLinkDTO);
-
-    assertThat(componentSourceLinkDAO.getById(appComponentSourceLink.getId())).isNull();
-    assertThat(returnedComponentSourceLinkDTO.getSourceLinkOverrides()).hasSize(2);
-    assertThat(returnedComponentSourceLinkDTO.getId()).isEqualTo(orgComponentSourceLink.getId());
-
-    ComponentSourceLink persistedComponentSourceLink =
-        componentSourceLinkDAO.getById(returnedComponentSourceLinkDTO.getId());
-    assertThat(persistedComponentSourceLink.getOwnerId()).isEqualTo(organization.getId());
-  }
-
-  /**
    * The scenario is the following: Inserting a new ComponentSourceLink at an existing scope. A ComponentSourceLink with
    * ID A exists at the OrgScope. The user inserts a new ComponentSourceLink from the application scope at the OrgScope.
    * There is a conflict. The ComponentSourceLink A is updated to match the new ComponentSourceLink.
@@ -2126,10 +2069,8 @@ public class ComponentLegalServiceTest
     ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
 
-    Organization organization = tempEntity.newOrganization();
-
     tempEntity.newComponentSourceLink(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
-        organization.getId());
+        Organization.ROOT_ORGANIZATION_ID);
 
     ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(
         null, //null ID signifies we are creating a new ComponentSourceLink
@@ -2150,14 +2091,14 @@ public class ComponentLegalServiceTest
     );
 
     ComponentSourceLinkDTO returnedComponentSourceLinkDTO = componentLegalService
-        .saveComponentSourceLink(OwnerType.ORGANIZATION, organization.getPublicId(), componentSourceLinkDTO);
+        .saveComponentSourceLink(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, componentSourceLinkDTO);
 
     assertThat(componentSourceLinkDAO.getAll()).hasSize(1);
     assertThat(returnedComponentSourceLinkDTO.getSourceLinkOverrides()).hasSize(2);
 
     ComponentSourceLink persistedComponentSourceLink =
         componentSourceLinkDAO.getById(returnedComponentSourceLinkDTO.getId());
-    assertThat(persistedComponentSourceLink.getOwnerId()).isEqualTo(organization.getId());
+    assertThat(persistedComponentSourceLink.getOwnerId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test(expected = InvalidComponentIdentifierException.class)

@@ -5,12 +5,12 @@
  */
 import axios from 'axios';
 import {
-  getComponentMultiLicensesUrl,
+  getComponentMultiLicensesLegalReviewerUrl,
   getLicenseLegalComponentByComponentIdentifierUrl,
   getLicenseLegalComponentUrl,
-  getLicenseOverrideUrl,
+  getLicenseOverrideLegalReviewerUrl,
   getLicensesWithSyntheticFilterUrl,
-  getOwnerHierarchyUrl,
+  getOwnerHierarchyLegalReviewerUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import {
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
@@ -66,15 +66,17 @@ describe('advancedLegalActions', function () {
             data: componentInfo,
           }),
           [getLicensesWithSyntheticFilterUrl()]: Promise.resolve(licenseInfo),
-          [getComponentMultiLicensesUrl({
+          [getComponentMultiLicensesLegalReviewerUrl({
             clientType: 'ci',
             ownerType: 'orgOrApp',
             ownerId: 'ownerId',
             componentIdentifier: JSON.stringify('componentIdentifier'),
           })]: Promise.resolve(multiLicenseInfo),
-          [getLicenseOverrideUrl('orgOrApp', 'ownerId', JSON.stringify('componentIdentifier'))]: Promise.resolve(
-            overrideInfo
-          ),
+          [getLicenseOverrideLegalReviewerUrl(
+            'orgOrApp',
+            'ownerId',
+            JSON.stringify('componentIdentifier')
+          )]: Promise.resolve(overrideInfo),
         },
       });
 
@@ -143,15 +145,17 @@ describe('advancedLegalActions', function () {
             data: componentInfo,
           }),
           [getLicensesWithSyntheticFilterUrl()]: Promise.resolve(licenseInfo),
-          [getComponentMultiLicensesUrl({
+          [getComponentMultiLicensesLegalReviewerUrl({
             clientType: 'ci',
             ownerType: 'repository',
             ownerId: 'repositoryId',
             componentIdentifier: JSON.stringify('componentIdentifier'),
           })]: Promise.resolve(multiLicenseInfo),
-          [getLicenseOverrideUrl('repository', 'repositoryId', JSON.stringify('componentIdentifier'))]: Promise.resolve(
-            overrideInfo
-          ),
+          [getLicenseOverrideLegalReviewerUrl(
+            'repository',
+            'repositoryId',
+            JSON.stringify('componentIdentifier')
+          )]: Promise.resolve(overrideInfo),
         },
       });
 
@@ -210,7 +214,7 @@ describe('advancedLegalActions', function () {
       };
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: Promise.resolve({
+          [getOwnerHierarchyLegalReviewerUrl('ownerType', 'ownerId')]: Promise.resolve({
             data: payload,
           }),
         },
@@ -236,7 +240,7 @@ describe('advancedLegalActions', function () {
       const errorTest = 'Error test';
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: () => Promise.reject(errorTest),
+          [getOwnerHierarchyLegalReviewerUrl('ownerType', 'ownerId')]: () => Promise.reject(errorTest),
         },
       });
 

@@ -5,12 +5,12 @@
  */
 import axios from 'axios';
 import {
-  getComponentMultiLicensesUrl,
+  getComponentMultiLicensesLegalReviewerUrl,
   getLicenseLegalComponentByComponentIdentifierUrl,
   getLicenseLegalComponentUrl,
-  getLicenseOverrideUrl,
+  getLicenseOverrideLegalReviewerUrl,
   getLicensesWithSyntheticFilterUrl,
-  getOwnerHierarchyUrl,
+  getOwnerHierarchyLegalReviewerUrl,
 } from '../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { processOwnerHierarchy } from '../util/hierarchyUtil';
@@ -89,7 +89,7 @@ export function loadAvailableScopes(ownerType, ownerId) {
     dispatch(loadAvailableScopesRequested());
 
     return axios
-      .get(getOwnerHierarchyUrl(ownerType, ownerId))
+      .get(getOwnerHierarchyLegalReviewerUrl(ownerType, ownerId))
       .then(({ data }) => {
         let payload = {
           values: processOwnerHierarchy(data),
@@ -108,14 +108,14 @@ export function loadMultiLicenses(orgOrApp, ownerId, hash, componentIdentifier) 
     const promises = [
       axios.get(getLicensesWithSyntheticFilterUrl()),
       axios.get(
-        getComponentMultiLicensesUrl({
+        getComponentMultiLicensesLegalReviewerUrl({
           clientType: 'ci',
           ownerType: orgOrApp,
           ownerId,
           componentIdentifier,
         })
       ),
-      axios.get(getLicenseOverrideUrl(orgOrApp, ownerId, componentIdentifier)),
+      axios.get(getLicenseOverrideLegalReviewerUrl(orgOrApp, ownerId, componentIdentifier)),
     ];
 
     return Promise.all(promises)
@@ -134,14 +134,14 @@ export function loadMultiLicensesByRepositoryId(componentIdentifier, repositoryI
     const promises = [
       axios.get(getLicensesWithSyntheticFilterUrl()),
       axios.get(
-        getComponentMultiLicensesUrl({
+        getComponentMultiLicensesLegalReviewerUrl({
           clientType: 'ci',
           ownerType: 'repository',
           ownerId: repositoryId,
           componentIdentifier,
         })
       ),
-      axios.get(getLicenseOverrideUrl('repository', repositoryId, componentIdentifier)),
+      axios.get(getLicenseOverrideLegalReviewerUrl('repository', repositoryId, componentIdentifier)),
     ];
 
     return Promise.all(promises)

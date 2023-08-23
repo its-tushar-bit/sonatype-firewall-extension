@@ -27,7 +27,7 @@ import {
   getCopyrightFilePathsUrl,
   getLicenseLegalComponentByComponentIdentifierUrl,
   getLicenseLegalComponentUrl,
-  getOwnerHierarchyUrl,
+  getOwnerHierarchyLegalReviewerUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 
 describe('ComponentCopyrightDetailsAction', function () {
@@ -85,7 +85,7 @@ describe('ComponentCopyrightDetailsAction', function () {
     it('fetches component details by hash2 when not loaded', function (done) {
       store = SpecUtil.mockReduxStore(pathSet(['advancedLegal', 'component', 'component'], undefined, initialState));
 
-      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
+      const ownerHierarchyUrl = getOwnerHierarchyLegalReviewerUrl('organization', 'org');
       const licenseLegalComponent = getLicenseLegalComponentUrl('organization', 'org', 'componentHash');
 
       mockAxiosCalls({
@@ -107,7 +107,7 @@ describe('ComponentCopyrightDetailsAction', function () {
       state = pathSet(['router', 'currentParams', 'hash'], undefined, state);
       store = SpecUtil.mockReduxStore(state);
 
-      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
+      const ownerHierarchyUrl = getOwnerHierarchyLegalReviewerUrl('organization', 'org');
       const licenseLegalCompByCompIdentifier = getLicenseLegalComponentByComponentIdentifierUrl('componentIdentifier');
 
       mockAxiosCalls({

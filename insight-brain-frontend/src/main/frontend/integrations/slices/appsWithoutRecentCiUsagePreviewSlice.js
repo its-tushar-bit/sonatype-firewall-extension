@@ -12,7 +12,7 @@ import getThreeMonthsAgo from 'MainRoot/integrations/utils/getThreeMonthsAgo';
 
 const REDUCER_NAME = 'appsWithoutRecentCiUsagePreview';
 
-const PREVIEW_PAGE_SIZE = 6;
+export const PREVIEW_PAGE_SIZE = 6;
 export const loadAppsWithoutRecentCiUsagePreview = createAsyncThunk(
   `${REDUCER_NAME}/loadCiUsage`,
   (_, { rejectWithValue }) =>

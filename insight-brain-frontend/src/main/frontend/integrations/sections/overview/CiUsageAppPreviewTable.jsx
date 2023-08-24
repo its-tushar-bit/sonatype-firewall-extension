@@ -7,7 +7,7 @@
 import React from 'react';
 import { NxButton, NxTable } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { actions } from '../../slices/appsWithoutRecentCiUsagePreviewSlice';
+import { actions, PREVIEW_PAGE_SIZE } from '../../slices/appsWithoutRecentCiUsagePreviewSlice';
 import { useEffect } from 'react';
 import { selectappsWithoutRecentCiUsagePreviewSlice } from 'MainRoot/integrations/integrationsSelectors';
 import { SECTIONS } from 'MainRoot/integrations/integrations.module';
@@ -18,7 +18,27 @@ import IntegrationsAppRiskTooltip from '../../IntegrationsAppRiskTooltip';
 export function CiUsageAppPreviewTable() {
   const dispatch = useDispatch();
 
-  const { loading, loadError, applicationsWithoutRecentCiUsage, reload } = useGetAppsWithoutRecentCiUsagePreview();
+  const {
+    loading,
+    loadError,
+    applicationsWithoutRecentCiUsage,
+    reload,
+    totalNumberOfApplicationsWithoutRecentCiUsage,
+  } = useGetAppsWithoutRecentCiUsagePreview();
+
+  const ViewAllAppsButton = () => {
+    if (
+      isEmpty(applicationsWithoutRecentCiUsage) ||
+      totalNumberOfApplicationsWithoutRecentCiUsage <= PREVIEW_PAGE_SIZE
+    ) {
+      return null;
+    }
+    return (
+      <NxButton className="iq-integrations-ci-usage-preview-view-all" onClick={viewAllAppsClicked}>
+        View all apps
+      </NxButton>
+    );
+  };
 
   return (
     <>
@@ -47,11 +67,7 @@ export function CiUsageAppPreviewTable() {
         </NxTable.Body>
       </NxTable>
 
-      {!isEmpty(applicationsWithoutRecentCiUsage) && (
-        <NxButton className="iq-integrations-ci-usage-preview-view-all" onClick={viewAllAppsClicked}>
-          View all apps
-        </NxButton>
-      )}
+      <ViewAllAppsButton />
     </>
   );
 

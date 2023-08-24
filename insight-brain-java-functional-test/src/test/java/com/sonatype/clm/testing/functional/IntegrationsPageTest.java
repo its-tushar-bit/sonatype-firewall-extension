@@ -7,6 +7,7 @@
 package com.sonatype.clm.testing.functional;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.IntStream;
 
@@ -100,6 +101,16 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     ciUsageAppTable().shouldBe(visible);
     ciUsageAppTable().shouldHave(text(appNameWithoutCiUsage));
     ciUsageAppTable().shouldNotHave(text(appNameWithCiUsage));
+
+    viewAllAppsButton().shouldNotBe(visible);
+
+    Arrays.asList("app1", "app2", "app3", "app4", "app5", "app6")
+        .forEach(newApp -> givenAppWithoutEvalFromCi(newApp, newApp, givenOrg));
+
+    refreshOrOpen(IntegrationsPage.urlOverview());
+    viewAllAppsButton().shouldBe(visible).click();
+
+    appsWithoutCiIntegrationsTable().shouldBe(visible);
   }
 
   @Test
@@ -254,6 +265,10 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement ciUsageAppTable() {
     return $(String.format("[data-testid='%s'", CI_USAGE_APP_TABLE_TEST_ID));
+  }
+
+  private SelenideElement viewAllAppsButton() {
+    return overviewSection().$(".nx-btn");
   }
 
   private SelenideElement backButton() {

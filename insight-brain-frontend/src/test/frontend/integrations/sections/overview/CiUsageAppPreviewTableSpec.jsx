@@ -65,6 +65,40 @@ describe('CiUsageAppPreviewTable', () => {
 
       expect(screen.queryByRole('button', { name: /view all apps/i })).not.toBeInTheDocument();
     });
+
+    it('should not be visible if num of apps is <= PREVIEW_PAGE_SIZE (6)', async () => {
+      const dashboardResults = generateList(generateRandomApplication, { min: 1, max: 6 });
+
+      const givenAppQueryResults = {
+        dashboardResults,
+        numResults: dashboardResults.length,
+      };
+
+      givenAppsWithoutRecentCiUsageRequestSucceeds(givenAppQueryResults);
+
+      renderComponent();
+
+      await assertTableIsRenderedCorrectly(givenAppQueryResults.dashboardResults);
+
+      expect(screen.queryByRole('button', { name: /view all apps/i })).not.toBeInTheDocument();
+    });
+
+    it('should be visible if num of apps is > PREVIEW_PAGE_SIZE (6)', async () => {
+      const dashboardResults = generateList(generateRandomApplication, { min: 6, max: 6 });
+
+      const givenAppQueryResults = {
+        dashboardResults,
+        numResults: faker.datatype.number({ min: 7 }),
+      };
+
+      givenAppsWithoutRecentCiUsageRequestSucceeds(givenAppQueryResults);
+
+      renderComponent();
+
+      await assertTableIsRenderedCorrectly(givenAppQueryResults.dashboardResults);
+
+      expect(await screen.findByRole('button', { name: /view all apps/i })).toBeInTheDocument();
+    });
   });
 
   it('should correctly show an error indicator given the data request failed', async () => {

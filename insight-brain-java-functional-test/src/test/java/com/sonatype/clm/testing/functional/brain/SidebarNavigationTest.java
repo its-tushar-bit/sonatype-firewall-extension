@@ -245,7 +245,7 @@ public class SidebarNavigationTest
 
   @Test
   public void testIntegrationsNavigation_ShowWhenEnabled() {
-    SystemConfigurationPropertyFeature.INTEGRATIONS_PAGE.setEnabled(true);
+    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
     refresh();
     SidebarNavigation.integrationsNavigationButton().shouldBe(visible);
   }
@@ -257,7 +257,7 @@ public class SidebarNavigationTest
 
   @Test
   public void testIntegrationsNavigation_toDataInsights() {
-    SystemConfigurationPropertyFeature.INTEGRATIONS_PAGE.setEnabled(true);
+    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
     refresh();
     SidebarNavigation.integrationsNavigationButton().shouldBe(visible).click();
     waitUntilUrl(IntegrationsPage.urlOverview());

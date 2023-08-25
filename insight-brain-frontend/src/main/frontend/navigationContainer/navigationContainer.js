@@ -18,7 +18,7 @@ import {
   selectIsApiPageSupported,
   selectIsDataInsightsSupported,
   selectIsShowVersionEnabled,
-  selectIsIntegrationsPageEnabled,
+  selectIsDeveloperDashboardEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
@@ -38,7 +38,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isAdvancedLegalPackSupported = false;
   vm.isApiPageEnabled = false;
   vm.isDataInsightsEnabled = false;
-  vm.isIntegrationsPageEnabled = false;
+  vm.isDeveloperDashboardEnabled = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
@@ -101,7 +101,7 @@ function mapStateToThis(state) {
     isDataInsightsEnabled: selectIsDataInsightsSupported(state),
     isShowVersionEnabled: selectIsShowVersionEnabled(state),
     isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
-    isIntegrationsPageEnabled: selectIsIntegrationsPageEnabled(state),
+    isDeveloperDashboardEnabled: selectIsDeveloperDashboardEnabled(state),
   };
 }
 

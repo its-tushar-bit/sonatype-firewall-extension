@@ -49,7 +49,7 @@ function IqSidebarNav(props) {
     isDataInsightsEnabled,
     isShowVersionEnabled,
     isFirewallOnlyLicense,
-    isIntegrationsPageEnabled,
+    isDeveloperDashboardEnabled,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -199,7 +199,7 @@ function IqSidebarNav(props) {
               href={dataInsightsHref}
             />
           )}
-          {isIntegrationsPageEnabled && (
+          {isDeveloperDashboardEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('integrations')}
               id="integrations-navigation-button"
@@ -244,6 +244,6 @@ IqSidebarNav.propTypes = {
   isDataInsightsEnabled: PropTypes.bool,
   isShowVersionEnabled: PropTypes.bool,
   isFirewallOnlyLicense: PropTypes.bool,
-  isIntegrationsPageEnabled: PropTypes.bool,
+  isDeveloperDashboardEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

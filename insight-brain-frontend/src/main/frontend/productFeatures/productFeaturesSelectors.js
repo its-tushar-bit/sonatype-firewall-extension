@@ -136,4 +136,4 @@ export const selectIsBaseUrlConfigurationEnabled = createSelector(selectTenantMo
   return mode === SINGLE_TENANT;
 });
 
-export const selectIsIntegrationsPageEnabled = createSelector(selectProductFeatures, prop('integrations-page'));
+export const selectIsDeveloperDashboardEnabled = createSelector(selectProductFeatures, prop('developer-dashboard'));

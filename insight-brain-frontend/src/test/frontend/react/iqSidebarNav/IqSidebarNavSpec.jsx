@@ -167,7 +167,7 @@ describe('IqSidebarNav', function () {
         getShallowComponent({
           isLoggedIn: true,
           isLicensed: true,
-          isIntegrationsPageEnabled: false,
+          isDeveloperDashboardEnabled: false,
         }).find('#integrations-navigation-button')
       ).not.toExist();
     });
@@ -176,7 +176,7 @@ describe('IqSidebarNav', function () {
       const component = getMountedComponent({
         isLoggedIn: true,
         isLicensed: true,
-        isIntegrationsPageEnabled: true,
+        isDeveloperDashboardEnabled: true,
       });
 
       const navLink = component.find('#integrations-navigation-button').at(0);
@@ -400,7 +400,7 @@ describe('IqSidebarNav', function () {
           isLegalEnabled: true,
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
-          isIntegrationsPageEnabled: true,
+          isDeveloperDashboardEnabled: true,
         });
       });
 
@@ -432,7 +432,7 @@ describe('IqSidebarNav', function () {
           isLegalEnabled: true,
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
-          isIntegrationsPageEnabled: true,
+          isDeveloperDashboardEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'violations');
         expect(renderAllLinks().find('#reporting-navigation-button')).toHaveProp('isSelected', true);
@@ -451,7 +451,7 @@ describe('IqSidebarNav', function () {
           isLegalEnabled: true,
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
-          isIntegrationsPageEnabled: true,
+          isDeveloperDashboardEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'labs');
         expect(renderAllLinks().find('#labs-navigation-button')).toHaveProp('isSelected', true);
@@ -495,7 +495,7 @@ describe('IqSidebarNav', function () {
           isLegalEnabled: true,
           isApiPageEnabled: true,
           isDataInsightsEnabled: true,
-          isIntegrationsPageEnabled: true,
+          isDeveloperDashboardEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'legal');
         expect(renderAllLinks().find('#advanced-legal-navigation-button')).toHaveProp('isSelected', true);

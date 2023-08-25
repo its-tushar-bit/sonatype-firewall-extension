@@ -191,6 +191,7 @@ public class MTIQFeatureServiceTest
         .filter(f -> !f.equals(PR_COMMENTING))
         .filter(f -> !f.equals(PR_LINE_COMMENTING))
         .filter(f -> !f.equals(ADVANCED_SEARCH_CONFIGURATION))
+        .filter(f -> !f.equals(INTERNAL_FIREWALL_ONBOARDING_ENABLED))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
         .collect(Collectors.toList()).toArray(new String[]{});
   }

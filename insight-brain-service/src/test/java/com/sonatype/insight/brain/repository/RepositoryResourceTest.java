@@ -17,7 +17,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
@@ -308,22 +307,15 @@ public class RepositoryResourceTest
     unconfiguredRepoManager.setProductVersion("3.60.0-01");
     new RepositoryManagerDAO().update(unconfiguredRepoManager);
 
-    // By default, Firewall Onboarding is disabled
-    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
-    try {
-      HttpResponse response = restRequest()
-          .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNCONFIGURED_REPOSITORY_MANAGERS_PATH).get();
+    HttpResponse response = restRequest()
+        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNCONFIGURED_REPOSITORY_MANAGERS_PATH).get();
 
-      assertResponseStatus(200, response);
+    assertResponseStatus(200, response);
 
-      RepositoryManager[] repoManagers = response.getBody(RepositoryManager[].class);
-      assertThat(repoManagers[0].getId()).isEqualTo(unconfiguredRepoManager.getId());
-      assertThat(repoManagers[0].getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
-      assertThat(repoManagers).hasSize(1);
-    }
-    finally {
-      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
-    }
+    RepositoryManager[] repoManagers = response.getBody(RepositoryManager[].class);
+    assertThat(repoManagers[0].getId()).isEqualTo(unconfiguredRepoManager.getId());
+    assertThat(repoManagers[0].getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+    assertThat(repoManagers).hasSize(1);
   }
 
   @Test

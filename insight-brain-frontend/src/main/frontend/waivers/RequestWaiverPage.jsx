@@ -21,7 +21,6 @@ import AddAndRequestWaiversBackButton from './AddAndRequestWaiversBackButton';
 
 import { getRequestWaiverUrl, getPolicyViolationUiLink, getAddWaiverUiLink } from '../util/CLMLocation';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
-import { useRouterState } from '../react/RouterStateContext';
 import { useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames';
 
@@ -123,13 +122,9 @@ const RequestWaiversPage = () => {
     </dd>
   ));
 
-  const uiRouterState = useRouterState();
+  const policyViolationLink = getPolicyViolationUiLink(violationId);
 
-  const policyViolationHref = uiRouterState.href('sidebarView.violation', { id: violationId });
-  const policyViolationLink = getPolicyViolationUiLink(policyViolationHref);
-
-  const addWaiverHref = uiRouterState.href('addWaiver', { violationId: violationId });
-  const addWaiverLink = getAddWaiverUiLink(addWaiverHref, waiverComments?.trimmedValue);
+  const addWaiverLink = getAddWaiverUiLink(violationId, waiverComments?.trimmedValue);
 
   const urlLinkEl = useRef();
   return (

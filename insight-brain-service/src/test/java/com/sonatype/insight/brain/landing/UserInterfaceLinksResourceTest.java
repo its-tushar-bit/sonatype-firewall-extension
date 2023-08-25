@@ -112,6 +112,24 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToPolicyViolationDetails() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.POLICY_VIOLATION_DETAILS_PATH, "violationId");
+    assertRedirect(response, "assets/index.html#/violation/violationId");
+  }
+
+  @Test
+  public void testLinkToAddWaiver() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.ADD_WAIVER_PATH, "violationId");
+    assertRedirect(response, "assets/index.html#/addWaiver/violationId");
+  }
+
+  @Test
+  public void testLinkToAddWaiverWithComments() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.ADD_WAIVER_PATH + "?comments=some%20comments", "violationId");
+    assertRedirect(response, "assets/index.html#/addWaiver/violationId?comments=some%20comments");
+  }
+
+  @Test
   public void testLinkToSpdx() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.LATEST_VERSION_SPDX_REPORT_PATH, "appId", "scanId");
     assertRedirect(response, "api/v2/spdx/appId/reports/scanId");

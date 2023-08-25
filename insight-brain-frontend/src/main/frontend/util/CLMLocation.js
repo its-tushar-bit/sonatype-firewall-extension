@@ -1344,19 +1344,13 @@ export const getIdeIntegratedUserCount = () => uriTemplate`/api/v2/scan/applicat
 
 export const getAppsWithoutRecentCiUsageUrl = () => uriTemplate`/rest/plugin/apps/ci`;
 
-export const getPolicyViolationUiLink = (policyViolationHref) => {
-  // policyViolationHref should not be set within the template to avoid undesired character escaping
-  return uriTemplate`/assets/` + policyViolationHref;
+export const getPolicyViolationUiLink = (violationId) => {
+  return uriTemplate`/ui/links/policyViolation/${violationId}`;
 };
 
-export const getAddWaiverUiLink = (addWaiverHref, comments) => {
-  let commentParam = '';
-  if (comments) {
-    commentParam = `?comments=${encodeURIComponent(comments)}`;
-  }
-  // addWaiverHref should not be set within the template to avoid undesired character escaping
-  // and since the href is in the way the comment can't be encoded by uriTemplate
-  return uriTemplate`/assets/` + addWaiverHref + commentParam;
+export const getAddWaiverUiLink = (violationId, comments) => {
+  let commentParam = comments ? `?comments=${encodeURIComponent(comments)}` : '';
+  return uriTemplate`/ui/links/addWaiver/${violationId}` + commentParam;
 };
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [

@@ -203,6 +203,28 @@ public class UserInterfaceLinksResource
   }
 
   @GET
+  @Path(POLICY_VIOLATION_DETAILS_PATH)
+  public Response linkToPolicyViolationDetails(@PathParam("violationId") String violationId) {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/violation/{violationId}");
+    return redirect(uriBuilder, violationId);
+  }
+
+  @GET
+  @Path(ADD_WAIVER_PATH)
+  public Response linkToAddWaiver(
+      @PathParam("violationId") String violationId,
+      @QueryParam("comments") String comments)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.replaceQueryParam("comments");
+    String fragment = "/addWaiver/{violationId}";
+    fragment += comments != null ? "?comments={comments}" : "";
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(fragment);
+    return redirect(uriBuilder, violationId, comments);
+  }
+
+  @GET
   @Path(LATEST_VERSION_SBOM_REPORT_PATH)
   public Response linkToSbom(@PathParam("applicationId") String applicationId, @PathParam("scanId") String scanId) {
     UriBuilder uriBuilder = baseUrl.redirect();

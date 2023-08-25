@@ -1302,7 +1302,7 @@ describe('CLMLocation.js', function () {
 
   describe('getPolicyViolationUiLink', () => {
     it('returns url for the ui policy violation', () => {
-      const expectedUrl = '/assets/#/violation/someViolationId';
+      const expectedUrl = '/ui/links/policyViolation/%23%2Fviolation%2FsomeViolationId';
 
       expect(clmLocation.getPolicyViolationUiLink('#/violation/someViolationId')).toEqual(expectedUrl);
     });
@@ -1310,9 +1310,9 @@ describe('CLMLocation.js', function () {
 
   describe('getAddWaiverUiLink', () => {
     it('returns url for the add waiver form with a comment as a query param', () => {
-      const expectedUrl = '/assets/#/addWaiver/someViolationId?comments=new%20comment';
+      const expectedUrl = '/ui/links/addWaiver/someViolationId?comments=new%20comment';
 
-      expect(clmLocation.getAddWaiverUiLink('#/addWaiver/someViolationId', 'new comment')).toEqual(expectedUrl);
+      expect(clmLocation.getAddWaiverUiLink('someViolationId', 'new comment')).toEqual(expectedUrl);
     });
   });
 

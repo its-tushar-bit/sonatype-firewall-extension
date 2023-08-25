@@ -37,6 +37,10 @@ public class UserInterfaceLinksHelper
 
   public static final String LATEST_VERSION_SPDX_REPORT_PATH = "spdx/{applicationId}/reports/{scanId}";
 
+  public static final String POLICY_VIOLATION_DETAILS_PATH = "policyViolation/{violationId}";
+
+  public static final String ADD_WAIVER_PATH = "addWaiver/{violationId}";
+
   private static String buildStableUrl(String path, Object... parameters) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build(parameters).toString();
   }

@@ -170,7 +170,7 @@ describe('RequestWaiverPage', function () {
     const policyViolationTitle = screen.getByText('Policy Violation ID');
     const policyViolationField = screen.getByText('someViolationId');
     const policyViolationDetailsTitle = screen.getByText('Policy Violation Details Page');
-    const policyViolationDetailsField = screen.getByText('/assets/#/violation/someViolationId');
+    const policyViolationDetailsField = screen.getByText('/ui/links/policyViolation/someViolationId');
     const curlExampleTitle = screen.getByText('Curl Example');
     const curlExampleField = screen.getByText(
       `curl -X POST -u user:pass -H "Content-Type: text/plain; charset=UTF-8" /api/v2/policyWaiver/someViolationId/application --data-binary 'waiver comment (optional)'`
@@ -209,8 +209,8 @@ describe('RequestWaiverPage', function () {
   it('submits the form successfully', async () => {
     mock
       .onPost(saveRequestWaiverUrl(violationId), {
-        policyViolationLink: '/assets/#/violation/someViolationId',
-        addWaiverLink: '/assets/#/addWaiver/someViolationId?comments=new%20comment',
+        policyViolationLink: '/ui/links/policyViolation/someViolationId',
+        addWaiverLink: '/ui/links/addWaiver/someViolationId?comments=new%20comment',
         comment: 'new comment',
       })
       .reply(204);
@@ -273,8 +273,8 @@ describe('RequestWaiverPage', function () {
       mockWaiverRequestWebhook();
       mock
         .onPost(saveRequestWaiverUrl(violationId), {
-          policyViolationLink: '/assets/#/violation/someViolationId',
-          addWaiverLink: '/assets/#/addWaiver/someViolationId?comments=new%20comment',
+          policyViolationLink: '/ui/links/policyViolation/someViolationId',
+          addWaiverLink: '/ui/links/addWaiver/someViolationId?comments=new%20comment',
           comment: 'new comment',
         })
         .reply(204);
@@ -299,12 +299,12 @@ describe('RequestWaiverPage', function () {
       expect(success).toBeVisible();
     });
 
-    it('submits the form successfully with no comment', async () => {
+    it('submits the form successfully with no comment ', async () => {
       mockWaiverRequestWebhook();
       mock
         .onPost(saveRequestWaiverUrl(violationId), {
-          policyViolationLink: '/assets/#/violation/someViolationId',
-          addWaiverLink: '/assets/#/addWaiver/someViolationId',
+          policyViolationLink: '/ui/links/policyViolation/someViolationId',
+          addWaiverLink: '/ui/links/addWaiver/someViolationId',
           comment: '',
         })
         .reply(204);
@@ -327,8 +327,8 @@ describe('RequestWaiverPage', function () {
       mockWaiverRequestWebhook();
       mock
         .onPost(saveRequestWaiverUrl(violationId), {
-          policyViolationLink: '/assets/#/violation/someViolationId',
-          addWaiverLink: '/assets/#/addWaiver/someViolationId?comments=new%20comment%20%3C%3E',
+          policyViolationLink: '/ui/links/policyViolation/someViolationId',
+          addWaiverLink: '/ui/links/addWaiver/someViolationId?comments=new%20comment%20%3C%3E',
           comment: 'new comment <>',
         })
         .reply(500, 'some saving error');

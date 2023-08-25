@@ -50,6 +50,7 @@ export default function ListWaiversTable(props) {
         <NxTableCell className="visual-testing-ignore">
           {moment(waiver.createTime).format(STANDARD_DATE_FORMAT)}
         </NxTableCell>
+        <NxTableCell className="iq-waivers-table--creator">{waiver?.creatorName || '- -'}</NxTableCell>
         <NxTableCell className="iq-waivers-table--scope">{displayWaiverScope(waiver)}</NxTableCell>
         <NxTableCell className="iq-waivers-table--component-name">
           {isWaiverAllVersionsOrExact(waiver) ? (
@@ -64,7 +65,6 @@ export default function ListWaiversTable(props) {
           )}
         </NxTableCell>
         <NxTableCell>{waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire'}</NxTableCell>
-        <NxTableCell className="iq-waivers-table--creator">{waiver?.creatorName || '- -'}</NxTableCell>
         <NxTableCell className="iq-waivers-table--comments">{waiver.comment || '- -'}</NxTableCell>
         <NxTableCell>
           <div className="nx-btn-bar">
@@ -93,11 +93,11 @@ export default function ListWaiversTable(props) {
     <NxTable id="list-waivers-page-waiver-table">
       <NxTableHead>
         <NxTableRow>
-          <NxTableCell>DATE CREATED</NxTableCell>
+          <NxTableCell>CREATED</NxTableCell>
+          <NxTableCell>AUTHOR</NxTableCell>
           <NxTableCell>SCOPE</NxTableCell>
-          <NxTableCell>COMPONENTS</NxTableCell>
-          <NxTableCell>WAIVER EXPIRATION</NxTableCell>
-          <NxTableCell>CREATED BY</NxTableCell>
+          <NxTableCell>COMPONENT</NxTableCell>
+          <NxTableCell>EXPIRATION</NxTableCell>
           <NxTableCell>COMMENTS</NxTableCell>
           <NxTableCell> </NxTableCell>
         </NxTableRow>

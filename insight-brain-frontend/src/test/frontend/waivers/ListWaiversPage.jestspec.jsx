@@ -196,6 +196,8 @@ describe('ListWaiversPage', function () {
       violationDetails: violationDetailsMock,
     });
     expect(component.find('#list-waivers-constraint-name')).toHaveText('constraint name');
+    const tileSubHeadings = component.find(NxTile.HeaderSubtitle);
+    expect(tileSubHeadings.at(0)).toHaveText('Active and expired waivers applicable to this violation of policyName');
   });
 
   it('properly renders the conditions section', function () {

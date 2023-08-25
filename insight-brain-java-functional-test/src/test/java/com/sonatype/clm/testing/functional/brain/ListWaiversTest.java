@@ -136,14 +136,16 @@ public class ListWaiversTest
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();
     listWaiversPage.waiverListTitle().shouldHave(text("Applicable Waivers"));
+    listWaiversPage.waiverListSubtitle().shouldHave(
+        text("Active and expired waivers applicable to this violation of Policy 1"));
 
     WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
-    waiverListTable.headerRow().dateCreated().shouldHave(text("DATE CREATED"));
+    waiverListTable.headerRow().dateCreated().shouldHave(text("CREATED"));
+    waiverListTable.headerRow().createdBy().shouldHave(text("AUTHOR"));
     waiverListTable.headerRow().scope().shouldHave(text("SCOPE"));
-    waiverListTable.headerRow().components().shouldHave(text("COMPONENTS"));
-    waiverListTable.headerRow().waiverExpiration().shouldHave(text("WAIVER EXPIRATION"));
+    waiverListTable.headerRow().components().shouldHave(text("COMPONENT"));
+    waiverListTable.headerRow().waiverExpiration().shouldHave(text("EXPIRATION"));
     waiverListTable.headerRow().comments().shouldHave(text("COMMENTS"));
-    waiverListTable.headerRow().createdBy().shouldHave(text("CREATED BY"));
     waiverListTable.noWaiversMessage().should(exist);
     waiverListTable.noWaiversMessage().shouldHave(
         text("You don't have any waivers: to learn more about waivers you can check our help documentation."));

@@ -123,13 +123,13 @@ describe('ListWaiversTable', function () {
 
   const assertWaiverTableRow = (
     tableRow,
+    createdBy,
     dateCreated,
     scope,
     components,
     expiration,
     comments,
     isExpired,
-    createdBy,
     waiver
   ) => {
     if (isExpired) {
@@ -141,17 +141,17 @@ describe('ListWaiversTable', function () {
     const tableCells = tableRow.children();
     expect(tableCells.length).toBe(7);
     expect(tableCells.at(0).childAt(0).text()).toBe(dateCreated);
-    expect(tableCells.at(1).childAt(0).text()).toBe(scope);
+    expect(tableCells.at(2).childAt(0).text()).toBe(scope);
 
     if (components) {
-      let componentCell = tableCells.at(2).childAt(0).find(ComponentDisplay);
+      let componentCell = tableCells.at(3).childAt(0).find(ComponentDisplay);
       expect(componentCell).toHaveProp('component', components);
     } else {
-      expect(tableCells.at(2).childAt(0).text()).toBe('All');
+      expect(tableCells.at(3).childAt(0).text()).toBe('All');
     }
 
-    expect(tableCells.at(3).childAt(0).text()).toBe(expiration);
-    expect(tableCells.at(4).childAt(0).text()).toBe(createdBy);
+    expect(tableCells.at(4).childAt(0).text()).toBe(expiration);
+    expect(tableCells.at(1).childAt(0).text()).toBe(createdBy);
     expect(tableCells.at(5).childAt(0).text()).toBe(comments);
     assertDeleteWaiverBtn(tableCells.at(6).childAt(0), waiver);
   };
@@ -219,46 +219,46 @@ describe('ListWaiversTable', function () {
     expect(tableRows.length).toBe(4);
     assertWaiverTableRow(
       tableRows.at(0),
+      '- -',
       '2020-10-07',
       'Application - test',
       violationDetailsMock,
       'Does not expire',
       'comment2',
       false,
-      '- -',
       activeWaivers[1]
     );
     assertWaiverTableRow(
       tableRows.at(1),
+      'User 1',
       '2020-10-05',
       'Root Organization',
       null,
       'in 7 days',
       'comment1',
       false,
-      'User 1',
       activeWaivers[0]
     );
     assertWaiverTableRow(
       tableRows.at(2),
+      'User 2',
       '2020-10-18',
       'Organization - suborg',
       violationDetailsMock,
       'a month ago',
       'comment4',
       true,
-      'User 2',
       expiredWaivers[1]
     );
     assertWaiverTableRow(
       tableRows.at(3),
+      'User 1',
       '2020-10-15',
       'Root Organization',
       violationDetailsMock,
       'a year ago',
       'comment3',
       true,
-      'User 1',
       expiredWaivers[0]
     );
   });

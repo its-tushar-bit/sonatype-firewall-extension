@@ -53,6 +53,10 @@ public class ListWaiversPage
     return child("#list-waivers-applicable .nx-tile-header__title h2");
   }
 
+  public SelenideElement waiverListSubtitle() {
+    return child("#list-waivers-applicable .nx-tile-header__subtitle");
+  }
+
   public SelenideElement addWaiverButton() {
     return child("#add-waiver-btn");
   }
@@ -148,19 +152,19 @@ public class ListWaiversPage
       return child(".nx-cell", nthChild(1));
     }
 
-    public SelenideElement scope() {
+    public SelenideElement createdBy() {
       return child(".nx-cell", nthChild(2));
     }
 
-    public SelenideElement components() {
+    public SelenideElement scope() {
       return child(".nx-cell", nthChild(3));
     }
 
-    public SelenideElement waiverExpiration() {
+    public SelenideElement components() {
       return child(".nx-cell", nthChild(4));
     }
 
-    public SelenideElement createdBy() {
+    public SelenideElement waiverExpiration() {
       return child(".nx-cell", nthChild(5));
     }
 

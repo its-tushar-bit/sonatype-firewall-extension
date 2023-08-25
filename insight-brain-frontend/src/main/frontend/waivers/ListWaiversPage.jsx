@@ -150,9 +150,14 @@ export default function ListWaiversPage(props) {
           </NxTile>
           <NxTile id="list-waivers-applicable">
             <NxTile.Header>
-              <NxTile.HeaderTitle>
-                <NxH2>Applicable Waivers</NxH2>
-              </NxTile.HeaderTitle>
+              <NxTile.Headings>
+                <NxTile.HeaderTitle>
+                  <NxH2>Applicable Waivers</NxH2>
+                </NxTile.HeaderTitle>
+                <NxTile.HeaderSubtitle>
+                  Active and expired waivers applicable to this violation of {policyName}
+                </NxTile.HeaderSubtitle>
+              </NxTile.Headings>
               <NxTile.HeaderActions>
                 {!isCurrentRouteName && (
                   <NxButton

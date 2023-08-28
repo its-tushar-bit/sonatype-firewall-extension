@@ -556,8 +556,12 @@ public class TemporaryEntity
 
   private static List<User> initialUsers;
 
+  private boolean forInMemoryDatabase;
+
   @Override
   public void before() {
+    forInMemoryDatabase = OperationalDataStoreProvider.isDatabaseInMemory();
+
     saveInitialMembershipMappingsIfNeeded();
     saveInitialMigrationTrackersIfNeeded();
     saveInitialUsersIfNeeded();
@@ -804,6 +808,12 @@ public class TemporaryEntity
       userIdePolicyEvaluationDAO.getAll().forEach(userIdePolicyEvaluationDAO::delete);
       delete(lockDAO.getAll(), lockDAO);
       delete(perpetualLockDAO.getAll(), perpetualLockDAO);
+
+      if (forInMemoryDatabase != OperationalDataStoreProvider.isDatabaseInMemory()) {
+        throw new RuntimeException(
+            "TemporaryEntity incorrectly used. Created for inMemoryDatabase=" + forInMemoryDatabase
+                + " and used for inMemoryDatabase=" + OperationalDataStoreProvider.isDatabaseInMemory());
+      }
 
       detectEntityLeaks(testEntityLeaksDetectionData);
     }

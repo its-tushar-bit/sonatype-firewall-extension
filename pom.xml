@@ -1384,7 +1384,11 @@
       </activation>
       <properties>
         <maven.test.skip>true</maven.test.skip>
+        <skipJasmineTests>true</skipJasmineTests>
+        <jasmine.tests.skip>true</jasmine.tests.skip>
         <failIfNoTests>false</failIfNoTests>
+        <checkstyle.skip>true</checkstyle.skip>
+        <pmd.skip>true</pmd.skip>
       </properties>
     </profile>
     <profile>

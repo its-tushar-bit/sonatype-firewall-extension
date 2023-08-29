@@ -8,8 +8,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
-import { NxPageTitle, NxH1, NxH2, NxFontAwesomeIcon, NxTile } from '@sonatype/react-shared-components';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { NxPageTitle, NxH1, NxH2, NxTile } from '@sonatype/react-shared-components';
 import ListWaiversPage from 'MainRoot/waivers/ListWaiversPage';
 
 describe('ListWaiversPage', function () {
@@ -215,19 +214,17 @@ describe('ListWaiversPage', function () {
     expect(component.find('#list-waivers-component-name')).toHaveText('filename');
   });
 
-  it('shows a Request Waiver button on the waiver list table header', () => {
+  it('shows a Request Waiver button on the waiver list page header', () => {
     const component = getShallowComponent();
     const requestWaiverButton = component.find('#request-waiver-btn');
     expect(requestWaiverButton.find('span')).toHaveText('Request Waiver');
   });
 
-  it('shows an Add Waiver button on the waiver list table header', () => {
+  it('shows an Add Waiver button on the waiver list page header', () => {
     const component = getShallowComponent();
     const addWaiverButton = component.find('#add-waiver-btn');
-    const icon = addWaiverButton.find(NxFontAwesomeIcon);
 
     expect(addWaiverButton.find('span')).toHaveText('Add Waiver');
-    expect(icon).toHaveProp('icon', faPlus);
   });
 
   describe('Add Waiver button', function () {

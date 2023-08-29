@@ -6,17 +6,7 @@
 import React, { useEffect, Fragment } from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import {
-  NxButton,
-  NxFontAwesomeIcon,
-  NxH1,
-  NxH2,
-  NxPageTitle,
-  NxReadOnly,
-  NxTile,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxH1, NxH2, NxPageTitle, NxReadOnly, NxTile, NxTooltip } from '@sonatype/react-shared-components';
 
 import LoadWrapper from '../react/LoadWrapper';
 import ViolationExclamation from '../react/ViolationExclamation';
@@ -112,9 +102,37 @@ export default function ListWaiversPage(props) {
         >
           <ListWaiversBackButton {...backButtonProps} />
           <NxPageTitle>
-            <NxH1>Waivers for Violation</NxH1>
-            {threatLevelCategory && <ViolationExclamation threatLevelCategory={threatLevelCategory} />}
-            <span className={policyClassnames}>{policyName}</span>
+            <div className="iq-waivers-list-header">
+              <NxH1>Waivers for Violation</NxH1>
+              {threatLevelCategory && <ViolationExclamation threatLevelCategory={threatLevelCategory} />}
+              <span className={policyClassnames}>{policyName}</span>
+            </div>
+            <div className="nx-btn-bar">
+              {!isCurrentRouteName && (
+                <NxButton
+                  variant="secondary"
+                  onClick={() => stateGo('requestWaiver', { violationId })}
+                  id="request-waiver-btn"
+                >
+                  <span>Request Waiver</span>
+                </NxButton>
+              )}
+              <NxTooltip
+                id="add-waiver-btn-tooltip"
+                title={hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver'}
+              >
+                <NxButton
+                  className={classnames({
+                    disabled: !hasPermissionForAppWaivers,
+                  })}
+                  variant="primary"
+                  onClick={redirectToAddWaiverPage}
+                  id="add-waiver-btn"
+                >
+                  <span>Add Waiver</span>
+                </NxButton>
+              </NxTooltip>
+            </div>
           </NxPageTitle>
           <NxTile id="list-waivers-details">
             <NxTile.Header>
@@ -158,35 +176,7 @@ export default function ListWaiversPage(props) {
                   Active and expired waivers applicable to this violation of {policyName}
                 </NxTile.HeaderSubtitle>
               </NxTile.Headings>
-              <NxTile.HeaderActions>
-                {!isCurrentRouteName && (
-                  <NxButton
-                    variant="tertiary"
-                    onClick={() => stateGo('requestWaiver', { violationId })}
-                    id="request-waiver-btn"
-                  >
-                    <span>Request Waiver</span>
-                  </NxButton>
-                )}
-                <NxTooltip
-                  id="add-waiver-btn-tooltip"
-                  title={hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver'}
-                >
-                  <NxButton
-                    className={classnames({
-                      disabled: !hasPermissionForAppWaivers,
-                    })}
-                    variant="tertiary"
-                    onClick={redirectToAddWaiverPage}
-                    id="add-waiver-btn"
-                  >
-                    <NxFontAwesomeIcon icon={faPlus} />
-                    <span>Add Waiver</span>
-                  </NxButton>
-                </NxTooltip>
-              </NxTile.HeaderActions>
             </NxTile.Header>
-
             <NxTile.Content>
               <ListWaiversTable
                 {...{

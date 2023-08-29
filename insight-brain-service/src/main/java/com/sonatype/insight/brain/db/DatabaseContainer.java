@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.db;
 
+import com.sonatype.insight.brain.database.MtiqTempUtils;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 /**
@@ -22,6 +23,7 @@ public class DatabaseContainer
       final DataSourceFactory dataSourceFactory,
       final DatabaseProvisionUtils databaseProvisionUtils)
   {
+    MtiqTempUtils.logTodo("Constructor to be replaced with a single parameter InsightConfig");
     this.dataSourceFactory = dataSourceFactory;
     this.databaseProvisionUtils = databaseProvisionUtils;
   }

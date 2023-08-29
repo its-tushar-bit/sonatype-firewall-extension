@@ -134,9 +134,29 @@ public class MoveOrganizationService
     this.organizationService = organizationService;
   }
 
+  /**
+   * This method had to be divided into two to ensure that the Authorize annotation checks both organizations
+   * write permissions
+   *
+   * @param movedOrgId Organization id to move
+   * @param newParentId Destination parent organization id
+   * @param failEarlyOnError
+   * @return
+   */
   @Authorize(permission = Permission.WRITE)
   public MoveOrganizationResponseDTO moveOrganization(
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String movedOrgId,
+      final String newParentId,
+      boolean failEarlyOnError
+  )
+  {
+    return moveOrganizationCheckDestinationWritePermissions(movedOrgId, newParentId, failEarlyOnError);
+  }
+
+  /* Visibility set to package to let the Authorize annotation properly work */
+  @Authorize(permission = Permission.WRITE)
+  MoveOrganizationResponseDTO moveOrganizationCheckDestinationWritePermissions(
+      final String movedOrgId,
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String newParentId,
       boolean failEarlyOnError
   )

@@ -44,6 +44,32 @@ public class MoveOrganizationServiceAuthzTest
     moveOrganizationService.moveOrganization(movedOrganization.getId(), newParent.getId(), failEarlyOnError);
   }
 
+  @Test(expected = UnauthorizedException.class)
+  public void testMoveOrganization_SourceWritePermission_Unauthorized() {
+    login();
+
+    boolean failEarlyOnError = true;
+    Organization movedOrganization = tempEntity.newOrganization();
+    Organization newParent = tempEntity.newOrganization();
+
+    grantWritePermission(movedOrganization.getId());
+
+    moveOrganizationService.moveOrganization(movedOrganization.getId(), newParent.getId(), failEarlyOnError);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testMoveOrganization_DestinationWritePermission_Unauthorized() {
+    login();
+
+    boolean failEarlyOnError = true;
+    Organization movedOrganization = tempEntity.newOrganization();
+    Organization newParent = tempEntity.newOrganization();
+
+    grantWritePermission(newParent.getId());
+
+    moveOrganizationService.moveOrganization(movedOrganization.getId(), newParent.getId(), failEarlyOnError);
+  }
+
   @Test
   public void testMoveOrganization() {
     login();

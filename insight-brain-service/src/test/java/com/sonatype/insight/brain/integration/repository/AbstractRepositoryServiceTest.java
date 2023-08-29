@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.mail.Message;
 
@@ -2637,6 +2638,58 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
     assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_PyPI_MultipleComponentsSameHashAndFilename() {
+    // At least for PyPI, there are binaries with the same hash and filename published under different coordinates.
+    // See https://sonatype.atlassian.net/browse/CLM-27246
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
+    new PolicyDAO().update(policy);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    int componentCount = 2;
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    String packageName = "testName";
+    String filename = packageName + "-testQualifier.whl";
+    String hash = "testHash";
+    for (int i = 0; i < componentCount; i++) {
+      String version = "testVersion" + i;
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifier.createPypiCoordinates(packageName, version, "testQualifier", "whl");
+      List<SecurityVulnerability> securityVulnerabilities = null;
+      securityVulnerabilities = createSecurityVulnerabilities();
+      hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT,
+          i /* index */, filename, null, null, securityVulnerabilities, 0 /* popularity */));
+    }
+    mockHdsRequestForMetadata(hdsResult);
+    // The hash is null for PyPI
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(
+        ComponentIdentifier.FORMAT_PYPI, "/" + packageName + "/testVersion/" + filename, null /* hash */));
+
+    // Call the service
+    long start = System.currentTimeMillis();
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+
+    RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+        repositoryComponentEvaluationResultList.componentEvalResults.get(0);
+    assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+
+    assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+    assertTelemetry(componentEvaluationDataRequestList.components.size(), 0, System.currentTimeMillis() - start);
   }
 
   @Test

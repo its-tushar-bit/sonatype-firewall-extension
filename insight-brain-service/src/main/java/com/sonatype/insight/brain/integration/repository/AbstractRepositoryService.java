@@ -13,8 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -425,9 +427,22 @@ public abstract class AbstractRepositoryService
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
     ComponentEvaluationDataList result = new ComponentEvaluationDataList();
+
+    // See https://sonatype.atlassian.net/browse/CLM-27246
+    // At least for PyPI, there are binaries with the same hash and filename published under different coordinates.
+    // The function below selects the component with the smallest component identifier in case of duplicates.
+    // The choice for "smallest component identifier" is just a way to ensure reproducible/consistent results (it is not
+    // a business rule or requirement).
+    BinaryOperator<ComponentEvaluationData> mapMergeDeduplicator =
+        (componentEvaluationData1, componentEvaluationData2) -> {
+          return componentEvaluationData1.componentIdentifier
+              .compareTo(componentEvaluationData2.componentIdentifier) <= 0 ? componentEvaluationData1
+                  : componentEvaluationData2;
+        };
     Map<String, ComponentEvaluationData> componentDetailsFromHdsByHashAndFilename =
         componentDetailsFromHdsList.components.stream()
-            .collect(toMap(componentEvaluationData -> toHashFilenameKey(componentEvaluationData), Function.identity()));
+            .collect(toMap(componentEvaluationData -> toHashFilenameKey(componentEvaluationData), Function.identity(),
+                mapMergeDeduplicator));
     
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest =

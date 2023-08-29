@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.DatabaseException;
 import com.sonatype.insight.db.H2DatabaseEngine;
@@ -196,14 +197,14 @@ public class DatabaseUtil
 
   public static DatabaseEngine getDatabaseEngine(DataSource dataSource) {
     try (Connection conn = dataSource.getConnection()) {
-      return getDatabaseEngineFromName(conn.getMetaData().getDatabaseProductName());
+      return getDatabaseEngine(conn.getMetaData().getDatabaseProductName());
     }
     catch (SQLException e) {
       throw new DatabaseException(e);
     }
   }
 
-  static DatabaseEngine getDatabaseEngineFromName(String databaseProductName) {
+  static DatabaseEngine getDatabaseEngine(String databaseProductName) {
     if ("h2".equalsIgnoreCase(databaseProductName)) {
       return H2DatabaseEngine.INSTANCE;
     }
@@ -211,6 +212,19 @@ public class DatabaseUtil
       return PostgresDatabaseEngine.INSTANCE;
     }
     throw new DatabaseException("Unsupported database engine: " + databaseProductName);
+  }
+
+  /**
+   * Return the {@link DatabaseEngine} from the `driverClassName` field in a {@link DatabaseConfig} object.
+   */
+  public static DatabaseEngine getDatabaseEngine(DatabaseConfig databaseConfig) {
+    if ("org.h2.Driver".equalsIgnoreCase(databaseConfig.getDriverClassName())) {
+      return H2DatabaseEngine.INSTANCE;
+    }
+    if ("org.postgresql.Driver".equalsIgnoreCase(databaseConfig.getDriverClassName())) {
+      return PostgresDatabaseEngine.INSTANCE;
+    }
+    throw new DatabaseException("Could not determine DatabaseEngine from the DatabaseConfig");
   }
 
   public static Map<String, Integer> getDatabaseSchemaVersions(DataSource dataSource, String databaseSchema) {

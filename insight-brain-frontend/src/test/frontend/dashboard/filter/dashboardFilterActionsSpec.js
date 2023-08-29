@@ -340,7 +340,7 @@ describe('dashboardFilterActions: non-angular', function () {
   }
 
   function testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, expectedFilter, expectedFilterName) {
-    it('returns rejected promise and does not dispatch apply filter failed action if failed to load results', function (done) {
+    it('does not dispatch apply filter failed action if failed to load results', function (done) {
       mockAxiosCalls({
         put: {
           [getDashboardFilters()]: Promise.resolve({
@@ -353,8 +353,7 @@ describe('dashboardFilterActions: non-angular', function () {
       });
 
       store = SpecUtil.mockReduxStore(initialState);
-
-      store.dispatch(action).catch(() => {
+      store.dispatch(action).then(() => {
         expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
         expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
           filter: expectedFilter,

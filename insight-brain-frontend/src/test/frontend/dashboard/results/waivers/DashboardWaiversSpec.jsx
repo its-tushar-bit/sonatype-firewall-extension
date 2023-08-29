@@ -4,22 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, axiosMockAdapter, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import DashboardWaivers from 'MainRoot/dashboard/results/waivers/DashboardWaivers';
-import * as dashboardActions from 'MainRoot/dashboard/results/dashboardResultsActions';
 import { getWaiversUrl } from 'MainRoot/util/CLMLocation';
-import * as DashboardSelectors from 'MainRoot/dashboard/dashboardSelectors';
 
 // this tests is depending on the dashboardRestulAction and how they handle the promise rejection, will be fixed in CLM-22474
 describe('DashboardWaivers', function () {
-  let renderComponent,
-    waivers,
-    dashboardFilter,
-    loadWaiversResultsSpy,
-    axiosMock,
-    policyWaiversUrl,
-    selectDashboardFilterSpy,
-    selectWaiversResultsSpy;
+  let renderComponent;
+  let waivers;
+  let dashboardFilter;
+  let axiosMock;
+  let policyWaiversUrl;
 
   beforeAll(function () {
     axiosMock = axiosMockAdapter();
@@ -32,6 +27,8 @@ describe('DashboardWaivers', function () {
       filtersAreDirty: false,
       appliedFilter: { maxDaysOld: 20 },
     };
+
+    const initialState = { dashboardFilter };
 
     waivers = {
       error: null,
@@ -60,17 +57,11 @@ describe('DashboardWaivers', function () {
       waivers.results.push(resultObject);
     }
 
-    // these spys will be removed in CLM-22474
-    selectDashboardFilterSpy = spyOn(DashboardSelectors, 'selectDashboardFilter').and.returnValue(dashboardFilter);
-    selectWaiversResultsSpy = spyOn(DashboardSelectors, 'selectWaiversResults').and.returnValue(waivers);
-
     policyWaiversUrl = getWaiversUrl();
     axiosMock.onPost(policyWaiversUrl).reply(200, { dashboardResults: waivers.results, numResults: 200 });
 
-    // this spy will be removed in CLM-22474
-    loadWaiversResultsSpy = spyOn(dashboardActions, 'loadWaiverResults').and.callThrough();
-
-    renderComponent = (additionalProps = {}) => render(<DashboardWaivers {...additionalProps} />);
+    renderComponent = (additionalProps = {}, preloadedState = initialState) =>
+      render(<DashboardWaivers {...additionalProps} />, { preloadedState });
   });
 
   it('renders a DashboardWaiversTable with the appropriate props', async function () {
@@ -80,42 +71,27 @@ describe('DashboardWaivers', function () {
     expect(tableHeaders).toBeVisible();
     expect(tableEntries).toBeVisible();
     expect(tableEntries.children.length).toBe(100);
-
-    // this spy will be removed in CLM-22474
-    expect(loadWaiversResultsSpy).toHaveBeenCalled();
   });
 
-  // To be checked at CLM-25840
-  xit('renders and error with a retry button', async () => {
-    waivers.error = 'error';
-    // this spy will be removed in CLM-22474
-    selectWaiversResultsSpy.and.returnValue(waivers);
+  it('renders and error with a retry button', async () => {
+    axiosMock.onPost(policyWaiversUrl).reply(500, 'some error');
     renderComponent();
+    const alert = await screen.findByRole('alert');
+    expect(alert).toBeVisible();
+    expect(alert).toHaveTextContent('An error occurred loading data. some errorRetry');
 
-    expect(await screen.findByRole('alert')).toBeVisible();
-
-    const retryButton = await screen.findByRole('button', { name: 'Retry' });
-    fireEvent.click(retryButton);
-
-    expect(loadWaiversResultsSpy).toHaveBeenCalled();
+    const retryButton = screen.getByRole('button', { name: 'Retry' });
+    expect(retryButton).toBeVisible();
   });
 
-  // To be checked at CLM-25840
-  xit('renders a form mask if filters are dirty', async () => {
+  it('renders a form mask if filters are dirty', async () => {
     dashboardFilter.filtersAreDirty = true;
-    waivers.error = 'error';
-
-    // these spys will be removed in CLM-22474
-    selectDashboardFilterSpy.and.returnValue(dashboardFilter);
-    selectWaiversResultsSpy.and.returnValue(waivers);
-
+    axiosMock.onPost(policyWaiversUrl).reply(500, 'some error');
     renderComponent();
-
-    expect(await screen.getByText('Please apply or revert filter to see results.')).toBeVisible();
+    expect(await screen.findByText('Please apply or revert filter to see results.')).toBeVisible();
   });
 
-  // To be checked at CLM-25840
-  xit('renders informational alert for waiver view results', async () => {
+  it('renders informational alert for waiver view results', async () => {
     renderComponent();
 
     expect(
@@ -125,8 +101,7 @@ describe('DashboardWaivers', function () {
     ).toBeVisible();
   });
 
-  // To be checked at CLM-25840
-  xit('renders "Learn more about waivers." link', async () => {
+  it('renders "Learn more about waivers." link', async () => {
     renderComponent();
 
     expect(

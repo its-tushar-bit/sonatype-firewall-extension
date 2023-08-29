@@ -57,7 +57,6 @@ export function loadResults(resultsType) {
       })
       .catch((error) => {
         dispatch(loadResultsFailed(resultsType, error));
-        return Promise.reject(error);
       });
   };
 }

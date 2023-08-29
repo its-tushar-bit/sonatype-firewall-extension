@@ -31,7 +31,7 @@ import moment from 'moment';
  * @returns {Array}. If provided set is null or undefined, returns null or undefined respectively.
  */
 export function setToArray(set) {
-  if (set == null) {
+  if (set == null || typeof set[Symbol.iterator] !== 'function') {
     return set;
   }
   let array = [];

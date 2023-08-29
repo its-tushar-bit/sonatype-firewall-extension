@@ -117,7 +117,7 @@ describe('dashboardResultsActions', function () {
         const mockRejection = Promise.reject('load results error');
         tab.serviceMethod.and.callFake(() => mockRejection);
 
-        store.dispatch(loadResults(tab.resultsType)).catch(() => {
+        store.dispatch(loadResults(tab.resultsType)).then(() => {
           expect(store.getActions().length).toBe(2);
           expect(store.getActions()[1]).toEqual({
             type: 'LOAD_RESULTS_FAILED',

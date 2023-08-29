@@ -7,16 +7,21 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
+import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ScanServiceAuthzTest
@@ -25,8 +30,27 @@ public class ScanServiceAuthzTest
   @Inject
   private ScanService scanService;
 
+  private PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
+
   private InputStream getBundle() {
     return new ByteArrayInputStream(new byte[0]);
+  }
+
+  private Set<String> existingPersistedScanTicketIds;
+
+  @Before
+  public void before() {
+    existingPersistedScanTicketIds =
+        persistedScanTicketDAO.getAll().stream().map(PersistedScanTicket::getId).collect(Collectors.toSet());
+  }
+
+  @After
+  public void after() {
+    persistedScanTicketDAO.getAll().forEach(persistedScanTicket -> {
+      if (!existingPersistedScanTicketIds.contains(persistedScanTicket.getId())) {
+        persistedScanTicketDAO.delete(persistedScanTicket);
+      }
+    });
   }
 
   @Test(expected = UnauthenticatedException.class)

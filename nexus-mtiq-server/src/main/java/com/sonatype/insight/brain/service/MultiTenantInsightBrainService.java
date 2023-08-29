@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
 import com.sonatype.insight.brain.hds.TelemetryId;
-import com.sonatype.insight.brain.migration.MtiqDbMigrationCommand;
+import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
 import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
@@ -149,7 +149,7 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
-  protected DatabaseContainer createDatabaseContainer() {
+  public DatabaseContainer createDatabaseContainer() {
     MultiTenantDataSourceFactory multiTenantDataSourceFactory = new MultiTenantDataSourceFactory();
 
     DatabaseMigrator databaseMigrator = new DatabaseMigrator(multiTenantDataSourceFactory);
@@ -196,7 +196,7 @@ public class MultiTenantInsightBrainService
   @Override
   public void initialize(final Bootstrap<InsightConfig> bootstrap) {
     super.initialize(bootstrap);
-    bootstrap.addCommand(new MtiqDbMigrationCommand(databaseContainer));
+    bootstrap.addCommand(new MigrateTenantsCommand());
     bootstrap.addBundle(adminResourceBundle);
   }
 
@@ -310,8 +310,8 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
-  protected Command createDbMigrationCommand(final DatabaseProvisionUtils databaseProvisionUtils) {
-    return new MultiTenantDbMigrationCommand(databaseProvisionUtils);
+  protected Command createDbMigrationCommand() {
+    return new MultiTenantDbMigrationCommand();
   }
 
   protected Module buildMultiTenantModule(InsightConfig config) {

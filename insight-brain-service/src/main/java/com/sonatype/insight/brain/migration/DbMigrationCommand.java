@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import com.sonatype.insight.brain.db.DatabaseContainer;
+import com.sonatype.insight.brain.db.DatabaseContainerSupport;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -19,6 +21,7 @@ import net.sourceforge.argparse4j.inf.Namespace;
 
 public class DbMigrationCommand
     extends ConfiguredCommand<InsightConfig>
+    implements DatabaseContainerSupport
 {
   // Visible for testing
   static final long RECENT_CHECKIN_INTERVAL_MILLIS = QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 2;
@@ -26,11 +29,8 @@ public class DbMigrationCommand
   // Visible for testing
   static final int ATTEMPTS_TO_WAIT_FOR_LAST_CHECKIN_TO_NOT_BE_RECENT = 1;
 
-  private final DatabaseProvisionUtils databaseProvisionUtils;
-
-  public DbMigrationCommand(final DatabaseProvisionUtils databaseProvisionUtils) {
+  public DbMigrationCommand() {
     super("migrate-db", "Migrates the database to the latest schema version.");
-    this.databaseProvisionUtils = databaseProvisionUtils;
   }
 
   @Override
@@ -44,6 +44,10 @@ public class DbMigrationCommand
     try {
       DatabaseMigrator.setForceEnableMigration(true);
 
+      // TODO MTIQ - soon InsightConfig will be a parameter to create the DatabaseContainer
+      DatabaseContainer databaseContainer = createDatabaseContainer();
+
+      DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
       databaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig);
 
       tryCheckLastCheckinTimeNotRecent(getAttemptsToWaitForLastCheckinToNotBeRecent());
@@ -103,5 +107,10 @@ public class DbMigrationCommand
     catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
+  }
+
+  @Override
+  public DatabaseContainer createDatabaseContainer() {
+    return new DatabaseContainer();
   }
 }

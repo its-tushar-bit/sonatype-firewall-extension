@@ -28,18 +28,13 @@ import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
-import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseContainer;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatabaseContainerSupport;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
-import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
-import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
-import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
-import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
@@ -100,6 +95,7 @@ import org.slf4j.LoggerFactory;
 @Named
 public class InsightBrainService
     extends SisuApplication<InsightConfig>
+    implements DatabaseContainerSupport
 {
   protected static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
 
@@ -124,6 +120,7 @@ public class InsightBrainService
 
   private static long startTime;
 
+  // DatabaseContainer for the main 'ServerCommand' application (NOT for other commands like DbMigrationCommand)
   protected DatabaseContainer databaseContainer;
 
   public static void main(final String[] args) {
@@ -176,19 +173,21 @@ public class InsightBrainService
     });
   }
 
+  // First `run` is the DropWizard entry point
   @Override
   public void run(String... arguments) throws Exception {
     startTime = System.currentTimeMillis();
     setSisuUrlCachesToTrueIfNotSet();
 
-    databaseContainer = createDatabaseContainer();
-
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
-    bootstrap.addCommand(createDbMigrationCommand(databaseContainer.getDatabaseProvisionUtils()));
+    bootstrap.addCommand(createDbMigrationCommand());
+    // Note the DropWizard 'ServerCommand' is special for the main http application and passes 'this' in. For a main
+    // server start the `#run(InsightConfig, Environment)` method is called next.
     bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
     {
       private volatile InsightFileLock insightFileLock;
 
+      // Second `run` is the entry point for the `ServerCommand` which is the main http server
       @Override
       protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig configuration)
           throws Exception
@@ -200,6 +199,9 @@ public class InsightBrainService
 
         MDCUsernameScope.forSystem();
         printVersion();
+
+        // Note DatabaseContainer is created within the DropWizard 'ServerCommand#run' (see also DbMigrationCommand)
+        databaseContainer = createDatabaseContainer();
 
         String configArg = namespace.getString("file");
         InsightBrainService.configFile = new File(configArg).getAbsoluteFile();
@@ -228,25 +230,8 @@ public class InsightBrainService
     cli.run(arguments);
   }
 
-  protected Command createDbMigrationCommand(final DatabaseProvisionUtils databaseProvisionUtils) {
-    return new DbMigrationCommand(databaseProvisionUtils);
-  }
-
-  protected DatabaseContainer createDatabaseContainer() {
-    DataSourceFactory dataSourceFactory = new DataSourceFactory();
-    DatabaseMigrator databaseMigrator = new DatabaseMigrator(dataSourceFactory);
-
-    OperationalDataStore operationalDataStore = new DefaultOperationalDataStore(dataSourceFactory, databaseMigrator);
-    AggregationDataStore aggregationDataStore = new DefaultAggregationDataStore(dataSourceFactory, databaseMigrator);
-    DataMartDataStore dataMartDataStore = new DefaultDataMartDataStore(dataSourceFactory, databaseMigrator);
-    ThirdPartyScansDataStore thirdPartyScansDataStore =
-        new DefaultThirdPartyScansDataStore(dataSourceFactory, databaseMigrator);
-
-    DatabaseProvisionUtils databaseProvisionUtils =
-        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
-            thirdPartyScansDataStore);
-
-    return new DatabaseContainer(dataSourceFactory, databaseProvisionUtils);
+  protected Command createDbMigrationCommand() {
+    return new DbMigrationCommand();
   }
 
   @VisibleForTesting
@@ -271,6 +256,7 @@ public class InsightBrainService
     configFile = testConfigFile;
   }
 
+  // Third `run` method is for the main HTTP server `Application` itself
   @Override
   public void run(InsightConfig configuration, Environment environment) throws Exception {
     logServerInstanceMessage("Started " + getServerInstanceMessage());
@@ -283,6 +269,12 @@ public class InsightBrainService
     super.run(configuration, environment);
 
     bootApplicationLifecycle();
+  }
+
+  // TODO MTIQ - soon InsightConfig will be a parameter to create the DatabaseContainer
+  @Override
+  public DatabaseContainer createDatabaseContainer() {
+    return new DatabaseContainer();
   }
 
   // Visible for testing

@@ -24,11 +24,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MtiqDbMigrationCommandTest
+public class MigrateTenantsCommandTest
     extends MultiTenantDatabaseTestSupport
 {
   // system under test
-  private MtiqDbMigrationCommand mtiqDbMigrationCommand;
+  private MigrateTenantsCommand spyMigrateTenantsCommand;
 
   private DatabaseProvisionUtils spyDatabaseProvisionUtils;
 
@@ -39,21 +39,28 @@ public class MtiqDbMigrationCommandTest
 
     spyDatabaseProvisionUtils = spy(multiTenantDatabaseTestRule.databaseProvisionUtils);
 
-    mtiqDbMigrationCommand = new MtiqDbMigrationCommand(
-        new DatabaseContainer(multiTenantDatabaseTestRule.multiTenantDataSourceFactory, spyDatabaseProvisionUtils));
+    spyMigrateTenantsCommand = spy(new MigrateTenantsCommand()
+    {
+      @Override
+      public DatabaseContainer createDatabaseContainer() {
+        return new DatabaseContainer(
+            multiTenantDatabaseTestRule.multiTenantDataSourceFactory, spyDatabaseProvisionUtils
+        );
+      }
+    });
   }
 
   @Test
   public void testMtiqDbMigrationCommand() {
-    assertThat(mtiqDbMigrationCommand.getName()).isEqualTo("migrate-mtiq-db");
-    assertThat(mtiqDbMigrationCommand.getDescription()).isEqualTo(
+    assertThat(spyMigrateTenantsCommand.getName()).isEqualTo("migrate-mtiq-db");
+    assertThat(spyMigrateTenantsCommand.getDescription()).isEqualTo(
         "Migrates the database to the latest schema version for all MTIQ tenants.");
   }
 
   @Test
   public void testOnError() {
     testAsNewTenant(tenant -> {
-      assertThatThrownBy(() -> mtiqDbMigrationCommand.onError(null, null, new Exception("Error"))).isInstanceOf(
+      assertThatThrownBy(() -> spyMigrateTenantsCommand.onError(null, null, new Exception("Error"))).isInstanceOf(
           IllegalStateException.class).hasMessage("Error running tenant database migrations.");
     });
   }
@@ -63,7 +70,7 @@ public class MtiqDbMigrationCommandTest
     provisionNewTenant();
 
     testAsGlobalTenant(g -> {
-      mtiqDbMigrationCommand.run(null, null, multiTenantDatabaseTestRule.insightConfig);
+      spyMigrateTenantsCommand.run(null, null, multiTenantDatabaseTestRule.insightConfig);
 
       verify(spyDatabaseProvisionUtils, times(2)).initializeDatabasesWithoutMigration(
           any(MultiTenantDatabaseConfigProvider.class));

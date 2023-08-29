@@ -16,13 +16,13 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
-
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
@@ -75,7 +75,9 @@ public class DbMigrationCommandTest
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  public DatabaseProvisionUtils spyDatabaseProvisionUtils;
+  private DatabaseProvisionUtils spyDatabaseProvisionUtils;
+
+  private DbMigrationCommand dbMigrationCommand;
 
   private InsightConfig insightConfig;
 
@@ -91,6 +93,14 @@ public class DbMigrationCommandTest
         DatamartProvider.getInstance(),
         ThirdPartyScansProvider.getInstance()
     ));
+
+    dbMigrationCommand = spy(new DbMigrationCommand()
+    {
+      @Override
+      public DatabaseContainer createDatabaseContainer() {
+        return new DatabaseContainer(new DataSourceFactory(), spyDatabaseProvisionUtils);
+      }
+    });
   }
 
   @After
@@ -100,8 +110,6 @@ public class DbMigrationCommandTest
 
   @Test
   public void testDbMigrationCommand() {
-    DbMigrationCommand dbMigrationCommand = new DbMigrationCommand(spyDatabaseProvisionUtils);
-
     assertThat(dbMigrationCommand.getName()).isEqualTo("migrate-db");
     assertThat(dbMigrationCommand.getDescription()).isEqualTo("Migrates the database to the latest schema version.");
     assertThat(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).isEqualTo(
@@ -116,10 +124,9 @@ public class DbMigrationCommandTest
     OperationalDataStoreProvider.init(databaseConfig, true);
     deleteSchedulerStateTable();
     DataSourceFactory.clear_ForTestsOnly();
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-    spyDbMigrationCommand.run(null, null, insightConfig);
+    dbMigrationCommand.run(null, null, insightConfig);
 
     verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration(insightConfig);
     verify(spyDatabaseProvisionUtils).migrateDatabasesIfNeeded(insightConfig);
@@ -132,13 +139,12 @@ public class DbMigrationCommandTest
     long currentTime = System.currentTimeMillis();
     createSchedulerStateRecord(currentTime - DbMigrationCommand.RECENT_CHECKIN_INTERVAL_MILLIS);
     DataSourceFactory.clear_ForTestsOnly();
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getCurrentTimeMillis()).thenReturn(currentTime);
+    when(dbMigrationCommand.getCurrentTimeMillis()).thenReturn(currentTime);
 
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
-        () -> spyDbMigrationCommand.run(null, null, insightConfig));
+        () -> dbMigrationCommand.run(null, null, insightConfig));
 
-    verify(spyDbMigrationCommand).trySleep(1);
+    verify(dbMigrationCommand).trySleep(1);
     verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration(insightConfig);
     verify(spyDatabaseProvisionUtils, never()).migrateDatabasesIfNeeded(insightConfig);
   }
@@ -150,12 +156,11 @@ public class DbMigrationCommandTest
     long currentTime = System.currentTimeMillis();
     createSchedulerStateRecord(currentTime - DbMigrationCommand.RECENT_CHECKIN_INTERVAL_MILLIS);
     DataSourceFactory.clear_ForTestsOnly();
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getCurrentTimeMillis()).thenReturn(currentTime).thenReturn(currentTime + 1);
+    when(dbMigrationCommand.getCurrentTimeMillis()).thenReturn(currentTime).thenReturn(currentTime + 1);
 
-    spyDbMigrationCommand.run(null, null, insightConfig);
+    dbMigrationCommand.run(null, null, insightConfig);
 
-    verify(spyDbMigrationCommand).trySleep(1);
+    verify(dbMigrationCommand).trySleep(1);
     verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration(insightConfig);
     verify(spyDatabaseProvisionUtils).migrateDatabasesIfNeeded(insightConfig);
   }
@@ -167,11 +172,10 @@ public class DbMigrationCommandTest
     long currentTime = System.currentTimeMillis();
     createSchedulerStateRecord(currentTime - DbMigrationCommand.RECENT_CHECKIN_INTERVAL_MILLIS - 1);
     DataSourceFactory.clear_ForTestsOnly();
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
-    when(spyDbMigrationCommand.getCurrentTimeMillis()).thenReturn(currentTime);
+    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+    when(dbMigrationCommand.getCurrentTimeMillis()).thenReturn(currentTime);
 
-    spyDbMigrationCommand.run(null, null, insightConfig);
+    dbMigrationCommand.run(null, null, insightConfig);
 
     verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration(insightConfig);
     verify(spyDatabaseProvisionUtils).migrateDatabasesIfNeeded(insightConfig);
@@ -181,10 +185,9 @@ public class DbMigrationCommandTest
   public void testRun_NoIqServerCheckin() {
     DatabaseConfig databaseConfig = new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods);
     OperationalDataStoreProvider.init(databaseConfig, true);
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-    spyDbMigrationCommand.run(null, null, insightConfig);
+    dbMigrationCommand.run(null, null, insightConfig);
 
     verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration(insightConfig);
     verify(spyDatabaseProvisionUtils).migrateDatabasesIfNeeded(insightConfig);
@@ -196,10 +199,9 @@ public class DbMigrationCommandTest
     OperationalDataStoreProvider.init(databaseConfig, true);
     deleteLockTable();
     DataSourceFactory.clear_ForTestsOnly();
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-    spyDbMigrationCommand.run(null, null, insightConfig);
+    dbMigrationCommand.run(null, null, insightConfig);
 
     verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration(insightConfig);
     verify(spyDatabaseProvisionUtils).doMigrateDatabases(insightConfig);
@@ -214,11 +216,10 @@ public class DbMigrationCommandTest
     spyDatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
     DataSourceFactory.clear_ForTestsOnly();
     reset(spyDatabaseProvisionUtils);
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
     try (MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class, CALLS_REAL_METHODS)) {
-      spyDbMigrationCommand.run(null, null, insightConfig);
+      dbMigrationCommand.run(null, null, insightConfig);
 
       verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration(insightConfig);
       clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress, never());
@@ -234,11 +235,10 @@ public class DbMigrationCommandTest
     File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
     try (MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class, CALLS_REAL_METHODS)) {
-      spyDbMigrationCommand.run(null, null, insightConfig);
+      dbMigrationCommand.run(null, null, insightConfig);
 
       verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration(insightConfig);
       clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress, never());
@@ -262,11 +262,10 @@ public class DbMigrationCommandTest
     reset(spyDatabaseProvisionUtils);
     new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, "false");
     DataSourceFactory.clear_ForTestsOnly();
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
     try (MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class, CALLS_REAL_METHODS)) {
-      spyDbMigrationCommand.run(null, null, insightConfig);
+      dbMigrationCommand.run(null, null, insightConfig);
 
       verify(spyDatabaseProvisionUtils).initializeDatabasesWithoutMigration(insightConfig);
       clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress);
@@ -452,10 +451,9 @@ public class DbMigrationCommandTest
         DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansDataStore.ID,
             ThirdPartyScansProvider.getDatabaseSchema())).isEqualTo(1);
     DataSourceFactory.clear_ForTestsOnly();
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-    spyDbMigrationCommand.run(null, null, insightConfig);
+    dbMigrationCommand.run(null, null, insightConfig);
 
     assertMigrated();
   }
@@ -486,10 +484,9 @@ public class DbMigrationCommandTest
         DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansDataStore.ID,
             ThirdPartyScansProvider.getDatabaseSchema())).isEqualTo(1);
     DataSourceFactory.clear_ForTestsOnly();
-    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+    when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-    spyDbMigrationCommand.run(null, null, insightConfig);
+    dbMigrationCommand.run(null, null, insightConfig);
 
     assertMigrated();
   }
@@ -511,10 +508,9 @@ public class DbMigrationCommandTest
         resourceDatabasePopulator.populate(connection);
       }
       insightConfig.setDatabase(getPostgresDatabaseConfig(postgres.getDatabaseConfig()));
-      DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-      when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+      when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-      spyDbMigrationCommand.run(null, null, insightConfig);
+      dbMigrationCommand.run(null, null, insightConfig);
 
       assertMigrated();
     }
@@ -541,10 +537,9 @@ public class DbMigrationCommandTest
             return OperationalDataStoreProvider.getDataSource();
           }, OperationalDataStoreProvider.getUpgradeGuard(true));
       insightConfig.setDatabase(getPostgresDatabaseConfig(postgres.getDatabaseConfig()));
-      DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
-      when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+      when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-      spyDbMigrationCommand.run(null, null, insightConfig);
+      dbMigrationCommand.run(null, null, insightConfig);
 
       assertMigrated();
     }
@@ -552,7 +547,6 @@ public class DbMigrationCommandTest
 
   @Test
   public void testOnError() {
-    DbMigrationCommand dbMigrationCommand = new DbMigrationCommand(spyDatabaseProvisionUtils);
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
         () -> dbMigrationCommand.onError(null, null, new IOException("test")));
   }

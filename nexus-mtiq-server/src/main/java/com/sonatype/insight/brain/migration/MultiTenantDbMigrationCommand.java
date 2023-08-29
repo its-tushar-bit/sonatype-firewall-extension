@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.migration;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 public class MultiTenantDbMigrationCommand
     extends DbMigrationCommand
 {
-  public MultiTenantDbMigrationCommand(final DatabaseProvisionUtils databaseProvisionUtils) {
-    super(databaseProvisionUtils);
+  public MultiTenantDbMigrationCommand() {
+    super();
   }
 
   @Override

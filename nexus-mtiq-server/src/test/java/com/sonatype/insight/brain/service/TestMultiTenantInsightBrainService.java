@@ -322,7 +322,7 @@ public class TestMultiTenantInsightBrainService
   }
 
   @Override
-  protected DatabaseContainer createDatabaseContainer() {
+  public DatabaseContainer createDatabaseContainer() {
     // If no DatabaseContainer was pre-configured then create the default one
     if (databaseContainer == null) {
       databaseContainer = super.createDatabaseContainer();

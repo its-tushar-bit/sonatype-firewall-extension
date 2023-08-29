@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.postgres.PostgresServer;
 
@@ -78,7 +77,6 @@ public class MultiTenantDbMigrationCommandTest
       operationalDataStore.initWithoutMigration(databaseConfig);
     }
 
-    multiTenantDbMigrationCommand = new MultiTenantDbMigrationCommand(
-        new DatabaseProvisionUtils(operationalDataStore, null, null, null));
+    multiTenantDbMigrationCommand = new MultiTenantDbMigrationCommand();
   }
 }

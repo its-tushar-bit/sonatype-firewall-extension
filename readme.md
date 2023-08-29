@@ -62,7 +62,7 @@ For a full build, including all tests (WARNING: this takes a long time!):
 
 If you just want to build the project in order to get up and running quickly, you can skip all tests as follows (run from the root dir):
 
-`mvn clean install -DskipTests`
+`mvn clean install -Pquick`
 
 ### Building for front-end development ###
 

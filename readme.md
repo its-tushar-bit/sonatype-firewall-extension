@@ -89,22 +89,20 @@ about timing of (asynchronous) operations. A delay of 500 ms doesn't delay tests
 typically sufficient to trigger errors where tests are badly coded and fail to wait on page changes. PhantomJS is known
 to not support this slow motion mode properly so other browsers should be used.
 
-**Flaky Tests**:
-One cause for flaky tests is persisted entities left in the db after a test is run. These entities may impact other unrelated tests.
-We have a mechanism to detect this problem.
-If you suspect that a flaky test is caused by some other test that leaves instances of Foo entities in the db,
-- add this method to the FooDAO class:
+**Writing Tests**:
+The tests that use the IQ database must cleanup after themselves.
+This is achieved by having an instance of TemporaryEntity as junit rule in the test class:
 ```
-  @Override
-  protected boolean detectTestEntityLeaks() {
-    return true;
-  }
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 ```
-- push the change to a branch and run a CI build for it
+If your test class extends from one of the IQ abstract/base test classes, most probably there is a TemporaryEntity rule already in place.
+If you add a new persisted entity class, then you must add cleanup code in the TemporaryEntity.after() method.
+The TemporaryEntity rule detects any entities leaked by tests. The detection is enabled for all tests in our CI builds.
+If you want to enable the detection locally, add `-DdetectTestEntityLeaks` to the test run command.
 
-If there are Foo entities leaked by some tests, those tests will fail with a "Detected test entity leaks" error message,
-and the test output will contain the stack trace(s) for where the leaked entities were created.
-WARNING: This mechanism should be used only on branches, never on the main branch - it will cause memory leaks in the product.
+Note: It is not required anymore to instantiate all entities via one of the newSomeEntity helper methods in TemporaryEntity.
+Those helper methods can still be used, but it is not required anymore.
 
 ## Adding Configuration
 

@@ -122,6 +122,13 @@ describe('RepositoryResultsSummaryPage', () => {
       expect(screen.getByText('Violations')).toBeVisible();
       expect(clearButton).toBeEnabled();
       expect(applyButton).toBeEnabled();
+
+      const closeDrawerButton = screen.getByRole('button', { name: /Close/i });
+      closeDrawerButton.click();
+      const drawerAfterClose = screen.getByRole('dialog');
+      fireEvent.animationEnd(drawerAfterClose);
+
+      expect(drawerAfterClose).not.toBeVisible();
     });
 
     it('shows summary tile error message', () => {

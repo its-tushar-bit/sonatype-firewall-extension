@@ -9,8 +9,9 @@ import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,8 +91,8 @@ public class RepositoryResultsSummaryTest
     RepositoryManager repositoryManager =
         tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
     repo = tempEntity.newRepository(repositoryManager, "central");
-    Date june1st2020 = Date.from(
-        LocalDateTime.of(2020, 6, 1, 11, 0).toInstant(ZoneOffset.UTC));
+    Instant instant = LocalDateTime.of(2020, 6, 1, 11, 0).atZone(ZoneId.systemDefault()).toInstant();
+    Date june1st2020 = Date.from(instant);
 
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repo.getId());
     RepositoryComponent quarantinedComponent =
@@ -232,18 +233,6 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.table().componentNameClearFilterButton().should(visible);
     RepositoryResultDetailPage.table().componentNameClearFilterButton().click();
     RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
-  }
-
-  @Test
-  public void testRepositoryResultTextFilterPopover() {
-    refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
-    RepositoryResultDetailPage.filterPopover().shouldNotBe(visible);
-    RepositoryResultDetailPage.filterPopoverButton().shouldBe(visible).click();
-    RepositoryResultDetailPage.filterPopover().shouldBe(visible);
-    RepositoryResultDetailPage.filterPopover().closeButton().shouldBe(visible).click();
-    RepositoryResultDetailPage.filterPopover().shouldNotBe(visible);
-    RepositoryResultDetailPage.filterPopover().shouldNotBe(visible);
-    RepositoryResultDetailPage.filterPopover().shouldNotBe(visible);
   }
 
   @Test
@@ -972,61 +961,61 @@ public class RepositoryResultsSummaryTest
   private void addQuarantinedComponentsWithPolicyViolations(Repository repository) {
     // Add quarantined components
     Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 11, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path1", "hash1", ComponentIdentifier.createMavenCoordinates("groupId1",
         "artifactId1", "version1", "classifier1", "jar"), june1st2020, june1st2020);
 
     Date june2nd2020 = Date.from(LocalDateTime.of(2020, 6, 2, 10, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path2", "hash2", ComponentIdentifier.createMavenCoordinates("groupId2",
         "artifactId2", "version2", "classifier2", "jar"), june2nd2020, june2nd2020);
 
     Date june3rd2020 = Date.from(LocalDateTime.of(2020, 6, 3, 13, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component3 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path3", "hash3", ComponentIdentifier.createMavenCoordinates("groupId3",
         "artifactId3", "version3", "classifier3", "jar"), june3rd2020, june3rd2020);
 
     Date june4th2020 = Date.from(LocalDateTime.of(2020, 6, 4, 15, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component4 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path4", "hash4", ComponentIdentifier.createMavenCoordinates("groupId4",
         "artifactId4", "version4", "classifier4", "jar"), june4th2020, june4th2020);
 
     Date june5th2020 = Date.from(LocalDateTime.of(2020, 6, 5, 5, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component5 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path5", "hash5", ComponentIdentifier.createMavenCoordinates("groupId5",
         "artifactId5", "version5", "classifier5", "jar"), june5th2020, june5th2020);
 
     Date june6th2020 = Date.from(LocalDateTime.of(2020, 6, 6, 10, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component6 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path6", "hash6", ComponentIdentifier.createMavenCoordinates("groupId6",
         "artifactId6", "version6", "classifier6", "jar"), june6th2020, june6th2020);
 
     Date june7th2020 = Date.from(LocalDateTime.of(2020, 6, 7, 10, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component7 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path7", "hash7", ComponentIdentifier.createMavenCoordinates("groupId7",
         "artifactId7", "version7", "classifier7", "jar"), june7th2020, june7th2020);
 
     Date june8th2020 = Date.from(LocalDateTime.of(2020, 6, 8, 10, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component8 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path8", "hash8", ComponentIdentifier.createMavenCoordinates("groupId8",
         "artifactId8", "version8", "classifier8", "jar"), june8th2020, june8th2020);
 
     Date june9th2020 = Date.from(LocalDateTime.of(2020, 6, 9, 10, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component9 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path9", "hash9", ComponentIdentifier.createMavenCoordinates("groupId9",
         "artifactId9", "version9", "classifier9", "jar"), june9th2020, june9th2020);
 
     Date june10th2020 = Date.from(LocalDateTime.of(2020, 6, 10, 10, 0)
-        .toInstant(ZoneOffset.UTC));
+        .atZone(ZoneId.systemDefault()).toInstant());
     RepositoryComponent component10 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path10", "hash10", ComponentIdentifier.createMavenCoordinates("groupId10",
         "artifactId10", "version10", "classifier10", "jar"), june10th2020, june10th2020);

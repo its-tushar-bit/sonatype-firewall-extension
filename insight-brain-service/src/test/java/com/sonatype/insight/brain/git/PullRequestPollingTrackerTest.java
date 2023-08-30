@@ -12,12 +12,15 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -232,6 +235,32 @@ public class PullRequestPollingTrackerTest
 
     // then: should indicate was visited already
     assertThat(visited).isTrue();
+  }
+
+  @Test
+  public void cutOffTimesAreTenantAware() {
+    Date date = new Date();
+    Date oldDate = Date.from(date.toInstant().minusSeconds(1L));
+
+    Tenant tenant1 = testAsNewTenant(testName, t1 -> {
+      // The initial fetch of a key will add it to the cache for this tenant
+      Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo","token", date);
+
+      assertThat(cachedCutoffTime).isEqualTo(date);
+    });
+
+    testAsNewTenant(testName, t2 -> {
+      Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo","token", oldDate);
+
+      // cutOffTime should be unique for each tenant therefore the date passed in here should be used
+      assertThat(cachedCutoffTime).isEqualTo(oldDate);
+    });
+
+    testAs(tenant1, t -> {
+      // Ensure the original tenant cache is not overridden
+      Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo","token", date);
+      assertThat(cachedCutoffTime).isEqualTo(date);
+    });
   }
 
   private SourceControl createSourceControl() {

@@ -14,6 +14,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import com.google.common.base.Joiner;
 
@@ -27,18 +28,18 @@ class PullRequestPollingTracker
 
   // keep track of cutoff times at the appropriate level as multiple repos can share a token and we need to make sure
   // the cutoff time keeps advancing
-  private static final Map<String, Date> keyCutoffTimes = new HashMap<>();
+  private static final TenantReference<Map<String, Date>> keyCutoffTimes = new TenantReference<>(HashMap::new);
   
   private static final Joiner KEY_JOINER = Joiner.on("::").skipNulls();
 
   private final SourceControlDAO sourceControlDAO;
 
   // keep track of which repositories (by internal id) we've polled and which ones we haven't
-  private final Set<String> repositoriesPolled = new HashSet<>();
+  private final TenantReference<Set<String>> repositoriesPolled = new TenantReference<>(HashSet::new);
 
   // the org/repo/api key (token) combo is really what drives our SCM pull request checks;  once we've checked a given 
   // combo for this polling cycle there is no need to check it again until the next polling cycle
-  private Set<String> alreadyCheckedKeys = new HashSet<>();
+  private final TenantReference<Set<String>> alreadyCheckedKeys = new TenantReference<>(HashSet::new);
 
   PullRequestPollingTracker(SourceControlDAO sourceControlDAO) {
     this.sourceControlDAO = sourceControlDAO;
@@ -52,11 +53,11 @@ class PullRequestPollingTracker
    */
   SourceControl getNextRepositoryToPoll() {
     SourceControl sourceControl = sourceControlDAO.getNextRepositoryToPoll();
-    if (null == sourceControl || repositoriesPolled.contains(sourceControl.getId())) {
+    if (null == sourceControl || repositoriesPolled.get().contains(sourceControl.getId())) {
       return null;
     }
 
-    repositoriesPolled.add(sourceControl.getId());
+    repositoriesPolled.get().add(sourceControl.getId());
     return sourceControl;
   }
 
@@ -154,12 +155,12 @@ class PullRequestPollingTracker
 
   Date getCachedCutoffTime(String org, String repo, String token, Date defaultCutoffTime) {
     String key = makeKey(org, repo, token);
-    return keyCutoffTimes.computeIfAbsent(key, k -> defaultCutoffTime);
+    return keyCutoffTimes.get().computeIfAbsent(key, k -> defaultCutoffTime);
   }
 
   private void setCachedCutoffTime(String org, String repo, String token, Date cutoffTime) {
     String key = makeKey(org, repo, token);
-    keyCutoffTimes.put(key, cutoffTime);
+    keyCutoffTimes.get().put(key, cutoffTime);
   }
 
   /**
@@ -169,11 +170,11 @@ class PullRequestPollingTracker
    */
   boolean visitAndCheckKeyAlreadyUsed(String org, String repo, String token) {
     String key = makeKey(org, repo, token);
-    if (alreadyCheckedKeys.contains(key)) {
+    if (alreadyCheckedKeys.get().contains(key)) {
       return true;
     }
 
-    alreadyCheckedKeys.add(key);
+    alreadyCheckedKeys.get().add(key);
     return false;
   }
 

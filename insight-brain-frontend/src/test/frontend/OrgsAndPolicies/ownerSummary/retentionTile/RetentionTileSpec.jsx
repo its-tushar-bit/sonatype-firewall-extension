@@ -255,4 +255,90 @@ describe('RetentionTile', () => {
       expect(title).not.toBeNull();
     });
   });
+
+  describe('multi-tenant', function () {
+    it('does not render if product features indicate that this is a multi-tenant deployment', async function () {
+      preloadedState = {
+        productLicense: {
+          license: {
+            products: ['CLM'],
+          },
+        },
+        productFeatures: {
+          productFeatures: {
+            'multi-tenant': true,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast-org',
+            },
+          },
+        },
+      };
+
+      renderComponent(preloadedState);
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('Data Retention');
+      expect(title).toBeNull();
+    });
+
+    it('does render if product features indicate that this is a single-tenant deployment', async function () {
+      preloadedState = {
+        productLicense: {
+          license: {
+            products: ['CLM'],
+          },
+        },
+        productFeatures: {
+          productFeatures: {
+            'single-tenant': true,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast-org',
+            },
+          },
+        },
+      };
+
+      renderComponent(preloadedState);
+
+      await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
+      const title = await screen.queryByText('Data Retention');
+      expect(title).toBeInTheDocument();
+    });
+  });
 });

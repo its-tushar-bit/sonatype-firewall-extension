@@ -9,6 +9,7 @@ import { selectIsApplication, selectIsOrganization } from 'MainRoot/reduxUiRoute
 import {
   selectIsInnerSourceRepositorySupported,
   selectIsArtifactoryRepositorySupported,
+  selectTenantMode,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
@@ -20,14 +21,15 @@ export default function OwnerSummaryPills() {
   const isInnerSourceRepositorySupported = useSelector(selectIsInnerSourceRepositorySupported);
   const isArtifactoryRepositorySupported = useSelector(selectIsArtifactoryRepositorySupported);
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
-  const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
+  const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
+  const isDataRetentionConfigEnabled = !(isFirewallOnlyLicense || isMultiTenant);
 
   const navList = useMemo(
     () => [
       {
         label: 'App Categories',
         target: 'owner-pill-app-categories',
-        isDisplayed: isFeatureEnabledForLicense,
+        isDisplayed: !isFirewallOnlyLicense,
       },
       {
         label: 'Policies',
@@ -37,17 +39,17 @@ export default function OwnerSummaryPills() {
       {
         label: 'Grandfathering',
         target: 'owner-pill-grandfathering',
-        isDisplayed: isFeatureEnabledForLicense,
+        isDisplayed: !isFirewallOnlyLicense,
       },
       {
         label: 'Continuous monitoring',
         target: 'owner-pill-continuous-monitoring',
-        isDisplayed: isFeatureEnabledForLicense,
+        isDisplayed: !isFirewallOnlyLicense,
       },
       {
         label: 'Proprietary Components',
         target: 'owner-pill-component-configuration',
-        isDisplayed: isFeatureEnabledForLicense,
+        isDisplayed: !isFirewallOnlyLicense,
       },
       {
         label: 'Component labels',
@@ -62,17 +64,17 @@ export default function OwnerSummaryPills() {
       {
         label: 'Data retention',
         target: 'owner-pill-retention',
-        isDisplayed: isOrg && isFeatureEnabledForLicense,
+        isDisplayed: isOrg && isDataRetentionConfigEnabled,
       },
       {
         label: 'Source control',
         target: 'owner-pill-source-control',
-        isDisplayed: (isOrg || isApp) && isFeatureEnabledForLicense,
+        isDisplayed: (isOrg || isApp) && !isFirewallOnlyLicense,
       },
       {
         label: 'InnerSource repository',
         target: 'owner-pill-innersource-repository',
-        isDisplayed: isInnerSourceRepositorySupported && (isOrg || isApp) && isFeatureEnabledForLicense,
+        isDisplayed: isInnerSourceRepositorySupported && (isOrg || isApp) && !isFirewallOnlyLicense,
       },
       {
         label: 'Artifactory repository',

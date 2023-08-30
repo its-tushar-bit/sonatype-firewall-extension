@@ -56,19 +56,21 @@ const NamespaceConfusionProtectionTile = () => {
     <NxTable.Row key={row.id}>
       <NxTable.Cell className="iq-repository-cell--name-space">
         <NxOverflowTooltip title={row.namespacePattern || row.namePattern}>
-          <div className="iq-repository-cell--name-space-text">{row.namespacePattern || row.namePattern}</div>
+          <div className="iq-repository-cell--name-space-text nx-truncate-ellipsis">
+            {row.namespacePattern || row.namePattern}
+          </div>
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell className="iq-repository-cell-manager">
         <NxOverflowTooltip title={row.repositoryManagerName || row.repositoryManagerInstanceId}>
-          <div className="iq-repository-cell-manager--text">
+          <div className="iq-repository-cell-manager--text nx-truncate-ellipsis">
             {row.repositoryManagerName || row.repositoryManagerInstanceId}
           </div>
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell className="iq-repository-cell-repository">
         <NxOverflowTooltip title={row.repositoryPublicId}>
-          <div className="iq-repository-cell-repository--text">{row.repositoryPublicId}</div>
+          <div className="iq-repository-cell-repository--text nx-truncate-ellipsis">{row.repositoryPublicId}</div>
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell className="iq-repository-cell-enabled">
@@ -108,7 +110,7 @@ const NamespaceConfusionProtectionTile = () => {
       <NxTile.Content>
         <NxTableContainer id="iq-repository-component-name-table">
           <NxTable data-testid="iq-repository-component-name-table">
-            <NxTable.Head>
+            <NxTable.Head className="nx-table-head">
               <NxTable.Row>
                 <NxTable.Cell
                   isSortable
@@ -116,7 +118,7 @@ const NamespaceConfusionProtectionTile = () => {
                   onClick={() => sortComponents('PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME')}
                   className="iq-repository-column--name-space"
                 >
-                  Component Namespace
+                  <span className="nx-truncate-ellipsis">Component Namespace</span>
                 </NxTable.Cell>
                 <NxTable.Cell
                   isSortable
@@ -124,7 +126,7 @@ const NamespaceConfusionProtectionTile = () => {
                   onClick={() => sortComponents('REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME')}
                   className="iq-repository-column--manager"
                 >
-                  Repository Manager
+                  <span className="nx-truncate-ellipsis">Repository Manager</span>
                 </NxTable.Cell>
                 <NxTable.Cell
                   isSortable
@@ -132,7 +134,7 @@ const NamespaceConfusionProtectionTile = () => {
                   onClick={() => sortComponents('REPOSITORY_PUBLIC_ID')}
                   className="iq-repository-column--repository"
                 >
-                  Repository
+                  <span className="nx-truncate-ellipsis">Repository</span>
                 </NxTable.Cell>
                 <NxTable.Cell
                   isSortable
@@ -140,7 +142,7 @@ const NamespaceConfusionProtectionTile = () => {
                   onClick={() => sortComponents('ENABLED')}
                   className="iq-repository-column--enabled"
                 >
-                  Enabled
+                  <span className="nx-truncate-ellipsis">Enabled</span>
                 </NxTable.Cell>
               </NxTable.Row>
               <NxTable.Row isFilterHeader>
@@ -162,6 +164,7 @@ const NamespaceConfusionProtectionTile = () => {
             </NxTable.Head>
             <NxTable.Body
               id="iq-proprietary-table-body"
+              className="nx-table-body"
               retryHandler={loadRepositories}
               error={errorComponentsTable}
               emptyMessage="No results"

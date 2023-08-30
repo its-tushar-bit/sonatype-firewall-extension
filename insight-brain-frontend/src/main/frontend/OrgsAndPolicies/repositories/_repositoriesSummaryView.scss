@@ -29,4 +29,32 @@
     padding-bottom: var(--nx-spacing-20x);
     margin-bottom: var(--nx-spacing-20x);
   }
+
+  #namespace-confusion-protection-pill-configuration {
+    .nx-table {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.5fr) minmax(200px, 1.5fr) minmax(134px, 1fr) minmax(85px, max-content);
+    }
+
+    .nx-table-body,
+    .nx-table-head,
+    .nx-table-row {
+      display: contents;
+    }
+
+    .nx-cell--meta-info {
+      grid-column: 1/-1;
+    }
+
+    .nx-table-head {
+      .nx-cell__sort-btn {
+        display: flex;
+        align-items: center;
+      }
+
+      .nx-table-row--filter-header > .nx-cell--header {
+        height: auto;
+      }
+    }
+  }
 }

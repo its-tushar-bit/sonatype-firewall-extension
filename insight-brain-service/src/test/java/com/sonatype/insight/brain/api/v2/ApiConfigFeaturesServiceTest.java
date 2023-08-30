@@ -650,47 +650,6 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testGetSystemConfigurationPropertyFeature_IntegrationsPage() {
-    assertThat(service.getSystemConfigurationPropertyFeature("integrations-page"))
-            .isEqualTo(SystemConfigurationPropertyFeature.INTEGRATIONS_PAGE);
-    assertThat(service.getSystemConfigurationPropertyFeature("INTEGRATIONS-PAGE"))
-            .isEqualTo(SystemConfigurationPropertyFeature.INTEGRATIONS_PAGE);
-    assertThat(service.getSystemConfigurationPropertyFeature("Integrations-Page"))
-            .isEqualTo(SystemConfigurationPropertyFeature.INTEGRATIONS_PAGE);
-    assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("integrationsPage"))
-            .isInstanceOf(BadRequestException.class)
-            .hasMessage("Feature not supported: integrationsPage");
-  }
-
-  @Test
-  public void testEnableFeature_IntegrationsPage() {
-    service.enableFeature(SystemConfigurationProperty.INTEGRATIONS_PAGE);
-    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.INTEGRATIONS_PAGE)
-            .getValue()).isEqualTo("true");
-  }
-
-  @Test
-  public void testEnableFeature_IntegrationsPage_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.INTEGRATIONS_PAGE);
-    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.INTEGRATIONS_PAGE))
-            .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
-  }
-
-  @Test
-  public void testDisableFeature_IntegrationsPage() {
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.INTEGRATIONS_PAGE
-            .getPropertyName(), "true");
-    service.disableFeature(SystemConfigurationProperty.INTEGRATIONS_PAGE);
-    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.INTEGRATIONS_PAGE)).isNull();
-  }
-
-  @Test
-  public void testDisableFeature_IntegrationsPage_AlreadyDisabled() {
-    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.INTEGRATIONS_PAGE))
-            .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
-  }
-
-  @Test
   public void testEnableFeature_ScanPomFilesInMetaInfDirectory() {
     service.enableFeature(SCAN_POM_FILES_IN_META_INF_DIRECTORY);
     assertThat(systemConfigurationPropertyDAO.getByName(SCAN_POM_FILES_IN_META_INF_DIRECTORY).getValue()).isEqualTo(

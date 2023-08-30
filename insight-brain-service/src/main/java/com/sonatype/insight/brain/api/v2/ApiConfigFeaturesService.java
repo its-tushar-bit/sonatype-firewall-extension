@@ -147,7 +147,7 @@ public class ApiConfigFeaturesService
     },
 
     API_PAGE(SystemConfigurationProperty.API_PAGE, false),
-    INTEGRATIONS_PAGE(SystemConfigurationProperty.INTEGRATIONS_PAGE, false),
+
     SCAN_POM_FILES_IN_META_INF_DIRECTORY(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY, false),
 
     SCAN_NPM_DEV_AND_OPT_DEPENDENCIES(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES, false),

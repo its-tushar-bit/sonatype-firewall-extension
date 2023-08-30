@@ -159,8 +159,6 @@ public class SystemConfigurationProperty
 
   public static final String API_PAGE = "API_PAGE";
 
-  public static final String INTEGRATIONS_PAGE = "INTEGRATIONS_PAGE";
-
   public static final String SESSION_TIMEOUT_MINUTES = "sessionTimeout";
 
   public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX = "bfs.artifactoryExpiredTokenRegex";

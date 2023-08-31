@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
@@ -35,22 +34,28 @@ import org.junit.Test;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
+import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
 
+import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS;
 import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.JOB_FREQUENCY_IN_HOURS;
 import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.TENANT_RETENTION_PERIOD_CONFIG_KEY;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setupNewTestTenant;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class DeleteTenantsJobTest
     extends AbstractMultiTenantResourceTest
 {
+  public static final String BAD_APPLICATION_ID = "badId";
+
+  public static final String GOOD_APPLICATION_ID = "appId";
+
   DeleteTenantsJob deleteTenantsJob;
 
   TenantManager tenantManager;
@@ -74,12 +79,18 @@ public class DeleteTenantsJobTest
     taskScheduler = super.getTestCLMServer().getCLMServer().getInstance(MultiTenantTaskScheduler.class);
     deletedTenantDAO = new DeletedTenantDAO();
     tenantMetadataDAO = new TenantMetadataDAO();
+
+    // Clean deleted tenant table
+    for (DeletedTenant deletedTenant : deletedTenantDAO.getAll()) {
+      deletedTenantDAO.delete(deletedTenant);
+    }
   }
 
   @Override
   protected List<Module> getBrainModules() {
     List<Module> brainModules = super.getBrainModules();
-    brainModules.add(new AbstractModule() {
+    brainModules.add(new AbstractModule()
+    {
       @Override
       protected void configure() {
         bind(MultiTenantAuth0ManagementService.class).toInstance(new TestMultiTenantAuth0ManagementService());
@@ -89,97 +100,73 @@ public class DeleteTenantsJobTest
   }
 
   @Test
-  public void testDeleteTenant() {
-    testAsNewTenant(testName, t -> {
-      provisionTenant(t.tenantSlug);
+  public void testDeleteTenant() throws Exception {
+    Tenant tenant = setupNewTestTenant(testName);
+    provisionTenant(tenant, GOOD_APPLICATION_ID);
+    scheduleTenantForDeletion(tenant.tenantSlug, DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS);
+    initializeTenantDirectories();
+    scheduleJobsForTenant();
 
-      tenantManager.setTenant(t);
+    runDeleteTenantJob();
 
-      long beforeDefaultRetentionPeriod = System.currentTimeMillis() -
-          (60 * 60 * 1000 * (DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS + 1));
-
-      tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
-
-      deletedTenantDAO.insert(new DeletedTenant(t.tenantSlug, beforeDefaultRetentionPeriod));
-
-      File sonatypeWork = config.getSonatypeWork();
-      File clusterDirectory = config.getClusterDirectory();
-
-      initializeTenantDirectories();
-
-      assertThat(DatabaseUtil.schemaExists(dataStore.getDataSource(), t.databaseSchema)).isTrue();
-      assertThat(sonatypeWork.exists()).isTrue();
-      assertThat(clusterDirectory.exists()).isTrue();
-
-      deleteTenantsJob.execute(null);
-
-      assertThat(DatabaseUtil.schemaExists(dataStore.getDataSource(), t.databaseSchema)).isFalse();
-      assertThat(sonatypeWork.exists()).isFalse();
-      assertThat(clusterDirectory.exists()).isFalse();
-
-      assertThat(deletedTenantDAO.getTenantBySlug(t.tenantSlug)).isNull();
-    });
+    assertTenantWasDeleted(tenant);
   }
 
   @Test
-  public void testRetentionPeriodCanBeConfigured() {
-    testAsNewTenant(testName, t -> {
-      int retentionPeriodInHours = 1;
+  public void testDeleteTenant_skipAuth0ResourcesAndDBSchemaDeletionIfSchemaDoesntExist() throws Exception {
+    Tenant tenant = setupNewTestTenant(testName);
+    DeletedTenant deletedTenant =
+        scheduleTenantForDeletion(tenant.tenantSlug, DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS);
+    initializeTenantDirectories();
+    scheduleJobsForTenant();
 
-      provisionTenant(t.tenantSlug);
+    runDeleteTenantJob();
 
-      tenantManager.setTenant(t);
-
-      tempEntity.newSystemConfigurationProperty(TENANT_RETENTION_PERIOD_CONFIG_KEY,
-          String.valueOf(retentionPeriodInHours));
-
-      long beforeDefaultRetentionPeriod =
-          System.currentTimeMillis() - (60 * 60 * 1000 * (retentionPeriodInHours + 1));
-
-      tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
-
-      deletedTenantDAO.insert(new DeletedTenant(t.tenantSlug, beforeDefaultRetentionPeriod));
-
-      deleteTenantsJob.execute(null);
-
-      assertThat(deletedTenantDAO.getTenantBySlug(t.tenantSlug)).isNull();
-    });
+    assertTenantWasDeleted(tenant);
+    verify(deleteTenantsJob, never()).deleteAuth0Resources(deletedTenant);
+    verify(deleteTenantsJob, never()).deleteDatabaseSchema(deletedTenant);
   }
 
   @Test
-  public void testDeleteErrorAllowsOtherDeletesToRun() {
-    testAsNewTenant(testName, t -> {
-      int retentionPeriodInHours = 1;
+  public void testDeleteTenant_notDeletedIfAuth0ResourcesNotDeleted() throws Exception {
+    Tenant tenant = setupNewTestTenant(testName);
+    provisionTenant(tenant, BAD_APPLICATION_ID);
+    scheduleTenantForDeletion(tenant.tenantSlug, DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS);
+    initializeTenantDirectories();
+    scheduleJobsForTenant();
 
-      provisionTenant(t.tenantSlug);
+    runDeleteTenantJob();
 
-      tenantManager.setTenant(t);
-
-      tempEntity.newSystemConfigurationProperty(TENANT_RETENTION_PERIOD_CONFIG_KEY,
-          String.valueOf(retentionPeriodInHours));
-
-      long beforeDefaultRetentionPeriod =
-          System.currentTimeMillis() - (60 * 60 * 1000 * (retentionPeriodInHours + 1));
-
-      tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
-
-      deletedTenantDAO.insert(new DeletedTenant("error-tenant-1", beforeDefaultRetentionPeriod));
-      deletedTenantDAO.insert(new DeletedTenant("error-tenant-2", beforeDefaultRetentionPeriod));
-      deletedTenantDAO.insert(new DeletedTenant(t.tenantSlug, beforeDefaultRetentionPeriod));
-
-      deleteTenantsJob.execute(null);
-
-      assertThat(deletedTenantDAO.getTenantBySlug(t.tenantSlug)).isNull();
-
-      verify(deleteTenantsJob, times(3)).deleteTenant(any(DeletedTenant.class));
-    });
+    assertTenantResourcesExist(tenant);
+    assertTenantIsNotDeleted(tenant.tenantSlug);
   }
 
   @Test
-  public void testRegistration() {
+  public void testDeleteTenant_onDeleteErrorAllowsOtherDeletesToRun() throws Exception {
+    Tenant tenant = setupNewTestTenant(testName);
+    provisionTenant(tenant, BAD_APPLICATION_ID);
+    scheduleTenantForDeletion(tenant.tenantSlug, DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS);
+    initializeTenantDirectories();
+    scheduleJobsForTenant();
+
+    String partiallyDeletedTenant1 = "partially-deleted-tenant-1";
+    String partiallyDeletedTenant2 = "partially-deleted-tenant-2";
+    scheduleTenantForDeletion(partiallyDeletedTenant1, DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS);
+    scheduleTenantForDeletion(partiallyDeletedTenant2, DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS);
+
+    runDeleteTenantJob();
+
+    assertTenantResourcesExist(tenant);
+    assertTenantIsNotDeleted(tenant.tenantSlug);
+    assertTenantDeletionIsCompleted(partiallyDeletedTenant1);
+    assertTenantDeletionIsCompleted(partiallyDeletedTenant2);
+  }
+
+  @Test
+  public void testDeleteTenant_jobRegistration() {
     MultiTenantTaskScheduler taskScheduler = mock(MultiTenantTaskScheduler.class);
 
-    deleteTenantsJob = new DeleteTenantsJob(taskScheduler, null, null, null, null, null, null, null);
+    deleteTenantsJob = new DeleteTenantsJob(taskScheduler, null, null, null, null, null, null, null, null);
 
     deleteTenantsJob.register();
 
@@ -188,31 +175,101 @@ public class DeleteTenantsJobTest
   }
 
   @Test
-  public void testDeleteTenantDeletesQuartzJobs() {
-    testAsNewTenant(testName, t -> {
-      provisionTenant(t.tenantSlug);
+  public void testDeleteTenant_retentionPeriodCanBeConfigured() throws Exception {
+    long retentionPeriodInHours = 1L;
 
-      tenantManager.setTenant(t);
+    Tenant tenant = setupNewTestTenant(testName);
+    provisionTenant(tenant, GOOD_APPLICATION_ID);
+    scheduleTenantForDeletion(tenant.tenantSlug, retentionPeriodInHours);
+    initializeTenantDirectories();
+    scheduleJobsForTenant();
 
-      long beforeDefaultRetentionPeriod = System.currentTimeMillis() -
-          (60 * 60 * 1000 * (DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS + 1));
+    runDeleteTenantJobWithCustomRetentionPeriod(retentionPeriodInHours);
 
-      tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName"));
+    assertTenantWasDeleted(tenant);
+  }
 
-      deletedTenantDAO.insert(new DeletedTenant(t.tenantSlug, beforeDefaultRetentionPeriod));
+  private void assertTenantResourcesExist(final Tenant tenant) throws SchedulerException {
+    assertThat(DatabaseUtil.schemaExists(dataStore.getDataSource(), tenant.databaseSchema)).isTrue();
 
-      for (int i = 0; i < 10; i++) {
-        taskScheduler.schedulePeriodicTask(newJob(), Duration.ofHours(1L));
+    assertThat(config.getSonatypeWork().exists()).isTrue();
+    assertThat(config.getClusterDirectory().exists()).isTrue();
+
+    Set<JobKey> jobs = taskScheduler.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(tenant.tenantSlug));
+    assertThat(jobs.size()).isNotZero();
+  }
+
+  private void assertTenantWasDeleted(Tenant tenant) throws SchedulerException {
+    assertTenantDeletionIsCompleted(tenant.tenantSlug);
+
+    assertThat(DatabaseUtil.schemaExists(dataStore.getDataSource(), tenant.databaseSchema)).isFalse();
+    assertThat(config.getSonatypeWork().exists()).isFalse();
+    assertThat(config.getClusterDirectory().exists()).isFalse();
+
+    Set<JobKey> jobs = taskScheduler.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(tenant.tenantSlug));
+    assertThat(jobs.size()).isZero();
+  }
+
+  private void assertTenantDeletionIsCompleted(String tenantSlug) {
+    DeletedTenant deletedTenant = deletedTenantDAO.getTenantBySlug(tenantSlug);
+    assertThat(deletedTenant.getDeleteCompletedDate()).isNotNull();
+    assertThat(deletedTenant.getLastUpdated()).isNotNull();
+  }
+
+  private void assertTenantIsNotDeleted(String tenantSlug) {
+    DeletedTenant deletedTenant = deletedTenantDAO.getTenantBySlug(tenantSlug);
+    assertThat(deletedTenant.getDeleteCompletedDate()).isNull();
+    assertThat(deletedTenant.getLastUpdated()).isNotNull();
+  }
+
+  private void runDeleteTenantJob() {
+    TenantThreadLocal.runAsGlobal(() -> {
+      try {
+        deleteTenantsJob.execute(null);
       }
-
-      Set<JobKey> jobs = taskScheduler.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(t.tenantSlug));
-      assertThat(jobs.size()).isNotZero();
-
-      deleteTenantsJob.execute(null);
-
-      jobs = taskScheduler.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(t.tenantSlug));
-      assertThat(jobs.size()).isZero();
+      catch (JobExecutionException e) {
+        throw new RuntimeException(e);
+      }
+      return null;
     });
+  }
+
+  private void runDeleteTenantJobWithCustomRetentionPeriod(long retentionPeriodInHours) {
+    TenantThreadLocal.runAsGlobal(() -> {
+      try {
+        tempEntity.newSystemConfigurationProperty(TENANT_RETENTION_PERIOD_CONFIG_KEY,
+            String.valueOf(retentionPeriodInHours));
+
+        deleteTenantsJob.execute(null);
+      }
+      catch (JobExecutionException e) {
+        throw new RuntimeException(e);
+      }
+      return null;
+    });
+  }
+
+  private DeletedTenant scheduleTenantForDeletion(String tenantSlug, long retentionPeriodInHours) {
+    DeletedTenant deletedTenant =
+        new DeletedTenant(tenantSlug, getBeforeDefaultRetentionPeriod(retentionPeriodInHours));
+    deletedTenantDAO.insert(deletedTenant);
+    return deletedTenant;
+  }
+
+  private long getBeforeDefaultRetentionPeriod(long retentionPeriodInHours) {
+    return System.currentTimeMillis() - (60 * 60 * 1000 * (retentionPeriodInHours + 1));
+  }
+
+  private void provisionTenant(Tenant tenant, String auth0AppId) throws Exception {
+    provisionTenant(tenant.tenantSlug);
+    tenantManager.setTenant(tenant);
+    tenantMetadataDAO.insert(new TenantMetadata(auth0AppId, "appName", "connId", "connName"));
+  }
+
+  private void scheduleJobsForTenant() {
+    for (int i = 0; i < 10; i++) {
+      taskScheduler.schedulePeriodicTask(newJob(), Duration.ofHours(1L));
+    }
   }
 
   private InsightJob newJob() {
@@ -235,7 +292,8 @@ public class DeleteTenantsJobTest
     Files.createDirectories(config.getClusterDirectory().toPath());
   }
 
-  private class TestMultiTenantAuth0ManagementService extends MultiTenantAuth0ManagementService
+  private class TestMultiTenantAuth0ManagementService
+      extends MultiTenantAuth0ManagementService
   {
     public TestMultiTenantAuth0ManagementService() {
       super(new MultiTenantInsightConfig(), new MultiTenantAuth0ApiSupplier());
@@ -243,6 +301,10 @@ public class DeleteTenantsJobTest
 
     @Override
     public boolean deleteTenant(final String applicationId, final String connectionId) {
+      if (BAD_APPLICATION_ID.equals(applicationId)) {
+        return false;
+      }
+
       return true;
     }
   }

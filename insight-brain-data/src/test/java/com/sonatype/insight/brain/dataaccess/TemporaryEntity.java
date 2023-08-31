@@ -1205,6 +1205,20 @@ public class TemporaryEntity
     return deletedTenant;
   }
 
+  public DeletedTenant newDeletedTenantWithDeleteCompleted(String tenantSlug) {
+    return newDeletedTenantWithDeleteCompleted(tenantSlug, System.currentTimeMillis());
+  }
+
+  public DeletedTenant newDeletedTenantWithDeleteCompleted(String tenantSlug, Long createdTimestamp) {
+    DeletedTenant deletedTenant = new DeletedTenant(tenantSlug, createdTimestamp);
+    deletedTenant.setDeleteCompletedDate(new Date());
+
+    deletedTenantDAO.insert(deletedTenant);
+    deletedTenants.add(deletedTenant);
+
+    return deletedTenant;
+  }
+
   /**
    * Creates an application with an invalid public ID for tests that verify backwards compatibility for existing
    * applications with public IDs created before the validation for application public IDs was introduced.

@@ -152,10 +152,10 @@ public class TenantManager
   }
 
   /**
-   * performDatabaseRegistrationAndRun perform only the database init (not migration) for a tenant and run method
-   * This is used for tenant deletion, where the tenant should not be registered as this causes the Quartz jobs to run.
+   * performDatabaseRegistrationAndRun perform only the database init (not migration) for a tenant and run method. This
+   * is used for tenant deletion, where the tenant should not be registered as this causes the Quartz jobs to run.
    */
-  protected  <T> T performDatabaseRegistrationAndRunAs(final String tenantSlug, final Supplier<T> supplier) {
+  protected <T> T performDatabaseRegistrationAndRunAs(final String tenantSlug, final Supplier<T> supplier) {
     if (StringUtils.isBlank(tenantSlug)) {
       throw new IllegalArgumentException(TENANT_PARAMETER_CANNOT_BE_NULL);
     }
@@ -235,31 +235,43 @@ public class TenantManager
   }
 
   boolean isRegistered() {
-    Boolean registered = registeredTenants.get(TenantThreadLocal.getTenant());
+    return isTenantRegistered(TenantThreadLocal.getTenant());
+  }
+
+  List<String> getRegisteredTenants() {
+    return registeredTenants.keySet().stream()
+        .filter(this::isTenantRegistered)
+        .map(t -> t.tenantSlug).collect(toList());
+  }
+
+  boolean isTenantRegistered(Tenant tenant) {
+    Boolean registered = registeredTenants.get(tenant);
 
     return registered != null && registered;
   }
 
-  List<String> getRegisteredTenants() {
-    return registeredTenants.keySet().stream().map(t -> t.tenantSlug).collect(toList());
-  }
-
   public void deregisterTenant(String tenantSlug) {
-    if (StringUtils.isNotBlank(tenantSlug)) {
-      for (TenantManaged tenantManagedBean : tenantManagedBeans) {
-        runAs(new Tenant(tenantSlug), () -> {
-          try {
-            tenantManagedBean.deregister();
-          }
-          catch (Exception e) {
-            log.error("Failed to deregister managed bean {} for tenant {}", tenantManagedBean.getClass(), tenantSlug,
-                e);
-          }
-          return null;
-        });
-      }
-
-      registeredTenants.remove(new Tenant(tenantSlug));
+    if (StringUtils.isBlank(tenantSlug)) {
+      log.warn("There was an attempt to deregister a tenant with blank slug");
+      return;
     }
+
+    for (TenantManaged tenantManagedBean : tenantManagedBeans) {
+      runAs(new Tenant(tenantSlug), () -> {
+        try {
+          tenantManagedBean.deregister();
+        }
+        catch (Exception e) {
+          log.error("Failed to deregister managed bean {} for tenant {}", tenantManagedBean.getClass(), tenantSlug,
+              e);
+        }
+        return null;
+      });
+    }
+
+    // Flagging the tenant as not registered instead of removing it from the map, so we can avoid some edge scenarios
+    // that may add back the tenant to the map before this is flagged by deletion
+    registeredTenants.put(new Tenant(tenantSlug), false);
+    log.info("Tenant {} deregistered successfully", tenantSlug);
   }
 }

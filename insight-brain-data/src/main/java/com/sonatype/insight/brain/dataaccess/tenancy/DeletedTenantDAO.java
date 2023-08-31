@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.tenancy;
 
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -54,20 +55,23 @@ public class DeletedTenantDAO
   }
 
   public List<DeletedTenant> getAllTenantDeletionsOlderThanRetentionPeriod(long retentionPeriodInHours) {
-    String query = "SELECT tenant FROM DeletedTenant tenant WHERE tenant.deleteRequestedTimestamp < ?1";
+    String query = "SELECT tenant FROM DeletedTenant tenant WHERE tenant.created < ?1 " +
+        "AND tenant.deleteCompletedDate IS NULL";
 
     long retentionInMillis = retentionPeriodInHours * 60 * 60 * 1000;
 
-    return super.getList(query, System.currentTimeMillis() - retentionInMillis);
+    return super.getList(query, new Date(System.currentTimeMillis() - retentionInMillis));
   }
 
   public List<DeletedTenant> getAllTenantDeletions() {
-    String query = "SELECT tenant FROM DeletedTenant tenant";
+    String query = "SELECT tenant FROM DeletedTenant tenant WHERE tenant.deleteCompletedDate IS NULL";
     return super.getList(query);
   }
 
   public boolean isScheduledForDeletion(String tenantSlug) {
-    String sQuery = "SELECT COUNT(tenant) FROM DeletedTenant tenant WHERE tenant.tenantSlug = ?1";
+    String sQuery =
+        "SELECT COUNT(tenant) FROM DeletedTenant tenant " +
+            "WHERE tenant.tenantSlug = ?1 AND tenant.deleteCompletedDate IS NULL";
     int count = getSingle(Number.class, sQuery, tenantSlug).intValue();
 
     return count > 0;

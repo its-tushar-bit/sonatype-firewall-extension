@@ -16,6 +16,8 @@ import com.google.common.collect.ImmutableMap;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
@@ -23,6 +25,8 @@ import org.quartz.JobExecutionException;
 public class TenantDeregistrationJob
     implements InsightJob
 {
+  private static final Logger log = LoggerFactory.getLogger(TenantDeregistrationJob.class);
+
   private static final String JOB_NAME = "TenantDeregstrationJob";
 
   private static final String TENANT_NAME_KEY = "TENANT_NAME";
@@ -46,12 +50,14 @@ public class TenantDeregistrationJob
 
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
-    String tenantName = context.getJobDetail().getJobDataMap().getString(TENANT_NAME_KEY);
+    String tenantName = context.getMergedJobDataMap().getString(TENANT_NAME_KEY);
 
     tenantManager.deregisterTenant(tenantName);
   }
 
   public void deregisterTenantAcrossAllNodes(String tenantSlug) {
+    log.debug("De-registering tenant {} across all nodes", tenantSlug);
+
     tenantManager.deregisterTenant(tenantSlug);
 
     taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this, ImmutableMap.of(TENANT_NAME_KEY, tenantSlug));

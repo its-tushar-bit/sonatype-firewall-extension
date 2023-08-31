@@ -187,6 +187,20 @@ public class TenantManagerTest
   }
 
   @Test
+  public void shouldGetRegisteredTenants_onlyIfTenantIsRegistered() {
+    underTest.setTenant(tenant);
+
+    testAsNewTenant(t -> {
+      when(tenantValidator.validateTenantExists(t)).thenReturn(true);
+      underTest.deregisterTenant(tenant.tenantSlug);
+
+      underTest.setTenant(t);
+
+      assertThat(underTest.getRegisteredTenants()).containsExactlyInAnyOrder(t.tenantSlug);
+    });
+  }
+
+  @Test
   public void shouldOnlyRegisterTenantOnce() throws Exception {
     setTenantAndAssertRegistration();
 
@@ -242,6 +256,18 @@ public class TenantManagerTest
     order.verify(tenantManaged1).register();
     order.verify(job).register();
     order.verifyNoMoreInteractions();
+  }
+
+  @Test
+  public void shouldDeregisterTenant() {
+    underTest.setTenant(tenant);
+
+    assertThat(underTest.isTenantRegistered(tenant)).isTrue();
+
+    underTest.deregisterTenant(tenant.tenantSlug);
+
+    assertThat(underTest.isTenantRegistered(tenant)).isFalse();
+    verify(tenantManagedBeans.get(0), atMostOnce()).deregister();
   }
 
   @Test

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.tenancy;
 
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -24,6 +25,15 @@ public class DeletedTenant
   @Column(name = "delete_requested_timestamp")
   private Long deleteRequestedTimestamp;
 
+  @Column(name = "created")
+  private Date created;
+
+  @Column(name = "last_updated")
+  private Date lastUpdated;
+
+  @Column(name = "delete_completed_date")
+  private Date deleteCompletedDate;
+
   public DeletedTenant() {
   }
 
@@ -34,6 +44,7 @@ public class DeletedTenant
   public DeletedTenant(String tenantSlug, Long deleteRequestedTime) {
     this.tenantSlug = tenantSlug;
     this.setDeleteRequestedTimestamp(deleteRequestedTime);
+    this.setCreated(new Date(deleteRequestedTime));
   }
 
   @Override
@@ -54,11 +65,38 @@ public class DeletedTenant
     this.deleteRequestedTimestamp = deleteRequestedTimestamp;
   }
 
+  public Date getCreated() {
+    return created;
+  }
+
+  public void setCreated(final Date created) {
+    this.created = created;
+  }
+
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  public void setLastUpdated(final Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
+
+  public Date getDeleteCompletedDate() {
+    return deleteCompletedDate;
+  }
+
+  public void setDeleteCompletedDate(final Date deleteCompletedDate) {
+    this.deleteCompletedDate = deleteCompletedDate;
+  }
+
   @Override
   public String toString() {
     return "DeletedTenant{" +
         "tenantSlug='" + tenantSlug + '\'' +
-        ", deleteRequestedTime=" + deleteRequestedTimestamp +
+        ", deleteRequestedTime=" + deleteRequestedTimestamp + '\'' +
+        ", created=" + created + '\'' +
+        ", lastUpdated=" + lastUpdated + '\'' +
+        ", deleteCompletedDate=" + deleteCompletedDate +
         '}';
   }
 }

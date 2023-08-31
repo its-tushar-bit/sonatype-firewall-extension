@@ -76,6 +76,22 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
   }
 
   @Test
+  public void testGetAllTenantDeletions_filterDeletedTenants() {
+    List<String> tenantIds = Arrays.asList(
+        "t_1_" + name.getMethodName(),
+        "t_2_" + name.getMethodName(),
+        "t_3_" + name.getMethodName()
+    );
+    tenantIds.forEach(tempEntity::newDeletedTenant);
+    tempEntity.newDeletedTenantWithDeleteCompleted("t_4_" + name.getMethodName());
+
+    List<DeletedTenant> tenants = underTest.getAllTenantDeletions();
+
+    assertThat(tenants).hasSize(3);
+    assertThat(tenants).extracting(DeletedTenant::getId).containsExactlyInAnyOrder(tenantIds.toArray(new String[0]));
+  }
+
+  @Test
   public void testGetTenantsOlderThanRetentionTime() {
     tempEntity.newDeletedTenant("t_" + name.getMethodName());
     List<DeletedTenant> tenants = underTest.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
@@ -91,6 +107,22 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
   }
 
   @Test
+  public void testGetTenantsOlderThanRetentionTime_filterDeletedTenants() {
+    tempEntity.newDeletedTenant("t_" + name.getMethodName());
+    List<DeletedTenant> tenants = underTest.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
+    assertThat(tenants).isEmpty();
+
+    String olderTenantName = "t_1_" + name.getMethodName();
+    Long fiveHoursAgo = System.currentTimeMillis() - (5 * 60 * 60 * 1000);
+    tempEntity.newDeletedTenant(olderTenantName, fiveHoursAgo);
+    tempEntity.newDeletedTenantWithDeleteCompleted("t_2_" + name.getMethodName(), fiveHoursAgo);
+    tenants = underTest.getAllTenantDeletionsOlderThanRetentionPeriod(1L);
+
+    assertThat(tenants).hasSize(1);
+    assertThat(tenants.get(0).getId()).isEqualTo(olderTenantName);
+  }
+
+  @Test
   public void testIsScheduledForDeletion() {
     String tenantSlug = "t_" + name.getMethodName();
 
@@ -98,6 +130,15 @@ public class DeletedTenantDAOTest extends AbstractDbDAOTest
 
     assertThat(underTest.isScheduledForDeletion(tenantSlug)).isTrue();
     assertThat(underTest.isScheduledForDeletion(UUID.randomUUID().toString())).isFalse();
+  }
+
+  @Test
+  public void testIsScheduledForDeletion_filterDeletedTenants() {
+    String tenantSlug = "t_" + name.getMethodName();
+
+    tempEntity.newDeletedTenantWithDeleteCompleted(tenantSlug);
+
+    assertThat(underTest.isScheduledForDeletion(tenantSlug)).isFalse();
   }
 
   @Test

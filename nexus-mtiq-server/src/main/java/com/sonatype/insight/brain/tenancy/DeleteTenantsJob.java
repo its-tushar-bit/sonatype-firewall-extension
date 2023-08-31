@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.Statement;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -76,15 +78,19 @@ public class DeleteTenantsJob
 
   private final TenantManager tenantManager;
 
+  private final TenantValidator tenantValidator;
+
   @Inject
-  public DeleteTenantsJob(MultiTenantTaskScheduler taskScheduler,
-                          SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-                          DeletedTenantDAO deletedTenantDAO,
-                          InsightConfig config,
-                          TenantUtil tenantUtil,
-                          MultiTenantAuth0ManagementService auth0ManagementService,
-                          TenantMetadataDAO tenantMetadataDAO,
-                          TenantManager tenantManager)
+  public DeleteTenantsJob(
+      MultiTenantTaskScheduler taskScheduler,
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      DeletedTenantDAO deletedTenantDAO,
+      InsightConfig config,
+      TenantUtil tenantUtil,
+      MultiTenantAuth0ManagementService auth0ManagementService,
+      TenantMetadataDAO tenantMetadataDAO,
+      TenantManager tenantManager,
+      TenantValidator tenantValidator)
   {
     this.taskScheduler = taskScheduler;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
@@ -94,6 +100,7 @@ public class DeleteTenantsJob
     this.auth0ManagementService = auth0ManagementService;
     this.tenantMetadataDAO = tenantMetadataDAO;
     this.tenantManager = tenantManager;
+    this.tenantValidator = tenantValidator;
   }
 
   @Override
@@ -154,44 +161,45 @@ public class DeleteTenantsJob
 
     log.info("Permanently deleting tenant {}", tenant.getId());
 
-    boolean successfulAuth0Deletion = deleteAuth0Details(tenant);
+    boolean tenantExists = tenantValidator.validateTenantExists(tenant.getId());
 
-    boolean successfulJobsDeleted = deleteJobs(tenant);
+    Date today = new Date();
+    tenant.setLastUpdated(today);
+    deletedTenantDAO.update(tenant);
 
-    boolean successfulSchemaDrop = deleteDatabaseSchema(tenant);
-
-    boolean successfulFilesDeleted = deleteFilesOnDisk(tenant);
-
-    log.info("Quartz Jobs deleted = {}, Schema dropped = {}. Files on Disk deleted = {}. Auth0 deleted = {}",
-        successfulJobsDeleted, successfulSchemaDrop, successfulFilesDeleted, successfulAuth0Deletion);
-
-    // Only remove the scheduled deletion if all parts were successful
-    if (successfulAuth0Deletion && successfulSchemaDrop && successfulFilesDeleted && successfulJobsDeleted) {
-      deletedTenantDAO.delete(tenant);
+    if (tenantExists && !deleteAuth0Resources(tenant)) {
+      log.warn("Not able to delete Auth0 resources for tenant {}", tenant.getId());
+      return;
     }
+
+    if (!deleteJobs(tenant)) {
+      log.warn("Not able to delete tenants jobs for tenant {}", tenant.getId());
+      return;
+    }
+
+    if (tenantExists && !deleteDatabaseSchema(tenant)) {
+      log.warn("Not able to delete schema for tenant {}", tenant.getId());
+      return;
+    }
+
+    if (!deleteFilesOnDisk(tenant)) {
+      log.warn("Not able to delete files on disk for tenant {}", tenant.getId());
+      return;
+    }
+
+    tenant.setDeleteCompletedDate(today);
+    deletedTenantDAO.update(tenant);
+    log.info("Tenant {} deleted successfully", tenant.getId());
   }
 
-  private boolean deleteJobs(DeletedTenant tenant) {
-    try {
-      Set<JobKey> jobKeys = taskScheduler.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(tenant.getId()));
-
-      return taskScheduler.getScheduler().deleteJobs(new ArrayList<>(jobKeys));
-    }
-    catch (Exception e) {
-      log.error("Failed to delete quartz jobs for tenant {}", tenant.getId(), e);
-    }
-
-    return false;
-  }
-
-  private boolean deleteAuth0Details(final DeletedTenant tenant) {
+  boolean deleteAuth0Resources(final DeletedTenant deletedTenant) {
     boolean success = false;
 
     try {
-      success = tenantManager.performDatabaseRegistrationAndRunAs(tenant.getId(), () -> {
+      success = tenantManager.performDatabaseRegistrationAndRunAs(deletedTenant.getId(), () -> {
         TenantMetadata tenantMetadata = tenantMetadataDAO.get();
         if (tenantMetadata == null) {
-          log.info("Tenant {} metadata not found, not deleting auth0 tenant.", tenant.getId());
+          log.info("Tenant {} metadata not found, not deleting auth0 tenant.", deletedTenant.getId());
           return true;
         }
         return auth0ManagementService.deleteTenant(tenantMetadata.getApplicationId(),
@@ -199,49 +207,71 @@ public class DeleteTenantsJob
       });
     }
     catch (IllegalArgumentException e) {
-      log.error("Delete tenant {} Auth0 failed.", tenant.getId(), e);
+      log.error("Delete tenant {} Auth0 failed.", deletedTenant.getId(), e);
     }
 
     return success;
   }
 
-  private boolean deleteDatabaseSchema(DeletedTenant tenant) {
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
-         Statement statement = connection.createStatement())
-    {
-      connection.setAutoCommit(true);
+  boolean deleteJobs(DeletedTenant deletedTenant) {
+    boolean success = false;
 
-      String tenantSchema = new Tenant(tenant.getId()).databaseSchema;
+    try {
+      Set<JobKey> jobKeys = taskScheduler.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(deletedTenant.getId()));
 
-      statement.executeUpdate("DROP SCHEMA " + tenantSchema + " CASCADE;");
+      if (CollectionUtils.isEmpty(jobKeys)) {
+        success = true;
+      }
 
-      return true;
+      success = taskScheduler.getScheduler().deleteJobs(new ArrayList<>(jobKeys));
     }
     catch (Exception e) {
-      log.error("Failed to delete schema for tenant {}", tenant.getId(), e);
+      log.error("Failed to delete quartz jobs for tenant {}", deletedTenant.getId(), e);
     }
 
-    return false;
+    return success;
   }
 
-  private boolean deleteFilesOnDisk(DeletedTenant tenant) {
-    return runAs(new Tenant(tenant.getId()), () -> {
+  boolean deleteDatabaseSchema(DeletedTenant deletedTenant) {
+    boolean success = false;
 
-      boolean sonatypeWorkDeleted = deleteDirectory(config.getSonatypeWork(), tenant);
-      boolean clusterDeleted = deleteDirectory(config.getClusterDirectory(), tenant);
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+         Statement statement = connection.createStatement()) {
+      connection.setAutoCommit(true);
+
+      String tenantSchema = new Tenant(deletedTenant.getId()).databaseSchema;
+      statement.executeUpdate("DROP SCHEMA " + tenantSchema + " CASCADE;");
+
+      success = true;
+    }
+    catch (Exception e) {
+      log.error("Failed to delete schema for tenant {}", deletedTenant.getId(), e);
+    }
+
+    return success;
+  }
+
+  boolean deleteFilesOnDisk(DeletedTenant deletedTenant) {
+    boolean success = runAs(new Tenant(deletedTenant.getId()), () -> {
+      boolean sonatypeWorkDeleted = deleteDirectory(config.getSonatypeWork(), deletedTenant);
+      boolean clusterDeleted = deleteDirectory(config.getClusterDirectory(), deletedTenant);
 
       return sonatypeWorkDeleted && clusterDeleted;
     });
+
+    return success;
   }
 
-  private boolean deleteDirectory(File directory, DeletedTenant tenant) {
+  private boolean deleteDirectory(File directory, DeletedTenant deletedTenant) {
     try {
-      FileUtils.deleteDirectory(directory);
+      if (directory.exists()) {
+        FileUtils.deleteDirectory(directory);
+      }
 
       return true;
     }
     catch (Exception e) {
-      log.error("Failed to delete sonatype-work for tenant {}", tenant.getId(), e);
+      log.error("Failed to delete sonatype-work for tenant {}", deletedTenant.getId(), e);
     }
     return false;
   }

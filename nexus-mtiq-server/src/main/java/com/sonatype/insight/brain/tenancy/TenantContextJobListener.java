@@ -74,6 +74,7 @@ public class TenantContextJobListener
         // It is possible registration failed for some tenants so only get tenants that are currently registered
         List<String> tenants = tenantManager.getRegisteredTenants();
         context.getJobDetail().getJobDataMap().put(AllTenantsJob.TENANT_LIST, tenants);
+        log.trace("All registered tenants: {}", tenants);
       }
     }
     catch (Exception e) {

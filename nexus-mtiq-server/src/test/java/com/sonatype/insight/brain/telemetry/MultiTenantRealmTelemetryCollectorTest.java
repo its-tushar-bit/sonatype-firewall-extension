@@ -16,11 +16,11 @@ import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfiguratio
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.TenantLifecycle;
+import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
-import com.sonatype.insight.brain.tenancy.MultiTenantDatabaseTestSupport;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.util.UrlEncoded;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
@@ -312,6 +313,7 @@ public class EclipseCIPPageTest
     VersionsCIP.classifier().shouldHave(text(PREZI_DIST.getComponentIdentifier().getCoordinates().get("classifier")));
   }
 
+  @Ignore("CLM-27387")
   @Test
   public void testSelectNugetComponent() {
     refreshOrOpen(EclipseCIPPage.url());

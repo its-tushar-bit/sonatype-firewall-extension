@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.sonatype.insight.brain.git.render.ReferenceIdParser.parseReferenceIds;
+import static com.sonatype.insight.brain.git.render.UTMSourceUtil.maybeAppendUTMSourceParam;
 import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_DEEP_DIVE_TAG;
 import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_FAST_TRACK_TAG;
 import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
@@ -60,7 +62,8 @@ public class SecurityIssueService
 
   public List<SecurityIssue> getSecurityIssuesFromViolations(
       final String iqBaseUrl,
-      final List<PolicyViolation> policyViolations)
+      final List<PolicyViolation> policyViolations,
+      final SourceControlProvider provider)
   {
     // Since a vulnerability can be associated with multiple PVs,
     // we need to aggregate to ensure only 1 call to the vulnerabilityDetailsService is made per vulnerability
@@ -69,7 +72,7 @@ public class SecurityIssueService
     final ComponentIdentifier componentIdentifier = resolveComponentIdentifier(policyViolations).orElse(null);
     return agg.entrySet()
         .stream()
-        .flatMap(e -> streamSecurityIssues(iqBaseUrl, componentIdentifier, e.getKey(), e.getValue()))
+        .flatMap(e -> streamSecurityIssues(iqBaseUrl, componentIdentifier, e.getKey(), e.getValue(), provider))
         .sorted(SecurityIssueComparator.ASC)
         .collect(toImmutableList());
   }
@@ -99,7 +102,8 @@ public class SecurityIssueService
       final String iqBaseUrl,
       final ComponentIdentifier componentIdentifier,
       final String refId,
-      final Collection<PolicyViolation> policyViolationsForRefId)
+      final Collection<PolicyViolation> policyViolationsForRefId,
+      final SourceControlProvider provider)
   {
     final String applicationId = policyViolationsForRefId.stream()
         .findFirst()
@@ -108,7 +112,8 @@ public class SecurityIssueService
     final boolean policyViolationsHasVulnerabilities = !NO_REF_IDS_SENTINEL_KEY.equals(refId);
     final SecurityVulnerabilityData securityVulnerabilityData = policyViolationsHasVulnerabilities ?
             findSecurityVulnerabilityData(refId, componentIdentifier, applicationId ) : null;
-    return policyViolationsForRefId.stream().map(pv -> buildSecurityIssue(iqBaseUrl, pv, securityVulnerabilityData));
+    return policyViolationsForRefId.stream().map(pv ->
+        buildSecurityIssue(iqBaseUrl, pv, securityVulnerabilityData, provider));
   }
 
   private SecurityVulnerabilityData findSecurityVulnerabilityData(final String refId,
@@ -145,9 +150,11 @@ public class SecurityIssueService
   private static SecurityIssue buildSecurityIssue(
       final String iqBaseUrl,
       final PolicyViolation policyViolation,
-      final SecurityVulnerabilityData securityVulnerabilityDetails)
+      final SecurityVulnerabilityData securityVulnerabilityDetails,
+      final SourceControlProvider provider)
   {
-    final String policyViolationDetailsLink = buildPolicyViolationDetailsLink(iqBaseUrl, policyViolation.getId());
+    final String policyViolationDetailsLink = buildPolicyViolationDetailsLink(
+        iqBaseUrl, policyViolation.getId(), provider);
     final boolean isSecurityVulnerabilityDataDefined = nonNull(securityVulnerabilityDetails);
     return new SecurityIssue(
         policyViolation.getThreatLevel(),
@@ -156,9 +163,14 @@ public class SecurityIssueService
         policyViolationDetailsLink);
   }
 
-  private static String buildPolicyViolationDetailsLink(final String iqBaseUrl, final String policyViolationId) {
-    return format("%s/assets/index.html#/violation/%s?type=violation&sidebarReference=filter",
-        trimTrailingSlash(iqBaseUrl), policyViolationId);
+  private static String buildPolicyViolationDetailsLink(
+      final String iqBaseUrl,
+      final String policyViolationId,
+      final SourceControlProvider provider)
+  {
+    final String url  = format("%s/assets/index.html", trimTrailingSlash(iqBaseUrl));
+    return maybeAppendUTMSourceParam(url, provider)
+        + format("#/violation/%s?type=violation&sidebarReference=filter", policyViolationId);
   }
 
   private static SeverityInfo buildSeverityInfo(final SecurityVulnerabilityData data) {

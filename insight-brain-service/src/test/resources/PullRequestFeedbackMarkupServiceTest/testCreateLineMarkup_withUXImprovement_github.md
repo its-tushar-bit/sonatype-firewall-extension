@@ -2,7 +2,7 @@
 
 
 # <img title="Low" alt="Low" src="https://cdn.sonatype.com/iq-for-scm/1.0/dark-blue-bar.png" width="20" height="20"/> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/>  Sonatype IQ found critical issues introduced by Test Component
-Threat Level: <strong>Low (1)</strong> \| [View Component Details in Sonatype Lifecycle](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/myScanId/componentDetails/H?source=pr-line-commenting)
+Threat Level: <strong>Low (1)</strong> \| [View Component Details in Sonatype Lifecycle](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/myScanId/componentDetails/H?source=pr-line-commenting&utm_source=github)
 
 ## :shield: Recommendation
 **Bumping to version 123** will resolve all policy violations for this component (as of _Jul 07, 2023_)
@@ -17,7 +17,7 @@ Threat Level: <strong>Low (1)</strong> \| [View Component Details in Sonatype Li
 
 | **Severity** | **Issue** | **Organization Policy Violation** |
 | --- | --- | --- |
-| <b>Threat level:</b> 1<br><b>CVSS Score:</b> N/A |  | [View Details](http://localhost:1122/assets/index.html#/violation/null?type=violation&sidebarReference=filter) |
+| <b>Threat level:</b> 1<br><b>CVSS Score:</b> N/A |  | [View Details](http://localhost:1122/assets/index.html?utm_source=github#/violation/null?type=violation&sidebarReference=filter) |
 
 </details>
 

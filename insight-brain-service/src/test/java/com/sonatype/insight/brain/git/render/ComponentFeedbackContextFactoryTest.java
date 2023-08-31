@@ -16,9 +16,9 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.render.model.ComponentFeedbackContext;
-import com.sonatype.insight.brain.git.render.model.SeverityInfo;
 import com.sonatype.insight.brain.git.render.model.MDImages;
 import com.sonatype.insight.brain.git.render.model.SecurityIssue;
+import com.sonatype.insight.brain.git.render.model.SeverityInfo;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
@@ -41,6 +41,7 @@ import static com.sonatype.insight.brain.git.render.ComponentFeedbackContextFact
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackContextFactoryTest.BreakingChangeType.NONE;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackContextFactoryTest.TestCaseId.*;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.generatePVWithManyConditionFacts;
+import static com.sonatype.insight.brain.git.render.UTMSourceUtil.maybeAppendUTMSourceParam;
 import static com.sonatype.insight.brain.git.render.model.MDImages.DIRECT_DEP_LOGO;
 import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_DEEP_DIVE_TAG;
 import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_FAST_TRACK_TAG;
@@ -48,7 +49,11 @@ import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
 import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType.DEEP_DIVE;
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType.FAST_TRACK;
+import static com.sonatype.nexus.scm.SourceControlProvider.AZURE;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
+import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 
@@ -79,7 +84,7 @@ public class ComponentFeedbackContextFactoryTest
 
   private static final String IQ_BASE_URL = "https://iq.example.com/";
 
-  private static final String COMP_DETAILS_LINK =
+  private static final String NO_UTM_COMP_DETAILS_LINK =
       "https://iq.example.com/ui/links/application/some-public-app-id/" +
           "report/some-feature-branch-scan-id/componentDetails/myhash123?source=pr-line-commenting";
 
@@ -199,6 +204,26 @@ public class ComponentFeedbackContextFactoryTest
     runTest(NO_VULN, GITHUB);
   }
 
+  @Test
+  public void testBuild_hasUtmSource_github() {
+    runTest(HAS_UTM_SOURCE, GITHUB);
+  }
+
+  @Test
+  public void testBuild_hasUtmSource_gitlab() {
+    runTest(HAS_UTM_SOURCE, GITLAB);
+  }
+
+  @Test
+  public void testBuild_noUtmSource_azure() {
+    runTest(NO_UTM_SOURCE, AZURE);
+  }
+
+  @Test
+  public void testBuild_noUtmSource_bitbucket() {
+    runTest(NO_UTM_SOURCE, BITBUCKET);
+  }
+
   private void setupTestCases(final SourceControlProvider provider) {
     testCases.put(NO_SUGGESTION, buildSingleNoSuggestionTestData(provider));
     testCases.put(WITH_SUGGESTION, buildWithSuggestionTestData(provider));
@@ -212,6 +237,8 @@ public class ComponentFeedbackContextFactoryTest
     testCases.put(SEVERE_THREAT_LEVEL,     buildThreatLevelTestData(provider, SEVERE_THREAT_LEVEL_DISPLAY));
     testCases.put(CRITICAL_THREAT_LEVEL,   buildThreatLevelTestData(provider, CRITICAL_THREAT_LEVEL_DISPLAY));
     testCases.put(NO_VULN, buildNoVulnTestData(provider));
+    testCases.put(HAS_UTM_SOURCE, buildHasUtmSourceTestData(provider));
+    testCases.put(NO_UTM_SOURCE, buildNoUtmSourceTestData(provider));
   }
 
   private void setupAllVulnerabilities(final PolicyViolation pv) {
@@ -325,8 +352,8 @@ public class ComponentFeedbackContextFactoryTest
     final PolicyViolation pv = generatePolicyViolation("pv3", expectedThreatLevelDisplay.getValue());
     factoryInput.violations = ImmutableList.of(pv);
     final List<SecurityIssue> expectedSecurityIssues = ImmutableList.of(
-            buildSecurityIssue(pv, VULN_2, SONATYPE_DEEP_DIVE_TAG),
-            buildSecurityIssue(pv, VULN_1, SONATYPE_FAST_TRACK_TAG)
+            buildSecurityIssueWithUtmSource(pv, VULN_2, SONATYPE_DEEP_DIVE_TAG, provider),
+            buildSecurityIssueWithUtmSource(pv, VULN_1, SONATYPE_FAST_TRACK_TAG, provider)
     );
     return new TestData(buildThreatLevelContext(provider, expectedThreatLevelDisplay,
         expectedSecurityIssues), factoryInput);
@@ -339,29 +366,43 @@ public class ComponentFeedbackContextFactoryTest
     return new TestData(buildNoVulnContext(provider, pv), factoryInput);
   }
 
+  private TestData buildHasUtmSourceTestData(final SourceControlProvider provider) {
+    final FactoryInput factoryInput = initFactoryInput(provider);
+    factoryInput.violations = ImmutableList.of(DEFAULT_PV);
+    factoryInput.remediationVersionDTO = NO_SUGGESTION_REMEDIATION;
+    return new TestData(buildHasUtmSourceContext(provider), factoryInput);
+  }
+
+  private TestData buildNoUtmSourceTestData(final SourceControlProvider provider) {
+    final FactoryInput factoryInput = initFactoryInput(provider);
+    factoryInput.violations = ImmutableList.of(DEFAULT_PV);
+    factoryInput.remediationVersionDTO = NO_SUGGESTION_REMEDIATION;
+    return new TestData(buildNoUtmSourceContext(provider), factoryInput);
+  }
+
   private static ComponentFeedbackContext buildNoSuggestionContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false);
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false, true);
   }
 
   private static ComponentFeedbackContext buildWithSuggestionContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, false);
+    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, false, true);
   }
 
   private static ComponentFeedbackContext buildWithSuggestionWithDepRemediationContext(
       final SourceControlProvider provider)
   {
-    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, true);
+    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, true, true);
   }
 
   private static ComponentFeedbackContext buildBreakingChangesContext(
       final SourceControlProvider provider,
       final BreakingChangeType breakingChangeType)
   {
-    return buildDefaultContext(provider, breakingChangeType, SUGGESTED_VERSION, true);
+    return buildDefaultContext(provider, breakingChangeType, SUGGESTED_VERSION, true, true);
   }
 
   private static ComponentFeedbackContext buildDirectDepContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false);
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false, true);
   }
 
   private static ComponentFeedbackContext buildThreatLevelContext(
@@ -372,7 +413,7 @@ public class ComponentFeedbackContextFactoryTest
     return new ComponentFeedbackContext(
             true,
             threatLevelDisplay,
-            COMP_DETAILS_LINK,
+            resolveExpectedComponentDetailsLink(true, provider),
             COMPONENT_DISPLAY_NAME,
             provider,
             BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
@@ -387,11 +428,11 @@ public class ComponentFeedbackContextFactoryTest
       final SourceControlProvider provider,
       final PolicyViolation pv)
   {
-    final List<SecurityIssue> securityIssues  = ImmutableList.of(buildSecurityIssueWitUnknownVuln(pv));
+    final List<SecurityIssue> securityIssues  = ImmutableList.of(buildSecurityIssueWitUnknownVuln(pv, provider));
     return new ComponentFeedbackContext(
             true,
             ThreatLevelDisplay.fromValue(pv.getThreatLevel()),
-            COMP_DETAILS_LINK,
+            resolveExpectedComponentDetailsLink(true, provider),
             COMPONENT_DISPLAY_NAME,
             provider,
             BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
@@ -402,21 +443,37 @@ public class ComponentFeedbackContextFactoryTest
             NO_CODE_SUGGESTION);
   }
 
+  private ComponentFeedbackContext buildHasUtmSourceContext(final SourceControlProvider provider) {
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false, true);
+  }
+
+  private ComponentFeedbackContext buildNoUtmSourceContext(final SourceControlProvider provider) {
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false, false);
+  }
+
+  private static String resolveExpectedComponentDetailsLink(
+      final boolean enableUtmSource,
+      final SourceControlProvider utmSourceProvider)
+  {
+    return maybeAppendUTMSourceParam(NO_UTM_COMP_DETAILS_LINK, enableUtmSource ? utmSourceProvider : null);
+  }
+
   private static ComponentFeedbackContext buildDefaultContext(
       final SourceControlProvider provider,
       final BreakingChangeType breakingChangeType,
       final String suggestedVersion,
-      final boolean hasRemediationDeps)
+      final boolean hasRemediationDeps,
+      final boolean enableUtmSource)
   {
     final ImmutableList<SecurityIssue> securityIssues = ImmutableList.of(
-            buildSecurityIssue(DEFAULT_PV, VULN_2, SONATYPE_DEEP_DIVE_TAG),
-            buildSecurityIssue(DEFAULT_PV, VULN_1, SONATYPE_FAST_TRACK_TAG)
+            buildSecurityIssue(DEFAULT_PV, VULN_2, SONATYPE_DEEP_DIVE_TAG, provider, enableUtmSource),
+            buildSecurityIssue(DEFAULT_PV, VULN_1, SONATYPE_FAST_TRACK_TAG, provider, enableUtmSource)
     );
     final String codeSuggestion = suggestedVersion.equals(SUGGESTED_VERSION) ? CODE_SUGGESTION : NO_CODE_SUGGESTION;
     return new ComponentFeedbackContext(
             true,
             ThreatLevelDisplay.fromValue(DEFAULT_PV.getThreatLevel()),
-            COMP_DETAILS_LINK,
+            resolveExpectedComponentDetailsLink(enableUtmSource, provider),
             COMPONENT_DISPLAY_NAME,
             provider,
             breakingChangeType.getNumBreakingChanges(),
@@ -457,21 +514,55 @@ public class ComponentFeedbackContextFactoryTest
     return pv;
   }
 
-  private static SecurityIssue buildSecurityIssue(
+  private static SecurityIssue buildSecurityIssueWithUtmSource(
+      final PolicyViolation pv,
+      final SecurityVulnerabilityData svd,
+      final MDImages dependencyImage,
+      final SourceControlProvider utmSourceProvider)
+  {
+    final SeverityInfo severityInfo = new SeverityInfo(svd.identifier, svd.mainSeverity.score, dependencyImage);
+    return new SecurityIssue(pv.getThreatLevel(), severityInfo, svd.description,
+        generatePVDetailsLink(pv.getId(), utmSourceProvider));
+  }
+
+  private static SecurityIssue buildSecurityIssueNoUtmSource(
       final PolicyViolation pv,
       final SecurityVulnerabilityData svd,
       final MDImages dependencyImage)
   {
-    final SeverityInfo severityInfo = new SeverityInfo(svd.identifier, svd.mainSeverity.score, dependencyImage);
-    return new SecurityIssue(pv.getThreatLevel(), severityInfo, svd.description, generatePVDetailsLink(pv.getId()));
+    return buildSecurityIssueWithUtmSource(pv, svd, dependencyImage, null);
   }
 
-  private static SecurityIssue buildSecurityIssueWitUnknownVuln(final PolicyViolation pv) {
-    return new SecurityIssue(pv.getThreatLevel(), null, null, generatePVDetailsLink(pv.getId()));
+  private static SecurityIssue buildSecurityIssue(
+      final PolicyViolation pv,
+      final SecurityVulnerabilityData svd,
+      final MDImages dependencyImage,
+      final SourceControlProvider utmSourceProvider,
+      final boolean enableUtmSource)
+  {
+    return enableUtmSource ? buildSecurityIssueWithUtmSource(pv, svd, dependencyImage, utmSourceProvider)
+        : buildSecurityIssueNoUtmSource(pv, svd, dependencyImage);
   }
 
-  private static String generatePVDetailsLink(final String policyViolationId) {
-    return "https://iq.example.com/assets/index.html#/violation/"
+  private static SecurityIssue buildSecurityIssueWitUnknownVuln(
+      final PolicyViolation pv,
+      final SourceControlProvider utmSourceProvider)
+  {
+    return new SecurityIssue(pv.getThreatLevel(), null, null, generatePVDetailsLink(pv.getId(), utmSourceProvider));
+  }
+
+  private static String generatePVDetailsLink(
+      final String policyViolationId)
+  {
+    return generatePVDetailsLink(policyViolationId, null);
+  }
+
+  private static String generatePVDetailsLink(
+      final String policyViolationId,
+      final SourceControlProvider utmSourceProvider)
+  {
+    final String additionalQueryParams = nonNull(utmSourceProvider) ? "?utm_source=" + utmSourceProvider : "";
+    return "https://iq.example.com/assets/index.html" + additionalQueryParams + "#/violation/"
         + policyViolationId + "?type=violation&sidebarReference=filter";
   }
 
@@ -489,7 +580,9 @@ public class ComponentFeedbackContextFactoryTest
     SEVERE_THREAT_LEVEL,
     MODERATE_THREAT_LEVEL,
     LOW_THREAT_LEVEL,
-    NO_VULN
+    NO_VULN,
+    HAS_UTM_SOURCE,
+    NO_UTM_SOURCE
     ;
 
   }

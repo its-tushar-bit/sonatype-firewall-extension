@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import static com.sonatype.insight.brain.git.render.UTMSourceUtil.maybeAppendUTMSourceParam;
 import static com.sonatype.insight.brain.git.render.model.MDImages.DIRECT_DEP_LOGO;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getReportUrl;
 import static com.sonatype.insight.brain.policy.evaluator.PullRequestDetailsBase.getHighestThreatLevel;
@@ -51,9 +52,10 @@ public class ComponentFeedbackContextFactory
   {
     final int threatLevelValue = getHighestThreatLevel(violations);
     final String componentDetailsLink =
-            findComponentReportUrl(iqBaseUrl, violations, applicationPublicId, featureBranchScanId).orElse(null);
+        findComponentReportUrl(iqBaseUrl, violations, applicationPublicId, featureBranchScanId, provider)
+            .orElse(null);
     final List<SecurityIssue> securityIssues =
-            securityIssueService.getSecurityIssuesFromViolations(iqBaseUrl, violations);
+            securityIssueService.getSecurityIssuesFromViolations(iqBaseUrl, violations, provider);
     return new ComponentFeedbackContext(
             true, // Only HTML supported SCM providers are supported
             ThreatLevelDisplay.fromValue(threatLevelValue),
@@ -93,11 +95,13 @@ public class ComponentFeedbackContextFactory
           final String baseUrl,
           final List<PolicyViolation> violations,
           final String applicationPublicId,
-          final String featureBranchScanId)
+          final String featureBranchScanId,
+          final SourceControlProvider provider)
   {
     final String reportPath = getReportUrl(applicationPublicId, featureBranchScanId);
     return extractComponentHash(violations)
             .map(componentHash -> format("/componentDetails/%s?source=pr-line-commenting", componentHash))
+            .map(url -> maybeAppendUTMSourceParam(url, provider))
             .map(componentDetailsPath -> baseUrl + reportPath + componentDetailsPath);
   }
 

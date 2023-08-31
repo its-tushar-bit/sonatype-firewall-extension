@@ -30,6 +30,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.COMPONENT_SCAN_REPORT_PATH;
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -98,10 +99,14 @@ public class UserInterfaceLinksResourceTest
   public void testLinkComponentScanReport() throws Exception {
     assertThat(UserInterfaceLinksHelper.getReportUrl("my-app-id", "my-scan-id"))
         .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/my-app-id/report/my-scan-id");
-    HttpResponse response = get(UserInterfaceLinksHelper.COMPONENT_SCAN_REPORT_PATH,
-        "my-app-id", "my-scan-id", "my-component-scan-hash");
+    HttpResponse response = restRequest()
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH + "/" + COMPONENT_SCAN_REPORT_PATH)
+        .parameter("my-app-id", "my-scan-id", "my-component-scan-hash")
+        .query("utm_source=github")
+        .anon()
+        .get();
     assertRedirect(response,
-        "assets/index.html#/applicationReport/my-app-id" +
+        "assets/index.html?utm_source=github#/applicationReport/my-app-id" +
             "/my-scan-id/componentDetails/my-component-scan-hash/overview");
   }
 

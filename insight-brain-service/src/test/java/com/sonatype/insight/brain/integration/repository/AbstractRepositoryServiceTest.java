@@ -3209,6 +3209,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   private void testAddProprietaryComponentNames_FormatTranslation(String repoFormat, String componentFormat) {
+    // The repository does not exist. It will be created when proprietaryComponentNames are added.
     String repoManId = tempEntity.newRepositoryManager().getInstanceId();
     String repoId = "hosted-repo";
     ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames(repoFormat, "format-test");
@@ -3217,6 +3218,19 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(componentFormat))
         .extracting(ProprietaryComponentNamePattern::getNamePattern).containsExactlyInAnyOrder("format-test");
+    assertThat(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repoManId, repoId).getFormat())
+        .isEqualTo(repoFormat);
+
+    // The repository exists.
+    proprietaryComponentNames = new ProprietaryComponentNames(repoFormat, "format-test1");
+
+    getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
+
+    assertThat(proprietaryComponentNamePatternDAO.getByFormat(componentFormat))
+        .extracting(ProprietaryComponentNamePattern::getNamePattern)
+        .containsExactlyInAnyOrder("format-test", "format-test1");
+    assertThat(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repoManId, repoId).getFormat())
+        .isEqualTo(repoFormat);
   }
 
   private void assertTelemetry(

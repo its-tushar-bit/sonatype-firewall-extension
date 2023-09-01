@@ -795,7 +795,6 @@ public abstract class AbstractRepositoryService
       throw new BadRequestException("No component format specified");
     }
 
-    String format = translateRepositoryFormat(proprietaryComponentNames.format);
     Repository repository =
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId);
     if (repository == null) {
@@ -804,16 +803,19 @@ public abstract class AbstractRepositoryService
       repository = new Repository(repositoryManager.getId(), repositoryPublicId);
       repository.setAuditEnabled(false);
       repository.setRepositoryType(RepositoryType.hosted);
-      repository.setFormat(format);
+      repository.setFormat(proprietaryComponentNames.format);
       repository.setNamespaceConfusionProtectionEnabled(true);
       repositoryDAO.insert(repository);
     }
     else {
       validateIsHostedRepository(repository);
-      if (!repository.getFormat().equals(format)) {
-        throw new BadRequestException("Format does not match the repository format.");
+      if (!repository.getFormat().equals(proprietaryComponentNames.format)) {
+        throw new BadRequestException("Format '" + proprietaryComponentNames.format
+            + "' does not match the repository format '" + repository.getFormat() + "'.");
       }
     }
+
+    String format = translateRepositoryFormat(proprietaryComponentNames.format);
 
     List<ProprietaryComponentNamePattern> patterns = new ArrayList<>();
     if (proprietaryComponentNames.namespaces != null) {

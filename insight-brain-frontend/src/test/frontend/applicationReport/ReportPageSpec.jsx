@@ -219,8 +219,8 @@ describe('Report Page component', () => {
     const affectedComponentText = screen.getByText(`Affecting ${selectedReport.policyComponentCount} component`);
     const totalArtifactText = screen.getByText(`${selectedReport.totalArtifactCount} COMPONENTS`);
     const coveragePercentageText = screen.getByText('50% of all components identified');
-    const grandfatheredCountText = screen.getByText(
-      `${selectedReport.grandfatheredPolicyViolationCount} Grandfathered`
+    const legacyPolicyViolationsCountText = screen.getByText(
+      `${selectedReport.grandfatheredPolicyViolationCount} Legacy Violations`
     );
 
     expect(criticalThreatIndicator).toBeVisible();
@@ -233,7 +233,7 @@ describe('Report Page component', () => {
     expect(affectedComponentText).toBeVisible();
     expect(totalArtifactText).toBeVisible();
     expect(coveragePercentageText).toBeVisible();
-    expect(grandfatheredCountText).toBeVisible();
+    expect(legacyPolicyViolationsCountText).toBeVisible();
   });
 
   it('renders ReportContent with 3 actions', async () => {

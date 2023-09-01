@@ -43,18 +43,16 @@ describe('Grandfathering modal', () => {
       },
     });
 
-    const initialTitle = screen.queryAllByText('Grandfather Policy Violations');
+    const initialTitle = screen.queryAllByText('Grant Legacy Violation Status');
     expect(initialTitle.length).toBe(0);
   });
 
   it('renders modal with correct content', () => {
     renderComponent();
-    expect(
-      screen.getByText('Policy violations for the application will be grandfathered without performing an evaluation.')
-    ).toBeVisible();
+    expect(screen.getByText('This action itself does not perform a new scan or re-evaluation.')).toBeVisible();
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Grandfather' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Update' })).toBeVisible();
   });
 
   it('renders error on submitError', () => {
@@ -92,7 +90,7 @@ describe('Grandfathering modal', () => {
       },
     });
 
-    const submitButton = screen.getByRole('button', { name: 'Grandfather' });
+    const submitButton = screen.getByRole('button', { name: 'Update' });
     expect(submitButton).toBeVisible();
     expect(submitButton).not.toHaveClassName('disabled');
     fireEvent.click(submitButton);

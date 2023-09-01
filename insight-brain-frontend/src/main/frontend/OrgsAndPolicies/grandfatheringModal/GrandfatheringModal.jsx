@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { grandfatheringSlice } from './grandfatheringSelectors';
-import { NxModal, NxWarningAlert, NxH2, NxStatefulForm } from '@sonatype/react-shared-components';
+import { NxModal, NxInfoAlert, NxH2, NxStatefulForm, NxP } from '@sonatype/react-shared-components';
 import { actions } from './grandfatheringSlice';
 
 export default function GrandfatheringModal() {
@@ -27,16 +27,18 @@ export default function GrandfatheringModal() {
         onSubmit={grandfathering}
         onCancel={closeModal}
         submitMaskState={submitMaskState}
-        submitBtnText="Grandfather"
+        submitBtnText="Update"
         submitError={submitError}
       >
         <NxModal.Header>
-          <NxH2>Grandfather Policy Violations</NxH2>
+          <NxH2>Grant Legacy Violation Status</NxH2>
         </NxModal.Header>
         <NxModal.Content>
-          <NxWarningAlert>
-            Policy violations for the application will be grandfathered without performing an evaluation.
-          </NxWarningAlert>
+          <NxP>
+            Existing policy violations will be acknowledged as Legacy Violations in subsequent scans and will not cause
+            a policy action.
+          </NxP>
+          <NxInfoAlert>This action itself does not perform a new scan or re-evaluation.</NxInfoAlert>
         </NxModal.Content>
       </NxStatefulForm>
     </NxModal>

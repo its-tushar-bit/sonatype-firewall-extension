@@ -45,7 +45,7 @@ export const policyViolationStates = [
   },
   {
     id: 'GRANDFATHERED',
-    name: 'Grandfathered',
+    name: 'Legacy',
   },
 ];
 

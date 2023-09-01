@@ -1147,7 +1147,7 @@ public class ComponentDetailsTest
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.getRows().shouldHaveSize(1);
     SelenideElement indicatorsCell = policyViolationsTable.getRows().first().findAll(By.tagName("td")).get(4);
-    indicatorsCell.shouldHave(text("Grandfathered"));
+    indicatorsCell.shouldHave(text("Legacy"));
   }
 
   private void activateGrandfathering() {

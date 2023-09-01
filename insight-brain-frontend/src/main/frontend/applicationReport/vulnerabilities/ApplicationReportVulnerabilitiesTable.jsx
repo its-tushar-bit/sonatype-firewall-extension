@@ -51,8 +51,8 @@ function createRow(data, uiRouterState) {
             </span>
           )}
           {data.grandfathered && (
-            <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
-              <span>Grandfathered</span>
+            <span className="iq-text-indicator iq-text-indicator--legacy-violation iq-pull-right">
+              <span>Legacy</span>
               <NxFontAwesomeIcon icon={faHistory} />
             </span>
           )}

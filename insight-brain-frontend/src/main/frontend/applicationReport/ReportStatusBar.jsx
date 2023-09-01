@@ -19,12 +19,12 @@ export default function ReportStatusBar(props) {
   const policyComponentCount = getReportProp('policyComponentCount');
   const totalArtifactCount = getReportProp('totalArtifactCount');
   const knownArtifactCount = getReportProp('knownArtifactCount');
-  const grandfatheredPolicyViolationCount = getReportProp('grandfatheredPolicyViolationCount');
+  const legacyPolicyViolationsCount = getReportProp('grandfatheredPolicyViolationCount');
   const quarantinedComponentCount = getReportProp('quarantinedComponentCount');
 
   const showSectionDefault = (propName) => propOr(true, propName, props);
   const hideSectionDefault = (propName) => propOr(false, propName, props);
-  const showGrandfatheredSection = showSectionDefault('showGrandfatheredSection');
+  const showLegacyViolationsSection = showSectionDefault('showGrandfatheredSection');
   const showQuarantinedSection = hideSectionDefault('showQuarantinedSection');
 
   const coveragePercent = () => {
@@ -70,12 +70,14 @@ export default function ReportStatusBar(props) {
               <p className="iq-caption__sub-text">{coveragePercent()}% of all components identified</p>
             </div>
           </div>
-          {showGrandfatheredSection && (
-            <div className="iq-grandfathering-indicator">
+          {showLegacyViolationsSection && (
+            <div className="iq-legacy-violations-indicator">
               <NxFontAwesomeIcon icon={faHistory} />
               <div className="iq-caption">
-                <h3 className="iq-caption__text">{grandfatheredPolicyViolationCount} Grandfathered</h3>
-                <p className="iq-caption__sub-text">violations</p>
+                <h3 className="iq-caption__text">
+                  {`${legacyPolicyViolationsCount} `}
+                  {legacyPolicyViolationsCount === 1 ? 'Legacy Violation' : 'Legacy Violations'}
+                </h3>
               </div>
             </div>
           )}

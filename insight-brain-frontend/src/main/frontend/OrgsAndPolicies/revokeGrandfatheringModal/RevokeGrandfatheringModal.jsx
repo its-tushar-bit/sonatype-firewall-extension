@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectRevokeGrandfatheringSlice } from './revokeGrandfatheringSelectors';
-import { NxModal, NxWarningAlert, NxH2, NxStatefulForm } from '@sonatype/react-shared-components';
+import { NxModal, NxH2, NxP, NxStatefulForm } from '@sonatype/react-shared-components';
 import { actions } from './revokeGrandfatheringSlice';
 
 export default function RevokeGrandfatheringModal() {
@@ -31,12 +31,13 @@ export default function RevokeGrandfatheringModal() {
         submitError={submitError}
       >
         <NxModal.Header>
-          <NxH2>Revoke Grandfathered Policy Violations</NxH2>
+          <NxH2>Revoke Legacy Violation Status</NxH2>
         </NxModal.Header>
         <NxModal.Content>
-          <NxWarningAlert>
-            Revoking the grandfathered policy violations for the application will reinstate violations if applicable.
-          </NxWarningAlert>
+          <NxP>
+            Subsequent scans and re-evaluations will treat applicable policy violations as active and trigger configured
+            actions.
+          </NxP>
         </NxModal.Content>
       </NxStatefulForm>
     </NxModal>

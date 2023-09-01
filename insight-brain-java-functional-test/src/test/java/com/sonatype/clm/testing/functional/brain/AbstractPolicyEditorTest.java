@@ -1631,7 +1631,7 @@ public abstract class AbstractPolicyEditorTest
     com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || grandfatheringReadOnly ? disabled : enabled;
     summary.policyViolationGrandfatheringCheckbox().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
     if (grandfatheringReadOnly) {
-      String expectedText = "Policy Violation Grandfathering is not supported by your license";
+      String expectedText = "Legacy Violations are not supported by your license";
       PolicyEditorPage.disabledGrandfatheringMessage().shouldBe(text(expectedText));
     }
     else {

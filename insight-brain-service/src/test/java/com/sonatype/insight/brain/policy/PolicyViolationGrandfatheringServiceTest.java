@@ -309,25 +309,35 @@ public class PolicyViolationGrandfatheringServiceTest
     Application app = tempEntity.newApplication(org.getId());
     PolicyViolationGrandfatheringDTO result = policyViolationGrandfatheringService
         .getGrandfathering(OwnerType.APPLICATION, app.getPublicId());
-    assertPolicyViolationGrandfatheringDTO(result, null, "Root Organization", false, false);
+    assertPolicyViolationGrandfatheringDTO(result, null, null, "Root Organization", false, false);
 
     // The parent org allows override, grandfathering is not specified at any level.
     org.setAllowPolicyViolationGrandfatheringOverride(true);
     new OrganizationDAO().update(org);
     result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.APPLICATION, app.getPublicId());
-    assertPolicyViolationGrandfatheringDTO(result, null, "Root Organization", false, true);
+    assertPolicyViolationGrandfatheringDTO(result, null, null, "Root Organization", false, true);
 
-    // The parent org allows override and grandfathering is specified at org level.
+    // The parent org allows override and grandfathering is specified at org level as true.
     org.setPolicyViolationGrandfatheringEnabled(true);
     new OrganizationDAO().update(org);
     result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.APPLICATION, app.getPublicId());
-    assertPolicyViolationGrandfatheringDTO(result, true, org.getName(), false, true);
+    assertPolicyViolationGrandfatheringDTO(result, true, true, org.getName(), false, true);
+
+    // The parent org allows override and grandfathering is specified at org level as false.
+    app.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(app);
+    org.setPolicyViolationGrandfatheringEnabled(false);
+    new OrganizationDAO().update(org);
+    result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.APPLICATION, app.getPublicId());
+    assertPolicyViolationGrandfatheringDTO(result, true, false, null, false, true);
 
     // The parent org allows override and grandfathering is specified at app and org level.
+    org.setPolicyViolationGrandfatheringEnabled(null);
+    new OrganizationDAO().update(org);
     app.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(app);
     result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.APPLICATION, app.getPublicId());
-    assertPolicyViolationGrandfatheringDTO(result, false, null, false, true);
+    assertPolicyViolationGrandfatheringDTO(result, false, null, null, false, true);
 
     // The parent org doesn't allow override, grandfathering is specified at app level.
     org.setPolicyViolationGrandfatheringEnabled(null);
@@ -336,7 +346,7 @@ public class PolicyViolationGrandfatheringServiceTest
     app.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(app);
     result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.APPLICATION, app.getPublicId());
-    assertPolicyViolationGrandfatheringDTO(result, null, "Root Organization", false, false);
+    assertPolicyViolationGrandfatheringDTO(result, null, null, "Root Organization", false, false);
   }
 
   @Test
@@ -353,38 +363,38 @@ public class PolicyViolationGrandfatheringServiceTest
       new OrganizationDAO().update(org);
       PolicyViolationGrandfatheringDTO result = policyViolationGrandfatheringService
           .getGrandfathering(OwnerType.ORGANIZATION, org.getId());
-      assertPolicyViolationGrandfatheringDTO(result, null, "Root Organization", false, false);
+      assertPolicyViolationGrandfatheringDTO(result, null, null, "Root Organization", false, false);
   
       // The parent org allows override, grandfathering is not specified at any level.
       rootOrganization.setAllowPolicyViolationGrandfatheringOverride(true);
       new OrganizationDAO().update(rootOrganization);
       result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.ORGANIZATION, org.getId());
-      assertPolicyViolationGrandfatheringDTO(result, null, "Root Organization", false, true);
+      assertPolicyViolationGrandfatheringDTO(result, null, null, "Root Organization", false, true);
   
       // The parent org allows override and grandfathering is specified at parent org level.
       rootOrganization.setPolicyViolationGrandfatheringEnabled(true);
       new OrganizationDAO().update(rootOrganization);
       result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.ORGANIZATION, org.getId());
-      assertPolicyViolationGrandfatheringDTO(result, true, rootOrganization.getName(), false, true);
+      assertPolicyViolationGrandfatheringDTO(result, true, true, rootOrganization.getName(), false, true);
   
       // The parent org allows override and grandfathering is specified at this org level.
       org.setPolicyViolationGrandfatheringEnabled(false);
       new OrganizationDAO().update(org);
       result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.ORGANIZATION, org.getId());
-      assertPolicyViolationGrandfatheringDTO(result, false, null, false, true);
+      assertPolicyViolationGrandfatheringDTO(result, false, true, null, false, true);
 
       // The parent org doesn't allow override, grandfathering is specified at this org level.
       rootOrganization.setPolicyViolationGrandfatheringEnabled(null);
       rootOrganization.setAllowPolicyViolationGrandfatheringOverride(false);
       new OrganizationDAO().update(rootOrganization);
       result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.ORGANIZATION, org.getId());
-      assertPolicyViolationGrandfatheringDTO(result, null, rootOrganization.getName(), false, false);
+      assertPolicyViolationGrandfatheringDTO(result, null, null, rootOrganization.getName(), false, false);
 
       // The parent org doesn't allow override, this org allows override.
       org.setAllowPolicyViolationGrandfatheringOverride(true);
       new OrganizationDAO().update(org);
       result = policyViolationGrandfatheringService.getGrandfathering(OwnerType.ORGANIZATION, org.getId());
-      assertPolicyViolationGrandfatheringDTO(result, null, rootOrganization.getName(), true, false);
+      assertPolicyViolationGrandfatheringDTO(result, null, null, rootOrganization.getName(), true, false);
     }
     finally {
       rootOrganization.setPolicyViolationGrandfatheringEnabled(grandfatheringEnabled);
@@ -395,11 +405,13 @@ public class PolicyViolationGrandfatheringServiceTest
 
   private void assertPolicyViolationGrandfatheringDTO(PolicyViolationGrandfatheringDTO actual,
                                                       Boolean expectedEnabled,
+                                                      Boolean expectedEnabledInParent,
                                                       String expectedInheritedFromOrganizationName,
                                                       boolean expectedAllowOverride,
                                                       boolean expectedAllowChange)
   {
     assertThat(actual.enabled).as("enabled").isEqualTo(expectedEnabled);
+    assertThat(actual.enabledInParent).as("enabledInParent").isEqualTo(expectedEnabledInParent);
     assertThat(actual.inheritedFromOrganizationName).as("inheritedFromOrganizationName")
         .isEqualTo(expectedInheritedFromOrganizationName);
     assertThat(actual.allowOverride).as("allowOverride").isEqualTo(expectedAllowOverride);

@@ -1875,7 +1875,7 @@ public class DashboardFilterTest
     policyViolationStateFilter.allItems().shouldNotBe(selected).label().shouldHave(text("all/none"));
     policyViolationStateFilter.open().shouldBe(selected).label().shouldHave(text("Open"));
     policyViolationStateFilter.waived().shouldNotBe(selected).label().shouldHave(text("Waived"));
-    policyViolationStateFilter.grandfathered().shouldNotBe(selected).label().shouldHave(text("Grandfathered"));
+    policyViolationStateFilter.grandfathered().shouldNotBe(selected).label().shouldHave(text("Legacy"));
     policyViolationStateFilter.twisty().click();
   }
 

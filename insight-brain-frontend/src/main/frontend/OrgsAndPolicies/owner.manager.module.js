@@ -203,9 +203,9 @@ export default angular
             component: 'accessPage',
           })
           .state('management.edit.' + ownerType.type + '.violation-grandfathering-policy', {
-            url: '/grandfathering',
+            url: '/legacyViolations',
             data: {
-              title: ownerType.name + ' Violation Grandfathering',
+              title: ownerType.name + ' Legacy Violations',
               isDirty: ['orgsAndPolicies', 'policyViolationGrandfathering', 'isDirty'],
             },
             component: 'policyViolationGrandfatheringEditor',

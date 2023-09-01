@@ -39,7 +39,7 @@ const violationStateFilterOptions = [
   { id: 'notViolating', name: 'Not Violating' },
   { id: 'open', name: 'Open' },
   { id: 'waived', name: 'Waived' },
-  { id: 'grandfathered', name: 'Grandfathered' },
+  { id: 'grandfathered', name: 'Legacy' },
 ];
 
 const dependencyTypeFilterOptions = [

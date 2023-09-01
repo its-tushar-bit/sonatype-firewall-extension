@@ -26,20 +26,21 @@ public class PolicyViolationGrandfatheringEditorPage
   }
 
   public static String url(OwnerType ownerType, String ownerId) {
-    return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/grandfathering", ownerType, ownerId);
+    return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/legacyViolations", ownerType, ownerId);
   }
 
-  public static String statusMessageText(String inheritedFromName, Boolean grandfathering) {
+  public static String statusMessageText(String inheritedFromName, Boolean legacyViolations) {
     StringBuilder sb = new StringBuilder();
     if (inheritedFromName != null) {
-      sb.append("Inherit from ");
+      sb.append("Legacy violations are ");
+      sb.append(Boolean.TRUE.equals(legacyViolations) ? "enabled" : "disabled");
+      sb.append(" (Inheriting from ");
       sb.append(inheritedFromName);
-      sb.append(" (");
-    }
-    sb.append("Grandfathering is ");
-    sb.append(Boolean.TRUE.equals(grandfathering) ? "enabled" : "disabled");
-    if (inheritedFromName != null) {
       sb.append(")");
+    }
+    if (inheritedFromName == null) {
+      sb.append("Legacy violations are ");
+      sb.append(Boolean.TRUE.equals(legacyViolations) ? "enabled" : "disabled");
     }
     return sb.toString();
   }
@@ -48,8 +49,11 @@ public class PolicyViolationGrandfatheringEditorPage
     return $("h1");
   }
 
-  public static SelenideElement grandfatheringInherited() {
-    return policyRadioButton("Inherit from parent organization");
+  public static SelenideElement grandfatheringInherited(Boolean legacyViolations) {
+    String statusMessage = "Inherit from parent (" +
+            (Boolean.TRUE.equals(legacyViolations) ? "Enabled" : "Disabled") +
+            ")";
+    return policyRadioButton(statusMessage);
   }
 
   public static SelenideElement grandfatheringEnabled() {
@@ -80,12 +84,8 @@ public class PolicyViolationGrandfatheringEditorPage
     return $(".nx-form__submit-btn");
   }
 
-  public static SelenideElement statusMessage() {
-    return $(".nx-read-only");
-  }
-
   public static SelenideElement disabledMessage() {
-    return $("#violation-grandfathering-disabled-message");
+    return $("#legacy-violations-disabled-message");
   }
 
   public static SelenideElement unsupportedLicenseWarning() {
@@ -93,6 +93,6 @@ public class PolicyViolationGrandfatheringEditorPage
   }
 
   public static Condition unsupportedLicenseText() {
-    return text("Policy violation grandfathering is not supported by your license");
+    return text("Legacy Violations are not supported by your license");
   }
 }

@@ -78,7 +78,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
       inheritedFromOrganizationName: null,
     });
     renderComponent();
-    const title = await screen.findByText('Policy Violation Grandfathering');
+    const title = await screen.findByText('Legacy Violations');
     expect(title).toBeVisible();
   });
 
@@ -126,63 +126,75 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
           return '{"allowOverride":false,"enabled":false}';
       }
     }
-    testsToRun.forEach((grandfathering) => {
-      if (grandfathering.source === 'inherit') {
+    testsToRun.forEach((violationStatus) => {
+      if (violationStatus.source === 'inherit') {
         return;
       }
-      it(`on Root Organization level check ${grandfathering.source} grandfathering status`, async () => {
+      it(`on Root Organization level check ${violationStatus.source} legacy violation status`, async () => {
         mock.onGet(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
           allowChange: true,
           allowOverride: false,
-          enabled: grandfathering.source === 'enabled' ? false : true,
+          enabled: violationStatus.source === 'enabled' ? false : true,
           inheritedFromOrganizationName: null,
         });
         renderComponent();
-        const radio = await screen.findByRole('radio', { name: grandfathering });
+        const radio = await screen.findByRole('radio', { name: violationStatus });
         fireEvent.click(radio);
         const updateButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(updateButton);
         expect(mock.history.put.length).toBe(1);
         expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID'));
-        expect(mock.history.put[0].data).toBe(results(grandfathering.source));
+        expect(mock.history.put[0].data).toBe(results(violationStatus.source));
       });
     });
 
-    testsToRun.forEach((grandfathering) => {
-      it(`on Organization level check ${grandfathering.source} grandfathering status`, async () => {
+    testsToRun.forEach((violationStatus) => {
+      it(`on Organization level check ${violationStatus.source} legacy violation status`, async () => {
         mock.onGet(getGrandfatheringUrl('organization', 'myOrg')).reply(200, {
           allowChange: true,
           allowOverride: false,
-          enabled: grandfathering.source === 'enabled' ? false : true,
+          enabled: violationStatus.source === 'enabled' ? false : true,
           inheritedFromOrganizationName: null,
         });
         renderComponent(orgLevelState);
-        const radio = await screen.findByRole('radio', { name: grandfathering });
-        fireEvent.click(radio);
+        const radios = await screen.findAllByRole('radio', { name: violationStatus });
+        let radioEl;
+        if (violationStatus.source === 'disabled') {
+          radioEl = radios[1];
+        } else {
+          radioEl = radios[0];
+        }
+        fireEvent.click(radioEl);
         const updateButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(updateButton);
         expect(mock.history.put.length).toBe(1);
         expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'myOrg'));
-        expect(mock.history.put[0].data).toBe(results(grandfathering.source));
+        expect(mock.history.put[0].data).toBe(results(violationStatus.source));
       });
     });
 
-    testsToRun.forEach((grandfathering) => {
-      it(`on Application level check ${grandfathering.source} grandfathering status`, async () => {
+    testsToRun.forEach((violationStatus) => {
+      it(`on Application level check ${violationStatus.source} legacy violation status`, async () => {
         mock.onGet(getGrandfatheringUrl('application', '1')).reply(200, {
           allowChange: true,
           allowOverride: false,
-          enabled: grandfathering.source === 'enabled' ? false : true,
+          enabled: violationStatus.source === 'enabled' ? false : true,
           inheritedFromOrganizationName: null,
         });
         renderComponent(applicationLevelState);
-        const radio = await screen.findByRole('radio', { name: grandfathering });
-        fireEvent.click(radio);
+        const radios = await screen.findAllByRole('radio', { name: violationStatus });
+        let radioEl;
+        if (violationStatus.source === 'disabled') {
+          radioEl = radios[1];
+        } else {
+          radioEl = radios[0];
+        }
+        fireEvent.click(radioEl);
         const updateButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(updateButton);
         expect(mock.history.put.length).toBe(1);
         expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('application', '1'));
-        expect(mock.history.put[0].data).toBe(results(grandfathering.source));
+        expect(mock.history.put[0].data).toBe(results(violationStatus.source));
       });
     });
   });
@@ -233,49 +245,5 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
 
     expect(await screen.findByText('The parent selection cannot be overridden.')).toBeVisible();
     expect(await screen.findByRole('button', { name: 'Update' })).toBeVisible();
-  });
-
-  describe('Grandfathering status message', () => {
-    it(`on Application level check shows correct grandfathering status`, async () => {
-      mock.onGet(getGrandfatheringUrl('application', '1')).reply(200, {
-        allowChange: true,
-        allowOverride: false,
-        enabled: true,
-        inheritedFromOrganizationName: 'Some Org',
-      });
-      renderComponent(applicationLevelState);
-      expect(await screen.findByRole('definition')).toHaveTextContent('Grandfathering is enabled');
-
-      let radio = await screen.findByRole('radio', { name: /inherit/i });
-      fireEvent.click(radio);
-
-      const updateButton = screen.getByRole('button', { name: 'Update' });
-      fireEvent.click(updateButton);
-
-      expect(await screen.findByRole('definition')).toHaveTextContent(
-        'Inherit from Some Org (Grandfathering is enabled)'
-      );
-    });
-
-    it(`on Organization level check shows correct grandfathering status`, async () => {
-      mock.onGet(getGrandfatheringUrl('application', '1')).reply(200, {
-        allowChange: true,
-        allowOverride: false,
-        enabled: false,
-        inheritedFromOrganizationName: 'Root Organization',
-      });
-      renderComponent(applicationLevelState);
-      expect(await screen.findByRole('definition')).toHaveTextContent('Grandfathering is disabled');
-
-      let radio = await screen.findByRole('radio', { name: /inherit/i });
-      fireEvent.click(radio);
-
-      const updateButton = screen.getByRole('button', { name: 'Update' });
-      fireEvent.click(updateButton);
-
-      expect(await screen.findByRole('definition')).toHaveTextContent(
-        'Inherit from Root Organization (Grandfathering is disabled)'
-      );
-    });
   });
 });

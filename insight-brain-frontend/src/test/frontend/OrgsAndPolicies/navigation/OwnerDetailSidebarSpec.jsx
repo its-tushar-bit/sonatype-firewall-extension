@@ -198,7 +198,7 @@ describe('OwnerDetailSidebar', () => {
     expect(await screen.findByText('Component Labels')).toBeVisible();
     expect(await screen.findByText('License Threat Groups')).toBeVisible();
     expect(screen.getByText('Access')).toBeVisible();
-    expect(screen.queryByText('Grandfathering')).not.toBeInTheDocument();
+    expect(screen.queryByText('Legacy Violations')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Categories')).not.toBeInTheDocument();
     expect(screen.queryByText('Continuous Monitoring')).not.toBeInTheDocument();
   });
@@ -249,8 +249,8 @@ describe('OwnerDetailSidebar', () => {
     expect(await screen.findByText('License Threat Groups')).toBeVisible();
     expect(await screen.findByText('Application Evaluator')).toBeVisible();
     expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
-    expect(await screen.findByText('Grandfathering')).toBeVisible();
-    expect(screen.getByText('Grandfathering').parentElement).toHaveClassName('disabled');
+    expect(await screen.findByText('Legacy Violations')).toBeVisible();
+    expect(screen.getByText('Legacy Violations').parentElement).toHaveClassName('disabled');
   });
 
   it('renders correct sidebar with correct list open at Organization levels', async () => {
@@ -264,8 +264,8 @@ describe('OwnerDetailSidebar', () => {
     expect(await screen.findByText('licenseThreatGroupsTest')).toBeVisible();
     expect(await screen.findByText('Application Evaluator')).toBeVisible();
     expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
-    expect(await screen.findByText('Grandfathering')).toBeVisible();
-    expect(screen.getByText('Grandfathering').parentElement).toHaveClassName('disabled');
+    expect(await screen.findByText('Legacy Violations')).toBeVisible();
+    expect(screen.getByText('Legacy Violations').parentElement).toHaveClassName('disabled');
   });
 
   it('renders correct sidebar with correct list open at Repositories', () => {

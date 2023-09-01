@@ -95,7 +95,7 @@ public class ApplicationReportVulnerabilitiesPage
     }
 
     public SelenideElement grandfathered() {
-      return component().$(".iq-text-indicator--grandfathered");
+      return component().$(".iq-text-indicator--legacy-violation");
     }
   }
 }

@@ -140,8 +140,8 @@ describe('ActionDropdown', () => {
         'Change App ID',
         'Move 44App',
         'Delete 44App',
-        'Grandfather 44App',
-        'Revoke All Grandfathered',
+        'Legacy existing violations',
+        'Revoke legacy status',
         'Evaluate a File',
         'View source report',
         'View build report',
@@ -307,13 +307,13 @@ describe('ActionDropdown', () => {
     });
   });
 
-  describe('Grandfather button', () => {
-    describe('when grandfathering is supported and enabled', () => {
+  describe('Legacy button', () => {
+    describe('when legacy policies are supported and enabled', () => {
       it('renders an enabled button without tooltips', async () => {
         renderComponent();
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
-        const grandfatherButton = await screen.findByRole('button', { name: 'Grandfather 44App' });
+        const grandfatherButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
         expect(grandfatherButton).not.toHaveClassName('disabled');
         fireEvent.mouseOver(grandfatherButton);
         const tooltip = screen.queryByRole('tooltip');
@@ -321,7 +321,7 @@ describe('ActionDropdown', () => {
       });
     });
 
-    describe('when grandfathering is not supported', () => {
+    describe('when legacy policies are not supported', () => {
       it('renders a disabled button with tooltip "not supported by license"', async () => {
         renderComponent({
           router: {
@@ -352,17 +352,15 @@ describe('ActionDropdown', () => {
         });
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
-        const grandfatherButton = await screen.findByRole('button', { name: 'Grandfather 44App' });
+        const grandfatherButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
         expect(grandfatherButton).toHaveClassName('disabled');
         fireEvent.mouseOver(grandfatherButton);
         const tooltip = await screen.findByRole('tooltip');
-        expect(
-          within(tooltip).getByText('Policy Violation Grandfathering is not supported by your license')
-        ).toBeInTheDocument();
+        expect(within(tooltip).getByText('Legacy Violations are not supported by your license')).toBeInTheDocument();
       });
     });
 
-    describe('when grandfathering is supported but not enabled', () => {
+    describe('when legacy policy is supported but not enabled', () => {
       it('renders a disabled button with tooltip "not enabled"', async () => {
         renderComponent({
           router: {
@@ -398,22 +396,24 @@ describe('ActionDropdown', () => {
         });
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
-        const grandfatherButton = await screen.findByRole('button', { name: 'Grandfather 44App' });
+        const grandfatherButton = await screen.findByRole('button', { name: 'Legacy existing violations' });
         expect(grandfatherButton).toHaveClassName('disabled');
         fireEvent.mouseOver(grandfatherButton);
         const tooltip = await screen.findByRole('tooltip');
-        expect(within(tooltip).getByText('Grandfathering is not enabled for this application.')).toBeInTheDocument();
+        expect(
+          within(tooltip).getByText('Legacy violations are not enabled for this application.')
+        ).toBeInTheDocument();
       });
     });
   });
 
-  describe('Revoke All Grandfathered button', () => {
-    describe('when grandfathering is supported', () => {
+  describe('Revoke Legacy Status button', () => {
+    describe('when legacy status is supported', () => {
       it('renders an enabled button without tooltips', async () => {
         renderComponent();
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
-        const revokeButton = await screen.findByRole('button', { name: 'Revoke All Grandfathered' });
+        const revokeButton = await screen.findByRole('button', { name: 'Revoke legacy status' });
         expect(revokeButton).not.toHaveClassName('disabled');
         fireEvent.mouseOver(revokeButton);
         const tooltip = screen.queryByRole('tooltip');
@@ -421,7 +421,7 @@ describe('ActionDropdown', () => {
       });
     });
 
-    describe('when grandfathering is not supported', () => {
+    describe('when legacy status is not supported', () => {
       it('renders a disabled button with tooltip "not supported by license"', async () => {
         renderComponent({
           router: {
@@ -452,13 +452,11 @@ describe('ActionDropdown', () => {
         });
         const actionButton = screen.getByRole('button', { name: 'Actions' });
         fireEvent.click(actionButton);
-        const revokeButton = await screen.findByRole('button', { name: 'Revoke All Grandfathered' });
+        const revokeButton = await screen.findByRole('button', { name: 'Revoke legacy status' });
         expect(revokeButton).toHaveClassName('disabled');
         fireEvent.mouseOver(revokeButton);
         const tooltip = await screen.findByRole('tooltip');
-        expect(
-          within(tooltip).getByText('Policy Violation Grandfathering is not supported by your license')
-        ).toBeInTheDocument();
+        expect(within(tooltip).getByText('Legacy Violations are not supported by your license')).toBeInTheDocument();
       });
     });
   });

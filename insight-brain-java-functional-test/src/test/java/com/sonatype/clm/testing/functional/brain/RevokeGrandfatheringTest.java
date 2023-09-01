@@ -62,6 +62,11 @@ public class RevokeGrandfatheringTest
     ActionDropDown.revokeGrandfathered().shouldBe(visible).click();
     RevokeGrandfatheringModal modal = new RevokeGrandfatheringModal();
     modal.shouldBe(visible);
+    modal.header().shouldHave(text("Revoke Legacy Violation Status"));
+    modal.body().shouldHave(text(
+        "Subsequent scans and re-evaluations will treat applicable policy violations "
+        + "as active and trigger configured actions."
+    ));
     modal.revokeButton().shouldBe(visible);
     modal.retryButton().shouldBe(hidden);
     modal.cancelButton().shouldBe(visible);
@@ -77,7 +82,7 @@ public class RevokeGrandfatheringTest
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.revokeGrandfathered().shouldBe(visible).shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible)
-        .shouldHave(text("Policy Violation Grandfathering is not supported by your license"));
+        .shouldHave(text("Legacy Violations are not supported by your license"));
     ActionDropDown.grandfather().click();
     RevokeGrandfatheringModal modal = new RevokeGrandfatheringModal();
     modal.shouldNotBe(visible);

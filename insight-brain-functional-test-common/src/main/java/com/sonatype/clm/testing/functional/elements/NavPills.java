@@ -32,8 +32,8 @@ public class NavPills
     return $("#owner-pill-policy-button");
   }
 
-  public SelenideElement grandfathering() {
-    return $("#owner-pill-grandfathering-button");
+  public SelenideElement legacyViolations() {
+    return $("#owner-pill-legacy-violations-button");
   }
 
   public SelenideElement continuousMonitoring() {

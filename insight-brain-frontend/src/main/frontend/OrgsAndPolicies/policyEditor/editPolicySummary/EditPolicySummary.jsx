@@ -74,18 +74,21 @@ export default function EditPolicySummary() {
       </NxFormRow>
       {!isGrandfatheringSupported && (
         <NxStatefulInfoAlert id="grandfathering-disabled-message">
-          Policy Violation Grandfathering is not supported by your license
+          Legacy Violations are not supported by your license
         </NxStatefulInfoAlert>
       )}
       {!isRepositoriesRelated && (
-        <NxFieldset label="Policy Violation Grandfathering">
+        <NxFieldset
+          label="Legacy Violations"
+          sublabel="Eligible violations will be reported but will not trigger actions"
+        >
           <NxCheckbox
             id="editor-policy-violation-grandfathering"
             onChange={togglePolicyViolationGrandfatheringAllowed}
             isChecked={!!policyViolationGrandfatheringAllowed}
             disabled={isRepositoriesRelated ? false : readOnly || !isGrandfatheringSupported}
           >
-            Allow this policy to be grandfathered
+            Allow violations of this policy to be granted legacy status
           </NxCheckbox>
         </NxFieldset>
       )}

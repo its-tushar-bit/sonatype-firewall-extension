@@ -56,10 +56,10 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const getDisabledGrandfatherTooltipMessage = (support, enabled) => {
   if (!support) {
-    return 'Policy Violation Grandfathering is not supported by your license';
+    return 'Legacy Violations are not supported by your license';
   }
   if (!enabled) {
-    return 'Grandfathering is not enabled for this application.';
+    return 'Legacy violations are not enabled for this application.';
   }
   return '';
 };
@@ -84,9 +84,8 @@ const ActionDropdown = () => {
   const isGrandfatheringEnabled = useSelector(selectCalculatedEnabled);
   const isEvaluateApplicationAvailable = useSelector(selectIsEvaluateApplicationAvailable);
   const owner = useSelector(selectSelectedOwner);
-  const { applicationSummary, hasPermissionToChangeAppId, hasPermissionToEvaluateApp } = useSelector(
-    selectActionDropdownSlice
-  );
+  const { applicationSummary, hasPermissionToChangeAppId, hasPermissionToEvaluateApp } =
+    useSelector(selectActionDropdownSlice);
   const stages = useSelector(selectDashboardStageTypes);
   const grandfatheringDisabled = !isGrandfatheringSupported || !isGrandfatheringEnabled;
   const GrandfatheringTooltip = grandfatheringDisabled ? NxTooltip : NxOverflowTooltip;
@@ -236,22 +235,18 @@ const ActionDropdown = () => {
                 className={`nx-dropdown-button ${grandfatheringDisabled ? 'disabled' : ''}`}
               >
                 <NxFontAwesomeIcon icon={faHammer} className="fa-flip-horizontal" />
-                <span>Grandfather {owner.name}</span>
+                <span>Legacy existing violations</span>
               </button>
             </GrandfatheringTooltip>
 
-            <NxTooltip
-              title={
-                !isGrandfatheringSupported ? 'Policy Violation Grandfathering is not supported by your license' : ''
-              }
-            >
+            <NxTooltip title={!isGrandfatheringSupported ? 'Legacy Violations are not supported by your license' : ''}>
               <button
                 id="revoke-policy-violation-grandfathering-link"
                 onClick={handleRevokeAllGrandfathered}
                 className={`nx-dropdown-button ${!isGrandfatheringSupported ? 'disabled' : ''}`}
               >
                 <NxFontAwesomeIcon icon={faHistory} />
-                <span>Revoke All Grandfathered</span>
+                <span>Revoke legacy status</span>
               </button>
             </NxTooltip>
 

@@ -7,9 +7,9 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { actions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
 import {
-  selectGrandfatheringStatusMessageFromServer,
   selectPolicyViolationGrandfatheringConfig,
   selectPolicyViolationGrandfatheringSlice,
+  selectParentLegacyViolationStatus,
 } from '../policyViolationGrandfatheringSelectors';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsApplication, selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -20,11 +20,11 @@ import {
   NxTile,
   NxErrorAlert,
   NxStatefulForm,
+  NxForm,
   NxFieldset,
   NxRadio,
   NxCheckbox,
   NxInfoAlert,
-  NxReadOnly,
 } from '@sonatype/react-shared-components';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
@@ -38,15 +38,10 @@ export default function PolicyViolationsGrandfatheringEditor() {
     selectPolicyViolationGrandfatheringConfig
   );
 
-  const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
+  const areLegacyViolationsSupported = useSelector(selectIsGrandfatheringSupported);
   const isApp = useSelector(selectIsApplication);
   const isRootOrg = useSelector(selectIsRootOrganization);
-
-  const allowOverrideLabel = isRootOrg
-    ? 'Allow Override by Child Organizations and Applications'
-    : 'Allow Override by Child Applications';
-
-  const grandfatheringStatusMessage = useSelector(selectGrandfatheringStatusMessageFromServer);
+  const parentStatus = useSelector(selectParentLegacyViolationStatus);
 
   const doLoad = () => dispatch(actions.loadPolicyViolationGrandfathering());
 
@@ -65,14 +60,14 @@ export default function PolicyViolationsGrandfatheringEditor() {
   return (
     <>
       <NxPageTitle>
-        <NxH1>Policy Violation Grandfathering</NxH1>
+        <NxH1>Legacy Violations</NxH1>
         <NxPageTitle.Description>
-          Policy violation grandfathering can be enabled on organizations and applications. These settings can be
-          inherited by child organizations and applications.
+          Applications can often accumulate a backlog of existing violations that will trigger enforcement when
+          onboarded. Policies can acknowledge these as Legacy Violations, and report without taking action.
         </NxPageTitle.Description>
       </NxPageTitle>
       <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
-        {isGrandfatheringSupported ? (
+        {areLegacyViolationsSupported ? (
           <NxTile>
             <NxStatefulForm
               submitBtnText="Update"
@@ -85,29 +80,30 @@ export default function PolicyViolationsGrandfatheringEditor() {
               submitError={submitError}
             >
               <NxTile.Content>
-                <NxReadOnly>
-                  <NxReadOnly.Label>Status</NxReadOnly.Label>
-                  <NxReadOnly.Data>{grandfatheringStatusMessage}</NxReadOnly.Data>
-                </NxReadOnly>
+                <NxForm.RequiredFieldNotice />
                 {!allowChange && (
-                  <NxInfoAlert id="violation-grandfathering-disabled-message">
+                  <NxInfoAlert id="legacy-violations-disabled-message">
                     The parent selection cannot be overridden.
                   </NxInfoAlert>
                 )}
-                <NxFieldset label="Enable Policy Violation Grandfathering" isRequired>
+                <NxFieldset
+                  label="Legacy Violation status:"
+                  sublabel="Individual policies must also be configured to grant legacy status"
+                  isRequired
+                >
                   {!isRootOrg && (
                     <NxRadio
-                      name="grandfatheringStatus"
+                      name="legacyViolationStatus"
                       value="inherit"
                       onChange={handleChange}
                       isChecked={!!inheritedFromOrganizationName}
                       disabled={!allowChange}
                     >
-                      Inherit from parent organization
+                      {`Inherit from parent (${parentStatus})`}
                     </NxRadio>
                   )}
                   <NxRadio
-                    name="grandfatheringStatus"
+                    name="legacyViolationStatus"
                     value="enabled"
                     onChange={handleChange}
                     isChecked={inheritedFromOrganizationName ? false : !!enabled}
@@ -116,7 +112,7 @@ export default function PolicyViolationsGrandfatheringEditor() {
                     Enabled
                   </NxRadio>
                   <NxRadio
-                    name="grandfatheringStatus"
+                    name="legacyViolationStatus"
                     value="disabled"
                     onChange={handleChange}
                     isChecked={inheritedFromOrganizationName ? false : !enabled}
@@ -126,13 +122,13 @@ export default function PolicyViolationsGrandfatheringEditor() {
                   </NxRadio>
                 </NxFieldset>
                 {!isApp && (
-                  <NxFieldset label={allowOverrideLabel} isRequired>
+                  <NxFieldset label="Inheritance Overrides" isRequired>
                     <NxCheckbox
                       isChecked={allowOverride || false}
                       disabled={!allowChange}
                       onChange={() => dispatch(actions.toggleOverride())}
                     >
-                      Allow Override
+                      Allow configuration to be overridden at organization or application level
                     </NxCheckbox>
                   </NxFieldset>
                 )}
@@ -140,7 +136,7 @@ export default function PolicyViolationsGrandfatheringEditor() {
             </NxStatefulForm>
           </NxTile>
         ) : (
-          <NxErrorAlert>Policy Violation Grandfathering is not supported by your license.</NxErrorAlert>
+          <NxErrorAlert>Legacy Violations are not supported by your license.</NxErrorAlert>
         )}
       </NxLoadWrapper>
     </>

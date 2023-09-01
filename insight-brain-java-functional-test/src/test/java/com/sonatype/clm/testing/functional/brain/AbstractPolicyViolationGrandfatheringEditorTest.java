@@ -87,8 +87,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
-    OwnerSummaryPage.violationGrandfathering().shouldHave(text(summaryText)).click();
-    PolicyViolationGrandfatheringEditorPage.statusMessage().shouldHave(text(summaryText));
+    OwnerSummaryPage.legacyViolations().shouldHave(text(summaryText)).click();
     PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldNotBe(visible);
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(currentOwner.getId())) {
@@ -101,11 +100,11 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     else {
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(3);
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(0)
-              .shouldHave(text("Inherit from parent organization"));
+              .shouldHave(text("Inherit from parent (Disabled)"));
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
 
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited()
+      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited(policyViolationGrandfatheringDTO.enabledInParent)
               .shouldBe(visible).shouldBe(NX_RADIO_SELECTED);
     }
 
@@ -144,8 +143,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
-    OwnerSummaryPage.violationGrandfathering().shouldHave(text(summaryText)).click();
-    PolicyViolationGrandfatheringEditorPage.statusMessage().shouldHave(text(summaryText));
+    OwnerSummaryPage.legacyViolations().shouldHave(text(summaryText)).click();
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(currentOwner.getId())) {
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(2);
@@ -160,11 +158,11 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     else {
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(3);
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons()
-              .get(0).shouldHave(text("Inherit from parent organization"));
+              .get(0).shouldHave(text("Inherit from parent (Disabled)"));
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
 
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited()
+      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited(policyViolationGrandfatheringDTO.enabledInParent)
               .shouldHave(NX_RADIO_CHECKBOX_DISABLED);
       PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
       PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
@@ -190,14 +188,14 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
-    OwnerSummaryPage.violationGrandfathering().shouldHave(notLicensedText).click();
+    OwnerSummaryPage.legacyViolations().shouldHave(notLicensedText).click();
 
     // if the user gets there manually, show a warning
     refreshOrOpen(PolicyViolationGrandfatheringEditorPage.url(currentOwner));
     PolicyViolationGrandfatheringEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
 
     // make sure the owner detail sidebar item is disabled
-    OwnerDetailSidebar.grandfathering().shouldBe(DISABLED).hover();
+    OwnerDetailSidebar.legacyViolations().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldHave(notLicensedText);
   }
 

@@ -118,7 +118,7 @@ describe('PolicyViolationsTableRow', () => {
       expect(actionElement.find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'disabled');
     });
 
-    it('renders the threat level of the actions with as disabled when the row is grandfathered', () => {
+    it('renders the threat level of the actions with as disabled when the row has legacy violation', () => {
       const component = getShallow({
           violation: {
             ...minimalProps.violation,
@@ -161,25 +161,25 @@ describe('PolicyViolationsTableRow', () => {
   });
 
   describe('renders a cell for the waivers actions buttons and relevant indicators', () => {
-    describe('renders indicators according to grandfathering and waivers', () => {
+    describe('renders indicators according to legacy violations and waivers', () => {
       const getMountedIndicators = (additionalProps) => {
         const component = getMounted(additionalProps),
           rowCells = component.find(NxTableCell),
-          waiversAndGrandfatheringCell = rowCells.at(4);
-        return waiversAndGrandfatheringCell.find(PolicyViolationsTableRow.indicators);
+          waiversAndLegacyCell = rowCells.at(4);
+        return waiversAndLegacyCell.find(PolicyViolationsTableRow.indicators);
       };
 
-      it('renders a grandfathering indicator if the violation has been grandfathered', () => {
+      it('renders a legacy violations indicator if it is a legacy violation', () => {
         const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, grandfathered: true } });
         expect(indicators).toExist();
 
-        const grandfatheringIcon = indicators.find(NxFontAwesomeIcon);
-        expect(grandfatheringIcon).toExist();
+        const legacyIcon = indicators.find(NxFontAwesomeIcon);
+        expect(legacyIcon).toExist();
 
-        expect(indicators.find('span')).toHaveText('Grandfathered');
+        expect(indicators.find('span')).toHaveText('Legacy');
       });
 
-      it('does not render a grandfathering indicator if the violation has not been grandfathered', () => {
+      it('does not render a legacy violations indicator if it is a legacy violation', () => {
         const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, grandfathered: false } });
         expect(indicators.find('span')).not.toExist();
       });

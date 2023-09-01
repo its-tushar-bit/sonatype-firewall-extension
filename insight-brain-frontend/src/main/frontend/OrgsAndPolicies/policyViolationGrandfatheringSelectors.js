@@ -71,31 +71,19 @@ export const selectCalculatedEnabled = createSelector(
   prop('calculatedEnabled')
 );
 
-export const selectGrandfatheringStatusMessage = createSelector(
+export const selectLegacyViolationsStatusMessage = createSelector(
   selectPolicyViolationGrandfatheringConfig,
   (configuration) => {
-    let msg = '';
-    if (configuration.inheritedFromOrganizationName) {
-      msg += `Inherit from ${configuration.inheritedFromOrganizationName} (`;
-    }
-    msg += 'Grandfathering is ' + (configuration.calculatedEnabled ? 'enabled' : 'disabled');
-    if (configuration.inheritedFromOrganizationName) {
-      msg += ')';
-    }
-    return msg;
+    const message = 'Legacy violations are ' + (configuration.calculatedEnabled ? 'enabled' : 'disabled');
+    return configuration.inheritedFromOrganizationName
+      ? message + ` (Inheriting from ${configuration.inheritedFromOrganizationName})`
+      : message;
   }
 );
 
-export const selectGrandfatheringStatusMessageFromServer = createSelector(
+export const selectParentLegacyViolationStatus = createSelector(
   selectPolicyViolationGrandfatheringServerData,
-  (serverData) => {
-    if (serverData?.inheritedFromOrganizationName) {
-      return `Inherit from ${serverData?.inheritedFromOrganizationName} (Grandfathering is ${
-        serverData?.enabled ? 'enabled' : 'disabled'
-      })`;
-    }
-    return `Grandfathering is ${serverData?.enabled ? 'enabled' : 'disabled'}`;
-  }
+  (serverData) => (serverData?.enabledInParent ? 'Enabled' : 'Disabled')
 );
 
 export const selectGrandfatheringLinkParams = createSelector(selectRouterSlice, (router) =>

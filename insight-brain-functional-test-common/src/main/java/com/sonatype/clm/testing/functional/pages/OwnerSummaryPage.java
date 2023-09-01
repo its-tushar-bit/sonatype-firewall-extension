@@ -61,8 +61,8 @@ public class OwnerSummaryPage
     return new PolicyTile();
   }
 
-  public static SelenideElement violationGrandfathering() {
-    return $("#policy-violation-grandfathering");
+  public static SelenideElement legacyViolations() {
+    return $("#legacy-violations");
   }
 
   public static SelenideElement monitoredStage() {

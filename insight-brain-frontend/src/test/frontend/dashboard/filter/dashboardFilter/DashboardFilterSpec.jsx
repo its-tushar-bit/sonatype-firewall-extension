@@ -108,11 +108,8 @@ describe('DashboardFilter', function () {
       .createSpy('SaveFilterModalContainer')
       .and.returnValue(<div>Save Filter Modal</div>);
 
-    DashboardFilter = require('inject-loader!../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilter')(
-      {
-        '../saveFilterModal/SaveFilterModalContainer': SaveFilterModalContainerMock,
-      }
-    ).default;
+    DashboardFilter = require('inject-loader!../../../../../main/frontend/dashboard/filter/dashboardFilter/' +
+      'DashboardFilter')({ '../saveFilterModal/SaveFilterModalContainer': SaveFilterModalContainerMock }).default;
 
     renderComponent = (props) => render(<DashboardFilter {...minimalProps} {...props} />);
   });
@@ -338,7 +335,7 @@ describe('DashboardFilter', function () {
       expect(policyViolationStateGroup.children[0]).toHaveTextContent('all/none');
       expect(policyViolationStateGroup.children[1]).toHaveTextContent('Open');
       expect(policyViolationStateGroup.children[2]).toHaveTextContent('Waived');
-      expect(policyViolationStateGroup.children[3]).toHaveTextContent('Grandfathered');
+      expect(policyViolationStateGroup.children[3]).toHaveTextContent('Legacy');
       fireEvent.click(policyViolationStateGroup.children[0]);
       fireEvent.click(policyViolationStateGroup.children[1]);
       fireEvent.click(policyViolationStateGroup.children[2]);

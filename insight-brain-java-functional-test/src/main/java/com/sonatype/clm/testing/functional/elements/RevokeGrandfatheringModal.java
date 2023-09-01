@@ -18,6 +18,10 @@ public class RevokeGrandfatheringModal
     super("#revoke-grandfathering-modal");
   }
 
+  public SelenideElement header() {
+    return child(".nx-modal-header");
+  }
+  
   public SelenideElement body() {
     return child(".nx-modal-content");
   }

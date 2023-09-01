@@ -124,7 +124,7 @@ public class PdfGenerator
 
   private static final int TITLE_FONT_SIZE = 16;
 
-  private static final int GRANDFATHERED_SYMBOL_FONT_SIZE = 25;
+  private static final int LEGACY_VIOLATIONS_SYMBOL_FONT_SIZE = 25;
 
   private static final int THREAT_LEVEL_FONT_SIZE = 10;
 
@@ -140,7 +140,7 @@ public class PdfGenerator
 
   private static final Color CELL_BORDER_COLOR = new Color(224, 224, 224);
 
-  private static final char GRANDFATHERED_SYMBOL = '\uf1da';
+  private static final char LEGACY_VIOLATIONS_SYMBOL = '\uf1da';
 
   private static final int MAX_CELL_CHARACTERS = 500;
 
@@ -167,7 +167,7 @@ public class PdfGenerator
 
   private FontStyle summaryFontStyle;
 
-  private FontStyle grandfatheredFontStyle;
+  private FontStyle legacyViolationsFontStyle;
 
   private FontStyle tableRowHeaderFontStyle;
 
@@ -225,7 +225,7 @@ public class PdfGenerator
     dateFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
     summaryHeaderFontStyle = new FontStyle(boldFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
     summaryFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
-    grandfatheredFontStyle = new FontStyle(fontawesome, GRANDFATHERED_SYMBOL_FONT_SIZE, DEFAULT_FONT_COLOR);
+    legacyViolationsFontStyle = new FontStyle(fontawesome, LEGACY_VIOLATIONS_SYMBOL_FONT_SIZE, DEFAULT_FONT_COLOR);
     tableRowHeaderFontStyle = new FontStyle(semiBoldFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
     tableRowFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
     rectangleFontStyle = new FontStyle(summaryFontStyle.getFont(), 14f, Color.WHITE);
@@ -289,25 +289,26 @@ public class PdfGenerator
       String affectingText = "Affecting " + affectedComponents + " components";
       addText(contentStream, affectedComponentsStartX, affectedComponentsStartY, summaryFontStyle, affectingText);
 
-      // Add grandfathered summary
+      // Add legacy violation summary
       float maxViolationsAffectedWidth =
           Math.max(summaryHeaderFontStyle.getStringWidth(violationsText),
               summaryFontStyle.getStringWidth(affectingText));
-      float grandfatheredSymbolStartX = affectedComponentsStartX + maxViolationsAffectedWidth + 4 * PADDING;
-      float grandfatheredSymbolStartY = affectedComponentsStartY;
-      addText(contentStream, grandfatheredSymbolStartX, grandfatheredSymbolStartY, grandfatheredFontStyle,
-          String.valueOf(GRANDFATHERED_SYMBOL));
-      float grandfatheredCountStartX = grandfatheredSymbolStartX +
-          grandfatheredFontStyle.getStringWidth(String.valueOf(GRANDFATHERED_SYMBOL)) + PADDING;
-      float grandfatheredCountStartY = violationsTextStartY;
-      long grandfathered = pdfData.policyData.components.stream().flatMap(component -> component.violations.stream())
+      float legacyViolationsSymbolStartX = affectedComponentsStartX + maxViolationsAffectedWidth + 4 * PADDING;
+      float legacyViolationsSymbolStartY = affectedComponentsStartY;
+      addText(contentStream, legacyViolationsSymbolStartX, legacyViolationsSymbolStartY, legacyViolationsFontStyle,
+          String.valueOf(LEGACY_VIOLATIONS_SYMBOL));
+      float legacyViolationsCountStartX = legacyViolationsSymbolStartX +
+          legacyViolationsFontStyle.getStringWidth(String.valueOf(LEGACY_VIOLATIONS_SYMBOL)) + PADDING;
+      float legacyViolationsCountStartY = violationsTextStartY - 4;
+      long legacyViolations = pdfData.policyData.components.stream().flatMap(component -> component.violations.stream())
           .filter(violation -> violation.grandfathered).count();
-      addText(contentStream, grandfatheredCountStartX, grandfatheredCountStartY, summaryHeaderFontStyle,
-          grandfathered + " GRANDFATHERED");
-      float grandfatheredViolationsStartX = grandfatheredCountStartX;
-      float grandfatheredViolationsStartY = criticalStartY;
-      addText(contentStream, grandfatheredViolationsStartX, grandfatheredViolationsStartY, summaryFontStyle,
-          "violations");
+
+      String legacyViolationsText = legacyViolations + " LEGACY VIOLATIONS";
+      if (legacyViolations == 1) {
+        legacyViolationsText = legacyViolations + " LEGACY VIOLATION";
+      }
+      addText(contentStream, legacyViolationsCountStartX, legacyViolationsCountStartY, summaryHeaderFontStyle,
+          legacyViolationsText);
 
       // Add policy violations table
       Table table = createPolicyViolationsTable(page);

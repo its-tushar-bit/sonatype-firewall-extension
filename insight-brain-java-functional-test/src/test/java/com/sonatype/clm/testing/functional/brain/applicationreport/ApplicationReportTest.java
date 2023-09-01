@@ -166,12 +166,12 @@ public class ApplicationReportTest
     coverageIndicator.donutChart().shouldBe(visible);
 
     IQGrandfatheringIndicator grandfatheringIndicator = reportPage.grandfatheringIndicator();
-    grandfatheringIndicator.caption().shouldHave(exactText("0 Grandfathered"));
+    grandfatheringIndicator.caption().shouldHave(exactText("0 LEGACY VIOLATIONS"));
 
     activateGrandfathering();
 
     grandfatheringIndicator = reportPage.grandfatheringIndicator();
-    grandfatheringIndicator.caption().shouldHave(exactText("46 Grandfathered"));
+    grandfatheringIndicator.caption().shouldHave(exactText("46 LEGACY VIOLATIONS"));
 
     // The activateGrandfathering above re-evals and refreshes the page
     policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
@@ -316,11 +316,11 @@ public class ApplicationReportTest
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
-    reportPage.resultRow(1).grandfatheredIndicator().shouldNotBe(visible);
+    reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
-    reportPage.resultRow(1).grandfatheredIndicator().shouldNotBe(visible);
+    reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
 
     // test that indicators are shown when not aggregating
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
@@ -330,8 +330,8 @@ public class ApplicationReportTest
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
     reportPage.resultRow(2).waivedIndicator().shouldBe(visible);
-    reportPage.resultRow(1).grandfatheredIndicator().shouldNotBe(visible);
-    reportPage.resultRow(2).grandfatheredIndicator().shouldNotBe(visible);
+    reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
+    reportPage.resultRow(2).legacyViolationIndicator().shouldNotBe(visible);
 
     activateGrandfathering();
 
@@ -339,12 +339,12 @@ public class ApplicationReportTest
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
-    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+    reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
-    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+    reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
@@ -352,7 +352,7 @@ public class ApplicationReportTest
     InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
-    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+    reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     eyesWatcher.eyesCheck();
 
@@ -375,12 +375,12 @@ public class ApplicationReportTest
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
-    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+    reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
-    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+    reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
@@ -388,7 +388,7 @@ public class ApplicationReportTest
     InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
-    reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+    reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
   }
 
   @Test

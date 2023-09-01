@@ -150,12 +150,21 @@ describe('ReportStatusBar', () => {
     expect(totalArtifactText).toBeVisible();
   });
 
-  it('renders grandfathered count', () => {
+  it('renders legacy violation one count', () => {
+    selectedReport.grandfatheredPolicyViolationCount = 1;
     renderComponent();
-    const grandfatheredCountText = screen.getByText(
-      `${selectedReport.grandfatheredPolicyViolationCount} Grandfathered`
+    const legacyPoliciesText = screen.getByText(`${selectedReport.grandfatheredPolicyViolationCount} Legacy Violation`);
+
+    expect(legacyPoliciesText).toBeVisible();
+  });
+
+  it('renders legacy violations more than one count', () => {
+    selectedReport.grandfatheredPolicyViolationCount = 33;
+    renderComponent();
+    const legacyPoliciesText = screen.getByText(
+      `${selectedReport.grandfatheredPolicyViolationCount} Legacy Violations`
     );
 
-    expect(grandfatheredCountText).toBeVisible();
+    expect(legacyPoliciesText).toBeVisible();
   });
 });

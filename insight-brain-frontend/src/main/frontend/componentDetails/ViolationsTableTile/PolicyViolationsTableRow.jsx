@@ -122,7 +122,7 @@ const PolicyViolationsGrandfatheringAndWaiverIndicators = ({ violation }) => {
   const grandfatheredIndicator = grandfathered ? (
     <div>
       <NxFontAwesomeIcon icon={faHistory} />
-      <span>Grandfathered</span>
+      <span>Legacy</span>
     </div>
   ) : null;
 

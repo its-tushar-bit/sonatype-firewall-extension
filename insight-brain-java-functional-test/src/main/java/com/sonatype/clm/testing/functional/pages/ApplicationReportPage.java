@@ -79,7 +79,7 @@ public class ApplicationReportPage
   }
 
   public IQGrandfatheringIndicator grandfatheringIndicator() {
-    return new IQGrandfatheringIndicator(childSelector(".iq-grandfathering-indicator"));
+    return new IQGrandfatheringIndicator(childSelector(".iq-legacy-violations-indicator"));
   }
 
   public SelenideElement filterToggle() {
@@ -170,8 +170,8 @@ public class ApplicationReportPage
       return child(".iq-app-report__component-name-cell");
     }
 
-    public SelenideElement grandfatheredIndicator() {
-      return child(".iq-text-indicator--grandfathered");
+    public SelenideElement legacyViolationIndicator() {
+      return child(".iq-text-indicator--legacy-violation");
     }
 
     public SelenideElement waivedIndicator() {

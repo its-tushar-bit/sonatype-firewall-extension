@@ -264,7 +264,7 @@ describe('ReportTableRow component', function () {
     expect(waivedIndicator).toBeVisible();
   });
 
-  it('renders grandfathered text', function () {
+  it('renders legacy policy violations text', function () {
     const props = {
       component: {
         derivedComponentName: 'Component A',
@@ -275,9 +275,9 @@ describe('ReportTableRow component', function () {
       },
     };
     renderComponent(props);
-    const grandfatheredIndicator = screen.getByText('Grandfathered');
+    const legacyViolationsIndicator = screen.getByText('Legacy');
 
-    expect(grandfatheredIndicator).toBeVisible();
+    expect(legacyViolationsIndicator).toBeVisible();
   });
 
   it('renders InnerSource parents tooltip message when the component is brought in by an InnerSource dependency', async function () {

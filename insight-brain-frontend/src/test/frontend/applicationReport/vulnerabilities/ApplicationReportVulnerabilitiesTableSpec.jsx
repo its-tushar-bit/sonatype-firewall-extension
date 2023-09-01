@@ -103,17 +103,17 @@ describe('ApplicationReportVulnerabilitiesTable', function () {
     expect(firstRowTds.at(3).find(ComponentDisplay)).toHaveProp('component', vulnerabilities[0]);
     expect(firstRowTds.at(3).find('.iq-text-indicator--waived')).toExist();
     expect(firstRowTds.at(3).find('.iq-text-indicator--waived').find(NxFontAwesomeIcon)).toHaveProp('icon', faCheck);
-    expect(firstRowTds.at(3).find('.iq-text-indicator--grandfathered')).not.toExist();
+    expect(firstRowTds.at(3).find('.iq-text-indicator--legacy-violation')).not.toExist();
     expect(secondRowTds.at(3).find(ComponentDisplay)).toHaveProp('component', vulnerabilities[1]);
     expect(secondRowTds.at(3).find('.iq-text-indicator--waived')).not.toExist();
-    expect(secondRowTds.at(3).find('.iq-text-indicator--grandfathered')).toExist();
-    expect(secondRowTds.at(3).find('.iq-text-indicator--grandfathered').find(NxFontAwesomeIcon)).toHaveProp(
+    expect(secondRowTds.at(3).find('.iq-text-indicator--legacy-violation')).toExist();
+    expect(secondRowTds.at(3).find('.iq-text-indicator--legacy-violation').find(NxFontAwesomeIcon)).toHaveProp(
       'icon',
       faHistory
     );
     expect(thirdRowTds.at(3).find(ComponentDisplay)).toHaveProp('component', vulnerabilities[2]);
     expect(thirdRowTds.at(3).find('.iq-text-indicator--waived')).not.toExist();
-    expect(thirdRowTds.at(3).find('.iq-text-indicator--grandfathered')).not.toExist();
+    expect(thirdRowTds.at(3).find('.iq-text-indicator--legacy-violation')).not.toExist();
   });
 
   it('sets truncate on the ComponentDisplay', function () {

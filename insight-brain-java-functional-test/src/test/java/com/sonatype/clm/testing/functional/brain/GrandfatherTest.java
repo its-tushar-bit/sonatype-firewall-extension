@@ -90,7 +90,7 @@ public class GrandfatherTest
 
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.grandfather().shouldBe(visible).shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("Grandfathering is not enabled for this application."));
+    Tooltip.get().shouldBe(visible).shouldHave(text("Legacy violations are not enabled for this application."));
     ActionDropDown.grandfather().click();
     GrandfatherModal modal = new GrandfatherModal();
     modal.shouldNotBe(visible);
@@ -106,7 +106,7 @@ public class GrandfatherTest
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.grandfather().shouldBe(visible).shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible)
-        .shouldHave(text("Policy Violation Grandfathering is not supported by your license"));
+        .shouldHave(text("Legacy Violations are not supported by your license"));
     ActionDropDown.grandfather().click();
     GrandfatherModal modal = new GrandfatherModal();
     modal.shouldNotBe(visible);

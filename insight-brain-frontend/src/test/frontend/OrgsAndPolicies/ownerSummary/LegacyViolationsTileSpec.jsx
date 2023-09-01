@@ -5,13 +5,13 @@
  */
 import React from 'react';
 import { render, screen, waitFor } from 'TestRoot/SpecUtil';
-import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
+import LegacyViolationsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/LegacyViolationsTile';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as policyGrandfatheringSelectors from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
-describe('PolicyGrandfatheringTile', () => {
+describe('LegacyViolationsTile', () => {
   let renderComponent, selectIsGrandfatheringSupportedSpy, selectLoadErrorSpy, selectLoadingSpy;
 
   beforeEach(() => {
@@ -19,8 +19,8 @@ describe('PolicyGrandfatheringTile', () => {
       productFeaturesSelectors,
       'selectIsGrandfatheringSupported'
     ).and.returnValue(true);
-    spyOn(policyGrandfatheringSelectors, 'selectGrandfatheringStatusMessage').and.returnValue(
-      'Grandfathering is enabled'
+    spyOn(policyGrandfatheringSelectors, 'selectLegacyViolationsStatusMessage').and.returnValue(
+      'Legacy violations are enabled'
     );
     selectLoadErrorSpy = spyOn(policyGrandfatheringSelectors, 'selectLoadError').and.returnValue(null);
     selectLoadingSpy = spyOn(policyGrandfatheringSelectors, 'selectLoading').and.returnValue(false);
@@ -36,7 +36,7 @@ describe('PolicyGrandfatheringTile', () => {
       payload: {},
     });
 
-    renderComponent = () => render(<PolicyGrandfatheringTile />);
+    renderComponent = () => render(<LegacyViolationsTile />);
   });
 
   it('renders loading indicator', () => {
@@ -56,28 +56,28 @@ describe('PolicyGrandfatheringTile', () => {
 
   it('renders tile with the correct page title', () => {
     renderComponent();
-    expect(screen.getByText('Policy Violation Grandfathering')).toBeVisible();
+    expect(screen.getByText('Legacy Violations')).toBeVisible();
   });
 
-  it('renders policy grandfathering status', () => {
+  it('renders policy legacy violations status', () => {
     renderComponent();
-    expect(screen.getByText('Grandfathering is enabled')).toBeVisible();
+    expect(screen.getByText('Legacy violations are enabled')).toBeVisible();
   });
 
-  it('renders not supported message if grandfathering is not supported', () => {
+  it('renders not supported message if legacy violations are not supported', () => {
     selectIsGrandfatheringSupportedSpy.and.returnValue(false);
     renderComponent();
 
-    expect(screen.getByText('Policy Violation Grandfathering is not supported by your license')).toBeVisible();
+    expect(screen.getByText('Legacy Violations are not supported by your license')).toBeVisible();
   });
 
-  it('renders link with href to policy grandfathering configuration page', () => {
+  it('renders link with href to policy legacy violations configuration page', () => {
     spyOn(routerStateContext, 'useRouterState').and.returnValue({
       href: jasmine.createSpy('href').and.returnValue('editPageHref'),
     });
     renderComponent();
 
-    const linkItem = screen.getByText('Grandfathering is enabled');
+    const linkItem = screen.getByText('Legacy violations are enabled');
 
     expect(linkItem.closest('a')).toHaveAttribute('href', 'editPageHref');
   });
@@ -85,7 +85,7 @@ describe('PolicyGrandfatheringTile', () => {
   describe('FirewallOnlyLicense', () => {
     const ownerId = 'e270271429f747ef9bebf4ca88f5e6c0';
 
-    const renderComponentWithState = (preloadedState) => render(<PolicyGrandfatheringTile />, { preloadedState });
+    const renderComponentWithState = (preloadedState) => render(<LegacyViolationsTile />, { preloadedState });
 
     it('does not render with a Firewall only license', async () => {
       const state = {
@@ -120,7 +120,7 @@ describe('PolicyGrandfatheringTile', () => {
       renderComponentWithState(state);
 
       await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      const title = await screen.queryByText('Policy Violation Grandfathering');
+      const title = await screen.queryByText('Legacy Violations');
       expect(title).toBeNull();
     });
 
@@ -157,7 +157,7 @@ describe('PolicyGrandfatheringTile', () => {
       renderComponentWithState(state);
 
       await waitFor(() => expect(screen.queryByText('Loading')).toBeNull());
-      const title = await screen.queryByText('Policy Violation Grandfathering');
+      const title = await screen.queryByText('Legacy Violations');
       expect(title).not.toBeNull();
     });
   });

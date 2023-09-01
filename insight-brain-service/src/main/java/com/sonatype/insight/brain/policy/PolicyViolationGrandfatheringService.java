@@ -176,6 +176,10 @@ public class PolicyViolationGrandfatheringService
     while (parentOrgId != null) {
       Organization org = organizationDAO.getByIdNotNull(parentOrgId);
 
+      if (policyViolationGrandfatheringDTO.enabledInParent == null) {
+        policyViolationGrandfatheringDTO.enabledInParent = org.isPolicyViolationGrandfatheringEnabled();
+      }
+
       if (!org.isAllowPolicyViolationGrandfatheringOverride()) {
         policyViolationGrandfatheringDTO.enabled = org.isPolicyViolationGrandfatheringEnabled();
         policyViolationGrandfatheringDTO.inheritedFromOrganizationName = org.getName();
@@ -264,6 +268,11 @@ public class PolicyViolationGrandfatheringService
      * Whether grandfathering is enabled for this org/app. If null, then grandfathering was never set for this org/app.
      */
     public Boolean enabled;
+
+    /**
+     * Whether legacy violations are enabled for the parent org. If null, then no parent set this value.
+     */
+    public Boolean enabledInParent;
 
     /**
      * The name of the organization the grandfathering status is inherited from or null if it isn't inherited.

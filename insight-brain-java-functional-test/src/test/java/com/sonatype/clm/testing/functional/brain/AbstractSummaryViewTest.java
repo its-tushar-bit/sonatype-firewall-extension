@@ -169,8 +169,8 @@ public abstract class AbstractSummaryViewTest
     navPills.policy().click();
     OwnerSummaryPage.policyTile().shouldBe(visible);
 
-    navPills.grandfathering().click();
-    OwnerSummaryPage.violationGrandfathering().shouldBe(visible);
+    navPills.legacyViolations().click();
+    OwnerSummaryPage.legacyViolations().shouldBe(visible);
 
     navPills.continuousMonitoring().click();
     OwnerSummaryPage.monitoredStage().shouldBe(visible);

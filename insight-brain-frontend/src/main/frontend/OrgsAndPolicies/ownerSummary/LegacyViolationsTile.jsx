@@ -9,7 +9,7 @@ import { NxH2, NxTile, NxList, NxLoadWrapper } from '@sonatype/react-shared-comp
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
-  selectGrandfatheringStatusMessage,
+  selectLegacyViolationsStatusMessage,
   selectGrandfatheringLinkParams,
   selectLoadError,
   selectLoading,
@@ -17,12 +17,12 @@ import {
 import { actions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
-export default function PolicyGrandfatheringTile() {
+export default function LegacyViolationsTile() {
   const dispatch = useDispatch();
   const uiStateRouter = useRouterState();
 
-  const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
-  const grandfatheringStatusMessage = useSelector(selectGrandfatheringStatusMessage);
+  const isLegacyViolationsEnabled = useSelector(selectIsGrandfatheringSupported);
+  const legacyViolationsStatusMessage = useSelector(selectLegacyViolationsStatusMessage);
   const isLoading = useSelector(selectLoading);
   const loadError = useSelector(selectLoadError);
 
@@ -39,23 +39,23 @@ export default function PolicyGrandfatheringTile() {
   }, []);
 
   const renderContent = () => {
-    if (isGrandfatheringSupported) {
-      return <NxList.LinkItem href={href}>{grandfatheringStatusMessage}</NxList.LinkItem>;
+    if (isLegacyViolationsEnabled) {
+      return <NxList.LinkItem href={href}>{legacyViolationsStatusMessage}</NxList.LinkItem>;
     }
-    return <NxList.Item>Policy Violation Grandfathering is not supported by your license</NxList.Item>;
+    return <NxList.Item>Legacy Violations are not supported by your license</NxList.Item>;
   };
 
   return (
     isFeatureEnabledForLicense && (
-      <NxTile id="owner-pill-grandfathering">
+      <NxTile id="owner-pill-legacy-violations">
         <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
           <NxTile.Header>
             <NxTile.HeaderTitle>
-              <NxH2>Policy Violation Grandfathering</NxH2>
+              <NxH2>Legacy Violations</NxH2>
             </NxTile.HeaderTitle>
           </NxTile.Header>
           <NxTile.Content>
-            <NxList id="policy-violation-grandfathering">{renderContent()}</NxList>
+            <NxList id="legacy-violations">{renderContent()}</NxList>
           </NxTile.Content>
         </NxLoadWrapper>
       </NxTile>

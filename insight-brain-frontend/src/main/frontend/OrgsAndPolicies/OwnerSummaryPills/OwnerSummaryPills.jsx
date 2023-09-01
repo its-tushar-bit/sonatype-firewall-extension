@@ -37,8 +37,8 @@ export default function OwnerSummaryPills() {
         isDisplayed: true,
       },
       {
-        label: 'Grandfathering',
-        target: 'owner-pill-grandfathering',
+        label: 'Legacy Violations',
+        target: 'owner-pill-legacy-violations',
         isDisplayed: !isFirewallOnlyLicense,
       },
       {

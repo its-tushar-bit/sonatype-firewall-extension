@@ -54,8 +54,8 @@ public class OwnerDetailSidebar
     return new OwnerDetailSidebarGroup("#access-group");
   }
 
-  public static SelenideElement grandfathering() {
-    return $("#grandfathering-link");
+  public static SelenideElement legacyViolations() {
+    return $("#legacy-violations-link");
   }
 
   public static SelenideElement continuousMonitoring() {

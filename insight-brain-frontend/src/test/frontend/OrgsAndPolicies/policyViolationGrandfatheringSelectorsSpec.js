@@ -11,7 +11,9 @@ import {
   selectPolicyViolationGrandfathering,
   selectPolicyViolationGrandfatheringConfig,
   selectCalculatedEnabled,
-  selectGrandfatheringStatusMessage,
+  selectLegacyViolationsStatusMessage,
+  selectParentLegacyViolationStatus,
+  selectPolicyViolationGrandfatheringServerData,
 } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import { selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectRoot } from '../../../main/frontend/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
@@ -176,7 +178,7 @@ describe('policyViolationGrandfatheringSelectors', () => {
     });
   });
 
-  describe('selectGrandfatheringStatusMessage', () => {
+  describe('selectLegacyViolationsStatusMessage', () => {
     const testsToRun = [
       {
         inheritedFromOrganizationName: null,
@@ -184,7 +186,7 @@ describe('policyViolationGrandfatheringSelectors', () => {
         allowChange: false,
         enabled: true,
         calculatedEnabled: true,
-        expectedMessage: 'Grandfathering is enabled',
+        expectedMessage: 'Legacy violations are enabled',
       },
       {
         inheritedFromOrganizationName: 'name',
@@ -192,19 +194,37 @@ describe('policyViolationGrandfatheringSelectors', () => {
         allowChange: false,
         enabled: false,
         calculatedEnabled: false,
-        expectedMessage: 'Inherit from name (Grandfathering is disabled)',
+        expectedMessage: 'Legacy violations are disabled (Inheriting from name)',
       },
     ];
     it('is composed from the following selector', () => {
-      expect(selectGrandfatheringStatusMessage.dependencies).toEqual([selectPolicyViolationGrandfatheringConfig]);
+      expect(selectLegacyViolationsStatusMessage.dependencies).toEqual([selectPolicyViolationGrandfatheringConfig]);
     });
 
     testsToRun.forEach((policyViolationGrandfatheringConfig) => {
       const { inheritedFromOrganizationName, isOrg, expectedMessage } = policyViolationGrandfatheringConfig;
       it(`selects PolicyViolationGrandfathering slice with rootOrg = ${isOrg} and inheritedFromOrganizationName = ${inheritedFromOrganizationName}`, () => {
-        const selected = selectGrandfatheringStatusMessage.resultFunc(policyViolationGrandfatheringConfig);
+        const selected = selectLegacyViolationsStatusMessage.resultFunc(policyViolationGrandfatheringConfig);
         expect(selected).toEqual(expectedMessage);
       });
+    });
+  });
+
+  describe('selectParentLegacyViolationStatus', () => {
+    it('is composed from the following selector', () => {
+      expect(selectParentLegacyViolationStatus.dependencies).toEqual([selectPolicyViolationGrandfatheringServerData]);
+    });
+
+    it('returns the string Enabled when enabledInParent is set to true', () => {
+      const selectPolicyViolationGrandfatheringServerData = { enabledInParent: true };
+      const status = selectParentLegacyViolationStatus.resultFunc(selectPolicyViolationGrandfatheringServerData);
+      expect(status).toBe('Enabled');
+    });
+
+    it('returns the string Enabled when enabledInParent is set to true', () => {
+      const selectPolicyViolationGrandfatheringServerData = { enabledInParent: false };
+      const status = selectParentLegacyViolationStatus.resultFunc(selectPolicyViolationGrandfatheringServerData);
+      expect(status).toBe('Disabled');
     });
   });
 });

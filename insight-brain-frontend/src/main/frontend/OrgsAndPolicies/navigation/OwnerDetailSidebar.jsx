@@ -76,14 +76,14 @@ export default function OwnerDetailSidebar() {
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isCategory = useSelector(selectIsCategory);
   const isPolicy = useSelector(selectIsPolicy);
-  const isGrandfathering = useSelector(selectIsGrandfathering);
+  const isLegacyViolations = useSelector(selectIsGrandfathering);
   const isMonitoring = useSelector(selectIsMonitoring);
   const isProprietary = useSelector(selectIsProprietary);
   const isLabel = useSelector(selectIsLabel);
   const isLicenseThreatGroup = useSelector(selectIsLicenseThreatGroup);
   const isSourceControl = useSelector(selectIsSourceControl);
   const isAccess = useSelector(selectIsAccess);
-  const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
+  const isLegacyViolationsSupported = useSelector(selectIsGrandfatheringSupported);
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
   const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
@@ -257,17 +257,15 @@ export default function OwnerDetailSidebar() {
 
       {/* Grandfathering */}
       {!isRepositoriesRelated && isFeatureEnabledForLicense && (
-        <NxTooltip
-          title={!isGrandfatheringSupported ? 'Policy Violation Grandfathering is not supported by your license' : ''}
-        >
+        <NxTooltip title={!isLegacyViolationsSupported ? 'Legacy Violations are not supported by your license' : ''}>
           <NxCollapsibleItems.Child>
             <NxTextLink
-              id="grandfathering-link"
-              className={`iq-noncollapsible ${isGrandfathering && !currentRoleId ? 'selected' : ''}`}
-              href={`${linkMainHref}/grandfathering`}
-              disabled={!isGrandfatheringSupported}
+              id="legacy-violations-link"
+              className={`iq-noncollapsible ${isLegacyViolations && !currentRoleId ? 'selected' : ''}`}
+              href={`${linkMainHref}/legacyViolations`}
+              disabled={!isLegacyViolationsSupported}
             >
-              Grandfathering
+              Legacy Violations
             </NxTextLink>
           </NxCollapsibleItems.Child>
         </NxTooltip>

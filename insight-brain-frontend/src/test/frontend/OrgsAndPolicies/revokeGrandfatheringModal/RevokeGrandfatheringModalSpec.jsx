@@ -43,7 +43,7 @@ describe('RevokeGrandfatheringModal', () => {
       },
     });
 
-    const initialTitle = screen.queryAllByText('Revoke Grandfathered Policy Violations');
+    const initialTitle = screen.queryAllByText('Revoke Legacy Violation Status');
     expect(initialTitle.length).toBe(0);
   });
 
@@ -51,7 +51,7 @@ describe('RevokeGrandfatheringModal', () => {
     renderComponent();
     expect(
       screen.getByText(
-        'Revoking the grandfathered policy violations for the application will reinstate violations if applicable.'
+        'Subsequent scans and re-evaluations will treat applicable policy violations as active and trigger configured actions.'
       )
     ).toBeVisible();
 

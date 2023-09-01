@@ -63,6 +63,7 @@ describe('componentDetailsSelectors', () => {
             proprietary: true,
             identificationSource: 'Sonatype',
             derivedComponentName: 'My Component',
+            filename: 'My Component',
           },
           {
             hash: 'some-component-hash',
@@ -78,6 +79,7 @@ describe('componentDetailsSelectors', () => {
           {
             hash: 'another-component-hash',
             derivedComponentName: 'Component2',
+            filename: 'Component2',
           },
           {
             hash: 'and-another-component-hash',
@@ -215,6 +217,7 @@ describe('componentDetailsSelectors', () => {
       const allEntries = [
         {
           derivedComponentName: 'My Component',
+          filename: 'My Component',
           hash: 'some-component-hash',
           componentIdentifier: { format: 'maven' },
           derivedDependencyType: 'transitive',

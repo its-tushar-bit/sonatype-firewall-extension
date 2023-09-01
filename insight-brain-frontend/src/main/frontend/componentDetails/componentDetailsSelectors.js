@@ -14,6 +14,7 @@ import {
   selectSelectedComponentIndexInAggregatedList,
 } from '../applicationReport/applicationReportSelectors';
 import { selectCurrentRouteName, selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
+import { getComponentName } from '../util/componentNameUtils';
 
 export const selectDetails = prop('componentDetails');
 
@@ -58,7 +59,7 @@ export const selectComponentDetails = createSelector(
   (component, metadata, details) =>
     component && metadata && details
       ? {
-          name: component.derivedComponentName,
+          name: getComponentName(component),
           hash: component.hash,
           componentIdentifier: component.componentIdentifier,
           dependencyType: component.derivedDependencyType,

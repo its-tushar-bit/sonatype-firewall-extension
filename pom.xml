@@ -1383,7 +1383,7 @@
         </property>
       </activation>
       <properties>
-        <maven.test.skip>true</maven.test.skip>
+        <skipTests>true</skipTests>
         <skipJasmineTests>true</skipJasmineTests>
         <jasmine.tests.skip>true</jasmine.tests.skip>
         <failIfNoTests>false</failIfNoTests>

@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.git.dto.ImportScmOrganizationTicket;
 import com.sonatype.insight.brain.git.dto.SCMRepositories;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -1059,6 +1060,11 @@ public class ScmOnboardingServiceTest
 
     List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
     assertThat(childOrgsAfterImport).hasSize(3);
+    assertThat(childOrgsAfterImport).map(Nameable::getName).allSatisfy(childOrgName -> {
+      String[] nameParts = childOrgName.split("-");
+      assertThat(nameParts[0]).isEqualTo(org.getName());
+      assertThat(nameParts[1]).hasSize(8);
+    });
 
     List<Integer> importedAppCountsPerOrg =
         childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
@@ -1084,6 +1090,53 @@ public class ScmOnboardingServiceTest
     assertBatchedImportTelemetries(telemetryData.get(1), 4, 13, prevImportedCount);
     prevImportedCount += 4;
     assertBatchedImportTelemetries(telemetryData.get(2), 4, 13, prevImportedCount);
+  }
+
+  @Test
+  public void testImportScmOrganization_ImportTwiceToTheSameParentOrg() throws Exception {
+    org = tempEntity.newOrganization();
+    List<Organization> childOrgsBeforeImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsBeforeImport).isEmpty();
+
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
+
+    SourceControlOrganizationImportEvent importEvent =
+        tempEntity.newSourceControlOrganizationImportEvent(org.getId(), gitService.baseUrl(), 7, 3);
+    SourceControlOrganizationImportEvent secondEvent =
+        tempEntity.newSourceControlOrganizationImportEvent(org.getId(), gitService.baseUrl(), -1, 3);
+
+    scmOnboardingService.doScmOrganizationImport(importEvent);
+    scmOnboardingService.doScmOrganizationImport(secondEvent);
+
+    SourceControlOrganizationImportEvent updatedEvent =
+        sourceControlOrganizationImportEventDAO.getById(importEvent.getId());
+    SourceControlOrganizationImportEvent updatedSecondEvent =
+        sourceControlOrganizationImportEventDAO.getById(secondEvent.getId());
+
+    assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
+    assertThat(updatedEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedEvent.getImportSuccessCount()).isEqualTo(7);
+    assertThat(updatedEvent.getImportFailureCount()).isZero();
+    ImportFailures importFailures = JsonUtils.parse(updatedEvent.getImportErrors().getBytes(), ImportFailures.class);
+    assertThat(importFailures.failures).isEmpty();
+
+    assertThat(updatedSecondEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
+    assertThat(updatedSecondEvent.getLastUpdatedTime()).isAfter(updatedEvent.getStartTime());
+    assertThat(updatedSecondEvent.getImportSuccessCount()).isEqualTo(6);
+    assertThat(updatedSecondEvent.getImportFailureCount()).isZero();
+    ImportFailures importFailures2 =
+        JsonUtils.parse(updatedSecondEvent.getImportErrors().getBytes(), ImportFailures.class);
+    assertThat(importFailures2.failures).isEmpty();
+
+    List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
+    assertThat(childOrgsAfterImport).hasSize(6);
+
+    List<Integer> importedAppCountsPerOrg =
+        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+            .collect(Collectors.toList());
+    assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(3, 2, 2, 2, 2, 2);
+    assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
   }
 
   @Test

@@ -920,9 +920,8 @@ public class ScmOnboardingService
       final int batchIndex)
   {
     List<SCMRepository> repoGroup = repoGroups.get(batchIndex);
-    int indexForOrgName = batchIndex + 1;
 
-    Organization childOrg = newChildOrganization(parentOrg, indexForOrgName);
+    Organization childOrg = newChildOrganization(parentOrg.getId());
     ImportRepositoriesRequest importRepositoriesRequest =
         new ImportRepositoriesRequest(repoGroup, totalRepoCount, prevImportedCount.getAndAdd(repoGroup.size()));
     ImportResults importResults = doImportRepositories(childOrg.getId(), importRepositoriesRequest, event);
@@ -943,13 +942,6 @@ public class ScmOnboardingService
     return new ArrayList<>(IntStream.range(0, items.size()).boxed()
         .collect(Collectors.groupingBy(e -> e % noOfChunks, Collectors.mapping(items::get, Collectors.toList())))
         .values());
-  }
-
-  private Organization newChildOrganization(final Organization parentOrg, final int i) {
-    Organization child = new Organization(parentOrg.getName() + "-" + i);
-    child.setParentOrganizationId(parentOrg.getId());
-    orgDAO.insert(child);
-    return child;
   }
 
   class RepositoryBatchImportTask

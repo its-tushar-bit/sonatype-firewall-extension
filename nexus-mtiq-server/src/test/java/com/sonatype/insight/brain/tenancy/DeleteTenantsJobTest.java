@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.tenancy;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -256,8 +257,8 @@ public class DeleteTenantsJobTest
     return deletedTenant;
   }
 
-  private long getBeforeDefaultRetentionPeriod(long retentionPeriodInHours) {
-    return System.currentTimeMillis() - (60 * 60 * 1000 * (retentionPeriodInHours + 1));
+  private Date getBeforeDefaultRetentionPeriod(long retentionPeriodInHours) {
+    return new Date(System.currentTimeMillis() - (60 * 60 * 1000 * (retentionPeriodInHours + 1)));
   }
 
   private void provisionTenant(Tenant tenant, String auth0AppId) throws Exception {

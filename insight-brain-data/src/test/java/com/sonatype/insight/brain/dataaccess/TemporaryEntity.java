@@ -1193,11 +1193,11 @@ public class TemporaryEntity
   }
 
   public DeletedTenant newDeletedTenant(String tenantSlug) {
-    return newDeletedTenant(tenantSlug, System.currentTimeMillis());
+    return newDeletedTenant(tenantSlug, new Date());
   }
 
-  public DeletedTenant newDeletedTenant(String tenantSlug, Long createdTimestamp) {
-    DeletedTenant deletedTenant = new DeletedTenant(tenantSlug, createdTimestamp);
+  public DeletedTenant newDeletedTenant(String tenantSlug, Date createdDate) {
+    DeletedTenant deletedTenant = new DeletedTenant(tenantSlug, createdDate);
 
     deletedTenantDAO.insert(deletedTenant);
     deletedTenants.add(deletedTenant);
@@ -1206,11 +1206,11 @@ public class TemporaryEntity
   }
 
   public DeletedTenant newDeletedTenantWithDeleteCompleted(String tenantSlug) {
-    return newDeletedTenantWithDeleteCompleted(tenantSlug, System.currentTimeMillis());
+    return newDeletedTenantWithDeleteCompleted(tenantSlug, new Date());
   }
 
-  public DeletedTenant newDeletedTenantWithDeleteCompleted(String tenantSlug, Long createdTimestamp) {
-    DeletedTenant deletedTenant = new DeletedTenant(tenantSlug, createdTimestamp);
+  public DeletedTenant newDeletedTenantWithDeleteCompleted(String tenantSlug, Date createdDate) {
+    DeletedTenant deletedTenant = new DeletedTenant(tenantSlug, createdDate);
     deletedTenant.setDeleteCompletedDate(new Date());
 
     deletedTenantDAO.insert(deletedTenant);

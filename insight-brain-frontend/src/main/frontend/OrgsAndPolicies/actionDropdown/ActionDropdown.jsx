@@ -84,8 +84,9 @@ const ActionDropdown = () => {
   const isGrandfatheringEnabled = useSelector(selectCalculatedEnabled);
   const isEvaluateApplicationAvailable = useSelector(selectIsEvaluateApplicationAvailable);
   const owner = useSelector(selectSelectedOwner);
-  const { applicationSummary, hasPermissionToChangeAppId, hasPermissionToEvaluateApp } =
-    useSelector(selectActionDropdownSlice);
+  const { applicationSummary, hasPermissionToChangeAppId, hasPermissionToEvaluateApp } = useSelector(
+    selectActionDropdownSlice
+  );
   const stages = useSelector(selectDashboardStageTypes);
   const grandfatheringDisabled = !isGrandfatheringSupported || !isGrandfatheringEnabled;
   const GrandfatheringTooltip = grandfatheringDisabled ? NxTooltip : NxOverflowTooltip;

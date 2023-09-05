@@ -22,9 +22,6 @@ public class DeletedTenant
   @Column(name = "tenant_slug")
   private String tenantSlug;
 
-  @Column(name = "delete_requested_timestamp")
-  private Long deleteRequestedTimestamp;
-
   @Column(name = "created")
   private Date created;
 
@@ -38,13 +35,12 @@ public class DeletedTenant
   }
 
   public DeletedTenant(String tenantSlug) {
-    this(tenantSlug, System.currentTimeMillis());
+    this(tenantSlug, new Date());
   }
 
-  public DeletedTenant(String tenantSlug, Long deleteRequestedTime) {
+  public DeletedTenant(String tenantSlug, Date deleteRequestedTime) {
     this.tenantSlug = tenantSlug;
-    this.setDeleteRequestedTimestamp(deleteRequestedTime);
-    this.setCreated(new Date(deleteRequestedTime));
+    this.setCreated(deleteRequestedTime);
   }
 
   @Override
@@ -55,14 +51,6 @@ public class DeletedTenant
   @Override
   public void setId(String tenantSlug) {
     this.tenantSlug = tenantSlug;
-  }
-
-  public Long getDeleteRequestedTimestamp() {
-    return deleteRequestedTimestamp;
-  }
-
-  public void setDeleteRequestedTimestamp(Long deleteRequestedTimestamp) {
-    this.deleteRequestedTimestamp = deleteRequestedTimestamp;
   }
 
   public Date getCreated() {
@@ -93,7 +81,6 @@ public class DeletedTenant
   public String toString() {
     return "DeletedTenant{" +
         "tenantSlug='" + tenantSlug + '\'' +
-        ", deleteRequestedTime=" + deleteRequestedTimestamp + '\'' +
         ", created=" + created + '\'' +
         ", lastUpdated=" + lastUpdated + '\'' +
         ", deleteCompletedDate=" + deleteCompletedDate +

@@ -5,18 +5,17 @@
  */
 package com.sonatype.insight.brain.support;
 
-import javax.inject.Inject;
-
 import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,8 +23,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 1.27
  */
 public class DbDiagnosticsTest
-    extends AbstractComponentTest
 {
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
   @Before
   public void setup() {
     DataSourceFactory.clear_ForTestsOnly();
@@ -36,12 +37,6 @@ public class DbDiagnosticsTest
     DataSourceFactory.clear_ForTestsOnly();
   }
 
-  @Inject
-  private OperationalDataStore operationalDataStore;
-
-  @Inject
-  private DbDiagnostics dbDiagnostics;
-
   @Test
   public void testGetDBFileInfo_H2() throws Exception {
     // We need an on-disk database for this test.
@@ -51,10 +46,10 @@ public class DbDiagnosticsTest
         "/SupportTest/ods;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000;MV_STORE=FALSE");
     databaseConfig.setUsername("sa");
     databaseConfig.setPassword("");
-    operationalDataStore.initWithMigration(databaseConfig, false);
+    OperationalDataStoreProvider.init(databaseConfig, false);
 
-    final String dbFileInfo = dbDiagnostics.getDBFileInfo();
-    assertThat(dbFileInfo)
+    final String dbDiagnostics = DbDiagnostics.getDBFileInfo();
+    assertThat(dbDiagnostics)
         .startsWith("-- Database Diagnostics --\n")
         .contains("Database product name: H2")
         .contains("Database product version: ")
@@ -75,10 +70,10 @@ public class DbDiagnosticsTest
   public void testGetDBFileInfo_Postgres() throws Exception {
     try (PostgresServer postgres = new PostgresServer()) {
       DatabaseConfig databaseConfig = postgres.getDatabaseConfig();
-      operationalDataStore.initWithMigration(databaseConfig, false);
+      OperationalDataStoreProvider.init(databaseConfig, false);
 
-      final String dbFileInfo = dbDiagnostics.getDBFileInfo();
-      assertThat(dbFileInfo) //
+      final String dbDiagnostics = DbDiagnostics.getDBFileInfo();
+      assertThat(dbDiagnostics) //
           .startsWith("-- Database Diagnostics --\n") //
           .contains("Database product name: PostgreSQL") //
           .containsPattern("Database product version: [0-9]+") //

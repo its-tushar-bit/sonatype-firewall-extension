@@ -11,10 +11,8 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
-import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -44,13 +42,8 @@ public class ResetAdminCommandTest
     DataSourceFactory.clear_ForTestsOnly();
     insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(temporaryFolder.newFolder().getAbsolutePath());
-
-    DataSourceFactory dataSourceFactory = new DataSourceFactory();
-    DatabaseMigrator databaseMigrator = new DatabaseMigrator(dataSourceFactory);
-    OperationalDataStore operationalDataStore = new DefaultOperationalDataStore(dataSourceFactory, databaseMigrator);
-    operationalDataStore.initWithMigration(
-        new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods), true);
-
+    OperationalDataStoreProvider
+        .init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods), true);
     userDAO = new UserDAO();
     membershipMappingDAO = new MembershipMappingDAO();
   }

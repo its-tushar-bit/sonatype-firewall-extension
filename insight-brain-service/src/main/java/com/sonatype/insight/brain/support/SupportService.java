@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -95,8 +96,6 @@ public class SupportService
 
   private final SourceControlConfigurationInfo sourceControlConfigurationInfo;
 
-  private final DbDiagnostics dbDiagnostics;
-
   @Inject
   public SupportService(final InsightConfig config,
                         final Configuration configuration,
@@ -106,8 +105,7 @@ public class SupportService
                         final DbData dbData,
                         final SystemInfo systemInfo,
                         final ConfigurationInfo configurationInfo,
-                        final SourceControlConfigurationInfo sourceControlConfigurationInfo,
-                        final DbDiagnostics dbDiagnostics)
+                        final SourceControlConfigurationInfo sourceControlConfigurationInfo)
   {
     this.config = config;
     this.configuration = configuration;
@@ -118,7 +116,6 @@ public class SupportService
     this.systemInfo = systemInfo;
     this.configurationInfo = configurationInfo;
     this.sourceControlConfigurationInfo = sourceControlConfigurationInfo;
-    this.dbDiagnostics = dbDiagnostics;
   }
 
   File getWorkDir() {
@@ -320,7 +317,7 @@ public class SupportService
         SupportFileType.CONFIG, true);
 
     addFileIfExists(filesToZip,
-        writeTextToFile(dbDiagnostics.getDBFileInfo(), new File(workDir, "dbFileInfo.txt")),
+        writeTextToFile(DbDiagnostics.getDBFileInfo(), new File(workDir, "dbFileInfo.txt")),
         "dbFileInfo",
         SupportFileType.INFO,
         true);

@@ -21,12 +21,10 @@ import java.util.zip.GZIPOutputStream;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
-import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -86,19 +84,14 @@ public class ExportEmbeddedDatabaseCommand
     }
 
     DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
-
-    DataSourceFactory dataSourceFactory = new DataSourceFactory();
-    DatabaseMigrator databaseMigrator = new DatabaseMigrator(dataSourceFactory);
-    OperationalDataStore operationalDataStore = new DefaultOperationalDataStore(dataSourceFactory, databaseMigrator);
-
-    operationalDataStore.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
-    if (!DatabaseUtil.schemaVersionTableExists(operationalDataStore.getDataSource(),
-        operationalDataStore.getDatabaseSchema())) {
+    OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
+    if (!DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
+        OperationalDataStoreProvider.getDatabaseSchema())) {
       throw new BadRequestException("The server needs to have been started normally once before"
           + " in order to complete the required upgrade steps.");
     }
-    if (DatabaseUtil.getDatabaseSchemaVersion(operationalDataStore.getDataSource(), operationalDataStore.ID,
-        operationalDataStore.getDatabaseSchema()) <= 0) {
+    if (DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStore.ID,
+        OperationalDataStoreProvider.getDatabaseSchema()) <= 0) {
       throw new BadRequestException("The database from the work directory " + config.getSonatypeWork().getAbsolutePath()
           + " is empty. Please verify you specified the correct config.yml file.");
     }
@@ -114,7 +107,7 @@ public class ExportEmbeddedDatabaseCommand
     log.info("Exporting database to {}", dumpFile);
     try (BufferedWriter writer =
         new BufferedWriter(new OutputStreamWriter(newOutputStream(dumpFile), StandardCharsets.UTF_8))) {
-      export(writer, operationalDataStore.getDataSource());
+      export(writer, OperationalDataStoreProvider.getDataSource());
       export(writer, AggregationDataStoreProvider.getDataSource());
       export(writer, ThirdPartyScansProvider.getDataSource());
     }

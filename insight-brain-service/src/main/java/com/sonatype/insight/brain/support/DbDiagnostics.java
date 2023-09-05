@@ -10,11 +10,12 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -24,22 +25,30 @@ import org.slf4j.LoggerFactory;
 /**
  * @since 1.27
  */
+@Singleton
 class DbDiagnostics
 {
   private static final Logger log = LoggerFactory.getLogger(DbDiagnostics.class);
 
-  static String getDBFileInfo() throws IOException {
+  private final OperationalDataStore operationalDataStore;
+
+  @Inject
+  DbDiagnostics(final OperationalDataStore operationalDataStore) {
+    this.operationalDataStore = operationalDataStore;
+  }
+
+  String getDBFileInfo() throws IOException {
     log.trace("getting db file info");
     final StringBuilder result = new StringBuilder();
 
-    DataSource dataSource = OperationalDataStoreProvider.getDataSource();
+    DataSource dataSource = operationalDataStore.getDataSource();
     String databaseProductName = getDatabaseProductName(dataSource);
     result.append("-- Database Diagnostics --\n");
     result.append("Database product name: ").append(databaseProductName).append("\n");
     result.append("Database product version: ").append(getDatabaseProductVersion(dataSource)).append("\n");
 
     if ("h2".equalsIgnoreCase(databaseProductName)) {
-      final DatabaseConfig databaseConfig = OperationalDataStoreProvider.getDatabaseConfig();
+      final DatabaseConfig databaseConfig = operationalDataStore.getDatabaseConfig();
       if (databaseConfig == null) {
         result.append("Null DatabaseConfig.");
         return result.toString();
@@ -56,8 +65,8 @@ class DbDiagnostics
       }
     }
 
-    final int version = DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID,
-        OperationalDataStoreProvider.getDatabaseSchema());
+    final int version = DatabaseUtil.getDatabaseSchemaVersion(dataSource, operationalDataStore.ID,
+        operationalDataStore.getDatabaseSchema());
     result.append("Schema version: ").append(version).append("\n");
     addLatencyInformation(result, dataSource);
     result.append("-- Database Settings --\n");

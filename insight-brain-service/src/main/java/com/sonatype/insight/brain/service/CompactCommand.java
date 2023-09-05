@@ -11,12 +11,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.Statement;
-
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -52,10 +54,15 @@ public class CompactCommand
 
     final DatabaseConfig databaseConfig = new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods);
     final Path databaseFile = Paths.get(H2DatabaseUtil.getDatabasePath(databaseConfig).getAbsolutePath() + ".h2.db");
+
+    DataSourceFactory dataSourceFactory = new DataSourceFactory();
+    DatabaseMigrator databaseMigrator = new DatabaseMigrator(dataSourceFactory);
+    OperationalDataStore operationalDataStore = new DefaultOperationalDataStore(dataSourceFactory, databaseMigrator);
+
     try {
       final long originalSize = Files.size(databaseFile);
-      OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
-      DataSource dataSource = OperationalDataStoreProvider.getDataSource();
+      operationalDataStore.initWithoutMigration(databaseConfig);
+      DataSource dataSource = operationalDataStore.getDataSource();
       log.info("Compacting {}", databaseFile);
       log.info("This might take a while, please be patient.");
       final long startTime = System.currentTimeMillis();

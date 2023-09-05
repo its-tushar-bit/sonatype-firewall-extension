@@ -6,20 +6,19 @@
 package com.sonatype.insight.brain.operational.check;
 
 import java.sql.Connection;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Verifies that the process can access the ods db.
- * 
+ *
  * @since 1.66
  */
 @Named
@@ -29,14 +28,17 @@ public class OdsDbOperationalCheck
 {
   private static final Logger log = LoggerFactory.getLogger(OdsDbOperationalCheck.class);
 
+  private final OperationalDataStore operationalDataStore;
+
   @Inject
-  public OdsDbOperationalCheck() {
+  public OdsDbOperationalCheck(final OperationalDataStore operationalDataStore) {
     super("ods-database");
+    this.operationalDataStore = operationalDataStore;
   }
 
   @Override
   protected Result check() throws Exception {
-    DataSource dataSource = OperationalDataStoreProvider.getDataSource();
+    DataSource dataSource = operationalDataStore.getDataSource();
     return checkConnection(dataSource);
   }
 

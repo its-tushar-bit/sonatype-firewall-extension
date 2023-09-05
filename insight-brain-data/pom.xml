@@ -74,6 +74,20 @@
       <classifier>tests</classifier>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-db</artifactId>
+      <scope>test</scope>
+      <classifier>tests</classifier>
+      <version>${project.version}</version>
+      <exclusions>
+        <!-- Exclude this transitive as it impacts the tests in this package -->
+        <exclusion>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
     <dependency>
       <groupId>org.drools</groupId>

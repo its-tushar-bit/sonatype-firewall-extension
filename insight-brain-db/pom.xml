@@ -97,6 +97,24 @@
           <excludes>**/org/h2/**</excludes>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>**/*Rule</include>
+                <include>**/*Fixture</include>
+                <include>**/*Provider</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>

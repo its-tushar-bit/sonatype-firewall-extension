@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.database;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.database.datasource.DataSourceProvider;
@@ -22,14 +20,12 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 public class H2InMemoryTestDataSourceProvider
     implements DataSourceProvider
 {
-  // H2 has one DataSource object for each of the four data stores
-  private final Map<String, DataSource> dataSources = new HashMap<>();
-
   @Override
-  public DataSource getDataSource(final DatabaseConfig databaseConfig, final String dataStoreId) {
-    synchronized (dataSources) {
-      return dataSources.computeIfAbsent(dataStoreId, val -> createNewInMemoryDataSource());
-    }
+  public DataSource getDataSource(
+      final DatabaseConfig databaseConfig /* unused */,
+      final String dataStoreId /* unused */)
+  {
+    return createNewInMemoryDataSource();
   }
 
   private DataSource createNewInMemoryDataSource() {

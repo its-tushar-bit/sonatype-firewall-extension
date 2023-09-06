@@ -68,15 +68,18 @@ make(
     useCheckstyle: true,
     releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS,
     onSuccess: {
-        pushDockerImageIfDeployBranch()
-        pushMTIQDockerImage()
-        saveGitCommitHashIfMainSnapshotBuild()
+        postBuild()
     },
     onUnstable: {
-        pushDockerImageIfDeployBranch()
-        pushMTIQDockerImage()
+        postBuild()
     }
 )
+
+void postBuild() {
+  pushDockerImageIfDeployBranch()
+  pushMTIQDockerImage()
+  saveGitCommitHashIfMainSnapshotBuild()
+}
 
 void configureBranchJob() {
   // Use the project name to determine the branch

@@ -562,8 +562,7 @@ public class ComponentFeedbackContextFactoryTest
       final SourceControlProvider utmSourceProvider)
   {
     final String additionalQueryParams = nonNull(utmSourceProvider) ? "?utm_source=" + utmSourceProvider : "";
-    return "https://iq.example.com/assets/index.html" + additionalQueryParams + "#/violation/"
-        + policyViolationId + "?type=violation&sidebarReference=filter";
+    return "https://iq.example.com/ui/links/policyViolationReport/" + policyViolationId + additionalQueryParams;
   }
 
   enum TestCaseId

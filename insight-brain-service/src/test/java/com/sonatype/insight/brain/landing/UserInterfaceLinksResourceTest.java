@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
@@ -31,6 +32,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.COMPONENT_SCAN_REPORT_PATH;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.POLICY_VIOLATION_REPORT_PATH;
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -108,6 +110,20 @@ public class UserInterfaceLinksResourceTest
     assertRedirect(response,
         "assets/index.html?utm_source=github#/applicationReport/my-app-id" +
             "/my-scan-id/componentDetails/my-component-scan-hash/overview");
+  }
+
+  @Test
+  public void testLinkToPolicyViolationReport() throws Exception {
+    assertThat(UserInterfaceLinksHelper.getPolicyViolationReportPath("my-pv-id"))
+        .isEqualTo( UserInterfaceLinksHelper.RESOURCE_PATH + "/policyViolationReport/my-pv-id");
+    HttpResponse response = restRequest()
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH + "/" + POLICY_VIOLATION_REPORT_PATH)
+        .parameter("my-pv-id")
+        .query("utm_source=github")
+        .anon()
+        .get();
+    assertRedirect(response,
+        "assets/index.html?utm_source=github#/violation/my-pv-id?type=violation&sidebarReference=filter");
   }
 
   @Test

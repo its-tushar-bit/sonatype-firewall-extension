@@ -18,9 +18,9 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
-import com.sonatype.insight.brain.git.render.model.SeverityInfo;
 import com.sonatype.insight.brain.git.render.model.MDImages;
 import com.sonatype.insight.brain.git.render.model.SecurityIssue;
+import com.sonatype.insight.brain.git.render.model.SeverityInfo;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -39,8 +39,8 @@ import static com.sonatype.insight.brain.git.render.ReferenceIdParser.parseRefer
 import static com.sonatype.insight.brain.git.render.UTMSourceUtil.maybeAppendUTMSourceParam;
 import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_DEEP_DIVE_TAG;
 import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_FAST_TRACK_TAG;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getPolicyViolationReportPath;
 import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
-import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 
 @Named
@@ -168,9 +168,9 @@ public class SecurityIssueService
       final String policyViolationId,
       final SourceControlProvider provider)
   {
-    final String url  = format("%s/assets/index.html", trimTrailingSlash(iqBaseUrl));
-    return maybeAppendUTMSourceParam(url, provider)
-        + format("#/violation/%s?type=violation&sidebarReference=filter", policyViolationId);
+    final String reportPath = getPolicyViolationReportPath(policyViolationId);
+    final String url  = trimTrailingSlash(iqBaseUrl) + "/" + trimTrailingSlash(reportPath);
+    return maybeAppendUTMSourceParam(url, provider);
   }
 
   private static SeverityInfo buildSeverityInfo(final SecurityVulnerabilityData data) {

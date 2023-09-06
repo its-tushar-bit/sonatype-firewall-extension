@@ -17,8 +17,8 @@ No recommended versions are available for this component (as of _Aug 16, 2023_)
 
 | **Severity** | **Issue** | **Organization Policy Violation** |
 | --- | --- | --- |
-| <b>Threat level:</b> 4<br><b>CVSS Score:</b> 6.7<br><br><img title="Sonatype Deep Dive" alt="Sonatype Deep Dive" src="https://cdn.sonatype.com/iq-for-scm/1.0/DeepDive.svg" width="900" /> | [SONATYPE-123-01] The is a description of SONATYPE-123-01 | [View Details](https://iq.example.com/assets/index.html?utm_source=github#/violation/pv3?type=violation&sidebarReference=filter) |
-| <b>Threat level:</b> 4<br><b>CVSS Score:</b> 5.6<br><br><img title="Sonatype Fast Track" alt="Sonatype Fast Track" src="https://cdn.sonatype.com/iq-for-scm/1.0/FastTrack.svg" width="900" /> | [CVE-123-01] The is a description of CVE-123-01 | [View Details](https://iq.example.com/assets/index.html?utm_source=github#/violation/pv3?type=violation&sidebarReference=filter) |
+| <b>Threat level:</b> 4<br><b>CVSS Score:</b> 6.7<br><br><img title="Sonatype Deep Dive" alt="Sonatype Deep Dive" src="https://cdn.sonatype.com/iq-for-scm/1.0/DeepDive.svg" width="900" /> | [SONATYPE-123-01] The is a description of SONATYPE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv3?utm_source=github) |
+| <b>Threat level:</b> 4<br><b>CVSS Score:</b> 5.6<br><br><img title="Sonatype Fast Track" alt="Sonatype Fast Track" src="https://cdn.sonatype.com/iq-for-scm/1.0/FastTrack.svg" width="900" /> | [CVE-123-01] The is a description of CVE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv3?utm_source=github) |
 
 </details>
 

@@ -29,6 +29,8 @@ public class UserInterfaceLinksHelper
   public static final String COMPONENT_SCAN_REPORT_PATH =
       "application/{applicationPublicId}/report/{scanId}/componentDetails/{componentScanHash}";
 
+  public static final String POLICY_VIOLATION_REPORT_PATH = "policyViolationReport/{policyViolationId}";
+
   public static final String VULNERABILITY_DETAILS_PATH = "vln/{vulnerabilityId}";
 
   public static final String LATEST_VERSION_SBOM_REPORT_PATH = "cycloneDx/{applicationId}/reports/{scanId}";
@@ -47,6 +49,10 @@ public class UserInterfaceLinksHelper
 
   public static String getVulnerabilityDetailsUrl(String vulnerabilityId) {
     return buildStableUrl(VULNERABILITY_DETAILS_PATH, vulnerabilityId);
+  }
+
+  public static String getPolicyViolationReportPath(final String policyViolationId) {
+    return buildStableUrl(POLICY_VIOLATION_REPORT_PATH, policyViolationId);
   }
 
   public static String getLatestReportUrl(String applicationPublicId, String stageId) {

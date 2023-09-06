@@ -278,6 +278,7 @@ public class PullRequestFeedbackMarkupServiceTest
         new PolicyViolation(evaluation, "policy1", "Policy 1", 1,
             PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
             constraintFactList, "filename");
+    policyViolation.setId("pv1");
 
     final List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(policyViolation);

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.landing;
 
 import java.net.URI;
 import java.util.Locale;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -149,6 +150,18 @@ public class UserInterfaceLinksResource
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(fragmentTemplate);
     return redirect(uriBuilder, applicationPublicId, scanId, componentScanHash);
+  }
+
+  @GET
+  @Path(POLICY_VIOLATION_REPORT_PATH)
+  public Response linkToPolicyViolationReport(
+      @PathParam("policyViolationId") final String policyViolationId,
+      @QueryParam("utm_source") final String utmSource)
+  {
+    final String fragmentTemplate = "/violation/{policyViolationId}?type=violation&sidebarReference=filter";
+    final UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(fragmentTemplate);
+    return redirect(uriBuilder, policyViolationId, utmSource);
   }
 
   /**

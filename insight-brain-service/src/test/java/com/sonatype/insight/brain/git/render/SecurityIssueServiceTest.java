@@ -182,8 +182,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo()).isNull();
     assertThat(actualSecurityIssue.getDescription()).isNull();
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo("https://iq.example.com/assets/index.html?utm_source=github#/violation/pv1" +
-            "?type=violation&sidebarReference=filter");
+        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -207,8 +206,8 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo()).isNull();
     assertThat(actualSecurityIssue.getDescription()).isNull();
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo("https://iq.example.com/assets/index.html?utm_source=github#/violation/pv1" +
-            "?type=violation&sidebarReference=filter");
+        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
+
   }
 
   @Test
@@ -235,8 +234,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo().getVerificationImage()).isEqualTo(SONATYPE_DEEP_DIVE_TAG);
     assertThat(actualSecurityIssue.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo("https://iq.example.com/assets/index.html?utm_source=github#/violation/pv1" +
-            "?type=violation&sidebarReference=filter");
+        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -263,8 +261,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo().getVerificationImage()).isEqualTo(SONATYPE_FAST_TRACK_TAG);
     assertThat(actualSecurityIssue.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo("https://iq.example.com/assets/index.html?utm_source=github#/violation/pv1" +
-            "?type=violation&sidebarReference=filter");
+        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -291,8 +288,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo().getVerificationImage()).isEqualTo(SONATYPE_FAST_TRACK_TAG);
     assertThat(actualSecurityIssue.getDescription()).isNull();
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo("https://iq.example.com/assets/index.html?utm_source=github#/violation/pv1" +
-            "?type=violation&sidebarReference=filter");
+        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -319,8 +315,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo().getVerificationImage()).isNull();
     assertThat(actualSecurityIssue.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo("https://iq.example.com/assets/index.html?utm_source=github#/violation/pv1" +
-            "?type=violation&sidebarReference=filter");
+        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -349,40 +344,34 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actual1.getSeverityInfo().getVerificationImage()).isEqualTo(SONATYPE_FAST_TRACK_TAG);
     assertThat(actual1.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actual1.getPolicyViolationDetailsLink())
-        .isEqualTo("https://iq.example.com/assets/index.html?utm_source=github#/violation/pv2" +
-            "?type=violation&sidebarReference=filter");
+        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv2?utm_source=github");
 
     // Then expect the second security issue to be pv1
     assertThat(actual2.getThreatLevel()).isEqualTo(pv1.getThreatLevel());
     assertThat(actual2.getSeverityInfo()).usingRecursiveComparison().isEqualTo(actual1.getSeverityInfo());
     assertThat(actual2.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actual2.getPolicyViolationDetailsLink())
-        .isEqualTo("https://iq.example.com/assets/index.html?utm_source=github#/violation/pv1" +
-            "?type=violation&sidebarReference=filter");
+        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
   public void testGetSecurityIssuesFromViolations_withUTMSource_github() {
-    runUtmSourceTest(GITHUB, "https://iq.example.com/assets/index.html?utm_source=github#/violation/" +
-                "pv1?type=violation&sidebarReference=filter");
+    runUtmSourceTest(GITHUB, "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
   public void testGetSecurityIssuesFromViolations_withUTMSource_gitlab() {
-    runUtmSourceTest(GITLAB, "https://iq.example.com/assets/index.html?utm_source=gitlab#/violation/" +
-        "pv1?type=violation&sidebarReference=filter");
+    runUtmSourceTest(GITLAB, "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=gitlab");
   }
 
   @Test
   public void testGetSecurityIssuesFromViolations_withoutUTMSource_azure() {
-    runUtmSourceTest(AZURE, "https://iq.example.com/assets/index.html#/violation/" +
-        "pv1?type=violation&sidebarReference=filter");
+    runUtmSourceTest(AZURE, "https://iq.example.com/ui/links/policyViolationReport/pv1");
   }
 
   @Test
   public void testGetSecurityIssuesFromViolations_withoutUTMSource_bitbucket() {
-    runUtmSourceTest(BITBUCKET, "https://iq.example.com/assets/index.html#/violation/" +
-        "pv1?type=violation&sidebarReference=filter");
+    runUtmSourceTest(BITBUCKET, "https://iq.example.com/ui/links/policyViolationReport/pv1");
   }
 
   public void runUtmSourceTest(final SourceControlProvider provider, final String expectedDetailsLink) {

@@ -17,7 +17,7 @@ Threat Level: <strong>Low (1)</strong> \| [View Component Details in Sonatype Li
 
 | **Severity** | **Issue** | **Organization Policy Violation** |
 | --- | --- | --- |
-| <b>Threat level:</b> 1<br><b>CVSS Score:</b> N/A |  | [View Details](http://localhost:1122/assets/index.html?utm_source=github#/violation/null?type=violation&sidebarReference=filter) |
+| <b>Threat level:</b> 1<br><b>CVSS Score:</b> N/A |  | [View Details](http://localhost:1122/ui/links/policyViolationReport/pv1?utm_source=github) |
 
 </details>
 

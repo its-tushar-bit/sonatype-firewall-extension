@@ -17,6 +17,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Optional;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -27,12 +29,14 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -105,6 +109,9 @@ public class SbomResultHandler
   protected final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
 
   protected final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+
+  protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO =
+      new ThirdPartyVulnerabilityExploitabilityExchangeDAO();
 
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(
@@ -214,6 +221,19 @@ public class SbomResultHandler
     ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerability(vulnerability, fileCoordinateId);
     if (coordinateSecurity != null) {
       thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+      vulnerabilityExploitabilityExchangeSave(vulnerability, coordinateSecurity, tx);
+    }
+  }
+
+  private void vulnerabilityExploitabilityExchangeSave(
+      Vulnerability vulnerability,
+      ThirdPartyCoordinateSecurity coordinateSecurity,
+      TransactionContext tx)
+  {
+    ThirdPartyVulnerabilityExploitabilityExchange vex =
+        parseVulnerabilityExploitability(vulnerability, coordinateSecurity.getId());
+    if (vex != null) {
+      thirdPartyVexDAO.saveOrUpdate(tx, vex);
     }
   }
 
@@ -603,6 +623,41 @@ public class SbomResultHandler
       log.debug("Vulnerability with ID {} does not have a valid rating, it can't be parsed", vulnerability.getId());
     }
     return null;
+  }
+
+  @VisibleForTesting
+  ThirdPartyVulnerabilityExploitabilityExchange parseVulnerabilityExploitability(
+      final Vulnerability vulnerability, final String coordinateSecurityId)
+  {
+
+    Vulnerability.Analysis analysis = vulnerability.getAnalysis();
+    ThirdPartyVulnerabilityExploitabilityExchange vex = null;
+
+    if (analysis != null) {
+      vex = new ThirdPartyVulnerabilityExploitabilityExchange();
+
+      Optional.ofNullable(analysis.getState())
+          .map(Vulnerability.Analysis.State::getStateName)
+          .ifPresent(vex::setState);
+
+      Optional.ofNullable(analysis.getJustification())
+          .map(Vulnerability.Analysis.Justification::getJustificationName)
+          .ifPresent(vex::setJustification);
+
+      String responses = Optional.ofNullable(analysis.getResponses())
+          .orElseGet(Collections::emptyList)
+          .stream()
+          .map(Vulnerability.Analysis.Response::getResponseName)
+          .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR));
+      vex.setResponse(responses);
+
+      Optional.ofNullable(analysis.getDetail()).ifPresent(vex::setDetail);
+
+      vex.setRefId(vulnerability.getId());
+      vex.setCoordinateSecurityId(coordinateSecurityId);
+    }
+
+    return vex;
   }
 
   Vulnerability.Rating getValidRating(List<Vulnerability.Rating> ratings) {

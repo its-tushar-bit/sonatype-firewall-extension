@@ -132,6 +132,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityTagDAO;
@@ -258,6 +259,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
@@ -704,6 +706,7 @@ public class TemporaryEntity
     // - SourceControlPullRequestResult: cascaded from Application
     // - SuccessMetricsReportData: cascaded from SuccessMetricsReport
     // - ThirdPartyFileCoordinate: cascaded from ThirdPartyFile
+    // - ThirdPartyVulnerabilityExploitabilityExchange: cascaded from ThirdPartyCoordinateSecurity
     // - VulnerabilityCustomCvssSeverityTag: cascaded from VulnerabilityCustomCvssSeverity
     // - VulnerabilityCustomCvssVectorTag: cascaded from VulnerabilityCustomCvssVector
     // - VulnerabilityCustomCweTag: cascaded from VulnerabilityCustomCwe
@@ -3672,6 +3675,23 @@ public class TemporaryEntity
         new ThirdPartyCoordinateLicense(fileCoordinate.getId(), licenseId, name, url);
     new ThirdPartyCoordinateLicenseDAO().insert(coordinateLicense);
     return coordinateLicense;
+  }
+
+  public ThirdPartyVulnerabilityExploitabilityExchange newThirdPartyVulnerabilityExploitabilityExchange(
+      ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity,
+      String refId,
+      String state,
+      String justification,
+      String response,
+      String detail)
+  {
+    ThirdPartyVulnerabilityExploitabilityExchange vexData =
+        new ThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity.getId(), refId, state,
+        justification, response, detail);
+
+    new ThirdPartyVulnerabilityExploitabilityExchangeDAO().insert(vexData);
+
+    return vexData;
   }
 
   public SamlConfiguration newSamlConfiguration(

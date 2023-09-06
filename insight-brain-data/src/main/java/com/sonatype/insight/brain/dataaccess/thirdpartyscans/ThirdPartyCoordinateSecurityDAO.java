@@ -46,6 +46,14 @@ public class ThirdPartyCoordinateSecurityDAO
   public int deleteByFileCoordinateId(TransactionContext tx, String fileCoordinateId) {
     String sQuery = "DELETE from ThirdPartyCoordinateSecurity entity WHERE entity.fileCoordinateId=?1";
     Query<ThirdPartyCoordinateSecurity> query = createQuery(sQuery, fileCoordinateId);
+
+    // cascade delete vulnerability exploitability exchanges
+    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList = getByFileCoordinateId(fileCoordinateId);
+    thirdPartyCoordinateSecurityList.stream().forEach(
+        thirdPartyCoordinateSecurity -> new ThirdPartyVulnerabilityExploitabilityExchangeDAO()
+            .deleteByCoordinateSecurityId(tx, thirdPartyCoordinateSecurity.getId())
+    );
+
     return query.executeUpdate(tx);
   }
 

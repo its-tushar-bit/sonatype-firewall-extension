@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -1612,6 +1613,51 @@ public class SbomResultHandlerTest
       assertParentAndChildDependency(rootDependencies, "pkg:maven/org.acme/web-framework@1.0.0?type=jar",
           "pkg:maven/org.acme/common-util@3.0.0?type=jar");
       assertParentAndChildDependency(rootDependencies, "pkg:maven/org.acme/common-util@3.0.0?type=jar", null);
+    });
+  }
+
+  @Test
+  public void testParseVulnerabilityExploitability() throws Exception {
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-vulnerabilities-v1_4-vex-data.xml", null, null, null,
+            getSbomXmlFile("sbom-vulnerabilities-v1_4-vex-data.xml"));
+    Bom bom = sbomResultHandler.parseBom(content);
+    assertThat(bom.getVulnerabilities()).isNotEmpty().allSatisfy(vulnerability -> {
+      ThirdPartyVulnerabilityExploitabilityExchange vex =
+          sbomResultHandler.parseVulnerabilityExploitability(vulnerability, "anyId");
+      assertThat(vex).isNotNull();
+      assertThat(vex.getResponse().split(",")).hasSize(2).contains("will_not_fix", "update");
+      assertThat(vex.getJustification()).isEqualTo("code_not_reachable");
+    });
+  }
+
+  @Test
+  public void testParseVulnerabilityExploitabilityPartialData() throws Exception {
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-vulnerabilities-v1_4-vex-partial-data.xml", null, null, null,
+            getSbomXmlFile("sbom-vulnerabilities-v1_4-vex-partial-data.xml"));
+    Bom bom = sbomResultHandler.parseBom(content);
+    assertThat(bom.getVulnerabilities()).isNotEmpty().allSatisfy(vulnerability -> {
+      ThirdPartyVulnerabilityExploitabilityExchange vex =
+          sbomResultHandler.parseVulnerabilityExploitability(vulnerability, "anyId");
+      assertThat(vex).isNotNull();
+      assertThat(vex.getDetail()).isEqualTo("Some analysis details");
+      assertThat(vex.getState()).isEqualTo("resolved");
+      assertThat(vex.getResponse()).isEmpty();
+      assertThat(vex.getJustification()).isNull();
+    });
+  }
+
+  @Test
+  public void testParseVulnerabilityExploitabilityNullVexData() throws Exception {
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-vulnerabilities-v1_4.xml", null, null, null,
+            getSbomXmlFile("sbom-vulnerabilities-v1_4.xml"));
+    Bom bom = sbomResultHandler.parseBom(content);
+    assertThat(bom.getVulnerabilities()).isNotEmpty().allSatisfy(vulnerability -> {
+      ThirdPartyVulnerabilityExploitabilityExchange vex =
+          sbomResultHandler.parseVulnerabilityExploitability(vulnerability, "anyId");
+      assertThat(vex).isNull();
     });
   }
 

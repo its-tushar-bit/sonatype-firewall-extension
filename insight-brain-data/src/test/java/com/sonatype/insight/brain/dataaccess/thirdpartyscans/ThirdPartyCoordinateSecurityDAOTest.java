@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
@@ -92,6 +93,37 @@ public class ThirdPartyCoordinateSecurityDAOTest
     final List<ThirdPartyCoordinateSecurity> results = dao.getByFileCoordinateId(coord.getId());
     assertThat(results).usingElementComparator(THIRD_PARTY_COORDINATE_SECURITY_COMPARATOR)
         .containsExactlyInAnyOrderElementsOf(Arrays.asList(coordSec1, coordSec2));
+  }
+
+  @Test
+  public void testDelete_Cascade() {
+    ThirdPartyFileCoordinate coord1 =
+        tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1");
+    ThirdPartyCoordinateSecurity coordSec1 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "d1", "l1", 1.1f, "Low", "f1");
+    ThirdPartyCoordinateSecurity coordSec2 =
+        tempEntity.newThirdPartyCoordinateSecurity(coord1, "r2", "d1", "l2", 1.1f, "Low", "f2");
+
+    ThirdPartyVulnerabilityExploitabilityExchange vexData =
+        tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordSec1, "r1", "state",
+            "justification", "response", "detail");
+    ThirdPartyVulnerabilityExploitabilityExchange vexData2 =
+        tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordSec2, "r2", "state2",
+            "justification2", "response2", "detail2");
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByFileCoordinateId(tx, coord1.getId());
+      tx.commit();
+    }
+
+    ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO =
+        new ThirdPartyVulnerabilityExploitabilityExchangeDAO();
+
+    assertThat(dao.getById(coordSec1.getId())).isNull();
+    assertThat(dao.getById(coordSec2.getId())).isNull();
+    assertThat(vexDAO.getById(vexData.getId())).isNull();
+    assertThat(vexDAO.getById(vexData2.getId())).isNull();
   }
 
   @Test

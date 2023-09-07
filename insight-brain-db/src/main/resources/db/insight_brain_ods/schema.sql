@@ -1427,7 +1427,6 @@ CREATE TABLE source_control_organization_import_event
 CREATE TABLE deleted_tenant
 (
   tenant_slug                varchar(61) NOT NULL,
-  delete_requested_timestamp bigint,
   created                    timestamp   default CURRENT_TIMESTAMP(6),
   last_updated               timestamp   default NULL,
   delete_completed_date      timestamp   default NULL,

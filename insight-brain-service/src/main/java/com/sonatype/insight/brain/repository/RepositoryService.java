@@ -517,9 +517,13 @@ public class RepositoryService
 
     List<RepositoryManager> unconfiguredRepositoryManagers = repositoryManagerDAO.getUnconfigured();
     String nxrmMinimalVersion = "3.60.0-SNAPSHOT";
+    String artifactoryPluginMinimalVersion = "2.4.8-SNAPSHOT";
     unconfiguredRepositoryManagers = unconfiguredRepositoryManagers.stream()
-        .filter(repositoryManager -> "Nexus".equals(repositoryManager.getProductName())
-            && compareVersions(repositoryManager.getProductVersion(), nxrmMinimalVersion) >= 0)
+        .filter(repositoryManager ->
+            ("Nexus".equals(repositoryManager.getProductName())
+            && compareVersions(repositoryManager.getProductVersion(), nxrmMinimalVersion) >= 0) ||
+            ("Firewall_For_Jfrog_Artifactory".equals(repositoryManager.getProductName())
+            && compareVersions(repositoryManager.getProductVersion(), artifactoryPluginMinimalVersion) >= 0))
         .collect(Collectors.toList());
     log.debug("Found {} unconfigured repository managers.", unconfiguredRepositoryManagers.size());
     return unconfiguredRepositoryManagers;

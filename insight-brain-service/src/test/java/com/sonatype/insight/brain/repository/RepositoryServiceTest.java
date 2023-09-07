@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -31,6 +30,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
@@ -71,6 +71,7 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang3.time.DateUtils;
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -916,11 +917,18 @@ public class RepositoryServiceTest extends AbstractComponentTest
     configuredRepoManager.setConfigureTime(new Date());
     repositoryManagerDAO.update(configuredRepoManager);
 
-    RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
-    unconfiguredRepoManager.setProductName("Nexus");
-    unconfiguredRepoManager.setProductVersion("3.60.0");
-    unconfiguredRepoManager.setUserAgent("Nexus/3.60.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
-    repositoryManagerDAO.update(unconfiguredRepoManager);
+    RepositoryManager nexusUnconfiguredRepoManager = tempEntity.newRepositoryManager();
+    nexusUnconfiguredRepoManager.setProductName("Nexus");
+    nexusUnconfiguredRepoManager.setProductVersion("3.60.0");
+    nexusUnconfiguredRepoManager.setUserAgent("Nexus/3.60.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    repositoryManagerDAO.update(nexusUnconfiguredRepoManager);
+
+    RepositoryManager artifactoryUnconfiguredRepoManager = tempEntity.newRepositoryManager();
+    artifactoryUnconfiguredRepoManager.setProductName("Firewall_For_Jfrog_Artifactory");
+    artifactoryUnconfiguredRepoManager.setProductVersion("2.48.0");
+    artifactoryUnconfiguredRepoManager.setUserAgent(
+        "Firewall_For_Jfrog_Artifactory/2.48.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
+    repositoryManagerDAO.update(artifactoryUnconfiguredRepoManager);
 
     // By default, Firewall Onboarding is enabled
     // Disable Firewall Onboarding
@@ -933,9 +941,10 @@ public class RepositoryServiceTest extends AbstractComponentTest
     }
 
     List<RepositoryManager> repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
-    assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
-    assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
-    assertThat(repoManagers).hasSize(1);
+    assertThat(repoManagers).hasSize(2);
+    assertThat(repoManagers).usingRecursiveFieldByFieldElementComparator(
+        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build()
+    ).containsExactlyInAnyOrder(nexusUnconfiguredRepoManager, artifactoryUnconfiguredRepoManager);
   }
 
   @Test
@@ -957,14 +966,14 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
     assertThat(repoManagers).isEmpty();
 
-    // Supported product name, but unsupported version
+    // Nexus supported product name, but unsupported version
     unconfiguredRepoManager.setProductName("Nexus");
     unconfiguredRepoManager.setProductVersion("3.58.0");
     repositoryManagerDAO.update(unconfiguredRepoManager);
     repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
     assertThat(repoManagers).isEmpty();
 
-    // Supported product name and supported snapshot version
+    // Nexus supported product name and supported snapshot version
     unconfiguredRepoManager.setProductVersion("3.60.0-SNAPSHOT");
     repositoryManagerDAO.update(unconfiguredRepoManager);
     repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
@@ -972,7 +981,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
     assertThat(repoManagers).hasSize(1);
 
-    // Supported product name and first supported release version
+    // Nexus supported product name and first supported release version
     unconfiguredRepoManager.setProductVersion("3.60.0");
     repositoryManagerDAO.update(unconfiguredRepoManager);
     repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
@@ -987,7 +996,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
     assertThat(repoManagers).hasSize(1);
 
-    // Supported product name and later supported release version
+    // Nexus supported product name and later supported release version
     unconfiguredRepoManager.setProductVersion("3.60.1");
     repositoryManagerDAO.update(unconfiguredRepoManager);
     repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
@@ -995,8 +1004,54 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
     assertThat(repoManagers).hasSize(1);
 
-    // Supported product name and later supported release version
+    // Nexus supported product name and later supported release version
     unconfiguredRepoManager.setProductVersion("3.60.0");
+    repositoryManagerDAO.update(unconfiguredRepoManager);
+    repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+    assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+    assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+    assertThat(repoManagers).hasSize(1);
+
+    // Artifactory supported product name, but unsupported snapshot version
+    unconfiguredRepoManager.setProductName("Firewall_For_Jfrog_Artifactory");
+    unconfiguredRepoManager.setProductVersion("2.4.7-SNAPSHOT");
+    repositoryManagerDAO.update(unconfiguredRepoManager);
+    repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+    assertThat(repoManagers).isEmpty();
+
+    // Artifactory supported product name, but unsupported release version
+    unconfiguredRepoManager.setProductName("Firewall_For_Jfrog_Artifactory");
+    unconfiguredRepoManager.setProductVersion("2.4.7");
+    repositoryManagerDAO.update(unconfiguredRepoManager);
+    repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+    assertThat(repoManagers).isEmpty();
+
+    // Artifactory supported product name and supported snapshot version
+    unconfiguredRepoManager.setProductVersion("2.4.8-SNAPSHOT");
+    repositoryManagerDAO.update(unconfiguredRepoManager);
+    repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+    assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+    assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+    assertThat(repoManagers).hasSize(1);
+
+    // Artifactory supported product name and first supported release version
+    unconfiguredRepoManager.setProductVersion("2.4.8");
+    repositoryManagerDAO.update(unconfiguredRepoManager);
+    repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+    assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+    assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+    assertThat(repoManagers).hasSize(1);
+
+    // Artifactory supported product name and later supported snapshot version
+    unconfiguredRepoManager.setProductVersion("2.4.9-SNAPSHOT");
+    repositoryManagerDAO.update(unconfiguredRepoManager);
+    repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
+    assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());
+    assertThat(repoManagers.get(0).getInstanceId()).isEqualTo(unconfiguredRepoManager.getInstanceId());
+    assertThat(repoManagers).hasSize(1);
+
+    // Artifactory supported product name and later supported release version
+    unconfiguredRepoManager.setProductVersion("2.4.9");
     repositoryManagerDAO.update(unconfiguredRepoManager);
     repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
     assertThat(repoManagers.get(0).getId()).isEqualTo(unconfiguredRepoManager.getId());

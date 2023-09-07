@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
-import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -147,24 +147,12 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
 
   @Test
   public void testGetUnconfigured() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    // Sanity check
-    assertThat(repositoryManager.getUserAgent()).isNull();
+    RepositoryManager configuredRepositoryManager = tempEntity.newRepositoryManager();
+    configuredRepositoryManager.setConfigured(true);
+    dao.update(configuredRepositoryManager);
 
-    // Repository without user agent
-    assertThat(dao.getUnconfigured()).isEmpty();
-
-    // Repository with Artifactory user agent
-    repositoryManager.setUserAgent(
-        "Firewall_For_Jfrog_Artifactory/unknown (; Linux; 5.10.109-104.500.amzn2.x86_64; amd64; 17.0.3;"
-            + " Jfrog Artifactory unknown)");
-    dao.update(repositoryManager);
-    assertThat(dao.getUnconfigured()).isEmpty();
-
-    // Repository with NXRM user agent
-    repositoryManager.setUserAgent("Nexus/3.56.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
-    dao.update(repositoryManager);
-    assertThat(dao.getUnconfigured()).extracting(RepositoryManager::getId).containsExactly(repositoryManager.getId());
+    assertThat(dao.getUnconfigured()).extracting(RepositoryManager::getId)
+        .containsExactly(repository.getRepositoryManagerId());
   }
 
   @Test

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
+import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -31,6 +32,7 @@ import com.auth0.jwk.Jwk;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.inject.AbstractModule;
+import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.shaded.com.google.common.net.HttpHeaders;
@@ -39,6 +41,7 @@ import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIO
 import static org.mockito.Mockito.when;
 
 public class MultiTenantBrainServiceTestHelper
+    extends ExternalResource
 {
   private static final TestRestTenantUtil tenantUtil = new TestRestTenantUtil();
 
@@ -48,11 +51,22 @@ public class MultiTenantBrainServiceTestHelper
 
   private static Tenant testTenant = null;
 
+  @Override
+  public void before()  {
+    MultiTenantBrainServiceTestHelper.setup();
+  }
+
+  @Override
+  public void after() {
+    MultiTenantBrainServiceTestHelper.stop();
+  }
+
   /**
    * setup will initialize MultiTenantBrainServiceTestFactory ready for multi tenant testing with
    * AbstractBrainServiceTest.
    */
   public static void setup() {
+    MultiTenantBrainServiceTestHelper.createDatabaseContainer();
     MultiTenantBrainServiceTestService.setup(
         TestMultiTenantInsightBrainService.class,
         MultiTenantBrainServiceTestHelper::createDatabaseContainer,
@@ -111,6 +125,10 @@ public class MultiTenantBrainServiceTestHelper
       mtiqConfig.setMainDatabase(mainDbConfig);
       mtiqConfig.setLocksDatabase(locksDbConfig);
     });
+
+    tenantUtil.setGlobalTenant();
+    MultiTenantDatabaseConfigProvider databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
+    databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
 
     return mtiqDatabaseContainer;
   }
@@ -177,19 +195,13 @@ public class MultiTenantBrainServiceTestHelper
   }
 
   /**
+   * stop will remove MTIQ overrides and allow AbstractBrainServiceTest to be run as normal for single tenant tests.
+   * Must be called once the MTIQ integration tests have finished.
    * This results in slower tests but means we get a clean slate after each MTIQ Integration test and prevents MTIQ
    * implementations leaking into non-MTIQ tests.
-   * Should be called on @afterClass.
    */
-  public static void shutdownMtiq(TestCLMServer testCLMServer) {
-    if (testCLMServer != null) {
-      try {
-        testCLMServer.stop();
-      }
-      catch (Exception e) {
-        log.error("Failed to stop MTIQ", e);
-      }
-    }
+  public static void stop() {
+    MultiTenantBrainServiceTestService.stop();
 
     if (postgresServer != null) {
       postgresServer.close();
@@ -211,12 +223,17 @@ public class MultiTenantBrainServiceTestHelper
   }
 
   /**
-   * stop will remove MTIQ overrides and allow AbstractBrainServiceTest to be run as normal for single tenant tests.
-   * Must be called once the MTIQ integration tests have finished.
+   * Should be called on test @afterClass.
    */
-  public static void stop() {
-    MultiTenantBrainServiceTestService.stop();
-    shutdownMtiq(null);
+  public static void shutdownMtiq(TestCLMServer testCLMServer) {
+    if (testCLMServer != null) {
+      try {
+        testCLMServer.stop();
+      }
+      catch (Exception e) {
+        System.err.println("Failed to stop MTIQ: " + e.getMessage());
+      }
+    }
   }
 
   public static void setTenantBySlug(String tenantSlug) {

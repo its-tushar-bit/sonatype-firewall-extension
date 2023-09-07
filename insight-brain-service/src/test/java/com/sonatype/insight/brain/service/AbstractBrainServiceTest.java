@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
@@ -66,6 +65,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.product.license.TestProductLicenseRule;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -85,7 +85,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.networking.PortAllocator;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -99,6 +98,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
@@ -118,6 +118,12 @@ public abstract class AbstractBrainServiceTest
   public @interface ManualServerInit
   {
   }
+
+  // by default license is always valid, to override, simply uninstall the license
+  protected static final TestProductLicenseManager licenseManager = new TestProductLicenseManager();
+
+  @ClassRule
+  public static final TestProductLicenseRule testProductLicense = new TestProductLicenseRule(licenseManager);
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -140,11 +146,6 @@ public abstract class AbstractBrainServiceTest
 
   @Rule
   public TestName testName = new TestName();
-
-  // by default license is always valid, to override, simply uninstall the license
-  protected static final TestProductLicenseManager licenseManager = new TestProductLicenseManager();
-
-  protected static final TestProductLicense testProductLicense = new TestProductLicense(licenseManager);
 
   private static boolean productlicenseWasUninstalled;
 
@@ -368,6 +369,8 @@ public abstract class AbstractBrainServiceTest
       protected void configure() {
         bind(ProductLicense.class).to(TestProductLicense.class);
         bind(TestProductLicense.class).toInstance(testProductLicense);
+        bind(TestProductLicense.class).to(TestProductLicenseRule.class);
+        bind(TestProductLicenseRule.class).toInstance(testProductLicense);
         bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
         bind(TestProductLicenseManager.class).toInstance(licenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);

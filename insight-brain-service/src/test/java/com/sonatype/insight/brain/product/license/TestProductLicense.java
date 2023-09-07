@@ -14,7 +14,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -24,7 +23,6 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
-
 import org.sonatype.licensing.product.ProductLicenseKey;
 
 @Named
@@ -38,8 +36,14 @@ public class TestProductLicense
 
   @Inject
   public TestProductLicense(TestProductLicenseManager testProductLicenseManager) {
+    this(testProductLicenseManager, true);
+  }
+
+  public TestProductLicense(TestProductLicenseManager testProductLicenseManager, boolean resetOnConstruct) {
     this.testProductLicenseManager = testProductLicenseManager;
-    reset();
+    if (resetOnConstruct) {
+      reset();
+    }
   }
 
   public void reset() {

@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper.ConsumerWithException;
 
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ENABLE_SSO_ONLY;
 
@@ -21,13 +21,12 @@ public class AbstractMultiTenantBrainServiceTest
   private final SystemConfigurationPropertyDAO configurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
   /**
-   * beforeAllTests initializes MultiTenantBrainServiceTestHelper this sets up AbstractBrainServiceTest
+   * MultiTenantBrainServiceTestHelper this sets up AbstractBrainServiceTest
    * ready for use with MTIQ registering before, after and afterClass handlers.
    */
-  @BeforeClass
-  public static void beforeAllTests() {
-    MultiTenantBrainServiceTestHelper.setup();
-  }
+  @ClassRule
+  public static final MultiTenantBrainServiceTestHelper multiTenantBrainServiceTestHelper =
+      new MultiTenantBrainServiceTestHelper();
 
   /**
    * afterDatabaseReset performs further TemporaryEntity cleanup action after TemporaryEntity has reset the database

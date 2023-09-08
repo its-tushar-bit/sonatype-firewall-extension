@@ -18,6 +18,7 @@ make(
         List<String> newFixVersions = ['saas-next']
         echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
         List<String> issues = getIssuesByFixVersion('CLM', fixVersion)
+        issues.addAll(getIssuesByFixVersion('SDEV', fixVersion))
         replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
       }
     },

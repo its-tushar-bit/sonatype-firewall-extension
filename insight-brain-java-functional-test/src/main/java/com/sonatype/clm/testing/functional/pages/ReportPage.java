@@ -26,6 +26,30 @@ public class ReportPage
     return $("#license-chart");
   }
 
+  public static SelenideElement securityContainerButton() {
+    return $("#securitycontainerBtn");
+  }
+
+  public static SelenideElement licenseContainerButton() {
+    return $("#licensecontainerBtn");
+  }
+
+  public static SelenideElement componentContainer() {
+    return $("#componentcontainer");
+  }
+
+  public static SelenideElement coverageDonut() {
+    return $("#coverage_donut");
+  }
+
+  public static SelenideElement securityTable() {
+    return $("#securityTable");
+  }
+
+  public static SelenideElement licenseContainer() {
+    return $("#licensecontainer");
+  }
+
   public static String url(Application app, String scanId) {
     return BaseUrl.rootUriBuilder().path("rest/report/{applicationPublicId}/{scanId}/browseReport/index.html")
         .build(app.getPublicId(), scanId).toString();

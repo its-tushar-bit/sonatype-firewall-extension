@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -851,6 +853,16 @@ public final class Report
         return new ReportEntry(entry.getName(), entry.getTime(), buf);
       }
     }
+
+    // Starting with release 1.167, we serve shared resources for legacy report from the jar
+    // HDS does not include these files in the report.zip when IQ client is v1.167 or higher
+    String resource = "/com/sonatype/insight/brain/legacy.report/" + name;
+    try (InputStream stream = Report.class.getResourceAsStream(resource)) {
+      if (stream != null) {
+        return new ReportEntry(name, new Date().getTime(), IOUtils.toByteArray(stream));
+      }
+    }
+
     return null;
   }
 

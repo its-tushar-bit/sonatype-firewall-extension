@@ -1,0 +1,661 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "tomcat-util-5.5.23.jar" ],
+    "pathnames" : [ "tomcat-util-5.5.23.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.23",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1249e25aebb15358bedd",
+    "relativePopularity" : 1.0,
+    "createTime" : 1201589122000
+  }, {
+    "filenames" : [ "commons-pool-1.4.jar" ],
+    "pathnames" : [ "commons-pool-1.4.jar" ],
+    "groupId" : "commons-pool",
+    "artifactId" : "commons-pool",
+    "version" : "1.4",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "commons-pool",
+        "artifactId" : "commons-pool",
+        "version" : "1.4",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1a667c9d419dc4f185c9",
+    "relativePopularity" : 0.1,
+    "createTime" : 1200480439000
+  }, {
+    "filenames" : [ "jclouds-bouncycastle-1.3.1.jar" ],
+    "pathnames" : [ "jclouds-bouncycastle-1.3.1.jar" ],
+    "groupId" : "org.jclouds.driver",
+    "artifactId" : "jclouds-bouncycastle",
+    "version" : "1.3.1",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.jclouds.driver",
+        "artifactId" : "jclouds-bouncycastle",
+        "version" : "1.3.1",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1fbeda8a0725179493e9",
+    "relativePopularity" : 0.37,
+    "createTime" : 1326945079000
+  }, {
+    "filenames" : [ "com.alkacon.opencms.v8.twitter-8.0.2.jar" ],
+    "pathnames" : [ "com.alkacon.opencms.v8.twitter-8.0.2.jar" ],
+    "groupId" : "org.opencms.modules",
+    "artifactId" : "com.alkacon.opencms.v8.twitter",
+    "version" : "8.0.2",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.opencms.modules",
+        "artifactId" : "com.alkacon.opencms.v8.twitter",
+        "version" : "8.0.2",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2c2a4719e64a7e39545c",
+    "relativePopularity" : 1.0,
+    "createTime" : 1325960230000
+  }, {
+    "filenames" : [ "geronimo-tomcat-1.0.jar" ],
+    "pathnames" : [ "geronimo-tomcat-1.0.jar" ],
+    "groupId" : "geronimo",
+    "artifactId" : "geronimo-tomcat",
+    "version" : "1.0",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "geronimo",
+        "artifactId" : "geronimo-tomcat",
+        "version" : "1.0",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "30a69958223a2c6215e2",
+    "relativePopularity" : 0.83,
+    "createTime" : 1136511582000
+  }, {
+    "filenames" : [ "commons-dbcp-1.4.jar" ],
+    "pathnames" : [ "commons-dbcp-1.4.jar" ],
+    "groupId" : "commons-dbcp",
+    "artifactId" : "commons-dbcp",
+    "version" : "1.4",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "commons-dbcp",
+        "artifactId" : "commons-dbcp",
+        "version" : "1.4",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "30be73c965cc990b153a",
+    "relativePopularity" : 1.0,
+    "createTime" : 1265565386000
+  }, {
+    "filenames" : [ "cobertura-1.6.jar" ],
+    "pathnames" : [ "cobertura-1.6.jar" ],
+    "groupId" : "cobertura",
+    "artifactId" : "cobertura",
+    "version" : "1.6",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "cobertura",
+        "artifactId" : "cobertura",
+        "version" : "1.6",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3e1470773021fde54f51",
+    "relativePopularity" : 0.04,
+    "createTime" : 1133896695000
+  }, {
+    "filenames" : [ "logback-access-0.6.jar" ],
+    "pathnames" : [ "logback-access-0.6.jar" ],
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-access",
+    "version" : "0.6",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "ch.qos.logback",
+        "artifactId" : "logback-access",
+        "version" : "0.6",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "47b6857af4a1cc50875a",
+    "relativePopularity" : 0.02,
+    "createTime" : 1164926586000
+  }, {
+    "filenames" : [ "jetty-6.1.15.jar" ],
+    "pathnames" : [ "jetty-6.1.15.jar" ],
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.mortbay.jetty",
+        "artifactId" : "jetty",
+        "version" : "6.1.15",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "494308fc2d433720c778",
+    "relativePopularity" : 0.01,
+    "createTime" : 1236267479000
+  }, {
+    "filenames" : [ "openid4java-0.9.5.jar" ],
+    "pathnames" : [ "openid4java-0.9.5.jar" ],
+    "groupId" : "org.openid4java",
+    "artifactId" : "openid4java",
+    "version" : "0.9.5",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.openid4java",
+        "artifactId" : "openid4java",
+        "version" : "0.9.5",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "62923bdfdfff066ea088",
+    "relativePopularity" : 1.0,
+    "createTime" : 1245172794000
+  }, {
+    "filenames" : [ "BrowserLauncher2-1.3.jar" ],
+    "pathnames" : [ "BrowserLauncher2-1.3.jar" ],
+    "groupId" : "edu.stanford.ejalbert",
+    "artifactId" : "BrowserLauncher2",
+    "version" : "1.3",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "edu.stanford.ejalbert",
+        "artifactId" : "BrowserLauncher2",
+        "version" : "1.3",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "68231cab1b3daa1a51b0",
+    "relativePopularity" : 1.0,
+    "createTime" : 1317863285000
+  }, {
+    "filenames" : [ "commons-beanutils-1.8.3.jar" ],
+    "pathnames" : [ "commons-beanutils-1.8.3.jar" ],
+    "groupId" : "commons-beanutils",
+    "artifactId" : "commons-beanutils",
+    "version" : "1.8.3",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "commons-beanutils",
+        "artifactId" : "commons-beanutils",
+        "version" : "1.8.3",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "686ef3410bcf4ab8ce7f",
+    "relativePopularity" : 0.52,
+    "createTime" : 1269450960000
+  }, {
+    "filenames" : [ "geronimo-security-2.1.jar" ],
+    "pathnames" : [ "geronimo-security-2.1.jar" ],
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.apache.geronimo.framework",
+        "artifactId" : "geronimo-security",
+        "version" : "2.1",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "848d7549ef7ec13ce546",
+    "relativePopularity" : 0.01,
+    "createTime" : 1203351124000
+  }, {
+    "filenames" : [ "jclouds-enterprise-1.3.1.jar" ],
+    "pathnames" : [ "jclouds-enterprise-1.3.1.jar" ],
+    "groupId" : "org.jclouds.driver",
+    "artifactId" : "jclouds-enterprise",
+    "version" : "1.3.1",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.jclouds.driver",
+        "artifactId" : "jclouds-enterprise",
+        "version" : "1.3.1",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "891b3de68f449f8a1ad2",
+    "relativePopularity" : 0.69,
+    "createTime" : 1326946060000
+  }, {
+    "filenames" : [ "flume-jdbc-channel-1.0.0-incubating.jar" ],
+    "pathnames" : [ "flume-jdbc-channel-1.0.0-incubating.jar" ],
+    "groupId" : "org.apache.flume.flume-ng-channels",
+    "artifactId" : "flume-jdbc-channel",
+    "version" : "1.0.0-incubating",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.apache.flume.flume-ng-channels",
+        "artifactId" : "flume-jdbc-channel",
+        "version" : "1.0.0-incubating",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "89c46fbf61101aea9d63",
+    "relativePopularity" : 0.01,
+    "createTime" : 1326251944000
+  }, {
+    "filenames" : [ "flume-ng-core-1.0.0-incubating.jar" ],
+    "pathnames" : [ "flume-ng-core-1.0.0-incubating.jar" ],
+    "groupId" : "org.apache.flume",
+    "artifactId" : "flume-ng-core",
+    "version" : "1.0.0-incubating",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.apache.flume",
+        "artifactId" : "flume-ng-core",
+        "version" : "1.0.0-incubating",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "958ebe75831c20a94188",
+    "relativePopularity" : 0.02,
+    "createTime" : 1326251937000
+  }, {
+    "filenames" : [ "javancss-29.50.jar" ],
+    "pathnames" : [ "javancss-29.50.jar" ],
+    "groupId" : "javancss",
+    "artifactId" : "javancss",
+    "version" : "29.50",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "javancss",
+        "artifactId" : "javancss",
+        "version" : "29.50",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9aba4af169a1a3baa67f",
+    "relativePopularity" : 0.18,
+    "createTime" : 1211417575000
+  }, {
+    "filenames" : [ "servlets-default-5.5.4.jar" ],
+    "pathnames" : [ "servlets-default-5.5.4.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "servlets-default",
+    "version" : "5.5.4",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "servlets-default",
+        "version" : "5.5.4",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a397f601582e5ccd4b1a",
+    "relativePopularity" : 0.3,
+    "createTime" : 1131486718000
+  }, {
+    "filenames" : [ "xradar-1.1.2.jar" ],
+    "pathnames" : [ "xradar-1.1.2.jar" ],
+    "groupId" : "net.sf.xradar",
+    "artifactId" : "xradar",
+    "version" : "1.1.2",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "net.sf.xradar",
+        "artifactId" : "xradar",
+        "version" : "1.1.2",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a7348fde9ff7827ceacd",
+    "relativePopularity" : 1.0,
+    "createTime" : 1265380671000
+  }, {
+    "filenames" : [ "flume-ng-node-1.0.0-incubating.jar" ],
+    "pathnames" : [ "flume-ng-node-1.0.0-incubating.jar" ],
+    "groupId" : "org.apache.flume",
+    "artifactId" : "flume-ng-node",
+    "version" : "1.0.0-incubating",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.apache.flume",
+        "artifactId" : "flume-ng-node",
+        "version" : "1.0.0-incubating",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ad19001bd021002377c2",
+    "relativePopularity" : 0.02,
+    "createTime" : 1326251947000
+  }, {
+    "filenames" : [ "avro-ipc-1.5.0.jar" ],
+    "pathnames" : [ "avro-ipc-1.5.0.jar" ],
+    "groupId" : "org.apache.avro",
+    "artifactId" : "avro-ipc",
+    "version" : "1.5.0",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.apache.avro",
+        "artifactId" : "avro-ipc",
+        "version" : "1.5.0",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ae81d32288bf8419181f",
+    "relativePopularity" : 0.0,
+    "createTime" : 1299609757000
+  }, {
+    "filenames" : [ "unidataCommon-4.2.20.jar" ],
+    "pathnames" : [ "unidataCommon-4.2.20.jar" ],
+    "groupId" : "edu.ucar",
+    "artifactId" : "unidataCommon",
+    "version" : "4.2.20",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "edu.ucar",
+        "artifactId" : "unidataCommon",
+        "version" : "4.2.20",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e93e551d738e9f4d1aae",
+    "relativePopularity" : 1.0,
+    "createTime" : 1299516455000
+  }, {
+    "filenames" : [ "select2-3.2.jar" ],
+    "pathnames" : [ "select2-3.2.jar" ],
+    "groupId" : "org.webjars",
+    "artifactId" : "select2",
+    "version" : "3.2",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.webjars",
+        "artifactId" : "select2",
+        "version" : "3.2",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f2e35e4a21f07d25710f",
+    "relativePopularity" : 1.0,
+    "createTime" : 1351176502000
+  }, {
+    "filenames" : [ "catalina-host-manager-5.5.23.jar" ],
+    "pathnames" : [ "catalina-host-manager-5.5.23.jar" ],
+    "groupId" : "tomcat",
+    "artifactId" : "catalina-host-manager",
+    "version" : "5.5.23",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "catalina-host-manager",
+        "version" : "5.5.23",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f60e9504841ba867a692",
+    "relativePopularity" : 1.0,
+    "createTime" : 1201148353000
+  }, {
+    "filenames" : [ "geronimo-tomcat-builder-1.1.jar" ],
+    "pathnames" : [ "geronimo-tomcat-builder-1.1.jar" ],
+    "groupId" : "geronimo",
+    "artifactId" : "geronimo-tomcat-builder",
+    "version" : "1.1",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "geronimo",
+        "artifactId" : "geronimo-tomcat-builder",
+        "version" : "1.1",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "febdcf7cd7ee081ad7f0",
+    "relativePopularity" : 0.95,
+    "createTime" : 1162775304000
+  }, {
+    "filenames" : [ "org.apache.lucene.spellchecker_2.9.1.v20100421-0704.jar" ],
+    "pathnames" : [ "org.apache.lucene.spellchecker_2.9.1.v20100421-0704.jar" ],
+    "groupId" : "org.apache.lucene",
+    "artifactId" : "lucene-spellchecker",
+    "version" : "2.9.0",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.apache.lucene",
+        "artifactId" : "lucene-spellchecker",
+        "version" : "2.9.0",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "51ecfd2f7da58f8c60fd",
+    "relativePopularity" : 0.0,
+    "createTime" : 1253822086000
+  }, {
+    "filenames" : [ "org.slf4j.api_1.6.1.v20100831-0715.jar" ],
+    "pathnames" : [ "org.slf4j.api_1.6.1.v20100831-0715.jar" ],
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.6.1",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.slf4j",
+        "artifactId" : "slf4j-api",
+        "version" : "1.6.1",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c32df577f739535648b0",
+    "relativePopularity" : 1.0,
+    "createTime" : 1278361764000
+  }, {
+    "filenames" : [ "commons-httpclient-3.1.SONATYPE.jar" ],
+    "pathnames" : [ "commons-httpclient-3.1.SONATYPE.jar" ],
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "commons-httpclient",
+        "artifactId" : "commons-httpclient",
+        "version" : "3.1",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f0776db1593e215146d2",
+    "relativePopularity" : 1.0,
+    "createTime" : 1187703847000
+  }, {
+    "filenames" : [ "dojo.js" ],
+    "pathnames" : [ "dojo.js" ],
+    "name" : "dojo",
+    "qualifier" : "",
+    "version" : "2.1",
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "dojo",
+        "qualifier" : "",
+        "version" : "2.1"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a2f2bc8c9b103e113506",
+    "relativePopularity" : 1.0,
+    "createTime" : 1187703857100
+  }, {
+    "filenames" : [ "Jinja2-2.10-py2.py3-none-any.whl" ],
+    "pathnames" : [ "Jinja2-2.10-py2.py3-none-any.whl" ],
+    "name" : "Jinja2",
+    "version" : "2.10",
+    "qualifier" : "",
+    "extension" : ".whl",
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "name" : "Jinja2",
+        "version" : "2.10",
+        "qualifier" : "",
+        "extension" : ".whl"
+      }
+    },
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f2f2fc8c901k3e113jk9",
+    "relativePopularity" : 1.0,
+    "createTime" : 1551266244000
+  } ]
+}

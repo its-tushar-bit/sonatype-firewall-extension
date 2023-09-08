@@ -259,6 +259,118 @@ public class ReportResourceTest
   }
 
   @Test
+  public void testBrowseReport_SharedResources() throws Exception {
+    final String scanId = "ReportResourceTest_ScanId";
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
+
+    String reportResource = "/ReportResourceTest/report_sharedResources";
+    mockReport(scanId, reportResource);
+    createScanFile(app.getId(), scanId);
+
+    //This will trigger two grandfathered policy violations upon evaluation.
+    app.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(app);
+    Constraint constraint = new Constraint(null /* constraintId */, "Constraint Coordinates", LogicalOperator.OR);
+    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match",
+        ComponentIdentifier.FORMAT_MAVEN + ":tomcat:tomcat-util:5.5.23");
+    Condition condition2 = new Condition(CoordinatesConditionType.ID, "match",
+        ComponentIdentifier.FORMAT_MAVEN + ":commons-pool:commons-pool:1.4");
+    constraint.addCondition(condition1);
+    constraint.addCondition(condition2);
+    Policy policy = new Policy();
+    policy.setOwnerId(app.getId());
+    policy.addConstraint(constraint);
+    policy.setName("testPolicy");
+    policy.setAction(BuildStageType.ID, WarnActionType.ID);
+    policy.setPolicyViolationGrandfatheringAllowed(true);
+    tempEntity.newPolicy(policy);
+
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
+        .parameter(app.getPublicId()).body(new Stage(Stage.ID_BUILD)).post();
+    assertResponseStatus(200, response);
+
+    URL reportResourceUrl = getClass().getResource(reportResource);
+    File reportResourceDir = new File(reportResourceUrl.toURI());
+
+    int verifiedFileCount = 0;
+    for (File file : reportResourceDir.listFiles()) {
+      if (file.isDirectory()) {
+        continue;
+      }
+
+      verifiedFileCount++;
+
+      String entry = file.getName();
+
+      response = request.subpath(entry).get();
+      assertResponseStatus(200, response);
+
+      final String contentType = response.getContentType().replace(" ", "");
+      if (entry.endsWith(".html")) {
+        assertThat(contentType).isEqualToIgnoringCase("text/html;charset=UTF-8");
+      }
+      else if (entry.endsWith(".css")) {
+        assertThat(contentType).isEqualToIgnoringCase("text/css;charset=UTF-8");
+      }
+      else if (entry.endsWith(".json")) {
+        assertThat(contentType).isEqualToIgnoringCase("application/json");
+      }
+      else if (entry.endsWith(".png")) {
+        assertThat(contentType).isEqualToIgnoringCase("image/png");
+      }
+
+      if (Report.DATA_JSON_FILENAME.equals(entry)) {
+        String actual = response.getBodyText();
+        testDataJsonApplyChanges(actual);
+      }
+      else if ("licenses.json".equals(entry)) {
+        String actual = response.getBodyText();
+
+        testLicensesJsonApplyChanges(actual);
+        testJsonApplyComponentChanges(actual);
+      }
+      else if ("licensethreats.json".equals(entry)) {
+        String actual = response.getBodyText();
+
+        testLicenseThreatsJsonApplyChanges(actual);
+      }
+      else if ("partialmatched.json".equals(entry)) {
+        String actual = response.getBodyText();
+
+        testPartialMatchedJsonApplyChanges(actual);
+      }
+      else if ("security.json".equals(entry)) {
+        JsonNode actual = JsonUtils.parse(response.getBodyText());
+        JsonNode expected = JsonUtils.parse(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
+        for (JsonNode node : expected.get("aaData")) {
+          ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
+          ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
+        }
+        assertThat(actual).isEqualTo(expected);
+      }
+      else if ("index.html".equals(entry)) {
+        String actual = response.getBodyText();
+        assertThat(actual).contains("applicationId = '" + app.getPublicId() + "'");
+      }
+      else if ("bom.json".equals(entry)) {
+        String actual = response.getBodyText();
+        testJsonApplyComponentChanges(actual);
+      }
+      else if (contentType.startsWith("text") || contentType.endsWith("json")) {
+        assertThat(response.getBodyText())
+            .isEqualToIgnoringWhitespace(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
+      }
+      else {
+        assertThat(response.getBodyBytes()).as("Unexpected content for " + entry)
+            .isEqualTo(org.apache.commons.io.FileUtils.readFileToByteArray(file));
+      }
+    }
+
+    assertThat(verifiedFileCount).isEqualTo(12);
+    assertResponseStatus(200, request.subpath("/").get());
+  }
+
+  @Test
   public void testBrowseReport_NoDirectoryTraversal() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
     mockReport(scanId, "/ReportResourceTest/report");

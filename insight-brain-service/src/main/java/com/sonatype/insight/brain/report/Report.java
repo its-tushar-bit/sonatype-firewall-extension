@@ -854,8 +854,8 @@ public final class Report
       }
     }
 
-    // Starting with release 1.167, we serve shared resources for legacy report from the jar
-    // HDS does not include these files in the report.zip when IQ client is v1.167 or higher
+    // Starting with release 1.168, we serve shared resources for legacy report from the jar
+    // HDS does not include these files in the report.zip when IQ client is v1.168 or higher
     String resource = "/com/sonatype/insight/brain/legacy.report/" + name;
     try (InputStream stream = Report.class.getResourceAsStream(resource)) {
       if (stream != null) {

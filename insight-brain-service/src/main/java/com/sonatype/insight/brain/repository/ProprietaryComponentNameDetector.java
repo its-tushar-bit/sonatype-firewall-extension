@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.repository;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -20,8 +21,10 @@ import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -36,9 +39,11 @@ public class ProprietaryComponentNameDetector
 
   private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
-  private final ConcurrentMap<String, ComponentNameMatcher> matchersByFormat = new ConcurrentHashMap<>();
+  private final TenantReference<ConcurrentMap<String, ComponentNameMatcher>> matchersByFormat =
+      new TenantReference<>(ConcurrentHashMap::new);
 
-  private final ConcurrentMap<String, Object> locksByFormat = new ConcurrentHashMap<>();
+  private final TenantReference<ConcurrentMap<String, Object>> locksByFormat =
+      new TenantReference<>(ConcurrentHashMap::new);
 
   // Visible for testing
   static final String TASK_NAME = "InvalidateComponentNameMatchers";
@@ -68,11 +73,12 @@ public class ProprietaryComponentNameDetector
     return getMatcher(format).findMatch(namespace, name);
   }
 
-  private ComponentNameMatcher getMatcher(String format) {
-    ComponentNameMatcher matcher = matchersByFormat.get(format);
+  @VisibleForTesting
+  ComponentNameMatcher getMatcher(String format) {
+    ComponentNameMatcher matcher = matchersByFormat.get().get(format);
     if (isMatcherStale(matcher)) {
-      synchronized (locksByFormat.computeIfAbsent(format, key -> new Object())) {
-        matcher = matchersByFormat.get(format);
+      synchronized (locksByFormat.get().computeIfAbsent(format, key -> new Object())) {
+        matcher = matchersByFormat.get().get(format);
         if (isMatcherStale(matcher)) {
           long start = System.currentTimeMillis();
           Collection<ProprietaryComponentNamePattern> patterns =
@@ -80,7 +86,7 @@ public class ProprietaryComponentNameDetector
           matcher = new ComponentNameMatcher(format, patterns);
           log.debug("Created matcher for {} proprietary component names ({}) in {} ms", patterns.size(), format,
               System.currentTimeMillis() - start);
-          matchersByFormat.put(format, matcher);
+          matchersByFormat.get().put(format, matcher);
         }
       }
     }
@@ -152,7 +158,7 @@ public class ProprietaryComponentNameDetector
   }
 
   void invalidateMatchers() {
-    matchersByFormat.clear();
+    matchersByFormat.get().clear();
   }
 
   @Override

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tenancy.Tenant;
 
 import com.google.inject.Binder;
 import org.apache.log4j.MDC;
@@ -29,6 +31,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.quartz.JobExecutionContext;
 
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -238,5 +242,55 @@ public class ProprietaryComponentNameDetectorTest
 
     assertThat(proprietaryComponentNameDetector.findProprietaryComponentName(
         ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999"))).isNull();
+  }
+
+  @Test
+  public void testGetMatcher_isTenantAware() {
+    String format = "maven";
+    AtomicReference<ComponentNameMatcher> matcher1 = new AtomicReference<>();
+    AtomicReference<ComponentNameMatcher> matcher2 = new AtomicReference<>();
+
+    Tenant tenant1 = testAsNewTenant(testName, t1 -> {
+      // a maven matcher is created for tenant 1 since none exists
+      matcher1.set(proprietaryComponentNameDetector.getMatcher(format));
+    });
+
+    Tenant tenant2 = testAsNewTenant(testName, t2 -> {
+      // a maven matcher is created for tenant 2 since none exists
+      matcher2.set(proprietaryComponentNameDetector.getMatcher(format));
+    });
+
+    testAs(tenant1, t -> {
+      // Ensure the original matcher created for tenant 1 is returned
+      assertThat(proprietaryComponentNameDetector.getMatcher(format)).isEqualTo(matcher1.get());
+    });
+
+    testAs(tenant2, t -> {
+      // Ensure the original matcher created for tenant 2 is returned
+      assertThat(proprietaryComponentNameDetector.getMatcher(format)).isEqualTo(matcher2.get());
+    });
+
+    assertThat(matcher1.get()).isNotEqualTo(matcher2.get());
+  }
+
+  @Test
+  public void testInvalidateMatchers_isTenantAware() {
+    String format = "maven";
+    AtomicReference<ComponentNameMatcher> matcher = new AtomicReference<>();
+
+    Tenant tenant1 = testAsNewTenant(testName, t1 -> {
+      // a maven matcher is created for tenant 1 since none exists
+      matcher.set(proprietaryComponentNameDetector.getMatcher(format));
+    });
+
+    testAsNewTenant(testName, t2 -> {
+      // clean up all matchers for tenant 2
+      proprietaryComponentNameDetector.invalidateMatchers();
+    });
+
+    testAs(tenant1, t -> {
+      // Ensure the original matcher created for tenant 1 is still returned
+      assertThat(proprietaryComponentNameDetector.getMatcher(format)).isEqualTo(matcher.get());
+    });
   }
 }

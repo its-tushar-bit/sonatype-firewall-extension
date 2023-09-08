@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
@@ -444,14 +445,8 @@ public class SupportService
     }
     File clusterDirectory = config.getClusterDirectory();
     String clusterLogFileRegex = configuration.getSupportClusterLogFileRegex();
-    RegexFileFilter clusterLogRegexFileFilter = new RegexFileFilter(clusterLogFileRegex)
-    {
-      @Override
-      public boolean accept(File dir, String name) {
-        // RegexFileFilter only matches the name to the regex, override to instead match the full path to the regex
-        return super.accept(dir, dir.toPath().resolve(name).toFile().getAbsolutePath());
-      }
-    };
+    RegexFileFilter clusterLogRegexFileFilter =
+        new RegexFileFilter(Pattern.compile(clusterLogFileRegex), path -> path.toString());
     try {
       Collection<File> clusterLogFiles =
           FileUtils.listFiles(clusterDirectory, clusterLogRegexFileFilter, TrueFileFilter.INSTANCE);

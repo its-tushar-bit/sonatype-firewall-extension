@@ -98,6 +98,7 @@ describe('testConfiguration', () => {
             error: null,
             loading: false,
           },
+          isDirty: false,
         },
       },
     };
@@ -109,7 +110,7 @@ describe('testConfiguration', () => {
     render(
       <>
         <TestConfigurationResults />
-        <TestConfigurationButton />
+        <TestConfigurationButton isDisabled={false} />
       </>,
       { preloadedState: mergeDeepRight(defaultPreloadedState, preloadedState) }
     );
@@ -147,6 +148,7 @@ describe('testConfiguration', () => {
 
       const testConfigurationButton = screen.getByRole('button', { name: 'Test Configuration' });
       fireEvent.click(testConfigurationButton);
+
       expect(await screen.findByText('Configuration Test Results')).toBeVisible();
 
       const results = screen.getByRole('list');
@@ -166,6 +168,7 @@ describe('testConfiguration', () => {
           expectedText: 'Sufficient token permissions',
         },
       ]);
+
       done();
     });
   });

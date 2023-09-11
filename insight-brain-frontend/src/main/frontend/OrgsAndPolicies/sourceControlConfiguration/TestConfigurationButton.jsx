@@ -4,22 +4,21 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
-import { selectSourceControlConfigurationSlice } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
+import { useDispatch } from 'react-redux';
 import { NxButton } from '@sonatype/react-shared-components';
+import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 
-const TestConfigurationButton = () => {
+const TestConfigurationButton = ({ isDisabled = false }) => {
   const dispatch = useDispatch();
-
-  const {
-    scmConfigValidation: { loading },
-  } = useSelector(selectSourceControlConfigurationSlice);
-
   const testConfiguration = () => dispatch(actions.validate());
 
   return (
-    <NxButton id="test-source-control-config-button" variant="secondary" disabled={loading} onClick={testConfiguration}>
+    <NxButton
+      id="test-source-control-config-button"
+      variant="secondary"
+      disabled={isDisabled}
+      onClick={testConfiguration}
+    >
       Test Configuration
     </NxButton>
   );

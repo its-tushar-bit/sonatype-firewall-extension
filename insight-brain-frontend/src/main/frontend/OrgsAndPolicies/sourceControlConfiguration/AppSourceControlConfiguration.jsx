@@ -44,6 +44,7 @@ const AppSourceControlConfiguration = () => {
   const dispatch = useDispatch();
 
   const {
+    scmConfigValidation: { loading: configValidationLoading },
     formLoading,
     loadError,
     submitError,
@@ -105,7 +106,7 @@ const AppSourceControlConfiguration = () => {
       >
         Reset
       </NxButton>
-      <TestConfigurationButton />
+      <TestConfigurationButton isDisabled={isDirty || configValidationLoading} />
     </>
   );
 

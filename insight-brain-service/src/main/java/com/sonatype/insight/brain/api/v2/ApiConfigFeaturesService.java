@@ -175,7 +175,9 @@ public class ApiConfigFeaturesService
      * If configured the UI will show the Sonatype managed IDP Auth0 user management pages
      */
     SSO_IDP_MANAGED_BY_SONATYPE(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE, false, false),
-    SCM_UX_IMPROVEMENTS(SystemConfigurationProperty.SCM_UX_IMPROVEMENTS, true, false);
+    SCM_UX_IMPROVEMENTS(SystemConfigurationProperty.SCM_UX_IMPROVEMENTS, true, false),
+    LOOKER_INTEGRATED_ENTERPRISE_REPORTING(
+        SystemConfigurationProperty.LOOKER_INTEGRATED_ENTERPRISE_REPORTING, false);
 
     private final String propertyName;
 

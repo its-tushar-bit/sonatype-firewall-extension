@@ -1,0 +1,19 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.looker;
+
+public class SSOEmbedUrlDTO
+{
+  public String url;
+
+  public SSOEmbedUrlDTO() {
+    //for jackson
+  }
+
+  public SSOEmbedUrlDTO(final String url) {
+    this.url = url;
+  }
+}

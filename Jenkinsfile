@@ -17,11 +17,9 @@ make(
         String fixVersion = 'brain-next'
         List<String> newFixVersions = ['saas-next']
         echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
-        List<String> clmIssues = getIssuesByFixVersion('CLM', fixVersion)
-        replaceFixVersionForIssues(clmIssues, fixVersion, newFixVersions)
-
-        List<String> sdevIssues = getIssuesByFixVersion('SDEV', fixVersion)
-        replaceFixVersionForIssues(sdevIssues, fixVersion, newFixVersions)
+        List<String> issues = getIssuesByFixVersion('CLM', fixVersion)
+        issues.addAll(getIssuesByFixVersion('SDEV', fixVersion))
+        replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
       }
     },
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->

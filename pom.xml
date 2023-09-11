@@ -281,13 +281,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-csv</artifactId>
-        <version>1.9.0</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>1.10.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.directory.api</groupId>

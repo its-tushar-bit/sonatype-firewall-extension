@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.report;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.EyesWatcher;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.ReportPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -21,7 +20,6 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.codeborne.selenide.Configuration;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.visible;
@@ -36,9 +34,6 @@ public class LegacyReportViewTest
   private static final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
   private final String scanId = "36520727d65449bdae17917da746637a";
-
-  @Rule
-  public EyesWatcher eyesWatcher = new EyesWatcher();
 
   @BeforeClass
   public static void startup() {

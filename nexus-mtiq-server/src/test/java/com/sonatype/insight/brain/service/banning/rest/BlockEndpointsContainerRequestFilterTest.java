@@ -130,7 +130,7 @@ public class BlockEndpointsContainerRequestFilterTest
     public void blocked() {
     }
 
-    //unused
+    @SuppressWarnings("unused")
     public void notBlocked() {
     }
   }
@@ -151,7 +151,7 @@ public class BlockEndpointsContainerRequestFilterTest
   @BlockIfMultiTenant
   private static class BlockedClassTest
   {
-    //unused
+    @SuppressWarnings("unused")
     public void blocked() {
     }
   }
@@ -161,14 +161,14 @@ public class BlockEndpointsContainerRequestFilterTest
       extends BlockedClassTest
   {
     @Override
-    //unused
+    // unused
     public void blocked() {
     }
   }
 
   private static class NonBlockedClassTest
   {
-    //unused
+    @SuppressWarnings("unused")
     public void notBlocked() {
     }
   }

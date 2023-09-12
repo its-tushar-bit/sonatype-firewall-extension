@@ -109,6 +109,7 @@ public class RequiredExplicitBindingModuleTest
   private class TestUntargettedBinding<T>
       implements UntargettedBinding<T>
   {
+    @SuppressWarnings("unchecked")
     @Override
     public Key<T> getKey() {
       return (Key<T>) Key.get(RequiredExplicitBindingModuleTest.class);
@@ -135,7 +136,7 @@ public class RequiredExplicitBindingModuleTest
     }
 
     @Override
-    public <T> T acceptVisitor(final ElementVisitor<T> visitor) {
+    public <T1> T1 acceptVisitor(final ElementVisitor<T1> visitor) {
       return null;
     }
 
@@ -148,6 +149,7 @@ public class RequiredExplicitBindingModuleTest
   private class TestLinkedKeyBinding<T>
       implements LinkedKeyBinding<T>
   {
+    @SuppressWarnings("unchecked")
     @Override
     public Key<? extends T> getLinkedKey() {
       return (Key<T>) Key.get(RequiredExplicitBindingModuleTest.class);
@@ -179,7 +181,7 @@ public class RequiredExplicitBindingModuleTest
     }
 
     @Override
-    public <T> T acceptVisitor(final ElementVisitor<T> visitor) {
+    public <T1> T1 acceptVisitor(final ElementVisitor<T1> visitor) {
       return null;
     }
 

@@ -18,13 +18,12 @@ import com.google.inject.spi.Element;
 import com.google.inject.spi.ElementVisitor;
 import com.google.inject.spi.LinkedKeyBinding;
 import com.google.inject.spi.UntargettedBinding;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,9 +38,6 @@ public class RequiredExplicitBindingModuleTest
 
   @Mock
   private BannedImplementationService banned;
-
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
 
   @Test
   public void test_EnsureExplicitBindingsEnabled() {
@@ -73,12 +69,12 @@ public class RequiredExplicitBindingModuleTest
     );
 
     // Verifies that the element.applyTo is called which means the element is not skipped
-    expectedException.expect(TestAppliedToException.class);
-
     when(banned.isBanned(any())).thenReturn(false);
     underTest = new RequiredExplicitBindingModule(elements, banned);
 
-    underTest.configure(binder);
+    assertThatExceptionOfType(TestAppliedToException.class).isThrownBy(() -> {
+      underTest.configure(binder);
+    });
   }
 
   @Test
@@ -102,12 +98,12 @@ public class RequiredExplicitBindingModuleTest
     );
 
     // Verifies that the element.applyTo is called which means the element is not skipped
-    expectedException.expect(TestAppliedToException.class);
-
     when(banned.isBanned(any())).thenReturn(false);
     underTest = new RequiredExplicitBindingModule(elements, banned);
 
-    underTest.configure(binder);
+    assertThatExceptionOfType(TestAppliedToException.class).isThrownBy(() -> {
+      underTest.configure(binder);
+    });
   }
 
   private class TestUntargettedBinding<T>

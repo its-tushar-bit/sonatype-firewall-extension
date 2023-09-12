@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.List;
+
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -132,7 +133,7 @@ public class MultiTenantTaskScheduler
   protected void scheduleTask(JobDetail job, InsightJob insightJob, Trigger... triggers) {
     Scheduler scheduler = getSchedulerForJobType(job.getJobClass());
 
-    super.scheduleTask(job, insightJob, scheduler, triggers);
+    super.scheduleTask(job, scheduler, triggers);
   }
 
   @Override

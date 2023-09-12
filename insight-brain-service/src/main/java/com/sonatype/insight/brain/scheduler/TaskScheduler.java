@@ -285,10 +285,10 @@ public class TaskScheduler
   }
 
   protected void scheduleTask(JobDetail job, InsightJob insightJob, Trigger... triggers) {
-    scheduleTask(job, insightJob, getScheduler(insightJob), triggers);
+    scheduleTask(job, getScheduler(insightJob), triggers);
   }
 
-  protected void scheduleTask(JobDetail job, InsightJob insightJob, Scheduler scheduler, Trigger... triggers) {
+  protected void scheduleTask(JobDetail job, Scheduler scheduler, Trigger... triggers) {
     try {
       scheduler.scheduleJob(job, new HashSet<>(Arrays.asList(triggers)), true);
     }

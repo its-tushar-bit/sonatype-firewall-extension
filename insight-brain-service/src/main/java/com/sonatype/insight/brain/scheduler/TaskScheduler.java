@@ -35,6 +35,7 @@ import org.quartz.JobPersistenceException;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleScheduleBuilder;
+import org.quartz.SimpleTrigger;
 import org.quartz.TimeOfDay;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
@@ -215,7 +216,7 @@ public class TaskScheduler
         startTime);
     JobDetail job = newJob(insightJob) //
         .build();
-    TriggerBuilder triggerBuilder = TriggerBuilder.newTrigger() //
+    TriggerBuilder<SimpleTrigger> triggerBuilder = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
         .withSchedule(SimpleScheduleBuilder.simpleSchedule() //
             .withIntervalInMilliseconds(interval.toMillis()) //

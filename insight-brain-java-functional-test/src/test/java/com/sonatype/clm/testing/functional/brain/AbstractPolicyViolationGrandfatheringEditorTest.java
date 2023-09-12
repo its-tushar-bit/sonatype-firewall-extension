@@ -16,8 +16,8 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
-import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.PolicyViolationGrandfatheringDTO;
+import com.sonatype.insight.brain.policy.LegacyViolationService;
+import com.sonatype.insight.brain.policy.LegacyViolationService.LegacyViolationStatusDTO;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
@@ -43,11 +43,11 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
-  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
+  private LegacyViolationService legacyViolationService;
 
-  private Boolean grandfatheringEnabled;
+  private Boolean legacyViolationsEnabled;
 
-  private boolean grandfatheringOverrideEnabled;
+  private boolean legacyViolationsOverrideEnabled;
 
   @BeforeClass
   public static void boot() {
@@ -59,30 +59,29 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     this.currentOwner = currentOwner;
     this.parentOrg = organizationDAO.getById(currentOwner.getParentOwnerId());
 
-    // Save the root org grandfathering settings so we can restore them after the tests.
+    // Save the root org legacy violations settings so we can restore them after the tests.
     Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    grandfatheringEnabled = rootOrg.isPolicyViolationGrandfatheringEnabled();
-    grandfatheringOverrideEnabled = rootOrg.isAllowPolicyViolationGrandfatheringOverride();
+    legacyViolationsEnabled = rootOrg.isPolicyViolationGrandfatheringEnabled();
+    legacyViolationsOverrideEnabled = rootOrg.isAllowPolicyViolationGrandfatheringOverride();
 
-    policyViolationGrandfatheringService =
-        testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
+    legacyViolationService = testCLMServer.getCLMServer().getInstance(LegacyViolationService.class);
   }
 
   @After
   public void restoreRootOrganizationPolicyViolationGrandfatheringSettings() {
     Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    rootOrg.setPolicyViolationGrandfatheringEnabled(grandfatheringEnabled);
-    rootOrg.setAllowPolicyViolationGrandfatheringOverride(grandfatheringOverrideEnabled);
+    rootOrg.setPolicyViolationGrandfatheringEnabled(legacyViolationsEnabled);
+    rootOrg.setAllowPolicyViolationGrandfatheringOverride(legacyViolationsOverrideEnabled);
     organizationDAO.update(rootOrg);
   }
 
   void testPolicyViolationGrandfatheringConfiguration_Editable() {
     configureOrganizationsAndApplications(true);
 
-    PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = policyViolationGrandfatheringService
-        .getGrandfathering(currentOwner.getType(), currentOwner.getPublicId());
+    LegacyViolationStatusDTO legacyViolationStatusDTO = legacyViolationService
+        .getLegacyViolationsStatus(currentOwner.getType(), currentOwner.getPublicId());
     String summaryText = PolicyViolationGrandfatheringEditorPage.statusMessageText(
-        policyViolationGrandfatheringDTO.inheritedFromOrganizationName, policyViolationGrandfatheringDTO.enabled);
+        legacyViolationStatusDTO.inheritedFromOrganizationName, legacyViolationStatusDTO.enabled);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
@@ -104,7 +103,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
 
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited(policyViolationGrandfatheringDTO.enabledInParent)
+      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited(legacyViolationStatusDTO.enabledInParent)
               .shouldBe(visible).shouldBe(NX_RADIO_SELECTED);
     }
 
@@ -124,21 +123,21 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     FormMask.seeAndWaitForDismissal();
     PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(visible);
 
-    policyViolationGrandfatheringDTO = policyViolationGrandfatheringService.getGrandfathering(currentOwner.getType(),
-        currentOwner.getPublicId());
+    legacyViolationStatusDTO =
+        legacyViolationService.getLegacyViolationsStatus(currentOwner.getType(), currentOwner.getPublicId());
 
-    assertThat(policyViolationGrandfatheringDTO.enabled).isTrue();
-    assertThat(policyViolationGrandfatheringDTO.allowOverride).isFalse();
+    assertThat(legacyViolationStatusDTO.enabled).isTrue();
+    assertThat(legacyViolationStatusDTO.allowOverride).isFalse();
   }
 
   @Test
   public void testPolicyViolationGrandfatheringConfiguration_NotEditable() {
     configureOrganizationsAndApplications(false);
 
-    PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = policyViolationGrandfatheringService
-        .getGrandfathering(currentOwner.getType(), currentOwner.getPublicId());
+    LegacyViolationStatusDTO legacyViolationStatusDTO = legacyViolationService
+        .getLegacyViolationsStatus(currentOwner.getType(), currentOwner.getPublicId());
     String summaryText = PolicyViolationGrandfatheringEditorPage.statusMessageText(
-        policyViolationGrandfatheringDTO.inheritedFromOrganizationName, policyViolationGrandfatheringDTO.enabled);
+        legacyViolationStatusDTO.inheritedFromOrganizationName, legacyViolationStatusDTO.enabled);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
@@ -162,7 +161,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
       PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
 
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited(policyViolationGrandfatheringDTO.enabledInParent)
+      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited(legacyViolationStatusDTO.enabledInParent)
               .shouldHave(NX_RADIO_CHECKBOX_DISABLED);
       PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
       PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
@@ -200,17 +199,17 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
   }
 
   private void configureOrganizationsAndApplications(boolean allowOverride) {
-    PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = new PolicyViolationGrandfatheringDTO();
-    policyViolationGrandfatheringDTO.enabled = null;
-    policyViolationGrandfatheringDTO.allowOverride = allowOverride;
-    policyViolationGrandfatheringService.setGrandfathering(currentOwner.getType(), currentOwner.getPublicId(),
-        policyViolationGrandfatheringDTO);
+    LegacyViolationStatusDTO legacyViolationStatusDTO = new LegacyViolationStatusDTO();
+    legacyViolationStatusDTO.enabled = null;
+    legacyViolationStatusDTO.allowOverride = allowOverride;
+    legacyViolationService.setLegacyViolationStatus(currentOwner.getType(), currentOwner.getPublicId(),
+        legacyViolationStatusDTO);
 
     if (parentOrg != null) {
-      policyViolationGrandfatheringDTO.enabled = null;
-      policyViolationGrandfatheringDTO.allowOverride = allowOverride;
-      policyViolationGrandfatheringService.setGrandfathering(OwnerType.ORGANIZATION, parentOrg.getId(),
-          policyViolationGrandfatheringDTO);
+      legacyViolationStatusDTO.enabled = null;
+      legacyViolationStatusDTO.allowOverride = allowOverride;
+      legacyViolationService.setLegacyViolationStatus(OwnerType.ORGANIZATION, parentOrg.getId(),
+          legacyViolationStatusDTO);
     }
   }
 }

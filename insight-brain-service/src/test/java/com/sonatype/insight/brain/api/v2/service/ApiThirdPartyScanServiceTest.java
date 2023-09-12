@@ -232,7 +232,7 @@ public class ApiThirdPartyScanServiceTest
       String policyAction,
       ApiEvaluationResultCounterDTO componentsAffected,
       ApiEvaluationResultCounterDTO openPolicyViolations,
-      Integer grandfatheredPolicyViolations,
+      Integer legacyViolations,
       String fileName) throws Exception
   {
     String scanId = "testScan";
@@ -260,7 +260,7 @@ public class ApiThirdPartyScanServiceTest
     evaluationResult.setCriticalPolicyViolationCount(openPolicyViolations.critical);
     evaluationResult.setModeratePolicyViolationCount(openPolicyViolations.moderate);
     evaluationResult.setSeverePolicyViolationCount(openPolicyViolations.severe);
-    evaluationResult.setGrandfatheredPolicyViolationCount(grandfatheredPolicyViolations);
+    evaluationResult.setLegacyViolationCount(legacyViolations);
 
     PolicyEvaluationPollingResult pollingResult = new PolicyEvaluationPollingResult();
     pollingResult.setScanReceipt(scanReceipt);
@@ -291,7 +291,8 @@ public class ApiThirdPartyScanServiceTest
     assertThat(resultDTO.openPolicyViolations.critical).isEqualTo(openPolicyViolations.critical);
     assertThat(resultDTO.openPolicyViolations.moderate).isEqualTo(openPolicyViolations.moderate);
     assertThat(resultDTO.openPolicyViolations.severe).isEqualTo(openPolicyViolations.severe);
-    assertThat(resultDTO.grandfatheredPolicyViolations).isEqualTo(grandfatheredPolicyViolations);
+    assertThat(resultDTO.grandfatheredPolicyViolations).isEqualTo(legacyViolations);
+    assertThat(resultDTO.legacyViolations).isEqualTo(legacyViolations);
   }
 
   private String getBomFile(String path) throws Exception {

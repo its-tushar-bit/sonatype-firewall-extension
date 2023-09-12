@@ -308,22 +308,23 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Results_GrandfatheredViolations() throws Exception {
+  public void testEvaluate_Results_LegacyViolations() throws Exception {
     application = tempEntity.newApplicationWithParent();
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
-    boolean grandfatherViolations = true;
-    testEvaluate_GrandfatheredViolations(grandfatherViolations, true);
+    boolean legacyViolations = true;
+    testEvaluate_LegacyViolations(legacyViolations, true);
 
     application = tempEntity.newApplicationWithParent();
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
-    grandfatherViolations = false;
-    testEvaluate_GrandfatheredViolations(grandfatherViolations, true);
+    legacyViolations = false;
+    testEvaluate_LegacyViolations(legacyViolations, true);
   }
 
-  private void testEvaluate_GrandfatheredViolations(boolean expectGrandfatheredViolations,
-                                                    boolean grandfatheringEnabled) throws Exception
+  private void testEvaluate_LegacyViolations(
+      boolean expectLegacyViolations,
+      boolean legacyViolationsEnabled) throws Exception
   {
     reset(mockTelemetrySender);
 
@@ -331,13 +332,13 @@ public class ScanPolicyEvaluatorTest
     String scanId = simulateReportIsAvailable("report");
 
     Policy policy = newSecurityPolicy();
-    policy.setPolicyViolationGrandfatheringAllowed(expectGrandfatheredViolations);
+    policy.setPolicyViolationGrandfatheringAllowed(expectLegacyViolations);
     new PolicyDAO().update(policy);
 
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
 
-    if (expectGrandfatheredViolations) {
+    if (expectLegacyViolations) {
       assertThat(results.activeViolations).hasSize(0);
       List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
       assertThat(inactiveViolations).hasSize(36).allSatisfy(inactiveViolation -> {
@@ -357,9 +358,9 @@ public class ScanPolicyEvaluatorTest
     verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
-    expectedAttributes.put("grandfathering_enabled", String.valueOf(grandfatheringEnabled));
-    expectedAttributes.put("number_of_grandfathered_violations", expectGrandfatheredViolations ? "36" : "0");
-    if (expectGrandfatheredViolations) {
+    expectedAttributes.put("grandfathering_enabled", String.valueOf(legacyViolationsEnabled));
+    expectedAttributes.put("number_of_grandfathered_violations", expectLegacyViolations ? "36" : "0");
+    if (expectLegacyViolations) {
       expectedAttributes.put("number_of_grandfathered_violations_with_low_threat_level", "0");
       expectedAttributes.put("number_of_grandfathered_violations_with_moderate_threat_level", "0");
       expectedAttributes.put("number_of_grandfathered_violations_with_severe_threat_level", "36");
@@ -369,11 +370,11 @@ public class ScanPolicyEvaluatorTest
       expectedAttributes.put("number_of_grandfathered_violations_in_quality_policy_threat_category", "0");
       expectedAttributes.put("number_of_grandfathered_violations_in_other_policy_threat_category", "0");
     }
-    assertGrandfatheredViolationAttributes(telemetryDataArgumentCaptor.getAllValues().get(1), expectedAttributes);
+    assertLegacyViolationAttributes(telemetryDataArgumentCaptor.getAllValues().get(1), expectedAttributes);
   }
 
   @Test
-  public void testEvaluate_GrandfatherOnlyOnFirstEvaluation() throws Exception {
+  public void testEvaluate_LegacyOnlyOnFirstEvaluation() throws Exception {
     application = tempEntity.newApplicationWithParent();
     Policy policy = newSecurityPolicy();
     policy.setPolicyViolationGrandfatheringAllowed(true);
@@ -381,7 +382,7 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    // This is the first evaluation. All policy violations should be grandfathered.
+    // This is the first evaluation. All policy violations should be legacy.
     String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 =
@@ -397,13 +398,13 @@ public class ScanPolicyEvaluatorTest
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     inactiveViolations.forEach(policyViolationDAO::delete);
 
-    // Evaluate again. No policy violations should be grandfathered.
+    // Evaluate again. No policy violations should be legacy.
     String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 =
         scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
     assertThat(results2.activeViolations).hasSize(36);
 
-    // Evaluate for a different stage. No policy violations should be grandfathered.
+    // Evaluate for a different stage. No policy violations should be legacy.
     String scanId3 = simulateReportIsAvailable("report");
     Stage stage2 = new Stage(Stage.ID_RELEASE);
     ScanPolicyEvaluatorResults results3 =
@@ -412,7 +413,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_GrandfatherIgnoredOnFirstEvaluation_MissingLicenseFeature() throws Exception {
+  public void testEvaluate_LegacyIgnoredOnFirstEvaluation_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
 
     application = tempEntity.newApplicationWithParent();
@@ -422,7 +423,7 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    // This is the first evaluation. No policy violations should be grandfathered given the license doesn't allow it.
+    // This is the first evaluation. No policy violations should be legacy given the license doesn't allow it.
     String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 =
@@ -431,7 +432,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_GrandfatherContinuesAfterFirstEvaluation_MissingLicenseFeature() throws Exception {
+  public void testEvaluate_LegacyContinuesAfterFirstEvaluation_MissingLicenseFeature() throws Exception {
     application = tempEntity.newApplicationWithParent();
     Policy policy = newSecurityPolicy();
     policy.setPolicyViolationGrandfatheringAllowed(true);
@@ -439,7 +440,7 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    // This is the first evaluation. All policy violations should be grandfathered.
+    // This is the first evaluation. All policy violations should be legacy.
     String scanId1 = simulateReportIsAvailable("report");
     Stage stage1 = new Stage(Stage.ID_BUILD);
     ScanPolicyEvaluatorResults results1 =
@@ -453,7 +454,7 @@ public class ScanPolicyEvaluatorTest
 
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
 
-    // Evaluate again with license without grandfathering. Policy violations continue to be grandfathered.
+    // Evaluate again with license without legacy violations. Policy violations continue to be legacy.
     String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 =
         scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
@@ -907,7 +908,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testSendGrandfatheredViolationCounts_NoGrandfatheredViolations() {
+  public void testSendLegacyViolationCounts_NoLegacyViolations() {
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
@@ -919,7 +920,7 @@ public class ScanPolicyEvaluatorTest
     policyViolations.add(policyViolation(policyEvaluation, 5, PolicyThreatCategory.QUALITY, false));
     policyViolations.add(policyViolation(policyEvaluation, 7, PolicyThreatCategory.OTHER, false));
 
-    scanPolicyEvaluator.sendGrandfatheredViolationTelemetryData(application.getId(), policyViolations);
+    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application.getId(), policyViolations);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -927,11 +928,11 @@ public class ScanPolicyEvaluatorTest
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
     expectedAttributes.put("grandfathering_enabled", "true");
     expectedAttributes.put("number_of_grandfathered_violations", "0");
-    assertGrandfatheredViolationAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+    assertLegacyViolationAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
   }
 
   @Test
-  public void testSendGrandfatheredViolationCounts() {
+  public void testSendLegacyViolationCounts() {
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
@@ -948,7 +949,7 @@ public class ScanPolicyEvaluatorTest
     policyViolations.add(policyViolation(policyEvaluation, 5, PolicyThreatCategory.QUALITY, false));
     policyViolations.add(policyViolation(policyEvaluation, 7, PolicyThreatCategory.OTHER, false));
 
-    scanPolicyEvaluator.sendGrandfatheredViolationTelemetryData(application.getId(), policyViolations);
+    scanPolicyEvaluator.sendLegacyViolationTelemetryData(application.getId(), policyViolations);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -964,17 +965,18 @@ public class ScanPolicyEvaluatorTest
     expectedAttributes.put("number_of_grandfathered_violations_in_license_policy_threat_category", "2");
     expectedAttributes.put("number_of_grandfathered_violations_in_quality_policy_threat_category", "1");
     expectedAttributes.put("number_of_grandfathered_violations_in_other_policy_threat_category", "1");
-    assertGrandfatheredViolationAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+    assertLegacyViolationAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
   }
 
-  private PolicyViolation policyViolation(PolicyEvaluation policyEvaluation,
-                                          int threatLevel,
-                                          PolicyThreatCategory policyThreatCategory,
-                                          boolean grandfathered)
+  private PolicyViolation policyViolation(
+      PolicyEvaluation policyEvaluation,
+      int threatLevel,
+      PolicyThreatCategory policyThreatCategory,
+      boolean legacyViolation)
   {
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, "policyId", "policyName", threatLevel,
         policyThreatCategory, "hash", null, "json", "filename");
-    if (grandfathered) {
+    if (legacyViolation) {
       policyViolation.setGrandfatherTime(new Date());
     }
     return policyViolation;
@@ -1021,9 +1023,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
 
-  private void assertGrandfatheredViolationAttributes(TelemetryData telemetryData,
-                                                      Map<String, Object> expectedAttributes)
-  {
+  private void assertLegacyViolationAttributes(TelemetryData telemetryData, Map<String, Object> expectedAttributes) {
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose())
         .isEqualTo(TelemetryPurpose.APPLICATION_EVALUATION_GRANDFATHERED_VIOLATION_COUNTS);
@@ -1079,40 +1079,40 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_GrandfatheringNotConfiguredForAppOrOrg() throws Exception {
+  public void testEvaluate_LegacyViolationsNotConfiguredForAppOrOrg() throws Exception {
     organization.setPolicyViolationGrandfatheringEnabled(null);
     organization.setAllowPolicyViolationGrandfatheringOverride(true);
     new OrganizationDAO().update(organization);
     application.setPolicyViolationGrandfatheringEnabled(null);
     new ApplicationDAO().update(application);
 
-    testEvaluate_GrandfatheredViolations(false, false);
+    testEvaluate_LegacyViolations(false, false);
   }
 
   @Test
-  public void testEvaluate_GrandfatheringEnabledForApp_AppCanOverrideGrandfathering() throws Exception {
+  public void testEvaluate_LegacyViolationsEnabledForApp_AppCanOverrideLegacyViolations() throws Exception {
     organization.setPolicyViolationGrandfatheringEnabled(false);
     organization.setAllowPolicyViolationGrandfatheringOverride(true);
     new OrganizationDAO().update(organization);
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    testEvaluate_GrandfatheredViolations(true, true);
+    testEvaluate_LegacyViolations(true, true);
   }
 
   @Test
-  public void testEvaluate_GrandfatheringDisabledForApp_AppCanOverrideGrandfathering() throws Exception {
+  public void testEvaluate_LegacyViolationsDisabledForApp_AppCanOverrideLegacyViolations() throws Exception {
     organization.setPolicyViolationGrandfatheringEnabled(true);
     organization.setAllowPolicyViolationGrandfatheringOverride(true);
     new OrganizationDAO().update(organization);
     application.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(application);
 
-    testEvaluate_GrandfatheredViolations(false, false);
+    testEvaluate_LegacyViolations(false, false);
   }
 
   @Test
-  public void testEvaluate_GrandfatheringEnabledForApp_DisabledForOrg_AppCannotOverrideGrandfathering()
+  public void testEvaluate_LegacyViolationsEnabledForApp_DisabledForOrg_AppCannotOverrideLegacyViolations()
       throws Exception
   {
     organization.setPolicyViolationGrandfatheringEnabled(false);
@@ -1121,11 +1121,11 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    testEvaluate_GrandfatheredViolations(false, false);
+    testEvaluate_LegacyViolations(false, false);
   }
 
   @Test
-  public void testEvaluate_GrandfatheringDisabledForApp_DisabledForOrg_AppCannotOverrideGrandfathering()
+  public void testEvaluate_LegacyViolationsDisabledForApp_DisabledForOrg_AppCannotOverrideLegacyViolations()
       throws Exception
   {
     organization.setPolicyViolationGrandfatheringEnabled(false);
@@ -1134,11 +1134,11 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(application);
 
-    testEvaluate_GrandfatheredViolations(false, false);
+    testEvaluate_LegacyViolations(false, false);
   }
 
   @Test
-  public void testEvaluate_GrandfatheringEnabledForApp_EnabledForOrg_AppCannotOverrideGrandfathering()
+  public void testEvaluate_LegacyViolationsEnabledForApp_EnabledForOrg_AppCannotOverrideLegacyViolations()
       throws Exception
   {
     organization.setPolicyViolationGrandfatheringEnabled(true);
@@ -1147,11 +1147,11 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    testEvaluate_GrandfatheredViolations(true, true);
+    testEvaluate_LegacyViolations(true, true);
   }
 
   @Test
-  public void testEvaluate_GrandfatheringDisabledForApp_EnabledForOrg_AppCannotOverrideGrandfathering()
+  public void testEvaluate_LegacyViolationsDisabledForApp_EnabledForOrg_AppCannotOverrideLegacyViolations()
       throws Exception
   {
     organization.setPolicyViolationGrandfatheringEnabled(true);
@@ -1160,7 +1160,7 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(application);
 
-    testEvaluate_GrandfatheredViolations(true, true);
+    testEvaluate_LegacyViolations(true, true);
   }
 
   @Test
@@ -1705,11 +1705,12 @@ public class ScanPolicyEvaluatorTest
     ObjectNode data = JsonUtils.parse(dataReportEntry.buf);
     assertThat(data.get("policyCounts").toString()).isEqualTo("[1,0,0,0,0,2,0,0,0,0,0]");
     assertThat(data.get("policyComponentCount").asInt()).isEqualTo(2);
-    assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isEqualTo(0);
+    assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isZero();
+    assertThat(data.get("legacyViolationCount").asInt()).isZero();
   }
 
   @Test
-  public void testEvaluate_UpdatesReportFiles_GrandfatheredViolations() throws Exception {
+  public void testEvaluate_UpdatesReportFiles_LegacyViolations() throws Exception {
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
     // The policy will cause three policy violations.
@@ -1740,11 +1741,12 @@ public class ScanPolicyEvaluatorTest
     // Verify the data.json report file
     ReportEntry dataReportEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
     ObjectNode data = JsonUtils.parse(dataReportEntry.buf);
-    // All three policy violations are grandfathered and so each of the three components has a policyThreatLevel of 0
+    // All three policy violations are legacy and so each of the three components has a policyThreatLevel of 0
     assertThat(data.get("policyCounts").toString()).isEqualTo("[3,0,0,0,0,0,0,0,0,0,0]");
     // Since each component has a policyThreatLevel of 0, there are 0 affected components
     assertThat(data.get("policyComponentCount").asInt()).isEqualTo(0);
     assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isEqualTo(3);
+    assertThat(data.get("legacyViolationCount").asInt()).isEqualTo(3);
   }
 
   @Test
@@ -1898,22 +1900,22 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_PolicyViolationLogger_GrandfatherPolicyViolations() throws Exception {
+  public void testEvaluate_PolicyViolationLogger_LegacyViolations() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
-    // Create two policies that will cause policy violations and allow grandfathering for one policy.
+    // Create two policies that will cause policy violations and allow legacy status for one policy.
     Policy securityPolicy = newSecurityPolicy();
     securityPolicy.setPolicyViolationGrandfatheringAllowed(true);
     new PolicyDAO().update(securityPolicy);
     newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
 
-    // Evaluate policies. There should be two policy violations, one active and one grandfathered.
+    // Evaluate policies. There should be two policy violations, one active and one legacy.
     // Both violations should have a CREATE event logged. Only one should have a GRANDFATHER event.
     String scanId = simulateReportIsAvailable(
-        "testEvaluate_PolicyViolationLogger_GrandfatherAndUngrandfatherPolicyViolations/report");
+        "testEvaluate_PolicyViolationLogger_LegacyGrantedAndRevokedPolicyViolations/report");
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI,
             ClientScanType.SONATYPE);
@@ -1921,11 +1923,11 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.activeViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
         currentUser.getUsernameOrSystem());
-    List<PolicyViolation> grandfatheredViolations =
+    List<PolicyViolation> legacyViolations =
         filterPolicyViolationsByPolicyId(results.allViolations, securityPolicy.getId());
-    assertThat(grandfatheredViolations).hasSize(1);
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANDFATHER, results.evaluation.getTime(),
-        grandfatheredViolations, currentUser.getUsernameOrSystem());
+    assertThat(legacyViolations).hasSize(1);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANDFATHER, results.evaluation.getTime(), legacyViolations,
+        currentUser.getUsernameOrSystem());
   }
 
   @Test
@@ -2331,17 +2333,17 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_EvaluationAfterEnablingGrandfathering() throws Exception {
-    testEvaluate_DoEvaluationAfterEnablingGrandfathering(false);
+  public void testEvaluate_EvaluationAfterEnablingLegacyViolations() throws Exception {
+    testEvaluate_DoEvaluationAfterEnablingLegacyViolations(false);
   }
 
   @Test
-  public void testEvaluate_ReEvaluationAfterEnablingGrandfathering() throws Exception {
-    testEvaluate_DoEvaluationAfterEnablingGrandfathering(true);
+  public void testEvaluate_ReEvaluationAfterEnablingLegacyViolations() throws Exception {
+    testEvaluate_DoEvaluationAfterEnablingLegacyViolations(true);
   }
 
   @Test
-  public void testEvaluate_RevokeGrandfathering() throws Exception {
+  public void testEvaluate_RevokeLegacyViolations() throws Exception {
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
@@ -2361,7 +2363,7 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(application);
 
-    // This is what disabling grandfathering performs for an application
+    // This is what disabling legacy violations performs for an application
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
       policyViolation.setGrandfatherTime(null);
@@ -2375,7 +2377,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @SuppressWarnings("unchecked")
-  private void testEvaluate_DoEvaluationAfterEnablingGrandfathering(boolean isReevaluation) throws Exception {
+  private void testEvaluate_DoEvaluationAfterEnablingLegacyViolations(boolean isReevaluation) throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     Policy policy = newSecurityPolicy();
     policy.setPolicyViolationGrandfatheringAllowed(true);
@@ -2394,7 +2396,7 @@ public class ScanPolicyEvaluatorTest
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 
-    // This is what enabling grandfathering performs for an application
+    // This is what enabling legacy violations performs for an application
     Date currentDate = new Date();
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {

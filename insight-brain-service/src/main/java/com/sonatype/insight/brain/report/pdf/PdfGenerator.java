@@ -147,7 +147,7 @@ public class PdfGenerator
   private final PdfData pdfData;
 
   private final Predicate<ApiReportPolicyViolationDTOV2> isActiveViolation =
-      violation -> !violation.waived && !violation.grandfathered;
+      violation -> !violation.waived && !violation.legacyViolation;
 
   private File pdfFile;
 
@@ -301,7 +301,7 @@ public class PdfGenerator
           legacyViolationsFontStyle.getStringWidth(String.valueOf(LEGACY_VIOLATIONS_SYMBOL)) + PADDING;
       float legacyViolationsCountStartY = violationsTextStartY - 4;
       long legacyViolations = pdfData.policyData.components.stream().flatMap(component -> component.violations.stream())
-          .filter(violation -> violation.grandfathered).count();
+          .filter(violation -> violation.legacyViolation).count();
 
       String legacyViolationsText = legacyViolations + " LEGACY VIOLATIONS";
       if (legacyViolations == 1) {

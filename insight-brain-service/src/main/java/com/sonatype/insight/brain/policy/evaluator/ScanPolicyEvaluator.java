@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -64,7 +65,7 @@ import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditio
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
-import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
+import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
@@ -135,7 +136,7 @@ public class ScanPolicyEvaluator
 
   private final ApplicationEvaluationEventService applicationEvaluationEventService;
 
-  private final PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
+  private final LegacyViolationService legacyViolationService;
 
   private final PolicyAlertEventService policyAlertEventService;
 
@@ -157,7 +158,7 @@ public class ScanPolicyEvaluator
       final ReportService reportService,
       final ComponentPolicyEvaluator componentPolicyEvaluator,
       final ApplicationEvaluationEventService applicationEvaluationEventService,
-      final PolicyViolationGrandfatheringService policyViolationGrandfatheringService,
+      final LegacyViolationService legacyViolationService,
       final PolicyAlertEventService policyAlertEventService,
       final TelemetrySender telemetrySender,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
@@ -170,7 +171,7 @@ public class ScanPolicyEvaluator
     this.reportService = reportService;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
-    this.policyViolationGrandfatheringService = policyViolationGrandfatheringService;
+    this.legacyViolationService = legacyViolationService;
     this.policyAlertEventService = policyAlertEventService;
     this.telemetrySender = telemetrySender;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
@@ -280,7 +281,7 @@ public class ScanPolicyEvaluator
 
     telemetrySender.send(telemetryCollector.getTelemetryData());
 
-    sendGrandfatheredViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
+    sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
 
     postEvents(scanPolicyEvaluatorResults, application, components);
 
@@ -325,7 +326,7 @@ public class ScanPolicyEvaluator
   private void updateDataJson(File reportFile, PolicyThreats policyThreats) throws IOException {
     int[] policyCounts = new int[11];
     int policyComponentCount = 0;
-    int grandfatheredPolicyViolationCount = 0;
+    int legacyViolationCount = 0;
 
     for (PolicyThreats.Component component : policyThreats.aaData) {
       int level = component.policyThreatLevel;
@@ -334,8 +335,8 @@ public class ScanPolicyEvaluator
         policyComponentCount++;
       }
       for (PolicyThreats.PolicyViolation policyViolation : component.allViolations) {
-        if (policyViolation.grandfathered) {
-          grandfatheredPolicyViolationCount++;
+        if (policyViolation.legacyViolation) {
+          legacyViolationCount++;
         }
       }
     }
@@ -343,15 +344,15 @@ public class ScanPolicyEvaluator
     ObjectNode data = JsonUtils.parse(Report.getEntry(reportFile, Report.DATA_JSON_FILENAME).buf);
     Report.fill(data.putArray("policyCounts"), policyCounts);
     data.put("policyComponentCount", policyComponentCount);
-    data.put("grandfatheredPolicyViolationCount", grandfatheredPolicyViolationCount);
+    data.put("grandfatheredPolicyViolationCount", legacyViolationCount);
+    data.put("legacyViolationCount", legacyViolationCount);
     Report.putEntry(reportFile, Report.DATA_JSON_FILENAME, JsonUtils.generate(data));
   }
 
   /**
    * Processes the raw policy evaluation results: - persists policy evaluation - persists policy violation data and
    * component data if this is an evaluation for the most recent scan for the specified stage - sets or updates the
-   * grandfathered status on policy violations - determines the policy violations for which notifications should be
-   * sent
+   * legacy status on policy violations - determines the policy violations for which notifications should be sent
    */
   private ScanPolicyEvaluatorResults processPolicyResults(
       Application app,
@@ -373,8 +374,7 @@ public class ScanPolicyEvaluator
          TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       clusterLock.lock();
       tx.begin();
-      boolean isPolicyViolationGrandfatheringEnabled =
-          policyViolationGrandfatheringService.isPolicyViolationGrandfatheringEnabled(tx, app.getId());
+      boolean isLegacyViolationEnabled = legacyViolationService.isLegacyViolationEnabled(tx, app.getId());
       // Persist the policy evaluation
       boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
       AuditData.get().setIsReevaluation(isReevaluation);
@@ -435,8 +435,8 @@ public class ScanPolicyEvaluator
         }
       }
 
-      setGrandfatheredPolicyViolations(tx, isPolicyViolationGrandfatheringEnabled, app, policies,
-          policyEvaluation.getTime(), results.allViolations);
+      setLegacyViolations(tx, isLegacyViolationEnabled, app, policies, policyEvaluation.getTime(),
+          results.allViolations);
 
       ApplicationPolicyViolationLogger policyViolationLogger =
           policyViolationLoggerFactory.newLogger(policyEvaluation.getTime(), app);
@@ -604,24 +604,23 @@ public class ScanPolicyEvaluator
   }
 
   /**
-   * If this is the first policy evaluation and grandfathering is enabled for the application, then policy violations
-   * are marked as grandfathered for the policies that are enabled for grandfathering. If this is not the first policy
-   * evaluation, then it marks policy violations as grandfathered based on the existing grandfathered policy violations
-   * (across all stages).
+   * If this is the first policy evaluation and legacy violations are enabled for the application, then policy
+   * violations are marked as legacy for the policies that are enabled for legacy. If this is not the first policy
+   * evaluation, then it marks policy violations as legacy based on the existing legacy violations (across all stages).
    */
-  private void setGrandfatheredPolicyViolations(
+  private void setLegacyViolations(
       TransactionContext tx,
-      boolean isPolicyViolationGrandfatheringEnabled,
+      boolean areLegacyViolationsEnabled,
       Application app,
       List<Policy> policies,
       Date policyEvaluationTime,
       List<PolicyViolation> policyViolations)
   {
-    // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
-    if (isPolicyViolationGrandfatheringEnabled && isFirstEvaluation(tx, app)) {
+    // The check if this is the first evaluation can be expensive. Do it only if legacy violations are enabled.
+    if (areLegacyViolationsEnabled && isFirstEvaluation(tx, app)) {
       if (!productLicense.hasFeature(LicensedFeature.POLICY_GRANDFATHERING)) {
-        log.debug("Not grandfathering violations in the first evaluation for application {}, " +
-            "license does not support policy violation grandfathering.", app.getId());
+        log.debug("No legacy violations in the first evaluation for application {}, "
+            + "license does not support legacy violations.", app.getId());
         return;
       }
       Map<String, Policy> policiesById = policies.stream().collect(toMap(Policy::getId, Function.identity()));
@@ -631,14 +630,14 @@ public class ScanPolicyEvaluator
           .forEach(policyViolation -> policyViolation.setGrandfatherTime(policyEvaluationTime));
     }
     else {
-      List<PolicyViolation> grandfatheredPolicyViolations = policyViolationDAO
-          .getUnfixedGrandfatheredByApplicationId(tx, app.getId());
-      if (!grandfatheredPolicyViolations.isEmpty()) {
+      List<PolicyViolation> legacyViolations =
+          policyViolationDAO.getUnfixedGrandfatheredByApplicationId(tx, app.getId());
+      if (!legacyViolations.isEmpty()) {
         PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
-            .digestPolicyViolations(grandfatheredPolicyViolations, policyViolations);
+            .digestPolicyViolations(legacyViolations, policyViolations);
         policyViolationDiff.getSame().forEach( //
-            (grandfatheredPolicyViolation, newPolicyViolation) -> newPolicyViolation
-                .setGrandfatherTime(grandfatheredPolicyViolation.getGrandfatherTime()));
+            (legacyViolation, newPolicyViolation) -> newPolicyViolation
+                .setGrandfatherTime(legacyViolation.getGrandfatherTime()));
       }
     }
   }
@@ -742,7 +741,7 @@ public class ScanPolicyEvaluator
     int criticalPolicyViolationCount = 0;
     int severePolicyViolationCount = 0;
     int moderatePolicyViolationCount = 0;
-    int grandfatheredPolicyViolationCount = 0;
+    int legacyViolationCount = 0;
     for (PolicyViolation policyViolation : policyViolations) {
       if (policyViolation.isActive()) {
         final int policyThreatLevelNumber = policyViolation.getThreatLevel();
@@ -771,7 +770,7 @@ public class ScanPolicyEvaluator
         }
       }
       else if (policyViolation.isGrandfathered()) {
-        grandfatheredPolicyViolationCount++;
+        legacyViolationCount++;
       }
     }
 
@@ -807,7 +806,7 @@ public class ScanPolicyEvaluator
     policyEvaluationResult.setCriticalPolicyViolationCount(criticalPolicyViolationCount);
     policyEvaluationResult.setSeverePolicyViolationCount(severePolicyViolationCount);
     policyEvaluationResult.setModeratePolicyViolationCount(moderatePolicyViolationCount);
-    policyEvaluationResult.setGrandfatheredPolicyViolationCount(grandfatheredPolicyViolationCount);
+    policyEvaluationResult.setLegacyViolationCount(legacyViolationCount);
   }
 
   public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation, boolean createAlerts) {
@@ -918,17 +917,17 @@ public class ScanPolicyEvaluator
   /**
    * @since 1.50
    */
-  void sendGrandfatheredViolationTelemetryData(String applicationId, List<PolicyViolation> policyViolations) {
+  void sendLegacyViolationTelemetryData(String applicationId, List<PolicyViolation> policyViolations) {
     TelemetryData telemetryData = new TelemetryData(
         TelemetryPurpose.APPLICATION_EVALUATION_GRANDFATHERED_VIOLATION_COUNTS);
-    telemetryData.setAttributes(getGrandfatheredViolationCountsAttributes(applicationId, policyViolations));
+    telemetryData.setAttributes(getLegacyViolationCountsAttributes(applicationId, policyViolations));
     telemetrySender.send(telemetryData);
   }
 
   /**
    * @since 1.50
    */
-  private Map<String, Object> getGrandfatheredViolationCountsAttributes(
+  private Map<String, Object> getLegacyViolationCountsAttributes(
       String applicationId,
       List<PolicyViolation> policyViolations)
   {
@@ -941,7 +940,7 @@ public class ScanPolicyEvaluator
       policyThreatCategories.put(policyThreatCategory, 0L);
     }
 
-    int grandfatheredPolicyViolationCount = 0;
+    int legacyViolationCount = 0;
     for (PolicyViolation policyViolation : policyViolations) {
       if (policyViolation.isGrandfathered()) {
         ThreatLevel threatLevel = ThreatLevel.from(policyViolation.getThreatLevel());
@@ -950,16 +949,16 @@ public class ScanPolicyEvaluator
         PolicyThreatCategory policyThreatCategory = policyViolation.getThreatCategory();
         policyThreatCategories.put(policyThreatCategory, policyThreatCategories.get(policyThreatCategory) + 1);
 
-        grandfatheredPolicyViolationCount++;
+        legacyViolationCount++;
       }
     }
 
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
     attributes.put("grandfathering_enabled",
-        String.valueOf(policyViolationGrandfatheringService.isPolicyViolationGrandfatheringEnabled(applicationId)));
-    attributes.put("number_of_grandfathered_violations", String.valueOf(grandfatheredPolicyViolationCount));
-    if (grandfatheredPolicyViolationCount > 0) {
+        String.valueOf(legacyViolationService.isLegacyViolationEnabled(applicationId)));
+    attributes.put("number_of_grandfathered_violations", String.valueOf(legacyViolationCount));
+    if (legacyViolationCount > 0) {
       for (Entry<ThreatLevel, Long> entry : threatLevels.entrySet()) {
         attributes.put("number_of_grandfathered_violations_with_" + entry.getKey().name().toLowerCase(Locale.ENGLISH)
             + "_threat_level", String.valueOf(entry.getValue()));

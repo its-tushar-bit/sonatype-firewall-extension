@@ -51,7 +51,7 @@ public abstract class PolicyEvaluator<P extends Parameters>
     log.info("Number of open policy violations: {} critical, {} severe, {} moderate",
         eval.getCriticalPolicyViolationCount(), eval.getSeverePolicyViolationCount(),
         eval.getModeratePolicyViolationCount());
-    log.info("Number of grandfathered policy violations: {}", eval.getGrandfatheredPolicyViolationCount());
+    log.info("Number of legacy violations: {}", eval.getLegacyViolationCount());
     log.info("Number of components: {}", eval.getTotalComponentCount());
     log.info("The detailed report can be viewed online at {}", reportUrl);
     log.info("*********************************************************************************************");

@@ -490,6 +490,7 @@ public class ApiReportDataServiceV2Test
     assertThat(violation.policyThreatLevel).isEqualTo(7);
     assertThat(violation.policyViolationId).isEqualTo("43d46045a21f45c2969460f51102c931");
     assertThat(violation.grandfathered).isTrue();
+    assertThat(violation.legacyViolation).isTrue();
     assertThat(violation.waived).isTrue();
 
     // constraint
@@ -545,6 +546,7 @@ public class ApiReportDataServiceV2Test
     assertThat(data.counts.get("partiallyMatchedComponentCount")).isEqualTo(0);
     assertThat(data.counts.get("totalComponentCount")).isEqualTo(3);
     assertThat(data.counts.get("grandfatheredPolicyViolationCount")).isEqualTo(2);
+    assertThat(data.counts.get("legacyViolationCount")).isEqualTo(2);
 
     assertThat(data.components).hasSize(3);
     data.components.sort(Comparator.comparing(o -> o.hash));

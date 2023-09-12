@@ -324,7 +324,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testCountPolicyViolations_ExcludesWaivedAndGrandfathered() {
+  public void testCountPolicyViolations_ExcludesWaivedAndLegacyStatus() {
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
     ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
@@ -332,9 +332,10 @@ public class PdfGeneratorTest
     ApiReportPolicyViolationDTOV2 waivedViolation = new ApiReportPolicyViolationDTOV2();
     waivedViolation.waived = true;
     component.violations.add(waivedViolation);
-    ApiReportPolicyViolationDTOV2 grandfatheredViolation = new ApiReportPolicyViolationDTOV2();
-    grandfatheredViolation.grandfathered = true;
-    component.violations.add(grandfatheredViolation);
+    ApiReportPolicyViolationDTOV2 legacyViolation = new ApiReportPolicyViolationDTOV2();
+    legacyViolation.grandfathered = true;
+    legacyViolation.legacyViolation = true;
+    component.violations.add(legacyViolation);
     policyData.components.add(component);
     PdfData pdfData = newPdfData();
     pdfData.policyData = policyData;
@@ -362,7 +363,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testCountAffectedComponents_ExcludesComponentsWithOnlyLowThreatOrWaivedOrGrandfatheredViolations() {
+  public void testCountAffectedComponents_ExcludesComponentsWithOnlyLowThreatOrWaivedOrLegacyViolations() {
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
     ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
@@ -372,10 +373,11 @@ public class PdfGeneratorTest
     waivedViolation.policyThreatLevel = 9;
     waivedViolation.waived = true;
     component.violations.add(waivedViolation);
-    ApiReportPolicyViolationDTOV2 grandfatheredViolation = new ApiReportPolicyViolationDTOV2();
-    grandfatheredViolation.policyThreatLevel = 9;
-    grandfatheredViolation.grandfathered = true;
-    component.violations.add(grandfatheredViolation);
+    ApiReportPolicyViolationDTOV2 legacyViolation = new ApiReportPolicyViolationDTOV2();
+    legacyViolation.policyThreatLevel = 9;
+    legacyViolation.grandfathered = true;
+    legacyViolation.legacyViolation = true;
+    component.violations.add(legacyViolation);
     policyData.components.add(component);
     PdfData pdfData = newPdfData();
     pdfData.policyData = policyData;
@@ -441,7 +443,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testCreatePolicyViolationsTableData_ExcludesWaivedAndGrandfathered() {
+  public void testCreatePolicyViolationsTableData_ExcludesWaivedAndLegacyStatus() {
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     ApiReportComponentPolicyViolationsDTOV2 component = new ApiReportComponentPolicyViolationsDTOV2();
     ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
@@ -451,10 +453,11 @@ public class PdfGeneratorTest
     waivedViolation.policyName = "policyName2";
     waivedViolation.waived = true;
     component.violations.add(waivedViolation);
-    ApiReportPolicyViolationDTOV2 grandfatheredViolation = new ApiReportPolicyViolationDTOV2();
-    grandfatheredViolation.policyName = "policyName3";
-    grandfatheredViolation.grandfathered = true;
-    component.violations.add(grandfatheredViolation);
+    ApiReportPolicyViolationDTOV2 legacyViolation = new ApiReportPolicyViolationDTOV2();
+    legacyViolation.policyName = "policyName3";
+    legacyViolation.grandfathered = true;
+    legacyViolation.legacyViolation = true;
+    component.violations.add(legacyViolation);
     policyData.components.add(component);
     PdfData pdfData = newPdfData();
     pdfData.policyData = policyData;

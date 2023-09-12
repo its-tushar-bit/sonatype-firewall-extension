@@ -32,7 +32,12 @@ public class ApiThirdPartyScanResultDTO
 
   public ApiEvaluationResultCounterDTO openPolicyViolations;
 
+  /**
+   * @deprecated use legacyViolations
+   */
   public Integer grandfatheredPolicyViolations;
+
+  public Integer legacyViolations;
 
   public ApiThirdPartyScanResultDTO() {
     // noop
@@ -46,7 +51,7 @@ public class ApiThirdPartyScanResultDTO
       String embeddableReportHtmlUrl,
       ApiEvaluationResultCounterDTO componentsAffected,
       ApiEvaluationResultCounterDTO openPolicyViolations,
-      Integer grandfatheredPolicyViolations)
+      Integer legacyViolations)
   {
     this.policyAction = policyAction;
     this.reportHtmlUrl = reportHtmlUrl;
@@ -55,7 +60,8 @@ public class ApiThirdPartyScanResultDTO
     this.embeddableReportHtmlUrl = embeddableReportHtmlUrl;
     this.componentsAffected = componentsAffected;
     this.openPolicyViolations = openPolicyViolations;
-    this.grandfatheredPolicyViolations = grandfatheredPolicyViolations;
+    this.grandfatheredPolicyViolations = legacyViolations;
+    this.legacyViolations = legacyViolations;
   }
 
   public ApiThirdPartyScanResultDTO(String errorMessage) {

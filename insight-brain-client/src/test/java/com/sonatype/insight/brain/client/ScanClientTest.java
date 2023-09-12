@@ -49,7 +49,7 @@ public class ScanClientTest
 
   private static final int MODERATE_POLICY_VIOLATION_COUNT = 7;
 
-  private static final int GRANDFATHERED_POLICY_VIOLATION_COUNT = 50;
+  private static final int LEGACY_VIOLATION_COUNT = 50;
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -75,7 +75,7 @@ public class ScanClientTest
     evaluationResult.setCriticalPolicyViolationCount(CRITICAL_POLICY_VIOLATION_COUNT);
     evaluationResult.setSeverePolicyViolationCount(SEVERE_POLICY_VIOLATION_COUNT);
     evaluationResult.setModeratePolicyViolationCount(MODERATE_POLICY_VIOLATION_COUNT);
-    evaluationResult.setGrandfatheredPolicyViolationCount(GRANDFATHERED_POLICY_VIOLATION_COUNT);
+    evaluationResult.setLegacyViolationCount(LEGACY_VIOLATION_COUNT);
     File resultFile = new File(tmpDir.getRoot(), "missing-dir/result.json");
     new ScanClient(config, "the-app-id").saveResultData(resultFile, receipt, evaluationResult, "Failure");
     ResultData data = JsonUtils.read(resultFile, ResultData.class);
@@ -92,8 +92,7 @@ public class ScanClientTest
     assertThat(data.policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(SEVERE_POLICY_VIOLATION_COUNT);
     assertThat(data.policyEvaluationResult.getModeratePolicyViolationCount())
         .isEqualTo(MODERATE_POLICY_VIOLATION_COUNT);
-    assertThat(data.policyEvaluationResult.getGrandfatheredPolicyViolationCount())
-        .isEqualTo(GRANDFATHERED_POLICY_VIOLATION_COUNT);
+    assertThat(data.policyEvaluationResult.getLegacyViolationCount()).isEqualTo(LEGACY_VIOLATION_COUNT);
     assertThat(data.policyAction).isEqualTo("Failure");
   }
 

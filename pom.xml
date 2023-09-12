@@ -46,7 +46,7 @@
     <!-- Also update the jboss/keycloak docker image version in the KeycloakServer java class -->
     <keycloak.version>21.1.2</keycloak.version>
     <sisu-inject.version>0.3.5</sisu-inject.version>
-    <clm.dto.model.version>1.54.0-01</clm.dto.model.version>
+    <clm.dto.model.version>1.56.0</clm.dto.model.version>
     <!-- The jetty.version must match the jersey version used by dropwizard -->
     <jetty.version>9.4.51.v20230217</jetty.version>
     <!-- The jakarta.servlet-api.version must match the jersey version used by dropwizard -->

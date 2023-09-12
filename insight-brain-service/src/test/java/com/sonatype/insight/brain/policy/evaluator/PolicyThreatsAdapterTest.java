@@ -328,6 +328,7 @@ public class PolicyThreatsAdapterTest
     assertThat(policyViolation.policyName).isEqualTo(violation.getPolicyName());
     assertThat(policyViolation.waived).isEqualTo(violation.isWaived());
     assertThat(policyViolation.grandfathered).isEqualTo(violation.isGrandfathered());
+    assertThat(policyViolation.legacyViolation).isEqualTo(violation.isGrandfathered());
     assertThat(policyViolation.constraintFactsJson).isEqualTo(violation.getConstraintFactsJson());
     assertThat(policyViolation.policyThreatCategory).isEqualTo(violation.getThreatCategory().toString());
 

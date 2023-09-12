@@ -163,15 +163,16 @@ public class PolicyAlertUtil
         policyViolation.setThreatLevel(violation.policyThreatLevel);
         policyViolation.setHash(component.hash);
         boolean waived = violation.waived;
-        boolean grandfathered = violation.grandfathered;
-        boolean fixed = !waived && !grandfathered && !isActive(component.activeViolations, violation.policyViolationId);
+        boolean legacyViolation = violation.legacyViolation;
+        boolean fixed =
+            !waived && !legacyViolation && !isActive(component.activeViolations, violation.policyViolationId);
         if (fixed) {
           policyViolation.setFixTime(new Date());
         }
         if (waived) {
           policyViolation.setWaiveTime(new Date());
         }
-        if (grandfathered) {
+        if (legacyViolation) {
           policyViolation.setGrandfatherTime(new Date());
         }
         allViolations.add(policyViolation);

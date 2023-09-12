@@ -307,6 +307,8 @@ public class ApiReportDataServiceV2
     reportCounts.put("exactlyMatchedComponentCount", countsData.get("exactlyMatchedComponentCount"));
     reportCounts.put("totalComponentCount", countsData.get("totalArtifactCount"));
     reportCounts.put("grandfatheredPolicyViolationCount", countsData.get("grandfatheredPolicyViolationCount"));
+    reportCounts.put("legacyViolationCount",
+        countsData.getOrDefault("legacyViolationCount", countsData.get("grandfatheredPolicyViolationCount")));
     return reportCounts;
   }
 
@@ -328,7 +330,7 @@ public class ApiReportDataServiceV2
   }
 
   private List<ApiReportPolicyViolationDTOV2> getLegacyViolations(PolicyThreats.Component component) {
-    // CLM-15450 in policythreats.json allViolations, waived, and grandfathered are absent in reports generated prior to
+    // CLM-15450 in policythreats.json allViolations, waived, and legacy are absent in reports generated prior to
     // 1.50.0-01 and policyViolationId is absent in reports generated prior to 1.70.0-04
     component.waivedViolations.forEach(violation -> violation.waived = true);
     component.allViolations.addAll(component.activeViolations);
@@ -344,6 +346,7 @@ public class ApiReportDataServiceV2
     dto.policyThreatLevel = violation.policyThreatLevel;
     dto.policyViolationId = violation.policyViolationId;
     dto.grandfathered = violation.grandfathered;
+    dto.legacyViolation = violation.legacyViolation || violation.grandfathered;
     dto.waived = violation.waived;
     dto.constraints = getConstraints(violation.constraints);
     return dto;

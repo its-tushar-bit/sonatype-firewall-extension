@@ -173,8 +173,8 @@ public abstract class AbstractPolicyEvaluatorTestRunner
             expectedPolicyEvaluationResult.getCriticalPolicyViolationCount(),
             expectedPolicyEvaluationResult.getSeverePolicyViolationCount(),
             expectedPolicyEvaluationResult.getModeratePolicyViolationCount()))
-        .contains(String.format("Number of grandfathered policy violations: %s",
-            expectedPolicyEvaluationResult.getGrandfatheredPolicyViolationCount()))
+        .contains(String.format("Number of legacy violations: %s",
+            expectedPolicyEvaluationResult.getLegacyViolationCount()))
         .contains(String.format("Number of components: %s",
             expectedPolicyEvaluationResult.getTotalComponentCount()));
   }

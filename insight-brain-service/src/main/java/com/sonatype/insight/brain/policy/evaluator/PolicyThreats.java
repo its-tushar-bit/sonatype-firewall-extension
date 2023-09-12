@@ -100,8 +100,15 @@ public class PolicyThreats
 
     /**
      * @since 1.50
+     * @deprecated Use {@link PolicyThreats.PolicyViolation#legacyViolation}.
      */
+    @Deprecated
     public boolean grandfathered;
+
+    /**
+     * @since 1.168
+     */
+    public boolean legacyViolation;
 
     /**
      * @since 1.53

@@ -123,6 +123,7 @@ public class ApiReportDataResourceV2Test
     assertThat(dto.counts.get("totalComponentCount")).isEqualTo(2);
     // counts should not have null props
     assertThat(dto.counts).doesNotContainKey("grandfatheredPolicyViolationCount");
+    assertThat(dto.counts).doesNotContainKey("legacyViolationCount");
   }
 
   @Test

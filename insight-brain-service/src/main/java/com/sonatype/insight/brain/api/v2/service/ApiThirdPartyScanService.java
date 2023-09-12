@@ -262,7 +262,7 @@ public class ApiThirdPartyScanService
         result.getModeratePolicyViolationCount(), result.getSeverePolicyViolationCount());
 
     return new ApiThirdPartyScanResultDTO(outcome.toString(), reportUrl, reportPdfUrl, reportDataUrl,
-        embeddableReportUrl, componentsAffected, openPolicyViolations, result.getGrandfatheredPolicyViolationCount());
+        embeddableReportUrl, componentsAffected, openPolicyViolations, result.getLegacyViolationCount());
   }
 
   private ApiEvaluationResultCounterDTO buildResultCounter(int critical, int moderate, int severe) {

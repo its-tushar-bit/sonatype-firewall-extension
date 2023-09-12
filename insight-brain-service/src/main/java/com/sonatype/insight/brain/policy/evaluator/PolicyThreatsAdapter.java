@@ -82,6 +82,7 @@ public class PolicyThreatsAdapter
     result.policyThreatLevel = violation.getThreatLevel();
     result.waived = violation.isWaived();
     result.grandfathered = violation.isGrandfathered();
+    result.legacyViolation = violation.isGrandfathered();
     result.actions.addAll(toPolicyThreatsPolicyActions(violation));
     result.constraints.addAll(toPolicyThreatsPolicyConstraints(violation.getConstraintFacts()));
     result.constraintFactsJson = violation.getConstraintFactsJson();

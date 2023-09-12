@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
+
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -56,9 +57,9 @@ import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
-import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -66,9 +67,9 @@ import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
-import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -1157,9 +1158,9 @@ public class ComponentDetailsTest
     licenseBannedPolicy.setPolicyViolationGrandfatheringAllowed(true);
     new ApplicationDAO().update(app);
     new PolicyDAO().update(licenseBannedPolicy);
-    PolicyViolationGrandfatheringService policyViolationGrandfatheringService =
-        testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
-    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+    LegacyViolationService legacyViolationService =
+        testCLMServer.getCLMServer().getInstance(LegacyViolationService.class);
+    legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
     try {
       evaluator.reevaluatePolicy();
     }

@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringResource;
+import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -51,7 +51,7 @@ public class ApiReportServiceV2Test
   private PolicyEvaluateService policyEvaluateService;
 
   @Inject
-  PolicyViolationGrandfatheringResource policyViolationGrandfatheringService;
+  LegacyViolationService legacyViolationService;
 
   @Inject
   private InsightWork insightWork;
@@ -274,9 +274,7 @@ public class ApiReportServiceV2Test
   }
 
   @Test
-  public void testGetReportHistoryForApplication_GrandfatheredPolicyViolationCount()
-          throws IOException, URISyntaxException
-  {
+  public void testGetReportHistoryForApplication_LegacyViolationCount() throws IOException, URISyntaxException {
     //setup application scan reports and evaluations
     Application app = tempEntity.newApplicationWithParent("application");
     grantReadPermission(app.getId());
@@ -296,15 +294,15 @@ public class ApiReportServiceV2Test
     new ApplicationDAO().update(app);
     policy.setPolicyViolationGrandfatheringAllowed(true);
     new PolicyDAO().update(policy);
-    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+    legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
 
     ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
 
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(2);
-    assertThat(reports.reports.get(0).policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(36);
-    assertThat(reports.reports.get(1).policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
+    assertThat(reports.reports.get(0).policyEvaluationResult.getLegacyViolationCount()).isEqualTo(36);
+    assertThat(reports.reports.get(1).policyEvaluationResult.getLegacyViolationCount()).isZero();
   }
 
   @Test

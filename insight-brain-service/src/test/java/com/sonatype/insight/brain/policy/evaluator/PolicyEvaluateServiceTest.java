@@ -254,7 +254,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(0);
-    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getLegacyViolationCount()).isEqualTo(0);
 
     policy.setThreatLevel(2);
     policyDAO.update(policy);
@@ -271,7 +271,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(36);
-    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getLegacyViolationCount()).isEqualTo(0);
 
     policy.setThreatLevel(4);
     policyDAO.update(policy);
@@ -288,7 +288,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(36);
     assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(0);
-    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getLegacyViolationCount()).isEqualTo(0);
 
     policy.setThreatLevel(8);
     policyDAO.update(policy);
@@ -305,9 +305,9 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(36);
     assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(0);
-    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getLegacyViolationCount()).isEqualTo(0);
 
-    // Grandfather one violation
+    // One legacy violation
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation policyViolation = policyViolationDAO
         .getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId()).get(0);
@@ -324,7 +324,7 @@ public class PolicyEvaluateServiceTest
     assertThat(policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(35);
     assertThat(policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(0);
     assertThat(policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(0);
-    assertThat(policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(1);
+    assertThat(policyEvaluationResult.getLegacyViolationCount()).isEqualTo(1);
   }
 
   @Test

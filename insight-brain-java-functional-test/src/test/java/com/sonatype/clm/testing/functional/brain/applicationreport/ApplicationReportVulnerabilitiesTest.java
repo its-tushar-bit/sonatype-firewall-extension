@@ -24,9 +24,9 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
-import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -68,12 +68,11 @@ public class ApplicationReportVulnerabilitiesTest
 
   private final PolicyDAO policyDAO = new PolicyDAO();
 
-  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
+  private LegacyViolationService legacyViolationService;
 
   @Before
   public void starts() throws IOException {
-    policyViolationGrandfatheringService =
-        testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
+    legacyViolationService = testCLMServer.getCLMServer().getInstance(LegacyViolationService.class);
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = new PolicyImportExport();
@@ -88,12 +87,12 @@ public class ApplicationReportVulnerabilitiesTest
     Policy securityLow = policyDAO.getByName("Security-Low").get(0);
     Policy securityHigh = policyDAO.getByName("Security-High").get(0);
 
-    // grandfather the security-low policy
+    // grant legacy status to the security-low policy
     app.setPolicyViolationGrandfatheringEnabled(true);
     applicationDAO.update(app);
-    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+    legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
 
-    // waive a few violations, one of which is also grandfathered
+    // waive a few violations, one of which is also in legacy status
     tempEntity.newWaiver("1e48256a2341047e7d72", securityLow.getId(), app.getId()); // commons-fileupload
     tempEntity.newWaiver("edde2efe828f5890f57a", securityHigh.getId(), app.getId()); // spring-expression
 
@@ -146,10 +145,10 @@ public class ApplicationReportVulnerabilitiesTest
     checkRow(waivedRow, "org.springframework : spring-expression : 3.2.4.RELEASE", "CVE-2018-1270", "9.8", "0", true,
         false);
 
-    VulnerabilityRow waivedGrandfatheredRow = vulnerabilityTable.row(21);
-    ScrollUtil.scrollIntoView(waivedGrandfatheredRow.getElement());
-    checkRow(waivedGrandfatheredRow, "commons-fileupload : commons-fileupload : 1.2.2", "CVE-2013-0248", "3.3", "0",
-        true, true);
+    VulnerabilityRow waivedLegacyRow = vulnerabilityTable.row(21);
+    ScrollUtil.scrollIntoView(waivedLegacyRow.getElement());
+    checkRow(waivedLegacyRow, "commons-fileupload : commons-fileupload : 1.2.2", "CVE-2013-0248", "3.3", "0", true,
+        true);
   }
 
   @Test
@@ -231,7 +230,7 @@ public class ApplicationReportVulnerabilitiesTest
                         final String cvssScore,
                         final String policyThreatLevel,
                         final boolean waived,
-                        final boolean grandfathered)
+                        final boolean legacy)
   {
     row.component().shouldHave(text(componentName));
     row.securityIssue().shouldHave(exactText(securityIssue));
@@ -245,7 +244,7 @@ public class ApplicationReportVulnerabilitiesTest
       row.waived().shouldNotBe(visible);
     }
 
-    if (grandfathered) {
+    if (legacy) {
       row.grandfathered().shouldBe(visible);
     }
     else {

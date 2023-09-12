@@ -49,14 +49,14 @@ public class PolicyViolationGrandfatheringResource
 
   @PUT
   @Path(REVOKE_PATH)
-  @Audited(AuditEvent.REVOKE_GRANDFATHERING)
+  @Audited(AuditEvent.REVOKE_LEGACY_VIOLATION_STATUS)
   public void revokeGrandfathering(@PathParam("applicationPublicId") String applicationPublicId) {
     policyViolationGrandfatheringService.revokeGrandfathering(applicationPublicId);
   }
 
   @PUT
   @Path(GRANDFATHER_PATH)
-  @Audited(AuditEvent.APPLY_GRANDFATHERING)
+  @Audited(AuditEvent.APPLY_LEGACY_VIOLATION_STATUS)
   public void grandfather(@PathParam("applicationPublicId") String applicationPublicId) {
     policyViolationGrandfatheringService.grandfather(applicationPublicId);
   }
@@ -74,7 +74,7 @@ public class PolicyViolationGrandfatheringResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Path(GET_PATH)
-  @Audited(AuditEvent.CONFIGURE_GRANDFATHERING)
+  @Audited(AuditEvent.CONFIGURE_LEGACY_VIOLATION_STATUS)
   public PolicyViolationGrandfatheringDTO setGrandfathering(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,

@@ -44,9 +44,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
-import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -102,7 +102,7 @@ public class ApplicationReportTest
 
   private final PolicyDAO policyDAO = new PolicyDAO();
 
-  private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
+  private LegacyViolationService legacyViolationService;
 
   @BeforeClass
   public static void startup() {
@@ -112,8 +112,7 @@ public class ApplicationReportTest
 
   @Before
   public void start() throws IOException {
-    policyViolationGrandfatheringService =
-            testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
+    legacyViolationService = testCLMServer.getCLMServer().getInstance(LegacyViolationService.class);
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = new PolicyImportExport();
@@ -871,7 +870,7 @@ public class ApplicationReportTest
     licenseBanned.setPolicyViolationGrandfatheringAllowed(true);
     applicationDAO.update(app);
     policyDAO.update(licenseBanned);
-    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+    legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
     evaluator.reevaluatePolicy();
     refresh();
   }

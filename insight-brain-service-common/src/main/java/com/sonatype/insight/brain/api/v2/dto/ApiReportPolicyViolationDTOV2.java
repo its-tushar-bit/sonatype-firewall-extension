@@ -29,7 +29,12 @@ public class ApiReportPolicyViolationDTOV2
 
   public boolean waived;
 
+  /**
+   * @deprecated Use legacyViolation
+   */
   public boolean grandfathered;
+
+  public boolean legacyViolation;
 
   public List<ApiReportConstraintViolationDTOV2> constraints = new ArrayList<>();
 }

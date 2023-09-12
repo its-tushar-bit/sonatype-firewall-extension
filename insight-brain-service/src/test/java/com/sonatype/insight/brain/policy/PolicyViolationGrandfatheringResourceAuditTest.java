@@ -76,7 +76,7 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     restRequest().path(PolicyViolationGrandfatheringResource.GRANDFATHER_PATH).parameter(application.getPublicId())
         .put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.APPLY_GRANDFATHERING, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.APPLY_LEGACY_VIOLATION_STATUS, null);
     assertApplicationData(auditDTO, application);
     assertGrandfatheringData(auditDTO, 2);
   }
@@ -86,7 +86,7 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     restRequest().with(unauthorizedUser()).path(PolicyViolationGrandfatheringResource.GRANDFATHER_PATH)
         .parameter(application.getPublicId()).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.APPLY_GRANDFATHERING, "unauthorized");
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.APPLY_LEGACY_VIOLATION_STATUS, "unauthorized");
     assertApplicationData(auditDTO, application);
     assertGrandfatheringData(auditDTO, null);
   }
@@ -97,7 +97,7 @@ public class PolicyViolationGrandfatheringResourceAuditTest
 
     restRequest().path(PolicyViolationGrandfatheringResource.REVOKE_PATH).parameter(application.getPublicId()).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.REVOKE_GRANDFATHERING, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REVOKE_LEGACY_VIOLATION_STATUS, null);
     assertApplicationData(auditDTO, application);
     assertGrandfatheringData(auditDTO, 1);
   }
@@ -110,7 +110,7 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     restRequest().path(PolicyViolationGrandfatheringResource.GET_PATH)
         .parameter(OwnerType.APPLICATION, application.getPublicId()).body(policyViolationGrandfatheringDTO).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_GRANDFATHERING, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LEGACY_VIOLATION_STATUS, null);
     assertApplicationData(auditDTO, application);
     assertGrandfatheringConfigurationData(auditDTO, null, "inherit");
   }
@@ -124,7 +124,7 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     restRequest().path(PolicyViolationGrandfatheringResource.GET_PATH)
         .parameter(OwnerType.ORGANIZATION, organization.getId()).body(policyViolationGrandfatheringDTO).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_GRANDFATHERING, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LEGACY_VIOLATION_STATUS, null);
     assertOrganizationData(auditDTO, organization);
     assertGrandfatheringConfigurationData(auditDTO, "allow", "enable");
   }
@@ -137,7 +137,7 @@ public class PolicyViolationGrandfatheringResourceAuditTest
     restRequest().path(PolicyViolationGrandfatheringResource.GET_PATH)
         .parameter(OwnerType.ORGANIZATION, organization.getId()).body(policyViolationGrandfatheringDTO).put();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_GRANDFATHERING, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LEGACY_VIOLATION_STATUS, null);
     assertOrganizationData(auditDTO, organization);
     assertGrandfatheringConfigurationData(auditDTO, "disallow", "disable");
   }

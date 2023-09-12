@@ -526,10 +526,6 @@ public class DashboardApplicationsTest
     }
   }
 
-  private void createApplicationsWithViolation(int numberOfApps) {
-    createApplicationsWithViolation(numberOfApps, "", 5);
-  }
-
   private void showLowRiskViolations() {
     DashboardPage.filterToggle().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
@@ -61,8 +62,6 @@ public class UserService
 
   private final UserDAO userDAO;
 
-  private final SamlUserDAO samlUserDAO;
-
   @Inject
   public UserService(
       InternalRealm clmRealm,
@@ -79,7 +78,6 @@ public class UserService
     this.clmRealm = clmRealm;
     this.passwordService = passwordService;
     this.userDAO = userDAO;
-    this.samlUserDAO = samlUserDAO;
     this.userDirectory = userDirectory;
     this.configuration = configuration;
   }

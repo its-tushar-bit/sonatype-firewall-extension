@@ -30,7 +30,8 @@ public class AbstractUserService
   public AbstractUserService(
       final SessionDAO sessionDAO,
       final DefaultWebSessionManager defaultWebSessionManager,
-      final CurrentUser currentUser, final SamlUserDAO samlUserDAO)
+      final CurrentUser currentUser,
+      final SamlUserDAO samlUserDAO)
   {
     this.sessionDAO = sessionDAO;
     this.defaultWebSessionManager = defaultWebSessionManager;

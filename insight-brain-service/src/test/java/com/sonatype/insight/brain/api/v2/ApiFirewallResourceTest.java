@@ -7,11 +7,14 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
@@ -19,11 +22,16 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -31,12 +39,14 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
 import org.junit.Assume;
@@ -52,6 +62,8 @@ public class ApiFirewallResourceTest
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
   private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+
+  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
   @After
   public void cleanUp() {
@@ -459,6 +471,81 @@ public class ApiFirewallResourceTest
         ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS).anon().get();
     assertResponseStatus(200, response);
     assertThat(response.getBodyText()).hasToString("false");
+  }
+
+  @Test
+  public void getAllRepositoryManagers() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId", "repoName",
+        "repoProductName", "repoProductVersion");
+    String repositoryManagerId = repositoryManager.getId();
+
+    HttpResponse response =
+        restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGER_PATH).get();
+    ApiRepositoryManagerListDTO apiRepositoryManagerListDTO = response.getBody(ApiRepositoryManagerListDTO.class);
+
+    assertResponseStatus(HttpStatus.OK_200, response);
+    assertThat(apiRepositoryManagerListDTO.repositoryManagers.size()).isEqualTo(1);
+    assertThat(apiRepositoryManagerListDTO.repositoryManagers.get(0).id).isEqualTo(repositoryManagerId);
+    assertThat(apiRepositoryManagerListDTO.repositoryManagers.get(0).instanceId).isEqualTo("instanceId");
+    assertThat(apiRepositoryManagerListDTO.repositoryManagers.get(0).name).isEqualTo("repoName");
+    assertThat(apiRepositoryManagerListDTO.repositoryManagers.get(0).productName).isEqualTo("repoProductName");
+    assertThat(apiRepositoryManagerListDTO.repositoryManagers.get(0).productVersion).isEqualTo("repoProductVersion");
+  }
+
+  @Test
+  public void testGetConfiguredRepositories() throws Exception {
+    Date may5th20239AM = Date.from(LocalDateTime.of(2023, 5, 1, 9, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202310AM = Date.from(LocalDateTime.of(2023, 5, 1, 10, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202311AM = Date.from(LocalDateTime.of(2023, 5, 1, 11, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    tempEntity.newRepository(repositoryManager, "testRepoNpm", RepositoryType.proxy, "npm",
+            may5th20239AM);
+    Repository repository =
+            tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven", may5th202311AM);
+
+    HttpResponse response = restRequest()
+            .path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
+                    ApiFirewallResource.REPOSITORIES_CONFIGURATION_PATH)
+            .parameter(repositoryManager.getId())
+            .query("sinceUtcTimestamp", may5th202310AM.getTime())
+            .get();
+
+    assertResponseStatus(HttpStatus.OK_200, response);
+    ApiRepositoryListDTO expected = response.getBody(ApiRepositoryListDTO.class);
+    assertThat(expected.repositories).hasSize(1);
+    ApiRepositoryDTO repositoryDTO = expected.repositories.get(0);
+    assertThat(repositoryDTO.repositoryId).isEqualTo(repository.getId());
+    assertThat(repositoryDTO.publicId).isEqualTo(repository.getName());
+    assertThat(repositoryDTO.format).isEqualTo(repository.getFormat());
+    assertThat(repositoryDTO.type).isEqualTo(repository.getRepositoryType().name());
+    assertThat(repositoryDTO.auditEnabled).isEqualTo(repository.isAuditEnabled());
+    assertThat(repositoryDTO.quarantineEnabled).isEqualTo(repository.isQuarantineEnabled());
+    assertThat(repositoryDTO.policyCompliantComponentSelectionEnabled).isEqualTo(
+            repository.isPolicyCompliantComponentSelectionEnabled());
+    assertThat(repositoryDTO.namespaceConfusionProtectionEnabled).isEqualTo(
+            repository.isNamespaceConfusionProtectionEnabled());
+  }
+
+  @Test
+  public void testConfigureRepositories() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    repository.setAuditEnabled(!repository.isAuditEnabled());
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    dto.repositories = Collections.singletonList(ApiRepositoryDTO.fromRepository(repository));
+    Date date = new Date();
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORIES_CONFIGURATION_PATH)
+        .parameter(repository.getRepositoryManagerId())
+        .body(dto)
+        .post();
+
+    assertResponseStatus(204, response);
+    Repository storedRepository = repositoryDAO.getById(repository.getId());
+    assertThat(storedRepository).usingRecursiveComparison().ignoringFields(
+        ArrayUtils.add(JPA.IGNORE_FIELDS, "lastManualConfigureTime")).isEqualTo(repository);
+    assertThat(storedRepository.getLastManualConfigureTime()).isAfterOrEqualTo(date);
   }
 
   private <T> T getBodyByTypeReference(byte[] bodyBytes, final TypeReference<T> typeRef) {

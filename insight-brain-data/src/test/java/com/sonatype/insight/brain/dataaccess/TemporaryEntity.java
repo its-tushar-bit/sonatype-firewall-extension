@@ -2479,6 +2479,21 @@ public class TemporaryEntity
     return repositoryManager;
   }
 
+  public RepositoryManager newRepositoryManager(
+      String instanceId,
+      String name,
+      String productName,
+      String productVersion)
+  {
+    RepositoryManager repositoryManager = new RepositoryManager();
+    repositoryManager.setInstanceId(instanceId);
+    repositoryManager.setName(name);
+    repositoryManager.setProductName(productName);
+    repositoryManager.setProductVersion(productVersion);
+    repositoryManagerDAO.insert(repositoryManager);
+    return repositoryManager;
+  }
+
   public RepositoryManager newRepositoryManager(String instanceId, String userAgent) {
     RepositoryManager repositoryManager = new RepositoryManager();
     repositoryManager.setInstanceId(instanceId);

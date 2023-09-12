@@ -9,21 +9,28 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -33,9 +40,13 @@ import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyCondit
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
+import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryException;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.integration.repository.AbstractRepositoryService;
+import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -45,6 +56,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -54,9 +66,11 @@ import com.sonatype.insight.brain.telemetry.AutoReleaseQuarantineTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.lqa.LqaComponentIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +106,10 @@ public class ApiFirewallService
 
   private final TelemetrySender telemetrySender;
 
+  private final RepositoryManagerDAO repositoryManagerDAO;
+  
+  private final RepositoryService repositoryService;
+
   @Inject
   ApiFirewallService(
       final ProductLicense productLicense,
@@ -100,7 +118,9 @@ public class ApiFirewallService
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO,
       final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
-      final TelemetrySender telemetrySender)
+      final TelemetrySender telemetrySender,
+      final RepositoryManagerDAO repositoryManagerDAO,
+      final RepositoryService repositoryService)
   {
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -109,6 +129,8 @@ public class ApiFirewallService
     this.autoUnquarantinePolicyConditionTypeDAO = autoUnquarantinePolicyConditionTypeDAO;
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
     this.telemetrySender = telemetrySender;
+    this.repositoryManagerDAO = repositoryManagerDAO;
+    this.repositoryService = repositoryService;
   }
 
   private void executeWithAuditSession(Runnable runnable) {
@@ -386,5 +408,90 @@ public class ApiFirewallService
 
   String getQuarantinedComponentViewAnonymousAccess() {
     return Boolean.toString(quarantinedComponentAccessDAO.isAnonymousAccessEnabled());
+  }
+
+  ApiRepositoryManagerListDTO getAllRepositoryManagers() {
+    checkReadPermission(RepositoryContainer.SINGLETON);
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    List<ApiRepositoryManagerDTO> apiRepositoryManagerDTOS =
+        repositoryManagerDAO.getAll().stream().map(ApiRepositoryManagerDTO::fromRepositoryManager)
+            .collect(
+                Collectors.toList());
+
+    return new ApiRepositoryManagerListDTO(apiRepositoryManagerDTOS);
+  }
+
+  ApiRepositoryListDTO getConfiguredRepositories(
+      String repositoryManagerId,
+      Long sinceUtcTimestamp)
+  {
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    checkReadPermission(RepositoryContainer.SINGLETON);
+
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
+
+    List<Repository> repositories = repositoryService
+        .getConfiguredRepositoriesNoAuthz(repositoryManager, sinceUtcTimestamp,
+            null);
+
+    List<ApiRepositoryDTO> apiRepositories = repositories.stream()
+        .map(ApiRepositoryDTO::fromRepository)
+        .collect(Collectors.toList());
+
+    ApiRepositoryListDTO apiRepositoryListDTO = new ApiRepositoryListDTO();
+    apiRepositoryListDTO.repositories = apiRepositories;
+
+    return apiRepositoryListDTO;
+  }
+  
+  void configureRepositories(String repositoryManagerId, ApiRepositoryListDTO dto) {
+    AuditData.get().setRepositoryManagerId(repositoryManagerId);
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    checkWritePermission(RepositoryContainer.SINGLETON);
+    validate(repositoryManagerId, dto);
+    List<RepositoryDTO> repositoryDTOs = dto.repositories.stream()
+        .map(ApiRepositoryDTO::toRepositoryDTO)
+        .collect(Collectors.toList());
+    repositoryService.configureRepositoriesNoAuthz(repositoryManagerDAO.getByIdNotNull(repositoryManagerId),
+        repositoryDTOs, true);
+  }
+
+  private void validate(String repositoryManagerId, ApiRepositoryListDTO dto) {
+    if (dto == null || CollectionUtils.isEmpty(dto.repositories)) {
+      throw new BadRequestException("No repository configurations specified.");
+    }
+    dto.repositories.forEach(repository -> validate(repositoryManagerId, repository));
+  }
+
+  private void validate(String repositoryManagerId, ApiRepositoryDTO dto) {
+    repositoryDAO.validateNotEmptyPublicId(dto.publicId);
+    if (ApiRepositoryDTO.toRepositoryType(dto.type) == null) {
+      throw new BadRequestException("The repository type must be proxy or hosted.");
+    }
+    if (dto.format != null &&
+        !getSupportedFormats().contains(AbstractRepositoryService.translateRepositoryFormat(dto.format))) {
+      throw new BadRequestException(String.format("Unrecognized format '%s'.", dto.format));
+    }
+    Repository repository = ApiRepositoryDTO.toRepository(dto);
+    Repository existingRepository =
+        repositoryDAO.getByRepositoryManagerIdAndPublicId(repositoryManagerId, dto.publicId);
+    if (existingRepository != null) {
+      repository.setId(existingRepository.getId());
+      repositoryDAO.validateUpdate(existingRepository, repository);
+    }
+    if (repository.getRepositoryType() == RepositoryType.proxy && repository.isQuarantineEnabled() &&
+        !repository.isAuditEnabled()) {
+      throw new InvalidRepositoryException("Quarantine requires Audit to be enabled.");
+    }
+    repositoryDAO.validateEnabledFeatures(repository);
+  }
+
+  private Set<String> getSupportedFormats() {
+    Set<String> supportedFormats = new HashSet<>(ComponentIdentifier.getSupportedFormats());
+    supportedFormats.add(LqaComponentIdentifier.FORMAT_ALPINE);
+    supportedFormats.add(LqaComponentIdentifier.FORMAT_BOWER);
+    supportedFormats.add(LqaComponentIdentifier.FORMAT_DEBIAN);
+    supportedFormats.add(LqaComponentIdentifier.FORMAT_DRUPAL);
+    return supportedFormats;
   }
 }

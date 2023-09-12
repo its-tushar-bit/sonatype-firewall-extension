@@ -6,17 +6,21 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.After;
@@ -70,5 +74,24 @@ public class ApiFirewallResourceAuditTest
 
     AuditDTO auditLog = awaitLogEntries(AuditEvent.CONFIGURE_SECURITY_QUARANTINED_COMPONENT_VIEW_ANON_ACCESS, 1).get(0);
     assertCustomData(auditLog, "enabled", false);
+  }
+
+  @Test
+  public void testConfigureRepositories() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    repository.setAuditEnabled(!repository.isAuditEnabled());
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    dto.repositories = Collections.singletonList(ApiRepositoryDTO.fromRepository(repository));
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORIES_CONFIGURATION_PATH)
+        .parameter(repository.getRepositoryManagerId())
+        .body(dto)
+        .post();
+
+    assertResponseStatus(204, response);
+    AuditDTO auditLog = awaitLogEntries(AuditEvent.CONFIGURE_REPOSITORY, 1).get(0);
+    assertCustomData(auditLog, "repositoryManagerId", repository.getRepositoryManagerId());
+    assertRepositoryData(auditLog, repository);
   }
 }

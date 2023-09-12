@@ -7,12 +7,12 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -74,6 +76,16 @@ public class ApiFirewallResource
 
   static final String QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS_SET =
       QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS + "/{enabled: true|false}";
+
+  static final String REPOSITORY_MANAGER_PATH = "repositoryManager";
+
+  private static final String REPOSITORIES_PATH = "repositories";
+
+  private static final String REPOSITORY_MANAGER_ID_PATH = "{repositoryManagerId}";
+
+  // Visible for testing
+  static final String REPOSITORIES_CONFIGURATION_PATH =
+      REPOSITORIES_PATH + "/" + CONFIGURATION_PATH + "/" + REPOSITORY_MANAGER_ID_PATH;
 
   private final ApiFirewallService apiFirewallService;
 
@@ -165,6 +177,34 @@ public class ApiFirewallResource
   @Path(QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS)
   public Response getQuarantinedComponentViewAnonymousAccess() {
     return Response.ok(apiFirewallService.getQuarantinedComponentViewAnonymousAccess()).build();
+  }
+
+  @GET
+  @Path(REPOSITORY_MANAGER_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiRepositoryManagerListDTO getAllRepositoryManagers() {
+    return apiFirewallService.getAllRepositoryManagers();
+  }
+
+  @GET
+  @Path(REPOSITORIES_CONFIGURATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiRepositoryListDTO getConfiguredRepositories(
+      @PathParam("repositoryManagerId") String repositoryManagerId,
+      @QueryParam("sinceUtcTimestamp") Long sinceUtcTimestamp)
+  {
+    return apiFirewallService.getConfiguredRepositories(repositoryManagerId, sinceUtcTimestamp);
+  }
+
+  @POST
+  @Path(REPOSITORIES_CONFIGURATION_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  public void configureRepositories(
+      @PathParam("repositoryManagerId") String repositoryManagerId,
+      ApiRepositoryListDTO dto)
+  {
+    apiFirewallService.configureRepositories(repositoryManagerId, dto);
   }
 
   private Response getComponents(

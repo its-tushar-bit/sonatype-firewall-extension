@@ -61,22 +61,29 @@ public class RepositoryDAO
     return get(sQuery, repositoryManagerInstanceId, publicId);
   }
 
-  private Repository getByRepositoryManagerIdAndPublicId(TransactionContext tx,
-                                                         String repositoryManagerId,
-                                                         String publicId)
+  public Repository getByRepositoryManagerIdAndPublicId(String repositoryManagerId, String publicId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByRepositoryManagerIdAndPublicId(tx, repositoryManagerId, publicId);
+    }
+  }
+
+  private Repository getByRepositoryManagerIdAndPublicId(
+      TransactionContext tx,
+      String repositoryManagerId,
+      String publicId)
   {
     String sQuery = "SELECT entity FROM Repository entity" + //
         " WHERE entity.repositoryManagerId=?1 AND entity.publicId=?2";
     return get(tx, sQuery, repositoryManagerId, publicId);
   }
 
-  private void validateNotEmptyPublicId(String publicId) {
+  public void validateNotEmptyPublicId(String publicId) {
     if (StringUtils.isBlank(publicId)) {
       throw new InvalidRepositoryException("The repository public ID cannot be null or empty.");
     }
   }
 
-  private void validateEnabledFeatures(Repository repository) {
+  public void validateEnabledFeatures(Repository repository) {
     if (RepositoryType.proxy.equals(repository.getRepositoryType())) {
       // If audit is disabled for a proxy repository, then quarantine must be disabled too.
       // This behavior is important for back compatibility, so we cannot fail it as invalid if audit=disabled and
@@ -131,18 +138,7 @@ public class RepositoryDAO
     Repository existingRepository = getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(),
         repository.getPublicId());
     if (existingRepository != null) {
-      if (!existingRepository.getId().equals(repository.getId())) {
-        throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
-            + "' for the same repository manager.");
-      }
-
-      if (!existingRepository.getRepositoryType().equals(repository.getRepositoryType())) {
-        throw new InvalidRepositoryException("Cannot change the repository type.");
-      }
-
-      if (!(existingRepository.getFormat() == null) && !existingRepository.getFormat().equals(repository.getFormat())) {
-        throw new InvalidRepositoryException("Cannot change the repository format.");
-      }
+      validateUpdate(existingRepository, repository);
     }
 
     validateEnabledFeatures(repository);
@@ -164,6 +160,21 @@ public class RepositoryDAO
     }
 
     super.update(tx, repository);
+  }
+
+  public void validateUpdate(Repository existingRepository, Repository repository) {
+    if (!existingRepository.getId().equals(repository.getId())) {
+      throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
+          + "' for the same repository manager.");
+    }
+
+    if (!existingRepository.getRepositoryType().equals(repository.getRepositoryType())) {
+      throw new InvalidRepositoryException("Cannot change the repository type.");
+    }
+
+    if (!(existingRepository.getFormat() == null) && !existingRepository.getFormat().equals(repository.getFormat())) {
+      throw new InvalidRepositoryException("Cannot change the repository format.");
+    }
   }
 
   /**

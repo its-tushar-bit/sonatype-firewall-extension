@@ -16,7 +16,6 @@ import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -851,7 +850,7 @@ public abstract class AbstractRepositoryService
     }
   }
 
-  private String translateRepositoryFormat(String format) {
+  public static String translateRepositoryFormat(String format) {
     switch (format) {
       case "apk":
         return LqaComponentIdentifier.FORMAT_ALPINE;
@@ -983,11 +982,20 @@ public abstract class AbstractRepositoryService
         repositoryManagerInstanceId, repositoryManager.getId());
     
     updateUserAgent(clientUserAgent, repositoryManager);
-    
+
+    configureRepositoriesNoAuthz(repositoryManager, repositoryDTOs, false);
+  }
+
+  public void configureRepositoriesNoAuthz(
+      RepositoryManager repositoryManager,
+      List<RepositoryDTO> repositoryDTOs,
+      boolean updateLastManualConfigureTime)
+  {
     try {
       for (RepositoryDTO repositoryDTO : repositoryDTOs) {
         Repository repository =
-            repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryDTO.name);
+            repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManager.getInstanceId(),
+                repositoryDTO.name);
 
         if (repository == null) {
           // This is a new repository
@@ -999,6 +1007,10 @@ public abstract class AbstractRepositoryService
           repository
               .setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
           repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
+
+          if (updateLastManualConfigureTime) {
+            repository.setLastManualConfigureTime(new Date());
+          }
 
           try {
             repositoryDAO.insert(repository);
@@ -1046,6 +1058,9 @@ public abstract class AbstractRepositoryService
 
           if (updated) {
             try {
+              if (updateLastManualConfigureTime) {
+                repository.setLastManualConfigureTime(new Date());
+              }
               repositoryDAO.update(repository);
               auditConfigureRepository(repository, null /* errorMessage */);
             }
@@ -1106,7 +1121,19 @@ public abstract class AbstractRepositoryService
     checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceIdNotNull(repositoryManagerInstanceId);
+    List<Repository> repositories = getConfiguredRepositoriesNoAuthz(repositoryManager,
+        sinceUtcTimestamp,
+        clientUserAgent);
 
+    List<RepositoryDTO> repositoryDTOS = repositories.stream().map(this::toRepositoryDTO).collect(Collectors.toList());
+    return repositoryDTOS;
+  }
+
+  public List<Repository> getConfiguredRepositoriesNoAuthz(
+      RepositoryManager repositoryManager,
+      Long sinceUtcTimestamp,
+      String clientUserAgent)
+  {
     updateUserAgent(clientUserAgent, repositoryManager);
 
     long start = System.currentTimeMillis();
@@ -1121,13 +1148,11 @@ public abstract class AbstractRepositoryService
               new Date(sinceUtcTimestamp));
     }
 
-    List<RepositoryDTO> repositoryDTOS = repositories.stream().map(this::toRepositoryDTO).collect(Collectors.toList());
-
     log.debug("Retrieved {} repositories for repository manager instance ID:{} ({}), configured since {} in {} ms.",
         repositories.size(), repositoryManager.getInstanceId(), repositoryManager.getId(), sinceUtcTimestamp,
         System.currentTimeMillis() - start);
 
-    return repositoryDTOS;
+    return repositories;
   }
 
   private RepositoryDTO toRepositoryDTO(Repository repository) {

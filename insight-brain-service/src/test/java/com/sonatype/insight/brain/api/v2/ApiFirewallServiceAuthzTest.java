@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
@@ -166,5 +168,63 @@ public class ApiFirewallServiceAuthzTest
   public void testSetQuarantinedComponentViewAnonymousAccess_Unauthorized() {
     login();
     apiFirewallService.setQuarantinedComponentViewAnonymousAccess(true);
+  }
+
+  @Test
+  public void testGetAllRepositoryManagers_Authorized() {
+    grantReadPermission(RepositoryContainer.SINGLETON.getId());
+    apiFirewallService.getAllRepositoryManagers();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAllRepositoryManagers_Unauthorized() {
+    login();
+    apiFirewallService.getAllRepositoryManagers();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAllRepositoryManagers_Unauthenticated() {
+    apiFirewallService.getAllRepositoryManagers();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_Authorized() {
+    grantReadPermission(RepositoryContainer.SINGLETON.getId());
+    apiFirewallService
+            .getConfiguredRepositories(repository.getRepositoryManagerId(), 0L);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetConfiguredRepositories_Unauthenticated() {
+    apiFirewallService.getConfiguredRepositories(repository.getRepositoryManagerId(), 0L);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetConfiguredRepositories_Unauthorized() {
+    login();
+    apiFirewallService.getConfiguredRepositories(repository.getRepositoryManagerId(), 0L);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testConfigureRepositories_Unauthenticated() {
+    configureRepositories();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testConfigureRepositories_Unauthorized() {
+    login();
+    configureRepositories();
+  }
+
+  @Test
+  public void testConfigureRepositories_Authorized() {
+    grantWritePermission(RepositoryContainer.SINGLETON.getId());
+    configureRepositories();
+  }
+
+  private void configureRepositories() {
+    ApiRepositoryListDTO apiRepositoryListDTO = new ApiRepositoryListDTO();
+    apiRepositoryListDTO.repositories = Collections.singletonList(ApiRepositoryDTO.fromRepository(repository));
+    apiFirewallService.configureRepositories(repository.getRepositoryManagerId(), apiRepositoryListDTO);
   }
 }

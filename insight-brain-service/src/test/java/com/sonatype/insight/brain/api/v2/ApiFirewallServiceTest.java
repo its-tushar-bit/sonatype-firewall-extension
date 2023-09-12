@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -15,21 +17,27 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
+import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryException;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -49,17 +57,20 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityR
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.AutoReleaseQuarantineTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Test;
@@ -84,6 +95,9 @@ public class ApiFirewallServiceTest
 
   @Mock
   private TelemetrySender telemetrySenderMock;
+
+  @Inject
+  private RepositoryDAO repositoryDAO;
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
@@ -712,6 +726,42 @@ public class ApiFirewallServiceTest
   }
 
   @Test
+  public void testGetAllRepositoryManagers() {
+    //given
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId1", "repoName1",
+        "repoProductName1", "repoProductVersion1");
+    String repositoryManagerId1 = repositoryManager.getId();
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager("instanceId2", "repoName2",
+        "repoProductName2", "repoProductVersion2");
+    String repositoryManagerId2 = repositoryManager2.getId();
+
+    //when
+    ApiRepositoryManagerListDTO repositoryManagers = apiFirewallService.getAllRepositoryManagers();
+
+    //then
+    assertThat(repositoryManagers.repositoryManagers.size()).isEqualTo(2);
+    assertThat(repositoryManagers.repositoryManagers.get(0).id).isEqualTo(repositoryManagerId1);
+    assertThat(repositoryManagers.repositoryManagers.get(0).instanceId).isEqualTo("instanceId1");
+    assertThat(repositoryManagers.repositoryManagers.get(0).name).isEqualTo("repoName1");
+    assertThat(repositoryManagers.repositoryManagers.get(0).productName).isEqualTo("repoProductName1");
+    assertThat(repositoryManagers.repositoryManagers.get(0).productVersion).isEqualTo("repoProductVersion1");
+    assertThat(repositoryManagers.repositoryManagers.get(1).id).isEqualTo(repositoryManagerId2);
+    assertThat(repositoryManagers.repositoryManagers.get(1).instanceId).isEqualTo("instanceId2");
+    assertThat(repositoryManagers.repositoryManagers.get(1).name).isEqualTo("repoName2");
+    assertThat(repositoryManagers.repositoryManagers.get(1).productName).isEqualTo("repoProductName2");
+    assertThat(repositoryManagers.repositoryManagers.get(1).productVersion).isEqualTo("repoProductVersion2");
+  }
+
+  @Test
+  public void testGetAllRepositoryManagers_Empty() {
+    //when
+    ApiRepositoryManagerListDTO repositoryManagers = apiFirewallService.getAllRepositoryManagers();
+
+    //then
+    assertThat(repositoryManagers.repositoryManagers).isEmpty();
+  }
+
+  @Test
   public void testSetQuarantinedComponentViewAnonymousAccess() {
     assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
 
@@ -720,6 +770,71 @@ public class ApiFirewallServiceTest
 
     apiFirewallService.setQuarantinedComponentViewAnonymousAccess(true);
     assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories() {
+    Date may5th20239AM = Date.from(LocalDateTime.of(2023, 5, 1, 9, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202310AM = Date.from(LocalDateTime.of(2023, 5, 1, 10, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date may5th202311AM = Date.from(LocalDateTime.of(2023, 5, 1, 11, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    tempEntity.newRepository(repositoryManager, "testRepoNpm", RepositoryType.proxy, "npm",
+            may5th20239AM);
+    Repository repository =
+            tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven", may5th202311AM);
+
+    ApiRepositoryListDTO apiRepositoryListDTO = apiFirewallService.getConfiguredRepositories(repositoryManager.getId(),
+            may5th202310AM.getTime());
+
+    assertThat(apiRepositoryListDTO.repositories).hasSize(1);
+    ApiRepositoryDTO apiRepositoryDTO = apiRepositoryListDTO.repositories.get(0);
+    assertThat(apiRepositoryDTO.repositoryId).isEqualTo(repository.getId());
+    assertThat(apiRepositoryDTO.publicId).isEqualTo(repository.getName());
+    assertThat(apiRepositoryDTO.format).isEqualTo(repository.getFormat());
+    assertThat(apiRepositoryDTO.type).isEqualTo(repository.getRepositoryType().name());
+    assertThat(apiRepositoryDTO.auditEnabled).isEqualTo(repository.isAuditEnabled());
+    assertThat(apiRepositoryDTO.quarantineEnabled).isEqualTo(repository.isQuarantineEnabled());
+    assertThat(apiRepositoryDTO.policyCompliantComponentSelectionEnabled).isEqualTo(
+            repository.isPolicyCompliantComponentSelectionEnabled());
+    assertThat(apiRepositoryDTO.namespaceConfusionProtectionEnabled).isEqualTo(
+            repository.isNamespaceConfusionProtectionEnabled());
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_NotExistingRepositoryManager() {
+    final String repositoryMangerId = "invalidId";
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      apiFirewallService.getConfiguredRepositories(repositoryMangerId, 0L);
+    }).withMessage("RepositoryManager with ID " + repositoryMangerId + " does not exist.");
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_NullTimestamp() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    Repository repository1 = tempEntity.newRepository(repositoryManager, "testRepoNpm1", RepositoryType.proxy, "npm",
+            new Date(0));
+
+    Repository repository2 = tempEntity.newRepository(repositoryManager, "testRepoNpm2", RepositoryType.proxy, "npm",
+            new Date(1));
+
+    Repository repository3 = tempEntity.newRepository(repositoryManager, tempEntity.uuid());
+
+    ApiRepositoryListDTO apiRepositoryListDTO =
+            apiFirewallService.getConfiguredRepositories(repositoryManager.getId(), null);
+
+    assertThat(apiRepositoryListDTO.repositories).extracting(r -> r.publicId)
+            .containsExactlyInAnyOrder(repository1.getName(), repository2.getName(), repository3.getName());
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_NoFirewallFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+            apiFirewallService
+                    .getConfiguredRepositories("repositoryManagerId",null));
   }
 
   static void assertRepositoryComponentWithOnePolicyViolation(
@@ -756,5 +871,313 @@ public class ApiFirewallServiceTest
     assertThat(componentDTO.repository).isEqualTo("repo1");
     assertThat(componentDTO.dateCleared).isEqualTo(dateCleared);
     assertThat(componentDTO.quarantineDate).isEqualTo(quarantineDate);
+  }
+
+  @Test
+  public void testGetAllRepositoryManagers_NoFirewallFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        apiFirewallService
+            .getAllRepositoryManagers());
+  }
+
+  @Test
+  public void testConfigureRepositories_MissingFirewallFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> apiFirewallService.configureRepositories(null, null));
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_Null() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), null))
+        .withMessageContaining("No repository configurations specified.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_NullList() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("No repository configurations specified.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_EmptyList() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    dto.repositories = Collections.emptyList();
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("No repository configurations specified.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_NullPublicId() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = null;
+    repoDto.type = "proxy";
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("The repository public ID cannot be null or empty.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_EmptyPublicId() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "";
+    repoDto.type = "proxy";
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("The repository public ID cannot be null or empty.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_NullType() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "publicId";
+    repoDto.type = null;
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("The repository type must be proxy or hosted.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_EmptyType() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "publicId";
+    repoDto.type = "";
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("The repository type must be proxy or hosted.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_BadFormat() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "publicId";
+    repoDto.type = "proxy";
+    repoDto.format = "bob";
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("Unrecognized format 'bob'.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_ProxyNamespace() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "publicId";
+    repoDto.type = "proxy";
+    repoDto.namespaceConfusionProtectionEnabled = true;
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("Namespace Confusion Protection can be enabled only for hosted repositories.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_Quarantine() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "publicId";
+    repoDto.type = "proxy";
+    repoDto.quarantineEnabled = true;
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("Quarantine requires Audit to be enabled.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_ProxyPolicyCompliantComponentSelection() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "publicId";
+    repoDto.type = "proxy";
+    repoDto.policyCompliantComponentSelectionEnabled = true;
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("Policy Compliant Component Selection requires Audit and Quarantine to be enabled.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_ChangeType() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "proxy");
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = ApiRepositoryDTO.fromRepository(repository);
+    repoDto.type = "hosted";
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("Cannot change the repository type.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_ChangeFormat() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "proxy");
+    repository.setFormat("npm");
+    repositoryDAO.update(repository);
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = ApiRepositoryDTO.fromRepository(repository);
+    repoDto.format = "conan";
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("Cannot change the repository format.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_HostedAudit() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "publicId";
+    repoDto.type = "hosted";
+    repoDto.auditEnabled = true;
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("Audit can be enabled only for proxy repositories.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_HostedQuarantine() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "publicId";
+    repoDto.type = "hosted";
+    repoDto.quarantineEnabled = true;
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("Quarantine can be enabled only for proxy repositories.");
+  }
+
+  @Test
+  public void testConfigureRepositories_ApiRepositoryListDTO_HostedPolicyCompliantComponentSelection() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    ApiRepositoryDTO repoDto = new ApiRepositoryDTO();
+    repoDto.publicId = "publicId";
+    repoDto.type = "hosted";
+    repoDto.policyCompliantComponentSelectionEnabled = true;
+    dto.repositories = Collections.singletonList(repoDto);
+
+    assertThatExceptionOfType(InvalidRepositoryException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories(repositoryManager.getId(), dto))
+        .withMessageContaining("Policy Compliant Component Selection can be enabled only for proxy repositories.");
+  }
+
+  @Test
+  public void testConfigureRepositories_RepositoryManagerIdNotFound() {
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    dto.repositories = Collections.singletonList(ApiRepositoryDTO.fromRepository(repository));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiFirewallService.configureRepositories("doesNotExist", dto))
+        .withMessageContaining("RepositoryManager with ID doesNotExist does not exist.");
+  }
+
+  @Test
+  public void testConfigureRepositories() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository proxyRepository = tempEntity.newRepository(repositoryManager, "r1");
+    proxyRepository.setFormat("maven2");
+    proxyRepository.setAuditEnabled(false);
+    repositoryDAO.update(proxyRepository);
+
+    Repository hostedRepository =
+        tempEntity.newHostedRepository(repositoryManager, "r2", "maven2", false);
+
+    // No changes
+    configureAndAssertRepositories(proxyRepository, null, hostedRepository, null);
+
+    // Update audit
+    proxyRepository.setAuditEnabled(true);
+    configureAndAssertRepositories(proxyRepository, new Date(), hostedRepository, null);
+
+    // Update quarantine
+    proxyRepository.setQuarantineEnabled(true);
+    configureAndAssertRepositories(proxyRepository, new Date(), hostedRepository, null);
+
+    // Update policy compliant component selection
+    proxyRepository.setPolicyCompliantComponentSelectionEnabled(true);
+    configureAndAssertRepositories(proxyRepository, new Date(), hostedRepository, null);
+
+    // Update namespace confusion protection
+    hostedRepository.setNamespaceConfusionProtectionEnabled(true);
+    configureAndAssertRepositories(proxyRepository, null, hostedRepository, new Date());
+  }
+
+  private ApiRepositoryListDTO createApiRepositoryListDTO(Repository... repositories) {
+    ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
+    dto.repositories = Arrays.stream(repositories).map(ApiRepositoryDTO::fromRepository).collect(Collectors.toList());
+    return dto;
+  }
+
+  private void configureAndAssertRepositories(Object... repositoriesAndUpdatedAfterDate) {
+    apiFirewallService.configureRepositories(
+        ((Repository) repositoriesAndUpdatedAfterDate[0]).getRepositoryManagerId(),
+        createApiRepositoryListDTO(
+            Arrays.stream(repositoriesAndUpdatedAfterDate)
+                .filter(o -> o instanceof Repository)
+                .toArray(Repository[]::new)
+        )
+    );
+    for (int i = 0; i < repositoriesAndUpdatedAfterDate.length; i += 2) {
+      Repository repository = (Repository) repositoriesAndUpdatedAfterDate[i];
+      Date updatedAfterDate = (Date) repositoriesAndUpdatedAfterDate[i + 1];
+      Repository storedRepository = repositoryDAO.getById(repository.getId());
+      assertThat(repository)
+          .usingRecursiveComparison()
+          .ignoringFields(ArrayUtils.add(JPA.IGNORE_FIELDS, "lastManualConfigureTime"))
+          .isEqualTo(storedRepository);
+      if (updatedAfterDate != null) {
+        assertThat(storedRepository.getLastManualConfigureTime()).isAfterOrEqualTo(updatedAfterDate);
+      }
+    }
   }
 }

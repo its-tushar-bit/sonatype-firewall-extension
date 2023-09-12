@@ -124,9 +124,6 @@ public class ComponentFeedbackContextFactoryTest
   @Inject
   private ComponentFeedbackContextFactory underTest;
 
-  @Inject
-  private ComponentFeedbackMDRenderer renderer;
-
   private EnumMap<TestCaseId, TestData> testCases = new EnumMap<>(TestCaseId.class);
 
   private String expectedRenderedOutputFilename;
@@ -281,7 +278,7 @@ public class ComponentFeedbackContextFactoryTest
   }
 
   private void renderAndAssert(final ComponentFeedbackContext actual) {
-    final Optional<String> result = renderer.render(actual);
+    final Optional<String> result = ComponentFeedbackMDRenderer.render(actual);
     try {
       assertRenderedOutput(result, this.getClass(), expectedRenderedOutputFilename);
     }
@@ -552,12 +549,6 @@ public class ComponentFeedbackContextFactoryTest
   }
 
   private static String generatePVDetailsLink(
-      final String policyViolationId)
-  {
-    return generatePVDetailsLink(policyViolationId, null);
-  }
-
-  private static String generatePVDetailsLink(
       final String policyViolationId,
       final SourceControlProvider utmSourceProvider)
   {
@@ -637,8 +628,6 @@ public class ComponentFeedbackContextFactoryTest
     public String featureBranchScanId;
 
     public String iqBaseUrl;
-
-    public String scmBaseUrl;
 
     public Optional<String> codeSuggestion;
   }

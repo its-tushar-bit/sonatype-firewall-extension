@@ -40,36 +40,36 @@ public class MultiTenantTaskSchedulerTest
   public TestName testName = new TestName();
 
   @Mock
-  MultiTenantQuartzJobStoreTX quartzJobStoreTX;
+  private MultiTenantQuartzJobStoreTX quartzJobStoreTX;
 
   @Mock
-  MultiTenantBatchModeJobStoreTX multiTenantBatchModeJobStoreTX;
+  private MultiTenantBatchModeJobStoreTX multiTenantBatchModeJobStoreTX;
 
   @Mock
-  JobFactory jobFactory;
+  private JobFactory jobFactory;
 
   @Mock
-  QuartzTriggerListener quartzTriggerListener;
+  private QuartzTriggerListener quartzTriggerListener;
 
   @Mock
-  TenantContextJobListener tenantContextJobListener;
+  private TenantContextJobListener tenantContextJobListener;
 
   @Mock
-  SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Mock
-  TenantManager tenantManager;
+  private TenantManager tenantManager;
 
   @Mock
-  TenantUtil tenantUtil;
+  private TenantUtil tenantUtil;
 
   @Mock
-  Scheduler scheduler;
+  private Scheduler scheduler;
 
   @Mock
-  ListenerManager listenerManager;
+  private ListenerManager listenerManager;
 
-  MultiTenantTaskScheduler underTest;
+  private MultiTenantTaskScheduler underTest;
 
   @Before
   public void setup() {

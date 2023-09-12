@@ -30,15 +30,15 @@ public class MultiTenantQuartzJobStoreTXTest
     extends MultiTenantTestSupport
 {
   @Mock
-  ProductLicense productLicense;
+  private ProductLicense productLicense;
 
   @Mock
-  InsightConfig insightConfig;
+  private InsightConfig insightConfig;
 
   @Mock
-  OperationalDataStore operationalDataStore;
+  private OperationalDataStore operationalDataStore;
 
-  TestMultiTenantQuartzJobStoreTX underTest;
+  private TestMultiTenantQuartzJobStoreTX underTest;
 
   @Before
   @Override

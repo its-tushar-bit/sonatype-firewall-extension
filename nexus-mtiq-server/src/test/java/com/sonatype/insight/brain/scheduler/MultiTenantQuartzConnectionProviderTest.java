@@ -26,10 +26,10 @@ public class MultiTenantQuartzConnectionProviderTest
     extends MultiTenantTestSupport
 {
   @Mock
-  OperationalDataStore operationalDataStore;
+  private OperationalDataStore operationalDataStore;
 
   @Mock
-  DataSource dataSource;
+  private DataSource dataSource;
 
   @Test
   public void shouldUseGlobalTenantToGetConnection() throws Exception {

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -98,6 +99,7 @@ public class PolicyWaiverComponentPurlMigrator
     return owners;
   }
 
+  @SuppressWarnings("deprecation")
   private void addAssociatedPurlIfRequired(PolicyWaiver policyWaiver, Owner owner) {
     if (policyWaiver.getHash() == null || policyWaiver.getAssociatedPackageUrl() != null) {
       return;

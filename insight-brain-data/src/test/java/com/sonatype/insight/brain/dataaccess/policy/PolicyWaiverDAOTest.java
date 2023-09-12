@@ -946,6 +946,8 @@ public class PolicyWaiverDAOTest
         .hasMessage("A policy waiver for the same policy violation already exists.");
   }
 
+  // The tested method is deprecated
+  @SuppressWarnings("deprecation")
   @Test
   public void testUpdateWithNoChecks() {
     // setup

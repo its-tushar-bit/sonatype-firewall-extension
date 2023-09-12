@@ -14,7 +14,6 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class ConstraintSection
@@ -53,6 +52,7 @@ public class ConstraintSection
 
   public static class ConstraintSummary
   {
+    @SuppressWarnings("hiding")
     private String rootSelector;
 
     public static Condition subheaderText(int numConstraints, String operator) {
@@ -96,13 +96,14 @@ public class ConstraintSection
       return $$(rootSelector + " .nx-alert--error");
     }
 
-    public SelenideElement conditionUnsupportedMessage(int i) {
+    public SelenideElement conditionUnsupportedMessage() {
       return $(rootSelector + " .nx-alert--error .nx-alert__content");
     }
   }
 
   public static class ConstraintEditSection
   {
+    @SuppressWarnings("hiding")
     private String rootSelector;
 
     private int index;

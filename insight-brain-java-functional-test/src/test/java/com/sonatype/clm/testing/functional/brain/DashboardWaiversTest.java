@@ -31,15 +31,11 @@ import com.sonatype.insight.brain.dashboard.DashboardPolicyWaiverDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -1068,16 +1064,6 @@ public class DashboardWaiversTest
             waiverRepoContainerString, waiverParentOrgString, waiver6String
         };
     }
-  }
-
-  private Policy createLicensePolicy(String ownerId, String name, int threatLevel) {
-    Policy policy = new Policy(null, name);
-    policy.setThreatLevel(threatLevel);
-    policy.setOwnerId(ownerId);
-    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
-    constraint.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
-    policy.addConstraint(constraint);
-    return tempEntity.newPolicy(policy);
   }
 
   @Test

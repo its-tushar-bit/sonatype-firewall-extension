@@ -72,7 +72,7 @@ public class SamlTest
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
     String metadata = apiSamlConfigurationService.getMetadata();
     ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(keycloak.protocolMappers());
+    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
     keycloak.createClient(clientRepresentation);
 
     LoginModal loginModal = new LoginModal();
@@ -118,7 +118,7 @@ public class SamlTest
     // Register IQ in Keycloak
     String metadata = apiSamlConfigurationService.getMetadata();
     ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(keycloak.protocolMappers());
+    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
     keycloak.createClient(clientRepresentation);
 
     // Create a group and a user
@@ -208,7 +208,7 @@ public class SamlTest
     // Register IQ in Keycloak
     String metadata = apiSamlConfigurationService.getMetadata();
     ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(keycloak.protocolMappers());
+    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
     keycloak.createClient(clientRepresentation);
 
     String username = "william.gibson";
@@ -243,7 +243,7 @@ public class SamlTest
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
     String metadata = apiSamlConfigurationService.getMetadata();
     ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(keycloak.protocolMappers());
+    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
     keycloak.createClient(clientRepresentation);
     String username = "johanne.doanne";
     String password = "her-secret";

@@ -17,11 +17,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentPolicyViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentsInQuarantineDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -112,14 +110,6 @@ public class ApiComponentsInQuarantineReportingService
 
       repositoryComponentPolicyViolationDTOs.add(repositoryComponentPolicyViolationDTO);
     }
-  }
-
-  private ApiRepositoryDTO convertRepositoryDTOToApiRepositoryDTO(RepositoryDTO repositoryDTO) {
-    ApiRepositoryDTO apiRepository = new ApiRepositoryDTO();
-    apiRepository.repositoryId = repositoryDTO.repository.getId();
-    apiRepository.publicId = repositoryDTO.repository.getPublicId();
-    apiRepository.format = repositoryDTO.repository.getFormat();
-    return apiRepository;
   }
 
   private ApiRepositoryComponentDTO convertEntityToDTO(RepositoryComponent repositoryComponent) {

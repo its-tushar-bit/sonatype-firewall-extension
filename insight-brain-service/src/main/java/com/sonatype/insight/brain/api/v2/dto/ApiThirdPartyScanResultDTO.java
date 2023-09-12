@@ -35,6 +35,7 @@ public class ApiThirdPartyScanResultDTO
   /**
    * @deprecated use legacyViolations
    */
+  @Deprecated
   public Integer grandfatheredPolicyViolations;
 
   public Integer legacyViolations;

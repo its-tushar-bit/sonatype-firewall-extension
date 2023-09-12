@@ -32,6 +32,7 @@ public class ApiReportPolicyViolationDTOV2
   /**
    * @deprecated Use legacyViolation
    */
+  @Deprecated
   public boolean grandfathered;
 
   public boolean legacyViolation;

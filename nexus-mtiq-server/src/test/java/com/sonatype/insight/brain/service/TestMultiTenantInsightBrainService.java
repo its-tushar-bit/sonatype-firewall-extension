@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.function.BiConsumer;
+
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import io.dropwizard.configuration.ConfigurationException;
@@ -60,8 +62,6 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.sisu.space.BeanScanning;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.mockito.Mockito.mock;
 
@@ -69,8 +69,6 @@ public class TestMultiTenantInsightBrainService
     extends MultiTenantInsightBrainService
     implements TestInsightBrainService
 {
-  private static final Logger log = LoggerFactory.getLogger(TestMultiTenantInsightBrainService.class);
-
   private static final String FORK_ID = System.getProperty("test.forkId", "");
 
   private Configurator configurator;

@@ -308,6 +308,10 @@ export function getRetentionPoliciesUrl(orgId) {
   return uriTemplate`/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
 }
 
+export function getParentRetentionPoliciesUrl(orgId) {
+  return uriTemplate`/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}/parent`;
+}
+
 export function getReevaluateComponentUrl(repositoryId, hash) {
   return uriTemplate`/rest/repositories/${repositoryId}/evaluate/${hash}`;
 }

@@ -56,6 +56,42 @@ public class ApiDataRetentionPolicyResourceTest
   }
 
   @Test
+  public void testGetParentDataRetentionPolicies() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+
+    HttpResponse response = restRequest().path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH,
+        DefaultApiDataRetentionPolicyResource.PARENT_ORGANIZATION_PATH).parameter(organization.getId()).get();
+
+    assertResponseStatus(200, response);
+    ApiDataRetentionPoliciesDTO dto = response.getBody(ApiDataRetentionPoliciesDTO.class);
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.applicationReports).isNotNull();
+    assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_DEVELOP, Stage.ID_SOURCE, Stage.ID_BUILD,
+        Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE, Stage.ID_OPERATE,
+        DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
+    assertThat(dto.applicationReports.stages.values()).allSatisfy(policyDTO -> {
+      assertThat(policyDTO).isNotNull();
+      assertThat(policyDTO.inheritPolicy).isFalse();
+      assertThat(policyDTO.maxAge).isNotNull();
+    });
+    assertThat(dto.successMetrics).isNotNull();
+    assertThat(dto.successMetrics.inheritPolicy).isFalse();
+    assertThat(dto.successMetrics.maxAge).isNotNull();
+  }
+
+  @Test
+  public void testGetParentDataRetentionPolicies_BadRequest() throws Exception {
+    HttpResponse response = restRequest().path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH,
+            DefaultApiDataRetentionPolicyResource.PARENT_ORGANIZATION_PATH).parameter(Organization.ROOT_ORGANIZATION_ID)
+        .get();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo(
+        "Organization with id ROOT_ORGANIZATION_ID does not have a parent organization.");
+  }
+
+  @Test
   public void testSetDataRetentionPolicies() throws Exception {
     Organization org = tempEntity.newOrganization();
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();

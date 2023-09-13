@@ -14,5 +14,7 @@ public interface ApiDataRetentionPolicyResource
 {
   ApiDataRetentionPoliciesDTO getDataRetentionPolicies(String organizationId);
 
+  ApiDataRetentionPoliciesDTO getParentDataRetentionPolicies(String organizationId);
+
   void setDataRetentionPolicies(String organizationId, ApiDataRetentionPoliciesDTO dto);
 }

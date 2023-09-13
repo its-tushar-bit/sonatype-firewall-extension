@@ -6,7 +6,7 @@
 import React from 'react';
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
 import { render, screen, fireEvent, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
-import { getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
+import { getParentRetentionPoliciesUrl, getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
 
 describe('Data Retention Editor component', () => {
   let axiosMock, renderComponent;
@@ -44,7 +44,7 @@ describe('Data Retention Editor component', () => {
   });
 
   beforeEach(() => {
-    axiosMock.onGet(getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID')).reply(200, {
+    axiosMock.onGet(getParentRetentionPoliciesUrl('org-id')).reply(200, {
       applicationReports: {
         stages: {
           develop: {
@@ -131,7 +131,7 @@ describe('Data Retention Editor component', () => {
       renderComponent();
 
       expect(axiosMock.history.get.length).toBe(2);
-      expect(axiosMock.history.get[0].url).toBe(getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID'));
+      expect(axiosMock.history.get[0].url).toBe(getParentRetentionPoliciesUrl('org-id'));
       expect(axiosMock.history.get[1].url).toBe(getRetentionPoliciesUrl('org-id'));
     });
 
@@ -162,7 +162,7 @@ describe('Data Retention Editor component', () => {
         },
       });
       expect(axiosMock.history.get.length).toBe(2);
-      expect(axiosMock.history.get[0].url).toBe(getRetentionPoliciesUrl('someOtherId'));
+      expect(axiosMock.history.get[0].url).toBe(getParentRetentionPoliciesUrl('org-id'));
       expect(axiosMock.history.get[1].url).toBe(getRetentionPoliciesUrl('org-id'));
     });
   });
@@ -194,7 +194,7 @@ describe('Data Retention Editor component', () => {
   });
 
   it('shows an error message upon loading error', async () => {
-    axiosMock.onGet(getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID')).reply(500);
+    axiosMock.onGet(getParentRetentionPoliciesUrl('ROOT_ORGANIZATION_ID')).reply(500);
     axiosMock.onGet(getRetentionPoliciesUrl('org-id')).reply(500);
     renderComponent();
     const alert = await screen.findByRole('alert');
@@ -783,7 +783,7 @@ describe('Data Retention Editor component', () => {
     };
 
     beforeEach(() => {
-      axiosMock.onGet(getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID')).reply(200, {
+      axiosMock.onGet(getParentRetentionPoliciesUrl('ROOT_ORGANIZATION_ID')).reply(200, {
         applicationReports: {
           stages: {
             develop: {

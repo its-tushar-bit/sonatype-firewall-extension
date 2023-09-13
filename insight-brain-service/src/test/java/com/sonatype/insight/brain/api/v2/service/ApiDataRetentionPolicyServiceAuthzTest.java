@@ -28,16 +28,33 @@ public class ApiDataRetentionPolicyServiceAuthzTest
     dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
   }
 
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetParentDataRetentionPolicies_Unauthenticated() {
+    dataRetentionPolicyService.getParentDataRetentionPolicies(org.getId());
+  }
+
   @Test(expected = UnauthorizedException.class)
   public void testGetDataRetentionPolicies_Unauthorized() {
     login();
     dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
   }
 
+  @Test(expected = UnauthorizedException.class)
+  public void testGetParentDataRetentionPolicies_Unauthorized() {
+    login();
+    dataRetentionPolicyService.getParentDataRetentionPolicies(org.getId());
+  }
+
   @Test
   public void testGetDataRetentionPolicies_Authorized() {
     grantReadPermission(org.getId());
     dataRetentionPolicyService.getDataRetentionPolicies(org.getId());
+  }
+
+  @Test
+  public void testGetParentDataRetentionPolicies_Authorized() {
+    grantReadPermission(org.getId());
+    dataRetentionPolicyService.getParentDataRetentionPolicies(org.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)

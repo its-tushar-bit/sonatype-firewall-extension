@@ -34,6 +34,8 @@ public class DefaultApiDataRetentionPolicyResource implements ApiDataRetentionPo
 {
   static final String ORGANIZATION_PATH = "organizations/{organizationId}";
 
+  static final String PARENT_ORGANIZATION_PATH = "organizations/{organizationId}/parent";
+
   private final ApiDataRetentionPolicyService dataRetentionService;
 
   @Inject
@@ -47,6 +49,16 @@ public class DefaultApiDataRetentionPolicyResource implements ApiDataRetentionPo
   @Produces(MediaType.APPLICATION_JSON)
   public ApiDataRetentionPoliciesDTO getDataRetentionPolicies(@PathParam("organizationId") String organizationId) {
     return dataRetentionService.getDataRetentionPolicies(organizationId);
+  }
+
+  @Override
+  @GET
+  @Path(PARENT_ORGANIZATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiDataRetentionPoliciesDTO getParentDataRetentionPolicies(
+      @PathParam("organizationId") String organizationId)
+  {
+    return dataRetentionService.getParentDataRetentionPolicies(organizationId);
   }
 
   @Override

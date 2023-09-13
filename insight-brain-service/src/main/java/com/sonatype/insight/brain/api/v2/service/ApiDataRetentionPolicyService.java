@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRetentionPolicyDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSuccessMetricsRetentionPolicyDTO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -58,16 +59,20 @@ public class ApiDataRetentionPolicyService
 
   private final OwnerDAO ownerDAO;
 
+  private final OrganizationDAO organizationDAO;
+
   private final ProductLicense productLicense;
 
   @Inject
   public ApiDataRetentionPolicyService(
       DataRetentionPolicyDAO dataRetentionPolicyDAO,
       OwnerDAO ownerDAO,
+      OrganizationDAO organizationDAO,
       ProductLicense productLicense)
   {
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.ownerDAO = ownerDAO;
+    this.organizationDAO = organizationDAO;
     this.productLicense = productLicense;
   }
 
@@ -85,6 +90,24 @@ public class ApiDataRetentionPolicyService
   public ApiDataRetentionPoliciesDTO getDataRetentionPolicies(
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
   {
+    return doGetDataRetentionPolicies(organizationId);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiDataRetentionPoliciesDTO getParentDataRetentionPolicies(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
+  {
+    Organization organization = organizationDAO.getById(organizationId);
+    String parentOrganizationId = organization.getParentOrganizationId();
+
+    if (parentOrganizationId == null) {
+      throw new BadRequestException("Organization with id " + organizationId + " does not have a parent organization.");
+    }
+
+    return doGetDataRetentionPolicies(parentOrganizationId);
+  }
+
+  private ApiDataRetentionPoliciesDTO doGetDataRetentionPolicies(String organizationId) {
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
     dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO();

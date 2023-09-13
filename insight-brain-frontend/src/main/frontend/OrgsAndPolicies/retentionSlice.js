@@ -11,7 +11,7 @@ import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectEntityId, selectSelectedOwnerParentId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRetentionSlice } from 'MainRoot/OrgsAndPolicies/retentionSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
+import { getParentRetentionPoliciesUrl, getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
 import {
   combineValidationErrors,
   hasValidationErrors,
@@ -62,10 +62,10 @@ const loadRetention = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { ge
   const entityId = selectEntityId(state);
 
   if (parentId) {
-    const rootOrgRetentionRequest = axios.get(getRetentionPoliciesUrl(parentId));
+    const parentOrgRetentionRequest = axios.get(getParentRetentionPoliciesUrl(entityId));
     const entityRetentionRequest = axios.get(getRetentionPoliciesUrl(entityId));
     return axios
-      .all([rootOrgRetentionRequest, entityRetentionRequest])
+      .all([parentOrgRetentionRequest, entityRetentionRequest])
       .then(
         axios.spread((...responses) => {
           return { parentRetentionData: responses[0].data, entityRetentionData: responses[1].data };

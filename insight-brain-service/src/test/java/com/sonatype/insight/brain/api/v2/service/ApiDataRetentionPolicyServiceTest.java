@@ -79,6 +79,36 @@ public class ApiDataRetentionPolicyServiceTest
   }
 
   @Test
+  public void testGetParentDataRetentionPolicies() {
+    Organization parentOrg = tempEntity.newOrganization();
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(parentOrg.getId(), Stage.ID_BUILD));
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(parentOrg.getId(), Stage.ID_DEVELOP, true, 7, 5));
+
+    Organization organization = tempEntity.newOrganization(parentOrg);
+
+    ApiDataRetentionPoliciesDTO dto = dataRetentionPolicyService.getParentDataRetentionPolicies(organization.getId());
+
+    assertThat(dto).isNotNull();
+    assertThat(dto.applicationReports).isNotNull();
+    assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_DEVELOP, Stage.ID_SOURCE, Stage.ID_BUILD,
+        Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE, Stage.ID_OPERATE,
+        DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
+    assertThat(dto.applicationReports.stages.values()).allSatisfy(policyDTO -> assertThat(policyDTO).isNotNull());
+
+    ApiReportRetentionPolicyDTO policyDTO = dto.applicationReports.stages.get(Stage.ID_BUILD);
+    assertThat(policyDTO.inheritPolicy).isFalse();
+    assertThat(policyDTO.enablePurging).isFalse();
+    assertThat(policyDTO.maxCount).isNull();
+    assertThat(policyDTO.maxAge).isNull();
+
+    policyDTO = dto.applicationReports.stages.get(Stage.ID_DEVELOP);
+    assertThat(policyDTO.inheritPolicy).isFalse();
+    assertThat(policyDTO.enablePurging).isTrue();
+    assertThat(policyDTO.maxCount).isEqualTo(7);
+    assertThat(policyDTO.maxAge).usingRecursiveComparison().isEqualTo(new ApiAgeDTO(5, AgeUnit.DAY));
+  }
+
+  @Test
   public void testGetDataRetentionPolicies_AppReports_LicensedStages() {
     Organization org = tempEntity.newOrganization();
 

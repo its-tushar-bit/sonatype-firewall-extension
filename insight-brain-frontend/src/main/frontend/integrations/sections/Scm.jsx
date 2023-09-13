@@ -19,6 +19,7 @@ const scmIntegrations = [
       'Lifecycle pushes component intelligence into GitHub where developers can view and respond to policy violations directly in pull requests.',
     linkText: 'Click here for installation help.',
     linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/github',
+    dataAnalyticsId: 'sonatype-developer-scm-github',
   },
   {
     title: 'GitLab',
@@ -27,6 +28,7 @@ const scmIntegrations = [
       'Lifecycle pushes component intelligence into GitLab where developers can view and respond to policy violations without breaking a build.',
     linkText: 'Click here for installation help.',
     linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/gitlab',
+    dataAnalyticsId: 'sonatype-developer-scm-gitlab',
   },
   {
     title: 'Bitbucket',
@@ -35,6 +37,7 @@ const scmIntegrations = [
       'Lifecycle pushes component intelligence into Bitbucket where developers can view and remediate policy violations with detailed Code Insights.',
     linkText: 'Click here for installation help.',
     linkUrl: 'https://links.sonatype.com/products/nxiq/doc/integrations/scm/source-control-config/bitbucket',
+    dataAnalyticsId: 'sonatype-developer-scm-bitbucket',
   },
 ];
 
@@ -48,7 +51,7 @@ export default function Scm() {
       </NxP>
       <NxH2>SCM Integrations</NxH2>
       <NxCard.Container className="iq-integrations-card-container">
-        {scmIntegrations.map(({ title, imgUrl, description, linkText, linkUrl }) => (
+        {scmIntegrations.map(({ title, imgUrl, description, linkText, linkUrl, dataAnalyticsId }) => (
           <IntegrationsCard
             key={title}
             title={title}
@@ -56,6 +59,7 @@ export default function Scm() {
             description={description}
             linkText={linkText}
             linkUrl={linkUrl}
+            dataAnalyticsId={dataAnalyticsId}
           />
         ))}
       </NxCard.Container>

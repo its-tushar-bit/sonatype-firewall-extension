@@ -44,6 +44,11 @@ describe('IntegrationsCard', () => {
     expect(link).toHaveAttribute('href', givenProps.linkUrl);
   });
 
+  it('link contains a data-analytics-id attribute', function () {
+    const link = screen.getByRole('link', { name: givenProps.linkText });
+    expect(link).toHaveAttribute('data-analytics-id', givenProps.dataAnalyticsId);
+  });
+
   function renderComponent(props) {
     return render(<IntegrationsCard {...props} />);
   }
@@ -55,6 +60,7 @@ describe('IntegrationsCard', () => {
       imgUrl: faker.internet.url(),
       linkText: faker.lorem.sentence(),
       linkUrl: faker.internet.url(),
+      dataAnalyticsId: faker.lorem.slug(),
     };
   }
 });

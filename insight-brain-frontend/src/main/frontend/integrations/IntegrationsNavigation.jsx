@@ -18,31 +18,51 @@ export default function IntegrationsNavigation() {
     <div className="nx-viewport-sized__container">
       <ul className="nx-list">
         <li>
-          <IntegrationsLink id="integrations-sidebar__overview-link" sectionName={OVERVIEW}>
+          <IntegrationsLink
+            id="integrations-sidebar__overview-link"
+            sectionName={OVERVIEW}
+            dataAnalyticsId="sonatype-developer-sidebar-overview"
+          >
             Overview
           </IntegrationsLink>
         </li>
 
         <li>
-          <IntegrationsLink id="integrations-sidebar__cicd-link" sectionName={CICD}>
+          <IntegrationsLink
+            id="integrations-sidebar__cicd-link"
+            sectionName={CICD}
+            dataAnalyticsId="sonatype-developer-sidebar-cicd"
+          >
             CI System Integrations
           </IntegrationsLink>
         </li>
 
         <li>
-          <IntegrationsLink id="integrations-sidebar__scm-link" sectionName={SCM}>
+          <IntegrationsLink
+            id="integrations-sidebar__scm-link"
+            sectionName={SCM}
+            dataAnalyticsId="sonatype-developer-sidebar-scm"
+          >
             SCM
           </IntegrationsLink>
         </li>
 
         <li>
-          <IntegrationsLink id="integrations-sidebar__issue-tracking-link" sectionName={ISSUE_TRACKING}>
+          <IntegrationsLink
+            id="integrations-sidebar__issue-tracking-link"
+            sectionName={ISSUE_TRACKING}
+            dataAnalyticsId="sonatype-developer-sidebar-issue-tracking"
+          >
             Issue Tracking
           </IntegrationsLink>
         </li>
 
         <li>
-          <IntegrationsLink id="integrations-sidebar__ide-link" sectionName={IDE}>
+          <IntegrationsLink
+            id="integrations-sidebar__ide-link"
+            sectionName={IDE}
+            dataAnalyticsId="sonatype-developer-sidebar-ide"
+          >
             IDE
           </IntegrationsLink>
         </li>
@@ -51,13 +71,13 @@ export default function IntegrationsNavigation() {
   );
 }
 
-function IntegrationsLink({ sectionName, children, id }) {
+function IntegrationsLink({ sectionName, children, id, dataAnalyticsId }) {
   const selectedSectionName = useSelector(selectCurrentRouteName);
 
   const url = useGetIntegrationsLink(sectionName);
 
   return (
-    <NxTextLink id={id} href={url} className={getClassNames(sectionName)}>
+    <NxTextLink id={id} href={url} className={getClassNames(sectionName)} data-analytics-id={dataAnalyticsId}>
       {children}
     </NxTextLink>
   );

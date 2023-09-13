@@ -51,6 +51,7 @@ export default function CiCard() {
               <NxTextLink
                 external
                 href="https://links.sonatype.com/products/nxiq/doc/integrations/overrides/cicd/ABFAdvancedBinaryFingerprinting"
+                data-analytics-id="sonatype-developer-overview-binary-scanning"
               >
                 binary scanning
               </NxTextLink>{' '}
@@ -65,7 +66,11 @@ export default function CiCard() {
             </NxP>
 
             <NxP>
-              Learn more <NxTextLink href={ciUrl}>about our CI systems integrations</NxTextLink>.
+              Learn more{' '}
+              <NxTextLink href={ciUrl} data-analytics-id="sonatype-developer-overview-ci-integrations">
+                about our CI systems integrations
+              </NxTextLink>
+              .
             </NxP>
           </div>
 

@@ -29,6 +29,7 @@ export default function Ide() {
           description="Provides Nexus IQ evaluation of project dependencies right inside IntelliJ IDEA."
           linkText="Click here for installation help."
           linkUrl="https://links.sonatype.com/products/nxiq/doc/integrations/scm/ides/idea"
+          dataAnalyticsId="sonatype-developer-ide-idea"
         />
 
         <IntegrationsCard
@@ -37,6 +38,7 @@ export default function Ide() {
           description="Provides Nexus IQ evaluation of project dependencies right inside the Eclipse IDE."
           linkText="Click here for installation help."
           linkUrl="https://links.sonatype.com/products/nxiq/doc/integrations/scm/ides/eclipse"
+          dataAnalyticsId="sonatype-developer-ide-eclipse"
         />
 
         <IntegrationsCard
@@ -45,6 +47,7 @@ export default function Ide() {
           description="Visual Studio is a full-featured IDE. IQ for Visual Studio provides component analysis for both the Community, Professional, and Enterprise versions of Visual Studio."
           linkText="Click here for installation help."
           linkUrl="https://links.sonatype.com/products/nxiq/doc/integrations/scm/ides/visual-studio"
+          dataAnalyticsId="sonatype-developer-ide-visual-studio"
         />
       </NxCard.Container>
     </div>

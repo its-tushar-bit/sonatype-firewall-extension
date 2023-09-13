@@ -27,6 +27,7 @@ export default function IssueTracking() {
           description="Atlassian Jira Server and Datacenter plug-in creating issues in Jira for policy violations."
           linkText="Click here for installation help."
           linkUrl="https://links.sonatype.com/products/nxiq/doc/integrations/scm/issue-tracking/jira"
+          data-analytics-id="sonatype-developer-issue-tracking-jira"
         />
       </NxCard.Container>
     </div>

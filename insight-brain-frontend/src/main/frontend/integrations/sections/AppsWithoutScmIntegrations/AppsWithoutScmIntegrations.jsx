@@ -74,8 +74,16 @@ export default function AppsWithoutScmIntegrations() {
             </NxTable>
           </NxTile.Subsection>
           <NxP>
-            Read more <NxTextLink href={scmIntegrationsHref}>about our SCM integrations</NxTextLink> or{' '}
-            <NxTextLink href={howToEnableScmIntegrationsHref} external>
+            Read more{' '}
+            <NxTextLink href={scmIntegrationsHref} data-analytics-id="sonatype-developer-overview-about-scm">
+              about our SCM integrations
+            </NxTextLink>{' '}
+            or{' '}
+            <NxTextLink
+              href={howToEnableScmIntegrationsHref}
+              external
+              data-analytics-id="sonatype-developer-overview-how-to-enable-scm"
+            >
               how to enable them
             </NxTextLink>
             .

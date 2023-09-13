@@ -46,7 +46,9 @@ export default function IdeIntegrationsCard() {
         </NxCard.Text>
       </NxCard.Content>
       <NxCard.Footer>
-        <NxTextLink href={ideHref}>See our list of IDE integrations</NxTextLink>
+        <NxTextLink href={ideHref} data-analytics-id="sonatype-developer-overview-ide-integration">
+          See our list of IDE integrations
+        </NxTextLink>
       </NxCard.Footer>
     </NxCard>
   );

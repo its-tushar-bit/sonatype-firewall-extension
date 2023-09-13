@@ -8,7 +8,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxCard, NxH3, NxP, NxTextLink } from '@sonatype/react-shared-components';
 
-export default function IntegrationsCard({ title, imgUrl, description, linkText, linkUrl }) {
+export default function IntegrationsCard({ title, imgUrl, description, linkText, linkUrl, dataAnalyticsId }) {
   return (
     <NxCard className="iq-integrations-card" aria-label={title}>
       <NxCard.Header>
@@ -23,7 +23,7 @@ export default function IntegrationsCard({ title, imgUrl, description, linkText,
       </NxCard.Content>
 
       <NxCard.Footer className="iq-integrations-card--align-left">
-        <NxTextLink external href={linkUrl}>
+        <NxTextLink external href={linkUrl} data-analytics-id={dataAnalyticsId}>
           {linkText}
         </NxTextLink>
       </NxCard.Footer>
@@ -37,4 +37,5 @@ IntegrationsCard.propTypes = {
   description: PropTypes.string.isRequired,
   linkText: PropTypes.string.isRequired,
   linkUrl: PropTypes.string.isRequired,
+  dataAnalyticsId: PropTypes.string.isRequired,
 };

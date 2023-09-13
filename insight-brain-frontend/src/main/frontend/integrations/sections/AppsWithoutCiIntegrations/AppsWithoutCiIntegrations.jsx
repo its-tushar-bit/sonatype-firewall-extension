@@ -26,7 +26,11 @@ export default function AppsWithoutCiIntegrations() {
         <NxH2>Apps without CI System Integrations</NxH2>
         <NxTile.Content>
           <NxP>
-            Learn more about our <NxTextLink href={pathToCICD}>CI System Integration Plugins</NxTextLink> in details.
+            Learn more about our{' '}
+            <NxTextLink href={pathToCICD} data-analytics-id="sonatype-developer-apptable-ci-integrations">
+              CI System Integration Plugins
+            </NxTextLink>{' '}
+            in details.
           </NxP>
           <AppsWithoutCiIntegrationsTable />
         </NxTile.Content>

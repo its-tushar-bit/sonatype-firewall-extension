@@ -28,6 +28,7 @@ export default function CiCd() {
           description="Nexus IQ for Azure DevOps evaluates pipeline builds for all supported component types and presents policy results and widgets within Azure DevOps."
           linkText="Click here for installation help."
           linkUrl="https://links.sonatype.com/products/nxiq/doc/nexus-iq-for-azure-devops"
+          dataAnalyticsId="sonatype-developer-cicd-azure-devops"
         />
 
         <IntegrationsCard
@@ -36,12 +37,17 @@ export default function CiCd() {
           description="Nexus IQ for Jenkins 2.x plugin provides full component intelligence and the ability to run policy against your application."
           linkText="Click here for installation help."
           linkUrl="https://links.sonatype.com/products/nxiq/doc/nexus-platform-plugin-for-jenkins"
+          dataAnalyticsId="sonatype-developer-cicd-jenkins"
         />
       </NxCard.Container>
 
       <NxP className="iq-integrations__full-width-text">
         If you’re looking to create build automation on a CI system that is not listed above consider using our{' '}
-        <NxTextLink external href="https://help.sonatype.com/iqserver/integrations/nexus-iq-cli">
+        <NxTextLink
+          external
+          href="https://help.sonatype.com/iqserver/integrations/nexus-iq-cli"
+          data-analytics-id="sonatype-developer-iq-cli"
+        >
           IQ CLI
         </NxTextLink>{' '}
         → with different flavors tailored to how your team builds software.

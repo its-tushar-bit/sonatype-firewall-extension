@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -18,6 +19,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
+import org.junit.After;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -68,6 +70,7 @@ public class ClusterTelemetryTaskTest
 
   @Test
   public void testExecute() throws Exception {
+    toggleLookerIntegration(true);
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
       return null;
@@ -87,6 +90,7 @@ public class ClusterTelemetryTaskTest
                                             TelemetryPurpose.REPOSITORY_CONFIGURATION, //
                                             TelemetryPurpose.SOURCE_CONTROL_METRICS, //
                                             TelemetryPurpose.CLUSTER_USAGE, //
+                                            TelemetryPurpose.REAL_OWNER_IDS, //
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
     List<TelemetryData> allTelemetryData =
@@ -99,5 +103,15 @@ public class ClusterTelemetryTaskTest
     clusterTelemetryTask.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(clusterTelemetryTask, Duration.ofDays(1));
+  }
+
+  private static void toggleLookerIntegration(boolean toggle) {
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature
+        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(toggle);
+  }
+
+  @After
+  public void after() {
+    toggleLookerIntegration(false);
   }
 }

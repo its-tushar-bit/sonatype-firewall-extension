@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.DefaultApiRoleMembershipResource;
 import com.sonatype.insight.brain.api.v2.DefaultApiUserResource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.organization.ApplicationTelemetryCollector;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -92,7 +94,7 @@ public class InsightBrainServiceTest
       TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE,
       TelemetryPurpose.CONFIGURATION_PROPERTIES, TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS,
       TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT,
-      TelemetryPurpose.REPOSITORY_CONFIGURATION, TelemetryPurpose.CLUSTER_USAGE
+      TelemetryPurpose.REPOSITORY_CONFIGURATION, TelemetryPurpose.CLUSTER_USAGE, TelemetryPurpose.REAL_OWNER_IDS
   };
 
   @Rule
@@ -107,11 +109,14 @@ public class InsightBrainServiceTest
   public void before() throws JobPersistenceException {
     quartzJobStoreTX = mock(QuartzJobStoreTX.class);
     when(quartzJobStoreTX.getSchedulerStateRecords()).thenReturn(Collections.nCopies(2, null));
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
   }
 
   @After
   public void after() {
     System.setProperty(InsightBrainService.SISU_URL_CACHES, "true");
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(
+        false);
   }
 
   @Test
@@ -195,6 +200,10 @@ public class InsightBrainServiceTest
         case REPOSITORY_CONFIGURATION:
         case CLUSTER_USAGE:
           assertThat(telemetryDataReceived.getAttributes()).isNotEmpty();
+          break;
+        case REAL_OWNER_IDS:
+          assertThat(telemetryDataReceived.getAttributes())
+              .containsKey(ApplicationTelemetryCollector.ALL_OWNER_IDS_NAMES);
           break;
         default:
           fail("Unexpected telemetry purpose: " + telemetryPurpose);
@@ -280,7 +289,7 @@ public class InsightBrainServiceTest
     responses.clear();
     defaultTelemetryScheduler.getTelemetryRunnable().run();
     temporarilyEnableQuartzTelemetry();
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(12));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(13));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);

@@ -58,7 +58,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tools.ant.util.DateUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -464,7 +463,7 @@ public class TransitiveViolationsTest
     Policy appPolicy = tempEntity.newPolicy(application.getId(), "appPolicy");
     Policy orgPolicy = tempEntity.newPolicy(organization.getId(), "orgPolicy");
     Policy rootOrgPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "rootOrgPolicy");
-    Date creationDate = DateUtils.parseIso8601Date("2000-05-01");
+    Date creationDate = simpleDateFormat.parse("2000-05-01");
     PolicyWaiver appPolicyWaiver = tempEntity.newWaiver("hash2", appPolicy.getId(), application.getId(),
         getConstraintFacts(appPolicy), EXACT_COMPONENT, "comment", creationDate);
     PolicyWaiver orgPolicyWaiver = tempEntity.newWaiver("hash3", orgPolicy.getId(), organization.getId(),

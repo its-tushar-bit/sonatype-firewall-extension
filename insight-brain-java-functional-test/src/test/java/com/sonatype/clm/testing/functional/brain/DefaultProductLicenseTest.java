@@ -5,6 +5,11 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.HelpMenu;
@@ -14,7 +19,6 @@ import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.apache.tools.ant.util.DateUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,9 +43,11 @@ public class DefaultProductLicenseTest
 
   @Before
   public void before() throws Exception {
+    LocalDate expirationDate = LocalDate.parse("2100-05-01", DateTimeFormatter.ISO_LOCAL_DATE);
+
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL,
         ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
-    setExpirationDate(DateUtils.parseIso8601Date("2100-05-01"));
+    setExpirationDate(Date.from(expirationDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
     refreshOrOpen(ProductLicensePage.url());
   }
 

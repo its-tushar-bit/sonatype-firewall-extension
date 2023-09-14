@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.apache.tools.ant.util.DateUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -157,10 +156,11 @@ public class ListWaiversTest
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
     String nowStr = formatter.format(now);
     Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
+    LocalDate waiverCreateDate = LocalDate.parse("2020-05-05", DateTimeFormatter.ISO_LOCAL_DATE);
 
     tempEntity.newWaiver(null, securityPolicy1.getId(), organization.getId(),
         policyViolation.getConstraintFacts(), ALL_COMPONENTS, null,
-        DateUtils.parseIso8601Date("2020-05-05"));
+        Date.from(waiverCreateDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
     String longUnbrokenComment = "Loremipsumdolorsitametconsecteturadipiscingelitseddoeiusmodtempor" +
         "incididuntutlaboreetdoloremagnaaliquaUtenimadminimveniamquisnostrudexercitationullamco" +
         "laborisnisiutaliquipexeacommodoconsequatDuisauteiruredolorinreprehenderitinvoluptate " +

@@ -53,4 +53,13 @@ public class LookerResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getBodyText()).contains(expectedResponse);
   }
+
+  @Test
+  public void testGetLookerConfig() throws Exception {
+    String expectedResponse = "{\"baseUrl\":\"https://looker.example.com\"}";
+    hdsMockServer.respondWith(expectedResponse).atUri("rest/looker/config");
+    HttpResponse response = restRequest().path(LookerResource.CONFIG_PATH).get();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains(expectedResponse);
+  }
 }

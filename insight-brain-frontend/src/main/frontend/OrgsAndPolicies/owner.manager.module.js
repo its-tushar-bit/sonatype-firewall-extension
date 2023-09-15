@@ -32,7 +32,7 @@ import ProprietaryComponentConfiguration from 'MainRoot/OrgsAndPolicies/propriet
 import PolicyEditor from 'MainRoot/OrgsAndPolicies/policyEditor/PolicyEditor';
 import AccessPage from 'MainRoot/OrgsAndPolicies/access/AccessPage';
 import AssignAppCategory from 'MainRoot/OrgsAndPolicies/assignAppCategory/AssignAppCategory';
-import PolicyViolationGrandfatheringEditor from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringEditor/PolicyViolationGrandfatheringEditor';
+import LegacyViolationsEditor from 'MainRoot/OrgsAndPolicies/legacyViolationsEditor/LegacyViolationsEditor';
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
 import OwnerDetailSidebar from 'MainRoot/OrgsAndPolicies/navigation/OwnerDetailSidebar';
 import RepositoriesPills from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesPills';
@@ -73,10 +73,7 @@ export default angular
   .component('proprietaryComponentConfiguration', iqReact2Angular(ProprietaryComponentConfiguration, [], ['$ngRedux']))
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
   .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))
-  .component(
-    'policyViolationGrandfatheringEditor',
-    iqReact2Angular(PolicyViolationGrandfatheringEditor, [], ['$ngRedux'])
-  )
+  .component('legacyViolationsEditor', iqReact2Angular(LegacyViolationsEditor, [], ['$ngRedux']))
   .component('dataRetentionEditor', iqReact2Angular(DataRetentionEditor, [], ['$ngRedux']))
   .component('ownerSummaryPills', iqReact2Angular(OwnerSummaryPills, [], ['$ngRedux']))
   .component('sourceControlConfiguration', iqReact2Angular(SourceControlConfiguration, [], ['$ngRedux']))
@@ -202,13 +199,13 @@ export default angular
             },
             component: 'accessPage',
           })
-          .state('management.edit.' + ownerType.type + '.violation-grandfathering-policy', {
+          .state('management.edit.' + ownerType.type + '.legacy-violations', {
             url: '/legacyViolations',
             data: {
               title: ownerType.name + ' Legacy Violations',
-              isDirty: ['orgsAndPolicies', 'policyViolationGrandfathering', 'isDirty'],
+              isDirty: ['orgsAndPolicies', 'legacyViolations', 'isDirty'],
             },
-            component: 'policyViolationGrandfatheringEditor',
+            component: 'legacyViolationsEditor',
           })
           .state('management.edit.' + ownerType.type + '.monitor-policy', {
             url: '/monitoring',

@@ -5,12 +5,12 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { actions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/legacyViolationSlice';
 import {
-  selectPolicyViolationGrandfatheringConfig,
-  selectPolicyViolationGrandfatheringSlice,
+  selectLegacyViolationConfig,
+  selectLegacyViolationSlice,
   selectParentLegacyViolationStatus,
-} from '../policyViolationGrandfatheringSelectors';
+} from '../legacyViolationSelectors';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsApplication, selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
@@ -28,14 +28,12 @@ import {
 } from '@sonatype/react-shared-components';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
-export default function PolicyViolationsGrandfatheringEditor() {
+export default function LegacyViolationsEditor() {
   const dispatch = useDispatch();
 
-  const { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(
-    selectPolicyViolationGrandfatheringSlice
-  );
+  const { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectLegacyViolationSlice);
   const { allowChange, allowOverride, enabled, inheritedFromOrganizationName } = useSelector(
-    selectPolicyViolationGrandfatheringConfig
+    selectLegacyViolationConfig
   );
 
   const areLegacyViolationsSupported = useSelector(selectIsGrandfatheringSupported);
@@ -43,14 +41,14 @@ export default function PolicyViolationsGrandfatheringEditor() {
   const isRootOrg = useSelector(selectIsRootOrganization);
   const parentStatus = useSelector(selectParentLegacyViolationStatus);
 
-  const doLoad = () => dispatch(actions.loadPolicyViolationGrandfathering());
+  const doLoad = () => dispatch(actions.loadLegacyViolation());
 
   const handleSubmit = () => {
-    dispatch(actions.savePolicyViolationGrandfathering());
+    dispatch(actions.saveLegacyViolation());
   };
 
   const handleChange = (val) => {
-    dispatch(actions.setGrandfatheringStatus(val));
+    dispatch(actions.setLegacyViolationStatus(val));
   };
 
   useEffect(() => {

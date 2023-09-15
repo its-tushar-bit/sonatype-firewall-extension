@@ -7,32 +7,32 @@ import React from 'react';
 import { render, screen, waitFor } from 'TestRoot/SpecUtil';
 import LegacyViolationsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/LegacyViolationsTile';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
-import * as policyGrandfatheringSelectors from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
-import { actions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
+import * as legacyViolationSelectors from 'MainRoot/OrgsAndPolicies/legacyViolationSelectors';
+import { actions } from 'MainRoot/OrgsAndPolicies/legacyViolationSlice';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('LegacyViolationsTile', () => {
-  let renderComponent, selectIsGrandfatheringSupportedSpy, selectLoadErrorSpy, selectLoadingSpy;
+  let renderComponent, selectIsLegacyViolationSupportedSpy, selectLoadErrorSpy, selectLoadingSpy;
 
   beforeEach(() => {
-    selectIsGrandfatheringSupportedSpy = spyOn(
+    selectIsLegacyViolationSupportedSpy = spyOn(
       productFeaturesSelectors,
       'selectIsGrandfatheringSupported'
     ).and.returnValue(true);
-    spyOn(policyGrandfatheringSelectors, 'selectLegacyViolationsStatusMessage').and.returnValue(
+    spyOn(legacyViolationSelectors, 'selectLegacyViolationsStatusMessage').and.returnValue(
       'Legacy violations are enabled'
     );
-    selectLoadErrorSpy = spyOn(policyGrandfatheringSelectors, 'selectLoadError').and.returnValue(null);
-    selectLoadingSpy = spyOn(policyGrandfatheringSelectors, 'selectLoading').and.returnValue(false);
-    spyOn(policyGrandfatheringSelectors, 'selectGrandfatheringLinkParams').and.returnValue({
-      to: 'management.edit.application.violation-grandfathering-policy',
+    selectLoadErrorSpy = spyOn(legacyViolationSelectors, 'selectLoadError').and.returnValue(null);
+    selectLoadingSpy = spyOn(legacyViolationSelectors, 'selectLoading').and.returnValue(false);
+    spyOn(legacyViolationSelectors, 'selectLegacyViolationLinkParams').and.returnValue({
+      to: 'management.edit.application.legacy-violations',
       params: {
         applicationPublicId: 'owl',
       },
     });
 
-    spyOn(actions, 'loadPolicyViolationGrandfathering').and.returnValue({
-      type: 'policyViolationGrandfathering/loadPolicyViolationGrandfathering/fulfilled',
+    spyOn(actions, 'loadLegacyViolation').and.returnValue({
+      type: 'legacyViolation/loadLegacyViolation/fulfilled',
       payload: {},
     });
 
@@ -59,19 +59,19 @@ describe('LegacyViolationsTile', () => {
     expect(screen.getByText('Legacy Violations')).toBeVisible();
   });
 
-  it('renders policy legacy violations status', () => {
+  it('renders legacy violations status', () => {
     renderComponent();
     expect(screen.getByText('Legacy violations are enabled')).toBeVisible();
   });
 
   it('renders not supported message if legacy violations are not supported', () => {
-    selectIsGrandfatheringSupportedSpy.and.returnValue(false);
+    selectIsLegacyViolationSupportedSpy.and.returnValue(false);
     renderComponent();
 
     expect(screen.getByText('Legacy Violations are not supported by your license')).toBeVisible();
   });
 
-  it('renders link with href to policy legacy violations configuration page', () => {
+  it('renders link with href to legacy violations configuration page', () => {
     spyOn(routerStateContext, 'useRouterState').and.returnValue({
       href: jasmine.createSpy('href').and.returnValue('editPageHref'),
     });

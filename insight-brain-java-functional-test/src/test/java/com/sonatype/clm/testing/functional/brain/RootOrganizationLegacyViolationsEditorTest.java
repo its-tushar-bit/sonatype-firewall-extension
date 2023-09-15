@@ -11,8 +11,8 @@ import com.sonatype.insight.brain.model.Organization;
 import org.junit.Before;
 import org.junit.Test;
 
-public class RootOrganizationPolicyViolationGrandfatheringEditorTest
-    extends AbstractPolicyViolationGrandfatheringEditorTest
+public class RootOrganizationLegacyViolationsEditorTest
+    extends AbstractLegacyViolationsEditorTest
 {
   @Before
   public void init() {
@@ -22,7 +22,7 @@ public class RootOrganizationPolicyViolationGrandfatheringEditorTest
 
   @Test
   @Override
-  public void testPolicyViolationGrandfatheringConfiguration_Editable() {
-    super.testPolicyViolationGrandfatheringConfiguration_Editable();
+  public void testLegacyViolationConfiguration_Editable() {
+    super.testLegacyViolationConfiguration_Editable();
   }
 }

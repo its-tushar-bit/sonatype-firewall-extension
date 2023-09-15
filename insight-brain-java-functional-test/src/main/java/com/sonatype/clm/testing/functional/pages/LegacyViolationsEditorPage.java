@@ -17,9 +17,9 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
-public class PolicyViolationGrandfatheringEditorPage
+public class LegacyViolationsEditorPage
 {
-  public static final String ROOT = "#violation-grandfathering-editor";
+  public static final String ROOT = "#legacy-violation-editor";
 
   public static String url(Owner owner) {
     return url(owner.getType(), owner.getPublicId());
@@ -49,18 +49,18 @@ public class PolicyViolationGrandfatheringEditorPage
     return $("h1");
   }
 
-  public static SelenideElement grandfatheringInherited(Boolean legacyViolations) {
+  public static SelenideElement legacyViolationInherited(Boolean legacyViolations) {
     String statusMessage = "Inherit from parent (" +
             (Boolean.TRUE.equals(legacyViolations) ? "Enabled" : "Disabled") +
             ")";
     return policyRadioButton(statusMessage);
   }
 
-  public static SelenideElement grandfatheringEnabled() {
+  public static SelenideElement legacyViolationEnabled() {
     return policyRadioButton("Enable");
   }
 
-  public static SelenideElement grandfatheringDisabled() {
+  public static SelenideElement legacyViolationDisabled() {
     return policyRadioButton("Disable");
   }
 

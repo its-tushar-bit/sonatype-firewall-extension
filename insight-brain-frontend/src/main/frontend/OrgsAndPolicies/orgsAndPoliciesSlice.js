@@ -21,7 +21,7 @@ import ownerModalSlice from './ownerModal/ownerModalSlice';
 import sourceControlSlice from './sourceControlSlice';
 import ownerSummarySlice from './ownerSummarySlice';
 import ownerDetailTreeSlice from './ownerDetailTreeSlice';
-import policyViolationGrandfatheringSlice from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
+import legacyViolationSlice from 'MainRoot/OrgsAndPolicies/legacyViolationSlice';
 import accessSlice from './access/accessSlice';
 import grandfatheringSlice from './grandfatheringModal/grandfatheringSlice';
 import revokeGrandfatheringSlice from './revokeGrandfatheringModal/revokeGrandfatheringSlice';
@@ -67,7 +67,7 @@ export default combineReducers({
   sourceControl: sourceControlSlice,
   ownerSummary: ownerSummarySlice,
   ownerDetailTree: ownerDetailTreeSlice,
-  policyViolationGrandfathering: policyViolationGrandfatheringSlice,
+  legacyViolations: legacyViolationSlice,
   retention: retentionSlice,
   licenseThreatGroups: licenseThreatGroupsSlice,
   ownerSideNav: ownerSideNavSlice,

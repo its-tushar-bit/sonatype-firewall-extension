@@ -5,32 +5,32 @@
  */
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
-  selectPolicyViolationGrandfatheringSlice,
+  selectLegacyViolationSlice,
   selectLoadError,
   selectLoading,
-  selectPolicyViolationGrandfathering,
-  selectPolicyViolationGrandfatheringConfig,
+  selectLegacyViolation,
+  selectLegacyViolationConfig,
   selectCalculatedEnabled,
   selectLegacyViolationsStatusMessage,
   selectParentLegacyViolationStatus,
-  selectPolicyViolationGrandfatheringServerData,
-} from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
+  selectLegacyViolationServerData,
+} from 'MainRoot/OrgsAndPolicies/legacyViolationSelectors';
 import { selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectRoot } from '../../../main/frontend/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
+import { selectRoot } from '../../../main/frontend/OrgsAndPolicies/legacyViolationSelectors';
 
-describe('policyViolationGrandfatheringSelectors', () => {
-  describe('selectPolicyViolationGrandfatheringSlice', () => {
+describe('legacyViolationSelectors', () => {
+  describe('selectLegacyViolationSlice', () => {
     it('is composed from the following selector', () => {
-      expect(selectPolicyViolationGrandfatheringSlice.dependencies).toEqual([selectOrgsAndPoliciesSlice]);
+      expect(selectLegacyViolationSlice.dependencies).toEqual([selectOrgsAndPoliciesSlice]);
     });
 
-    it('selects PolicyViolationGrandfathering slice', () => {
+    it('selects LegacyViolation slice', () => {
       const orgsAndPoliciesSlice = {
-        policyViolationGrandfathering: 'policyViolationGrandfathering',
+        legacyViolations: 'legacyViolation',
       };
 
-      const selected = selectPolicyViolationGrandfatheringSlice.resultFunc(orgsAndPoliciesSlice);
-      expect(selected).toBe('policyViolationGrandfathering');
+      const selected = selectLegacyViolationSlice.resultFunc(orgsAndPoliciesSlice);
+      expect(selected).toBe('legacyViolation');
     });
   });
 
@@ -42,10 +42,10 @@ describe('policyViolationGrandfatheringSelectors', () => {
     };
     describe('selectLoadError', () => {
       it('is composed from the following selector', () => {
-        expect(selectLoadError.dependencies).toEqual([selectPolicyViolationGrandfatheringSlice]);
+        expect(selectLoadError.dependencies).toEqual([selectLegacyViolationSlice]);
       });
 
-      it('selects loadError from the selectPolicyViolationGrandfatheringSlice', () => {
+      it('selects loadError from the selectLegacyViolationSlice', () => {
         const selected = selectLoadError.resultFunc(orgsAndPoliciesSlice);
         expect(selected).toBe('loadError');
       });
@@ -53,22 +53,22 @@ describe('policyViolationGrandfatheringSelectors', () => {
 
     describe('selectLoading', () => {
       it('is composed from the following selector', () => {
-        expect(selectLoading.dependencies).toEqual([selectPolicyViolationGrandfatheringSlice]);
+        expect(selectLoading.dependencies).toEqual([selectLegacyViolationSlice]);
       });
 
-      it('selects loading from the selectPolicyViolationGrandfatheringSlice', () => {
+      it('selects loading from the selectLegacyViolationSlice', () => {
         const selected = selectLoading.resultFunc(orgsAndPoliciesSlice);
         expect(selected).toBe('loading');
       });
     });
 
-    describe('selectPolicyViolationGrandfathering', () => {
+    describe('selectLegacyViolation', () => {
       it('is composed from the following selector', () => {
-        expect(selectPolicyViolationGrandfathering.dependencies).toEqual([selectPolicyViolationGrandfatheringSlice]);
+        expect(selectLegacyViolation.dependencies).toEqual([selectLegacyViolationSlice]);
       });
 
-      it('selects data from the selectPolicyViolationGrandfatheringSlice', () => {
-        const selected = selectPolicyViolationGrandfathering.resultFunc(orgsAndPoliciesSlice);
+      it('selects data from the selectLegacyViolationSlice', () => {
+        const selected = selectLegacyViolation.resultFunc(orgsAndPoliciesSlice);
         expect(selected).toBe('data');
       });
     });
@@ -76,20 +76,20 @@ describe('policyViolationGrandfatheringSelectors', () => {
 
   describe('selectCalculatedEnabled', () => {
     it('is composed from the following selector', () => {
-      expect(selectCalculatedEnabled.dependencies).toEqual([selectPolicyViolationGrandfatheringConfig]);
+      expect(selectCalculatedEnabled.dependencies).toEqual([selectLegacyViolationConfig]);
     });
 
-    it('selects calculatedEnabled from policyViolationGrandfatheringConfig', () => {
-      const policyViolationGrandfatheringConfig = {
+    it('selects calculatedEnabled from legacyViolationConfig', () => {
+      const legacyViolationConfig = {
         calculatedEnabled: true,
       };
 
-      const selected = selectCalculatedEnabled.resultFunc(policyViolationGrandfatheringConfig);
+      const selected = selectCalculatedEnabled.resultFunc(legacyViolationConfig);
       expect(selected).toBeTrue();
     });
   });
 
-  describe('selectPolicyViolationGrandfatheringConfig', () => {
+  describe('selectLegacyViolationConfig', () => {
     const testsToRun = [
       {
         inheritedFromOrganizationName: null,
@@ -153,26 +153,22 @@ describe('policyViolationGrandfatheringSelectors', () => {
       },
     ];
     it('is composed from the following selector', () => {
-      expect(selectPolicyViolationGrandfatheringConfig.dependencies).toEqual([
-        selectPolicyViolationGrandfathering,
+      expect(selectLegacyViolationConfig.dependencies).toEqual([
+        selectLegacyViolation,
         selectIsRootOrganization,
         selectRoot,
       ]);
     });
 
-    testsToRun.forEach((policyViolationGrandfatheringSlice) => {
-      const { inheritedFromOrganizationName, isOrg, expected } = policyViolationGrandfatheringSlice;
-      it(`selects PolicyViolationGrandfathering slice with rootOrg = ${isOrg} and inheritedFromOrganizationName = ${inheritedFromOrganizationName}`, () => {
+    testsToRun.forEach((legacyViolationSlice) => {
+      const { inheritedFromOrganizationName, isOrg, expected } = legacyViolationSlice;
+      it(`selects legacyPolicyViolation slice with rootOrg = ${isOrg} and inheritedFromOrganizationName = ${inheritedFromOrganizationName}`, () => {
         const data = {
           selectedOwner: {
             organizationName: 'myOrg',
           },
         };
-        const selected = selectPolicyViolationGrandfatheringConfig.resultFunc(
-          policyViolationGrandfatheringSlice,
-          isOrg,
-          data
-        );
+        const selected = selectLegacyViolationConfig.resultFunc(legacyViolationSlice, isOrg, data);
         expect(selected).toEqual(expected);
       });
     });
@@ -198,13 +194,13 @@ describe('policyViolationGrandfatheringSelectors', () => {
       },
     ];
     it('is composed from the following selector', () => {
-      expect(selectLegacyViolationsStatusMessage.dependencies).toEqual([selectPolicyViolationGrandfatheringConfig]);
+      expect(selectLegacyViolationsStatusMessage.dependencies).toEqual([selectLegacyViolationConfig]);
     });
 
-    testsToRun.forEach((policyViolationGrandfatheringConfig) => {
-      const { inheritedFromOrganizationName, isOrg, expectedMessage } = policyViolationGrandfatheringConfig;
-      it(`selects PolicyViolationGrandfathering slice with rootOrg = ${isOrg} and inheritedFromOrganizationName = ${inheritedFromOrganizationName}`, () => {
-        const selected = selectLegacyViolationsStatusMessage.resultFunc(policyViolationGrandfatheringConfig);
+    testsToRun.forEach((legacyViolationConfig) => {
+      const { inheritedFromOrganizationName, isOrg, expectedMessage } = legacyViolationConfig;
+      it(`selects legacyViolation slice with rootOrg = ${isOrg} and inheritedFromOrganizationName = ${inheritedFromOrganizationName}`, () => {
+        const selected = selectLegacyViolationsStatusMessage.resultFunc(legacyViolationConfig);
         expect(selected).toEqual(expectedMessage);
       });
     });
@@ -212,18 +208,18 @@ describe('policyViolationGrandfatheringSelectors', () => {
 
   describe('selectParentLegacyViolationStatus', () => {
     it('is composed from the following selector', () => {
-      expect(selectParentLegacyViolationStatus.dependencies).toEqual([selectPolicyViolationGrandfatheringServerData]);
+      expect(selectParentLegacyViolationStatus.dependencies).toEqual([selectLegacyViolationServerData]);
     });
 
     it('returns the string Enabled when enabledInParent is set to true', () => {
-      const selectPolicyViolationGrandfatheringServerData = { enabledInParent: true };
-      const status = selectParentLegacyViolationStatus.resultFunc(selectPolicyViolationGrandfatheringServerData);
+      const selectLegacyViolationServerData = { enabledInParent: true };
+      const status = selectParentLegacyViolationStatus.resultFunc(selectLegacyViolationServerData);
       expect(status).toBe('Enabled');
     });
 
-    it('returns the string Enabled when enabledInParent is set to true', () => {
-      const selectPolicyViolationGrandfatheringServerData = { enabledInParent: false };
-      const status = selectParentLegacyViolationStatus.resultFunc(selectPolicyViolationGrandfatheringServerData);
+    it('returns the string Disabled when enabledInParent is set to false', () => {
+      const selectLegacyViolationServerData = { enabledInParent: false };
+      const status = selectParentLegacyViolationStatus.resultFunc(selectLegacyViolationServerData);
       expect(status).toBe('Disabled');
     });
   });

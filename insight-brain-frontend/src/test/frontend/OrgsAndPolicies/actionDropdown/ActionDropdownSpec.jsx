@@ -55,7 +55,7 @@ describe('ActionDropdown', () => {
             ],
           },
         },
-        policyViolationGrandfathering: {
+        legacyViolations: {
           data: {
             enabled: true,
           },
@@ -371,7 +371,7 @@ describe('ActionDropdown', () => {
               url: '/application/{applicationPublicId}',
             },
           },
-          policyViolationGrandfathering: {
+          legacyViolations: {
             data: {
               enabled: false,
             },

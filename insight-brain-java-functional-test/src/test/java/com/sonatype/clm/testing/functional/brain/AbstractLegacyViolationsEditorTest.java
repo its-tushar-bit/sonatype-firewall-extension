@@ -10,7 +10,7 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.PolicyViolationGrandfatheringEditorPage;
+import com.sonatype.clm.testing.functional.pages.LegacyViolationsEditorPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -32,7 +32,7 @@ import static com.sonatype.clm.testing.functional.elements.CLM.NX_RADIO_CHECKBOX
 import static com.sonatype.clm.testing.functional.elements.CLM.NX_RADIO_SELECTED;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class AbstractPolicyViolationGrandfatheringEditorTest
+public abstract class AbstractLegacyViolationsEditorTest
     extends AbstractFunctionalTest
 {
   private Owner currentOwner;
@@ -68,60 +68,60 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
   }
 
   @After
-  public void restoreRootOrganizationPolicyViolationGrandfatheringSettings() {
+  public void restoreRootOrganizationLegacyViolationSettings() {
     Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     rootOrg.setPolicyViolationGrandfatheringEnabled(legacyViolationsEnabled);
     rootOrg.setAllowPolicyViolationGrandfatheringOverride(legacyViolationsOverrideEnabled);
     organizationDAO.update(rootOrg);
   }
 
-  void testPolicyViolationGrandfatheringConfiguration_Editable() {
+  void testLegacyViolationConfiguration_Editable() {
     configureOrganizationsAndApplications(true);
 
     LegacyViolationStatusDTO legacyViolationStatusDTO = legacyViolationService
         .getLegacyViolationsStatus(currentOwner.getType(), currentOwner.getPublicId());
-    String summaryText = PolicyViolationGrandfatheringEditorPage.statusMessageText(
+    String summaryText = LegacyViolationsEditorPage.statusMessageText(
         legacyViolationStatusDTO.inheritedFromOrganizationName, legacyViolationStatusDTO.enabled);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
     OwnerSummaryPage.legacyViolations().shouldHave(text(summaryText)).click();
-    PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldNotBe(visible);
+    LegacyViolationsEditorPage.disabledMessage().shouldNotBe(visible);
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(currentOwner.getId())) {
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(2);
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
+      LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(2);
+      LegacyViolationsEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
+      LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
 
-      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldBe(NX_RADIO_SELECTED);
+      LegacyViolationsEditorPage.legacyViolationDisabled().shouldBe(NX_RADIO_SELECTED);
     }
     else {
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(3);
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(0)
+      LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(3);
+      LegacyViolationsEditorPage.policyRadioButttons().get(0)
               .shouldHave(text("Inherit from parent (Disabled)"));
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
+      LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
+      LegacyViolationsEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
 
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited(legacyViolationStatusDTO.enabledInParent)
+      LegacyViolationsEditorPage.legacyViolationInherited(legacyViolationStatusDTO.enabledInParent)
               .shouldBe(visible).shouldBe(NX_RADIO_SELECTED);
     }
 
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-      PolicyViolationGrandfatheringEditorPage.overridesCheckbox().shouldBe(visible).shouldBe(NX_RADIO_SELECTED);
+      LegacyViolationsEditorPage.overridesCheckbox().shouldBe(visible).shouldBe(NX_RADIO_SELECTED);
     }
     else {
-      PolicyViolationGrandfatheringEditorPage.overridesCheckbox().shouldNotBe(visible);
+      LegacyViolationsEditorPage.overridesCheckbox().shouldNotBe(visible);
     }
 
-    PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().click();
+    LegacyViolationsEditorPage.legacyViolationEnabled().click();
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-      PolicyViolationGrandfatheringEditorPage.overridesCheckbox().click();
+      LegacyViolationsEditorPage.overridesCheckbox().click();
     }
 
-    PolicyViolationGrandfatheringEditorPage.updateButton().click();
+    LegacyViolationsEditorPage.updateButton().click();
     FormMask.seeAndWaitForDismissal();
-    PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(visible);
+    LegacyViolationsEditorPage.updateButton().shouldBe(visible);
 
     legacyViolationStatusDTO =
         legacyViolationService.getLegacyViolationsStatus(currentOwner.getType(), currentOwner.getPublicId());
@@ -131,12 +131,12 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
   }
 
   @Test
-  public void testPolicyViolationGrandfatheringConfiguration_NotEditable() {
+  public void testLegacyViolationConfiguration_NotEditable() {
     configureOrganizationsAndApplications(false);
 
     LegacyViolationStatusDTO legacyViolationStatusDTO = legacyViolationService
         .getLegacyViolationsStatus(currentOwner.getType(), currentOwner.getPublicId());
-    String summaryText = PolicyViolationGrandfatheringEditorPage.statusMessageText(
+    String summaryText = LegacyViolationsEditorPage.statusMessageText(
         legacyViolationStatusDTO.inheritedFromOrganizationName, legacyViolationStatusDTO.enabled);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
@@ -145,44 +145,44 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     OwnerSummaryPage.legacyViolations().shouldHave(text(summaryText)).click();
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(currentOwner.getId())) {
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(2);
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
+      LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(2);
+      LegacyViolationsEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
+      LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
 
-      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldBe(NX_RADIO_SELECTED);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldNotHave(NX_RADIO_CHECKBOX_DISABLED);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldNotHave(NX_RADIO_CHECKBOX_DISABLED);
-      PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldNotBe(visible);
+      LegacyViolationsEditorPage.legacyViolationDisabled().shouldBe(NX_RADIO_SELECTED);
+      LegacyViolationsEditorPage.legacyViolationDisabled().shouldNotHave(NX_RADIO_CHECKBOX_DISABLED);
+      LegacyViolationsEditorPage.legacyViolationEnabled().shouldNotHave(NX_RADIO_CHECKBOX_DISABLED);
+      LegacyViolationsEditorPage.disabledMessage().shouldNotBe(visible);
     }
     else {
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(3);
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons()
+      LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(3);
+      LegacyViolationsEditorPage.policyRadioButttons()
               .get(0).shouldHave(text("Inherit from parent (Disabled)"));
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
-      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
+      LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
+      LegacyViolationsEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
 
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited(legacyViolationStatusDTO.enabledInParent)
+      LegacyViolationsEditorPage.legacyViolationInherited(legacyViolationStatusDTO.enabledInParent)
               .shouldHave(NX_RADIO_CHECKBOX_DISABLED);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
-      PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldBe(visible);
+      LegacyViolationsEditorPage.legacyViolationDisabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
+      LegacyViolationsEditorPage.legacyViolationEnabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
+      LegacyViolationsEditorPage.disabledMessage().shouldBe(visible);
       if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-        PolicyViolationGrandfatheringEditorPage.overridesCheckbox()
+        LegacyViolationsEditorPage.overridesCheckbox()
                 .shouldHave(NX_RADIO_CHECKBOX_DISABLED).shouldBe(visible);
       }
     }
 
-    PolicyViolationGrandfatheringEditorPage.updateButton().click();
-    FormUtils.getAlertElement(PolicyViolationGrandfatheringEditorPage.form()).shouldBe(visible)
+    LegacyViolationsEditorPage.updateButton().click();
+    FormUtils.getAlertElement(LegacyViolationsEditorPage.form()).shouldBe(visible)
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
   }
 
   @Test
-  public void testPolicyViolationGrandfatheringConfiguration_Foundation() {
+  public void testLegacyViolationConfiguration_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
 
-    Condition notLicensedText = PolicyViolationGrandfatheringEditorPage.unsupportedLicenseText();
+    Condition notLicensedText = LegacyViolationsEditorPage.unsupportedLicenseText();
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
@@ -190,8 +190,8 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     OwnerSummaryPage.legacyViolations().shouldHave(notLicensedText).click();
 
     // if the user gets there manually, show a warning
-    refreshOrOpen(PolicyViolationGrandfatheringEditorPage.url(currentOwner));
-    PolicyViolationGrandfatheringEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
+    refreshOrOpen(LegacyViolationsEditorPage.url(currentOwner));
+    LegacyViolationsEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
 
     // make sure the owner detail sidebar item is disabled
     OwnerDetailSidebar.legacyViolations().shouldBe(DISABLED).hover();

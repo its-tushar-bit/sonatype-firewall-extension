@@ -51,7 +51,7 @@ import {
   selectIsEvaluateApplicationAvailable,
   selectIsGrandfatheringSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectCalculatedEnabled } from '../policyViolationGrandfatheringSelectors';
+import { selectCalculatedEnabled } from '../legacyViolationSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const getDisabledGrandfatherTooltipMessage = (support, enabled) => {

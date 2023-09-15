@@ -10,11 +10,11 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectLegacyViolationsStatusMessage,
-  selectGrandfatheringLinkParams,
+  selectLegacyViolationLinkParams,
   selectLoadError,
   selectLoading,
-} from '../policyViolationGrandfatheringSelectors';
-import { actions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
+} from '../legacyViolationSelectors';
+import { actions } from 'MainRoot/OrgsAndPolicies/legacyViolationSlice';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
 
 export default function LegacyViolationsTile() {
@@ -29,9 +29,9 @@ export default function LegacyViolationsTile() {
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
   const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
 
-  const doLoad = () => dispatch(actions.loadPolicyViolationGrandfathering());
+  const doLoad = () => dispatch(actions.loadLegacyViolation());
 
-  const { to, params } = useSelector(selectGrandfatheringLinkParams);
+  const { to, params } = useSelector(selectLegacyViolationLinkParams);
   const href = uiStateRouter.href(to, params);
 
   useEffect(() => {

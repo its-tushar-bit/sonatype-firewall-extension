@@ -145,7 +145,7 @@
 @use '../api/apiPage';
 @use '../OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsTable';
 @use '../OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsFilter/repositoryResultsComponentsFilter';
-@use '../OrgsAndPolicies/policyViolationGrandfatheringEditor/policyViolationGrandfatheringEditor';
+@use '../OrgsAndPolicies/legacyViolationsEditor/legacyViolationsEditor';
 @use '../OrgsAndPolicies/selectContactModal/selectContactModal';
 @use '../OrgsAndPolicies/dataRetentionEditor/dataRetentionEditor';
 @use '../OrgsAndPolicies/evaluateApplicationModal/evaluateApplication';

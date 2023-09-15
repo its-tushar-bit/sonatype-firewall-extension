@@ -7,16 +7,16 @@ import React from 'react';
 
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 
-import PolicyViolationGrandfatheringEditor from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringEditor/PolicyViolationGrandfatheringEditor';
+import LegacyViolationsEditor from 'MainRoot/OrgsAndPolicies/legacyViolationsEditor/LegacyViolationsEditor';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { getGrandfatheringUrl } from 'MainRoot/util/CLMLocation';
+import { getLegacyViolationURL } from 'MainRoot/util/CLMLocation';
 
-describe('PolicyViolationGrandfatheringEditor Component', () => {
+describe('LegacyViolationsEditor Component', () => {
   let mock, renderComponent;
   const orgLevelState = {
     router: {
       currentState: {
-        name: 'management.edit.organization.violation.grandfathering-policy',
+        name: 'management.edit.organization.legacy-violation',
       },
       currentParams: {
         organizationId: 'myOrg',
@@ -32,7 +32,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
   const applicationLevelState = {
     router: {
       currentState: {
-        name: 'management.edit.application.violation-grandfathering-policy',
+        name: 'management.edit.application.legacy-violation',
       },
       currentParams: {
         applicationPublicId: '1',
@@ -53,7 +53,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
     const defaultPreloadedState = {
       router: {
         currentState: {
-          name: 'management.edit.organization.violation.grandfathering-policy',
+          name: 'management.edit.organization.legacy-violation',
         },
         currentParams: {
           organizationId: 'ROOT_ORGANIZATION_ID',
@@ -67,11 +67,11 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
     };
 
     renderComponent = (preloadedState) =>
-      render(<PolicyViolationGrandfatheringEditor />, { preloadedState: preloadedState || defaultPreloadedState });
+      render(<LegacyViolationsEditor />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   it('renders tile with the correct page title', async () => {
-    mock.onGet(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
+    mock.onGet(getLegacyViolationURL('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
       allowChange: true,
       allowOverride: false,
       enabled: false,
@@ -83,7 +83,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
   });
 
   it('renders loading indicator', async () => {
-    mock.onGet(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
+    mock.onGet(getLegacyViolationURL('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
       allowChange: true,
       allowOverride: false,
       enabled: false,
@@ -94,14 +94,14 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
   });
 
   it('renders error message', async () => {
-    mock.onGet(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID')).reply(500, 'Error Messages');
+    mock.onGet(getLegacyViolationURL('organization', 'ROOT_ORGANIZATION_ID')).reply(500, 'Error Messages');
     renderComponent();
     expect(await screen.findByRole('alert')).toBeVisible();
     expect(await screen.findByText('An error occurred loading data. Error Messages')).toBeVisible();
   });
 
   it('renders a disabled Update button on load', async () => {
-    mock.onGet(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
+    mock.onGet(getLegacyViolationURL('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
       allowChange: true,
       allowOverride: false,
       enabled: false,
@@ -131,7 +131,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
         return;
       }
       it(`on Root Organization level check ${violationStatus.source} legacy violation status`, async () => {
-        mock.onGet(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
+        mock.onGet(getLegacyViolationURL('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
           allowChange: true,
           allowOverride: false,
           enabled: violationStatus.source === 'enabled' ? false : true,
@@ -143,14 +143,14 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
         const updateButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(updateButton);
         expect(mock.history.put.length).toBe(1);
-        expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID'));
+        expect(mock.history.put[0].url).toBe(getLegacyViolationURL('organization', 'ROOT_ORGANIZATION_ID'));
         expect(mock.history.put[0].data).toBe(results(violationStatus.source));
       });
     });
 
     testsToRun.forEach((violationStatus) => {
       it(`on Organization level check ${violationStatus.source} legacy violation status`, async () => {
-        mock.onGet(getGrandfatheringUrl('organization', 'myOrg')).reply(200, {
+        mock.onGet(getLegacyViolationURL('organization', 'myOrg')).reply(200, {
           allowChange: true,
           allowOverride: false,
           enabled: violationStatus.source === 'enabled' ? false : true,
@@ -168,14 +168,14 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
         const updateButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(updateButton);
         expect(mock.history.put.length).toBe(1);
-        expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'myOrg'));
+        expect(mock.history.put[0].url).toBe(getLegacyViolationURL('organization', 'myOrg'));
         expect(mock.history.put[0].data).toBe(results(violationStatus.source));
       });
     });
 
     testsToRun.forEach((violationStatus) => {
       it(`on Application level check ${violationStatus.source} legacy violation status`, async () => {
-        mock.onGet(getGrandfatheringUrl('application', '1')).reply(200, {
+        mock.onGet(getLegacyViolationURL('application', '1')).reply(200, {
           allowChange: true,
           allowOverride: false,
           enabled: violationStatus.source === 'enabled' ? false : true,
@@ -193,14 +193,14 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
         const updateButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(updateButton);
         expect(mock.history.put.length).toBe(1);
-        expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('application', '1'));
+        expect(mock.history.put[0].url).toBe(getLegacyViolationURL('application', '1'));
         expect(mock.history.put[0].data).toBe(results(violationStatus.source));
       });
     });
   });
 
   it('changes Update button to enabled when "Allow override" checkbox is checked', async () => {
-    mock.onGet(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
+    mock.onGet(getLegacyViolationURL('organization', 'ROOT_ORGANIZATION_ID')).reply(200, {
       allowChange: true,
       allowOverride: false,
       enabled: false,
@@ -212,12 +212,12 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
     const updateButton = screen.getByRole('button', { name: 'Update' });
     fireEvent.click(updateButton);
     expect(mock.history.put.length).toBe(1);
-    expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID'));
+    expect(mock.history.put[0].url).toBe(getLegacyViolationURL('organization', 'ROOT_ORGANIZATION_ID'));
     expect(mock.history.put[0].data).toBe('{"allowOverride":true,"enabled":false}');
   });
 
   it('select Inherit from Parent Organization', async () => {
-    mock.onGet(getGrandfatheringUrl('organization', 'myOrg')).reply(200, {
+    mock.onGet(getLegacyViolationURL('organization', 'myOrg')).reply(200, {
       allowChange: true,
       allowOverride: false,
       enabled: false,
@@ -230,12 +230,12 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
     const updateButton = screen.getByRole('button', { name: 'Update' });
     fireEvent.click(updateButton);
     expect(mock.history.put.length).toBe(1);
-    expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'myOrg'));
+    expect(mock.history.put[0].url).toBe(getLegacyViolationURL('organization', 'myOrg'));
     expect(mock.history.put[0].data).toBe('{"allowOverride":false,"enabled":null}');
   });
 
   it('renders a warning message when allowOverride flag is false', async () => {
-    mock.onGet(getGrandfatheringUrl('organization', 'myOrg')).reply(200, {
+    mock.onGet(getLegacyViolationURL('organization', 'myOrg')).reply(200, {
       allowChange: false,
       allowOverride: false,
       enabled: true,

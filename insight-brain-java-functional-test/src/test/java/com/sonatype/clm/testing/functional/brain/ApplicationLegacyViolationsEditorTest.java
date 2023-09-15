@@ -10,8 +10,8 @@ import com.sonatype.insight.brain.model.Application;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ApplicationPolicyViolationGrandfatheringEditorTest
-    extends AbstractPolicyViolationGrandfatheringEditorTest
+public class ApplicationLegacyViolationsEditorTest
+    extends AbstractLegacyViolationsEditorTest
 {
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
@@ -28,7 +28,7 @@ public class ApplicationPolicyViolationGrandfatheringEditorTest
 
   @Test
   @Override
-  public void testPolicyViolationGrandfatheringConfiguration_Editable() {
-    super.testPolicyViolationGrandfatheringConfiguration_Editable();
+  public void testLegacyViolationConfiguration_Editable() {
+    super.testLegacyViolationConfiguration_Editable();
   }
 }

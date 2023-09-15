@@ -267,8 +267,8 @@ locationModule.factory('CLMContextLocations', [
 
       getLdapConfig,
 
-      getGrandfatheringUrl: function () {
-        return `${baseUrl.get()}/rest/policyViolationGrandfathering/${getServicePathWithId()}`;
+      getLegacyViolationURL: function () {
+        return `${baseUrl.get()}/rest/legacyViolations/${getServicePathWithId()}`;
       },
 
       getRetentionPoliciesUrl: function (orgId) {

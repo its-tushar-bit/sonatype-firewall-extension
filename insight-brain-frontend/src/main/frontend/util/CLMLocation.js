@@ -1294,8 +1294,8 @@ export const getAuditReportSummary = function (repositoryId) {
   return uriTemplate`/rest/repositories/${encodeURIComponent(repositoryId)}/report/summary`;
 };
 
-export const getGrandfatheringUrl = (ownerType, ownerId) =>
-  uriTemplate`/rest/policyViolationGrandfathering/${ownerType}/${ownerId}`;
+export const getLegacyViolationURL = (ownerType, ownerId) =>
+  uriTemplate`/rest/legacyViolations/${ownerType}/${ownerId}`;
 
 export const getNotificationWebhooksUrl = (ownerType, ownerId) => {
   return uriTemplate`/rest/config/webhook/policy/${ownerType}/${ownerId ? `${ownerId}` : ''}`;

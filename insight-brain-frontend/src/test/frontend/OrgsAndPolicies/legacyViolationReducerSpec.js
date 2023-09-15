@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
+import reducer from 'MainRoot/OrgsAndPolicies/legacyViolationSlice';
 
-describe('policyViolationGrandfathering reducer', () => {
-  describe('policyViolationGrandfathering/loadPolicyViolationGrandfathering/pending', () => {
+describe('legacyViolation reducer', () => {
+  describe('legacyViolation/loadLegacyViolation/pending', () => {
     it('resets loading, loadError', () => {
       const state = Object.freeze({
         loading: false,
@@ -14,7 +14,7 @@ describe('policyViolationGrandfathering reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'policyViolationGrandfathering/loadPolicyViolationGrandfathering/pending',
+        type: 'legacyViolation/loadLegacyViolation/pending',
       });
 
       expect(loading).toBeTrue();
@@ -22,7 +22,7 @@ describe('policyViolationGrandfathering reducer', () => {
     });
   });
 
-  describe('policyViolationGrandfathering/loadPolicyViolationGrandfathering/fulfilled', () => {
+  describe('legacyViolation/loadLegacyViolation/fulfilled', () => {
     it('resets loading, loadError', () => {
       const state = Object.freeze({
         loading: true,
@@ -30,7 +30,7 @@ describe('policyViolationGrandfathering reducer', () => {
       });
 
       const { loading, data } = reducer(state, {
-        type: 'policyViolationGrandfathering/loadPolicyViolationGrandfathering/fulfilled',
+        type: 'legacyViolation/loadLegacyViolation/fulfilled',
         payload: 'some data',
       });
 
@@ -39,7 +39,7 @@ describe('policyViolationGrandfathering reducer', () => {
     });
   });
 
-  describe('policyViolationGrandfathering/loadPolicyViolationGrandfathering/rejected', () => {
+  describe('legacyViolation/loadLegacyViolation/rejected', () => {
     it('sets loading, loadError', () => {
       const state = Object.freeze({
         loading: true,
@@ -47,7 +47,7 @@ describe('policyViolationGrandfathering reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'policyViolationGrandfathering/loadPolicyViolationGrandfathering/rejected',
+        type: 'legacyViolation/loadLegacyViolation/rejected',
         payload: 'error',
       });
 
@@ -56,7 +56,7 @@ describe('policyViolationGrandfathering reducer', () => {
     });
   });
 
-  describe('policyViolationGrandfathering/savePolicyViolationGrandfathering/fulfilled', () => {
+  describe('legacyViolation/saveLegacyViolation/fulfilled', () => {
     it('sets enabled and allowChange', () => {
       const state = Object.freeze({
         submitMaskState: null,
@@ -68,13 +68,13 @@ describe('policyViolationGrandfathering reducer', () => {
         },
       });
       const { submitMaskState, submitError, isDirty } = reducer(state, {
-        type: 'policyViolationGrandfathering/savePolicyViolationGrandfathering/fulfilled',
+        type: 'legacyViolation/saveLegacyViolation/fulfilled',
       });
       expect(submitMaskState).toBeTrue();
       expect(submitError).toBeFalse();
       expect(isDirty).toBeFalse();
       const { data } = reducer(state, {
-        type: 'policyViolationGrandfathering/loadPolicyViolationGrandfathering/fulfilled',
+        type: 'legacyViolation/loadLegacyViolation/fulfilled',
         payload: {
           enabled: true,
           allowChange: true,
@@ -84,7 +84,7 @@ describe('policyViolationGrandfathering reducer', () => {
     });
   });
 
-  describe('policyViolationGrandfathering/toggleOverride', () => {
+  describe('legacyViolation/toggleOverride', () => {
     it('toggleOverride sets allowChange', () => {
       const state = Object.freeze({
         data: {
@@ -92,14 +92,14 @@ describe('policyViolationGrandfathering reducer', () => {
         },
       });
       const { data } = reducer(state, {
-        type: 'policyViolationGrandfathering/toggleOverride',
+        type: 'legacyViolation/toggleOverride',
       });
       expect(data).toEqual({ allowOverride: true });
     });
   });
 
-  describe('policyViolationGrandfathering/setGrandfatheringStatus', () => {
-    it('setGrandfatheringStatus sets Policy Violation Grandfathering', () => {
+  describe('legacyViolation/setLegacViolationStatus', () => {
+    it('setLegacyViolationStatus sets Legacy Violation', () => {
       const state = Object.freeze({
         data: {
           allowChange: true,
@@ -109,7 +109,7 @@ describe('policyViolationGrandfathering reducer', () => {
         },
       });
       const { data } = reducer(state, {
-        type: 'policyViolationGrandfathering/setGrandfatheringStatus',
+        type: 'legacyViolation/setLegacyViolationStatus',
         payload: 'enabled',
       });
       expect(data).toEqual({

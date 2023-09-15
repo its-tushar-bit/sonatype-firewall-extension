@@ -10,8 +10,8 @@ import com.sonatype.insight.brain.model.Organization;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OrganizationPolicyViolationGrandfatheringEditorTest
-    extends AbstractPolicyViolationGrandfatheringEditorTest
+public class OrganizationLegacyViolationsEditorTest
+    extends AbstractLegacyViolationsEditorTest
 {
   private Organization organization;
 
@@ -23,8 +23,8 @@ public class OrganizationPolicyViolationGrandfatheringEditorTest
 
   @Test
   @Override
-  public void testPolicyViolationGrandfatheringConfiguration_Editable() {
-    super.testPolicyViolationGrandfatheringConfiguration_Editable();
+  public void testLegacyViolationConfiguration_Editable() {
+    super.testLegacyViolationConfiguration_Editable();
     eyesWatcher.eyesCheck();
   }
 }

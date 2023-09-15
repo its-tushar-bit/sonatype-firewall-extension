@@ -9,11 +9,11 @@ import { propSet } from 'MainRoot/util/jsUtil';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
-import { getGrandfatheringUrl } from 'MainRoot/util/CLMLocation';
-import { selectPolicyViolationGrandfathering } from './policyViolationGrandfatheringSelectors';
+import { getLegacyViolationURL } from 'MainRoot/util/CLMLocation';
+import { selectLegacyViolation } from './legacyViolationSelectors';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 
-const REDUCER_NAME = 'policyViolationGrandfathering';
+const REDUCER_NAME = 'legacyViolation';
 
 export const initialState = {
   loading: false,
@@ -25,53 +25,53 @@ export const initialState = {
   submitError: null,
 };
 
-const loadPolicyViolationGrandfatheringRequested = (state) => {
+const loadLegacyViolationRequested = (state) => {
   state.loading = true;
   state.loadError = null;
 };
 
-const loadPolicyViolationGrandfatheringFulfilled = (state, { payload }) => {
+const loadLegacyViolationFulfilled = (state, { payload }) => {
   state.loading = false;
   state.data = payload;
   state.serverData = payload;
 };
 
-const loadPolicyViolationGrandfatheringFailed = (state, { payload }) => {
+const loadLegacyViolationFailed = (state, { payload }) => {
   state.data = null;
   state.loading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
-const loadPolicyViolationGrandfathering = createAsyncThunk(
-  `${REDUCER_NAME}/loadPolicyViolationGrandfathering`,
+const loadLegacyViolation = createAsyncThunk(
+  `${REDUCER_NAME}/loadLegacyViolation`,
   (_, { getState, rejectWithValue }) => {
     const state = getState();
     const { ownerType, ownerId } = selectOwnerProperties(state);
 
-    return axios.get(getGrandfatheringUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
+    return axios.get(getLegacyViolationURL(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
   }
 );
 
-const savePolicyViolationGrandfatheringRequested = (state) => {
+const saveLegacyViolationRequested = (state) => {
   state.submitMaskState = false;
 };
 
-const savePolicyViolationGrandfatheringFulfilled = (state) => {
+const saveLegacyViolationFulfilled = (state) => {
   state.submitMaskState = true;
   state.isDirty = false;
 };
 
-const savePolicyViolationGrandfatheringFailed = (state, { payload }) => {
+const saveLegacyViolationFailed = (state, { payload }) => {
   state.submitMaskState = null;
   state.submitError = Messages.getHttpErrorMessage(payload);
 };
 
-const savePolicyViolationGrandfathering = createAsyncThunk(
-  `${REDUCER_NAME}/savePolicyViolationGrandfathering`,
+const saveLegacyViolation = createAsyncThunk(
+  `${REDUCER_NAME}/saveLegacyViolation`,
   (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const { ownerType, ownerId } = selectOwnerProperties(state);
-    const data = selectPolicyViolationGrandfathering(state);
+    const data = selectLegacyViolation(state);
 
     const putData = {
       allowOverride: data.allowOverride,
@@ -79,18 +79,18 @@ const savePolicyViolationGrandfathering = createAsyncThunk(
     };
 
     return axios
-      .put(getGrandfatheringUrl(ownerType, ownerId), putData)
+      .put(getLegacyViolationURL(ownerType, ownerId), putData)
       .then(prop('data'))
       .then(
         startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() =>
-          dispatch(actions.loadPolicyViolationGrandfathering())
+          dispatch(actions.loadLegacyViolation())
         )
       )
       .catch(rejectWithValue);
   }
 );
 
-const setGrandfatheringStatus = (state, { payload }) => {
+const setLegacyViolationStatus = (state, { payload }) => {
   let newData;
   switch (payload) {
     case 'inherit':
@@ -123,26 +123,26 @@ const computeIsDirty = (state) => {
   return { ...state, isDirty };
 };
 
-const policyViolationGrandfatheringSlice = createSlice({
+const legacyViolationSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
 
-  reducers: { setGrandfatheringStatus, toggleOverride, saveMaskTimerDone: propSet('submitMaskState', null) },
+  reducers: { setLegacyViolationStatus, toggleOverride, saveMaskTimerDone: propSet('submitMaskState', null) },
   extraReducers: {
-    [loadPolicyViolationGrandfathering.pending]: loadPolicyViolationGrandfatheringRequested,
-    [loadPolicyViolationGrandfathering.fulfilled]: loadPolicyViolationGrandfatheringFulfilled,
-    [loadPolicyViolationGrandfathering.rejected]: loadPolicyViolationGrandfatheringFailed,
+    [loadLegacyViolation.pending]: loadLegacyViolationRequested,
+    [loadLegacyViolation.fulfilled]: loadLegacyViolationFulfilled,
+    [loadLegacyViolation.rejected]: loadLegacyViolationFailed,
 
-    [savePolicyViolationGrandfathering.pending]: savePolicyViolationGrandfatheringRequested,
-    [savePolicyViolationGrandfathering.fulfilled]: savePolicyViolationGrandfatheringFulfilled,
-    [savePolicyViolationGrandfathering.rejected]: savePolicyViolationGrandfatheringFailed,
+    [saveLegacyViolation.pending]: saveLegacyViolationRequested,
+    [saveLegacyViolation.fulfilled]: saveLegacyViolationFulfilled,
+    [saveLegacyViolation.rejected]: saveLegacyViolationFailed,
   },
 });
 
 export const actions = {
-  ...policyViolationGrandfatheringSlice.actions,
-  loadPolicyViolationGrandfathering,
-  savePolicyViolationGrandfathering,
+  ...legacyViolationSlice.actions,
+  loadLegacyViolation,
+  saveLegacyViolation,
 };
 
-export default policyViolationGrandfatheringSlice.reducer;
+export default legacyViolationSlice.reducer;

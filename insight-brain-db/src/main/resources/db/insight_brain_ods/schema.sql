@@ -634,7 +634,7 @@ INSERT INTO system_notice (system_notice_id, message, enabled) VALUES ('system-n
 CREATE TABLE system_configuration_property (
   system_configuration_property_id varchar(50) NOT NULL,
   name varchar(50) NOT NULL,
-  value varchar(500) NOT NULL,
+  value varchar(4000) NOT NULL,
   CONSTRAINT system_configuration_property_pk PRIMARY KEY (system_configuration_property_id),
   CONSTRAINT system_configuration_property_name_uk UNIQUE (name)
 );

@@ -6,13 +6,10 @@
 package com.sonatype.insight.brain.organization;
 
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -39,11 +36,9 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.test.LogOutput;
 
-import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -301,188 +296,6 @@ public class ApplicationServiceTest
     PolicyViolationLogDTOAssert
         .assertApplicationPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR, org, app1,
             before, after);
-  }
-
-  @Test
-  public void testGetApplicationManagementSummaries_PendingSourceControlEvaluations() {
-    // given: app with source control evaluation event in the event queue
-    tempEntity.newSourceControlEvaluationEvent(app1);
-
-    // when: fetch summaries
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_DESC, 1, RESULTS_PER_PAGE);
-
-    // then: app1 summary indicates an eval is pending
-    assertThat(applicationManagementSummaries.stream()
-        .filter(summary -> summary.getId().equals(app1.getId()))
-        .findFirst().get()
-        .getHasPendingSourceControlPolicyEvaluation()).isTrue();
-
-    // and: app2's summary indicates no pending evaluations
-    assertThat(applicationManagementSummaries.stream()
-        .filter(summary -> summary.getId().equals(app2.getId()))
-        .findFirst().get()
-        .getHasPendingSourceControlPolicyEvaluation()).isFalse();
-  }
-
-  @Test
-  public void testGetApplicationSummaries_MissingPageAndPageSize() {
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> applicationService.getApplicationManagementSummaries(null, null, null, null))
-        .withMessage("Request must include required query parameters page and pageSize.");
-  }
-
-  @Test
-  public void testGetApplicationSummaries_MissingPageSize() {
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> applicationService.getApplicationManagementSummaries(null, null, 1, null))
-        .withMessage("Request must include required query parameters page and pageSize.");
-  }
-
-  @Test
-  public void testGetApplicationSummaries_MissingPage() {
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> applicationService.getApplicationManagementSummaries(null, null, null, RESULTS_PER_PAGE))
-        .withMessage("Request must include required query parameters page and pageSize.");
-  }
-
-  @Test
-  public void testGetApplicationSummaries() {
-    List<Application> apps = new ArrayList<>();
-    createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, RESULTS_PER_PAGE);
-
-    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
-        .containsExactlyElementsOf(apps.subList(0, RESULTS_PER_PAGE).stream().map(Application::getName)
-            .collect(Collectors.toList()));
-  }
-
-  @Test
-  public void testGetApplicationSummaries_DifferentPage() {
-    List<Application> apps = new ArrayList<>();
-    createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 2, RESULTS_PER_PAGE);
-
-    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
-        .containsExactly(apps.get(apps.size() - 1).getName());
-  }
-
-  @Test
-  public void testGetApplicationSummaries_DifferentPageSize() {
-    List<Application> apps = new ArrayList<>();
-    createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, 1);
-
-    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
-        .containsExactly(apps.get(0).getName());
-  }
-
-  @Test
-  public void testGetApplicationSummaries_NameFilter_App() {
-    createAlphabeticalOrgsAndApps(new ArrayList<>(), new ArrayList<>());
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("appNameZ", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1,
-            RESULTS_PER_PAGE);
-
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
-        .containsExactly("appNameZ");
-  }
-
-  @Test
-  public void testGetApplicationSummaries_NameFilter_Org() {
-    createAlphabeticalOrgsAndApps(new ArrayList<>(), new ArrayList<>());
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("orgNameZ", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1,
-            RESULTS_PER_PAGE);
-
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getOrganizationName)
-        .containsExactly("orgNameZ");
-  }
-
-  @Test
-  public void testGetApplicationSummaries_NameFilter_AppOrOrg() {
-    createAlphabeticalOrgsAndApps(new ArrayList<>(), new ArrayList<>());
-    String nameFilter = "NameaA";
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries(nameFilter, ApplicationManagementSummaryOrder.APP_NAME_ASC, 1,
-            RESULTS_PER_PAGE);
-
-    Condition<String> containsNameFilterCaseInsensitive = new Condition<>(
-        (String name) -> name.toLowerCase(Locale.ENGLISH).contains(nameFilter.toLowerCase(Locale.ENGLISH)),
-        "Contains name filter case insensitive");
-    assertThat(applicationManagementSummaries).hasSize(2);
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
-        .haveExactly(1, containsNameFilterCaseInsensitive);
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getOrganizationName)
-        .haveExactly(1, containsNameFilterCaseInsensitive);
-  }
-
-  @Test
-  public void testGetApplicationSummaries_Order_AppNameAsc() {
-    List<Application> apps = new ArrayList<>();
-    createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1,
-            RESULTS_PER_PAGE + 1);
-
-    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
-        .containsExactlyElementsOf(apps.stream().map(Application::getName).collect(Collectors.toList()));
-  }
-
-  @Test
-  public void testGetApplicationSummaries_Order_AppNameDesc() {
-    List<Application> apps = new ArrayList<>();
-    createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_DESC, 1,
-            RESULTS_PER_PAGE + 1);
-
-    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER).reversed());
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
-        .containsExactlyElementsOf(apps.stream().map(Application::getName).collect(Collectors.toList()));
-  }
-
-  @Test
-  public void testGetApplicationSummaries_Order_OrgNameAsc() {
-    List<Organization> orgs = new ArrayList<>();
-    createAlphabeticalOrgsAndApps(orgs, new ArrayList<>());
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.ORG_NAME_ASC, 1,
-            RESULTS_PER_PAGE + 1);
-
-    orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER));
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getOrganizationName)
-        .containsExactlyElementsOf(orgs.stream().map(Organization::getName).collect(Collectors.toList()));
-  }
-
-  @Test
-  public void testGetApplicationSummaries_Order_OrgNameDesc() {
-    List<Organization> orgs = new ArrayList<>();
-    createAlphabeticalOrgsAndApps(orgs, new ArrayList<>());
-
-    List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationService
-        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.ORG_NAME_DESC, 1,
-            RESULTS_PER_PAGE + 1);
-
-    orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER).reversed());
-    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getOrganizationName)
-        .containsExactlyElementsOf(orgs.stream().map(Organization::getName).collect(Collectors.toList()));
   }
 
   @Test

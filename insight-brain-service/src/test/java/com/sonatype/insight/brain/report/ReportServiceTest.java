@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
@@ -33,10 +34,14 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -49,6 +54,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -92,6 +98,12 @@ public class ReportServiceTest
   @Inject
   private ThirdPartyDataService thirdPartyDataService;
 
+  @Inject
+  private ApplicationRiskService applicationRiskService;
+
+  @Inject
+  private TestProductLicense productLicense;
+
   // No default constructor, can't use @Spy
   private ThirdPartyDataService thirdPartyDataServiceSpy;
 
@@ -114,7 +126,8 @@ public class ReportServiceTest
 
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), configuration,
-        new ApplicationDAO(), new OrganizationDAO(), thirdPartyDataServiceSpy, telemetrySender, repositoryMatcher);
+        new ApplicationDAO(), new OrganizationDAO(), thirdPartyDataServiceSpy, telemetrySender, repositoryMatcher,
+        applicationRiskService, productLicense);
   }
 
   @Test
@@ -290,10 +303,12 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testGetReportMetadata() throws Exception {
+  public void testGetReportMetadataWithoutDeveloperDashboardFeature() throws Exception {
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
     String commitHash = "0b1bbd94b2edbacd441f170ecd59a178e334868f";
+
+    productLicense.setMissingFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
 
     // ReportResource.getReport requires a report.zip to exist when evaluations exist
     createReportFile(app.getId(), scanId1, zipReportDir("/ReportResourceTest/report-expanded_coverage_false"));
@@ -302,6 +317,14 @@ public class ReportServiceTest
 
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId1);
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2, commitHash);
+
+    Policy appPolicy1 = tempEntity.newPolicy(app.getId(), "app owned policy1", 5);
+    tempEntity.newPolicyViolation(eval1, appPolicy1, appPolicy1.getThreatLevel() + 1,
+            PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
+
+    Policy appPolicy2 = tempEntity.newPolicy(app.getId(), "app owned policy2", 8);
+    tempEntity.newPolicyViolation(eval2, appPolicy2, appPolicy2.getThreatLevel() + 1,
+            PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
 
     ReportService reportService = createReportService();
 
@@ -319,6 +342,7 @@ public class ReportServiceTest
     assertThat(metadata.getInitiator()).isEqualTo(CurrentUser.SYSTEM);
     assertThat(metadata.isForMonitoring()).isFalse();
     assertThat(metadata.isReevaluation()).isFalse();
+    assertThat(metadata.getTotalRisk()).isEqualTo(-1);
 
     // Verify Response for scan 2
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
@@ -334,6 +358,7 @@ public class ReportServiceTest
     assertThat(metadata.getInitiator()).isEqualTo(CurrentUser.SYSTEM);
     assertThat(metadata.isForMonitoring()).isFalse();
     assertThat(metadata.isReevaluation()).isFalse();
+    assertThat(metadata.getTotalRisk()).isEqualTo(-1);
 
     // Verify response for monitoring/re-evaluation
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId2,
@@ -351,11 +376,92 @@ public class ReportServiceTest
     assertThat(metadata.getInitiator()).isEqualTo(CurrentUser.SYSTEM);
     assertThat(metadata.isForMonitoring()).isTrue();
     assertThat(metadata.isReevaluation()).isTrue();
+    assertThat(metadata.getTotalRisk()).isEqualTo(-1);
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), "12345678"))
         .withMessage("Could not find a report with ID 12345678");
+  }
+
+  @Test
+  public void testGetReportMetadataWithDeveloperDashboardFeature() throws Exception {
+    final String scanId1 = "ScanId1";
+    final String scanId2 = "ScanId2";
+    String commitHash = "0b1bbd94b2edbacd441f170ecd59a178e334868f";
+
+    // ReportResource.getReport requires a report.zip to exist when evaluations exist
+    createReportFile(app.getId(), scanId1, zipReportDir("/ReportResourceTest/report-expanded_coverage_false"));
+    // use an older data.json to make sure they still work
+    createReportFile(app.getId(), scanId2, zipReportDir("/ReportResourceTest/report"));
+
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId1);
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId2, commitHash);
+
+    Policy appPolicy1 = tempEntity.newPolicy(app.getId(), "app owned policy1", 5);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, appPolicy1, appPolicy1.getThreatLevel() + 1,
+            PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
+
+    Policy appPolicy2 = tempEntity.newPolicy(app.getId(), "app owned policy2", 8);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, appPolicy2, appPolicy2.getThreatLevel() + 1,
+            PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
+
+    ReportService reportService = createReportService();
+
+    // Verify Response for scan 1
+    ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId1);
+    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
+    assertThat(metadata.getApplication().getOrganization()).isNotNull();
+    assertThat(metadata.getApplication().getOrganization().getId()).isEqualTo(app.getOrganizationId());
+    assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
+    assertThat(metadata.getReportTime()).isEqualTo(eval1.getTime());
+    assertThat(metadata.getScanTriggerType()).isEqualTo(eval1.getScanTriggerType().getDisplayName());
+    assertThat(metadata.getStageId()).isEqualTo("build");
+    assertThat(metadata.getCommitHash()).isNull();
+    assertThat(metadata.getInitiator()).isEqualTo(CurrentUser.SYSTEM);
+    assertThat(metadata.isForMonitoring()).isFalse();
+    assertThat(metadata.isReevaluation()).isFalse();
+    assertThat(metadata.getTotalRisk()).isEqualTo(violation1.getThreatLevel());
+
+    // Verify Response for scan 2
+    metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
+    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
+    assertThat(metadata.getApplication().getOrganization()).isNotNull();
+    assertThat(metadata.getApplication().getOrganization().getId()).isEqualTo(app.getOrganizationId());
+    assertThat(metadata.getReportTitle()).isEqualTo("Release Report");
+    assertThat(metadata.getReportTime()).isEqualTo(eval2.getTime());
+    assertThat(metadata.getScanTriggerType()).isEqualTo(eval2.getScanTriggerType().getDisplayName());
+    assertThat(metadata.getStageId()).isEqualTo("release");
+    assertThat(metadata.getCommitHash()).isEqualTo(commitHash);
+    assertThat(metadata.getInitiator()).isEqualTo(CurrentUser.SYSTEM);
+    assertThat(metadata.isForMonitoring()).isFalse();
+    assertThat(metadata.isReevaluation()).isFalse();
+    assertThat(metadata.getTotalRisk()).isEqualTo(violation2.getThreatLevel());
+
+    // Verify response for monitoring/re-evaluation
+    PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId2,
+            true /* isReevaluation */, true/* isForMonitoring */, new Date(System.currentTimeMillis() + 1));
+    metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
+    assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
+    assertThat(metadata.getApplication().getOrganization()).isNotNull();
+    assertThat(metadata.getApplication().getOrganization().getId()).isEqualTo(app.getOrganizationId());
+    assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
+    assertThat(metadata.getReportTime()).isEqualTo(eval3.getTime());
+    assertThat(metadata.getScanTriggerType()).isEqualTo(eval3.getScanTriggerType().getDisplayName());
+    assertThat(metadata.getStageId()).isEqualTo("build");
+    assertThat(metadata.getCommitHash()).isNull();
+    assertThat(metadata.getInitiator()).isEqualTo(CurrentUser.SYSTEM);
+    assertThat(metadata.isForMonitoring()).isTrue();
+    assertThat(metadata.isReevaluation()).isTrue();
+    assertThat(metadata.getTotalRisk()).isEqualTo(violation1.getThreatLevel());
+
+    // Unknown scan id
+    assertThatExceptionOfType(NotFoundException.class)
+            .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), "12345678"))
+            .withMessage("Could not find a report with ID 12345678");
   }
 
   @Test

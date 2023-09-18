@@ -79,6 +79,8 @@ public class ApplicationResource
 
   private final OrganizationDAO organizationDAO;
 
+  private final ApplicationManagementService applicationManagementService;
+
   @Inject
   public ApplicationResource(
       final InsightWork work,
@@ -87,13 +89,15 @@ public class ApplicationResource
       final UserDirectory userDirectory,
       final ApplicationService applicationService,
       final NgUploadResponseGenerator ngUploadResponseGenerator,
-      final OrganizationDAO organizationDAO)
+      final OrganizationDAO organizationDAO,
+      final ApplicationManagementService applicationManagementService)
   {
     super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
     this.userDirectory = userDirectory;
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
+    this.applicationManagementService = applicationManagementService;
   }
 
   @GET
@@ -128,7 +132,7 @@ public class ApplicationResource
       @QueryParam("page") Integer page,
       @QueryParam("pageSize") Integer pageSize)
   {
-    return applicationService.getApplicationManagementSummaries(nameFilter, order, page, pageSize);
+    return applicationManagementService.getApplicationManagementSummaries(nameFilter, order, page, pageSize);
   }
 
   @GET
@@ -173,7 +177,7 @@ public class ApplicationResource
   public ApplicationManagementSummaryDTO getApplicationManagementSummary(
       @PathParam("applicationPublicId") final String applicationPublicId)
   {
-    return applicationService.getApplicationManagementSummary(applicationPublicId);
+    return applicationManagementService.getApplicationManagementSummary(applicationPublicId);
   }
 
   /**

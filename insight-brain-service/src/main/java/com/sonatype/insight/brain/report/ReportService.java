@@ -15,13 +15,15 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
+import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -31,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.Configuration;
@@ -41,6 +44,7 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
@@ -72,6 +76,10 @@ public class ReportService
 
   private final RepositoryMatcher repositoryMatcher;
 
+  private final ApplicationRiskService applicationRiskService;
+
+  private final ProductLicense productLicense;
+
   @Inject
   public ReportService(
       InsightWork work,
@@ -82,7 +90,9 @@ public class ReportService
       OrganizationDAO organizationDAO,
       ThirdPartyDataService thirdPartyDataService,
       TelemetrySender telemetrySender,
-      RepositoryMatcher repositoryMatcher)
+      RepositoryMatcher repositoryMatcher,
+      ApplicationRiskService applicationRiskService,
+      ProductLicense productLicense)
   {
     this.work = work;
     this.reportDownloader = reportDownloader;
@@ -93,6 +103,8 @@ public class ReportService
     this.thirdPartyDataService = thirdPartyDataService;
     this.telemetrySender = telemetrySender;
     this.repositoryMatcher = repositoryMatcher;
+    this.applicationRiskService = applicationRiskService;
+    this.productLicense = productLicense;
   }
 
   public File fetchReport(final Application app, final String scanId)
@@ -199,6 +211,7 @@ public class ReportService
     }
     PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(),
         scanId);
+
     metadata.setReportTime(evaluation.getTime());
     metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
     metadata.setStageId(evaluation.getStageTypeId());
@@ -207,6 +220,14 @@ public class ReportService
     metadata.setScanTriggerType(evaluation.getScanTriggerType().getDisplayName());
     metadata.setReevaluation(evaluation.isReevaluation());
     metadata.setForMonitoring(evaluation.isForMonitoring());
+
+    if (productLicense.hasFeature(LicensedFeature.DEVELOPER_DASHBOARD)) {
+      final ApplicationRiskScoreDTO applicationRiskScoreDTO = applicationRiskService.getRiskForApp(
+          application,
+          Collections.singleton(evaluation.getStageTypeId())
+      );
+      metadata.setTotalRisk(finalExtractTotalRiskOrDefault(applicationRiskScoreDTO));
+    }
 
     // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
     if (Report.getEntry(reportFile, "template.properties") != null) {
@@ -218,6 +239,18 @@ public class ReportService
     }
 
     return metadata;
+  }
+
+  private int finalExtractTotalRiskOrDefault(final ApplicationRiskScoreDTO applicationRiskScoreDTO) {
+    if (applicationRiskScoreDTO == null) {
+      return -1;
+    }
+    else if (applicationRiskScoreDTO.totalApplicationRisk == null) {
+      return -1;
+    }
+    else {
+      return applicationRiskScoreDTO.totalApplicationRisk.totalRisk;
+    }
   }
 
   private Application getApplicationWithOrganizationInformation(final String applicationPublicId) {

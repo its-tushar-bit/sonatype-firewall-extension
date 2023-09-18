@@ -130,6 +130,28 @@ public class ApplicationRiskService
         true);
   }
 
+  public ApplicationRiskScoreDTO getRiskForApp(
+      final Application application,
+      final Set<String> stageIds
+  )
+  {
+    final Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
+
+    final ApplicationView appView =
+        policyViolationLoader.getViolations(
+            Collections.singleton(application),
+            stageTypes,
+            false,
+            null,
+            null,
+            null
+        ).stream()
+            .findFirst()
+            .orElse(null);
+
+    return createApplicationRiskScore(appView, true);
+  }
+
   private List<ApplicationRiskScoreDTO> getRiskForProvidedApps(
       final List<Application> appsToSearch,
       final Set<String> stageIds,
@@ -233,40 +255,74 @@ public class ApplicationRiskService
       Collection<ApplicationView> appViews,
       boolean includeZeroRisk)
   {
-    Map<String, String> orgNames = new HashMap<>();
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>(appViews.size());
     for (ApplicationView appView : appViews) {
-      // We must limit ourselves only to the organization name in order to avoid leaking other information
-      // to users which may not have READ access to organization details. Organization names can still be
-      // shown in exports similar to how we show organization names in the sidebar via the SidebarService.
-      // Also store the org names once fetched to avoid multiple fetches incurring a performance penalty.
-      String orgName = orgNames.computeIfAbsent(appView.getApplication().getOrganizationId(),
-          orgId -> organizationDAO.getByIdNotNull(orgId).getName());
+      final ApplicationRiskScoreDTO applicationRiskScore = createApplicationRiskScore(
+          appView,
+          includeZeroRisk
+      );
 
-      final Application application = appView.getApplication();
-
-      ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(orgName,
-          application.getName(), application.getPublicId(), application.getId());
-
-      updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
-      if (!includeZeroRisk && applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {
-        continue;
-      }
-      applicationRiskScores.add(applicationRiskScore);
-
-      for (ApplicationStageView appStageView : appView.getStageViews()) {
-        if (!appStageView.getFilteredViolations().isEmpty()) {
-          StageRiskScoreDTO stageRiskScore = new StageRiskScoreDTO(appStageView.getStageType().getId());
-          stageRiskScore.stageTypeName = appStageView.getStageType().getName();
-          stageRiskScore.scanId = appStageView.getLastEvaluation().getScanId();
-          for (PolicyViolation violation : appStageView.getFilteredViolations()) {
-            updateRisk(stageRiskScore.risk, violation.getThreatLevel());
-          }
-          applicationRiskScore.addStageRiskScore(stageRiskScore);
-        }
+      if (applicationRiskScore != null) {
+        applicationRiskScores.add(applicationRiskScore);
       }
     }
     return applicationRiskScores;
+  }
+
+  private ApplicationRiskScoreDTO createApplicationRiskScore(
+      final ApplicationView appView,
+      final boolean returnNullAndSkipStageViewCalculationsWhenRiskIsZero
+  )
+  {
+    return createApplicationRiskScore(
+        appView,
+        returnNullAndSkipStageViewCalculationsWhenRiskIsZero,
+        new HashMap<>()
+    );
+  }
+
+  private ApplicationRiskScoreDTO createApplicationRiskScore(
+      final ApplicationView appView,
+      final boolean returnNullAndSkipStageViewCalculationsWhenRiskIsZero,
+      final Map<String, String> orgNames
+  )
+  {
+    // We must limit ourselves only to the organization name in order to avoid leaking other information
+    // to users which may not have READ access to organization details. Organization names can still be
+    // shown in exports similar to how we show organization names in the sidebar via the SidebarService.
+    // Also store the org names once fetched to avoid multiple fetches incurring a performance penalty.
+    if (appView == null || appView.getApplication() == null) {
+      return null;
+    }
+
+    String orgName = orgNames.computeIfAbsent(appView.getApplication().getOrganizationId(),
+        orgId -> organizationDAO.getByIdNotNull(orgId).getName());
+
+    final Application application = appView.getApplication();
+
+    ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(orgName,
+        application.getName(), application.getPublicId(), application.getId());
+
+    updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
+
+    if (!returnNullAndSkipStageViewCalculationsWhenRiskIsZero
+            && applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {
+      return null;
+    }
+
+    for (ApplicationStageView appStageView : appView.getStageViews()) {
+      if (!appStageView.getFilteredViolations().isEmpty()) {
+        StageRiskScoreDTO stageRiskScore = new StageRiskScoreDTO(appStageView.getStageType().getId());
+        stageRiskScore.stageTypeName = appStageView.getStageType().getName();
+        stageRiskScore.scanId = appStageView.getLastEvaluation().getScanId();
+        for (PolicyViolation violation : appStageView.getFilteredViolations()) {
+          updateRisk(stageRiskScore.risk, violation.getThreatLevel());
+        }
+        applicationRiskScore.addStageRiskScore(stageRiskScore);
+      }
+    }
+
+    return applicationRiskScore;
   }
 
   private void updateTotalApplicationRisks(final ApplicationRiskScoreDTO applicationRiskScore,

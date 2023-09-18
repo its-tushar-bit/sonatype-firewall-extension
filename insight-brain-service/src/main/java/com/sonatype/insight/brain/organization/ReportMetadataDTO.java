@@ -29,6 +29,8 @@ public class ReportMetadataDTO
 
   private boolean isForMonitoring;
 
+  private int totalRisk = -1;
+
   public Date getReportTime() {
     return reportTime;
   }
@@ -99,5 +101,13 @@ public class ReportMetadataDTO
 
   public void setForMonitoring(boolean isForMonitoring) {
     this.isForMonitoring = isForMonitoring;
+  }
+
+  public void setTotalRisk(final int totalRisk) {
+    this.totalRisk = totalRisk;
+  }
+
+  public int getTotalRisk() {
+    return this.totalRisk;
   }
 }

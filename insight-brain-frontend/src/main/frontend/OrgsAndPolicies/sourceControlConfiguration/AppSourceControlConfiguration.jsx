@@ -59,7 +59,7 @@ const AppSourceControlConfiguration = () => {
   const isApp = useSelector(selectIsApplication);
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
 
-  const doLoad = () => dispatch(actions.loadSCMRootConfig());
+  const doLoad = () => dispatch(actions.load());
   const showResetModal = () => dispatch(actions.showResetModal());
   const showConfirmUpdateModal = () => dispatch(actions.showConfirmUpdateModal());
   const onSave = () => dispatch(actions.save());

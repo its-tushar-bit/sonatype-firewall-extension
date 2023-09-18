@@ -14,6 +14,8 @@ import {
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import { selectIsSourceControlForSourceTileSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectLoadError } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectIsAccessTokenRequiredOnNode,
   selectIsLoading,
@@ -21,7 +23,6 @@ import {
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
-import { selectSelectedOwnerId, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import ResetSourceControlModal from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ResetSourceControlModal';
 import UpdateSourceControlConfirmationModal from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/UpdateSourceControlConfirmationModal';
 import RootSourceControlConfiguration from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/RootSourceControlConfiguration';
@@ -42,30 +43,30 @@ const SourceControlConfiguration = () => {
   const isOrg = useSelector(selectIsOrganization);
   const isApp = useSelector(selectIsApplication);
   const { sourceControlMetrics, loadError } = useSelector(selectSourceControlConfigurationSlice);
+  const loadSelectedOwnerError = useSelector(selectLoadError);
   const isSourceControlSupported = useSelector(selectIsSourceControlForSourceTileSupported);
-  const ownerId = useSelector(selectSelectedOwnerId);
-  const ownerName = useSelector(selectSelectedOwnerName);
-  const doLoad = () => dispatch(actions.loadSCMRootConfig());
+  const owner = useSelector(selectSelectedOwner);
+  const doLoad = () => dispatch(actions.load());
   const isLoading = useSelector(selectIsLoading);
 
   useEffect(() => {
-    if (isSourceControlSupported && ownerId) {
-      doLoad();
-    }
-  }, [isSourceControlSupported, ownerId]);
+    doLoad();
+  }, []);
 
   return (
     <div id="source-control-editor">
       <NxPageTitle>
         <NxH1>Source Control Configuration</NxH1>
-        <NxPageTitle.Description>
-          Configures the integration with an external SCM for {ownerName}
-        </NxPageTitle.Description>
+        {!isLoading && (
+          <NxPageTitle.Description>
+            Configures the integration with an external SCM for {owner.name}
+          </NxPageTitle.Description>
+        )}
       </NxPageTitle>
-      {!isSourceControlSupported ? (
+      {!isSourceControlSupported && !isLoading ? (
         <NxErrorAlert id="source-control-not-supported">{SOURCE_CONTROL_UNSUPPORTED_MESSAGE}</NxErrorAlert>
       ) : (
-        <NxLoadWrapper loading={isLoading} retryHandler={doLoad} error={loadError}>
+        <NxLoadWrapper loading={isLoading} retryHandler={doLoad} error={loadError || loadSelectedOwnerError}>
           <>
             {isShowAccessTokenWarning && (
               <NxWarningAlert id="source-control-token-warning">Access Token must be configured</NxWarningAlert>

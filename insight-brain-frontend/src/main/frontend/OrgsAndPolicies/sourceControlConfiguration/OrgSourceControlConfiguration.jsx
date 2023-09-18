@@ -49,7 +49,7 @@ const OrgSourceControlConfiguration = () => {
   } = useSelector(selectSourceControlConfigurationSlice);
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const validationError = useSelector(selectValidationError);
-  const doLoad = () => dispatch(actions.loadSCMRootConfig());
+  const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
   const showResetModal = () => dispatch(actions.showResetModal());
   const onChangeProvider = (event) => dispatch(actions.setProvider(event.target.value));

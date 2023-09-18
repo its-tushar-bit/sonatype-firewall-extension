@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   getCompositeSourceControlUrl,
   getSourceControlMetricsUrl,
@@ -31,13 +31,19 @@ import {
   urlFieldValidator,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 import { selectSourceControlConfigurationSlice } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
-import { selectIsAutomationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsAutomationSupported,
+  selectIsSourceControlForSourceTileSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { userInput as selectUserInput } from '@sonatype/react-shared-components/components/NxFormSelect/stateHelpers';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { validateNonEmpty } from 'MainRoot/util/validationUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+
 import { always, prop } from 'ramda';
 const REDUCER_NAME = 'sourceControl';
 
@@ -159,15 +165,45 @@ const setLoading = (state, { payload }) => {
   state.formLoading = payload;
 };
 
+const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dispatch }) => {
+  const promises = [
+    dispatch(rootActions.loadSelectedOwner()),
+    dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
+  ];
+  return Promise.all(promises)
+    .then(() => {
+      return dispatch(actions.loadSCMRootConfig());
+    })
+    .catch(rejectWithValue);
+});
+
+const loadPending = (state) => {
+  state.formLoading = true;
+  state.loadError = null;
+};
+
+const loadFailed = (state, { payload }) => {
+  state.formLoading = false;
+  state.loadError = Messages.getHttpErrorMessage(payload);
+};
+
 const loadSCMRootConfig = createAsyncThunk(`${REDUCER_NAME}/loadSCMRootConfig`, (_, { getState, rejectWithValue }) => {
   const state = getState();
-  const ownerId = selectSelectedOwnerId(state);
+  const owner = selectSelectedOwner(state);
+  const isSourceControlSupported = selectIsSourceControlForSourceTileSupported(state);
+  if (!isSourceControlSupported || !owner) {
+    return {
+      sourceControl: null,
+      sourceControlMetrics: undefined,
+      serverSourceControl: null,
+    };
+  }
   const isApp = selectIsApplication(state);
   const isRootOrg = selectIsRootOrganization(state);
   const ownerType = isApp ? 'application' : 'organization';
   const promises = [
-    axios.get(getCompositeSourceControlUrl(ownerType, ownerId)),
-    axios.get(getSourceControlMetricsUrl(ownerType, ownerId)),
+    axios.get(getCompositeSourceControlUrl(ownerType, owner.id)),
+    axios.get(getSourceControlMetricsUrl(ownerType, owner.id)),
   ];
   return axios
     .all(promises)
@@ -223,7 +259,7 @@ const save = createAsyncThunk(`${REDUCER_NAME}/save`, (_, { getState, dispatch, 
   const isApp = selectIsApplication(state);
   const isRootOrg = selectIsRootOrganization(state);
   const isAutomationSupported = selectIsAutomationSupported(state);
-  const ownerId = selectSelectedOwnerId(state);
+  const owner = selectSelectedOwner(state);
   const ownerType = isApp ? 'application' : 'organization';
   const submitSourceControlData = prepareSubmitData(
     sourceControl,
@@ -238,10 +274,10 @@ const save = createAsyncThunk(`${REDUCER_NAME}/save`, (_, { getState, dispatch, 
     sourceControl?.id
       ? 'put'
       : 'post';
-  return axios[requestType](getSourceControlUrl(ownerType, ownerId), data)
+  return axios[requestType](getSourceControlUrl(ownerType, owner.id), data)
     .then(() => {
       startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
-      dispatch(actions.loadSCMRootConfig());
+      dispatch(actions.load());
     })
     .catch(rejectWithValue);
 });
@@ -272,13 +308,13 @@ const saveFailed = (state, { payload }) => {
 const reset = createAsyncThunk(`${REDUCER_NAME}/reset`, (_, { getState, dispatch, rejectWithValue }) => {
   const state = getState();
   const isApp = selectIsApplication(state);
-  const ownerId = selectSelectedOwnerId(state);
+  const owner = selectSelectedOwner(state);
   const ownerType = isApp ? 'application' : 'organization';
 
   return axios
-    .delete(getSourceControlUrl(ownerType, ownerId))
+    .delete(getSourceControlUrl(ownerType, owner.id))
     .then(() => {
-      dispatch(actions.loadSCMRootConfig());
+      dispatch(actions.load());
     })
     .catch(rejectWithValue);
 });
@@ -301,10 +337,9 @@ const resetFailed = (state, { payload }) => {
 const validate = createAsyncThunk(`${REDUCER_NAME}/validate`, (_, { getState, rejectWithValue }) => {
   const state = getState();
   const isApp = selectIsApplication(state);
-  const ownerId = selectSelectedOwnerId(state);
+  const owner = selectSelectedOwner(state);
   const ownerType = isApp ? 'application' : 'organization';
-
-  return axios.get(getValidateScmConfigButtonUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
+  return axios.get(getValidateScmConfigButtonUrl(ownerType, owner.id)).then(prop('data')).catch(rejectWithValue);
 });
 
 const validatePending = (state) => {
@@ -354,6 +389,8 @@ const sourceControl = createSlice({
     [loadSCMRootConfig.pending]: loadSCMRootConfigPending,
     [loadSCMRootConfig.fulfilled]: loadSCMRootConfigFulfilled,
     [loadSCMRootConfig.rejected]: loadSCMRootConfigFailed,
+    [load.pending]: loadPending,
+    [load.rejected]: loadFailed,
     [save.pending]: savePending,
     [save.fulfilled]: saveFulfilled,
     [save.rejected]: saveFailed,
@@ -371,6 +408,7 @@ export default sourceControl.reducer;
 export const actions = {
   ...sourceControl.actions,
   loadSCMRootConfig,
+  load,
   save,
   reset,
   validate,

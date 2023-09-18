@@ -42,12 +42,6 @@ describe('OwnerSummary', () => {
           },
         },
         orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: ownerId,
-              name: 'broadcast',
-            },
-          },
           sourceControl: {
             data: {
               repositoryUrl: null,

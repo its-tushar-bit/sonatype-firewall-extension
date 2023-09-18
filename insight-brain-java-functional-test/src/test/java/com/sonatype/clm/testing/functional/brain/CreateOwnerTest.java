@@ -59,6 +59,8 @@ public class CreateOwnerTest
 
   private static final String NAME = "gibberish";
 
+  private static final String NEW_NAME = "gibberish 2";
+
   private final ApplicationDAO appDAO = new ApplicationDAO();
 
   private final IconDAO iconDAO = new IconDAO();
@@ -66,6 +68,8 @@ public class CreateOwnerTest
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private Organization parentOrg;
+
+  private Organization org;
 
   private static final int IMAGE_RESIZE_WIDTH = 52;
 
@@ -80,6 +84,7 @@ public class CreateOwnerTest
   @Before
   public void init() {
     parentOrg = tempEntity.newOrganization("Parent");
+    org = tempEntity.newOrganization(NAME, parentOrg);
     refreshOrOpen(OwnerSummaryPage.url());
   }
 
@@ -337,13 +342,13 @@ public class CreateOwnerTest
     OwnerEditorDialog.root().should(disappear);
 
     // check frontend
-    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NEW_NAME));
     assertImage(OwnerSummaryPage.summaryTile().headerIcon());
     String summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
     BufferedImage displayedImage = fetchImage(summaryTileHeaderIconSrc);
 
     // validate image persisted and displayed is same as image that was selected
-    Organization org = organizationDAO.getByName(NAME);
+    Organization org = organizationDAO.getByName(NEW_NAME);
     assertThat(org).isNotNull();
 
     BufferedImage persistedImage = readImage(OwnerType.ORGANIZATION, org.getId());
@@ -357,7 +362,7 @@ public class CreateOwnerTest
 
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
 
-    assertThat(orgsAndPoliciesSidebar.getChildOrganizations()).hasSize(0);
+    assertThat(orgsAndPoliciesSidebar.getChildOrganizations()).hasSize(1);
     selectAddOrganizationIcon(orgsAndPoliciesSidebar);
 
     // select a robot image
@@ -370,23 +375,23 @@ public class CreateOwnerTest
     BufferedImage userSelectedImage = fetchImage(userSelectedImageSrc);
 
     // fill in organization data
-    OwnerEditorDialog.name().val(NAME);
+    OwnerEditorDialog.name().val(NEW_NAME);
     OwnerEditorDialog.saveButton().click();
     OwnerEditorDialog.root().should(disappear);
 
     // check backend
-    Organization org = organizationDAO.getByName(NAME);
+    Organization org = organizationDAO.getByName(NEW_NAME);
     assertThat(org).isNotNull();
 
     // check frontend - no redirect to newly created organization
     OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(parentOrg.getName()));
-    assertThat(orgsAndPoliciesSidebar.getChildOrganizations()).hasSize(1);
+    assertThat(orgsAndPoliciesSidebar.getChildOrganizations()).hasSize(2);
 
-    orgsAndPoliciesSidebar.getChildOrganizations().get(0).click();
+    orgsAndPoliciesSidebar.getChildOrganizations().get(1).click();
 
     waitUntilUrl(OwnerSummaryPage.url(org));
 
-    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NEW_NAME));
     assertImage(OwnerSummaryPage.summaryTile().headerIcon());
     String summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
     BufferedImage displayedImage = fetchImage(summaryTileHeaderIconSrc);
@@ -399,7 +404,6 @@ public class CreateOwnerTest
 
   @Test
   public void testEditOrganization_resetToDefaultIcon() throws Exception {
-    Organization org = tempEntity.newOrganization(NAME, parentOrg);
     refreshOrOpen(OwnerSummaryPage.url(org));
     waitUntilUrl(OwnerSummaryPage.url(org));
     // grab reference to default image
@@ -479,7 +483,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.nameInvalidMessage().shouldBe(visible).shouldHave(text(OwnerEditorDialog.INVALID_NAME_MESSAGE));
 
     // Error should get removed
-    OwnerEditorDialog.name().val(NAME);
+    OwnerEditorDialog.name().val(NEW_NAME);
     OwnerEditorDialog.nameInvalidMessage().shouldNotBe(visible);
     OwnerEditorDialog.saveButton().shouldBe(enabled);
 
@@ -487,17 +491,17 @@ public class CreateOwnerTest
     OwnerEditorDialog.root().should(disappear);
 
     // check backend
-    Organization org = organizationDAO.getByName(NAME);
+    Organization org = organizationDAO.getByName(NEW_NAME);
     assertThat(org).isNotNull();
 
     // check frontend - no redirect to newly created organization
     OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(parentOrg.getName()));
-    assertThat(orgsAndPoliciesSidebar.getChildOrganizations()).hasSize(1);
+    assertThat(orgsAndPoliciesSidebar.getChildOrganizations()).hasSize(2);
 
-    orgsAndPoliciesSidebar.getChildOrganizations().get(0).click();
+    orgsAndPoliciesSidebar.getChildOrganizations().get(1).click();
     waitUntilUrl(OwnerSummaryPage.url(org));
 
-    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NEW_NAME));
   }
 
   private void selectAddOrganizationIcon(OrgsAndPoliciesSidebar orgsAndPoliciesSidebar) {

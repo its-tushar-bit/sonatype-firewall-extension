@@ -98,6 +98,11 @@ describe('testConfiguration', () => {
             error: null,
             loading: false,
           },
+          owner: {
+            id: '0006b1bf904e45999ee1b4eb05d898fd',
+            publicId: 'vulnerable-java-app',
+            name: 'Vulnerable java app',
+          },
           isDirty: false,
         },
       },

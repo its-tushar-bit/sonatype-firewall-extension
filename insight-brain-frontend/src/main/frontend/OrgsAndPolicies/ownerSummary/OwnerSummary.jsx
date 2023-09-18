@@ -10,6 +10,7 @@ import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { findIconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { getOwnerImageUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import { selectLoadError as selectLoadSelectedOwnerError } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwner, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
@@ -43,6 +44,7 @@ export default function OwnerSummary() {
   const dispatch = useDispatch();
   const loading = useSelector(selectLoading);
   const loadError = useSelector(selectLoadError);
+  const loadSelectedOwnerError = useSelector(selectLoadSelectedOwnerError);
   const owner = useSelector(selectSelectedOwner);
   const isApp = useSelector(selectIsApplication);
   const repositoryUrl = useSelector(selectRepositoryUrl);
@@ -61,7 +63,7 @@ export default function OwnerSummary() {
   return isSyntheticOrg ? (
     <InsufficientPermissionOwnerHierarchyTree />
   ) : (
-    <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
+    <NxLoadWrapper loading={loading} error={loadError || loadSelectedOwnerError} retryHandler={doLoad}>
       <div id="owner-summary">
         <NxPageTitle className="iq-page-title">
           <NxH1>

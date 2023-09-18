@@ -7,7 +7,7 @@ import React from 'react';
 import OwnerDetailSidebar from 'MainRoot/OrgsAndPolicies/navigation/OwnerDetailSidebar';
 import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { getOwnerDetailsUrl } from 'MainRoot/util/CLMLocation';
+import { getOwnerDetailsUrl, getOwnerListUrl } from 'MainRoot/util/CLMLocation';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -150,6 +150,16 @@ describe('OwnerDetailSidebar', () => {
   });
 
   beforeEach(() => {
+    mock.onGet(getOwnerListUrl()).reply(200, {
+      ownersMap: {
+        ROOT_ORGANIZATION_ID: {
+          id: 'ROOT_ORGANIZATION_ID',
+          name: 'Root Organization',
+        },
+      },
+      topParentOrganizationId: 'ROOT_ORGANIZATION_ID',
+    });
+
     renderComponent = (preloadedState) =>
       render(<OwnerDetailSidebar />, { preloadedState: preloadedState || defaultPreloadedState });
   });

@@ -95,7 +95,11 @@ public class ApplicationSummaryViewTest
 
   private Application application;
 
+  private Application newApplication;
+
   private Organization rootOrganization;
+
+  private Organization organization;
 
   @Rule
   public LogOutput logOutput = new LogOutput(ScanService.log.getName());
@@ -106,6 +110,11 @@ public class ApplicationSummaryViewTest
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
     rootOrganization = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
+    organization = tempEntity.newOrganization("An Org With A Very Very Very Very Very Very Very Very " +
+        "Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very V Very Very Very Very " +
+        "Very Very Very Very Very Very Long Name");
+    String id = "bfc6c69a39b94e81a777edf9727e01ce";
+    newApplication = tempEntity.newApplication("Test App " + id, id, organization.getId());
 
     super.init(application);
   }
@@ -713,18 +722,11 @@ public class ApplicationSummaryViewTest
 
   @Test
   public void testLabelTile_Inherited_Truncation() {
-    Organization organization = tempEntity.newOrganization("An Org With A Very Very Very Very Very Very Very Very " +
-        "Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very V Very Very Very Very " +
-        "Very Very Very Very Very Very Long Name");
-
     for (int i = 0; i < 20; i++) {
       tempEntity.newLabel(organization.getId());
     }
 
-    String id = "bfc6c69a39b94e81a777edf9727e01ce";
-    Application application = tempEntity.newApplication("Test App " + id, id, organization.getId());
-
-    refreshOrOpen(OwnerSummaryPage.url(application));
+    refreshOrOpen(OwnerSummaryPage.url(newApplication));
     LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.labelLists().shouldHaveSize(1);
     labelTile.inheritedLabelsLists().shouldHaveSize(1);
@@ -742,11 +744,6 @@ public class ApplicationSummaryViewTest
 
   @Test
   public void testAccessTile_Inherited_Truncation() {
-
-    Organization organization = tempEntity.newOrganization("An Org With A Very Very Very Very Very Very Very Very " +
-        "Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very Very V Very Very Very Very " +
-        "Very Very Very Very Very Very Long Name");
-
     Role readRole = tempEntity.newRole("Read Only", false, Permission.READ);
     RoleDAO roleDAO = new RoleDAO();
     List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
@@ -754,10 +751,7 @@ public class ApplicationSummaryViewTest
         .newMembershipMapping(organization.getId(), readRole.getId(), "Group", MemberType.GROUP);
     roleList.add(readRole);
 
-    String id = "bfc6c69a39b94e81a777edf9727e01ce";
-    Application application = tempEntity.newApplication("Test App " + id, id, organization.getId());
-
-    refreshOrOpen(OwnerSummaryPage.url(application));
+    refreshOrOpen(OwnerSummaryPage.url(newApplication));
     AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.accessLists().shouldHaveSize(2);
     accessTile.inheritedAccessLists().shouldHaveSize(1);

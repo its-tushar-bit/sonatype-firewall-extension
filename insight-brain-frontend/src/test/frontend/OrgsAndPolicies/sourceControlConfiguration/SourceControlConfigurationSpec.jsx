@@ -7,7 +7,9 @@ import React from 'react';
 import SourceControlConfiguration from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/SourceControlConfiguration';
 import { render, screen, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
 import {
+  getApplicationsUrl,
   getCompositeSourceControlUrl,
+  getOrganizationsUrl,
   getSourceControlMetricsUrl,
   getSourceControlUrl,
 } from 'MainRoot/util/CLMLocation';
@@ -36,6 +38,8 @@ import {
   assertionsForAppNoTokenInheritedState,
   inheritedAppNoTokenConfigResponse,
   assertionsForAppExistingState,
+  applicationsResponse,
+  organizationsResponse,
 } from './data';
 import { clone } from 'ramda';
 import { SOURCE_CONTROL_UNSUPPORTED_MESSAGE } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
@@ -84,14 +88,17 @@ describe('sourceControlConfiguration', () => {
         },
       };
 
+      axiosMock.onGet(getOrganizationsUrl()).reply(200, organizationsResponse);
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultRootOrgConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
     });
 
     describe('initial source control configuration render', () => {
-      it('shows page with the correct title and subtitle', () => {
+      it('shows page with the correct title and subtitle', async () => {
         renderComponent();
-        const sourcePageTitle = screen.getByText('Source Control Configuration');
+        expect(screen.getByText('Loading…')).toBeVisible();
+
+        const sourcePageTitle = await screen.findByText('Source Control Configuration');
         const sourceSubtitle = screen.getByText(
           `Configures the integration with an external SCM for ${ROOT_ORGANIZATION_NAME}`
         );
@@ -99,12 +106,13 @@ describe('sourceControlConfiguration', () => {
         expect(sourceSubtitle).toBeVisible();
       });
 
-      it('fetches sourceControl configuration, metrics and shows loading spinner, while loading page', () => {
+      it('fetches sourceControl configuration, metrics and shows loading spinner, while loading page', async () => {
         renderComponent();
-        expect(axiosMock.history.get.length).toBe(2);
-        expect(axiosMock.history.get[0].url).toBe(getCompositeSourceControlUrl(ownerType, ownerId));
-        expect(axiosMock.history.get[1].url).toBe(getSourceControlMetricsUrl(ownerType, ownerId));
         expect(screen.getByText('Loading…')).toBeVisible();
+        await screen.findByText('Source Control Configuration');
+        expect(axiosMock.history.get.length).toBe(3);
+        expect(axiosMock.history.get[1].url).toBe(getCompositeSourceControlUrl(ownerType, ownerId));
+        expect(axiosMock.history.get[2].url).toBe(getSourceControlMetricsUrl(ownerType, ownerId));
       });
 
       it('shows all form elements on successful initial render with correct default configuration values', async () => {
@@ -169,6 +177,9 @@ describe('sourceControlConfiguration', () => {
             currentParams: {
               organizationId: ROOT_ORGANIZATION_ID,
             },
+            currentState: {
+              name: 'organization',
+            },
           },
           productFeatures: {
             productFeatures: {
@@ -182,9 +193,6 @@ describe('sourceControlConfiguration', () => {
                 id: ROOT_ORGANIZATION_ID,
                 name: ROOT_ORGANIZATION_NAME,
               },
-            },
-            sourceControlConfiguration: {
-              formLoading: true,
             },
           },
         });
@@ -499,6 +507,7 @@ describe('sourceControlConfiguration', () => {
         },
       };
 
+      axiosMock.onGet(getOrganizationsUrl()).reply(200, organizationsResponse);
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultOrgConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
     });
@@ -919,6 +928,7 @@ describe('sourceControlConfiguration', () => {
         },
       };
 
+      axiosMock.onGet(getApplicationsUrl()).reply(200, applicationsResponse);
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultAppConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
     });

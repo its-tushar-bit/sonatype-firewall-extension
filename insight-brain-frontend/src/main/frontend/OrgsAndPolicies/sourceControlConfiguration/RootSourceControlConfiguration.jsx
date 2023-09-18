@@ -43,7 +43,7 @@ const RootSourceControlConfiguration = () => {
   } = useSelector(selectSourceControlConfigurationSlice);
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const validationError = useSelector(selectValidationError);
-  const doLoad = () => dispatch(actions.loadSCMRootConfig());
+  const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
   const showResetModal = () => dispatch(actions.showResetModal());
   const onChangeProvider = (event) => dispatch(actions.setProvider(event.target.value));
@@ -138,8 +138,9 @@ const RootSourceControlConfiguration = () => {
       {SOURCE_CONTROL_OPTIONS.map(({ id, title, description, optionName }) => {
         return (
           <NxTooltip
+            key={id}
             title={
-              !isAutomationSupported && optionName != 'sshEnabled'
+              !isAutomationSupported && optionName !== 'sshEnabled'
                 ? 'This feature is not supported by your license'
                 : ''
             }
@@ -151,7 +152,7 @@ const RootSourceControlConfiguration = () => {
               onChange={() => toggleValue(optionName)}
               isChecked={sourceControl?.[optionName].value}
               disabled={
-                !sourceControl?.provider.rscValue.value || (!isAutomationSupported && optionName != 'sshEnabled')
+                !sourceControl?.provider.rscValue.value || (!isAutomationSupported && optionName !== 'sshEnabled')
               }
             >
               <span className="iq-source-control-toggle__title">{title}</span>

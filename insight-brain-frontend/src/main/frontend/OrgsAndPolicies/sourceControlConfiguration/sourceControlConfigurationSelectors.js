@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { selectOrgsAndPoliciesSlice, selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsSourceControlForSourceTileSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
 import { prop } from 'ramda';
 import { isAccessTokenRequiredOnNode } from './utils';
@@ -45,10 +44,4 @@ export const selectValidationError = createSelector(
   }
 );
 
-export const selectIsLoading = createSelector(
-  selectSourceControlConfigurationSlice,
-  selectSelectedOwnerId,
-  selectIsSourceControlForSourceTileSupported,
-  ({ formLoading }, ownerId, isSourceControlSupported) =>
-    isSourceControlSupported == null || ownerId == null || (formLoading && isSourceControlSupported === true)
-);
+export const selectIsLoading = createSelector(selectSourceControlConfigurationSlice, prop('formLoading'));

@@ -3,10 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  selectIsLoading,
-  selectSourceControlConfigurationSlice,
-} from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
+import { selectSourceControlConfigurationSlice } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import { selectValidationError } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 
 import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
@@ -357,71 +354,6 @@ describe('selectSourceControlConfigurationSelectors', () => {
       };
       const actual = selectValidationError(state);
       expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
-    });
-  });
-
-  describe('selectIsLoading', () => {
-    let state;
-    beforeEach(() => {
-      state = {
-        orgsAndPolicies: {
-          sourceControlConfiguration: {
-            formLoading: true,
-          },
-          root: {
-            selectedOwner: {
-              id: 'ROOT_ORGANIZATION_ID',
-            },
-          },
-        },
-        productFeatures: {
-          productFeatures: {
-            notifications: true,
-            automation: true,
-          },
-        },
-      };
-    });
-    it('returns true if isSourceControlSupported and ownerId is not defined yet', () => {
-      state.productFeatures.productFeatures = {};
-      state.orgsAndPolicies.root.selectedOwner = {};
-      const isLoading = selectIsLoading(state);
-      expect(isLoading).toBe(true);
-    });
-
-    it('returns true if isSourceControlSupported is not defined yet', () => {
-      state.productFeatures.productFeatures = {};
-      const isLoading = selectIsLoading(state);
-      expect(isLoading).toBe(true);
-    });
-
-    it('returns true if ownerId is not defined yet', () => {
-      state.orgsAndPolicies.root.selectedOwner = {};
-      const isLoading = selectIsLoading(state);
-      expect(isLoading).toBe(true);
-    });
-
-    it('returns true if formLoading is true and isSourceControlSupported also true', () => {
-      state.orgsAndPolicies.root.selectedOwner = {};
-      const isLoading = selectIsLoading(state);
-      expect(isLoading).toBe(true);
-    });
-
-    it('returns false if formLoading is false(after form initialization), isSourceControlSupported is true and ownerId is defined and has not falsy value', () => {
-      state.orgsAndPolicies.sourceControlConfiguration.formLoading = false;
-      const isLoading = selectIsLoading(state);
-      expect(isLoading).toBe(false);
-    });
-
-    it('returns false if isSourceControlSupported is false', () => {
-      state.productFeatures = {
-        productFeatures: {
-          notifications: false,
-          automation: false,
-        },
-      };
-      const isLoading = selectIsLoading(state);
-      expect(isLoading).toBe(false);
     });
   });
 });

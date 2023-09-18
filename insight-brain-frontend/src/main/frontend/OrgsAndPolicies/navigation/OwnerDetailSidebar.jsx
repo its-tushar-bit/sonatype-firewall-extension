@@ -43,7 +43,7 @@ import {
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsMonitoringSupported,
-  selectIsGrandfatheringSupported,
+  selectIsLegacyViolationSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import Hexagon from 'MainRoot/react/Hexagon';
@@ -83,7 +83,7 @@ export default function OwnerDetailSidebar() {
   const isLicenseThreatGroup = useSelector(selectIsLicenseThreatGroup);
   const isSourceControl = useSelector(selectIsSourceControl);
   const isAccess = useSelector(selectIsAccess);
-  const isLegacyViolationsSupported = useSelector(selectIsGrandfatheringSupported);
+  const isLegacyViolationsSupported = useSelector(selectIsLegacyViolationSupported);
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
   const isFeatureEnabledForLicense = !isFirewallOnlyLicense;
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);

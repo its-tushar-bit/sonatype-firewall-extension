@@ -78,12 +78,12 @@ public class PolicyEditorPage
     return $("#notifications-disabled-message");
   }
 
-  public static SelenideElement disabledGrandfatheringMessage() {
-    return $("#grandfathering-disabled-message");
+  public static SelenideElement disabledLegacyViolationMessage() {
+    return $("#legacy-violation-disabled-message");
   }
 
-  public static SelenideElement checkboxGrandfathering() {
-    return $("#editor-policy-violation-grandfathering");
+  public static SelenideElement legacyViolationCheckbox() {
+    return $("#editor-legacy-violation-checkbox");
   }
 
   public static ActionsSection actionsSection() {

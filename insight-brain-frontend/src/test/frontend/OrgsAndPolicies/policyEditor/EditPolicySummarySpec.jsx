@@ -27,7 +27,7 @@ describe('EditPolicySummary', () => {
   });
 
   it('renders disabled inputs when there is no permission', () => {
-    spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue(true);
+    spyOn(productFeaturesSelectors, 'selectIsLegacyViolationSupported').and.returnValue(true);
     spyOn(policySelectors, 'selectIsInherited').and.returnValue(false);
     spyOn(policySelectors, 'selectHasEditIqPermission').and.returnValue(false);
 
@@ -35,20 +35,18 @@ describe('EditPolicySummary', () => {
 
     const policyNameInput = screen.getByRole('textbox');
     const threatLevelInput = screen.getByRole('button');
-    const policyViolationGrandfatheringInput = screen.getByRole('checkbox');
-    const policyViolationGrandfatheringMessage = screen.queryByText(
-      /Legacy Violations are not supported by your license/i
-    );
+    const legacyViolationCheckbox = screen.getByRole('checkbox');
+    const legacyViolationMessage = screen.queryByText(/Legacy Violations are not supported by your license/i);
 
-    expect(policyViolationGrandfatheringMessage).toBeNull();
+    expect(legacyViolationMessage).toBeNull();
 
     expect(policyNameInput).toBeDisabled();
     expect(threatLevelInput).toHaveClassName('disabled');
-    expect(policyViolationGrandfatheringInput).toBeDisabled();
+    expect(legacyViolationCheckbox).toBeDisabled();
   });
 
   it('renders disabled inputs when the policy is inherited', () => {
-    spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue(true);
+    spyOn(productFeaturesSelectors, 'selectIsLegacyViolationSupported').and.returnValue(true);
     spyOn(policySelectors, 'selectIsInherited').and.returnValue(true);
     spyOn(policySelectors, 'selectHasEditIqPermission').and.returnValue(true);
 
@@ -56,39 +54,35 @@ describe('EditPolicySummary', () => {
 
     const policyNameInput = screen.getByRole('textbox');
     const threatLevelInput = screen.getByRole('button');
-    const policyViolationGrandfatheringInput = screen.getByRole('checkbox');
-    const policyViolationGrandfatheringMessage = screen.queryByText(
-      /Legacy Violations are not supported by your license/i
-    );
+    const legacyViolationCheckbox = screen.getByRole('checkbox');
+    const legacyViolationMessage = screen.queryByText(/Legacy Violations are not supported by your license/i);
 
-    expect(policyViolationGrandfatheringMessage).toBeNull();
+    expect(legacyViolationMessage).toBeNull();
 
     expect(policyNameInput).toBeDisabled();
     expect(threatLevelInput).toHaveClassName('disabled');
-    expect(policyViolationGrandfatheringInput).toBeDisabled();
+    expect(legacyViolationCheckbox).toBeDisabled();
   });
 
-  it('renders disabled Grandfathering Input when inherited is not supported', () => {
-    spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue(false);
+  it('renders disabled Legacy Violation Input when inherited is not supported', () => {
+    spyOn(productFeaturesSelectors, 'selectIsLegacyViolationSupported').and.returnValue(false);
     spyOn(policySelectors, 'selectHasEditIqPermission').and.returnValue(true);
 
     renderComponent();
 
     const policyNameInput = screen.getByRole('textbox');
     const threatLevelInput = screen.getAllByRole('button')[0];
-    const policyViolationGrandfatheringInput = screen.getByRole('checkbox');
-    const policyViolationGrandfatheringMessage = screen.getByText(
-      /Legacy Violations are not supported by your license/i
-    );
+    const legacyViolationCheckbox = screen.getByRole('checkbox');
+    const legacyViolationMessage = screen.getByText(/Legacy Violations are not supported by your license/i);
 
-    expect(policyViolationGrandfatheringMessage).toBeVisible();
+    expect(legacyViolationMessage).toBeVisible();
     expect(policyNameInput).not.toBeDisabled();
     expect(threatLevelInput).not.toHaveClassName('disabled');
-    expect(policyViolationGrandfatheringInput).toBeDisabled();
+    expect(legacyViolationCheckbox).toBeDisabled();
   });
 
   it('renders the legacy violations text', () => {
-    spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue(true);
+    spyOn(productFeaturesSelectors, 'selectIsLegacyViolationSupported').and.returnValue(true);
 
     renderComponent();
 

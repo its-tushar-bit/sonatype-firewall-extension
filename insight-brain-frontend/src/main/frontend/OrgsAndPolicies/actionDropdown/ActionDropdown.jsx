@@ -49,7 +49,7 @@ import { selectActionDropdownSlice } from './actionDropdownSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import {
   selectIsEvaluateApplicationAvailable,
-  selectIsGrandfatheringSupported,
+  selectIsLegacyViolationSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectCalculatedEnabled } from '../legacyViolationSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -80,7 +80,7 @@ const ActionDropdown = () => {
   const isRootOrg = useSelector(selectIsRootOrganization);
   const isOrg = useSelector(selectIsOrganization);
   const isApp = useSelector(selectIsApplication);
-  const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
+  const isGrandfatheringSupported = useSelector(selectIsLegacyViolationSupported);
   const isGrandfatheringEnabled = useSelector(selectCalculatedEnabled);
   const isEvaluateApplicationAvailable = useSelector(selectIsEvaluateApplicationAvailable);
   const owner = useSelector(selectSelectedOwner);

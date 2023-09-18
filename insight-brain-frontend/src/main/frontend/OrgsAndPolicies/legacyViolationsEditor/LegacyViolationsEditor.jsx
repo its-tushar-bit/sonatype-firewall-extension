@@ -11,7 +11,7 @@ import {
   selectLegacyViolationSlice,
   selectParentLegacyViolationStatus,
 } from '../legacyViolationSelectors';
-import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsLegacyViolationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsApplication, selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   NxLoadWrapper,
@@ -36,7 +36,7 @@ export default function LegacyViolationsEditor() {
     selectLegacyViolationConfig
   );
 
-  const areLegacyViolationsSupported = useSelector(selectIsGrandfatheringSupported);
+  const areLegacyViolationsSupported = useSelector(selectIsLegacyViolationSupported);
   const isApp = useSelector(selectIsApplication);
   const isRootOrg = useSelector(selectIsRootOrganization);
   const parentStatus = useSelector(selectParentLegacyViolationStatus);

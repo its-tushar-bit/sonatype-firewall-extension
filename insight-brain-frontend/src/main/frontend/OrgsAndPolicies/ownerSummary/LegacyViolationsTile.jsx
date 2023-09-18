@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { NxH2, NxTile, NxList, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsLegacyViolationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectLegacyViolationsStatusMessage,
   selectLegacyViolationLinkParams,
@@ -21,7 +21,7 @@ export default function LegacyViolationsTile() {
   const dispatch = useDispatch();
   const uiStateRouter = useRouterState();
 
-  const isLegacyViolationsEnabled = useSelector(selectIsGrandfatheringSupported);
+  const isLegacyViolationsEnabled = useSelector(selectIsLegacyViolationSupported);
   const legacyViolationsStatusMessage = useSelector(selectLegacyViolationsStatusMessage);
   const isLoading = useSelector(selectLoading);
   const loadError = useSelector(selectLoadError);

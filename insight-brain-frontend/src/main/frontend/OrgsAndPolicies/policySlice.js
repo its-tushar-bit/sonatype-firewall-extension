@@ -1393,7 +1393,7 @@ const policySlice = createSlice({
       return updatedComputedProps(reduxPropSet('hasPolicyCategories', state, payload));
     },
     toggleCategoryIsApplied,
-    togglePolicyViolationGrandfatheringAllowed: toggleField('policyViolationGrandfatheringAllowed'),
+    toggleLegacyViolationAllowed: toggleField('policyViolationGrandfatheringAllowed'),
     togglePolicyActionsOverrideAllowed,
     togglePolicyNotificationsOverrideAllowed,
     setPolicyName: setPolicyNameField(),

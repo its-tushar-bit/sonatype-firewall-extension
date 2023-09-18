@@ -22,11 +22,11 @@ import {
   selectCurrentPolicyName,
   selectCurrentPolicyThreatLevel,
   selectIsInherited,
-  selectCurrentPolicyViolationGrandfatheringAllowed,
+  selectCurrentLegacyViolationAllowed,
   selectHasEditIqPermission,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
-import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsLegacyViolationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function EditPolicySummary() {
@@ -39,15 +39,14 @@ export default function EditPolicySummary() {
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const readOnly = isRepositoriesRelated && !isInherited ? false : isInherited || !hasEditIqPermission;
-  const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
-  const policyViolationGrandfatheringAllowed = useSelector(selectCurrentPolicyViolationGrandfatheringAllowed);
+  const isLegacyViolationSupported = useSelector(selectIsLegacyViolationSupported);
+  const legacyViolationAllowed = useSelector(selectCurrentLegacyViolationAllowed);
 
   const setPolicyName = (val) => dispatch(actions.setPolicyName(val));
 
   const setThreatLevel = (val) => dispatch(actions.setThreatLevel(val));
 
-  const togglePolicyViolationGrandfatheringAllowed = (val) =>
-    dispatch(actions.togglePolicyViolationGrandfatheringAllowed(val));
+  const toggleLegacyViolationAllowed = (val) => dispatch(actions.toggleLegacyViolationAllowed(val));
 
   return (
     <div id="policy-edit-summary">
@@ -72,8 +71,8 @@ export default function EditPolicySummary() {
           id="editor-policy-threat-level"
         />
       </NxFormRow>
-      {!isGrandfatheringSupported && (
-        <NxStatefulInfoAlert id="grandfathering-disabled-message">
+      {!isLegacyViolationSupported && (
+        <NxStatefulInfoAlert id="legacy-violation-disabled-message">
           Legacy Violations are not supported by your license
         </NxStatefulInfoAlert>
       )}
@@ -83,10 +82,10 @@ export default function EditPolicySummary() {
           sublabel="Eligible violations will be reported but will not trigger actions"
         >
           <NxCheckbox
-            id="editor-policy-violation-grandfathering"
-            onChange={togglePolicyViolationGrandfatheringAllowed}
-            isChecked={!!policyViolationGrandfatheringAllowed}
-            disabled={isRepositoriesRelated ? false : readOnly || !isGrandfatheringSupported}
+            id="editor-legacy-violation-checkbox"
+            onChange={toggleLegacyViolationAllowed}
+            isChecked={!!legacyViolationAllowed}
+            disabled={isRepositoriesRelated ? false : readOnly || !isLegacyViolationSupported}
           >
             Allow violations of this policy to be granted legacy status
           </NxCheckbox>

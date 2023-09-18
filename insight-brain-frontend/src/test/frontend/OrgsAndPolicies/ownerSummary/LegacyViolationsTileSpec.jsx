@@ -17,7 +17,7 @@ describe('LegacyViolationsTile', () => {
   beforeEach(() => {
     selectIsLegacyViolationSupportedSpy = spyOn(
       productFeaturesSelectors,
-      'selectIsGrandfatheringSupported'
+      'selectIsLegacyViolationSupported'
     ).and.returnValue(true);
     spyOn(legacyViolationSelectors, 'selectLegacyViolationsStatusMessage').and.returnValue(
       'Legacy violations are enabled'

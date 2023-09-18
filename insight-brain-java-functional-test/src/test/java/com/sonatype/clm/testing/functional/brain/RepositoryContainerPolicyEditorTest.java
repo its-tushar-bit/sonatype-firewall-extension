@@ -382,13 +382,13 @@ public class RepositoryContainerPolicyEditorTest
 
     // Check new policy page
     RepositoriesSummaryPage.policyTile().addPolicyButton().click();
-    PolicyEditorPage.checkboxGrandfathering().is(hidden);
+    PolicyEditorPage.legacyViolationCheckbox().is(hidden);
     PolicyEditorPage.backButton().click();
 
     // Check update policy page
     PolicyTileList policyList = RepositoriesSummaryPage.policyTile().policyList(0);
     policyList.row(1).click();
-    PolicyEditorPage.checkboxGrandfathering().is(hidden);
+    PolicyEditorPage.legacyViolationCheckbox().is(hidden);
   }
 
   @Test

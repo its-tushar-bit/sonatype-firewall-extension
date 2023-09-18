@@ -7,7 +7,7 @@ import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
   selectIsMonitoringSupported,
-  selectIsGrandfatheringSupported,
+  selectIsLegacyViolationSupported,
   selectIsNotificationsSupported,
   selectIsWebhooksSupported,
   selectIsAutomationSupported,
@@ -105,9 +105,9 @@ describe('productFeaturesSelectors', () => {
     });
   });
 
-  describe('selectIsGrandfatheringSupported', () => {
+  describe('selectIsLegacyViolationSupported', () => {
     it('returns true if policy-grandfathering enabled', () => {
-      expect(selectIsGrandfatheringSupported(mockState)).toBeTrue();
+      expect(selectIsLegacyViolationSupported(mockState)).toBeTrue();
     });
   });
 

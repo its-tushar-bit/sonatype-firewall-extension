@@ -27,7 +27,7 @@ const getValidationMessage = (isDirty, validationErrors) => {
   return validationErrors;
 };
 
-export default function PolicyViolationsGrandfatheringEditor() {
+export default function DataRetentionEditor() {
   const dispatch = useDispatch();
 
   const stages = useSelector(selectApplicationReportsStages);

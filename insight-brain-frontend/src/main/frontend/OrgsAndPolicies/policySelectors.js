@@ -111,7 +111,7 @@ export const selectIsInheritanceDirty = createSelector(
 export const selectCurrentPolicyActions = createSelector(selectCurrentPolicy, prop('actions'));
 export const selectCurrentPolicyName = createSelector(selectCurrentPolicy, prop('name'));
 export const selectCurrentPolicyThreatLevel = createSelector(selectCurrentPolicy, prop('threatLevel'));
-export const selectCurrentPolicyViolationGrandfatheringAllowed = createSelector(
+export const selectCurrentLegacyViolationAllowed = createSelector(
   selectCurrentPolicy,
   prop('policyViolationGrandfatheringAllowed')
 );

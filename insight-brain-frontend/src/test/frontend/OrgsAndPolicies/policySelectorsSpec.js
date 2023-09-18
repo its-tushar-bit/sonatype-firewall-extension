@@ -39,7 +39,7 @@ import {
   selectOriginalPolicyName,
   selectCurrentPolicyName,
   selectCurrentPolicyThreatLevel,
-  selectCurrentPolicyViolationGrandfatheringAllowed,
+  selectCurrentLegacyViolationAllowed,
   selectNotificationWebhooks,
   selectApplicableWebhooks,
   selectNotificationRecipients,
@@ -1278,17 +1278,17 @@ describe('policySelectors', () => {
     });
   });
 
-  describe('selectCurrentPolicyViolationGrandfatheringAllowed', () => {
+  describe('selectCurrentLegacyViolationAllowed', () => {
     it('is composed from the following selector', () => {
-      expect(selectCurrentPolicyViolationGrandfatheringAllowed.dependencies).toEqual([selectCurrentPolicy]);
+      expect(selectCurrentLegacyViolationAllowed.dependencies).toEqual([selectCurrentPolicy]);
     });
 
-    it('selects CurrentPolicy isViolationGrandfatheringAllowed', () => {
+    it('selects CurrentPolicy isLegacyViolationAllowed', () => {
       const currentPolicy = {
         policyViolationGrandfatheringAllowed: true,
       };
 
-      const selected = selectCurrentPolicyViolationGrandfatheringAllowed.resultFunc(currentPolicy);
+      const selected = selectCurrentLegacyViolationAllowed.resultFunc(currentPolicy);
 
       expect(selected).toBeTrue();
     });

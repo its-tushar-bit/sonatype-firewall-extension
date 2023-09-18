@@ -9,7 +9,7 @@ import {
   selectPolicyMonitoringLoading,
   selectPolicyMonitoringSubmitError,
   selectGrandfatheringStatusMessage,
-  selectIsGrandfatheringSupported,
+  selectIsLegacyViolationSupported,
   selectIsMonitoringSupported,
   selectPolicyMonitoringMonitoredStage,
 } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
@@ -104,9 +104,9 @@ describe('policyMonitoringSelectors', () => {
     });
   });
 
-  describe('selectIsGrandfatheringSupported', () => {
-    it('returns isGrandfatheringSupported', () => {
-      expect(selectIsGrandfatheringSupported(mockState)).toBe(false);
+  describe('selectIsLegacyViolationSupported', () => {
+    it('returns isLegacyViolationSupported', () => {
+      expect(selectIsLegacyViolationSupported(mockState)).toBe(false);
     });
   });
 

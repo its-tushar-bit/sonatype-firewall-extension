@@ -25,7 +25,7 @@ export const selectPolicyMonitoringByOwner = createSelector(
 export const selectPolicyMonitoringOriginalStage = createSelector(selectPolicyMonitoringSlice, prop('originalStage'));
 export const selectPolicyMonitoringMonitoredStage = createSelector(selectPolicyMonitoringSlice, prop('monitoredStage'));
 export const selectIsMonitoringSupported = createSelector(selectPolicyMonitoringSlice, prop('isMonitoringSupported'));
-export const selectIsGrandfatheringSupported = createSelector(
+export const selectIsLegacyViolationSupported = createSelector(
   selectPolicyMonitoringSlice,
   prop('isGrandfatheringSupported')
 );

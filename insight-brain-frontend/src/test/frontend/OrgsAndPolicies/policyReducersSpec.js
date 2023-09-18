@@ -214,14 +214,14 @@ describe('policySlice reducers', () => {
     });
   });
 
-  describe('policy/togglePolicyViolationGrandfatheringAllowed', () => {
+  describe('policy/toggleLegacyViolationAllowed', () => {
     it('toggles policyViolationGrandfatheringAllowed for a category', () => {
       const state = Object.freeze({
         currentPolicy: { policyViolationGrandfatheringAllowed: false, constraints: [] },
       });
 
       const { currentPolicy } = reducer(state, {
-        type: 'policy/togglePolicyViolationGrandfatheringAllowed',
+        type: 'policy/toggleLegacyViolationAllowed',
       });
 
       expect(currentPolicy.policyViolationGrandfatheringAllowed).toBeTrue();

@@ -26,8 +26,8 @@ public class SummarySection
     return new NxTextInput(child("#editor-policy-name"));
   }
 
-  public NxCheckbox policyViolationGrandfatheringCheckbox() {
-    return new NxCheckbox(child("#editor-policy-violation-grandfathering"));
+  public NxCheckbox legacyViolationCheckbox() {
+    return new NxCheckbox(child("#editor-legacy-violation-checkbox"));
   }
 
   public SelenideElement threatLevel() {

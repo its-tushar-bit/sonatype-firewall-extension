@@ -526,8 +526,8 @@ public abstract class AbstractPolicyEditorTest
 
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().input().val("updated name");
-    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldNotBe(selected);
-    summary.policyViolationGrandfatheringCheckbox().click();
+    summary.legacyViolationCheckbox().shouldBe(visible).shouldNotBe(selected);
+    summary.legacyViolationCheckbox().click();
     PolicyEditorPage.savePolicy();
 
     changeThreatLevel(6);
@@ -537,7 +537,7 @@ public abstract class AbstractPolicyEditorTest
 
     PolicyEditorPage.title().shouldHave(text("Edit"));
     summary.policyName().input().shouldBe(visible).shouldHave(value("updated name"));
-    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldBe(selected);
+    summary.legacyViolationCheckbox().shouldBe(visible).shouldBe(selected);
     ThreatDropdownSelector.selectedThreatLabel().shouldBe(text("6"));
 
     Policy updatedPolicy = policyDAO.getById(policy.getId());
@@ -1618,13 +1618,13 @@ public abstract class AbstractPolicyEditorTest
     assertThreatDropdownSelectorState(policy.getThreatLevel(), isReadOnly);
 
     com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || grandfatheringReadOnly ? disabled : enabled;
-    summary.policyViolationGrandfatheringCheckbox().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
+    summary.legacyViolationCheckbox().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
     if (grandfatheringReadOnly) {
       String expectedText = "Legacy Violations are not supported by your license";
-      PolicyEditorPage.disabledGrandfatheringMessage().shouldBe(text(expectedText));
+      PolicyEditorPage.disabledLegacyViolationMessage().shouldBe(text(expectedText));
     }
     else {
-      PolicyEditorPage.disabledGrandfatheringMessage().shouldBe(hidden);
+      PolicyEditorPage.disabledLegacyViolationMessage().shouldBe(hidden);
     }
   }
 

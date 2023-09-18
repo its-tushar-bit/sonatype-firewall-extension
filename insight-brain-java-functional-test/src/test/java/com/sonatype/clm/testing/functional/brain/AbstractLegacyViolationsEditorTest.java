@@ -93,7 +93,6 @@ public abstract class AbstractLegacyViolationsEditorTest
       LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(2);
       LegacyViolationsEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
       LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
-
       LegacyViolationsEditorPage.legacyViolationDisabled().shouldBe(NX_RADIO_SELECTED);
     }
     else {
@@ -102,7 +101,6 @@ public abstract class AbstractLegacyViolationsEditorTest
               .shouldHave(text("Inherit from parent (Disabled)"));
       LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
       LegacyViolationsEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
-
       LegacyViolationsEditorPage.legacyViolationInherited(legacyViolationStatusDTO.enabledInParent)
               .shouldBe(visible).shouldBe(NX_RADIO_SELECTED);
     }
@@ -148,7 +146,6 @@ public abstract class AbstractLegacyViolationsEditorTest
       LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(2);
       LegacyViolationsEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
       LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
-
       LegacyViolationsEditorPage.legacyViolationDisabled().shouldBe(NX_RADIO_SELECTED);
       LegacyViolationsEditorPage.legacyViolationDisabled().shouldNotHave(NX_RADIO_CHECKBOX_DISABLED);
       LegacyViolationsEditorPage.legacyViolationEnabled().shouldNotHave(NX_RADIO_CHECKBOX_DISABLED);

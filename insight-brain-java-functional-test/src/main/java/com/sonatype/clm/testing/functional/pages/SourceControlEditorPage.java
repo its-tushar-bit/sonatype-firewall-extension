@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -76,8 +75,8 @@ public class SourceControlEditorPage
     return $("#test-source-control-config-button");
   }
 
-  public ErrorBox error() {
-    return new ErrorBox(selector, ".iq-alert.iq-alert--error");
+  public static SelenideElement validationError() {
+    return root().$(".nx-form__validation-errors");
   }
 
   public static SelenideElement tokenWarning() {

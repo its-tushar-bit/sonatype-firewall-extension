@@ -20,6 +20,7 @@
     "test-karma-watch": "karma start karma.conf.interactive.js",
     "jest": "jest",
     "jest-watch": "jest --watch",
+    "jest-debug": "node --nolazy --inspect-brk ./node_modules/jest/bin/jest.js --runInBand --colors --verbose",
     "clean": "rimraf target/generated-resources/webpack/assets",
     "format": "prettier -w"
   },

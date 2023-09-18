@@ -385,7 +385,8 @@ public class ApplicationSourceControlEditorTest
     // when: we click the test config
     SourceControlEditorPage.testConfigButton().click();
 
-    // then: we see the test results
+    // then: we see the test results with no validation errors
+    SourceControlEditorPage.validationError().shouldNotBe(visible);
     final TestResults testResults = SourceControlEditorPage.testResults();
     testResults.title().shouldHave(text("Configuration Test Results"));
     testResults.rows().shouldHave(CONFIG_TEST_SSH_NAMES);

@@ -15,6 +15,7 @@ const TestConfigurationButton = ({ isDisabled = false }) => {
   return (
     <NxButton
       id="test-source-control-config-button"
+      type="button"
       variant="secondary"
       disabled={isDisabled}
       onClick={testConfiguration}

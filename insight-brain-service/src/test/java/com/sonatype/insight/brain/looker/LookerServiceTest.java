@@ -9,7 +9,9 @@ import java.util.concurrent.ExecutionException;
 import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -21,6 +23,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.google.common.cache.LoadingCache;
 import com.google.inject.Binder;
 import com.google.inject.Inject;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +52,9 @@ public class LookerServiceTest
   @Mock
   private CurrentUser currentUserMock;
 
+  @Mock
+  private UserDAO mockUserDAO;
+
   @Inject
   private LookerService lookerService;
 
@@ -58,6 +64,7 @@ public class LookerServiceTest
   public void configure(Binder binder) {
     binder.bind(DefaultHdsClient.class).toInstance(hdsClientMock);
     binder.bind(CurrentUser.class).toInstance(currentUserMock);
+    binder.bind(UserDAO.class).toInstance(mockUserDAO);
     super.configure(binder);
   }
 
@@ -78,6 +85,8 @@ public class LookerServiceTest
         .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
+    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("username"));
+
     SSOEmbedUrlDTO result = lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test"));
     verify(hdsClientMock).post(eq(SSOEmbedUrlDTO.class), eq(LOOKER_SSO_EMBED_URL_PATH), any());
     assertThat(result).isNotNull();
@@ -103,8 +112,15 @@ public class LookerServiceTest
         .thenThrow(new BadRequestException("Bad request"));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
+    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("username"));
+
     assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test")))
         .isInstanceOf(BadRequestException.class).hasMessage("Bad request");
+  }
+
+  @NotNull
+  private static User mockUserWithUsername(final String username) {
+    return new User(username, "pass", "firstName", "lastName", "email");
   }
 
   @Test
@@ -113,6 +129,8 @@ public class LookerServiceTest
         .thenThrow(new NotFoundException("Not found"));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
+    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("username"));
+
     assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test")))
         .isInstanceOf(NotFoundException.class).hasMessage("Not found");
   }
@@ -124,6 +142,8 @@ public class LookerServiceTest
         .thenThrow(new ConflictException(hdsError));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
+    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("username"));
+
     assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test")))
         .isInstanceOf(ConflictException.class)
         .hasMessage(hdsError);
@@ -139,7 +159,7 @@ public class LookerServiceTest
 
   @Test
   public void testGetLookerConfig_Error() throws Exception {
-    lookerService = new LookerService(hdsClientMock, currentUserMock, mockConfigCache);
+    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockConfigCache);
     when(mockConfigCache.get(DEFAULT_CONFIG_CACHE_KEY)).thenThrow(
         new ExecutionException(new RuntimeException("error")));
 

@@ -15,8 +15,10 @@ import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -51,10 +53,13 @@ class LookerService
 
   private final LoadingCache<String, LookerConfigDTO> lookerConfigCache;
 
+  private final UserDAO userDAO;
+
   @Inject
-  public LookerService(final HdsClient hdsClient, final CurrentUser currentUser) {
+  public LookerService(final HdsClient hdsClient, final CurrentUser currentUser, final UserDAO userDAO) {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
+    this.userDAO = userDAO;
     this.lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE).build(newLookerConfigCacheLoader());
   }
 
@@ -62,10 +67,12 @@ class LookerService
   LookerService(
       final HdsClient hdsClient,
       final CurrentUser currentUser,
+      final UserDAO userDAO,
       final LoadingCache<String, LookerConfigDTO> cache)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
+    this.userDAO = userDAO;
     this.lookerConfigCache = cache;
   }
 
@@ -110,10 +117,8 @@ class LookerService
 
   private LookerSSOEmbedUrlHdsRequest buildRequest(String requestId, String lookerDashboard) {
     log.debug("Submitting Looker SSOEmbedUrl request {} for dashboard {}", requestId, lookerDashboard);
-    return new LookerSSOEmbedUrlHdsRequest(requestId,
-        currentUser.getUserPrincipal().getDisplayName(),
-        "",
-        lookerDashboard);
+    User user = userDAO.getByUsernameNotNull(currentUser.getUserPrincipal().getUsername());
+    return new LookerSSOEmbedUrlHdsRequest(requestId, user.getFirstName(), user.getLastName(), lookerDashboard);
   }
 
   private void checkLookerIntegratedEnterpriseReportingEnabled() {

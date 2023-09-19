@@ -28,9 +28,11 @@ import {
   selectIsPolicyTypeFilterEnabled,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from './applicationReportActions';
 import { selectSelectedReport } from './applicationReportSelectors';
 import { NxStatefulErrorAlert } from '@sonatype/react-shared-components';
+import { isNilOrEmpty } from '../util/jsUtil';
 
 export default function ReportPage() {
   const applicationReport = useSelector(selectApplicationReportSlice);
@@ -43,6 +45,7 @@ export default function ReportPage() {
   const { loadError, reevaluateMaskState } = pick(['loadError', 'reevaluateMaskState'], applicationReport);
   const [showUnscannedComponentsModal, setShowUnscannedComponentsModal] = useState(false);
   const modalCloseHandler = () => setShowUnscannedComponentsModal(false);
+  const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
   const { publicId, scanId, unknownjs, embeddable, policyViolationId } = routerCurrentParams;
   const loading =
@@ -62,6 +65,12 @@ export default function ReportPage() {
         tabId
       )
     );
+
+  const totalApplicationRisk = isNilOrEmpty(applicationReport?.metadata?.totalRisk)
+    ? 'N/A'
+    : applicationReport.metadata.totalRisk;
+
+  const reportStatusBarProps = { ...selectedReport, totalApplicationRisk, isDeveloperDashboardEnabled };
 
   useEffect(() => {
     if (publicId && scanId) {
@@ -123,7 +132,7 @@ export default function ReportPage() {
             <NxStatefulErrorAlert>Insufficient Permissions to Re-Evaluate</NxStatefulErrorAlert>
           )}
 
-          <ReportStatusBar {...selectedReport} />
+          <ReportStatusBar {...reportStatusBarProps} />
           <ReportContent />
         </NxLoadWrapper>
       </main>

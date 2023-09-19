@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.model.HasStringId;
 
 import com.codeborne.selenide.Condition;
@@ -153,11 +154,85 @@ public class ApplicationReportTest
     reportPage.policyTypeFilterWarning().shouldNot(exist);
 
     reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
+    reportPage.reportApplicationRiskScore().shouldNotBe(visible);
     reportPage.threatIndicators().critical().shouldHave(text("22"));
     reportPage.threatIndicators().severe().shouldHave(text("39"));
     reportPage.threatIndicators().moderate().shouldHave(text("4"));
     reportPage.threatIndicators().caption().shouldHave(exactText("65 Violations"));
     reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 27 components"));
+
+    IQCoverageIndicator coverageIndicator = reportPage.coverageIndicator();
+    coverageIndicator.caption().shouldHave(exactText("64 COMPONENTS"));
+    coverageIndicator.subCaption().shouldHave(exactText("98% of all components identified"));
+    coverageIndicator.donutChart().shouldBe(visible);
+
+    IQGrandfatheringIndicator grandfatheringIndicator = reportPage.grandfatheringIndicator();
+    grandfatheringIndicator.caption().shouldHave(exactText("0 LEGACY VIOLATIONS"));
+
+    activateGrandfathering();
+
+    grandfatheringIndicator = reportPage.grandfatheringIndicator();
+    grandfatheringIndicator.caption().shouldHave(exactText("46 LEGACY VIOLATIONS"));
+
+    // The activateGrandfathering above re-evals and refreshes the page
+    policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    policyEvaluationTime = policyEvaluation.getTime();
+    policyEvaluationTimeStr =
+            DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+    refresh();
+    reportPage.shouldBe(visible);
+    reportPage.reportDescription()
+            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+    reportPage.reportDescription().shouldNotHave(text("(Continuous Monitoring)"));
+    reportPage.reportDescription().shouldHave(text("(Re-evaluation)"));
+    reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
+    reportPage.reportDescription().shouldHave(text(policyEvaluation.getCommitHash()));
+
+    // Update the policy evaluation to look like it was for monitoring
+    policyEvaluation = updateForMonitoring(policyEvaluation);
+    policyEvaluationTime = policyEvaluation.getTime();
+    policyEvaluationTimeStr =
+            DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+    refresh();
+    reportPage.shouldBe(visible);
+    reportPage.reportDescription()
+            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+    reportPage.reportDescription().shouldHave(text("(Continuous Monitoring)"));
+    reportPage.reportDescription().shouldNotHave(text("(Re-evaluation)"));
+    reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
+    reportPage.reportDescription().shouldHave(text(policyEvaluation.getCommitHash()));
+  }
+
+  @Test
+  public void testSummaryWithDeveloperDashboardEnabled() throws Exception {
+    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.POLICY_GRANDFATHERING);
+    refresh();
+
+    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
+    Date policyEvaluationTime = policyEvaluation.getTime();
+
+    String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
+            .print(policyEvaluationTime.getTime());
+    reportPage.shouldBe(visible);
+    reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
+    reportPage.reportDescription()
+            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+    reportPage.reportDescription().shouldNotHave(text("(Continuous Monitoring)"));
+    reportPage.reportDescription().shouldNotHave(text("(Re-evaluation)"));
+    reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
+    reportPage.reportDescription().shouldHave(text(policyEvaluation.getCommitHash()));
+
+    reportPage.policyTypeFilterWarning().shouldNot(exist);
+
+    reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
+    reportPage.reportApplicationRiskScore().shouldBe(visible);
+    reportPage.threatIndicators().critical().shouldHave(text("22"));
+    reportPage.threatIndicators().severe().shouldHave(text("39"));
+    reportPage.threatIndicators().moderate().shouldHave(text("4"));
+    reportPage.threatIndicators().caption().shouldHave(exactText("65 Violations"));
+    reportPage.threatIndicators().subCaption().shouldHave(exactText("Affecting 27 components"));
+
+    eyesWatcher.eyesCheck();
 
     IQCoverageIndicator coverageIndicator = reportPage.coverageIndicator();
     coverageIndicator.caption().shouldHave(exactText("64 COMPONENTS"));

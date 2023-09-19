@@ -7,8 +7,16 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import NxFontAwesomeIcon from '@sonatype/react-shared-components/components/NxFontAwesomeIcon/NxFontAwesomeIcon';
 import { faHistory } from '@fortawesome/pro-solid-svg-icons';
-import { propOr, toUpper } from 'ramda';
-import { NxBinaryDonutChart, NxSmallThreatCounter } from '@sonatype/react-shared-components';
+import { isNil, propOr, toUpper } from 'ramda';
+import {
+  NxBinaryDonutChart,
+  NxH3,
+  NxP,
+  NxSmallThreatCounter,
+  NxTextLink,
+  NxTile,
+} from '@sonatype/react-shared-components';
+import useGetIntegrationsLink from 'MainRoot/integrations/useGetIntegrationsLink';
 export default function ReportStatusBar(props) {
   const getReportProp = (propName) => propOr(0, propName, props);
 
@@ -21,6 +29,8 @@ export default function ReportStatusBar(props) {
   const knownArtifactCount = getReportProp('knownArtifactCount');
   const legacyPolicyViolationsCount = getReportProp('grandfatheredPolicyViolationCount');
   const quarantinedComponentCount = getReportProp('quarantinedComponentCount');
+  const { totalApplicationRisk, isDeveloperDashboardEnabled } = props;
+  const risk = !isNil(totalApplicationRisk) && totalApplicationRisk >= 0 ? totalApplicationRisk : 'N/A';
 
   const showSectionDefault = (propName) => propOr(true, propName, props);
   const hideSectionDefault = (propName) => propOr(false, propName, props);
@@ -35,10 +45,27 @@ export default function ReportStatusBar(props) {
   };
 
   const pluralTermination = (components) => (components === 1 ? '' : 's');
+  const developerDashboardHref = useGetIntegrationsLink('overview');
 
   return (
-    <section className="nx-tile">
-      <div className="nx-tile-content">
+    <NxTile>
+      <NxTile.Content>
+        {isDeveloperDashboardEnabled && (
+          <div className="iq-app-risk-score-container">
+            <NxH3>Application Total Risk Score</NxH3>
+            <div className="iq-app-risk-score-row">
+              <div className="iq-app-risk-score-row__risk" data-testid="iq-app-risk-score">
+                {risk}
+              </div>
+              <NxP className="iq-app-risk-score-row__description">
+                Application risk score is the aggregate threat score of your application&apos;s policy violations. It
+                indicates the total risk found in the latest scan. Sonatype integrations can help to lower your
+                application risk score by providing insights based on your application security.{' '}
+                <NxTextLink href={developerDashboardHref}>Learn more.</NxTextLink>
+              </NxP>
+            </div>
+          </div>
+        )}
         <div className="iq-indicator-row">
           <div className="iq-threat-indicators">
             <NxSmallThreatCounter
@@ -90,8 +117,8 @@ export default function ReportStatusBar(props) {
             </div>
           )}
         </div>
-      </div>
-    </section>
+      </NxTile.Content>
+    </NxTile>
   );
 }
 
@@ -106,4 +133,6 @@ ReportStatusBar.propTypes = {
   nonLowViolationCount: PropTypes.number,
   showGrandfatheredSection: PropTypes.bool,
   showQuarantinedSection: PropTypes.bool,
+  totalApplicationRisk: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  isDeveloperDashboardEnabled: PropTypes.bool,
 };

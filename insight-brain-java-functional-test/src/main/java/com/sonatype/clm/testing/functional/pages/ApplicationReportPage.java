@@ -54,6 +54,10 @@ public class ApplicationReportPage
     return child(".nx-page-title .nx-h1");
   }
 
+  public SelenideElement reportApplicationRiskScore() {
+    return child(".iq-app-risk-score-row__risk");
+  }
+
   public SelenideElement reportDescription() {
     return child(".nx-page-title__description");
   }

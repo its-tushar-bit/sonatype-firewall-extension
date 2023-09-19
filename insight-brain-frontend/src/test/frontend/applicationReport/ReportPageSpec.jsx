@@ -12,6 +12,7 @@ import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('Report Page component', () => {
   let renderComponent,
@@ -102,6 +103,7 @@ describe('Report Page component', () => {
         name: 'App Name',
         organizationId: '8637a3377e8f40748e263474d4a131c5',
       },
+      totalRisk: 404,
     };
 
     router = {
@@ -132,6 +134,7 @@ describe('Report Page component', () => {
     spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue('');
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsOldReport').and.returnValue(false);
     spyOn(applicationReportSelectors, 'selectHasUnscannedComponents').and.returnValue(false);
+    spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').and.returnValue(false);
 
     loadReportIfNeededSpy = spyOn(applicationReportActions, 'loadReportIfNeeded').and.callThrough();
     spyOn(applicationReportActions, 'toggleAggregateReportEntries');
@@ -234,6 +237,39 @@ describe('Report Page component', () => {
     expect(totalArtifactText).toBeVisible();
     expect(coveragePercentageText).toBeVisible();
     expect(legacyPolicyViolationsCountText).toBeVisible();
+  });
+
+  it('when developer-dashboard feature is disabled renders a ReportStatusBar without application total risk score', () => {
+    productFeaturesSelectors.selectIsDeveloperDashboardEnabled.and.returnValue(false);
+    renderComponent();
+    expect(screen.queryByRole('heading', { name: /application total risk score/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(metadata.totalRisk)).not.toBeInTheDocument();
+  });
+
+  describe('when developer-dashboard feature is enabled', () => {
+    beforeEach(() => {
+      productFeaturesSelectors.selectIsDeveloperDashboardEnabled.and.returnValue(true);
+    });
+
+    it('renders a ReportStatusBar with application total risk score', () => {
+      renderComponent();
+      expect(screen.getByRole('heading', { name: /application total risk score/i })).toBeInTheDocument();
+      expect(screen.getByTestId('iq-app-risk-score')).toHaveTextContent(metadata.totalRisk);
+    });
+
+    it('renders a ReportStatusBar with "N/A" when developer-dashboard feature is enabled and risk is -1', () => {
+      applicationReport.metadata = { ...metadata, totalRisk: -1 };
+      renderComponent();
+      expect(screen.getByRole('heading', { name: /application total risk score/i })).toBeInTheDocument();
+      expect(screen.getByTestId('iq-app-risk-score')).toHaveTextContent('N/A');
+    });
+
+    it('renders a ReportStatusBar with application total risk score when risk is 0', () => {
+      applicationReport.metadata = { ...metadata, totalRisk: 0 };
+      renderComponent();
+      expect(screen.getByRole('heading', { name: /application total risk score/i })).toBeInTheDocument();
+      expect(screen.getByTestId('iq-app-risk-score')).toHaveTextContent('0');
+    });
   });
 
   it('renders ReportContent with 3 actions', async () => {

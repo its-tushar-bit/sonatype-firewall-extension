@@ -7,7 +7,7 @@
 import { NxTab, NxTabList, NxTabs } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { isNil, path, toUpper, replace } from 'ramda';
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   APPLICATIONS_RESULTS_TYPE,
   COMPONENTS_RESULTS_TYPE,
@@ -20,24 +20,12 @@ const capitalizeFirstLetter = replace(/^./, toUpper);
 const tabs = [VIOLATIONS_RESULTS_TYPE, COMPONENTS_RESULTS_TYPE, APPLICATIONS_RESULTS_TYPE, WAIVERS_RESULTS_TYPE];
 const firewallOnlyTabs = [WAIVERS_RESULTS_TYPE];
 
-export default function DashboardTabs(props) {
-  const { currentTab, stateGo, isFirewallOnlyLicense } = props;
-
-  useEffect(() => {
-    if (isFirewallOnlyLicense) {
-      stateGo('dashboard.overview.waivers');
-    }
-  }, [isFirewallOnlyLicense]);
-
+export default function DashboardTabs({ currentTab, stateGo, isFirewallOnlyLicense, ...props }) {
   const handleTabClick = (index) => {
-    if (isFirewallOnlyLicense) {
-      stateGo('dashboard.overview.waivers');
-    } else {
-      stateGo(`dashboard.overview.${tabs[index]}`);
-    }
+    stateGo(`dashboard.overview.${tabsToUse[index]}`);
   };
 
-  const defaultTabs = tabs.map((tab) => (
+  const renderTab = (tab) => (
     <NxTab key={tab}>
       {capitalizeFirstLetter(tab)}
       {!isNil(path([tab, 'numResults'], props)) && (
@@ -46,20 +34,14 @@ export default function DashboardTabs(props) {
         </span>
       )}
     </NxTab>
-  ));
+  );
 
-  const firewallOnlyLicenseTabs = firewallOnlyTabs.map((tab) => (
-    <NxTab key={tab}>
-      {capitalizeFirstLetter(tab)}
-      {!isNil(path([tab, 'numResults'], props)) && (
-        <span className={`nx-counter nx-counter--active`}>{path([tab, 'numResults'], props)}</span>
-      )}
-    </NxTab>
-  ));
+  const tabsToUse = isFirewallOnlyLicense ? firewallOnlyTabs : tabs;
+  const renderTabs = tabsToUse.map((tab) => renderTab(tab));
 
   return (
-    <NxTabs activeTab={tabs.indexOf(currentTab)} onTabSelect={handleTabClick}>
-      <NxTabList>{isFirewallOnlyLicense ? firewallOnlyLicenseTabs : defaultTabs}</NxTabList>
+    <NxTabs activeTab={tabsToUse.indexOf(currentTab)} onTabSelect={handleTabClick}>
+      <NxTabList>{renderTabs}</NxTabList>
     </NxTabs>
   );
 }

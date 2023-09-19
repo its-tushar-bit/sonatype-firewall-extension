@@ -58,6 +58,7 @@ function IqSidebarNav(props) {
   const dashboardHref = isFirewallOnlyLicense
     ? uiRouterState.href('dashboard.overview.waivers')
     : uiRouterState.href('dashboard.overview.violations');
+  const logoHref = uiRouterState.href('home');
   const orgsPoliciesHref = uiRouterState.href('management.view');
   const reportsHref = uiRouterState.href('violations');
   const successMetricsHref = uiRouterState.href('labs.successMetrics');
@@ -94,7 +95,7 @@ function IqSidebarNav(props) {
       toggleCloseIcon={faBars}
       logoImg={logo}
       logoAltText={productEdition}
-      logoLink="#"
+      logoLink={logoHref}
     >
       {isLoggedIn && (
         <NxGlobalSidebarNavigation id="global-sidebar-buttons">

@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
@@ -361,11 +362,32 @@ public abstract class AbstractFunctionalTest
     loginModal.shouldBe(hidden);
   }
 
+  protected static void logoutAndDontIgnoreUnsavedChangesModal() {
+    logout(false);
+  }
+
   protected static void logout() {
+    logout(true);
+  }
+
+  private static void logout(boolean shouldIgnoreUnsavedChangesModal) {
     UserMenu userMenu = MainHeader.userMenu();
     userMenu.dropdownToggle().shouldBe(visible).click();
     userMenu.logout().should(appear).click();
-    userMenu.shouldNotBe(visible);
+    WebDriver webDriver = WebDriverRunner.getWebDriver();
+    if (shouldIgnoreUnsavedChangesModal) {
+      try {
+        webDriver.findElement(By.id("unsaved-modal"));
+        UnsavedModal unsavedModal = new UnsavedModal();
+        unsavedModal.shouldBe(visible);
+        unsavedModal.continueButton().click();
+
+      }
+      catch (NoSuchElementException e) {
+        // do nothing
+      }
+      userMenu.shouldNotBe(visible);
+    }
   }
 
   /**

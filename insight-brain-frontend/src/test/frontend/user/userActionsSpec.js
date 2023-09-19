@@ -5,10 +5,12 @@
  */
 import pendoModule from '../../../main/frontend/pendo/module';
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
+import unsavedChangesModalService from '../../../main/frontend/unsavedChangesModal/module';
 
 describe('userActions', function () {
   let userActions,
     initialState,
+    currentState,
     CLMLocations,
     telemetryService,
     CurrentUser,
@@ -18,12 +20,13 @@ describe('userActions', function () {
     pendoDeferred,
     pendoServiceMock;
 
-  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
+  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name, unsavedChangesModalService.name));
 
   beforeEach(
     angular.mock.module(pendoModule.name, function ($provide) {
       pendoServiceMock = jasmine.createSpyObj('pendoService', ['flush']);
-
+      SpecUtil.mockNgRedux($provide);
+      $provide.service;
       $provide.service('pendoService', function () {
         return pendoServiceMock;
       });
@@ -60,6 +63,19 @@ describe('userActions', function () {
         isDefaultUser: false,
         shouldDisplayNotice: false,
         canChangePassword: false,
+      },
+    };
+
+    currentState = {
+      router: {
+        currentState: {
+          name: 'firewallOnboarding.firewallOnboardingPage',
+          url: '/firewallOnboarding',
+          data: {
+            title: 'Firewall Onboarding',
+            isDirty: ['firewallOnboarding', 'isConfiguring'],
+          },
+        },
       },
     };
   }));
@@ -614,7 +630,7 @@ describe('userActions', function () {
 
   describe('logout()', function () {
     it('provides the ability to log out by hitting a logout api endpoint with a delete request', function () {
-      const store = SpecUtil.mockReduxStore(initialState);
+      const store = SpecUtil.mockReduxStore(currentState);
       pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
 
@@ -626,7 +642,7 @@ describe('userActions', function () {
     });
 
     it('still logs out if the pendo promise is rejected', function () {
-      const store = SpecUtil.mockReduxStore(initialState);
+      const store = SpecUtil.mockReduxStore(currentState);
       pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
 
@@ -638,7 +654,7 @@ describe('userActions', function () {
     });
 
     it(`doesn't log out from the server before the pendo promise completes`, function () {
-      const store = SpecUtil.mockReduxStore(initialState);
+      const store = SpecUtil.mockReduxStore(currentState);
       pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
 
@@ -651,7 +667,7 @@ describe('userActions', function () {
     });
 
     it(`provides the ability to log out for reverse proxy`, function () {
-      const store = SpecUtil.mockReduxStore(initialState);
+      const store = SpecUtil.mockReduxStore(currentState);
       pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
       var headers = { Location: 'http://localhost/logout' };
       $httpBackend.whenDELETE(CLMLocations.getSessionLogoutUrl()).respond(204, '', headers);

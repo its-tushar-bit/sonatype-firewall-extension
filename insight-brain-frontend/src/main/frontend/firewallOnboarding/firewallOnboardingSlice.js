@@ -28,11 +28,8 @@ export const REDUCER_NAME = 'firewallOnboarding';
 
 /** @type FirewallOnboardingState  */
 export const initialState = {
-  incompleteConfigurationModal: {
-    showModal: false,
-    href: null,
-  },
   loading: false,
+  isConfiguring: true,
   currentStep: first(steps),
   showWelcomeScreen: true,
   supportedFormats: [],
@@ -55,22 +52,6 @@ export const initialState = {
     configureError: null,
   },
 };
-
-const openIncompleteConfigurationModal = (state, { payload }) => ({
-  ...state,
-  incompleteConfigurationModal: {
-    showModal: true,
-    href: payload,
-  },
-});
-
-const closeIncompleteConfigurationModal = (state) => ({
-  ...state,
-  incompleteConfigurationModal: {
-    showModal: false,
-    href: null,
-  },
-});
 
 const continueToNextStep = (state) => {
   if (next(state.currentStep)) {
@@ -268,6 +249,11 @@ const configureProtectionRulesFailed = (state, { payload }) => ({
   },
 });
 
+const finishConfiguration = (state) => ({
+  ...state,
+  isConfiguring: false,
+});
+
 const firewallOnboardingSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -275,10 +261,9 @@ const firewallOnboardingSlice = createSlice({
     continueToNextStep,
     goBackToPreviousStep,
     hideWelcomeScreen,
-    openIncompleteConfigurationModal,
-    closeIncompleteConfigurationModal,
     configureRepositories,
     toggleProtectionRule,
+    finishConfiguration,
   },
   extraReducers: {
     [loadUnconfiguredRepoManagers.pending]: loadUnconfiguredRepoManagersRequested,

@@ -31,43 +31,6 @@ describe('FirewallOnboardingReducer', () => {
     });
   });
 
-  describe('openIncompleteConfigurationModal', () => {
-    it('sets showModal to true and href to payload', () => {
-      const state = Object.freeze({
-        incompleteConfigurationModal: {
-          showModal: false,
-          href: null,
-        },
-      });
-      const { incompleteConfigurationModal } = reduce(state, {
-        type: 'firewallOnboarding/openIncompleteConfigurationModal',
-        payload: 'abc',
-      });
-      expect(incompleteConfigurationModal).toEqual({
-        showModal: true,
-        href: 'abc',
-      });
-    });
-  });
-
-  describe('closeIncompleteConfigurationModal', () => {
-    it('sets showModal to false and href to null', () => {
-      const state = Object.freeze({
-        incompleteConfigurationModal: {
-          showModal: true,
-          href: 'abc',
-        },
-      });
-      const { incompleteConfigurationModal } = reduce(state, {
-        type: 'firewallOnboarding/closeIncompleteConfigurationModal',
-      });
-      expect(incompleteConfigurationModal).toEqual({
-        showModal: false,
-        href: null,
-      });
-    });
-  });
-
   describe('continueToNextStep', () => {
     it('updates currentStep', () => {
       const state = Object.freeze({ currentStep: steps[0] });

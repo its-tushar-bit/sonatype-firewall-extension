@@ -4,12 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
+import unsavedChangesModalService from '../../../main/frontend/unsavedChangesModal/module';
 
 describe('changeDefaultAdminPasswordNotice component', () => {
   let vm;
 
   beforeEach(
-    angular.mock.module(changeDefaultAdminPasswordNoticeModule.name, ($provide) => {
+    angular.mock.module(changeDefaultAdminPasswordNoticeModule.name, unsavedChangesModalService.name, ($provide) => {
       SpecUtil.mockNgRedux($provide);
     })
   );

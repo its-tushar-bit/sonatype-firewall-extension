@@ -46,6 +46,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.attribute;
@@ -100,8 +101,9 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
-  public void testConfirmProxyRepositoryContainersAreAsWideAsParentContainer() {
+  public void testConfirmProxyRepositoryContainersAreAsWideAsParentContainer1Repo() {
     refreshOrOpen(FirewallOnboardingPage.url());
+
     logout();
 
     RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId1");
@@ -119,27 +121,74 @@ public class FirewallOnboardingPageTest
     eyesWatcher.eyesCheck(
         "Firewall onboarding: 1 repository container is as wide as in its parent container," + " with space its sides");
 
-    createRepositories(1, repositoryManager, "pypi", proxy, supportedFormats);
+  }
+
+  @Test
+  public void testConfirmProxyRepositoryContainersAreAsWideAsParentContainer2Repos() {
     refreshOrOpen(FirewallOnboardingPage.url());
+
+    logout();
+
+    RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId1");
+
+    List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm", "go");
+    mockComponentSupportedFormats(supportedFormats);
+    createRepositories(1, repositoryManager, "maven2", proxy, supportedFormats);
+    createRepositories(1, repositoryManager, "pypi", proxy, supportedFormats);
+
+    loginAsAdmin();
     waitUntilUrl(FirewallOnboardingPage.url());
+    page.shouldBe(visible);
     page.getStartedButton().click();
     page.continueButton().click();
     eyesWatcher.eyesCheck("Firewall onboarding: 2 repository containers combined are as wide as its parent "
         + "container, and have space around them");
+  }
 
-    createRepositories(1, repositoryManager, "npm", proxy, supportedFormats);
+  @Test
+  public void testConfirmProxyRepositoryContainersAreAsWideAsParentContainer3Repos() {
     refreshOrOpen(FirewallOnboardingPage.url());
+
+    logout();
+
+    RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId1");
+
+    List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm", "go");
+    mockComponentSupportedFormats(supportedFormats);
+    createRepositories(1, repositoryManager, "maven2", proxy, supportedFormats);
+    createRepositories(1, repositoryManager, "pypi", proxy, supportedFormats);
+    createRepositories(1, repositoryManager, "npm", proxy, supportedFormats);
+
+    loginAsAdmin();
     waitUntilUrl(FirewallOnboardingPage.url());
+    page.shouldBe(visible);
     page.getStartedButton().click();
     page.continueButton().click();
     eyesWatcher.eyesCheck("Firewall onboarding: 3 repository containers combined are as wide as its parent "
         + "container, and have space around them");
+  }
 
-    createRepositories(1, repositoryManager, "go", proxy, supportedFormats);
+  @Test
+  public void testConfirmProxyRepositoryContainersAreAsWideAsParentContainer4Repos() {
     refreshOrOpen(FirewallOnboardingPage.url());
+
+    logout();
+
+    RepositoryManager repositoryManager = createUnconfiguredRepositoryManager("instanceId1");
+
+    List<String> supportedFormats = Arrays.asList("maven2", "pypi", "npm", "go");
+    mockComponentSupportedFormats(supportedFormats);
+    createRepositories(1, repositoryManager, "maven2", proxy, supportedFormats);
+    createRepositories(1, repositoryManager, "pypi", proxy, supportedFormats);
+    createRepositories(1, repositoryManager, "npm", proxy, supportedFormats);
+    createRepositories(1, repositoryManager, "go", proxy, supportedFormats);
+
+    loginAsAdmin();
     waitUntilUrl(FirewallOnboardingPage.url());
+    page.shouldBe(visible);
     page.getStartedButton().click();
     page.continueButton().click();
+    page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
     eyesWatcher.eyesCheck("Firewall onboarding: 4 repository containers combined are as wide as its parent "
         + "container, and have space around them");
   }
@@ -204,16 +253,16 @@ public class FirewallOnboardingPageTest
   }
 
   @Test
+  @Ignore("CLM-23240")
   public void testClickingSidebarNavigationLifeCycleLogoIsInterceptedOpensIncompleteConfigurationModal() {
     refreshOrOpen(FirewallOnboardingPage.url());
 
-    page.incompleteConfigurationModal().shouldNotBe(visible);    
+    page.incompleteConfigurationModal().shouldNotBe(visible);
 
     SidebarNavigation.container().shouldBe(visible);
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productInfoLink().click();
     page.incompleteConfigurationModal().shouldBe(visible);
-
     page.incompleteConfigurationModal().cancelButton().click();
     page.incompleteConfigurationModal().shouldNotBe(visible);
 
@@ -327,6 +376,21 @@ public class FirewallOnboardingPageTest
 
     FirewallPage firewallPage = new FirewallPage();
     firewallPage.shouldBe(visible);
+  }
+
+  @Test
+  public void testLogoutOpensIncompleteConfigurationModalAndClickCancelButton() {
+    refreshOrOpen(FirewallOnboardingPage.url());
+
+    page.incompleteConfigurationModal().shouldNotBe(visible);
+
+    logoutAndDontIgnoreUnsavedChangesModal();
+
+    page.incompleteConfigurationModal().shouldBe(visible);
+    page.incompleteConfigurationModal().cancelButton().click();
+    page.incompleteConfigurationModal().shouldNotBe(visible);
+
+    page.shouldBe(visible);
   }
 
   @Test

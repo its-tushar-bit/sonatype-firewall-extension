@@ -24,10 +24,6 @@ export const selectUnconfiguredRepoManager = createSelector(
     return unconfiguredRepoManagers.repoManagers?.[0] ?? null;
   }
 );
-export const selectIncompleteConfigurationModal = createSelector(
-  selectFirewallOnboardingSlice,
-  prop('incompleteConfigurationModal')
-);
 
 export const selectRepositories = createSelector(selectFirewallOnboardingSlice, prop('repositories'));
 export const selectRepositoriesList = createSelector(selectRepositories, prop('list'));

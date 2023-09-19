@@ -8,28 +8,28 @@ import React from 'react';
 import { useDispatch } from 'react-redux';
 import { NxButton, NxFooter } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import { useRouterState } from '../react/RouterStateContext';
 
 import { actions } from './firewallOnboardingSlice';
 import { next, prev } from './firewallOnboardingUtils';
-import { stateGo } from '../reduxUiRouter/routerActions';
 import { setShowWelcomeModalToTrueInStore } from '../firewall/firewallWelcomeModalStore';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 
 const HELP_URL = 'http://links.sonatype.com/products/nxiq/doc/firewall-onboarding';
 
 export default function ActionsFooter({ currentStep = {}, isNextButtonDisabled, ...otherProps }) {
-  const uiRouterState = useRouterState();
   const dispatch = useDispatch();
-  const openIncompleteConfigurationModal = (href) => dispatch(actions.openIncompleteConfigurationModal(href));
 
   const continueToNextStep = () => dispatch(actions.continueToNextStep());
   const goBackToPreviousStep = () => dispatch(actions.goBackToPreviousStep());
 
-  const handleCancel = () => openIncompleteConfigurationModal(uiRouterState.href('firewall.firewallPage'));
+  // When cancelling onboarding it should go back to firewall initial screen
+  const handleCancel = () => dispatch(stateGo('firewall.firewallPage'));
+
   const launchFirewall = () => {
     setShowWelcomeModalToTrueInStore();
     dispatch(actions.configureProtectionRules());
     dispatch(actions.saveRepositories());
+    dispatch(actions.finishConfiguration());
     dispatch(stateGo('firewall.firewallPage'));
   };
 

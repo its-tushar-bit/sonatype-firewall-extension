@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.FirewallRepositoryList;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
@@ -82,8 +83,8 @@ public class FirewallOnboardingPage
     return child("#actions-footer");
   }
 
-  public IncompleteConfigurationModal incompleteConfigurationModal() {
-    return new IncompleteConfigurationModal(ROOT);
+  public UnsavedModal incompleteConfigurationModal() {
+    return new UnsavedModal();
   }
 
   public List<FirewallRepositoryList> firewallRepositoryLists() {

@@ -27,11 +27,8 @@ export type RepositoryManager = {
 };
 
 export type FirewallOnboardingState = {
-  incompleteConfigurationModal: {
-    showModal: boolean;
-    href: any;
-  };
   loading: boolean;
+  isConfiguring: boolean;
   currentStep: any;
   showWelcomeScreen: boolean;
   supportedFormats: string[];
@@ -47,4 +44,10 @@ export type FirewallOnboardingState = {
     loading: boolean;
     loadError: any;
   };
+  protectionRules: {
+    supplyChainAttacksProtectionEnabled: boolean,
+    namespaceConfusionProtectionEnabled: boolean,
+    configuring: boolean,
+    configureError: any,
+  },
 };

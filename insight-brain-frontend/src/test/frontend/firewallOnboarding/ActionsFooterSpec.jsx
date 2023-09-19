@@ -11,6 +11,7 @@ import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import ActionsFooter from 'MainRoot/firewallOnboarding/ActionsFooter';
 import { actions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
 import { steps } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
+import * as RouterActions from '../../../main/frontend/reduxUiRouter/routerActions';
 
 describe('ActionsFooter', function () {
   const renderComponent = (currentStep) => render(<ActionsFooter currentStep={currentStep} />);
@@ -20,8 +21,8 @@ describe('ActionsFooter', function () {
     spyOn(actions, 'saveRepositories').and.callThrough();
     spyOn(actions, 'continueToNextStep').and.callThrough();
     spyOn(actions, 'goBackToPreviousStep').and.callThrough();
-    spyOn(actions, 'openIncompleteConfigurationModal').and.callThrough();
     spyOn(actions, 'configureProtectionRules').and.callThrough();
+    spyOn(RouterActions, 'stateGo').and.callThrough();
   });
 
   describe('when the current step is the first step', () => {
@@ -39,7 +40,7 @@ describe('ActionsFooter', function () {
 
       expect(cancelButton).toBeVisible();
       fireEvent.click(cancelButton);
-      expect(actions.openIncompleteConfigurationModal).toHaveBeenCalled();
+      expect(RouterActions.stateGo).toHaveBeenCalled();
     });
 
     it('renders continue button', () => {
@@ -81,7 +82,7 @@ describe('ActionsFooter', function () {
 
       expect(cancelButton).toBeVisible();
       fireEvent.click(cancelButton);
-      expect(actions.openIncompleteConfigurationModal).toHaveBeenCalled();
+      expect(RouterActions.stateGo).toHaveBeenCalled();
     });
 
     it('renders continue button', () => {
@@ -125,7 +126,7 @@ describe('ActionsFooter', function () {
 
       expect(cancelButton).toBeVisible();
       fireEvent.click(cancelButton);
-      expect(actions.openIncompleteConfigurationModal).toHaveBeenCalled();
+      expect(RouterActions.stateGo).toHaveBeenCalled();
     });
 
     it('does not render continue button', () => {

@@ -6,6 +6,7 @@
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import FirewallOnboardingPage from './FirewallOnboardingPage';
 import firewallOnboarding from './firewallOnboarding';
+import IncompleteConfigurationModal from './IncompleteConfigurationModal';
 
 export default angular
   .module('firewallOnboardingModule', ['ngRedux'])
@@ -24,6 +25,8 @@ function routes($stateProvider) {
       component: 'firewallOnboardingPage',
       data: {
         title: 'Firewall Onboarding',
+        isDirty: ['firewallOnboarding', 'isConfiguring'],
+        unsavedChangesModal: IncompleteConfigurationModal,
       },
       params: {
         embeddable: false,

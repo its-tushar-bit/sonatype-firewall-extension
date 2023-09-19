@@ -17,7 +17,7 @@ export default function unsavedChangesModalService($q) {
   }
 
   return {
-    open() {
+    open(ModalClass = UnsavedChangesModal) {
       if (modalPromise) {
         return modalPromise;
       }
@@ -45,7 +45,7 @@ export default function unsavedChangesModalService($q) {
         document.body.removeChild(unsavedChangesDiv);
       };
 
-      ReactDOM.render(<UnsavedChangesModal onContinue={onContinue} onClose={onClose} />, unsavedChangesDiv);
+      ReactDOM.render(<ModalClass onContinue={onContinue} onClose={onClose} />, unsavedChangesDiv);
       modalPromise = deferred.promise;
 
       return modalPromise;

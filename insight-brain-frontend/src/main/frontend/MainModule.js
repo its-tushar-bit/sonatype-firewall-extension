@@ -467,7 +467,7 @@ export const InitModule = angular
               isProcessingStateChange = true;
               event.preventDefault();
               unsavedChangesModalService
-                .open()
+                .open($state.current.data.unsavedChangesModal)
                 .then(
                   function () {
                     $state.go(toState, toParams);

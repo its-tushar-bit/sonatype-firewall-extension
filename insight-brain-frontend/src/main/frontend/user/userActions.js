@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { always, propEq } from 'ramda';
+import { always, path, propEq } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
@@ -28,6 +28,7 @@ function userActions(
   PermissionService,
   messages,
   pendoService,
+  unsavedChangesModalService,
   $window
 ) {
   function fetchUser() {
@@ -84,17 +85,33 @@ function userActions(
   }
 
   function logout() {
-    return (dispatch) => {
-      dispatch({ type: USER_LOGGED_OUT });
-      const serverLogout = () => $http.delete(CLMLocations.getSessionLogoutUrl());
-      pendoService
-        .flush()
-        // continue the logout whether the pendo flush succeeds or fails
-        .then(serverLogout, serverLogout)
-        .then(function (response) {
-          $($window).unbind('beforeunload');
-          $rootScope.$emit('logout', response.headers('Location'));
-        });
+    return (dispatch, getState) => {
+      const state = getState();
+      const currentState = state.router.currentState;
+      const isDirtyPath = currentState.data && currentState.data.isDirty;
+      const unsavedChangesModal = currentState?.data?.unsavedChangesModal;
+      const isCurrentRouteDirty = isDirtyPath ? path(isDirtyPath, state) : false;
+
+      function onLogoutConfirmation() {
+        return (dispatch) => {
+          dispatch({ type: USER_LOGGED_OUT });
+          const serverLogout = () => $http.delete(CLMLocations.getSessionLogoutUrl());
+          pendoService
+            .flush()
+            // continue the logout whether the pendo flush succeeds or fails
+            .then(serverLogout, serverLogout)
+            .then(function (response) {
+              $($window).unbind('beforeunload');
+              $rootScope.$emit('logout', response.headers('Location'));
+            });
+        };
+      }
+
+      if (isCurrentRouteDirty) {
+        unsavedChangesModalService.open(unsavedChangesModal).then(() => dispatch(onLogoutConfirmation()));
+      } else {
+        dispatch(onLogoutConfirmation());
+      }
     };
   }
 
@@ -183,6 +200,7 @@ userActions.$inject = [
   'PermissionService',
   'Messages',
   'pendoService',
+  'unsavedChangesModalService',
   '$window',
 ];
 export default userActions;

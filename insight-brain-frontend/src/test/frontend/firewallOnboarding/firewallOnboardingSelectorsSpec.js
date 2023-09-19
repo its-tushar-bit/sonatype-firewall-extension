@@ -10,7 +10,6 @@ import {
   selectShowWelcomeScreen,
   selectUnconfiguredRepoManagersList,
   selectUnconfiguredRepoManager,
-  selectIncompleteConfigurationModal,
   selectRepositoriesList,
   selectSupportedFormats,
   selectRepositoriesByType,
@@ -28,22 +27,6 @@ describe('FirewallOnboardingSelectors', () => {
       const actualSelection = selectFirewallOnboardingSlice(state);
 
       expect(actualSelection).toBe(firewallOnboarding);
-    });
-  });
-
-  describe('selectIncompleteConfigurationModal', () => {
-    it('selects the incompleteConfiguration from the firewall onboarding slice', () => {
-      const incompleteConfigurationModal = {
-        showModal: false,
-        href: null,
-      };
-      const state = {
-        firewallOnboarding: {
-          incompleteConfigurationModal,
-        },
-      };
-      const actualSelection = selectIncompleteConfigurationModal(state);
-      expect(actualSelection).toBe(incompleteConfigurationModal);
     });
   });
 

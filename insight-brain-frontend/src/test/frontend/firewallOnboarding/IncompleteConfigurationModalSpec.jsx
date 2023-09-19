@@ -6,20 +6,11 @@
 import React from 'react';
 import IncompleteConfigurationModal from 'MainRoot/firewallOnboarding/IncompleteConfigurationModal';
 import { render, screen } from 'TestRoot/SpecUtil';
-import * as firewallOnboardingSelectors from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
 
 describe('IncompleteConfigurationModal', () => {
-  let renderComponent, spySelectIncompleteConfigurationModal;
+  let renderComponent;
 
   beforeEach(() => {
-    spySelectIncompleteConfigurationModal = spyOn(
-      firewallOnboardingSelectors,
-      'selectIncompleteConfigurationModal'
-    ).and.callThrough();
-    spySelectIncompleteConfigurationModal.and.returnValue({
-      showModal: true,
-      href: '#',
-    });
     renderComponent = () => render(<IncompleteConfigurationModal />);
   });
 
@@ -36,14 +27,5 @@ describe('IncompleteConfigurationModal', () => {
     expect(screen.getByText('If you continue, any changes you have made will be discarded.')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Continue' })).toBeVisible();
-  });
-
-  it('does not render the modal if showModal is false', () => {
-    spySelectIncompleteConfigurationModal.and.returnValue({
-      showModal: false,
-      href: null,
-    });
-    renderComponent();
-    expect(screen.queryByRole('dialog', { hidden: true })).not.toBeInTheDocument();
   });
 });

@@ -36,8 +36,8 @@ import {
 
 import { actions as deleteOwnerActions } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSlice';
 import { actions as contactActions } from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSlice';
-import { actions as grandfatheringActions } from 'MainRoot/OrgsAndPolicies/grandfatheringModal/grandfatheringSlice';
-import { actions as revokeGrandfatheringActions } from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/revokeGrandfatheringSlice';
+import { actions as legacyViolationModalActions } from 'MainRoot/OrgsAndPolicies/legacyViolationModal/legacyViolationModalSlice';
+import { actions as revokeLegacyViolationModalActions } from 'MainRoot/OrgsAndPolicies/revokeLegacyViolationModal/revokeLegacyViolationModalSlice';
 import { actions as moveOwnerActions } from 'MainRoot/OrgsAndPolicies/moveOwner/moveOwnerSlice';
 import { actions as evaluateApplicationActions } from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSlice';
 import copyIdToClipboardAction from 'MainRoot/OrgsAndPolicies/copyIdToClipboardToast/copyIdToClipboardSlice';
@@ -54,12 +54,12 @@ import {
 import { selectCalculatedEnabled } from '../legacyViolationSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
-const getDisabledGrandfatherTooltipMessage = (support, enabled) => {
+const getDisabledLegacyViolationsTooltipMessage = (support, enabled) => {
   if (!support) {
     return 'Legacy Violations are not supported by your license';
   }
   if (!enabled) {
-    return 'Legacy violations are not enabled for this application.';
+    return 'Legacy Violations are not enabled for this application.';
   }
   return '';
 };
@@ -80,16 +80,15 @@ const ActionDropdown = () => {
   const isRootOrg = useSelector(selectIsRootOrganization);
   const isOrg = useSelector(selectIsOrganization);
   const isApp = useSelector(selectIsApplication);
-  const isGrandfatheringSupported = useSelector(selectIsLegacyViolationSupported);
-  const isGrandfatheringEnabled = useSelector(selectCalculatedEnabled);
+  const isLegacyViolationSupported = useSelector(selectIsLegacyViolationSupported);
+  const isLegacyViolationEnabled = useSelector(selectCalculatedEnabled);
   const isEvaluateApplicationAvailable = useSelector(selectIsEvaluateApplicationAvailable);
   const owner = useSelector(selectSelectedOwner);
-  const { applicationSummary, hasPermissionToChangeAppId, hasPermissionToEvaluateApp } = useSelector(
-    selectActionDropdownSlice
-  );
+  const { applicationSummary, hasPermissionToChangeAppId, hasPermissionToEvaluateApp } =
+    useSelector(selectActionDropdownSlice);
   const stages = useSelector(selectDashboardStageTypes);
-  const grandfatheringDisabled = !isGrandfatheringSupported || !isGrandfatheringEnabled;
-  const GrandfatheringTooltip = grandfatheringDisabled ? NxTooltip : NxOverflowTooltip;
+  const legacyViolationDisabled = !isLegacyViolationSupported || !isLegacyViolationEnabled;
+  const LegacyViolationTooltip = legacyViolationDisabled ? NxTooltip : NxOverflowTooltip;
 
   const uiRouterState = useRouterState();
 
@@ -118,15 +117,15 @@ const ActionDropdown = () => {
     }
   };
 
-  const handleGrandfather = () => {
-    if (!grandfatheringDisabled) {
-      dispatch(grandfatheringActions.openModal());
+  const handleGrantLegacyViolationStatus = () => {
+    if (!legacyViolationDisabled) {
+      dispatch(legacyViolationModalActions.openModal());
     }
   };
 
-  const handleRevokeAllGrandfathered = () => {
-    if (isGrandfatheringSupported) {
-      dispatch(revokeGrandfatheringActions.openModal());
+  const handleRevokeLegacyViolationStatus = () => {
+    if (isLegacyViolationSupported) {
+      dispatch(revokeLegacyViolationModalActions.openModal());
     }
   };
 
@@ -223,28 +222,28 @@ const ActionDropdown = () => {
         {isApp && (
           <>
             <NxDropdown.Divider />
-            <GrandfatheringTooltip
+            <LegacyViolationTooltip
               title={
-                grandfatheringDisabled
-                  ? getDisabledGrandfatherTooltipMessage(isGrandfatheringSupported, isGrandfatheringEnabled)
+                legacyViolationDisabled
+                  ? getDisabledLegacyViolationsTooltipMessage(isLegacyViolationSupported, isLegacyViolationEnabled)
                   : ''
               }
             >
               <button
-                id="policy-violation-grandfather-link"
-                onClick={handleGrandfather}
-                className={`nx-dropdown-button ${grandfatheringDisabled ? 'disabled' : ''}`}
+                id="legacy-violation-link"
+                onClick={handleGrantLegacyViolationStatus}
+                className={`nx-dropdown-button ${legacyViolationDisabled ? 'disabled' : ''}`}
               >
                 <NxFontAwesomeIcon icon={faHammer} className="fa-flip-horizontal" />
                 <span>Legacy existing violations</span>
               </button>
-            </GrandfatheringTooltip>
+            </LegacyViolationTooltip>
 
-            <NxTooltip title={!isGrandfatheringSupported ? 'Legacy Violations are not supported by your license' : ''}>
+            <NxTooltip title={!isLegacyViolationSupported ? 'Legacy Violations are not supported by your license' : ''}>
               <button
-                id="revoke-policy-violation-grandfathering-link"
-                onClick={handleRevokeAllGrandfathered}
-                className={`nx-dropdown-button ${!isGrandfatheringSupported ? 'disabled' : ''}`}
+                id="revoke-legacy-violation-link"
+                onClick={handleRevokeLegacyViolationStatus}
+                className={`nx-dropdown-button ${!isLegacyViolationSupported ? 'disabled' : ''}`}
               >
                 <NxFontAwesomeIcon icon={faHistory} />
                 <span>Revoke legacy status</span>

@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/RevokeGrandfatheringModal';
+import RevokeLegacyViolationModal from 'MainRoot/OrgsAndPolicies/revokeLegacyViolationModal/RevokeLegacyViolationModal';
 import { fireEvent, render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { getRevokeGrandfatheringUrl } from 'MainRoot/util/CLMLocation';
+import { getRevokeLegacyViolationUrl } from 'MainRoot/util/CLMLocation';
 
-describe('RevokeGrandfatheringModal', () => {
+describe('RevokeLegacyViolationModal', () => {
   let renderComponent, axiosMock;
 
   beforeAll(function () {
@@ -19,7 +19,7 @@ describe('RevokeGrandfatheringModal', () => {
     const defaultPreloadedState = {
       orgsAndPolicies: {
         ownerActions: {
-          revokeGrandfathering: {
+          revokeLegacyViolations: {
             submitError: null,
             isModalOpen: true,
           },
@@ -28,14 +28,14 @@ describe('RevokeGrandfatheringModal', () => {
     };
 
     renderComponent = (preloadedState) =>
-      render(<RevokeGrandfatheringModal />, { preloadedState: preloadedState || defaultPreloadedState });
+      render(<RevokeLegacyViolationModal />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   it('does not render the modal when isModalOpen is false', () => {
     renderComponent({
       orgsAndPolicies: {
         ownerActions: {
-          revokeGrandfathering: {
+          revokeLegacyViolations: {
             submitError: null,
             isModalOpen: false,
           },
@@ -63,7 +63,7 @@ describe('RevokeGrandfatheringModal', () => {
     renderComponent({
       orgsAndPolicies: {
         ownerActions: {
-          revokeGrandfathering: {
+          revokeLegacyViolations: {
             submitError: 'Error 404',
             isModalOpen: true,
           },
@@ -77,11 +77,11 @@ describe('RevokeGrandfatheringModal', () => {
     expect(screen.getByText('An error occurred saving data. Error 404')).toBeVisible();
   });
 
-  it('triggers revokeGrandfathering', () => {
+  it('triggers revokeLegacyViolations status', () => {
     renderComponent({
       orgsAndPolicies: {
         ownerActions: {
-          revokeGrandfathering: {
+          revokeLegacyViolations: {
             submitError: null,
             isModalOpen: true,
           },
@@ -100,7 +100,7 @@ describe('RevokeGrandfatheringModal', () => {
     expect(submitButton).not.toHaveClassName('disabled');
     fireEvent.click(submitButton);
     expect(axiosMock.history.put.length).toBe(1);
-    expect(axiosMock.history.put[0].url).toBe(getRevokeGrandfatheringUrl('123123'));
+    expect(axiosMock.history.put[0].url).toBe(getRevokeLegacyViolationUrl('123123'));
   });
 
   it('close modal on cancel', () => {

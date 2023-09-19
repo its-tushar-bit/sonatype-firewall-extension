@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getRevokeGrandfatheringUrl } from 'MainRoot/util/CLMLocation';
+import { getRevokeLegacyViolationUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
@@ -13,7 +13,7 @@ import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
-const REDUCER_NAME = `${OWNER_ACTIONS}/revokeGrandfathering`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/revokeLegacyViolationModal`;
 
 export const initialState = {
   submitError: null,
@@ -27,22 +27,22 @@ const closeModal = (state) => {
   state.isModalOpen = false;
 };
 
-const revokeGrandfatheringFulfilled = (state) => {
+const revokeLegacyViolationFulfilled = (state) => {
   state.submitError = null;
   state.submitMaskState = true;
 };
 
-const revokeGrandfatheringFailed = (state, { payload }) => {
+const revokeLegacyViolationFailed = (state, { payload }) => {
   state.submitMaskState = null;
   state.submitError = Messages.getHttpErrorMessage(payload);
 };
 
-const revokeGrandfathering = createAsyncThunk(
+const revokeLegacyViolationModal = createAsyncThunk(
   `${REDUCER_NAME}/revoke`,
   (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const owner = selectSelectedOwner(state);
-    const url = getRevokeGrandfatheringUrl(owner.publicId);
+    const url = getRevokeLegacyViolationUrl(owner.publicId);
 
     return axios
       .put(url)
@@ -59,7 +59,7 @@ const revokeGrandfathering = createAsyncThunk(
   }
 );
 
-const revokeGrandfatheringSlice = createSlice({
+const revokeLegacyViolationModalSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
@@ -67,14 +67,14 @@ const revokeGrandfatheringSlice = createSlice({
     closeModal,
   },
   extraReducers: {
-    [revokeGrandfathering.pending]: propSet('submitMaskState', false),
-    [revokeGrandfathering.fulfilled]: revokeGrandfatheringFulfilled,
-    [revokeGrandfathering.rejected]: revokeGrandfatheringFailed,
+    [revokeLegacyViolationModal.pending]: propSet('submitMaskState', false),
+    [revokeLegacyViolationModal.fulfilled]: revokeLegacyViolationFulfilled,
+    [revokeLegacyViolationModal.rejected]: revokeLegacyViolationFailed,
   },
 });
 
-export default revokeGrandfatheringSlice.reducer;
+export default revokeLegacyViolationModalSlice.reducer;
 export const actions = {
-  ...revokeGrandfatheringSlice.actions,
-  revokeGrandfathering,
+  ...revokeLegacyViolationModalSlice.actions,
+  revokeLegacyViolation: revokeLegacyViolationModal,
 };

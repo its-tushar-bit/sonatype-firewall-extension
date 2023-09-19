@@ -5,26 +5,26 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectRevokeGrandfatheringSlice } from './revokeGrandfatheringSelectors';
+import { selectRevokeLegacyViolationModalSlice } from './revokeLegacyViolationModalSelectors';
 import { NxModal, NxH2, NxP, NxStatefulForm } from '@sonatype/react-shared-components';
-import { actions } from './revokeGrandfatheringSlice';
+import { actions } from './revokeLegacyViolationModalSlice';
 
-export default function RevokeGrandfatheringModal() {
+export default function RevokeLegacyViolationModal() {
   const dispatch = useDispatch();
 
-  const { isModalOpen, submitMaskState, submitError } = useSelector(selectRevokeGrandfatheringSlice);
+  const { isModalOpen, submitMaskState, submitError } = useSelector(selectRevokeLegacyViolationModalSlice);
 
   const closeModal = () => dispatch(actions.closeModal());
-  const revokeGrandfathering = () => dispatch(actions.revokeGrandfathering());
+  const revokeLegacyViolation = () => dispatch(actions.revokeLegacyViolation());
 
   useEffect(() => {
     return () => closeModal();
   }, []);
 
   return isModalOpen ? (
-    <NxModal id="revoke-grandfathering-modal" onCancel={closeModal}>
+    <NxModal id="revoke-legacy-violation-modal" onCancel={closeModal}>
       <NxStatefulForm
-        onSubmit={revokeGrandfathering}
+        onSubmit={revokeLegacyViolation}
         onCancel={closeModal}
         submitMaskState={submitMaskState}
         submitBtnText="Revoke"

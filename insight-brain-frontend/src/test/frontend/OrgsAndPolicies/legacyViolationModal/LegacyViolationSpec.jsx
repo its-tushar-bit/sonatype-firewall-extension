@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import GrandfatheringModal from 'MainRoot/OrgsAndPolicies/grandfatheringModal/GrandfatheringModal';
+import LegacyViolationModal from 'MainRoot/OrgsAndPolicies/legacyViolationModal/LegacyViolationModal';
 import { fireEvent, render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { getGrandfatheringModalUrl } from 'MainRoot/util/CLMLocation';
+import { getLegacyViolationModalUrl } from 'MainRoot/util/CLMLocation';
 
-describe('Grandfathering modal', () => {
+describe('LegacyViolation modal', () => {
   let renderComponent, axiosMock;
 
   beforeAll(function () {
@@ -19,7 +19,7 @@ describe('Grandfathering modal', () => {
     const defaultPreloadedState = {
       orgsAndPolicies: {
         ownerActions: {
-          grandfathering: {
+          legacyViolations: {
             submitError: null,
             isModalOpen: true,
           },
@@ -28,14 +28,14 @@ describe('Grandfathering modal', () => {
     };
 
     renderComponent = (preloadedState) =>
-      render(<GrandfatheringModal />, { preloadedState: preloadedState || defaultPreloadedState });
+      render(<LegacyViolationModal />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   it('does not render the modal when isModalOpen is false', () => {
     renderComponent({
       orgsAndPolicies: {
         ownerActions: {
-          grandfathering: {
+          legacyViolations: {
             submitError: null,
             isModalOpen: false,
           },
@@ -59,7 +59,7 @@ describe('Grandfathering modal', () => {
     renderComponent({
       orgsAndPolicies: {
         ownerActions: {
-          grandfathering: {
+          legacyViolations: {
             submitError: 'Error 404',
             isModalOpen: true,
           },
@@ -73,11 +73,11 @@ describe('Grandfathering modal', () => {
     expect(screen.getByText('An error occurred saving data. Error 404')).toBeVisible();
   });
 
-  it('triggers grandfathering', () => {
+  it('triggers legacyViolations status', () => {
     renderComponent({
       orgsAndPolicies: {
         ownerActions: {
-          grandfathering: {
+          legacyViolations: {
             submitError: null,
             isModalOpen: true,
           },
@@ -95,7 +95,7 @@ describe('Grandfathering modal', () => {
     expect(submitButton).not.toHaveClassName('disabled');
     fireEvent.click(submitButton);
     expect(axiosMock.history.put.length).toBe(1);
-    expect(axiosMock.history.put[0].url).toBe(getGrandfatheringModalUrl('123123'));
+    expect(axiosMock.history.put[0].url).toBe(getLegacyViolationModalUrl('123123'));
   });
 
   it('close modal on cancel', () => {

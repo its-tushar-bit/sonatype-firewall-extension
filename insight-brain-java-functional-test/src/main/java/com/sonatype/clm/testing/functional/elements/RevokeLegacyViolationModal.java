@@ -9,13 +9,13 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class RevokeGrandfatheringModal
-    extends BasicElement<RevokeGrandfatheringModal>
+public class RevokeLegacyViolationModal
+    extends BasicElement<RevokeLegacyViolationModal>
 {
   private static final String FOOTER_SELECTOR = ".nx-footer";
 
-  public RevokeGrandfatheringModal() {
-    super("#revoke-grandfathering-modal");
+  public RevokeLegacyViolationModal() {
+    super("#revoke-legacy-violation-modal");
   }
 
   public SelenideElement header() {

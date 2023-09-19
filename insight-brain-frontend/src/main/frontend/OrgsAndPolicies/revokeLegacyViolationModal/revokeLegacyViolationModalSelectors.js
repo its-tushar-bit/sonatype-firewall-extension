@@ -7,7 +7,7 @@ import { createSelector } from '@reduxjs/toolkit';
 
 import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 
-export const grandfatheringSlice = createSelector(
+export const selectRevokeLegacyViolationModalSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerActions: { grandfathering } }) => grandfathering
+  ({ ownerActions: { revokeLegacyViolations } }) => revokeLegacyViolations
 );

@@ -21,10 +21,10 @@ import ownerModalSlice from './ownerModal/ownerModalSlice';
 import sourceControlSlice from './sourceControlSlice';
 import ownerSummarySlice from './ownerSummarySlice';
 import ownerDetailTreeSlice from './ownerDetailTreeSlice';
-import legacyViolationSlice from 'MainRoot/OrgsAndPolicies/legacyViolationSlice';
 import accessSlice from './access/accessSlice';
-import grandfatheringSlice from './grandfatheringModal/grandfatheringSlice';
-import revokeGrandfatheringSlice from './revokeGrandfatheringModal/revokeGrandfatheringSlice';
+import legacyViolationModalSlice from 'MainRoot/OrgsAndPolicies/legacyViolationModal/legacyViolationModalSlice';
+import legacyViolationSlice from 'MainRoot/OrgsAndPolicies/legacyViolationSlice';
+import revokeLegacyViolationModalSlice from 'MainRoot/OrgsAndPolicies/revokeLegacyViolationModal/revokeLegacyViolationModalSlice';
 import changeApplicationIdSlice from './changeApplicationIdModal/changeApplicationIdSlice';
 import importPoliciesSlice from './importPoliciesModal/importPoliciesSlice';
 import moveOwnerSlice from './moveOwner/moveOwnerSlice';
@@ -54,8 +54,8 @@ export default combineReducers({
   ownerActions: combineReducers({
     importPolicies: importPoliciesSlice,
     deleteOwner: deleteOwnerSlice,
-    grandfathering: grandfatheringSlice,
-    revokeGrandfathering: revokeGrandfatheringSlice,
+    legacyViolations: legacyViolationModalSlice,
+    revokeLegacyViolations: revokeLegacyViolationModalSlice,
     changeAppId: changeApplicationIdSlice,
     moveOwner: moveOwnerSlice,
     contact: selectContactModalSlice,

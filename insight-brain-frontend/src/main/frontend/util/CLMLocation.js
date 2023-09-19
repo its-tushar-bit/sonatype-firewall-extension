@@ -1301,13 +1301,12 @@ export const getNotificationWebhooksUrl = (ownerType, ownerId) => {
   return uriTemplate`/rest/config/webhook/policy/${ownerType}/${ownerId ? `${ownerId}` : ''}`;
 };
 
-export const getRevokeGrandfatheringUrl = (applicationPublicId) =>
-  uriTemplate`/rest/policyViolationGrandfathering/revoke/${applicationPublicId}`;
+export const getRevokeLegacyViolationUrl = (applicationPublicId) =>
+  uriTemplate`/rest/legacyViolations/revoke/${applicationPublicId}`;
 
 export const getEndpointsUrl = (apiType) => uriTemplate`/api/v2/endpoints/${apiType}`;
 
-export const getGrandfatheringModalUrl = (appId) =>
-  uriTemplate`/rest/policyViolationGrandfathering/grandfather/${appId}`;
+export const getLegacyViolationModalUrl = (appId) => uriTemplate`/rest/legacyViolations/grant/${appId}`;
 
 export const getImportPoliciesUrl = (appId) => uriTemplate`/rest/policy/organization/${appId}/import`;
 
@@ -1575,9 +1574,9 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getSystemNoticeFetchUrl,
 
-      getGrandfatherUrl: function (applicationPublicId) {
+      getGrantLegacyViolationsStatusUrl: function (applicationPublicId) {
         const appId = encodeURIComponent(applicationPublicId);
-        return `${baseUrl.get()}/rest/policyViolationGrandfathering/grandfather/${appId}`;
+        return `${baseUrl.get()}/rest/legacyViolations/grant/${appId}`;
       },
 
       getSuccessMetricsConfigUrl,

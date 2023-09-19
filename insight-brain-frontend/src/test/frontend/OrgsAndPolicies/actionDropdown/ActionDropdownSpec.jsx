@@ -401,7 +401,7 @@ describe('ActionDropdown', () => {
         fireEvent.mouseOver(grandfatherButton);
         const tooltip = await screen.findByRole('tooltip');
         expect(
-          within(tooltip).getByText('Legacy violations are not enabled for this application.')
+          within(tooltip).getByText('Legacy Violations are not enabled for this application.')
         ).toBeInTheDocument();
       });
     });

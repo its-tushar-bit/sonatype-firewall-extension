@@ -216,8 +216,8 @@ public class ApplicationSummaryViewTest
     ActionDropDown.changeApplicationId().shouldBe(visible);
     ActionDropDown.moveOwner().shouldBe(visible);
     ActionDropDown.deleteOwnerButton().shouldBe(visible);
-    ActionDropDown.grandfather().shouldBe(visible);
-    ActionDropDown.revokeGrandfathered().shouldBe(visible);
+    ActionDropDown.legacyViolation().shouldBe(visible);
+    ActionDropDown.revokeLegacyViolation().shouldBe(visible);
     ActionDropDown.evaluateFile().shouldBe(visible);
 
     ActionDropDown.actions().shouldHaveSize(9);

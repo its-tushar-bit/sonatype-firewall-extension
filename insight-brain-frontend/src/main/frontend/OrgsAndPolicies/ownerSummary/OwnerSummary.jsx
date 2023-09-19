@@ -30,9 +30,9 @@ import ArtifactoryRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/Art
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
-import GrandfatheringModal from 'MainRoot/OrgsAndPolicies/grandfatheringModal/GrandfatheringModal';
+import LegacyViolationModal from 'MainRoot/OrgsAndPolicies/legacyViolationModal/LegacyViolationModal';
 import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/ChangeApplicationIdModal';
-import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/RevokeGrandfatheringModal';
+import RevokeLegacyViolationModal from 'MainRoot/OrgsAndPolicies/revokeLegacyViolationModal/RevokeLegacyViolationModal';
 import ImportPoliciesModal from 'MainRoot/OrgsAndPolicies/importPoliciesModal/ImportPoliciesModal';
 import SelectContactModal from 'MainRoot/OrgsAndPolicies/selectContactModal/SelectContactModal';
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
@@ -110,9 +110,9 @@ export default function OwnerSummary() {
         <AccessTile />
       </div>
       <DeleteOwnerModal />
-      <GrandfatheringModal />
+      <LegacyViolationModal />
       <ChangeApplicationIdModal />
-      <RevokeGrandfatheringModal />
+      <RevokeLegacyViolationModal />
       <ImportPoliciesModal />
       <MoveOwnerModal />
       <SelectContactModal />

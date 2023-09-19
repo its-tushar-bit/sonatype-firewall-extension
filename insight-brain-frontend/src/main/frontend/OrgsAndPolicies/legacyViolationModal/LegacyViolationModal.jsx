@@ -5,26 +5,26 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { grandfatheringSlice } from './grandfatheringSelectors';
+import { legacyViolationModalSlice } from './legacyViolationModalSelectors';
 import { NxModal, NxInfoAlert, NxH2, NxStatefulForm, NxP } from '@sonatype/react-shared-components';
-import { actions } from './grandfatheringSlice';
+import { actions } from './legacyViolationModalSlice';
 
-export default function GrandfatheringModal() {
+export default function LegacyViolationModal() {
   const dispatch = useDispatch();
 
-  const { isModalOpen, submitMaskState, submitError } = useSelector(grandfatheringSlice);
+  const { isModalOpen, submitMaskState, submitError } = useSelector(legacyViolationModalSlice);
 
   const closeModal = () => dispatch(actions.closeModal());
-  const grandfathering = () => dispatch(actions.grandfathering());
+  const legacyViolation = () => dispatch(actions.legacyViolation());
 
   useEffect(() => {
     return () => closeModal();
   }, []);
 
   return isModalOpen ? (
-    <NxModal id="grandfathering-modal" onCancel={closeModal}>
+    <NxModal id="legacy-violation-modal" onCancel={closeModal}>
       <NxStatefulForm
-        onSubmit={grandfathering}
+        onSubmit={legacyViolation}
         onCancel={closeModal}
         submitMaskState={submitMaskState}
         submitBtnText="Update"

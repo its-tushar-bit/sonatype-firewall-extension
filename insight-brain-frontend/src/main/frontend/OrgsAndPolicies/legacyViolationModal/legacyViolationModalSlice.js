@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getGrandfatheringModalUrl } from 'MainRoot/util/CLMLocation';
+import { getLegacyViolationModalUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
@@ -13,7 +13,7 @@ import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
-const REDUCER_NAME = `${OWNER_ACTIONS}/grandfathering`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/legacyViolationModal`;
 
 export const initialState = {
   submitError: null,
@@ -27,20 +27,20 @@ const closeModal = (state) => {
   state.isModalOpen = false;
 };
 
-const grandfatheringFulfilled = (state) => {
+const legacyViolationFulfilled = (state) => {
   state.submitError = null;
   state.submitMaskState = true;
 };
 
-const grandfatheringFailed = (state, { payload }) => {
+const legacyViolationFailed = (state, { payload }) => {
   state.submitMaskState = null;
   state.submitError = Messages.getHttpErrorMessage(payload);
 };
 
-const grandfathering = createAsyncThunk(REDUCER_NAME, (_, { getState, dispatch, rejectWithValue }) => {
+const legacyViolation = createAsyncThunk(REDUCER_NAME, (_, { getState, dispatch, rejectWithValue }) => {
   const state = getState();
   const owner = selectSelectedOwner(state);
-  const url = getGrandfatheringModalUrl(owner.publicId);
+  const url = getLegacyViolationModalUrl(owner.publicId);
 
   return axios
     .put(url)
@@ -56,7 +56,7 @@ const grandfathering = createAsyncThunk(REDUCER_NAME, (_, { getState, dispatch, 
     .catch((err) => rejectWithValue(err));
 });
 
-const grandfatheringSlice = createSlice({
+const legacyViolationModalSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
@@ -64,14 +64,14 @@ const grandfatheringSlice = createSlice({
     closeModal,
   },
   extraReducers: {
-    [grandfathering.pending]: propSet('submitMaskState', false),
-    [grandfathering.fulfilled]: grandfatheringFulfilled,
-    [grandfathering.rejected]: grandfatheringFailed,
+    [legacyViolation.pending]: propSet('submitMaskState', false),
+    [legacyViolation.fulfilled]: legacyViolationFulfilled,
+    [legacyViolation.rejected]: legacyViolationFailed,
   },
 });
 
-export default grandfatheringSlice.reducer;
 export const actions = {
-  ...grandfatheringSlice.actions,
-  grandfathering,
+  ...legacyViolationModalSlice.actions,
+  legacyViolation: legacyViolation,
 };
+export default legacyViolationModalSlice.reducer;

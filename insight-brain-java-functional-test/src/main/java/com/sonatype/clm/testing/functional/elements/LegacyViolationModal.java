@@ -9,13 +9,13 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class GrandfatherModal
-    extends BasicElement<GrandfatherModal>
+public class LegacyViolationModal
+    extends BasicElement<LegacyViolationModal>
 {
   private static final String FOOTER_SELECTOR = ".nx-footer";
 
-  public GrandfatherModal() {
-    super("#grandfathering-modal");
+  public LegacyViolationModal() {
+    super("#legacy-violation-modal");
   }
 
   public SelenideElement body() {
@@ -26,7 +26,7 @@ public class GrandfatherModal
     return child(FOOTER_SELECTOR);
   }
 
-  public SelenideElement grandfatherButton() {
+  public SelenideElement updateButton() {
     return child(FOOTER_SELECTOR, ".nx-form__submit-btn");
   }
 

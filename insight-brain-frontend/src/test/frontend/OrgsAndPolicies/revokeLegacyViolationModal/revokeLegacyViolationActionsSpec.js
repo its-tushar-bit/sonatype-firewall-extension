@@ -4,15 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { actions } from 'MainRoot/OrgsAndPolicies/grandfatheringModal/grandfatheringSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/revokeLegacyViolationModal/revokeLegacyViolationModalSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
-const OWNER_ORG_NAME = 'Organization One';
-const REDUCER_NAME = `${OWNER_ACTIONS}/grandfathering`;
+const OWNER_ORG_NAME = 'Organization Two Name';
+const REDUCER_NAME = `revokeLegacyViolationModal`;
 
-describe('grandfatheringActions', () => {
+describe('revokeLegacyViolationActions', () => {
   let store, state, axiosMock;
 
   beforeAll(function () {
@@ -27,22 +27,22 @@ describe('grandfatheringActions', () => {
     jasmine.clock().uninstall();
   });
 
-  describe('grandfather applications', () => {
+  describe('revoke application', () => {
     beforeEach(() => {
       state = {
         router: {
           currentParams: {
-            applicationPublicId: 'organizationOneID',
+            applicationPublicId: 'organizationTwoID',
             name: OWNER_ORG_NAME,
           },
         },
         orgsAndPolicies: {
           root: {
             selectedOwner: {
-              id: 'organizationOneID',
+              id: 'organizationTwoID',
               name: OWNER_ORG_NAME,
               parentOrganizationId: 'ROOT_ORGANIZATION_ID',
-              publicId: 'organizationOneID',
+              publicId: 'organizationTwoID',
             },
           },
           organizations: SidebarResourceMockData.getOwnerListUrl(),
@@ -51,30 +51,33 @@ describe('grandfatheringActions', () => {
       store = SpecUtil.mockReduxStore(state);
 
       spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').and.returnValue({
-        id: 'organizationOneID',
+        id: 'organizationTwoID',
         name: OWNER_ORG_NAME,
         parentOrganizationId: 'ROOT_ORGANIZATION_ID',
-        publicId: 'organizationOneID',
+        publicId: 'organizationTwoID',
       });
     });
 
-    it('handles grandfathering', (done) => {
-      axiosMock.onPut(`/rest/policyViolationGrandfathering/grandfather/organizationOneID`).reply(200, {});
+    it('handles revoke', (done) => {
+      axiosMock.onPut(`/rest/legacyViolations/revoke/organizationTwoID`).reply(200, {});
 
-      store.dispatch(actions.grandfathering()).then(() => {
+      store.dispatch(actions.revokeLegacyViolation()).then(() => {
         expect(axiosMock.history.put.length).toBe(1);
 
         const actions = store.getActions();
         expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([`${REDUCER_NAME}/pending`, `${REDUCER_NAME}/fulfilled`]);
+        expect(actions).toHaveActionTypesInOrder([
+          `${OWNER_ACTIONS}/${REDUCER_NAME}/revoke/pending`,
+          `${OWNER_ACTIONS}/${REDUCER_NAME}/revoke/fulfilled`,
+        ]);
 
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
-          `${REDUCER_NAME}/pending`,
-          `${REDUCER_NAME}/fulfilled`,
-          `${REDUCER_NAME}/closeModal`,
+          `${OWNER_ACTIONS}/${REDUCER_NAME}/revoke/pending`,
+          `${OWNER_ACTIONS}/${REDUCER_NAME}/revoke/fulfilled`,
+          `${OWNER_ACTIONS}/${REDUCER_NAME}/closeModal`,
         ]);
 
         done();

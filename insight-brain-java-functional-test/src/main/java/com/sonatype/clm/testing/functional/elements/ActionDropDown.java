@@ -45,12 +45,12 @@ public class ActionDropDown
     return $("#delete-owner-link");
   }
 
-  public static SelenideElement grandfather() {
-    return $("#policy-violation-grandfather-link");
+  public static SelenideElement legacyViolation() {
+    return $("#legacy-violation-link");
   }
 
-  public static SelenideElement revokeGrandfathered() {
-    return $("#revoke-policy-violation-grandfathering-link");
+  public static SelenideElement revokeLegacyViolation() {
+    return $("#revoke-legacy-violation-link");
   }
 
   public static SelenideElement evaluateFile() {

@@ -3,16 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { grandfatheringSlice } from 'MainRoot/OrgsAndPolicies/grandfatheringModal/grandfatheringSelectors.js';
+import { selectRevokeLegacyViolationModalSlice } from 'MainRoot/OrgsAndPolicies/revokeLegacyViolationModal/revokeLegacyViolationModalSelectors.js';
 
-describe('grandfatheringSelectors', () => {
+describe('revokeLegacyViolationSelectors', () => {
   let mockState;
 
   beforeEach(() => {
     mockState = {
       orgsAndPolicies: {
         ownerActions: {
-          grandfathering: {
+          revokeLegacyViolations: {
             submitError: 'Some error',
             submitMaskState: null,
             isModalOpen: true,
@@ -22,9 +22,9 @@ describe('grandfatheringSelectors', () => {
     };
   });
 
-  describe('selectGrandfathering', () => {
-    it('selects grandfathering modal state', () => {
-      expect(grandfatheringSlice(mockState)).toEqual({
+  describe('selectRevokeLegacyViolationModal', () => {
+    it('selects selectRevokeLegacyViolation modal state', () => {
+      expect(selectRevokeLegacyViolationModalSlice(mockState)).toEqual({
         submitError: 'Some error',
         submitMaskState: null,
         isModalOpen: true,

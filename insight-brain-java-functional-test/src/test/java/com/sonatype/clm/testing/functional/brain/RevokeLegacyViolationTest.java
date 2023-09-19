@@ -8,7 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.RevokeGrandfatheringModal;
+import com.sonatype.clm.testing.functional.elements.RevokeLegacyViolationModal;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -30,7 +30,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RevokeGrandfatheringTest
+public class RevokeLegacyViolationTest
     extends AbstractFunctionalTest
 {
   private static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
@@ -57,10 +57,10 @@ public class RevokeGrandfatheringTest
   }
 
   @Test
-  public void testRevokeGrandfathering_ModalInitialState() {
+  public void testRevokeLegacyViolation_ModalInitialState() {
     ActionDropDown.actionButton().shouldBe(visible).click();
-    ActionDropDown.revokeGrandfathered().shouldBe(visible).click();
-    RevokeGrandfatheringModal modal = new RevokeGrandfatheringModal();
+    ActionDropDown.revokeLegacyViolation().shouldBe(visible).click();
+    RevokeLegacyViolationModal modal = new RevokeLegacyViolationModal();
     modal.shouldBe(visible);
     modal.header().shouldHave(text("Revoke Legacy Violation Status"));
     modal.body().shouldHave(text(
@@ -73,53 +73,53 @@ public class RevokeGrandfatheringTest
   }
 
   @Test
-  public void testGrandfather_Foundation() {
+  public void testRevokeLegacyViolation_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     refreshOrOpen(OwnerSummaryPage.url(application));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(application.getName()));
 
     ActionDropDown.actionButton().shouldBe(visible).click();
-    ActionDropDown.revokeGrandfathered().shouldBe(visible).shouldBe(DISABLED).hover();
+    ActionDropDown.revokeLegacyViolation().shouldBe(visible).shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible)
         .shouldHave(text("Legacy Violations are not supported by your license"));
-    ActionDropDown.grandfather().click();
-    RevokeGrandfatheringModal modal = new RevokeGrandfatheringModal();
+    ActionDropDown.legacyViolation().click();
+    RevokeLegacyViolationModal modal = new RevokeLegacyViolationModal();
     modal.shouldNotBe(visible);
   }
 
   @Test
-  public void testRevokeGrandfathering_Revoke() {
+  public void testRevokeLegacyViolation_Revoke() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
-    PolicyViolation grandfatheredPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isTrue();
+    PolicyViolation legacyPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
+    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isGrandfathered()).isTrue();
 
     ActionDropDown.actionButton().shouldBe(visible).click();
-    ActionDropDown.revokeGrandfathered().shouldBe(visible).click();
-    RevokeGrandfatheringModal modal = new RevokeGrandfatheringModal();
+    ActionDropDown.revokeLegacyViolation().shouldBe(visible).click();
+    RevokeLegacyViolationModal modal = new RevokeLegacyViolationModal();
 
     modal.revokeButton().click();
     FormMask.seeAndWaitForDismissal();
 
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isFalse();
+    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isGrandfathered()).isFalse();
     modal.shouldBe(hidden);
   }
 
   @Test
-  public void testRevokeGrandfathering_Cancel() {
+  public void testRevokeLegacyViolation_Cancel() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
-    PolicyViolation grandfatheredPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isTrue();
+    PolicyViolation legacyPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
+    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isGrandfathered()).isTrue();
 
     ActionDropDown.actionButton().click();
-    ActionDropDown.revokeGrandfathered().click();
-    RevokeGrandfatheringModal modal = new RevokeGrandfatheringModal();
+    ActionDropDown.revokeLegacyViolation().click();
+    RevokeLegacyViolationModal modal = new RevokeLegacyViolationModal();
 
     modal.cancelButton().click();
 
-    assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation.getId()).isGrandfathered()).isTrue();
+    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isGrandfathered()).isTrue();
     modal.shouldBe(hidden);
   }
 }

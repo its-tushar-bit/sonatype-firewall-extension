@@ -5,15 +5,20 @@
  */
 package com.sonatype.insight.brain.looker;
 
+import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.SamlRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
@@ -55,6 +60,9 @@ public class LookerServiceTest
   @Mock
   private UserDAO mockUserDAO;
 
+  @Mock
+  private SamlUserDAO mockSamlUserDAO;
+
   @Inject
   private LookerService lookerService;
 
@@ -65,6 +73,7 @@ public class LookerServiceTest
     binder.bind(DefaultHdsClient.class).toInstance(hdsClientMock);
     binder.bind(CurrentUser.class).toInstance(currentUserMock);
     binder.bind(UserDAO.class).toInstance(mockUserDAO);
+    binder.bind(SamlUserDAO.class).toInstance(mockSamlUserDAO);
     super.configure(binder);
   }
 
@@ -79,13 +88,29 @@ public class LookerServiceTest
   }
 
   @Test
-  public void testCreateSSOEmbedUrl_FeatureEnabled() {
+  public void testCreateSSOEmbedUrl_FeatureEnabled_InternalRealm() {
+    when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", InternalRealm.ID));
+    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("displayName"));
+    createSSOEmbedUrl_FeatureEnabled();
+  }
+
+  @Test
+  public void testCreateSSOEmbedUrl_FeatureEnabled_SamlRealm() {
+    when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", SamlRealm.ID));
+    when(mockSamlUserDAO.getByUsernameNotNull("username")).thenReturn(mockSamlUserWithUsername("displayName"));
+    createSSOEmbedUrl_FeatureEnabled();
+  }
+
+  @Test
+  public void testCreateSSOEmbedUrl_FeatureEnabled_OtherRealm() {
+    when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", "other"));
+    createSSOEmbedUrl_FeatureEnabled();
+  }
+
+  public void createSSOEmbedUrl_FeatureEnabled() {
     String expectedUrl = "looker.url.com";
     when(hdsClientMock.post(any(), anyString(), any()))
         .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
-    when(currentUserMock.getUserPrincipal())
-        .thenReturn(new UserPrincipal("username", "displayName", "test"));
-    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("username"));
 
     SSOEmbedUrlDTO result = lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test"));
     verify(hdsClientMock).post(eq(SSOEmbedUrlDTO.class), eq(LOOKER_SSO_EMBED_URL_PATH), any());
@@ -112,7 +137,6 @@ public class LookerServiceTest
         .thenThrow(new BadRequestException("Bad request"));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
-    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("username"));
 
     assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test")))
         .isInstanceOf(BadRequestException.class).hasMessage("Bad request");
@@ -123,13 +147,16 @@ public class LookerServiceTest
     return new User(username, "pass", "firstName", "lastName", "email");
   }
 
+  private SamlUser mockSamlUserWithUsername(final String username) {
+    return new SamlUser(username, "firstName", "lastName", "email", Collections.emptySet());
+  }
+
   @Test
   public void testCreateSSOEmbedUrl_HdsNotFound() {
     when(hdsClientMock.post(any(), anyString(), any()))
         .thenThrow(new NotFoundException("Not found"));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
-    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("username"));
 
     assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test")))
         .isInstanceOf(NotFoundException.class).hasMessage("Not found");
@@ -142,7 +169,6 @@ public class LookerServiceTest
         .thenThrow(new ConflictException(hdsError));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
-    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("username"));
 
     assertThatThrownBy(() -> lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test")))
         .isInstanceOf(ConflictException.class)
@@ -159,7 +185,7 @@ public class LookerServiceTest
 
   @Test
   public void testGetLookerConfig_Error() throws Exception {
-    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockConfigCache);
+    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO, mockConfigCache);
     when(mockConfigCache.get(DEFAULT_CONFIG_CACHE_KEY)).thenThrow(
         new ExecutionException(new RuntimeException("error")));
 

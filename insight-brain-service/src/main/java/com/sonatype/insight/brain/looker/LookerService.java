@@ -15,13 +15,18 @@ import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.SamlRealm;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
@@ -29,6 +34,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,11 +61,19 @@ class LookerService
 
   private final UserDAO userDAO;
 
+  private final SamlUserDAO samlUserDAO;
+
   @Inject
-  public LookerService(final HdsClient hdsClient, final CurrentUser currentUser, final UserDAO userDAO) {
+  public LookerService(
+      final HdsClient hdsClient,
+      final CurrentUser currentUser,
+      final UserDAO userDAO,
+      final SamlUserDAO samlUserDAO)
+  {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
     this.userDAO = userDAO;
+    this.samlUserDAO = samlUserDAO;
     this.lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE).build(newLookerConfigCacheLoader());
   }
 
@@ -68,11 +82,13 @@ class LookerService
       final HdsClient hdsClient,
       final CurrentUser currentUser,
       final UserDAO userDAO,
+      final SamlUserDAO samlUserDAO,
       final LoadingCache<String, LookerConfigDTO> cache)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
     this.userDAO = userDAO;
+    this.samlUserDAO = samlUserDAO;
     this.lookerConfigCache = cache;
   }
 
@@ -117,8 +133,30 @@ class LookerService
 
   private LookerSSOEmbedUrlHdsRequest buildRequest(String requestId, String lookerDashboard) {
     log.debug("Submitting Looker SSOEmbedUrl request {} for dashboard {}", requestId, lookerDashboard);
-    User user = userDAO.getByUsernameNotNull(currentUser.getUserPrincipal().getUsername());
-    return new LookerSSOEmbedUrlHdsRequest(requestId, user.getFirstName(), user.getLastName(), lookerDashboard);
+    Pair<String, String> names = getUserFirstAndLastnames();
+    return new LookerSSOEmbedUrlHdsRequest(requestId, names.getLeft(), names.getRight(), lookerDashboard);
+  }
+
+  private Pair<String, String> getUserFirstAndLastnames() {
+    UserPrincipal principal = currentUser.getUserPrincipal();
+    switch (principal.getRealmId()) {
+      case InternalRealm.ID:
+        User user = getInternalUser(principal.getUsername());
+        return Pair.of(user.getFirstName(), user.getLastName());
+      case SamlRealm.ID:
+        SamlUser samlUser = getSamlUser(principal.getUsername());
+        return Pair.of(samlUser.getFirstName(), samlUser.getLastName());
+      default:
+        return Pair.of(principal.getDisplayName(), "");
+    }
+  }
+
+  private SamlUser getSamlUser(final String username) {
+    return samlUserDAO.getByUsernameNotNull(username);
+  }
+
+  private User getInternalUser(final String username) {
+    return userDAO.getByUsernameNotNull(username);
   }
 
   private void checkLookerIntegratedEnterpriseReportingEnabled() {

@@ -6,7 +6,7 @@
 import React from 'react';
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
 import { render, screen, fireEvent, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
-import { getParentRetentionPoliciesUrl, getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
+import { getOrganizationsUrl, getParentRetentionPoliciesUrl, getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
 
 describe('Data Retention Editor component', () => {
   let axiosMock, renderComponent;
@@ -25,22 +25,10 @@ describe('Data Retention Editor component', () => {
         organizationId: 'org-id',
       },
     },
-    currentParams: {
-      organizationId: 'org-id',
-    },
-    orgsAndPolicies: {
-      root: {
-        selectedOwner: {
-          parentOrganizationId: 'ROOT_ORGANIZATION_ID',
-        },
-      },
-    },
   };
 
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
-    renderComponent = (preloadedState) =>
-      render(<DataRetentionEditor />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   beforeEach(() => {
@@ -124,47 +112,105 @@ describe('Data Retention Editor component', () => {
         enablePurging: false,
       },
     });
-  });
-
-  describe('Network request: ', () => {
-    it('makes the correct GET request with rootOrg as parent', () => {
-      renderComponent();
-
-      expect(axiosMock.history.get.length).toBe(2);
-      expect(axiosMock.history.get[0].url).toBe(getParentRetentionPoliciesUrl('org-id'));
-      expect(axiosMock.history.get[1].url).toBe(getRetentionPoliciesUrl('org-id'));
-    });
-
-    it('makes the correct GET request with rootOrg as owner', () => {
-      renderComponent({
-        ...defaultPreloadedState,
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              parentOrganizationId: null,
-            },
+    axiosMock.onGet(getParentRetentionPoliciesUrl('org-id-2')).reply(200, {
+      applicationReports: {
+        stages: {
+          develop: {
+            inheritPolicy: false,
+            enablePurging: true,
+            maxCount: 100,
+            maxAge: '10 years',
+          },
+          source: {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          build: {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          'stage-release': {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          release: {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          operate: {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          'continuous-monitoring': {
+            inheritPolicy: false,
+            enablePurging: false,
           },
         },
-      });
-      expect(axiosMock.history.get.length).toBe(1);
-      expect(axiosMock.history.get[0].url).toBe(getRetentionPoliciesUrl('org-id'));
+      },
+      successMetrics: {
+        inheritPolicy: false,
+        enablePurging: false,
+      },
     });
-
-    it('makes the correct GET request with n-level org as parent', () => {
-      renderComponent({
-        ...defaultPreloadedState,
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              parentOrganizationId: 'someOtherId',
-            },
+    axiosMock.onGet(getRetentionPoliciesUrl('org-id-2')).reply(200, {
+      applicationReports: {
+        stages: {
+          develop: {
+            inheritPolicy: true,
+            enablePurging: true,
+            maxCount: 100,
+            maxAge: '10 years',
+          },
+          source: {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          build: {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          'stage-release': {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          release: {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          operate: {
+            inheritPolicy: false,
+            enablePurging: false,
+          },
+          'continuous-monitoring': {
+            inheritPolicy: false,
+            enablePurging: false,
           },
         },
-      });
-      expect(axiosMock.history.get.length).toBe(2);
-      expect(axiosMock.history.get[0].url).toBe(getParentRetentionPoliciesUrl('org-id'));
-      expect(axiosMock.history.get[1].url).toBe(getRetentionPoliciesUrl('org-id'));
+      },
+      successMetrics: {
+        inheritPolicy: false,
+        enablePurging: false,
+      },
     });
+    axiosMock.onGet(getOrganizationsUrl()).reply(200, [
+      {
+        id: 'ROOT_ORGANIZATION_ID',
+        name: 'ROOT_ORGANIZATION_NAME',
+        parentOrganizationId: null,
+      },
+      {
+        id: 'org-id',
+        name: 'org-name',
+        parentOrganizationId: 'someOtherId',
+      },
+      {
+        id: 'org-id-2',
+        name: 'org-name',
+        parentOrganizationId: 'ROOT_ORGANIZATION_NAME',
+      },
+    ]);
+    renderComponent = (preloadedState) =>
+      render(<DataRetentionEditor />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   describe('renders the following correctly upon loading: ', () => {

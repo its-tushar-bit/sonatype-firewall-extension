@@ -11,6 +11,7 @@ import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectEntityId, selectSelectedOwnerParentId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRetentionSlice } from 'MainRoot/OrgsAndPolicies/retentionSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { getParentRetentionPoliciesUrl, getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
 import {
   combineValidationErrors,
@@ -56,30 +57,34 @@ const goToEditRetention = createAsyncThunk(`${REDUCER_NAME}/goToEditRetention`, 
   dispatch(stateGo(to, params));
 });
 
-const loadRetention = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { getState, rejectWithValue }) => {
-  const state = getState();
-  const parentId = selectSelectedOwnerParentId(state);
-  const entityId = selectEntityId(state);
+const loadRetention = createAsyncThunk(
+  `${REDUCER_NAME}/loadRetention`,
+  async (_, { getState, rejectWithValue, dispatch }) => {
+    await dispatch(rootActions.loadSelectedOwner());
+    const state = getState();
+    const parentId = selectSelectedOwnerParentId(state);
+    const entityId = selectEntityId(state);
 
-  if (parentId) {
-    const parentOrgRetentionRequest = axios.get(getParentRetentionPoliciesUrl(entityId));
-    const entityRetentionRequest = axios.get(getRetentionPoliciesUrl(entityId));
+    if (parentId) {
+      const parentOrgRetentionRequest = axios.get(getParentRetentionPoliciesUrl(entityId));
+      const entityRetentionRequest = axios.get(getRetentionPoliciesUrl(entityId));
+      return axios
+        .all([parentOrgRetentionRequest, entityRetentionRequest])
+        .then(
+          axios.spread((...responses) => {
+            return { parentRetentionData: responses[0].data, entityRetentionData: responses[1].data };
+          })
+        )
+        .catch((err) => rejectWithValue(err));
+    }
     return axios
-      .all([parentOrgRetentionRequest, entityRetentionRequest])
-      .then(
-        axios.spread((...responses) => {
-          return { parentRetentionData: responses[0].data, entityRetentionData: responses[1].data };
-        })
-      )
+      .get(getRetentionPoliciesUrl(entityId))
+      .then((response) => {
+        return { parentRetentionData: null, entityRetentionData: response.data };
+      })
       .catch((err) => rejectWithValue(err));
   }
-  return axios
-    .get(getRetentionPoliciesUrl(entityId))
-    .then((response) => {
-      return { parentRetentionData: null, entityRetentionData: response.data };
-    })
-    .catch((err) => rejectWithValue(err));
-});
+);
 
 const loadRetentionRequested = (state) => {
   state.loading = true;
@@ -442,7 +447,6 @@ const retentionSlice = createSlice({
     setRadio,
     handleInputChange,
     saveMaskTimerDone: propSet('submitMaskState', null),
-    setLoading: propSet('loading', true),
   },
   extraReducers: {
     [loadRetention.pending]: loadRetentionRequested,

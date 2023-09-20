@@ -67,7 +67,7 @@ describe('IqSidebarNav', function () {
       expect(globalSidebar).toHaveProp('toggleCloseIcon', faBars);
       expect(globalSidebar).toHaveProp('logoImg');
       expect(globalSidebar).toHaveProp('logoAltText', undefined);
-      expect(globalSidebar).toHaveProp('logoLink', '#');
+      expect(globalSidebar).toHaveProp('logoLink', 'href-home');
 
       component = getShallowComponent({ productEdition: 'mockProductEdition' });
       globalSidebar = component.find(NxGlobalSidebar);

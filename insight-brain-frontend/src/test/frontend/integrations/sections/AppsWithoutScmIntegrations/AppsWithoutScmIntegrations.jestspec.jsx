@@ -23,6 +23,12 @@ describe('AppsWithoutScmIntegrations Page', () => {
     expect(properErrorMsg).toBeInTheDocument();
   });
 
+  it('should display load indicator if network request is still pending', () => {
+    render(<AppsWithoutScmIntegrations />);
+
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+  });
+
   describe('on successful http calls retrieving an empty list', () => {
     beforeEach(() => {
       axiosMock.onGet(getAppsWithoutScmIntegrations()).reply(200, []);
@@ -31,10 +37,6 @@ describe('AppsWithoutScmIntegrations Page', () => {
 
     it('renders and only renders the desired column headers', () => {
       assertHeaders();
-    });
-
-    it('renders a loading spinner while loading', () => {
-      expect(screen.getByText('Loading…')).toBeInTheDocument();
     });
 
     it('render "All of your apps are set up with Automatic Source Control Feedback." message eventually', async () => {
@@ -53,10 +55,6 @@ describe('AppsWithoutScmIntegrations Page', () => {
 
     it('renders and only renders the desired column headers', () => {
       assertHeaders();
-    });
-
-    it('renders a loading spinner while loading', () => {
-      expect(screen.getByText('Loading…')).toBeInTheDocument();
     });
 
     it('renders all 6 rows of data', async () => {

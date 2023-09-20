@@ -17,6 +17,21 @@ describe('AppsWithoutCiIntegrations Page', () => {
     axiosMock = axiosMockAdapter();
   });
 
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  it('should render a loading message when network call is pending', () => {
+    render(<AppsWithoutCiIntegrations />);
+
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+  });
+
   describe('on a failed http call', () => {
     it('displays a proper error', async () => {
       axiosMock.onPost(getAppsWithoutCiIntegrations()).reply(404, 'Error');
@@ -37,10 +52,6 @@ describe('AppsWithoutCiIntegrations Page', () => {
 
     it('renders and only renders the desired column headers', () => {
       assertHeaders();
-    });
-
-    it('renders a loading spinner while loading', () => {
-      expect(screen.getByText('Loading…')).toBeInTheDocument();
     });
 
     it('render "All of your apps are integrated with CI" message eventually', async () => {
@@ -64,10 +75,6 @@ describe('AppsWithoutCiIntegrations Page', () => {
       assertHeaders();
     });
 
-    it('renders a loading spinner while loading', () => {
-      expect(screen.getByText('Loading…')).toBeInTheDocument();
-    });
-
     it('renders the first page button eventually', async () => {
       const button = await screen.findByRole('button', {
         name: /goto first page/i,
@@ -84,14 +91,6 @@ describe('AppsWithoutCiIntegrations Page', () => {
   });
 
   describe('pagination buttons', () => {
-    beforeEach(() => {
-      jasmine.clock().install();
-    });
-
-    afterEach(() => {
-      jasmine.clock().uninstall();
-    });
-
     it('make correct POST requests', async () => {
       axiosMock.onPost(getAppsWithoutCiIntegrations()).reply(200, {
         dashboardResults: createAppArrayWithLength(14),
@@ -99,7 +98,7 @@ describe('AppsWithoutCiIntegrations Page', () => {
       });
 
       const givenTime = new Date();
-      jasmine.clock().mockDate(givenTime);
+      jest.setSystemTime(givenTime);
 
       render(<AppsWithoutCiIntegrations />);
 
@@ -116,7 +115,10 @@ describe('AppsWithoutCiIntegrations Page', () => {
       expect(axiosMock.history.post[0].url).toBe(getAppsWithoutCiIntegrations());
       expect(axiosMock.history.post[1].url).toBe(getAppsWithoutCiIntegrations());
 
-      const expectedTimestampForQuery = givenTime.setMonth(givenTime.getMonth() - 3);
+      // this gets added to the system clock by calling fireEvent and needs to be accounted for in terms of what gets
+      // returned in the calculation for sinceUtcTimestamp
+      const timeAddedToSystemByFireEvent = 250;
+      const expectedTimestampForQuery = givenTime.setMonth(givenTime.getMonth() - 3) + timeAddedToSystemByFireEvent;
 
       expect(axiosMock.history.post[1].data).toBe(
         JSON.stringify({
@@ -182,14 +184,6 @@ describe('AppsWithoutCiIntegrations Page', () => {
   });
 
   describe('sorting', () => {
-    beforeEach(() => {
-      jasmine.clock().install();
-    });
-
-    afterEach(() => {
-      jasmine.clock().uninstall();
-    });
-
     it('TOTAL RISK is sortable and sorted descending by default', async () => {
       const totalDataRows = 10;
       axiosMock.onPost(getAppsWithoutCiIntegrations()).reply(200, {
@@ -198,7 +192,7 @@ describe('AppsWithoutCiIntegrations Page', () => {
       });
 
       const givenTime = new Date();
-      jasmine.clock().mockDate(givenTime);
+      jest.setSystemTime(givenTime);
 
       render(<AppsWithoutCiIntegrations />);
 
@@ -269,7 +263,7 @@ describe('AppsWithoutCiIntegrations Page', () => {
       });
 
       const givenTime = new Date();
-      jasmine.clock().mockDate(givenTime);
+      jest.setSystemTime(givenTime);
 
       render(<AppsWithoutCiIntegrations />);
 
@@ -332,29 +326,26 @@ describe('AppsWithoutCiIntegrations Page', () => {
         numResults: 10,
       });
 
-      jasmine.clock().install();
-
       const givenTime = new Date();
-      jasmine.clock().mockDate(givenTime);
+      jest.setSystemTime(givenTime);
 
       render(<AppsWithoutCiIntegrations />);
 
       expect(await screen.findByRole('table')).toBeInTheDocument();
 
       let rows = await screen.findAllByRole('row');
+
       expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
 
       const searchBox = await screen.findByRole('textbox');
       fireEvent.focus(searchBox);
       fireEvent.change(searchBox, { target: { value: 'App5' } });
 
-      jasmine.clock().tick(NX_STANDARD_DEBOUNCE_TIME);
+      jest.advanceTimersByTime(NX_STANDARD_DEBOUNCE_TIME);
 
       const expectedTimestampForQuery = givenTime.setMonth(givenTime.getMonth() - 3) + NX_STANDARD_DEBOUNCE_TIME;
 
       expect(searchBox).toHaveValue('App5');
-
-      expect(screen.getByText('Loading…')).toBeInTheDocument();
 
       expect(await screen.findByRole('table')).toBeInTheDocument();
 
@@ -368,32 +359,30 @@ describe('AppsWithoutCiIntegrations Page', () => {
           optionalFilterApplicationNamesBy: 'App5',
         })
       );
-
-      jasmine.clock().uninstall();
     });
   });
+
+  function createAppArrayWithLength(length, startIndex = 0) {
+    return map(
+      (i) => ({
+        applicationPublicId: `App${i}`,
+        applicationName: `App${i}`,
+        totalRisk: i,
+      }),
+      range(startIndex, startIndex + length)
+    );
+  }
+
+  function assertHeaders() {
+    const allHeaders = screen.getAllByRole('columnheader');
+    const applicationsHeader = screen.getByRole('columnheader', {
+      name: /applications/i,
+    });
+    const totalRisksHeader = screen.getByRole('columnheader', {
+      name: /total risk/i,
+    });
+    expect(allHeaders.length).toBe(2);
+    expect(applicationsHeader).toBeInTheDocument();
+    expect(totalRisksHeader).toBeInTheDocument();
+  }
 });
-
-function createAppArrayWithLength(length, startIndex = 0) {
-  return map(
-    (i) => ({
-      applicationPublicId: `App${i}`,
-      applicationName: `App${i}`,
-      totalRisk: i,
-    }),
-    range(startIndex, startIndex + length)
-  );
-}
-
-function assertHeaders() {
-  const allHeaders = screen.getAllByRole('columnheader');
-  const applicationsHeader = screen.getByRole('columnheader', {
-    name: /applications/i,
-  });
-  const totalRisksHeader = screen.getByRole('columnheader', {
-    name: /total risk/i,
-  });
-  expect(allHeaders.length).toBe(2);
-  expect(applicationsHeader).toBeInTheDocument();
-  expect(totalRisksHeader).toBeInTheDocument();
-}

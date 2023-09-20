@@ -19,12 +19,13 @@ describe('CiUsageAppPreviewTable', () => {
   let axiosMock;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     axiosMock = axiosMockAdapter();
-    jasmine.clock().install();
   });
 
   afterEach(() => {
-    jasmine.clock().uninstall();
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   it('should initially show a loading indicator', () => {
@@ -113,7 +114,7 @@ describe('CiUsageAppPreviewTable', () => {
     givenAppsWithoutRecentCiUsageRequestSucceeds(generateRandomAppsWithoutRecentCiUsageResponse());
 
     const givenTime = new Date();
-    jasmine.clock().mockDate(givenTime);
+    jest.setSystemTime(givenTime);
 
     renderComponent();
 

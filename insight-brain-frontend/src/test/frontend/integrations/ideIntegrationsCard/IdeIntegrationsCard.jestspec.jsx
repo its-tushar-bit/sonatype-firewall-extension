@@ -15,6 +15,12 @@ describe('IDE Integrations Card', () => {
     axiosMock = axiosMockAdapter();
   });
 
+  it('should render a loading message while network call is pending', () => {
+    render(<IdeIntegrationsCard />);
+
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+  });
+
   describe('on successful http calls', () => {
     beforeEach(() => {
       axiosMock.onGet(getIdeIntegratedUserCount()).reply(200, {
@@ -26,10 +32,6 @@ describe('IDE Integrations Card', () => {
     it('renders a card', () => {
       const card = screen.getByRole('region', { name: /Integrate using IDEs/i });
       expect(card).toBeInTheDocument();
-    });
-
-    it('renders a loading spinner while loading', () => {
-      expect(screen.getByText('Loading…')).toBeInTheDocument();
     });
 
     it('renders the correct user count', async () => {

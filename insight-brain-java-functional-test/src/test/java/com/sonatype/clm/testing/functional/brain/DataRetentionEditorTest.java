@@ -108,6 +108,8 @@ public class DataRetentionEditorTest
 
     CONTEXT_IDS.forEach(contextId -> checkInherit(contextId, "Inherit"));
 
+    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
+
     refreshOrOpen(DataRetentionEditorPage.url(Organization.ROOT_ORGANIZATION_ID));
     setDisabled(Stage.ID_DEVELOP);
     setCustom(Stage.ID_BUILD, "1", "Days", "");

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.File;
 import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -15,6 +14,8 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
@@ -36,10 +37,17 @@ public class ApplicationCleaner
 
   private final FileCleaner fileCleaner;
 
+  private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
+
   @Inject
-  public ApplicationCleaner(final InsightWork work, final FileCleaner fileCleaner) {
+  public ApplicationCleaner(
+      final InsightWork work,
+      final FileCleaner fileCleaner,
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
+  {
     this.work = work;
     this.fileCleaner = fileCleaner;
+    this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
     applicationDAO = new ApplicationDAO();
   }
 
@@ -58,5 +66,8 @@ public class ApplicationCleaner
 
     // delete application last, this way the operation can be retried later if anything goes wrong
     applicationDAO.delete(tx, application);
+
+    ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(application,
+        OwnerMaintenanceTelemetry.TYPE_DELETE);
   }
 }

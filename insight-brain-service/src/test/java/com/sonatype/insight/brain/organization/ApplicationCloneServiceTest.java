@@ -8,13 +8,13 @@ package com.sonatype.insight.brain.organization;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -69,18 +69,26 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.inject.Binder;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ApplicationCloneServiceTest
     extends AbstractComponentTest
@@ -88,11 +96,20 @@ public class ApplicationCloneServiceTest
   @Inject
   private ApplicationCloneService appCloneService;
 
+  @Mock
+  private TelemetrySender telemetrySenderMock;
+
   private Application sourceApp;
 
   @Before
   public void before() {
     sourceApp = tempEntity.newApplicationWithParent();
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    super.configure(binder);
   }
 
   @Test
@@ -123,7 +140,7 @@ public class ApplicationCloneServiceTest
     assertThat(clonedAppDTO.publicId).isEqualTo(clonedAppPublicId);
     assertThat(clonedAppDTO.contactUserName).isEqualTo(contactUsername);
     assertThat(clonedAppDTO.applicationTags).isEmpty();
-    
+
     // Assert the app stored in the db.
     Application clonedApp = new ApplicationDAO().getByIdNotNull(clonedAppDTO.id);
     assertThat(clonedApp.getOrganizationId()).isEqualTo(sourceApp.getOrganizationId());
@@ -131,6 +148,42 @@ public class ApplicationCloneServiceTest
     assertThat(clonedApp.getPublicId()).isEqualTo(clonedAppPublicId);
     assertThat(clonedApp.getContactInternalName()).isEqualTo(contactUsername);
     assertThat(clonedApp.isPolicyViolationGrandfatheringEnabled()).isFalse();
+
+    verifyNoInteractions(telemetrySenderMock);
+  }
+
+  @Test
+  public void testCloneApplication_Application_LookerEnabled() {
+    // Given
+    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+
+    String clonedAppName = "clonedAppName";
+    String clonedAppPublicId = "clonedAppPublicId";
+    String contactUsername = "testuser";
+    sourceApp.setContactInternalName(contactUsername);
+    // The application cloning is supposed to disable grandfathering for the cloned app.
+    // So we set it to true in the source application in order to verify
+    // that is not copied to the cloned application.
+    sourceApp.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(sourceApp);
+
+    // When
+    ApiApplicationDTO clonedAppDTO =
+        appCloneService.cloneApplication(sourceApp.getId(), clonedAppName, clonedAppPublicId);
+
+    // Then
+    final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
+    final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    OwnerMaintenanceTelemetry ownerMaintenanceTelemetryData =
+        (OwnerMaintenanceTelemetry) telemetryData.getAttributes()
+            .get(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY);
+    assertThat(ownerMaintenanceTelemetryData).isNotNull();
+
+    assertThat(ownerMaintenanceTelemetryData.getApplicationId()).isEqualTo(clonedAppDTO.id);
+    assertThat(ownerMaintenanceTelemetryData.getApplicationName()).isEqualTo(clonedAppDTO.name);
+    assertThat(ownerMaintenanceTelemetryData.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_ADD);
   }
 
   @Test

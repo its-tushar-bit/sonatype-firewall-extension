@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -27,6 +26,8 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.UserDirectory;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 
@@ -52,15 +53,19 @@ public class ApplicationHelper
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
+
   @Inject
-  public ApplicationHelper(final ApplicationDAO applicationDAO,
-                           final OrganizationDAO organizationDAO,
-                           final MembershipMappingDAO membershipMappingDAO,
-                           final UserDirectory userDirectory,
-                           final ApplicationCleaner applicationCleaner,
-                           final ProductLicense productLicense,
-                           final CurrentUser currentUser,
-                           final PolicyViolationLoggerFactory policyViolationLoggerFactory)
+  public ApplicationHelper(
+      final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO,
+      final MembershipMappingDAO membershipMappingDAO,
+      final UserDirectory userDirectory,
+      final ApplicationCleaner applicationCleaner,
+      final ProductLicense productLicense,
+      final CurrentUser currentUser,
+      final PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
   {
     this.applicationDAO = applicationDAO;
     this.productLicense = productLicense;
@@ -70,6 +75,7 @@ public class ApplicationHelper
     this.currentUser = currentUser;
     this.membershipMappingDAO = membershipMappingDAO;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
   }
 
   public Application getApplicationByIdNotNull(final String applicationId) {
@@ -80,6 +86,8 @@ public class ApplicationHelper
     validateNewApplication(application);
     applicationDAO.insert(tx, application);
     addUserToApplicationOwnerRole(tx, application);
+    ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(application,
+        OwnerMaintenanceTelemetry.TYPE_ADD);
     return application;
   }
 

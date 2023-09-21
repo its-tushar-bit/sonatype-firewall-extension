@@ -10,7 +10,6 @@ import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -61,6 +60,8 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -109,25 +110,28 @@ public class ApplicationCloneService
 
   private final ApiApplicationAdapter apiAppAdapter;
 
+  private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
+
   @Inject
   public ApplicationCloneService(
-      OrganizationDAO orgDAO,
-      ApplicationDAO appDAO,
-      ApplicationTagDAO appTagDAO,
-      LabelDAO labelDAO,
-      LicenseOverrideDAO licenseOverrideDAO,
-      LicenseThreatGroupDAO licenseThreatGroupDAO,
-      LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
-      ComponentLabelDAO componentLabelDAO,
-      MembershipMappingDAO membershipMappingDAO,
-      PolicyDAO policyDAO,
-      PolicyMonitoringDAO policyMonitoringDAO,
-      PolicyTagDAO policyTagDAO,
-      PolicyWaiverDAO policyWaiverDAO,
-      ProprietaryConfigDAO proprietaryConfigDAO,
-      SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
-      SourceControlDAO sourceControlDAO,
-      ApiApplicationAdapter apiAppAdapter)
+      final OrganizationDAO orgDAO,
+      final ApplicationDAO appDAO,
+      final ApplicationTagDAO appTagDAO,
+      final LabelDAO labelDAO,
+      final LicenseOverrideDAO licenseOverrideDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
+      final ComponentLabelDAO componentLabelDAO,
+      final MembershipMappingDAO membershipMappingDAO,
+      final PolicyDAO policyDAO,
+      final PolicyMonitoringDAO policyMonitoringDAO,
+      final PolicyTagDAO policyTagDAO,
+      final PolicyWaiverDAO policyWaiverDAO,
+      final ProprietaryConfigDAO proprietaryConfigDAO,
+      final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
+      final SourceControlDAO sourceControlDAO,
+      final ApiApplicationAdapter apiAppAdapter,
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
   {
     this.orgDAO = orgDAO;
     this.appDAO = appDAO;
@@ -146,6 +150,7 @@ public class ApplicationCloneService
     this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
     this.sourceControlDAO = sourceControlDAO;
     this.apiAppAdapter = apiAppAdapter;
+    this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
   }
 
   public ApiApplicationDTO cloneApplication(String sourceAppId, String clonedAppName, String clonedAppPublicId) {
@@ -228,6 +233,8 @@ public class ApplicationCloneService
     // happens.
     clonedApp.setPolicyViolationGrandfatheringEnabled(false);
     appDAO.insert(tx, clonedApp);
+    ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(clonedApp,
+        OwnerMaintenanceTelemetry.TYPE_ADD);
 
     AuditData.get().setApplicationWithDetails(clonedApp);
 
@@ -240,11 +247,11 @@ public class ApplicationCloneService
     List<Label> labels = labelDAO.getByOwnerId(tx, sourceApp.getId());
     for (Label label : labels) {
       String sourceLabelId = label.getId();
-      
+
       detachEntity(label);
       label.setOwnerId(clonedApp.getId());
       labelDAO.insert(tx, label);
-      
+
       mappedLabelIds.put(sourceLabelId, label.getId());
 
       log.info("Cloned label {} (label: {}) to label {}.", //

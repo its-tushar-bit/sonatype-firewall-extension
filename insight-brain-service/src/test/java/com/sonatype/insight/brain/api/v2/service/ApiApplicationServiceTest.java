@@ -12,10 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
@@ -35,15 +35,23 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tag.TagService;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.collect.Sets;
+import com.google.inject.Binder;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
 
 public class ApiApplicationServiceTest
     extends AbstractComponentTest
@@ -56,6 +64,15 @@ public class ApiApplicationServiceTest
 
   @Inject
   private ApiApplicationAdapter apiApplicationAdapter;
+
+  @Mock
+  private TelemetrySender telemetrySenderMock;
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+  }
 
   @Test
   public void testAddApplication_RootOrgIsNoValidParent() {
@@ -198,6 +215,36 @@ public class ApiApplicationServiceTest
 
     assertThat(applicationsCategories).isNotNull();
     assertThat(applicationsCategories.applications).isEmpty();
+  }
+
+  @Test
+  public void testUpdateApplication() {
+    // Given
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    Application app = tempEntity.newApplicationWithParent();
+    app.setName("New Name");
+
+    // When
+    final ApiApplicationDTO updatedApp =
+        applicationService.updateApplication(apiApplicationAdapter.convertToDTO(app));
+
+    // Then
+    final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
+    final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REAL_OWNER_IDS);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+
+    final Map<String, Object> attributesMap = telemetryData.getAttributes();
+    assertThat(attributesMap).containsKey(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY);
+
+    final OwnerMaintenanceTelemetry actualAttributes =
+        (OwnerMaintenanceTelemetry) attributesMap.get(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY);
+    assertThat(actualAttributes.getApplicationId()).isEqualTo(app.getId());
+    assertThat(actualAttributes.getApplicationName()).isEqualTo(updatedApp.name);
+    assertThat(actualAttributes.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_UPDATE);
   }
 
   private void assertApiApplicationCategoriesListDTO(

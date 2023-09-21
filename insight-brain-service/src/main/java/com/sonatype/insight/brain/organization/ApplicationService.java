@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -59,6 +61,8 @@ public class ApplicationService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
+
   @Inject
   public ApplicationService(
       ApplicationDAO applicationDAO,
@@ -66,7 +70,8 @@ public class ApplicationService
       final ApplicationHelper applicationHelper,
       final ManagementEventService managementEventService,
       final OrganizationDAO organizationDAO,
-      final PolicyViolationLoggerFactory policyViolationLoggerFactory)
+      final PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
   {
     this.applicationDAO = applicationDAO;
     this.applicationCleaner = applicationCleaner;
@@ -74,6 +79,7 @@ public class ApplicationService
     this.managementEventService = managementEventService;
     this.organizationDAO = organizationDAO;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -247,6 +253,8 @@ public class ApplicationService
   public Application updateApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
     applicationDAO.update(application);
     AuditData.get().setParentOrganization(organizationDAO.getByIdNotNull(application.getParentOwnerId()));
+    ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(application,
+        OwnerMaintenanceTelemetry.TYPE_UPDATE);
 
     managementEventService.postEvent(UPDATED, application);
 

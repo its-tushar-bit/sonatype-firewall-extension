@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -155,7 +157,7 @@ public class ApplicationSummaryService
    * new application and returns true to indicate the application will now be available.
    * If the optional organizationId is provided, all checks and application creation are done under the organization
    * referenced by the given ID; otherwise the default organization for automatic application creation is used.
-   * 
+   *
    * This method does not return the reason when the verification fails. This is by design.
    * If the method returned the verification failure reason, then an attacker could use that info to
    * find more about the system.
@@ -211,11 +213,11 @@ public class ApplicationSummaryService
         applicationHelper.validateNewApplication(application);
         applicationDAO.insert(application);
         auditCreateApplication(application, targetOrganization);
-        sendApplicationCreatedTelemetryData(true, clientUserAgent);
+        sendApplicationCreatedTelemetryData(application, true, clientUserAgent);
       }
       else {
         if (policyEvaluationDAO.getCountByApplicationId(application.getId()) == 0) {
-          sendApplicationCreatedTelemetryData(false, clientUserAgent);
+          sendApplicationCreatedTelemetryData(application, false, clientUserAgent);
         }
       }
     }
@@ -279,10 +281,21 @@ public class ApplicationSummaryService
     // actual work done by AOP interceptor
   }
 
-  private void sendApplicationCreatedTelemetryData(boolean appCreatedAutomatically, String clientUserAgent) {
+  private void sendApplicationCreatedTelemetryData(
+      Application application,
+      boolean appCreatedAutomatically,
+      String clientUserAgent)
+  {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
     telemetryData.getAttributes().put(APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR,
         String.valueOf(appCreatedAutomatically));
+
+    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+      final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
+          new OwnerMaintenanceTelemetry(application.getId(), application.getName(), OwnerMaintenanceTelemetry.TYPE_ADD);
+      telemetryData.getAttributes()
+          .put(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY, ownerMaintenanceTelemetry);
+    }
 
     telemetrySender.send(telemetryData, clientUserAgent);
   }

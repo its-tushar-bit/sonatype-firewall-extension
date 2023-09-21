@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -46,6 +48,9 @@ public class ApplicationSummaryServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -235,6 +240,32 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
+  public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationEnabled_LookerEnabled() {
+    final InvocationOnMock[] invocation = new InvocationOnMock[1];
+    doAnswer(x -> invocation[0] = x).when(telemetrySenderMock).send(any(TelemetryData.class),
+        eq("test_client_user_agent"));
+
+    Organization org = tempEntity.newOrganization();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+
+    String appPublicId = "NoSuchAppPublicID";
+
+    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+
+    // The app does not exist, so it will be created. We expect telemetry data that says the app was created
+    // automatically.
+    Date before = new Date();
+    service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
+    Date after = new Date();
+    assertTelemetryData(invocation[0], before, after, true);
+    assertLookerTelemetryData(invocation[0], appPublicId);
+    clearInvocations(telemetrySenderMock);
+  }
+
+  @Test
   public void testVerifyOrCreateApplication_License() {
     String appPublicId = "NoSuchAppPublicID";
 
@@ -261,12 +292,28 @@ public class ApplicationSummaryServiceTest
   }
 
   private void assertTelemetryData(InvocationOnMock invocation, Date before, Date after, boolean expected) {
-    TelemetryData telemetryData = (TelemetryData) invocation.getArgument(0);
+    final boolean lookerEnabled = SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled();
+    TelemetryData telemetryData = invocation.getArgument(0);
+
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
-    assertThat(telemetryData.getAttributes()).hasSize(1)
+    assertThat(telemetryData.getAttributes()).hasSize(lookerEnabled ? 2 : 1)
         .containsEntry(ApplicationSummaryService.APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR, String.valueOf(expected));
     assertThat(telemetryData.getTimestamp()).isGreaterThanOrEqualTo(before.getTime())
         .isLessThanOrEqualTo(after.getTime());
+  }
+
+  private void assertLookerTelemetryData(InvocationOnMock invocation, final String appPublicId) {
+    TelemetryData telemetryData = invocation.getArgument(0);
+
+    OwnerMaintenanceTelemetry ownerMaintenanceTelemetryData =
+        (OwnerMaintenanceTelemetry) telemetryData.getAttributes()
+            .get(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY);
+    assertThat(ownerMaintenanceTelemetryData).isNotNull();
+
+    final Application application = applicationDAO.getByPublicId(appPublicId);
+    assertThat(ownerMaintenanceTelemetryData.getApplicationId()).isEqualTo(application.getId());
+    assertThat(ownerMaintenanceTelemetryData.getApplicationName()).isEqualTo(application.getName());
+    assertThat(ownerMaintenanceTelemetryData.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_ADD);
   }
 
   @Test

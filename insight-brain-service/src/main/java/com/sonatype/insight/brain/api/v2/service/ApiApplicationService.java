@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -37,6 +36,8 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.tag.TagService;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -57,13 +58,17 @@ public class ApiApplicationService
 
   private final OrganizationDAO organizationDAO;
 
+  private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
+
   @Inject
-  public ApiApplicationService(final ApiApplicationAdapter apiApplicationAdapter,
-                               final ApplicationTagDAO applicationTagDAO,
-                               final ApplicationDAO applicationDAO,
-                               final ApplicationHelper applicationHelper,
-                               final TagDAO tagDAO,
-                               final OrganizationDAO organizationDAO)
+  public ApiApplicationService(
+      final ApiApplicationAdapter apiApplicationAdapter,
+      final ApplicationTagDAO applicationTagDAO,
+      final ApplicationDAO applicationDAO,
+      final ApplicationHelper applicationHelper,
+      final TagDAO tagDAO,
+      final OrganizationDAO organizationDAO,
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
   {
     this.apiApplicationAdapter = apiApplicationAdapter;
     this.applicationTagDAO = applicationTagDAO;
@@ -71,6 +76,7 @@ public class ApiApplicationService
     this.applicationHelper = applicationHelper;
     this.tagDAO = tagDAO;
     this.organizationDAO = organizationDAO;
+    this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
   }
 
   @Authorize(permission = Permission.READ)
@@ -172,6 +178,8 @@ public class ApiApplicationService
                                 @AuthzContext(AuthzContext.Key.APPLICATION) final Application application)
   {
     applicationDAO.update(tx, application);
+    ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(application,
+        OwnerMaintenanceTelemetry.TYPE_UPDATE);
     return application;
   }
 

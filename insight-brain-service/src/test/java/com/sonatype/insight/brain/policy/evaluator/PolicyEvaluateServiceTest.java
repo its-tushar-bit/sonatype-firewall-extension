@@ -376,7 +376,7 @@ public class PolicyEvaluateServiceTest
     assertThat(model.get("applicationContactEmail")).isEqualTo("admin@localhost");
     assertThat(model.get("policyThreatTime")).isNotNull();
     assertThat(model.get("ownerIdLabel")).isEqualTo("APP ID");
-    assertThat(model.get("grandfatheredPolicyViolationCount")).isEqualTo(8);
+    assertThat(model.get("legacyViolationCount")).isEqualTo(8);
   }
 
   @Test

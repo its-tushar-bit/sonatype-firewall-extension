@@ -281,9 +281,9 @@
                                   <tr>
                                     <td style="padding-bottom: 24px;">
                                   <![endif]-->
-                                      <#if (grandfatheredPolicyViolationCount??)>
+                                      <#if (legacyViolationCount??)>
                                         <p style="margin: 24px 0 0 0; color: #4d4d4d;">
-                                          ${grandfatheredPolicyViolationCount} Grandfathered Violations
+                                          ${legacyViolationCount} Legacy Violations
                                         </p>
                                       </#if>
                                 <!--[if mso]>

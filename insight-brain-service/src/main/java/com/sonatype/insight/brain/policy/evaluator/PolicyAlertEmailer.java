@@ -75,7 +75,7 @@ public class PolicyAlertEmailer
       final String scanId,
       final Stage stage,
       final List<PolicyNotification> policyNotifications,
-      final int grandfatheredPolicyViolationCount)
+      final int legacyViolationCount)
   {
     if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
       log.debug("Not sending notifications for application {} and scan {} in stage {}" +
@@ -112,7 +112,7 @@ public class PolicyAlertEmailer
               final String subject = createPolicyMailSubject(policyAlertCounts, app.getName(), stageType);
               final String body = createPolicyMailBody(
                   createPolicyMailModel(app, appContact, scanId, stageType, details.getValue(),
-                      grandfatheredPolicyViolationCount));
+                      legacyViolationCount));
               getMail().sendHtml(details.getKey(), subject, body);
             }
             catch (final Exception e) {
@@ -145,7 +145,7 @@ public class PolicyAlertEmailer
       String scanId,
       StageType stageType,
       List<PolicyFact> policyFacts,
-      int grandfatheredPolicyViolationCount)
+      int legacyViolationCount)
   {
     Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), app, stageType, policyFacts);
     if (appContact != null) {
@@ -155,7 +155,7 @@ public class PolicyAlertEmailer
     model.put("detailedReportUrl",
         baseUrl.getConfigured() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId));
     model.put("ownerIdLabel", "APP ID");
-    model.put("grandfatheredPolicyViolationCount", grandfatheredPolicyViolationCount);
+    model.put("legacyViolationCount", legacyViolationCount);
 
     return model;
   }

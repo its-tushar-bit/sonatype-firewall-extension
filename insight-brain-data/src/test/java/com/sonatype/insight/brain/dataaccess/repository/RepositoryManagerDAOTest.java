@@ -172,7 +172,7 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
     RepositoryManager repositoryManager = createNameable(null);
     RepositoryManager resultRepositoryManager = dao.getById(repositoryManager.getId());
 
-    assertThat(resultRepositoryManager.getName()).isNull();
+    assertThat(resultRepositoryManager.getName()).isEqualTo(repositoryManager.getInstanceId());
   }
 
   @Test
@@ -185,6 +185,6 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
 
     RepositoryManager resultRepositoryManager = dao.getById(repositoryManager.getId());
 
-    assertThat(resultRepositoryManager.getName()).isNull();
+    assertThat(resultRepositoryManager.getName()).isEqualTo(repositoryManager.getInstanceId());
   }
 }

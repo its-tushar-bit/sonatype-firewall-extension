@@ -12,11 +12,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.ValidationResult;
@@ -32,8 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 public class PolicyDAO
 {
   private static PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
-
-  private static OrganizationDAO orgDAO = new OrganizationDAO();
 
   private static OwnerDAO ownerDAO = new OwnerDAO();
 
@@ -256,12 +252,12 @@ public class PolicyDAO
     if (parentId == null) {
       return; // no parent, we're done
     }
-    Organization parentOrganization = orgDAO.getByIdNotNull(parentId);
-    if (policyInternalDAO.getByOwnerIdAndName(tx, parentOrganization.getId(), policy.getName()) != null) {
-      throw new InvalidPolicyException("A policy with the same name already exists for organization '"
-          + parentOrganization.getName() + "'");
+    Owner parentOwner = ownerDAO.getByIdNotNull(parentId);
+    if (policyInternalDAO.getByOwnerIdAndName(tx, parentOwner.getId(), policy.getName()) != null) {
+      throw new InvalidPolicyException("A policy with the same name already exists for " + parentOwner.getType() + " '"
+          + parentOwner.getName() + "'");
     }
-    validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), policy);
+    validateNameWithinHierarchyUp(tx, parentOwner.getParentOwnerId(), policy);
   }
 
   private void validateNameWithinHierarchyDown(TransactionContext tx, Owner owner, Policy policy)

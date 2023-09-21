@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.utils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -35,6 +36,8 @@ public class IdUtils
         return new OrganizationDAO().getByIdNotNull(ownerId);
       case REPOSITORY:
         return new RepositoryDAO().getByIdNotNull(ownerId);
+      case REPOSITORY_MANAGER:
+        return new RepositoryManagerDAO().getByIdNotNull(ownerId);
       case REPOSITORY_CONTAINER:
         return RepositoryContainer.SINGLETON;
       case GLOBAL:
@@ -57,6 +60,8 @@ public class IdUtils
         return new OrganizationDAO().getByIdNotNull(ownerId).getId();
       case REPOSITORY:
         return new RepositoryDAO().getByIdNotNull(ownerId).getId();
+      case REPOSITORY_MANAGER:
+        return new RepositoryManagerDAO().getByIdNotNull(ownerId).getId();
       case REPOSITORY_CONTAINER:
         return RepositoryContainer.REPOSITORY_CONTAINER_ID;
       case GLOBAL:
@@ -79,6 +84,8 @@ public class IdUtils
         return new OrganizationDAO().getByIdNotNull(ownerId).getPublicId();
       case REPOSITORY:
         return new RepositoryDAO().getByIdNotNull(ownerId).getPublicId();
+      case REPOSITORY_MANAGER:
+        return new RepositoryManagerDAO().getByIdNotNull(ownerId).getPublicId();
       case REPOSITORY_CONTAINER:
         return RepositoryContainer.REPOSITORY_CONTAINER_ID;
       case GLOBAL:

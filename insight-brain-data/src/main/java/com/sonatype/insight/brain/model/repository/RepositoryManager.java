@@ -13,11 +13,17 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.sonatype.insight.brain.model.Nameable;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.model.HasStringId;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "repository_manager")
-public class RepositoryManager extends Nameable implements HasStringId
+public class RepositoryManager
+    extends Nameable
+    implements HasStringId, Owner
 {
   @Id
   @Column(name = "repository_manager_id")
@@ -104,5 +110,34 @@ public class RepositoryManager extends Nameable implements HasStringId
 
   public void setProductVersion(String productVersion) {
     this.productVersion = productVersion;
+  }
+
+  @Override
+  public String getName() {
+    return name != null ? name : instanceId;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getPublicId() {
+    return id;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getParentOwnerId() {
+    return RepositoryContainer.REPOSITORY_CONTAINER_ID;
+  }
+
+  @Override
+  @JsonIgnore
+  public boolean canHaveChildren() {
+    return true;
+  }
+
+  @Override
+  @JsonIgnore
+  public OwnerType getType() {
+    return OwnerType.REPOSITORY_MANAGER;
   }
 }

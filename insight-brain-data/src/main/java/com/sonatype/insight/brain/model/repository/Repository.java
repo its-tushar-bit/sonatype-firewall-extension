@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.repository;
 
 import java.util.Date;
+
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -121,7 +122,7 @@ public class Repository
   @Override
   @JsonIgnore
   public String getParentOwnerId() {
-    return RepositoryContainer.REPOSITORY_CONTAINER_ID;
+    return repositoryManagerId;
   }
 
   @Override

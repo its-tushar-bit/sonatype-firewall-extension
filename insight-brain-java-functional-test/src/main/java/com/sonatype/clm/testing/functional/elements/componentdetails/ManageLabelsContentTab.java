@@ -8,8 +8,8 @@ package com.sonatype.clm.testing.functional.elements.componentdetails;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 
-import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 
 public class ManageLabelsContentTab
     extends BasicElement<ManageLabelsContentTab>
@@ -18,6 +18,7 @@ public class ManageLabelsContentTab
   {
     ROOT_ORGANIZATION,
     ALL_REPOSITORIES,
+    REPOSITORY_MANAGER,
     REPOSITORY
   }
 

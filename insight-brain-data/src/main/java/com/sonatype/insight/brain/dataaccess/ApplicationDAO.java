@@ -113,6 +113,7 @@ public class ApplicationDAO
     return getList(sQuery, contactInternalName);
   }
 
+  @Override
   public List<Application> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " ORDER BY entity.publicIdLowercase";

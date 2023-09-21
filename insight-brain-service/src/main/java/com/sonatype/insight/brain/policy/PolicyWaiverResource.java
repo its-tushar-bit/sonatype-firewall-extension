@@ -25,6 +25,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.HasComponentId;
@@ -41,7 +43,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -68,9 +69,11 @@ public class PolicyWaiverResource
   public static final String SERVICE_BASEPATH = "rest/policyWaiver/";
 
   public static final String RESOURCE_PATH = SERVICE_BASEPATH
-      + "{ownerType: application|organization|repository|repository_container}/{ownerId}";
+      + "{ownerType: application|organization|repository|repository_container|repository_manager}/{ownerId}";
 
   private final OwnerDAO ownerDAO = new OwnerDAO();
+
+  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
   private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
@@ -135,12 +138,13 @@ public class PolicyWaiverResource
       }
     }
 
-    if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) || (OwnerType.ORGANIZATION.equals(ownerType) &&
-        Organization.ROOT_ORGANIZATION_ID.equals(policyWaiver.getOwnerId()))) {
-      Owner repositoryContainerOwner = RepositoryContainer.SINGLETON;
+    if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) || OwnerType.REPOSITORY_MANAGER.equals(ownerType)
+        || (OwnerType.ORGANIZATION.equals(ownerType)
+            && Organization.ROOT_ORGANIZATION_ID.equals(policyWaiver.getOwnerId()))) {
       Function<Owner, ComponentIdentifier> findPossibleRepositoryComponentForRepositoryOrNull =
           owner -> getRepositoryComponentIdentifierForOwner(policyWaiver, owner.getId());
-      ComponentIdentifier repositoryComponentIdentifier = ownerDAO.getChildOwners(repositoryContainerOwner).stream()
+      ComponentIdentifier repositoryComponentIdentifier = repositoryDAO.getAll().stream()
+          .filter(repository -> RepositoryType.proxy.equals(repository.getRepositoryType()))
           .map(findPossibleRepositoryComponentForRepositoryOrNull)
           .filter(Objects::nonNull).findAny().orElse(null);
       return PackageUrlIdentifier.toPackageUrl(repositoryComponentIdentifier);

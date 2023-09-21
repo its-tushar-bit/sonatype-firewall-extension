@@ -46,7 +46,8 @@ public class DefaultApiPolicyWaiverResource
 
   private final RequestPolicyWaiverEventService requestPolicyWaiverEventService;
 
-  static final String OWNERS_PATH = "{ownerType: application|organization|repository|repository_container}/{ownerId}";
+  static final String OWNERS_PATH =
+      "{ownerType: application|organization|repository|repository_manager|repository_container}/{ownerId}";
 
   static final String BY_POLICY_WAIVER_ID_PATH = OWNERS_PATH + "/{policyWaiverId}";
 

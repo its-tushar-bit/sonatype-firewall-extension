@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 /**
  * Marks method parameters which denote the context for the authorization check. If no parameters are annotated, the
@@ -89,6 +90,16 @@ public @interface AuthzContext
      * The ID of an existing repository.
      */
     REPOSITORY_ID,
+
+    /**
+     * A {@link RepositoryManager} entity. The entity does not have to already exist.
+     */
+    REPOSITORY_MANAGER,
+
+    /**
+     * The ID of an existing repository manager.
+     */
+    REPOSITORY_MANAGER_ID,
     
     /**
      * An {@link Owner} entity.

@@ -14,12 +14,14 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 
@@ -38,6 +40,8 @@ class ContextResolver
   private static final ApplicationDAO appDAO = new ApplicationDAO();
 
   private static final OrganizationDAO orgDAO = new OrganizationDAO();
+
+  private static final RepositoryManagerDAO repoManagerDAO = new RepositoryManagerDAO();
 
   private static final RepositoryDAO repoDAO = new RepositoryDAO();
 
@@ -150,6 +154,30 @@ class ContextResolver
     }
   };
 
+  final ContextIdResolver<RepositoryManager> resolverForRepositoryManager = new ContextIdResolver<RepositoryManager>()
+  {
+    @Override
+    public Iterable<String> resolveContextIds(RepositoryManager repositoryManager) {
+      if (repositoryManager.getId() != null) {
+        // Existing repositoryManager
+        return resolveContextIdsForOwner(repositoryManager);
+      }
+      else {
+        // New repositoryManager
+        return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      }
+    }
+  };
+
+  private final ContextIdResolver<String> resolverForRepositoryManagerId = new ContextIdResolver<String>()
+  {
+    @Override
+    public Iterable<String> resolveContextIds(String repositoryManagerId) {
+      RepositoryManager repositoryManager = repoManagerDAO.getByIdNotNull(repositoryManagerId);
+      return resolverForRepositoryManager.resolveContextIds(repositoryManager);
+    }
+  };
+
   private static Function<Owner, String> PARENT_ID_FUNCTION = new Function<Owner, String>()
   {
     @Override
@@ -221,6 +249,13 @@ class ContextResolver
         case ORGANIZATION_ID:
           String orgId = get(parameters, AuthzContext.Key.ORGANIZATION_ID, String.class);
           return resolverForOrganizationId.resolveContextIds(orgId);
+        case REPOSITORY_MANAGER_ID:
+          String repositoryManagerId = get(parameters, AuthzContext.Key.REPOSITORY_MANAGER_ID, String.class);
+          return resolverForRepositoryManagerId.resolveContextIds(repositoryManagerId);
+        case REPOSITORY_MANAGER:
+          RepositoryManager repositoryManager =
+              get(parameters, AuthzContext.Key.REPOSITORY_MANAGER, RepositoryManager.class);
+          return resolverForRepositoryManager.resolveContextIds(repositoryManager);
         case REPOSITORY_ID:
           String repositoryId = get(parameters, AuthzContext.Key.REPOSITORY_ID, String.class);
           return resolverForRepositoryId.resolveContextIds(repositoryId);
@@ -255,6 +290,15 @@ class ContextResolver
             id = get(parameters, Key.INTERNAL_ID, String.class);
           }
           return resolverForOrganizationId.resolveContextIds(id);
+        case REPOSITORY_MANAGER:
+          String repositoryManagerId;
+          if (parameters.get(Key.INTERNAL_ID) != null) {
+            repositoryManagerId = get(parameters, Key.INTERNAL_ID, String.class);
+          }
+          else {
+            repositoryManagerId = get(parameters, Key.ID, String.class);
+          }
+          return resolverForRepositoryManagerId.resolveContextIds(repositoryManagerId);
         case REPOSITORY:
           String repositoryId;
           if (parameters.get(Key.INTERNAL_ID) != null) {

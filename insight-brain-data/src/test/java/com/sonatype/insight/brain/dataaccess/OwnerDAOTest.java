@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -103,8 +105,8 @@ public class OwnerDAOTest
     for (Owner owner : ownerDAO.walkHierarchy(repository)) {
       ownersIds.add(owner.getId());
     }
-    assertThat(ownersIds).containsExactly(repository.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID,
-        Organization.ROOT_ORGANIZATION_ID);
+    assertThat(ownersIds).containsExactly(repository.getId(), repository.getRepositoryManagerId(),
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
@@ -113,8 +115,29 @@ public class OwnerDAOTest
     for (Owner owner : ownerDAO.walkHierarchy(repository.getId())) {
       ownersIds.add(owner.getId());
     }
-    assertThat(ownersIds).containsExactly(repository.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID,
+    assertThat(ownersIds).containsExactly(repository.getId(), repository.getRepositoryManagerId(),
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testWalkHierarchy_RepositoryManager() {
+    RepositoryManager repoManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    List<String> ownersIds = new ArrayList<>();
+    for (Owner owner : ownerDAO.walkHierarchy(repoManager)) {
+      ownersIds.add(owner.getId());
+    }
+    assertThat(ownersIds).containsExactly(repoManager.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID,
         Organization.ROOT_ORGANIZATION_ID);
+  }
+
+  @Test
+  public void testWalkHierarchy_RepositoryManagerId() {
+    List<String> ownersIds = new ArrayList<>();
+    for (Owner owner : ownerDAO.walkHierarchy(repository.getRepositoryManagerId())) {
+      ownersIds.add(owner.getId());
+    }
+    assertThat(ownersIds).containsExactly(repository.getRepositoryManagerId(),
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
@@ -141,6 +164,13 @@ public class OwnerDAOTest
   @Test
   public void testGetChildOwners_RepositoryContainer() {
     List<Owner> childOwners = ownerDAO.getChildOwners(RepositoryContainer.SINGLETON);
+    assertThat(childOwners).extracting(Owner::getId).containsExactly(repository.getRepositoryManagerId());
+  }
+
+  @Test
+  public void testGetChildOwners_RepositoryManager() {
+    RepositoryManager repoManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    List<Owner> childOwners = ownerDAO.getChildOwners(repoManager);
     assertThat(childOwners).extracting(Owner::getId).containsExactly(repository.getId());
   }
 

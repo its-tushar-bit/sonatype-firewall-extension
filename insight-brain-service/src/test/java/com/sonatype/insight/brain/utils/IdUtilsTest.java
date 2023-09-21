@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -49,6 +50,7 @@ public class IdUtilsTest
     assertOwnerEqualPrivateId(RepositoryContainer.SINGLETON);
     assertOwnerEqualPrivateId(tempEntity.newRepository());
     assertOwnerEqualPrivateId(tempEntity.newOrganization());
+    assertOwnerEqualPrivateId(tempEntity.newRepositoryManager());
   }
 
   @Test
@@ -75,6 +77,13 @@ public class IdUtilsTest
   public void testGetInternalOwnerId_RepositoryContainer() {
     String id = IdUtils.getInternalOwnerId(OwnerType.REPOSITORY_CONTAINER, null /* ownerId */);
     assertThat(id).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testGetInternalOwnerId_RepositoryManager() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    String id = IdUtils.getInternalOwnerId(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId());
+    assertThat(id).isEqualTo(repositoryManager.getId());
   }
 
   @Test
@@ -122,6 +131,13 @@ public class IdUtilsTest
     Repository repository = tempEntity.newRepository();
     String id = IdUtils.getPublicOwnerId(OwnerType.REPOSITORY, repository.getId());
     assertThat(id).isEqualTo(repository.getPublicId());
+  }
+
+  @Test
+  public void testGetPublicOwnerId_RepositoryManager() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    String id = IdUtils.getPublicOwnerId(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId());
+    assertThat(id).isEqualTo(repositoryManager.getPublicId());
   }
 
   @Test

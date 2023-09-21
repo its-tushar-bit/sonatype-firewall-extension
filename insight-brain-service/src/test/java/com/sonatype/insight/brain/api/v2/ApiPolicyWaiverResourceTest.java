@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -42,6 +43,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -177,6 +179,37 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.scopeOwnerId).isEqualTo(repository.getId());
     assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo(repository.getName());
     assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo(OwnerType.REPOSITORY.toString());
+    assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_RepositoryManager() throws Exception {
+    Instant now = Instant.now();
+    Date today = Date.from(now);
+    Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), repositoryManager.getId(), null,
+        EXACT_COMPONENT, "comment", today, aWeekFromNow);
+
+    HttpResponse response =
+        restRequest().path(OWNERS_PATH).parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()).get();
+
+    assertResponseStatus(200, response);
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList = Arrays.asList(response.getBody(ApiPolicyWaiverDTO[].class));
+    assertThat(policyWaiverDtoList).hasSize(1);
+
+    ApiPolicyWaiverDTO apiPolicyWaiverDTO = policyWaiverDtoList.get(0);
+    assertThat(apiPolicyWaiverDTO.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(apiPolicyWaiverDTO.comment).isEqualTo("comment");
+    assertThat(apiPolicyWaiverDTO.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(apiPolicyWaiverDTO.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(apiPolicyWaiverDTO.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(apiPolicyWaiverDTO.scopeOwnerId).isEqualTo(repositoryManager.getId());
+    assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo(repositoryManager.getName());
+    assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo(OwnerType.REPOSITORY_MANAGER.toString());
     assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
   }
 
@@ -517,6 +550,26 @@ public class ApiPolicyWaiverResourceTest
   }
 
   @Test
+  public void testAddPolicyWaiverByPolicyViolationId_RepositoryManager() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), repositoryPolicyViolation.getId())
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON).post();
+
+    assertResponseStatus(204, response);
+    assertNonExpiringPolicyWaiver(repositoryManager.getId(), policy, repositoryPolicyViolation, "waiver comment",
+        repositoryPolicyViolation.getHash());
+  }
+
+  @Test
   public void testAddPolicyWaiverByPolicyViolationId_RepositoryContainer() throws Exception {
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
@@ -692,6 +745,36 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.scopeOwnerId).isEqualTo(repository.getId());
     assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo(repository.getName());
     assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo(OwnerType.REPOSITORY.toString());
+    assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
+    assertThat(apiPolicyWaiverDTO.threatLevel).isEqualTo(policy.getThreatLevel());
+  }
+
+  @Test
+  public void testGetPolicyWaiver_RepositoryManager() throws Exception {
+    Instant now = Instant.now();
+    Date today = Date.from(now);
+    Date aWeekFromNow = Date.from(now.plus(7, ChronoUnit.DAYS));
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), repositoryManager.getId(), null,
+        EXACT_COMPONENT, "comment", today, aWeekFromNow);
+
+    HttpResponse response = restRequest().path(BY_POLICY_WAIVER_ID_PATH)
+        .parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), policyWaiver.getId()).get();
+
+    assertResponseStatus(200, response);
+
+    ApiPolicyWaiverDTO apiPolicyWaiverDTO = response.getBody(ApiPolicyWaiverDTO.class);
+
+    assertThat(apiPolicyWaiverDTO.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(apiPolicyWaiverDTO.comment).isEqualTo("comment");
+    assertThat(apiPolicyWaiverDTO.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(apiPolicyWaiverDTO.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(apiPolicyWaiverDTO.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(apiPolicyWaiverDTO.scopeOwnerId).isEqualTo(repositoryManager.getId());
+    assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo(repositoryManager.getName());
+    assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo(OwnerType.REPOSITORY_MANAGER.toString());
     assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
     assertThat(apiPolicyWaiverDTO.threatLevel).isEqualTo(policy.getThreatLevel());
   }

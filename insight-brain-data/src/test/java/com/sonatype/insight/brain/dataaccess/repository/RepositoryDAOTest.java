@@ -60,12 +60,13 @@ public class RepositoryDAOTest
   public void testCRUD() {
     // Create
     Repository repository = tempEntity.newRepository("My Repo Public Id");
+    String repositorymanagerId = repository.getRepositoryManagerId();
     String id = repository.getId();
     repository = dao.getById(id);
     assertThat(repository.getName()).isEqualTo(repository.getPublicId());
     assertThat(repository.getPublicId()).isEqualTo("My Repo Public Id");
     assertThat(repository.isAuditEnabled()).isTrue();
-    assertThat(repository.getParentOwnerId()).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(repository.getParentOwnerId()).isEqualTo(repositorymanagerId);
     assertThat(repository.canHaveChildren()).isFalse();
     assertThat(repository.getType()).isEqualTo(OwnerType.REPOSITORY);
     assertThat(repository.getRepositoryType()).isEqualTo(RepositoryType.proxy);

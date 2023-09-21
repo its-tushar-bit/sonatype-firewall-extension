@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
 import com.sonatype.insight.brain.license.LicenseOverrideService.LicenseOverrideByOwner;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -71,6 +73,12 @@ public class LicenseOverrideResourceTest
   public void testCRUD_Repository() throws Exception {
     final Repository repository = tempEntity.newRepository();
     testCRUD(OwnerType.REPOSITORY, repository.getId(), repository.getId());
+  }
+
+  @Test
+  public void testCRUD_RepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    testCRUD(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), repositoryManager.getId());
   }
 
   @Test
@@ -297,6 +305,7 @@ public class LicenseOverrideResourceTest
     Application app = tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
     final Repository repository = tempEntity.newRepository();
     final String repoId = repository.getId();
+    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
 
     // Verify the applied license overrides for the application
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
@@ -323,11 +332,12 @@ public class LicenseOverrideResourceTest
     assertResponseStatus(200, response);
     appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertThat(appliedLicenseOverrides).isNotNull();
-    assertThat(appliedLicenseOverrides.licenseOverridesByOwner).hasSize(3);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner).hasSize(4);
     assertLicenseOverrideByOwner(repository, false, appliedLicenseOverrides.licenseOverridesByOwner.get(0));
+    assertLicenseOverrideByOwner(repositoryManager, false, appliedLicenseOverrides.licenseOverridesByOwner.get(1));
     assertLicenseOverrideByOwner(RepositoryContainer.SINGLETON, false,
-        appliedLicenseOverrides.licenseOverridesByOwner.get(1));
-    assertLicenseOverrideByOwner(rootOrganization, false, appliedLicenseOverrides.licenseOverridesByOwner.get(2));
+        appliedLicenseOverrides.licenseOverridesByOwner.get(2));
+    assertLicenseOverrideByOwner(rootOrganization, false, appliedLicenseOverrides.licenseOverridesByOwner.get(3));
 
     // Verify the applied license overrides for the repository_container
     response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
@@ -403,11 +413,12 @@ public class LicenseOverrideResourceTest
     assertResponseStatus(200, response);
     appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertThat(appliedLicenseOverrides).isNotNull();
-    assertThat(appliedLicenseOverrides.licenseOverridesByOwner).hasSize(3);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner).hasSize(4);
     assertLicenseOverrideByOwner(repository, false, appliedLicenseOverrides.licenseOverridesByOwner.get(0));
+    assertLicenseOverrideByOwner(repositoryManager, false, appliedLicenseOverrides.licenseOverridesByOwner.get(1));
     assertLicenseOverrideByOwner(RepositoryContainer.SINGLETON, false,
-        appliedLicenseOverrides.licenseOverridesByOwner.get(1));
-    assertLicenseOverrideByOwner(rootOrganization, false, appliedLicenseOverrides.licenseOverridesByOwner.get(2));
+        appliedLicenseOverrides.licenseOverridesByOwner.get(2));
+    assertLicenseOverrideByOwner(rootOrganization, false, appliedLicenseOverrides.licenseOverridesByOwner.get(3));
 
     // Create a license override for the repository container
     response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID).body(
@@ -420,12 +431,13 @@ public class LicenseOverrideResourceTest
     assertResponseStatus(200, response);
     appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertThat(appliedLicenseOverrides).isNotNull();
-    assertThat(appliedLicenseOverrides.licenseOverridesByOwner).hasSize(3);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner).hasSize(4);
     assertLicenseOverrideByOwner(repository, false, appliedLicenseOverrides.licenseOverridesByOwner.get(0));
+    assertLicenseOverrideByOwner(repositoryManager, false, appliedLicenseOverrides.licenseOverridesByOwner.get(1));
     assertLicenseOverrideByOwner(RepositoryContainer.SINGLETON, true,
-        appliedLicenseOverrides.licenseOverridesByOwner.get(1));
-    assertLicenseOverrideByOwner(rootOrganization, false, appliedLicenseOverrides.licenseOverridesByOwner.get(2));
-    assertThat(appliedLicenseOverrides.licenseOverridesByOwner.get(1).licenseOverride.getId())
+        appliedLicenseOverrides.licenseOverridesByOwner.get(2));
+    assertLicenseOverrideByOwner(rootOrganization, false, appliedLicenseOverrides.licenseOverridesByOwner.get(3));
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner.get(2).licenseOverride.getId())
         .isEqualTo(repoContainerLicenseOverride.getId());
 
     // Create a license override for the root organization
@@ -439,12 +451,13 @@ public class LicenseOverrideResourceTest
     assertResponseStatus(200, response);
     appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertThat(appliedLicenseOverrides).isNotNull();
-    assertThat(appliedLicenseOverrides.licenseOverridesByOwner).hasSize(3);
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner).hasSize(4);
     assertLicenseOverrideByOwner(repository, false, appliedLicenseOverrides.licenseOverridesByOwner.get(0));
+    assertLicenseOverrideByOwner(repositoryManager, false, appliedLicenseOverrides.licenseOverridesByOwner.get(1));
     assertLicenseOverrideByOwner(RepositoryContainer.SINGLETON, true,
-        appliedLicenseOverrides.licenseOverridesByOwner.get(1));
-    assertLicenseOverrideByOwner(rootOrganization, true, appliedLicenseOverrides.licenseOverridesByOwner.get(2));
-    assertThat(appliedLicenseOverrides.licenseOverridesByOwner.get(2).licenseOverride.getId())
+        appliedLicenseOverrides.licenseOverridesByOwner.get(2));
+    assertLicenseOverrideByOwner(rootOrganization, true, appliedLicenseOverrides.licenseOverridesByOwner.get(3));
+    assertThat(appliedLicenseOverrides.licenseOverridesByOwner.get(3).licenseOverride.getId())
         .isEqualTo(rootOrgLicenseOverride.getId());
   }
 
@@ -471,6 +484,13 @@ public class LicenseOverrideResourceTest
     final Repository repository = tempEntity.newRepository();
     final Repository repository2 = tempEntity.newRepository();
     testDelete_OwnerIdMismatch(OwnerType.REPOSITORY, repository.getId(), repository2.getId());
+  }
+
+  @Test
+  public void testDelete_OwnerIdMismatch_RepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+    testDelete_OwnerIdMismatch(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), repositoryManager2.getId());
   }
 
   private void testDelete_OwnerIdMismatch(OwnerType ownerType, String ownerPublicId1, String ownerPublicId2)

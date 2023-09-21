@@ -89,7 +89,16 @@ export default function EditLicensesForm({
     setLicenseComment(targetScope.licenseOverride?.comment ?? '');
   };
 
-  const formatOwnerType = (ownerType) => (ownerType === 'repository_container' ? '' : capitalize(ownerType) + ' - ');
+  const formatOwnerType = (ownerType) => {
+    switch (ownerType) {
+      case 'repository_container':
+        return '';
+      case 'repository_manager':
+        return 'Repository Manager - ';
+      default:
+        return capitalize(ownerType) + ' - ';
+    }
+  };
 
   const extractScopeOptionText = ({ ownerType, ownerName, licenseOverride }) => {
     const licenseOverrideStatus = !isNilOrEmpty(licenseOverride) ? ` (${getStatusName(licenseOverride.status)})` : '';

@@ -16,10 +16,12 @@ import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -101,18 +103,7 @@ public class EditLicensesTest
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     init("033e7a20b23ea284d474", componentId, "");
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
-    doTestEditLicense("Application - app", "Organization - org");
-  }
 
-  @Test
-  public void testEditLicenseByComponentIdentifier() throws IOException {
-    ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar");
-    init("02744a3ac66344569f0b", componentId, "2");
-    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId, repository.getId()));
-    doTestEditLicense("Repository", "All Repositories");
-  }
-
-  private void doTestEditLicense(String appText, String orgText) {
     ComponentLegalOverviewPage.editLicensesButton().click();
     EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
 
@@ -123,9 +114,43 @@ public class EditLicensesTest
     assertThat(editLicensesPopover.popoverTitle().getText()).isEqualTo("Edit Licenses");
     assertThat(editLicensesPopover.status().getText()).isEqualTo("Open");
     assertThat(editLicensesPopover.comment().getText()).isEmpty();
-    firstScope.shouldHave(text(appText));
-    secondScope.shouldHave(text(orgText));
+    firstScope.shouldHave(text("Application - app"));
+    secondScope.shouldHave(text("Organization - org"));
     thirdScope.shouldHave(text("Organization - Root Organization"));
+    editLicensesPopover.statuses()
+        .shouldHave(texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
+
+    editLicensesPopover.saveButton().click();
+    FormUtils.getAlertElement(editLicensesPopover).shouldHave(text("There are no changes to update."));
+    eyesWatcher.eyesCheck();
+
+    editLicensesPopover.cancelButton().click();
+    editLicensesPopover.shouldNotBe(Condition.visible);
+  }
+
+  @Test
+  public void testEditLicenseByComponentIdentifier() throws IOException {
+    ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar");
+    init("02744a3ac66344569f0b", componentId, "2");
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId, repository.getId()));
+
+    ComponentLegalOverviewPage.editLicensesButton().click();
+    EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
+
+    SelenideElement firstScope = editLicensesPopover.scope(0);
+    SelenideElement secondScope = editLicensesPopover.scope(1);
+    SelenideElement thirdScope = editLicensesPopover.scope(2);
+    SelenideElement fourthScope = editLicensesPopover.scope(3);
+    editLicensesPopover.should(Condition.appear);
+    assertThat(editLicensesPopover.popoverTitle().getText()).isEqualTo("Edit Licenses");
+    assertThat(editLicensesPopover.status().getText()).isEqualTo("Open");
+    assertThat(editLicensesPopover.comment().getText()).isEmpty();
+    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(repository.getRepositoryManagerId());
+    firstScope.shouldHave(text("Repository - " + repository.getName()));
+    secondScope.shouldHave(text("Repository Manager - " + repositoryManager.getName()));
+    thirdScope.shouldHave(text("All Repositories"));
+    fourthScope.shouldHave(text("Organization - Root Organization"));
     editLicensesPopover.statuses().shouldHave(
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);

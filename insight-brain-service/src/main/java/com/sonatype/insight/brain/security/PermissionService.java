@@ -11,6 +11,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -83,6 +84,9 @@ public class PermissionService
       case REPOSITORY_CONTAINER:
         contextParameters.put(AuthzContext.Key.ID, ownerId);
         contextParameters.put(AuthzContext.Key.TYPE, OwnerType.REPOSITORY_CONTAINER);
+        break;
+      case REPOSITORY_MANAGER:
+        contextParameters.put(AuthzContext.Key.REPOSITORY_MANAGER_ID, ownerId);
         break;
       case REPOSITORY:
         contextParameters.put(AuthzContext.Key.REPOSITORY_ID, ownerId);

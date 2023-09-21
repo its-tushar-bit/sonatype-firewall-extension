@@ -122,6 +122,18 @@ public class PolicyDAOTest
     assertInsertPolicyWithDuplicateName(organization.getId(), policyName, expectedOwner);
   }
 
+  @Test
+  public void testInsert_NameClashWithParentRepositoryManagerPolicy() {
+    // Add a policy at parent repository manager level
+    String policyName = "Test Policy";
+    tempEntity.newPolicy(repository.getRepositoryManagerId(), policyName);
+
+    Owner expectedOwner = new OwnerDAO().getParentOwner(repository);
+
+    // Add another policy with a case-/whitespace-equivalent name at repository level
+    assertInsertPolicyWithDuplicateName(repository.getId(), policyName, expectedOwner);
+  }
+
   private void assertInsertPolicyWithDuplicateName(String ownerId, String policyName, Owner expectedOwner) {
     // Add a policy with a case-/whitespace-equivalent name
     assertThatThrownBy(
@@ -175,6 +187,18 @@ public class PolicyDAOTest
 
     // Update another policy with a case-/whitespace-equivalent name at child org level
     assertUpdatePolicyWithDuplicateName(organization, policyName, expectedOwner);
+  }
+
+  @Test
+  public void testUpdate_NameClashWithParentRepositoryManagerPolicy() {
+    // Add a policy at parent repository manager level
+    String policyName = "Test Policy";
+    tempEntity.newPolicy(repository.getParentOwnerId(), policyName);
+
+    Owner expectedOwner = new OwnerDAO().getParentOwner(repository);
+
+    // Update another policy with a case-/whitespace-equivalent name at repository level
+    assertUpdatePolicyWithDuplicateName(repository, policyName, expectedOwner);
   }
 
   @Test

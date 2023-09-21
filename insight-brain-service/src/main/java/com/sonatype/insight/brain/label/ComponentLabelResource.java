@@ -30,7 +30,8 @@ import com.codahale.metrics.annotation.Timed;
 public class ComponentLabelResource
 {
   public static final String RESOURCE_PATH = 
-      "rest/label/component/{ownerType: application|organization|repository|repository_container}/{ownerId}/{hash}";
+      "rest/label/component/{ownerType: application|organization|repository|repository_manager|repository_container}"
+          + "/{ownerId}/{hash}";
 
   private final ComponentLabelService componentLabelService;
 

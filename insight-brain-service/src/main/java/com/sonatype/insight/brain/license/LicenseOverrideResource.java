@@ -39,7 +39,7 @@ import com.codahale.metrics.annotation.Timed;
 public class LicenseOverrideResource
 {
   public static final String RESOURCE_PATH = "rest/licenseOverride/"
-      + "{ownerType: application|organization|repository|repository_container}/{ownerId}";
+      + "{ownerType: application|organization|repository|repository_manager|repository_container}/{ownerId}";
 
   static final String LEGAL_REVIEWER_PATH = "/legalReviewer";
 

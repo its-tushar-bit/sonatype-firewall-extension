@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
@@ -42,6 +43,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
@@ -50,6 +52,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public class OwnerDAO
 {
@@ -58,6 +61,8 @@ public class OwnerDAO
   private static OrganizationDAO orgDAO = new OrganizationDAO();
 
   private static RepositoryDAO repoDAO = new RepositoryDAO();
+
+  private static RepositoryManagerDAO repoManagerDAO = new RepositoryManagerDAO();
 
   public Owner getById(TransactionContext tx, String id) {
     if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(id)) {
@@ -75,13 +80,26 @@ public class OwnerDAO
       return app;
     }
 
-    return repoDAO.getById(tx, id);
+    Repository repo = repoDAO.getById(tx, id);
+    if (repo != null) {
+      return repo;
+    }
+
+    return repoManagerDAO.getById(tx, id);
   }
 
   public Owner getById(String id) {
     try (TransactionContext tx = appDAO.createTransactionContext()) {
       return getById(tx, id);
     }
+  }
+
+  public Owner getByIdNotNull(String id) {
+    Owner owner = getById(id);
+    if (owner == null) {
+      throw new NotFoundException("Owner with ID " + id + " does not exist.");
+    }
+    return owner;
   }
 
   public List<Owner> getChildOwners(final Owner owner) {
@@ -92,17 +110,28 @@ public class OwnerDAO
 
   public List<Owner> getChildOwners(TransactionContext tx, Owner owner) {
     List<Owner> result = new ArrayList<>();
-    if (OwnerType.ORGANIZATION.equals(owner.getType())) {
-      List<Application> apps = appDAO.getByOrganizationId(tx, owner.getId());
-      result.addAll(apps);
-      List<Organization> orgs = orgDAO.getByParentOrganizationId(tx, owner.getId());
-      result.addAll(orgs);
-      if (Organization.ROOT_ORGANIZATION_ID.equals(owner.getId())) {
-        result.add(RepositoryContainer.SINGLETON);
-      }
+    if (!owner.canHaveChildren()) {
+      return result;
     }
-    else if (OwnerType.REPOSITORY_CONTAINER.equals(owner.getType())) {
-      result.addAll(repoDAO.getAll(tx));
+
+    switch (owner.getType()) {
+      case ORGANIZATION:
+        List<Application> apps = appDAO.getByOrganizationId(tx, owner.getId());
+        result.addAll(apps);
+        List<Organization> orgs = orgDAO.getByParentOrganizationId(tx, owner.getId());
+        result.addAll(orgs);
+        if (Organization.ROOT_ORGANIZATION_ID.equals(owner.getId())) {
+          result.add(RepositoryContainer.SINGLETON);
+        }
+        break;
+      case REPOSITORY_CONTAINER:
+        result.addAll(repoManagerDAO.getAll(tx));
+        break;
+      case REPOSITORY_MANAGER:
+        result.addAll(repoDAO.getByRepositoryManagerId(tx, owner.getId()));
+        break;
+      default:
+        throw new IllegalStateException("Unhandled owner type: " + owner.getType());
     }
 
     return result;

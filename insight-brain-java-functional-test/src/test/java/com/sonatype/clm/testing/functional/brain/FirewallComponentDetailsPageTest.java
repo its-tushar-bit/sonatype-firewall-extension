@@ -2169,10 +2169,11 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.constraintName().shouldHave(text("Security Constraint"));
     addWaiverPage.conditions().shouldHaveSize(1);
     addWaiverPage.condition(1).shouldHave(text("security vulnerability severity >= 9.1"));
-    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.availableScopes().shouldHaveSize(4);
     addWaiverPage.scope(0).shouldHave(text("Repository - repositoryPublicId"));
-    addWaiverPage.scope(1).shouldHave(text("All Repositories"));
-    addWaiverPage.scope(2).shouldHave(text("Organization - Root Organization"));
+    addWaiverPage.scope(1).shouldHave(text("Repository Manager - " + repositoryManager.getName()));
+    addWaiverPage.scope(2).shouldHave(text("All Repositories"));
+    addWaiverPage.scope(3).shouldHave(text("Organization - Root Organization"));
     addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
     addWaiverPage.component(1).label().shouldHave(text("com.lingocoder : abi.cli"));
@@ -2222,10 +2223,11 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.constraintName().shouldHave(text("Unknown 3rd party component"));
     addWaiverPage.conditions().shouldHaveSize(1);
     addWaiverPage.condition(1).shouldHave(text("Match State is unknown"));
-    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.availableScopes().shouldHaveSize(4);
     addWaiverPage.scope(0).shouldHave(text("Repository - repositoryPublicId"));
-    addWaiverPage.scope(1).shouldHave(text("All Repositories"));
-    addWaiverPage.scope(2).shouldHave(text("Organization - Root Organization"));
+    addWaiverPage.scope(1).shouldHave(text("Repository Manager - " + repositoryManager.getName()));
+    addWaiverPage.scope(2).shouldHave(text("All Repositories"));
+    addWaiverPage.scope(3).shouldHave(text("Organization - Root Organization"));
     addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("unknownComponent (unknownComponent)"));
     addWaiverPage.component(1).label().shouldHave(text("All Versions"));
@@ -2300,7 +2302,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.availableScopes().shouldHaveSize(4);
     addWaiverPage.cancelButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
   }
@@ -2335,7 +2337,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.availableScopes().shouldHaveSize(4);
     addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Repository - repositoryPublicId"));
 
     addWaiverPage.availableComponents().shouldHaveSize(3);
@@ -2384,7 +2386,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.availableScopes().shouldHaveSize(4);
     addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Repository - repositoryPublicId"));
 
     addWaiverPage.availableComponents().shouldHaveSize(3);
@@ -2430,13 +2432,14 @@ public class FirewallComponentDetailsPageTest
     componentWaiversTableRefreshed.getRows().get(0).shouldHave(text("No existing component waivers"));
   }
 
-  private final String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3"};
+  private final String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3", "Label 4"};
 
   private ArrayList<Label> generateApplicableLabels() {
     ArrayList<Label> labelsList = new ArrayList<>();
     labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[0], Color.dark_blue));
     labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[1], Color.dark_red));
     labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[2], Color.dark_green));
+    labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[3], Color.dark_green));
     return labelsList;
   }
 
@@ -2444,7 +2447,8 @@ public class FirewallComponentDetailsPageTest
     tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, labelsList.get(0).getId(), component.getHash());
     tempEntity.newComponentLabel(RepositoryContainer.REPOSITORY_CONTAINER_ID, labelsList.get(1).getId(),
         component.getHash());
-    tempEntity.newComponentLabel(component.getRepositoryId(), labelsList.get(2).getId(), component.getHash());
+    tempEntity.newComponentLabel(repositoryManager.getId(), labelsList.get(2).getId(), component.getHash());
+    tempEntity.newComponentLabel(component.getRepositoryId(), labelsList.get(3).getId(), component.getHash());
   }
 
   private void addAppliedLabelsFromApplicableList(ManageLabelsContentTab manageLabels, int labelIndex, int scopeIndex) {
@@ -2463,13 +2467,15 @@ public class FirewallComponentDetailsPageTest
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
     manageLabels.shouldBe(visible);
 
-    manageLabels.applicableLabels().shouldHaveSize(3);
+    manageLabels.applicableLabels().shouldHaveSize(4);
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
     assertThat(manageLabels.applicableLabels().get(0).getAttribute("className")).contains("nx-selectable-color--blue");
     manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
     assertThat(manageLabels.applicableLabels().get(1).getAttribute("className")).contains("nx-selectable-color--red");
     manageLabels.applicableLabelText(2).shouldHave(text(expectedLabelsTexts[2]));
     assertThat(manageLabels.applicableLabels().get(2).getAttribute("className")).contains("nx-selectable-color--green");
+    manageLabels.applicableLabelText(3).shouldHave(text(expectedLabelsTexts[3]));
+    assertThat(manageLabels.applicableLabels().get(3).getAttribute("className")).contains("nx-selectable-color--green");
     manageLabels.appliedLabels().shouldHaveSize(0);
   }
 
@@ -2477,13 +2483,15 @@ public class FirewallComponentDetailsPageTest
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
     manageLabels.shouldBe(visible);
     manageLabels.applicableLabels().shouldHaveSize(0);
-    manageLabels.appliedLabels().shouldHaveSize(3);
-    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.appliedLabels().shouldHaveSize(4);
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[3]));
     assertThat(manageLabels.appliedLabels().get(0).getAttribute("className")).contains("nx-selectable-color--green");
-    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
-    assertThat(manageLabels.appliedLabels().get(1).getAttribute("className")).contains("nx-selectable-color--red");
-    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[0]));
-    assertThat(manageLabels.appliedLabels().get(2).getAttribute("className")).contains("nx-selectable-color--blue");
+    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[2]));
+    assertThat(manageLabels.appliedLabels().get(1).getAttribute("className")).contains("nx-selectable-color--green");
+    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[1]));
+    assertThat(manageLabels.appliedLabels().get(2).getAttribute("className")).contains("nx-selectable-color--red");
+    manageLabels.appliedLabelText(3).shouldHave(text(expectedLabelsTexts[0]));
+    assertThat(manageLabels.appliedLabels().get(3).getAttribute("className")).contains("nx-selectable-color--blue");
   }
 
   @Test
@@ -2519,15 +2527,21 @@ public class FirewallComponentDetailsPageTest
 
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
     addAppliedLabelsFromApplicableList(manageLabels, 0,
-        ManageLabelsContentTab.RepositoryComponentLabelsScopes.REPOSITORY.ordinal());
+        ManageLabelsContentTab.RepositoryComponentLabelsScopes.REPOSITORY_MANAGER.ordinal());
     manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[3]));
+    addAppliedLabelsFromApplicableList(manageLabels, 0,
+        ManageLabelsContentTab.RepositoryComponentLabelsScopes.REPOSITORY.ordinal());
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[3]));
 
     manageLabels.applicableLabels().shouldHaveSize(0);
-    manageLabels.appliedLabels().shouldHaveSize(3);
+    manageLabels.appliedLabels().shouldHaveSize(4);
 
-    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
-    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
-    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[0]));
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[3]));
+    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[1]));
+    manageLabels.appliedLabelText(3).shouldHave(text(expectedLabelsTexts[0]));
   }
 
   @Test
@@ -2556,31 +2570,37 @@ public class FirewallComponentDetailsPageTest
   private void testLabelsTab_removeLabels() {
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
 
-    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
-    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
-    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[0]));
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[3]));
+    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[1]));
+    manageLabels.appliedLabelText(3).shouldHave(text(expectedLabelsTexts[0]));
 
     removeAppliedLabel(manageLabels, 0);
 
-    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
-    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[1]));
-    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[0]));
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[3]));
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
+    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[0]));
 
     eyesWatcher.eyesCheck("Labels Tab");
 
     removeAppliedLabel(manageLabels, 0);
 
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[3]));
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[1]));
+    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[0]));
+
+    removeAppliedLabel(manageLabels, 0);
+
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[1]));
     manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.applicableLabelText(2).shouldHave(text(expectedLabelsTexts[3]));
     manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
 
     removeAppliedLabel(manageLabels, 0);
 
-    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
-    manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
-    manageLabels.applicableLabelText(2).shouldHave(text(expectedLabelsTexts[2]));
-
-    manageLabels.applicableLabels().shouldHaveSize(3);
+    manageLabels.applicableLabels().shouldHaveSize(4);
     manageLabels.appliedLabels().shouldHaveSize(0);
   }
 
@@ -2697,7 +2717,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.availableScopes().shouldHaveSize(4);
     addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Repository - repositoryPublicId"));
 
     addWaiverPage.availableComponents().shouldHaveSize(3);
@@ -2824,7 +2844,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopesDropdown().chooseOption(new Option(1, "All Repositories"));
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(2, "All Repositories"));
 
     NxRadio chosenComponent = addWaiverPage.component(2);
     chosenComponent.label().shouldHave(text("All Components"));

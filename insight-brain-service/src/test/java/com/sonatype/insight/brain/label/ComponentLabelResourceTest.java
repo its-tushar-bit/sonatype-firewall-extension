@@ -90,6 +90,11 @@ public class ComponentLabelResourceTest
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner).isEmpty();
+    // Verify repository manager level
+    response = restRequest(OwnerType.REPOSITORY_MANAGER, repository.getRepositoryManagerId(), componentHash).get();
+    assertResponseStatus(200, response);
+    componentLabels = response.getBody(AppliedLabels.class);
+    assertThat(componentLabels.labelsByOwner).isEmpty();
     // Verify repository level
     response = restRequest(OwnerType.REPOSITORY, repository.getId(), componentHash).get();
     assertResponseStatus(200, response);
@@ -165,6 +170,11 @@ public class ComponentLabelResourceTest
   }
 
   @Test
+  public void testSetComponentLabel_RepositoryManagerLevel() throws Exception {
+    setComponentLabelAndVerify(OwnerType.REPOSITORY_MANAGER, repository.getRepositoryManagerId(), rootOrgLabel);
+  }
+
+  @Test
   public void testSetComponentLabel_RespoistoryContainerLevel() throws Exception {
     setComponentLabelAndVerify(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
         rootOrgLabel);
@@ -188,6 +198,13 @@ public class ComponentLabelResourceTest
     ComponentLabel componentLabel = tempEntity.newComponentLabel(repository.getId(), rootOrgLabel.getId(),
         componentHash);
     deleteComponentLabelAndVerify(OwnerType.REPOSITORY, repository.getId(), componentLabel);
+  }
+
+  @Test
+  public void testDeleteComponentLabel_RepositoryManagerLevel() throws Exception {
+    ComponentLabel componentLabel =
+        tempEntity.newComponentLabel(repository.getRepositoryManagerId(), rootOrgLabel.getId(), componentHash);
+    deleteComponentLabelAndVerify(OwnerType.REPOSITORY_MANAGER, repository.getRepositoryManagerId(), componentLabel);
   }
 
   @Test

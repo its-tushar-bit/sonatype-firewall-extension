@@ -14,11 +14,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class SourceControlPullRequestResultDAO
     extends AbstractOperationalSqlDAO<SourceControlPullRequestResult>
 {
-  public List<SourceControlPullRequestResult> getAll(TransactionContext tx) {
-    String sQuery = "SELECT entity FROM SourceControlPullRequestResult entity";
-    return getList(tx, sQuery);
-  }
-
   public List<SourceControlPullRequestResult> getByApplicationId(TransactionContext tx, String applicationId) {
     String sQuery = "SELECT entity FROM SourceControlPullRequestResult entity" + //
         " WHERE entity.applicationId=?1";

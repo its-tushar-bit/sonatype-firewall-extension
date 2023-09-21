@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
@@ -85,8 +86,11 @@ public class LicenseOverrideServiceTest
     final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverridesNoAuth(owner.getType(), ownerId,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
 
+    List<String> ownerIds = new OwnerDAO().getOwnerIds(owner);
+    // For apps, the public id is used as owner id (for applied license overrides)
+    ownerIds.set(0, ownerId);
     assertThat(overrides.licenseOverridesByOwner).extracting(licenseOverrideByOwner -> licenseOverrideByOwner.ownerId)
-        .containsExactlyInAnyOrder(ownerId, owner.getParentOwnerId(), Organization.ROOT_ORGANIZATION_ID);
+        .containsExactlyInAnyOrder(ownerIds.toArray(new String[0]));
   }
 
   @Test
@@ -98,6 +102,11 @@ public class LicenseOverrideServiceTest
   @Test
   public void testGetAppliedLicenseOverridesNoAuth_hierarchy_Repository() {
     testGetAppliedLicenseOverridesNoAuth_hierarchy(tempEntity.newRepository());
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverridesNoAuth_hierarchy_RepositoryManager() {
+    testGetAppliedLicenseOverridesNoAuth_hierarchy(tempEntity.newRepositoryManager());
   }
 
   @Test

@@ -45,7 +45,16 @@ export default function ApplyLabelModal({
     setLabelScopeToSave({ labelScopeType: target.type, labelScopeId: target.id });
   };
 
-  const extractScopeOptionText = ({ label, name }) => (label === 'Repository_container' ? name : `${label} - ${name}`);
+  const extractScopeOptionText = ({ label, name }) => {
+    switch (label) {
+      case 'Repository_container':
+        return name;
+      case 'Repository_manager':
+        return `Repository Manager - ${name}`;
+      default:
+        return `${label} - ${name}`;
+    }
+  };
 
   return (
     <NxModal id="iq-apply-label-modal" onClose={cancelApplyLabelModal} aria-labelledby="iq-apply-label-modal__heading">

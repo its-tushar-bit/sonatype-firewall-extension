@@ -263,11 +263,6 @@ public class RepositoryDAO
     }
   }
 
-  public List<Repository> getAll(TransactionContext tx) {
-    String sQuery = "SELECT entity FROM Repository entity";
-    return getList(tx, sQuery);
-  }
-
   /**
    * @since 1.106
    */

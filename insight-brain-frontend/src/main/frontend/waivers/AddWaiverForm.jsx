@@ -109,7 +109,16 @@ export default function AddWaiverForm(props) {
     setWaiverScope(target);
   };
 
-  const extractScopeOptionText = ({ label, name }) => (label === 'Repository_container' ? name : `${label} - ${name}`);
+  const extractScopeOptionText = ({ label, name }) => {
+    switch (label) {
+      case 'Repository_container':
+        return name;
+      case 'Repository_manager':
+        return `Repository Manager - ${name}`;
+      default:
+        return `${label} - ${name}`;
+    }
+  };
 
   const onExpiryTimeChange = (event) => {
     const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;

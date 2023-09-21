@@ -79,11 +79,6 @@ public class PolicyInternalDAO
     return getList(sQuery, name);
   }
 
-  public List<PolicyInternal> getAll(TransactionContext tx) {
-    String sQuery = "SELECT entity FROM PolicyInternal entity";
-    return getList(tx, sQuery);
-  }
-
   @Override
   public void delete(TransactionContext tx, PolicyInternal policy) {
     // Cascade to policy waivers

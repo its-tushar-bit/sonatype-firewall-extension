@@ -162,9 +162,15 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     }
   }
 
-  public List<T> getAll() {
+  public List<T> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM " + getEntityName() + " entity";
-    return getList(sQuery);
+    return getList(tx, sQuery);
+  }
+
+  public List<T> getAll() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAll(tx);
+    }
   }
 
   public long getCount() {

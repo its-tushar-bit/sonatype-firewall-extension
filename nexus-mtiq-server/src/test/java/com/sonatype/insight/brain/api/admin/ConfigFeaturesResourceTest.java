@@ -52,7 +52,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
-      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId()
+      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
   };
 
   /**
@@ -61,8 +61,8 @@ public class ConfigFeaturesResourceTest
   private final String[] allFeatures = Stream.concat(Arrays.stream(defaultEnabledFeatures), Arrays.stream(
       new String[]{
           SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
-          SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
-          SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.getId()
+          SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.getId(),
+          SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId()
       }
   )).toArray(String[]::new);
 

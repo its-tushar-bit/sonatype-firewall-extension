@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
@@ -32,10 +33,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -324,6 +322,9 @@ public class PullRequestCommentCreatorTest
     @Mock
     private SourceControlComponentLoader mockComponentLoader;
 
+    @Mock
+    private ProductLicense mockProductLicense;
+
     private final LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
     private final List<PullRequestPostCommentAction> postCommentActionList = new ArrayList<>();
@@ -337,7 +338,7 @@ public class PullRequestCommentCreatorTest
           .doLocationDiscovery(anyList(), any(), anyString(), anyString());
 
       doReturn(markup).when(mockFeedbackMarkupService)
-          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any(), any());
+          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any(), any(), anyBoolean());
 
       doReturn(result).when(mockLineCommentingService)
           .createPullRequestLineComments(any(), any(), any(), anyInt(), any(), any(), any(), any(), any(), any());
@@ -355,7 +356,8 @@ public class PullRequestCommentCreatorTest
           postCommentActionList,
           mockLocationDiscoveryService,
           mockPullRequestCommentingEligibilityValidator,
-          mockComponentLoader
+          mockComponentLoader,
+          mockProductLicense
       );
     }
 

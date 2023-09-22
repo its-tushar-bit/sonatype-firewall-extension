@@ -20,7 +20,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInfo;
 import com.sonatype.insight.brain.model.Application;
@@ -165,7 +164,6 @@ public class PullRequestFeedbackMarkupServiceTest
       final boolean enableUxImprovement,
       final String expectedMarkupOutputFile) throws Exception
   {
-    SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.setEnabled(enableUxImprovement);
     // given: Evaluation in feature branch with new vulnerabilities (some with remediation)
     final String FROM_SCAN_ID = "fromScanId";
     final String TO_SCAN_ID = "toScanId";
@@ -232,7 +230,8 @@ public class PullRequestFeedbackMarkupServiceTest
         featureBranchPolicyEvaluation,
         defaultBranchPolicyEvaluation,
         componentDetails,
-        commentTelemetry
+        commentTelemetry,
+        enableUxImprovement
     );
 
     // then: markup is created and telemetry information updated
@@ -245,7 +244,8 @@ public class PullRequestFeedbackMarkupServiceTest
 
   private void runCreateLineMarkupTest(
       final SourceControlProvider provider,
-      final boolean scmUxImprovementFeatureEnabled) throws Exception
+      final boolean scmUxImprovementFeatureEnabled
+  ) throws Exception
   {
     runCreateLineMarkupTest(provider, scmUxImprovementFeatureEnabled, DEFAULT_SCM_URL);
   }
@@ -255,8 +255,6 @@ public class PullRequestFeedbackMarkupServiceTest
       final boolean scmUxImprovementFeatureEnabled,
       final String scmUrl) throws Exception
   {
-    // given: the scmUxmprovement flag
-    SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.setEnabled(scmUxImprovementFeatureEnabled);
 
     // given: Evaluation in feature branch with new vulnerabilities
     final String SCAN_ID = "myScanId";
@@ -294,7 +292,8 @@ public class PullRequestFeedbackMarkupServiceTest
             provider,
             scmUrl,
             evaluation.getApplicationId(),
-            evaluation.getScanId());
+            evaluation.getScanId(),
+            scmUxImprovementFeatureEnabled);
 
     // then: markup is generated
     assertRenderedOutput(contents, this.getClass(), expectedRenderedOutputFilename);

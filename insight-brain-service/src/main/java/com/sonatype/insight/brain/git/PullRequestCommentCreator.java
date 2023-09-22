@@ -22,8 +22,10 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
@@ -58,6 +60,8 @@ public class PullRequestCommentCreator
 
   private final SourceControlComponentLoader sourceControlComponentLoader;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public PullRequestCommentCreator(
       final GitClientFactory gitClientFactory,
@@ -69,7 +73,8 @@ public class PullRequestCommentCreator
       final List<PullRequestPostCommentAction> pullRequestPostCommentActionList,
       final PullRequestLocationDiscoveryService locationDiscoveryService,
       final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,
-      final SourceControlComponentLoader sourceControlComponentLoader)
+      final SourceControlComponentLoader sourceControlComponentLoader,
+      final ProductLicense productLicense)
   {
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
@@ -81,6 +86,7 @@ public class PullRequestCommentCreator
     this.locationDiscoveryService = locationDiscoveryService;
     this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
     this.sourceControlComponentLoader = sourceControlComponentLoader;
+    this.productLicense = productLicense;
   }
 
   public void createPullRequestComment(
@@ -142,7 +148,8 @@ public class PullRequestCommentCreator
       Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService.createMarkup(
           policyViolationDiff, remediationVersionMap, pullRequestLineComments,
           prPolicyEvaluationsDTO.getGitRepositoryInfo(), prPolicyEvaluationsDTO.getPullRequestNumber(),
-          featureBranchPolicyEvaluation, targetPolicyEvaluation, sourceControlComponentDetails, telemetry);
+          featureBranchPolicyEvaluation, targetPolicyEvaluation, sourceControlComponentDetails, telemetry,
+          productLicense.hasFeature(LicensedFeature.SCM_UX_IMPROVEMENTS));
 
       if (policyEvaluationDiffMarkup.isPresent()) {
         Optional<CommentResponse> response = Optional.empty();

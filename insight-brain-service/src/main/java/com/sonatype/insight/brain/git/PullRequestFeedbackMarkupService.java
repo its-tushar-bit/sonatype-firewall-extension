@@ -15,7 +15,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.git.render.ComponentFeedbackContextFactory;
 import com.sonatype.insight.brain.git.render.ComponentFeedbackMDRenderer;
@@ -67,13 +66,14 @@ public class PullRequestFeedbackMarkupService
       PolicyEvaluation sourceCommitPolicyEvaluation,
       PolicyEvaluation baseBranchPolicyEvaluation,
       SourceControlComponentDetails componentDetails,
-      PullRequestCommentTelemetry telemetry) throws IOException
+      PullRequestCommentTelemetry telemetry,
+      final boolean scmImprovementsEnabled) throws IOException
   {
     Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
     PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
             policyViolationDiff, remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
-            application, iqBaseUrl.getConfigured());
+            application, iqBaseUrl.getConfigured(), scmImprovementsEnabled);
 
     Optional<String> optionalString = details.renderTemplateAndGetContents();
     telemetry.newViolationsComponentCount = details.getNewViolationsComponentCount();
@@ -95,12 +95,13 @@ public class PullRequestFeedbackMarkupService
       final SourceControlProvider provider,
       final String scmBaseUrl,
       final String applicationId,
-      final String featureBranchScanId)
+      final String featureBranchScanId,
+      final boolean scmImprovementsEnabled)
   {
     final String applicationPublicId = applicationDAO.getByIdNotNull(applicationId).getPublicId();
     final boolean supportsHtml = provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl);
     // Refer to https://sonatype.atlassian.net/browse/SDEV-365 for why we need the `supportsHtml` condition
-    if (SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.isEnabled() && supportsHtml &&
+    if (scmImprovementsEnabled && supportsHtml &&
             (provider == GITHUB || provider == GITLAB)) {
       final ComponentFeedbackContext context = contextFactory.build(provider,
               violations,
@@ -123,7 +124,8 @@ public class PullRequestFeedbackMarkupService
                       scmBaseUrl,
                       applicationPublicId,
                       featureBranchScanId,
-                      codeSuggestion);
+                      codeSuggestion,
+                      scmImprovementsEnabled);
       return details.renderTemplateAndGetContents(provider);
     }
   }

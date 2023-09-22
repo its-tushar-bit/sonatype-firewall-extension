@@ -22,6 +22,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import static com.sonatype.insight.brain.git.render.UTMSourceUtil.maybeAppendUTMSourceParam;
 import static com.sonatype.insight.brain.git.render.model.MDImages.DIRECT_DEP_LOGO;
+import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_PREVIEW_TAG;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getReportUrl;
 import static com.sonatype.insight.brain.policy.evaluator.PullRequestDetailsBase.getHighestThreatLevel;
 import static java.lang.String.format;
@@ -69,6 +70,7 @@ public class ComponentFeedbackContextFactory
             //For now, we can only process Direct dependencies since
             // there is no line number in the PR diff for the transitive dependency
             DIRECT_DEP_LOGO,
+            SONATYPE_PREVIEW_TAG,
             codeSuggestion.orElse(null));
   }
 

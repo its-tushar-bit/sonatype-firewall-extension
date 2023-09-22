@@ -41,6 +41,8 @@ public class ComponentFeedbackContext
 
   private final MDImages dependencyImage;
 
+  private final MDImages previewImage;
+
   private final String codeSuggestion;
 
   public ComponentFeedbackContext(final boolean htmlSupported,
@@ -53,6 +55,7 @@ public class ComponentFeedbackContext
                                   final boolean hasRemediationForDependencies,
                                   final List<SecurityIssue> securityIssues,
                                   final MDImages dependencyImage,
+                                  final MDImages previewImage,
                                   final String codeSuggestion)
   {
     this.htmlSupported = htmlSupported;
@@ -65,6 +68,7 @@ public class ComponentFeedbackContext
     this.hasRemediationForDependencies = hasRemediationForDependencies;
     this.securityIssues = requireNonNull(securityIssues);
     this.dependencyImage = dependencyImage;
+    this.previewImage = previewImage;
     this.codeSuggestion = codeSuggestion;
   }
 
@@ -115,5 +119,9 @@ public class ComponentFeedbackContext
 
   public MDImages getDependencyImage() {
     return dependencyImage;
+  }
+
+  public MDImages getPreviewImage() {
+    return previewImage;
   }
 }

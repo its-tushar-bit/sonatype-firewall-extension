@@ -30,6 +30,7 @@ public enum MDImages
   UNKNOWN_INDICATOR("", "light-blue-bar.png"),
   SONATYPE_FAST_TRACK_TAG("Sonatype Fast Track", "FastTrack.svg"),
   SONATYPE_DEEP_DIVE_TAG("Sonatype Deep Dive", "DeepDive.svg"),
+  SONATYPE_PREVIEW_TAG("Preview", "Preview.svg")
   ;
 
   private static final String CDN_SCM_URL = resolveCdnBaseUrl() + "iq-for-scm/1.0/";

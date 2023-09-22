@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequ
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.discovery.PositionDiscoveryExecutor;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
@@ -37,12 +38,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -607,6 +603,9 @@ public class PullRequestLineCommentingServiceTest
     @Mock
     private PositionDiscoveryExecutor mockPositionDiscoveryExecutor;
 
+    @Mock
+    private ProductLicense mockProductLicense;
+
     private boolean featureFlagEnabled = true;
 
     private boolean sourceLocationsAvailable = true;
@@ -668,7 +667,8 @@ public class PullRequestLineCommentingServiceTest
                 any(),
                 any(),
                 any(),
-                any()
+                any(),
+                anyBoolean()
         ))
             .thenReturn(markup);
 
@@ -698,7 +698,8 @@ public class PullRequestLineCommentingServiceTest
           mockPullRequestCommentDAO,
           mockPullRequestFeedbackMarkupService,
           mockPositionDiscoveryExecutor,
-          pullRequestCommentingEligibilityValidator
+          pullRequestCommentingEligibilityValidator,
+          mockProductLicense
       );
     }
 

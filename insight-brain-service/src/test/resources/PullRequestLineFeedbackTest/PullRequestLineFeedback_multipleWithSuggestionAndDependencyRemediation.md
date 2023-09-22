@@ -21,4 +21,5 @@ Threat (of 10) | Policy | Violation Details
 2 | Policy 2 | <b>Constraint 2:</b><ul><li>Match state was 'Exact'</li></ul>
 1 | Policy 1 | <b>Constraint 1:</b><ul><li>Match state was 'Exact'</li></ul>
 
+  [Component detail 🔍](http://localhost:1122/ui/links/application/myApp/report/myScanId/componentDetails/H?source=pr-line-commenting)
 </details>

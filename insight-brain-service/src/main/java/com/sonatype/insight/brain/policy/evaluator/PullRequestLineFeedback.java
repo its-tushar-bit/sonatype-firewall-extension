@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
@@ -56,6 +55,8 @@ public class PullRequestLineFeedback
 
   private final Optional<String> codeSuggestion;
 
+  private final boolean scmImprovementsEnabled;
+
   public PullRequestLineFeedback(
       final List<PolicyViolation> violations,
       final String displayName,
@@ -64,7 +65,8 @@ public class PullRequestLineFeedback
       final String scmBaseUrl,
       final String applicationPublicId,
       final String featureBranchScanId,
-      final Optional<String> codeSuggestion
+      final Optional<String> codeSuggestion,
+      final boolean scmImprovementsEnabled
   )
   {
     this.violations = checkNotNull(violations, "violations is required and cannot be null");
@@ -75,6 +77,7 @@ public class PullRequestLineFeedback
     this.applicationPublicId = checkNotNull(applicationPublicId, "applicationPublicId is required and cannot be null");
     this.featureBranchScanId = checkNotNull(featureBranchScanId, "featureBranchScanId is required and cannot be null");
     this.codeSuggestion = codeSuggestion;
+    this.scmImprovementsEnabled = scmImprovementsEnabled;
   }
 
   private synchronized Template getLineFeedbackTemplate(final boolean includeEmbeddedHtml) throws IOException {
@@ -131,7 +134,8 @@ public class PullRequestLineFeedback
             codeSuggestion,
             provider,
             applicationPublicId,
-            featureBranchScanId);
+            featureBranchScanId,
+            scmImprovementsEnabled);
     return TemplateUtils
         .render(getLineFeedbackTemplate(provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl)),
             componentFeedbackList);
@@ -155,7 +159,8 @@ public class PullRequestLineFeedback
       final Optional<String> codeSuggestion,
       final SourceControlProvider provider,
       final String applicationPublicId,
-      final String featureBranchScanId)
+      final String featureBranchScanId,
+      final boolean scmImprovementsEnabled)
   {
     int threatLevel = getHighestThreatLevel(violations);
     String threatImage = PullRequestFeedbackDetails.getImageForThreatLevel(threatLevel);
@@ -183,7 +188,7 @@ public class PullRequestLineFeedback
         .put("breakingChangesCount", breakingChangesCount)
         .put("policiesViolatedCount", violations.size())
         .put("date", new SimpleDateFormat("MMM dd, yyyy").format(new Date()))
-        .put("scmChangesEnabled", SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.isEnabled())
+        .put("scmChangesEnabled", scmImprovementsEnabled)
         .put("provider", provider);
 
     findComponentReportUrl(baseUrl, violations, applicationPublicId, featureBranchScanId)

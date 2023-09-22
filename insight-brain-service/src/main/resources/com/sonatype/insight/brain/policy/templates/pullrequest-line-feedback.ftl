@@ -1,6 +1,6 @@
 <#include "iq-for-scm-common.ftl">
 <#if provider.name() == "GITLAB"><#assign width=14><#else><#assign width=12></#if>
-### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by:<#lt>
+### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by:<#lt><#if (provider.name() == "GITHUB" || provider.name() == "GITLAB") && scmChangesEnabled><br /><img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"/></#if>
 
 <details open>
   <summary title="Threat Level: ${threatLevel} of 10"><img alt="T${threatLevel}" src="https://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}"<#if provider.name() == "GITLAB"> width="4" height="16"</#if>>
@@ -33,7 +33,7 @@ https://sonatype.atlassian.net/browse/SDEV-211
 https://sonatype.atlassian.net/browse/SDEV-207
 https://sonatype.atlassian.net/browse/SDEV-213
 -->
-<#if (provider.name() == "GITHUB" || provider.name() == "GITLAB") && componentDetailsReportUrl?has_content && scmChangesEnabled>
+<#if (provider.name() == "GITHUB" || provider.name() == "GITLAB") && componentDetailsReportUrl?has_content>
   [Component detail 🔍](${componentDetailsReportUrl})
 </#if>
 </details>

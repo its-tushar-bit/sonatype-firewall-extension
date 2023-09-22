@@ -22,7 +22,9 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequ
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.iq.location.discovery.PositionDiscoveryExecutor;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.PositionDiscoveryResult;
@@ -53,19 +55,23 @@ public class PullRequestLineCommentingService
 
   private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public PullRequestLineCommentingService(
       final GitClientFactory gitClientFactory,
       final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
       final PositionDiscoveryExecutor positionDiscoveryExecutor,
-      final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
+      final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,
+      final ProductLicense productLicense)
   {
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
     this.positionDiscoveryExecutor = positionDiscoveryExecutor;
     this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
+    this.productLicense = productLicense;
   }
 
   /**
@@ -231,7 +237,8 @@ public class PullRequestLineCommentingService
       //Create the line comment body, if possible
       Optional<String> markupOptional = pullRequestFeedbackMarkupService.createLineMarkup(
           lineCommentDTO.getPolicyViolations(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(),
-          remediationVersion, codeSuggestion, provider, scmBaseUrl, applicationId, featureBranchScanId);
+          remediationVersion, codeSuggestion, provider, scmBaseUrl, applicationId, featureBranchScanId,
+          productLicense.hasFeature(LicensedFeature.SCM_UX_IMPROVEMENTS));
       markupOptional.ifPresent(lineCommentDTO::setMarkup);
     }
   }

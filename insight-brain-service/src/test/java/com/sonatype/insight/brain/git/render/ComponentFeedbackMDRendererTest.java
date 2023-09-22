@@ -17,9 +17,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.git.render.model.MDImages.DIRECT_DEP_LOGO;
-import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_DEEP_DIVE_TAG;
-import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_FAST_TRACK_TAG;
+import static com.sonatype.insight.brain.git.render.model.MDImages.*;
 import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
 
 public class ComponentFeedbackMDRendererTest
@@ -60,6 +58,7 @@ public class ComponentFeedbackMDRendererTest
                         "some desc5", "https://example.com/policyViolations/5")
             ),
             DIRECT_DEP_LOGO,
+            SONATYPE_PREVIEW_TAG,
             "        <version>2.15.0</version>"
     );
     runTest(componentFeedbackContext, "testRender_sanity.md");

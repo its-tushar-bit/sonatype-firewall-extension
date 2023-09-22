@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
@@ -100,6 +99,8 @@ public class PullRequestFeedbackDetails
 
   private int clearedViolationsComponentCount;
 
+  private final boolean scmImprovementsEnabled;
+
   static {
     try {
       policyViolationDiffMDEmbeddedHtmlTemplate =
@@ -122,7 +123,8 @@ public class PullRequestFeedbackDetails
       final GitRepositoryInfo gitRepositoryInfo,
       final int pullRequestNumber,
       final Application app,
-      final String iqBaseUrl)
+      final String iqBaseUrl,
+      final boolean scmImprovementsEnabled)
   {
     Preconditions
         .checkNotNull(sourceControlComponentDetails, "sourceControlComponentDetails is required and cannot be null");
@@ -143,6 +145,7 @@ public class PullRequestFeedbackDetails
     this.app = app;
     this.pullRequestNumber = pullRequestNumber;
     this.iqBaseUrl = iqBaseUrl;
+    this.scmImprovementsEnabled = scmImprovementsEnabled;
     Preconditions.checkNotNull(gitRepositoryInfo.provider, "provider is required and cannot be null");
   }
 
@@ -404,7 +407,7 @@ public class PullRequestFeedbackDetails
         )
         .put("threatImageArray", THREAT_IMAGE_ARRAY)
         .put("provider", provider)
-        .put("scmUxImprovementsEnabled", SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.isEnabled())
+        .put("scmChangesEnabled", scmImprovementsEnabled)
         .build();
   }
 

@@ -1,7 +1,7 @@
 
 
 
-# <img title="Moderate" alt="Moderate" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="20" height="20"/> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/>  Sonatype IQ found critical issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1
+# <img title="Moderate" alt="Moderate" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="20" height="20"/> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/>  Sonatype IQ found critical issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1<br /><img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"/>
 Threat Level: <strong>Moderate (2)</strong> \| [View Component Details in Sonatype Lifecycle](https://iq.example.com/ui/links/application/some-public-app-id/report/some-feature-branch-scan-id/componentDetails/myhash123?source=pr-line-commenting&utm_source=github)
 
 ## :shield: Recommendation

@@ -42,9 +42,7 @@ import static com.sonatype.insight.brain.git.render.ComponentFeedbackContextFact
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackContextFactoryTest.TestCaseId.*;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.generatePVWithManyConditionFacts;
 import static com.sonatype.insight.brain.git.render.UTMSourceUtil.maybeAppendUTMSourceParam;
-import static com.sonatype.insight.brain.git.render.model.MDImages.DIRECT_DEP_LOGO;
-import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_DEEP_DIVE_TAG;
-import static com.sonatype.insight.brain.git.render.model.MDImages.SONATYPE_FAST_TRACK_TAG;
+import static com.sonatype.insight.brain.git.render.model.MDImages.*;
 import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
 import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType.DEEP_DIVE;
@@ -418,6 +416,7 @@ public class ComponentFeedbackContextFactoryTest
             false,
             expectedSecurityIssues,
             DIRECT_DEP_LOGO,
+            SONATYPE_PREVIEW_TAG,
             NO_CODE_SUGGESTION);
   }
 
@@ -437,6 +436,7 @@ public class ComponentFeedbackContextFactoryTest
             false,
             securityIssues,
             DIRECT_DEP_LOGO,
+            SONATYPE_PREVIEW_TAG,
             NO_CODE_SUGGESTION);
   }
 
@@ -478,6 +478,7 @@ public class ComponentFeedbackContextFactoryTest
             hasRemediationDeps,
             securityIssues,
             DIRECT_DEP_LOGO,
+            SONATYPE_PREVIEW_TAG,
             codeSuggestion);
   }
 

@@ -23,7 +23,7 @@ describe('OwnerTree', () => {
     spyOn(routerContext, 'href').and.callFake((url, params) => {
       const isOrganization = url.includes('organization');
       const ownerType = isOrganization ? 'organization' : 'application';
-      const id = isOrganization ? params.organizationId : params.applicationPublicId;
+      const id = isOrganization ? params.organizationId : params?.applicationPublicId;
       return `#/management/view/${ownerType}/${id}`;
     });
     ownersMap = getOwnersMap(3);
@@ -42,10 +42,10 @@ describe('OwnerTree', () => {
     minimalProps = {
       ownerId,
     };
-    renderComponent = (preloadedState = state, router = routerContext) =>
+    renderComponent = (preloadedState = state, additionalProps = {}, router = routerContext) =>
       render(
         <RouterStateContext.Provider value={router}>
-          <OwnerTree {...minimalProps} />
+          <OwnerTree {...minimalProps} {...additionalProps} />
         </RouterStateContext.Provider>,
         { preloadedState }
       );
@@ -62,6 +62,28 @@ describe('OwnerTree', () => {
     renderComponent();
 
     expect(screen.getAllByRole('treeitem').length).toBe(Object.values(ownersMap).length);
+    Object.values(ownersMap).forEach(({ name, type }) => {
+      const treeItem = screen.getByRole('treeitem', { name: name });
+      expect(treeItem).toBeVisible();
+      const label = within(treeItem).getAllByTestId('owners-tree-item-label')[0];
+
+      const images = within(label).getAllByRole('img', { hidden: true });
+      const ownerIcon = images[images.length - 1];
+      expect(ownerIcon).toBeVisible();
+      type === 'application'
+        ? expect(ownerIcon).toHaveAttribute('data-icon', 'terminal')
+        : expect(ownerIcon).toHaveAttribute('data-icon', 'sitemap');
+    });
+  });
+
+  it('renders correct amount of filtered tree nodes with repositories', () => {
+    renderComponent(state, { shouldDisplayRepositories: true });
+
+    expect(screen.getAllByRole('treeitem').length).toBe(Object.values(ownersMap).length + 1);
+
+    const repositoriesTreeItem = screen.getByRole('treeitem', { name: 'Repositories' });
+    expect(repositoriesTreeItem).toBeVisible();
+
     Object.values(ownersMap).forEach(({ name, type }) => {
       const treeItem = screen.getByRole('treeitem', { name: name });
       expect(treeItem).toBeVisible();

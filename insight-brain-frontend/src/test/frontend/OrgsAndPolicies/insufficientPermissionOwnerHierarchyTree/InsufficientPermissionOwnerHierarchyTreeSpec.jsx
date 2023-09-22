@@ -41,7 +41,7 @@ describe('InsufficientPermissionOwnerHierarchyTree', () => {
     renderComponent(state);
 
     const orgName = 'Insufficient Permission Org';
-    const ownersTreeTile = screen.getByLabelText('Inheritance Hierarchy');
+    const ownersTreeTile = screen.getByLabelText('org-title');
 
     expect(ownersTreeTile).toBeVisible();
     expect(within(ownersTreeTile).getByText(orgName)).toBeVisible();

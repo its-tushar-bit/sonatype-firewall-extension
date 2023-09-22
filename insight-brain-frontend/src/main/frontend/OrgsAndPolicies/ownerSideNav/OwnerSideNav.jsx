@@ -26,7 +26,7 @@ import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { actions } from './ownerSideNavSlice';
-import { selectOwnerSideNavSlice } from './ownerSideNavSelectors';
+import { selectOwnerSideNavSlice, selectIsOrganizationTopOfHierarchyForUser } from './ownerSideNavSelectors';
 import Application from './Application';
 import Organization from './Organization';
 import {
@@ -57,10 +57,11 @@ export default function OwnerSideNav() {
     filterLoading,
   } = useSelector(selectOwnerSideNavSlice);
   const isRootOrganization = useSelector(selectIsRootOrganization);
+  const isOrganizationTopOfHierarchyForUser = useSelector(selectIsOrganizationTopOfHierarchyForUser);
   const isOrganization = useSelector(selectIsOrganization);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isApplication = useSelector(selectIsApplication);
-  const showRepositoriesLink = showRepositories && (isRootOrganization || isRepositoriesRelated);
+  const showRepositoriesLink = showRepositories && (isOrganizationTopOfHierarchyForUser || isRepositoriesRelated);
   const selectedApplicationId = useSelector(selectApplicationId);
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
   const isSummaryPage = useSelector(selectIncludesManagementView);

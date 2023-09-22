@@ -10,13 +10,17 @@ import { NxH1 } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
 import { selectDisplayedOrganization } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import OwnersTreeTile from 'MainRoot/OrgsAndPolicies/ownersTreePage/OwnerTreeTile';
-import { selectIsOwnerNodeExpanded } from '../ownersTreeSelectors';
+import { selectIsOwnerNodeExpanded, selectShouldDisplayRepositories } from '../ownersTreeSelectors';
 
 export default function InsufficientPermissionOwnerHierarchyTree() {
   const dispatch = useDispatch();
   const toogleTreeNode = (payload) => dispatch(actions.toogleTreeNode(payload));
 
   const { name, id } = useSelector(selectDisplayedOrganization);
+  const shouldDisplayRepositories = useSelector(selectShouldDisplayRepositories);
+  const topParentOrganizationId = shouldDisplayRepositories ? 'ROOT_ORGANIZATION_ID' : id;
+  const dottedLineClassName =
+    shouldDisplayRepositories && id !== 'ROOT_ORGANIZATION_ID' ? 'repositories-dotted-line' : '';
 
   return (
     <>
@@ -30,9 +34,11 @@ export default function InsufficientPermissionOwnerHierarchyTree() {
         </div>
       </header>
       <OwnersTreeTile
-        topParentOrganizationId={id}
+        topParentOrganizationId={topParentOrganizationId}
         isNodeOpenSelector={selectIsOwnerNodeExpanded}
         onToggleTreeNode={toogleTreeNode}
+        shouldDisplayRepositories={shouldDisplayRepositories}
+        className={dottedLineClassName}
       />
     </>
   );

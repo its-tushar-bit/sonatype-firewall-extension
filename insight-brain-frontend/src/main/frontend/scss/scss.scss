@@ -156,6 +156,7 @@
 @use '../firewallOnboarding/firewallOnboarding';
 @use '../configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfiguration';
 @use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';
+@use '../OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

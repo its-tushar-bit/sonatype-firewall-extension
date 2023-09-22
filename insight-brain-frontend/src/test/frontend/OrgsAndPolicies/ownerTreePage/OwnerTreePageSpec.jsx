@@ -61,6 +61,6 @@ describe('OwnerTreePage', () => {
 
     // no errors
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
-    expect(await screen.findByLabelText(/Inheritance Hierarchy/i)).toBeVisible();
+    expect(await screen.findByLabelText('ROOT_ORGANIZATION_ID-title')).toBeVisible();
   });
 });

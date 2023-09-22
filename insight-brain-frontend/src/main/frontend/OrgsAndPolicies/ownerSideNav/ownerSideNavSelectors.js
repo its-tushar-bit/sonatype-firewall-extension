@@ -23,11 +23,21 @@ export const selectTopParentOrganization = createSelector(
   (id, ownersMap) => ownersMap[id] || {}
 );
 export const selectShowRepositories = createSelector(selectOwnerSideNavSlice, prop('showRepositories'));
+
 export const selectOwnerById = createSelector(
   selectOwnersMap,
-  (_, organizationId) => organizationId,
-  (organizations, organizationId) => {
+  selectTopParentOrganizationId,
+  (_, organizationId, needsSyntheticRoot) => ({ organizationId, needsSyntheticRoot }),
+  (organizations, topParentOrganizationId, { organizationId, needsSyntheticRoot }) => {
     if (!organizations || !organizationId) return {};
+    if (needsSyntheticRoot && !organizations['ROOT_ORGANIZATION_ID']) {
+      return {
+        id: 'ROOT_ORGANIZATION_ID',
+        name: 'Root Organization',
+        organizationIds: [topParentOrganizationId],
+        synthetic: true,
+      };
+    }
     return organizations[organizationId];
   }
 );
@@ -90,5 +100,20 @@ export const selectPrevStateOwnerName = createSelector(
   (_, prevOwnerId) => prevOwnerId,
   (ownersMap, topParentOrganization, prevOwnerId) => {
     return ownersMap[prevOwnerId] ? ownersMap[prevOwnerId].name : topParentOrganization?.name;
+  }
+);
+
+/**
+ * This selector identifies if the displayed organization is the top org that the user has permission,
+ * it could be a synthetic org or a full org
+ */
+export const selectIsOrganizationTopOfHierarchyForUser = createSelector(
+  selectOwnersMap,
+  selectDisplayedOrganization,
+  (ownersMap, displayedOrganization) => {
+    const orgHasNoParentOrg = !displayedOrganization?.parentOrganizationId;
+    const parentOrgIsNotInOwnersMap = !ownersMap?.[displayedOrganization?.parentOrganizationId];
+
+    return orgHasNoParentOrg || parentOrgIsNotInOwnersMap;
   }
 );

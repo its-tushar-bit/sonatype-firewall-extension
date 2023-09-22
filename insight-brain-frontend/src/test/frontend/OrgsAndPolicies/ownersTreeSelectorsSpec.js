@@ -8,9 +8,15 @@ import {
   selectOwnersTreeNodesStatus,
   selectOwnersTreeNodesInitialStatus,
   selectIsOwnerNodeExpanded,
+  selectShouldDisplayRepositories,
 } from 'MainRoot/OrgsAndPolicies/ownersTreeSelectors';
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { TREE_NODE_STATUS as STATUS } from 'MainRoot/OrgsAndPolicies/ownersTreeSlice';
+import {
+  selectIsOrganizationTopOfHierarchyForUser,
+  selectShowRepositories,
+} from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('ownersTreeSelectors', () => {
   describe('selectOwnersTreeSlice', () => {
@@ -101,6 +107,28 @@ describe('ownersTreeSelectors', () => {
 
       expect(selectIsOwnerNodeExpanded.resultFunc(status, STATUS.expanded, 'nexus')).toBe(STATUS.expanded);
       expect(selectIsOwnerNodeExpanded.resultFunc(status, STATUS.collapsed, 'sonatype')).toBe(STATUS.collapsed);
+    });
+  });
+
+  describe('selectShouldDisplayRepositories', () => {
+    it('is composed from the following selector', () => {
+      expect(selectShouldDisplayRepositories.dependencies).toEqual([
+        selectShowRepositories,
+        selectIsOrganizationTopOfHierarchyForUser,
+        selectIsRepositoriesRelated,
+      ]);
+    });
+
+    it('select the correct value depending on the inputs', () => {
+      const doNotShowRepos = selectShouldDisplayRepositories.resultFunc(false, true, true);
+      const isNotTopOrgAndIsRepoRelated = selectShouldDisplayRepositories.resultFunc(true, false, true);
+      const isTopOrgAndIsNotRepoRelated = selectShouldDisplayRepositories.resultFunc(true, true, false);
+      const isNotTopOrgAndIsNotRepoRelated = selectShouldDisplayRepositories.resultFunc(true, false, false);
+
+      expect(doNotShowRepos).toBe(false);
+      expect(isNotTopOrgAndIsRepoRelated).toBe(true);
+      expect(isTopOrgAndIsNotRepoRelated).toBe(true);
+      expect(isNotTopOrgAndIsNotRepoRelated).toBe(false);
     });
   });
 });

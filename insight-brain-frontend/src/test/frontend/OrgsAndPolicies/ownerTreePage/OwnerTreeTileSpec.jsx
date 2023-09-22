@@ -26,7 +26,7 @@ describe('OwnersTreeTile', () => {
   it('renders owners tree tile', () => {
     renderComponent();
 
-    const ownersTreeTile = screen.getByLabelText('Inheritance Hierarchy');
+    const ownersTreeTile = screen.getByLabelText('sonatype-title');
 
     expect(ownersTreeTile).toBeVisible();
     expect(within(ownersTreeTile).getByRole('tree')).toBeVisible();

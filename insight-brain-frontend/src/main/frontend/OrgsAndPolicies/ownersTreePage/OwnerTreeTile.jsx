@@ -17,10 +17,10 @@ import { selectSearchTerm } from 'MainRoot/OrgsAndPolicies/ownersTreeSelectors';
 import { selectOwnersMap } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
 export default function OwnersTreeTile({
-  id,
   topParentOrganizationId,
   onToggleTreeNode,
   isNodeOpenSelector,
+  shouldDisplayRepositories,
   ...otherProps
 }) {
   const INPUT_DEBOUNCE_TIME = 500;
@@ -55,11 +55,11 @@ export default function OwnersTreeTile({
     []
   );
 
-  const tileTitleId = id ? `${id}-title` : undefined;
+  const tileTitleId = topParentOrganizationId ? `${topParentOrganizationId}-title` : undefined;
   const label = tileTitleId ? tileTitleId : 'Inheritance Hierarchy';
 
   return (
-    <NxTile id={id} aria-label={label} aria-labelledby={tileTitleId} {...otherProps}>
+    <NxTile id={topParentOrganizationId} aria-label={label} aria-labelledby={tileTitleId} {...otherProps}>
       <NxTile.Header>
         <IqStatefulFilterInput
           id="iq-owner-tree-filter-input"
@@ -82,6 +82,7 @@ export default function OwnersTreeTile({
             ownerId={topParentOrganizationId}
             onToggleTreeNode={onToggleTreeNode}
             isNodeOpenSelector={isNodeOpen}
+            shouldDisplayRepositories={shouldDisplayRepositories}
           />
         )}
       </NxTile.Content>
@@ -94,4 +95,5 @@ OwnersTreeTile.propTypes = {
   topParentOrganizationId: PropTypes.string,
   isNodeOpenSelector: PropTypes.func,
   onToggleTreeNode: PropTypes.func,
+  shouldDisplayRepositories: PropTypes.bool,
 };

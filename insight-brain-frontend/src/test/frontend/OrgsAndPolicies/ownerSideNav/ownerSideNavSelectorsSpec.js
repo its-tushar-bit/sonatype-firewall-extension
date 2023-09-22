@@ -14,6 +14,7 @@ import {
   selectOwnerById,
   selectIsDisplayedOrganizationSynthetic,
   selectAllDescendantsByParentId,
+  selectTopParentOrganizationId,
 } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
 describe('ownerSideNavSelectors', () => {
@@ -97,14 +98,36 @@ describe('ownerSideNavSelectors', () => {
 
   describe('selectOwnerById', () => {
     it('is composed from the following selector', () => {
-      expect(selectOwnerById.dependencies).toEqual([selectOwnersMap, jasmine.any(Function)]);
+      expect(selectOwnerById.dependencies).toEqual([
+        selectOwnersMap,
+        selectTopParentOrganizationId,
+        jasmine.any(Function),
+      ]);
     });
 
     it('selects and organization by id', () => {
       const ownersMap = { nexus: { id: 'id', name: 'nexus' } };
-      const result = selectOwnerById.resultFunc(ownersMap, 'nexus');
+      const result = selectOwnerById.resultFunc(ownersMap, 'nexus', {
+        organizationId: 'nexus',
+        needsSyntheticRoot: false,
+      });
 
       expect(result).toEqual(ownersMap.nexus);
+    });
+
+    it('selects and organization by id with added synthetic root', () => {
+      const ownersMap = { nexus: { id: 'id', name: 'nexus' } };
+      const rootOrg = {
+        id: 'ROOT_ORGANIZATION_ID',
+        name: 'Root Organization',
+        organizationIds: ['nexus'],
+        synthetic: true,
+      };
+      const result = selectOwnerById.resultFunc(ownersMap, 'nexus', {
+        organizationId: 'ROOT_ORGANIZATION_ID',
+        needsSyntheticRoot: true,
+      });
+      expect(result).toEqual(rootOrg);
     });
   });
 

@@ -14,14 +14,20 @@ import { selectFilteredOwners, selectSearchTerm } from 'MainRoot/OrgsAndPolicies
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 import { renderDisplayName } from 'MainRoot/DependencyTree/dependencyTreeUtil';
+import { faDatabase } from '@fortawesome/pro-regular-svg-icons';
 
 const shouldRenderNodeById = (searchTerm, filteredOwners) => (nodeId) =>
   !searchTerm || (searchTerm && filteredOwners.includes(nodeId));
 
-const OwnerTreeNode = ({ ownerId, onToggleTreeNode = () => {}, isNodeOpenSelector = () => true }) => {
+const OwnerTreeNode = ({
+  ownerId,
+  onToggleTreeNode = () => {},
+  isNodeOpenSelector = () => true,
+  shouldDisplayRepositories,
+}) => {
   const uiRouterState = useRouterState();
   const { name, organizationIds, applicationIds, publicId: applicationPublicId, id: organizationId, type, synthetic } =
-    useSelector((state) => selectOwnerById(state, ownerId)) || {};
+    useSelector((state) => selectOwnerById(state, ownerId, shouldDisplayRepositories)) || {};
   const isOpen = useSelector((state) => isNodeOpenSelector(state, ownerId));
   const searchTerm = useSelector(selectSearchTerm);
   const filteredOwners = useSelector(selectFilteredOwners);
@@ -38,6 +44,8 @@ const OwnerTreeNode = ({ ownerId, onToggleTreeNode = () => {}, isNodeOpenSelecto
   const clickDOMElement = (id) => document.getElementById(id)?.click();
   const toggleTreeNode = useCallback(() => onToggleTreeNode({ ownerId }), [ownerId, onToggleTreeNode]);
   const displayName = renderDisplayName(name, searchTerm, 'iq-owner-tree-page__search-match');
+  const displayRepositories = shouldDisplayRepositories && ownerId === 'ROOT_ORGANIZATION_ID';
+  const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container');
 
   return (
     <NxTree.Item
@@ -65,6 +73,16 @@ const OwnerTreeNode = ({ ownerId, onToggleTreeNode = () => {}, isNodeOpenSelecto
       </NxTree.ItemLabel>
       {hasChildEntities && (
         <NxTree>
+          {displayRepositories && (
+            <NxTree.Item>
+              <NxTree.ItemLabel data-testid="owners-tree-item-label">
+                <NxFontAwesomeIcon fixedWidth icon={faDatabase} />
+                <NxTextLink href={goToRepositoriesUrl} id={nodeId} tabIndex={-1}>
+                  Repositories
+                </NxTextLink>
+              </NxTree.ItemLabel>
+            </NxTree.Item>
+          )}
           {items.map(
             (id) =>
               shouldRenderNode(id) && (
@@ -87,11 +105,12 @@ OwnerTreeNode.propTypes = {
   ownerId: PropTypes.string,
   onToggleTreeNode: PropTypes.func,
   isNodeOpenSelector: PropTypes.func,
+  shouldDisplayRepositories: PropTypes.bool,
 };
 
 const MemoizedOwnerTreeNode = React.memo(OwnerTreeNode);
 
-export default function OwnerTree({ ownerId, onToggleTreeNode, isNodeOpenSelector }) {
+export default function OwnerTree({ ownerId, onToggleTreeNode, isNodeOpenSelector, shouldDisplayRepositories }) {
   const searchTerm = useSelector(selectSearchTerm);
   const filteredOwners = useSelector(selectFilteredOwners);
   const shouldRenderNode = shouldRenderNodeById(searchTerm, filteredOwners);
@@ -103,6 +122,7 @@ export default function OwnerTree({ ownerId, onToggleTreeNode, isNodeOpenSelecto
           ownerId={ownerId}
           onToggleTreeNode={onToggleTreeNode}
           isNodeOpenSelector={isNodeOpenSelector}
+          shouldDisplayRepositories={shouldDisplayRepositories}
         />
       </NxTree>
     ) : (
@@ -117,4 +137,5 @@ OwnerTree.propTypes = {
   ownerId: PropTypes.string,
   onToggleTreeNode: PropTypes.func,
   isNodeOpenSelector: PropTypes.func,
+  shouldDisplayRepositories: PropTypes.bool,
 };

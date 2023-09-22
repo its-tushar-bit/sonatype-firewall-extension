@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
@@ -41,15 +42,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrgsAndPoliciesLimitedViewPermissionTest
     extends AbstractFunctionalTest
 {
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+
   private List<Organization> organizations;
 
   private Organization commonAncestorOwner;
 
   private User developerUser;
-
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
-
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
 
   @Before
   public void init() {
@@ -64,7 +65,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
 
   @Test
   public void testOrgsAndPoliciesSideNavbar_userHasAccessToOnlyOneOrg() {
-    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 5, 3, new NameSupplierDictionary());
+    organizations = tempEntity.newRelatedOrganizationsAsList(1, 5, 3, new NameSupplierDictionary());
     Organization organizationWithPermissions = organizations.get(2);
     commonAncestorOwner = organizationWithPermissions;
 
@@ -80,13 +81,13 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
 
     List<Organization> childOrgs = organizationDAO.getByParentOrganizationId(commonAncestorOwner.getId());
     List<Application> childApps = applicationDAO.getByOrganizationId(commonAncestorOwner.getId());
-    testSideNavbarContent(commonAncestorOwner, new ArrayList<>(childOrgs),  new ArrayList<>(childApps));
+    testSideNavbarContent(commonAncestorOwner, new ArrayList<>(childOrgs), new ArrayList<>(childApps));
     testMainContent(commonAncestorOwner, false);
   }
 
   @Test
   public void testOrgsAndPoliciesSideNavbar_userHasAccessToOnlyApplications() {
-    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 5, 3);
+    organizations = tempEntity.newRelatedOrganizationsAsList(1, 5, 3);
 
     Organization parentOrg1 = organizations.get(3);
     Organization parentOrg2 = organizations.get(2);
@@ -108,13 +109,79 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
 
     login(developerUser.getUsername(), developerUser.getPassword());
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.ORGANIZATION, commonAncestorOwner.getId()));
-    testSideNavbarContent(commonAncestorOwner, new ArrayList<>(childOrgs),  new ArrayList<>(childApps));
+    testSideNavbarContent(commonAncestorOwner, new ArrayList<>(childOrgs), new ArrayList<>(childApps));
     testMainContent(commonAncestorOwner, true);
   }
 
   @Test
+  public void testOrgsAndPoliciesSideNavbar_userHasAccessToRepositoriesButNoRootOrg() {
+    organizations = tempEntity.newRelatedOrganizationsAsList(1, 5, 3);
+
+    Organization parentOrg1 = organizations.get(3);
+    Organization parentOrg2 = organizations.get(2);
+    commonAncestorOwner = parentOrg1;
+
+    List<Application> appsWithPermission = new ArrayList<>(applicationDAO.getByOrganizationId(parentOrg1.getId()));
+    appsWithPermission.addAll(new ArrayList<>(applicationDAO.getByOrganizationId(parentOrg2.getId())));
+
+    appsWithPermission.forEach(app -> {
+      tempEntity.newMembershipMapping(
+          app.getId(),
+          Role.DEVELOPER_ROLE_ID,
+          developerUser.getUsername()
+      );
+    });
+
+    tempEntity
+        .newMembershipMapping(RepositoryContainer.REPOSITORY_CONTAINER_ID, Role.DEVELOPER_ROLE_ID,
+            developerUser.getUsername());
+
+    login(developerUser.getUsername(), developerUser.getPassword());
+    waitUntilUrl(OwnerSummaryPage.url(OwnerType.ORGANIZATION, commonAncestorOwner.getId()));
+    eyesWatcher.eyesCheck("Root org is shown with repositories and doted line for limited user");
+  }
+
+  @Test
+  public void testOrgsAndPoliciesSideNavbar_userHasAccessToRepositoriesAndRootOrg() {
+    NameSupplierDictionary nameSupplierDictionary = new NameSupplierDictionary();
+    organizations = tempEntity.newRelatedOrganizationsAsList(1, 5, 1, nameSupplierDictionary);
+    List<Organization> childOrgs = new LinkedList<>();
+
+    Organization parentOrg1 = organizations.get(3);
+    childOrgs.add(organizations.get(organizations.size() - 1));
+    tempEntity.newRelatedOrganizationsAsList(parentOrg1, 3, 2, 1, nameSupplierDictionary);
+
+    organizations = tempEntity.newRelatedOrganizationsAsList(1, 3, 1, nameSupplierDictionary);
+    Organization parentOrg2 = organizations.get(organizations.size() - 1);
+    childOrgs.add(parentOrg2);
+    tempEntity.newRelatedOrganizationsAsList(parentOrg1, 3, 2, 1, nameSupplierDictionary);
+
+    tempEntity.newMembershipMapping(
+        parentOrg1.getId(),
+        Role.DEVELOPER_ROLE_ID,
+        developerUser.getUsername()
+    );
+
+    tempEntity.newMembershipMapping(
+        parentOrg2.getId(),
+        Role.DEVELOPER_ROLE_ID,
+        developerUser.getUsername()
+    );
+
+    tempEntity
+        .newMembershipMapping(RepositoryContainer.REPOSITORY_CONTAINER_ID, Role.DEVELOPER_ROLE_ID,
+            developerUser.getUsername());
+    
+    commonAncestorOwner = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+
+    login(developerUser.getUsername(), developerUser.getPassword());
+    waitUntilUrl(OwnerSummaryPage.url(OwnerType.ORGANIZATION, commonAncestorOwner.getId()));
+    eyesWatcher.eyesCheck("Root org is shown with repositories and no doted line for limited user");
+  }
+
+  @Test
   public void testOrgsAndPoliciesSideNavbar_userHasAccessToOnlyOneApplication() {
-    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 5, 1);
+    organizations = tempEntity.newRelatedOrganizationsAsList(1, 5, 1);
 
     Organization parentOrg1 = organizations.get(3);
     commonAncestorOwner = parentOrg1;
@@ -134,24 +201,24 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
 
     login(developerUser.getUsername(), developerUser.getPassword());
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.ORGANIZATION, commonAncestorOwner.getId()));
-    testSideNavbarContent(commonAncestorOwner, new ArrayList<>(childOrgs),  new ArrayList<>(childApps));
+    testSideNavbarContent(commonAncestorOwner, new ArrayList<>(childOrgs), new ArrayList<>(childApps));
     testMainContent(commonAncestorOwner, true);
   }
 
   @Test
   public void testOrgsAndPoliciesSideNavbar_userHasAccessToSeveralOgrs() {
     NameSupplierDictionary nameSupplierDictionary = new NameSupplierDictionary();
-    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 5, 1, nameSupplierDictionary);
+    organizations = tempEntity.newRelatedOrganizationsAsList(1, 5, 1, nameSupplierDictionary);
     List<Organization> childOrgs = new LinkedList<>();
 
     Organization parentOrg1 = organizations.get(3);
     childOrgs.add(organizations.get(organizations.size() - 1));
-    tempEntity.newRelatedOrganizationsAsList(parentOrg1,3, 2, 1, nameSupplierDictionary);
+    tempEntity.newRelatedOrganizationsAsList(parentOrg1, 3, 2, 1, nameSupplierDictionary);
 
-    organizations =  tempEntity.newRelatedOrganizationsAsList(1, 3, 1, nameSupplierDictionary);
+    organizations = tempEntity.newRelatedOrganizationsAsList(1, 3, 1, nameSupplierDictionary);
     Organization parentOrg2 = organizations.get(organizations.size() - 1);
     childOrgs.add(parentOrg2);
-    tempEntity.newRelatedOrganizationsAsList(parentOrg1,3, 2, 1, nameSupplierDictionary);
+    tempEntity.newRelatedOrganizationsAsList(parentOrg1, 3, 2, 1, nameSupplierDictionary);
 
     tempEntity.newMembershipMapping(
         parentOrg1.getId(),
@@ -171,7 +238,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
     login(developerUser.getUsername(), developerUser.getPassword());
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.ORGANIZATION, commonAncestorOwner.getId()));
     eyesWatcher.eyesCheck("Orgs and policies user with limited view permission - CLA is synthetic and Root org");
-    testSideNavbarContent(commonAncestorOwner, new ArrayList<>(childOrgs),  new ArrayList<>(childApps));
+    testSideNavbarContent(commonAncestorOwner, new ArrayList<>(childOrgs), new ArrayList<>(childApps));
     testMainContent(commonAncestorOwner, true);
   }
 

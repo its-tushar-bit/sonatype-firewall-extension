@@ -1202,9 +1202,8 @@ CREATE TABLE saml_user (
 -- Since 1.157
 CREATE TABLE saml_group(
   saml_group_id varchar(50) NOT NULL,
-  name varchar(2048) NOT NULL,
-  CONSTRAINT saml_group_pk PRIMARY KEY (saml_group_id),
-  CONSTRAINT saml_group_name_uk UNIQUE (name)
+  name text NOT NULL,
+  CONSTRAINT saml_group_pk PRIMARY KEY (saml_group_id)
 );
 
 -- Since 1.157

@@ -1,0 +1,34 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.2.3"
+      }
+    },
+    "packageUrl" : "pkg:pypi/numpy@1.2.3?extension=zip",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a1903d860d31d297d69d",
+    "relativePopularity" : null,
+    "createTime" : 1694624649288,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "scenario2",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null
+  } ]
+}

@@ -15,24 +15,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -99,7 +99,7 @@ public class ThirdPartyDataServiceTest
         tempEntity
             .newThirdPartyCoordinateSecurity(coord2, "r3", "desc3", "l3", 3f, null, "s3", "v:3", "sd3", "<dd>333</dd>",
                 "m3", "<dd>r3</dd>", "<dd>a3</dd>");
-    
+
     final ThirdPartyCoordinateLicense lic1coord1 =
         tempEntity.newThirdPartyCoordinateLicense(coord1, "Apache-2.0", "n1", "u1");
 
@@ -128,7 +128,7 @@ public class ThirdPartyDataServiceTest
     assertBomContains(scanData.billOfMaterials, coord8, file);
     assertSecurityRowsForComponent(scanData.securityRows, coord1, sec1coord1, sec2coord1);
     assertSecurityRowsForComponent(scanData.securityRows, coord2, sec1coord2);
-    
+
     assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1,lic2coord1);
     assertLicenseRowsForComponent(scanData.licenseRows, coord2, 1, lic1coord2);
     assertLicenseNotProvided(scanData.licenseRows, coord3);
@@ -137,6 +137,39 @@ public class ThirdPartyDataServiceTest
     assertLicenseNotProvided(scanData.licenseRows, coord6);
     assertLicenseNotProvided(scanData.licenseRows, coord7);
     assertLicenseNotProvided(scanData.licenseRows, coord8);
+  }
+
+  @Test
+  public void testGetScanDataWithVex() {
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    ThirdPartyFileCoordinate coord1 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f1", "n1", "v1", "hash1", "pkg:f1/n1@v1");
+
+    final ThirdPartyCoordinateSecurity sec1coord1 =
+        tempEntity
+            .newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, null, "s1", "v:1", "sd1", "<dd>123</dd>",
+                "m1", "<dd>r1</dd>", "<dd>a1</dd>");
+
+    final ThirdPartyVulnerabilityExploitabilityExchange vex =
+        tempEntity
+            .newThirdPartyVulnerabilityExploitabilityExchange(sec1coord1, "r1", "resolved",
+                "code_not_reachable", "will_not_fix,update", null);
+
+    final ThirdPartyCoordinateLicense lic1coord1 =
+        tempEntity.newThirdPartyCoordinateLicense(coord1, "Apache-2.0", "n1", "u1");
+
+    tempEntity.newThirdPartyCoordinateLicense(coord1, "l3", "n3", "u3");
+
+    final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
+
+    assertThat(scanData.billOfMaterials).hasSize(1);
+    assertThat(scanData.securityRows).hasSize(1);
+    assertThat(scanData.licenseRows).hasSize(1);
+
+    assertBomContains(scanData.billOfMaterials, coord1, file);
+    assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1);
+    assertSecurityRowsForComponentWithVex(scanData.securityRows, coord1, sec1coord1, vex);
   }
 
   @Test
@@ -150,7 +183,7 @@ public class ThirdPartyDataServiceTest
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
-    
+
     final ThirdPartyCoordinateLicense lic1coord1 =
         tempEntity.newThirdPartyCoordinateLicense(coord1, "Apache-2.0", "n1", "u1");
 
@@ -178,7 +211,7 @@ public class ThirdPartyDataServiceTest
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
     tempEntity.newThirdPartyCoordinateSecurity(coord2, "r1", "desc1", "l1", 5f, "Medium", null);
-    
+
     final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
 
     assertThat(scanData.billOfMaterials).hasSize(1);
@@ -358,6 +391,25 @@ public class ThirdPartyDataServiceTest
     }
   }
 
+  private void assertSecurityRowsForComponentWithVex(
+      final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows,
+      final ThirdPartyFileCoordinate coordinate,
+      final ThirdPartyCoordinateSecurity expectedSecRows,
+      final ThirdPartyVulnerabilityExploitabilityExchange vex)
+  {
+    final List<ThirdPartyHealthCheckReportSecurityRowDTO> found =
+        securityRows.stream().filter(sec -> sec.hash.equals(coordinate.getHash())).collect(Collectors.toList());
+
+    assertThat(found.stream().filter(sec -> sec.reference.equals(
+        expectedSecRows.getRefId())).findFirst())
+          .hasValueSatisfying(securityRow -> {
+            assertThat(securityRow.analysis.state).isEqualTo(vex.getState());
+            assertThat(securityRow.analysis.justification).isEqualTo(vex.getJustification());
+            assertThat(securityRow.analysis.response).isEqualTo(vex.getResponse());
+            assertThat(securityRow.analysis.detail).isEqualTo(vex.getDetail());
+          });
+  }
+
   private void assertLicenseNotProvided(
       final List<ThirdPartyLicenseRowDTO> licenseRows,
       final ThirdPartyFileCoordinate coordinate)
@@ -396,7 +448,7 @@ public class ThirdPartyDataServiceTest
     license.url = expectedLicRow.getUrl();
     return license;
   }
-  
+
   private void assertBomContains(
       final List<BillOfMaterialsRowDTO> bom,
       final ThirdPartyFileCoordinate coordinate,

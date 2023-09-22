@@ -19,6 +19,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -30,14 +32,18 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -396,5 +402,95 @@ public class ThirdPartyComponentDAOTest
     catch (IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Test
+  public void testUpdateReport_scenario1_havingVulnerabilityOnHDS_analysisDataIsIncluded() throws Exception {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario1/report");
+
+    ContainerNode<?> bomJsonData = getContainerNode(reportZip, Report.BOM_JSON_FILENAME);
+    ContainerNode<?> dataJson = getContainerNode(reportZip, Report.DATA_JSON_FILENAME);
+    ContainerNode<?> summaryJsonData = getContainerNode(reportZip, Report.SUMMARY_JSON_FILENAME);
+    ContainerNode<?> licensesJsonData = getContainerNode(reportZip, Report.LICENSES_JSON_FILENAME);
+    ContainerNode<?> securityJsonData = getContainerNode(reportZip, Report.SECURITY_JSON_FILENAME);
+
+    assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNull();
+
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData,
+        dataJson,summaryJsonData, reportZip);
+
+    assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNotNull();
+    assertThat(securityJsonData.get("aaData").get(1).get("analysis").get("state").textValue()).isEqualTo(
+        "resolved");
+    assertThat(securityJsonData.get("aaData").get(1).get("analysis").get("justification").textValue()).isEqualTo(
+        "code_not_reachable");
+    assertThat(securityJsonData.get("aaData").get(1).get("analysis").get("response").textValue()).isEqualTo(
+        "will_not_fix,update");
+    assertThat(securityJsonData.get("aaData").get(1).get("analysis").get("detail").textValue()).isEqualTo(
+        "Some analysis details");
+  }
+
+  @Test
+  public void testUpdateReport_scenario2_havingVulnerabilityOnThirdParty_analysisDataIsIncluded() throws Exception {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario2/report");
+
+    ContainerNode<?> bomJsonData = getContainerNode(reportZip, Report.BOM_JSON_FILENAME);
+    ContainerNode<?> dataJson = getContainerNode(reportZip, Report.DATA_JSON_FILENAME);
+    ContainerNode<?> summaryJsonData = getContainerNode(reportZip, Report.SUMMARY_JSON_FILENAME);
+    ContainerNode<?> licensesJsonData = getContainerNode(reportZip, Report.LICENSES_JSON_FILENAME);
+    ContainerNode<?> securityJsonData = getContainerNode(reportZip, Report.SECURITY_JSON_FILENAME);
+
+    assertThat(summaryJsonData.get("knownArtifactCount").intValue()).isZero();
+    assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData")).isEmpty();
+
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData, reportZip);
+
+    assertThat(summaryJsonData.get("knownArtifactCount").intValue()).isEqualTo(1);
+    assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData").get(0).get("analysis").get("state").textValue()).isEqualTo(
+        "resolved");
+    assertThat(securityJsonData.get("aaData").get(0).get("analysis").get("justification").textValue()).isEqualTo(
+        "code_not_reachable");
+    assertThat(securityJsonData.get("aaData").get(0).get("analysis").get("response").textValue()).isEqualTo(
+        "update");
+    assertThat(securityJsonData.get("aaData").get(0).get("analysis").get("detail").textValue()).isEqualTo(
+        "details");
+  }
+
+  @Test
+  public void testUpdateReport_scenario3_havingNoVulnerabilityOnHDS_analysisDataIsNotIncluded() throws Exception {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario3/report");
+
+    ContainerNode<?> bomJsonData = getContainerNode(reportZip, Report.BOM_JSON_FILENAME);
+    ContainerNode<?> dataJson = getContainerNode(reportZip, Report.DATA_JSON_FILENAME);
+    ContainerNode<?> summaryJsonData = getContainerNode(reportZip, Report.SUMMARY_JSON_FILENAME);
+    ContainerNode<?> licensesJsonData = getContainerNode(reportZip, Report.LICENSES_JSON_FILENAME);
+    ContainerNode<?> securityJsonData = getContainerNode(reportZip, Report.SECURITY_JSON_FILENAME);
+
+    assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData").get(0).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData").get(2).get("analysis")).isNull();
+
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData, reportZip);
+
+    assertThat(bomJsonData.get("aaData").get(0).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData").get(0).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNull();
+    assertThat(securityJsonData.get("aaData").get(2).get("analysis")).isNull();
+  }
+
+  private ContainerNode<?> getContainerNode(final File reportFile, final String name) throws IOException {
+    // When the archive is closed, all InputStreams retrieved from this archive are also closed.
+    try (final ZipFile archive = new ZipFile(reportFile)) {
+      final ZipEntry entry = archive.getEntry(name);
+      if (entry != null) {
+        return JsonUtils.parse(IOUtils.toByteArray(archive.getInputStream(entry)));
+      }
+    }
+    return null;
   }
 }

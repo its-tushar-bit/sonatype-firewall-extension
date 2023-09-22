@@ -1,0 +1,20 @@
+{
+  "partiallyMatchedComponentCount" : 0,
+  "notProvidedLicenseCount" : 0,
+  "liberalLicenseCount" : 0,
+  "scanLabel" : null,
+  "globals" : {
+    "earliestReleaseDate" : 9223372036854775807,
+    "dataVersion" : null,
+    "exceededRowLimit" : false,
+    "scanErrorCount" : 0,
+    "currentDate" : 1694624651247,
+    "hideFilename" : true
+  },
+  "exactlyMatchedComponentCount" : 0,
+  "nonStandardLicenseCount" : 0,
+  "copyleftLicenseCount" : 0,
+  "knownArtifactCount" : 0,
+  "totalArtifactCount" : 1,
+  "weakcopyleftLicenseCount" : 0
+}

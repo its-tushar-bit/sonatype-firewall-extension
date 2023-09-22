@@ -1,0 +1,22 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "737a0d93cb953911d68a",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  } ]
+}

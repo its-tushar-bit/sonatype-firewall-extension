@@ -17,11 +17,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -48,16 +46,18 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.HealthCheckReportRowDTO;
 import com.sonatype.insight.scan.HealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRowDTO;
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.util.MetadataRecorderUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.Weigher;
@@ -307,9 +307,8 @@ public class ThirdPartyComponentDAO
       String matchStateString = bomNode.get(MATCH_STATE).asText();
       MatchState matchState = MatchState.getById(matchStateString);
       if (MatchState.UNKNOWN.equals(matchState)) {
-        if (thirdPartyReportComponentDataByHash == null) {
-          thirdPartyReportComponentDataByHash = getData(reportFile);
-        }
+        thirdPartyReportComponentDataByHash =
+            getThirdPartyReportComponentDataByHash(reportFile, thirdPartyReportComponentDataByHash);
         String hash = JsonUtils.getNullableString(bomNode.get("hash"));
         ThirdPartyReportComponentDTO thirdPartyReportComponentDTO = thirdPartyReportComponentDataByHash.get(hash);
         if (thirdPartyReportComponentDTO != null) {
@@ -340,11 +339,57 @@ public class ThirdPartyComponentDAO
       }
     }
 
+    thirdPartyReportComponentDataByHash =
+        getThirdPartyReportComponentDataByHash(reportFile, thirdPartyReportComponentDataByHash);
+    addVexToSecurityData(securityJsonData, thirdPartyReportComponentDataByHash);
+
     ObjectNode dataObjectNode = (ObjectNode) dataJson;
     dataObjectNode.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount);
     dataObjectNode.put("knownArtifactCount", knownArtifactCount);
 
     ((ObjectNode) summaryJsonData).put("knownArtifactCount", knownArtifactCount);
+  }
+
+  private Map<String, ThirdPartyReportComponentDTO> getThirdPartyReportComponentDataByHash(
+      File reportFile,
+      Map<String, ThirdPartyReportComponentDTO> thirdPartyReportComponentDataByHash)
+  {
+    if (thirdPartyReportComponentDataByHash == null) {
+      thirdPartyReportComponentDataByHash = getData(reportFile);
+    }
+    return thirdPartyReportComponentDataByHash;
+  }
+
+  private void addVexToSecurityData(
+      ContainerNode<?> securityJsonData,
+      Map<String, ThirdPartyReportComponentDTO> thirdPartyReportComponentDataByHash)
+  {
+    if (thirdPartyReportComponentDataByHash != null) {
+      //data to update with VEX
+      Map<String, JsonNode> securityJsonMap = new HashMap<>();
+      ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
+      securityJsonArray.forEach(jsonNode -> {
+        String reference = jsonNode.get("reference").textValue();
+        securityJsonMap.put(reference, jsonNode);
+      });
+
+      thirdPartyReportComponentDataByHash.values().forEach(
+          currentComponent -> {
+            List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows = currentComponent.securityRows;
+            securityRows.forEach(securityRow -> {
+              ThirdPartyVulnerabilityExploitabilityExchangeRowDTO vexData = securityRow.analysis;
+              if (vexData != null) {
+                String reference = securityRow.reference;
+                JsonNode currentVulnerability = securityJsonMap.get(reference);
+                if (currentVulnerability != null) {
+                  ((ObjectNode) currentVulnerability).putIfAbsent("analysis",
+                      JsonUtils.asTree(JsonUtils.asTree(securityRow.analysis)));
+                }
+              }
+            });
+          }
+      );
+    }
   }
 
   private void mergeNodes(final JsonNode bomNode, final JsonNode tpNode) {
@@ -420,6 +465,7 @@ public class ThirdPartyComponentDAO
     result.score = securityRow.score;
     result.url = securityRow.url;
     result.summary = securityRow.description;
+    result.analysis = securityRow.analysis;
     return result;
   }
 

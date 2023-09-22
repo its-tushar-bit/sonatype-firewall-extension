@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -30,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
@@ -40,11 +40,13 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRowDTO;
 import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -66,10 +68,12 @@ public class ThirdPartyDataService
 
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
+  private final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
+
   private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
-  
+
   private final MultiLicenseDAO multiLicenseDAO;
 
   private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
@@ -83,6 +87,7 @@ public class ThirdPartyDataService
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final MultiLicenseDAO multiLicenseDAO,
@@ -93,6 +98,7 @@ public class ThirdPartyDataService
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
+    this.thirdPartyVulnerabilityExploitabilityExchangeDAO = thirdPartyVulnerabilityExploitabilityExchangeDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
     this.multiLicenseDAO = multiLicenseDAO;
@@ -198,7 +204,25 @@ public class ThirdPartyDataService
     dto.ratingMethod = coordinateSecurity.getRatingMethod();
     dto.recommendations = coordinateSecurity.getRecommendations();
     dto.advisories = coordinateSecurity.getAdvisories();
+
+    ThirdPartyVulnerabilityExploitabilityExchange vex = getVex(coordinateSecurity);
+    if (vex != null) {
+      dto.analysis = new ThirdPartyVulnerabilityExploitabilityExchangeRowDTO();
+      dto.analysis.response = vex.getResponse();
+      dto.analysis.justification = vex.getJustification();
+      dto.analysis.state = vex.getState();
+      dto.analysis.detail = vex.getDetail();
+    }
+
     return dto;
+  }
+
+  private ThirdPartyVulnerabilityExploitabilityExchange getVex(
+      final ThirdPartyCoordinateSecurity coordinateSecurity)
+  {
+    return thirdPartyVulnerabilityExploitabilityExchangeDAO.getByCoordinateSecurityIdAndRefId(
+        coordinateSecurity.getId(),
+        coordinateSecurity.getRefId());
   }
 
   private BillOfMaterialsRowDTO toBomRow(

@@ -83,7 +83,7 @@ Threat Level: <strong>${threatLevelDisplay.image.alt} (${threatLevelDisplay.valu
 | **Severity** | **Issue** | **Organization Policy Violation** |
 | --- | --- | --- |
 <#list securityIssues as securityIssue>
-| <@severityComponent data=securityIssue/> | <@issueComponent data=securityIssue/> | [View Details](${securityIssue.policyViolationDetailsLink}) |
+| <@severityComponent data=securityIssue/> | <@issueComponent data=securityIssue/> | [View Details](${securityIssue.policyViolationDetailsLink}) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
 </#list>
 
 </details>

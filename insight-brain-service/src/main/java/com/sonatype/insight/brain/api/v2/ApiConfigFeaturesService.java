@@ -178,7 +178,10 @@ public class ApiConfigFeaturesService
     LOOKER_INTEGRATED_ENTERPRISE_REPORTING(
         SystemConfigurationProperty.LOOKER_INTEGRATED_ENTERPRISE_REPORTING, false),
 
-    SCM_UX_IMPROVEMENTS(SystemConfigurationProperty.SCM_UX_IMPROVEMENTS, true, false);
+    SCM_UX_IMPROVEMENTS(SystemConfigurationProperty.SCM_UX_IMPROVEMENTS, true, false),
+
+    POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED(
+        SystemConfigurationProperty.POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED, false, false);
 
     private final String propertyName;
 

@@ -41,6 +41,7 @@ import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
@@ -481,6 +482,98 @@ public class ThirdPartyComponentDAOTest
     assertThat(securityJsonData.get("aaData").get(0).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData").get(1).get("analysis")).isNull();
     assertThat(securityJsonData.get("aaData").get(2).get("analysis")).isNull();
+  }
+
+  @Test
+  public void testUpdateReport_scenario4_multipleComponentWithSameVulnerability() throws Exception {
+    final File reportZip = zipReportDir("/ThirdPartyComponentDAOTest/vex/scenario4/report");
+
+    ContainerNode<?> bomJsonData = getContainerNode(reportZip, Report.BOM_JSON_FILENAME);
+    ContainerNode<?> dataJson = getContainerNode(reportZip, Report.DATA_JSON_FILENAME);
+    ContainerNode<?> summaryJsonData = getContainerNode(reportZip, Report.SUMMARY_JSON_FILENAME);
+    ContainerNode<?> licensesJsonData = getContainerNode(reportZip, Report.LICENSES_JSON_FILENAME);
+    ContainerNode<?> securityJsonData = getContainerNode(reportZip, Report.SECURITY_JSON_FILENAME);
+
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson,summaryJsonData, reportZip);
+
+    JsonNode securityJsonRootNode = securityJsonData.get("aaData");
+    assertThat(securityJsonRootNode).hasSize(6);
+
+    JsonNode node = securityJsonRootNode.get(0);
+    JsonNode reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2021-34141");
+    JsonNode name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("numpy");
+    JsonNode version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("1.19.0");
+    JsonNode analysis = node.get("analysis");
+    assertThat(analysis).isNull();
+
+    node = securityJsonRootNode.get(1);
+    reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2021-41495");
+    name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("numpy");
+    version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("1.19.0");
+    analysis = node.get("analysis");
+    assertThat(analysis).isNotNull();
+    assertThat(analysis.get("state").textValue()).isEqualTo("resolved");
+    assertThat(analysis.get("justification").textValue()).isEqualTo("protected_by_compiler");
+    assertThat(analysis.get("response").textValue()).isEqualTo("can_not_fix,update");
+    assertThat(analysis.get("detail").textValue()).isEqualTo("Analysis for CVE-2021-41495");
+
+    node = securityJsonRootNode.get(2);
+    reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2021-41496");
+    name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("numpy");
+    version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("1.19.0");
+    analysis = node.get("analysis");
+    assertThat(analysis).isNotNull();
+    assertThat(analysis.get("state").textValue()).isEqualTo("resolved_with_pedigree");
+    assertThat(analysis.get("justification").textValue()).isEqualTo("requires_environment");
+    assertThat(analysis.get("response").textValue()).isEqualTo("workaround_available,update");
+    assertThat(analysis.get("detail").textValue()).isEqualTo("Analysis for CVE-2021-41496");
+
+    node = securityJsonRootNode.get(3);
+    reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2021-34141");
+    name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("numpy");
+    version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("1.20.0");
+    analysis = node.get("analysis");
+    assertThat(analysis).isNull();
+
+    node = securityJsonRootNode.get(4);
+    reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2021-41495");
+    name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("numpy");
+    version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("1.20.0");
+    analysis = node.get("analysis");
+    assertThat(analysis).isNotNull();
+    assertThat(analysis.get("state").textValue()).isEqualTo("resolved");
+    assertThat(analysis.get("justification").textValue()).isEqualTo("protected_by_compiler");
+    assertThat(analysis.get("response").textValue()).isEqualTo("can_not_fix,update");
+    assertThat(analysis.get("detail").textValue()).isEqualTo("Analysis for CVE-2021-41495");
+
+    node = securityJsonRootNode.get(5);
+    reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2021-41496");
+    name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("numpy");
+    version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("1.20.0");
+    analysis = node.get("analysis");
+    assertThat(analysis).isNotNull();
+    assertThat(analysis.get("state").textValue()).isEqualTo("resolved_with_pedigree");
+    assertThat(analysis.get("justification").textValue()).isEqualTo("requires_environment");
+    assertThat(analysis.get("response").textValue()).isEqualTo("workaround_available,update");
+    assertThat(analysis.get("detail").textValue()).isEqualTo("Analysis for CVE-2021-41496");
   }
 
   private ContainerNode<?> getContainerNode(final File reportFile, final String name) throws IOException {

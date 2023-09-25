@@ -1,0 +1,65 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.20.0"
+      }
+    },
+    "packageUrl" : "pkg:pypi/numpy@1.20.0?extension=zip",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cd8f5367ddfa55c7561f",
+    "relativePopularity" : null,
+    "createTime" : 1695483605744,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "s5",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "packageUrl" : "pkg:pypi/numpy@1.19.0?extension=zip",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "737a0d93cb953911d68a",
+    "relativePopularity" : null,
+    "createTime" : 1695483605744,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "s5",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null
+  } ]
+}

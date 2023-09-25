@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -366,29 +367,33 @@ public class ThirdPartyComponentDAO
   {
     if (thirdPartyReportComponentDataByHash != null) {
       //data to update with VEX
-      Map<String, JsonNode> securityJsonMap = new HashMap<>();
-      ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
-      securityJsonArray.forEach(jsonNode -> {
-        String reference = jsonNode.get("reference").textValue();
-        securityJsonMap.put(reference, jsonNode);
-      });
+      Map<String, List<JsonNode>> vulnComponentListMap = new HashMap<>();
 
-      thirdPartyReportComponentDataByHash.values().forEach(
-          currentComponent -> {
-            List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows = currentComponent.securityRows;
-            securityRows.forEach(securityRow -> {
-              ThirdPartyVulnerabilityExploitabilityExchangeRowDTO vexData = securityRow.analysis;
-              if (vexData != null) {
-                String reference = securityRow.reference;
-                JsonNode currentVulnerability = securityJsonMap.get(reference);
-                if (currentVulnerability != null) {
-                  ((ObjectNode) currentVulnerability).putIfAbsent("analysis",
-                      JsonUtils.asTree(JsonUtils.asTree(securityRow.analysis)));
-                }
+      ArrayNode aaData = (ArrayNode) securityJsonData.get("aaData");
+      for (JsonNode componentNodes : aaData) {
+        String reference = componentNodes.get("reference").textValue();
+        if (vulnComponentListMap.get(reference) == null) {
+          vulnComponentListMap.put(reference, new ArrayList<>());
+        }
+        vulnComponentListMap.get(reference).add(componentNodes);
+      }
+
+      for (ThirdPartyReportComponentDTO currentComponent : thirdPartyReportComponentDataByHash.values()) {
+        List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows = currentComponent.securityRows;
+        for (ThirdPartyHealthCheckReportSecurityRowDTO securityRow : securityRows) {
+          ThirdPartyVulnerabilityExploitabilityExchangeRowDTO analysis = securityRow.analysis;
+          if (analysis != null) {
+            String reference = securityRow.reference;
+            List<JsonNode> vulnNodeList = vulnComponentListMap.get(reference);
+            if (vulnNodeList != null) {
+              for (JsonNode vulnNode : vulnNodeList) {
+                ((ObjectNode) vulnNode).putIfAbsent("analysis",
+                    JsonUtils.asTree(JsonUtils.asTree(securityRow.analysis)));
               }
-            });
+            }
           }
-      );
+        }
+      }
     }
   }
 

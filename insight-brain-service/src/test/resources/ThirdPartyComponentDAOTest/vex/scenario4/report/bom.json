@@ -1,0 +1,132 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "packageUrl" : "pkg:pypi/numpy@1.19.0?extension=zip",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:pypi/numpy@1.19.0?extension=zip" ],
+    "pathnames" : [ "dependency:/s5-bom.xml/pkg:pypi\\numpy@1.19.0?extension=zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0b1792c8a828d6a9fb14",
+    "relativePopularity" : null,
+    "createTime" : 1592685465000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "numpy"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.19.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "zip"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "numpy"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.20.0"
+      }
+    },
+    "packageUrl" : "pkg:pypi/numpy@1.20.0?extension=zip",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:pypi/numpy@1.20.0?extension=zip" ],
+    "pathnames" : [ "dependency:/s5-bom.xml/pkg:pypi\\numpy@1.20.0?extension=zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "bcc35a0d8fe897f3b427",
+    "relativePopularity" : null,
+    "createTime" : 1612037068000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "numpy"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.20.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "zip"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "numpy"
+    }
+  } ],
+  "dependencyDataIncluded" : true
+}

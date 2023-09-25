@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
@@ -73,6 +74,39 @@ public class ApplicationPolicyViolationLoggerTest
         policyViolationOne.getOpenTime(), policyViolationOne, currentUser.getUsernameOrSystem());
     assertApplicationPolicyViolationData(policyViolationLogDTOs.get(1), policyViolationLogEvent,
         policyViolationTwo.getOpenTime(), policyViolationTwo, currentUser.getUsernameOrSystem());
+    assertThat(policyViolationLogDTOs.get(0).tenant).isNull();
+    assertThat(policyViolationLogDTOs.get(1).tenant).isNull();
+
+  }
+
+  @Test
+  public void testLog_Multitenant() throws Exception {
+    try {
+      TenantTestHelper.initMultiTenantMode();
+      TenantTestHelper.testAsNewTenant(testName, tenant -> {
+        when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
+        ApplicationPolicyViolationLogger policyViolationLogger =
+            new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
+        PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
+        PolicyViolation policyViolationOne = createPolicyViolation();
+        policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
+        PolicyViolation policyViolationTwo = createPolicyViolation();
+        policyViolationLogger.add(policyViolationLogEvent, policyViolationTwo);
+
+        policyViolationLogger.log();
+
+        List<PolicyViolationLogDTO> policyViolationLogDTOs = assertPolicyViolationLogDTOs(2);
+        assertApplicationPolicyViolationData(policyViolationLogDTOs.get(0), policyViolationLogEvent,
+            policyViolationOne.getOpenTime(), policyViolationOne, currentUser.getUsernameOrSystem());
+        assertApplicationPolicyViolationData(policyViolationLogDTOs.get(1), policyViolationLogEvent,
+            policyViolationTwo.getOpenTime(), policyViolationTwo, currentUser.getUsernameOrSystem());
+        assertThat(policyViolationLogDTOs.get(0).tenant).isEqualTo(tenant.tenantSlug);
+        assertThat(policyViolationLogDTOs.get(1).tenant).isEqualTo(tenant.tenantSlug);
+      });
+    }
+    finally {
+      TenantTestHelper.resetAfterTest();
+    }
   }
 
   @Test

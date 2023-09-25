@@ -24,6 +24,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
+import static com.sonatype.insight.brain.tenancy.AllTenantsJob.tenantUtil;
 
 /**
  * @since 1.60
@@ -104,6 +107,9 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
           .collect(Collectors.toList());
       policyViolationLogDTO.componentIdentifier = policyViolation.getComponentIdentifier();
       policyViolationLogDTO.componentHash = policyViolation.getHash();
+    }
+    if (tenantUtil.isMultiTenant()) {
+      policyViolationLogDTO.tenant = MDC.get("tenant");
     }
     return policyViolationLogDTO;
   }

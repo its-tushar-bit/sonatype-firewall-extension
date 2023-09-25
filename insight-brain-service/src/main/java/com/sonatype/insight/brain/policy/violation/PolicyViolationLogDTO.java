@@ -59,4 +59,6 @@ public class PolicyViolationLogDTO
   public ComponentIdentifier componentIdentifier;
 
   public String componentHash;
+
+  public String tenant;
 }

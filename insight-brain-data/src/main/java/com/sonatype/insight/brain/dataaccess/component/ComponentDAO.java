@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityResearchType;
@@ -569,6 +570,17 @@ public class ComponentDAO
               for (String alias : aliases) {
                 securityVulnerability.addAlias(alias);
               }
+            }
+
+            JsonNode analysisNode = securityVulnerabilityJson.get("analysis");
+            if (analysisNode != null) {
+              ThirdPartyVulnerabilityExploitabilityExchange analysis =
+                  new ThirdPartyVulnerabilityExploitabilityExchange();
+              analysis.setDetail(analysisNode.get("detail").textValue());
+              analysis.setJustification(analysisNode.get("justification").textValue());
+              analysis.setResponse(analysisNode.get("response").textValue());
+              analysis.setState(analysisNode.get("state").textValue());
+              securityVulnerability.setAnalysis(analysis);
             }
 
             fillSecurityVulnerabilityCustomData(component, securityVulnerability);

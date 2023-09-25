@@ -24,6 +24,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueAnalysisDTO;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -827,7 +828,48 @@ public class ApiCycloneDxServiceV2Test
         .extracting("ref")
         .containsExactlyInAnyOrder("test1", "test2");
   }
-  
+
+  @Test
+  public void test_getVulnerabilityInformation_AnalysisIncluded() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    Map<String, Map<String, String>> matchingComponents = new HashMap<>();
+
+    ApiReportComponentDTOV2 componentInformation =
+        createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@5", "cve",
+            "f19ac613238ca6e4ae78",
+            9.8f, "120", "CVSSv3", "www.test.com", "Critical", "CVE-2022-1234", "test1");
+    ApiSecurityIssueDTO apiSecurityIssueDTO = componentInformation.securityData.securityIssues.iterator().next();
+    ApiSecurityIssueAnalysisDTO analysis = new ApiSecurityIssueAnalysisDTO();
+    analysis.detail = "Detailed analysis for the issue";
+    analysis.response = "can_not_fix,update";
+    analysis.justification = "protected_by_compiler";
+    analysis.state = "exploitable";
+    apiSecurityIssueDTO.analysis = analysis;
+
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@6", "cve", "f19ac613238ca6e4ae79",
+        9.8f, "120", "sonatype_cve_cvss_2", "www.test.com", "Moderate", "CVE-2022-1235", "test1");
+
+    createComponentInformation(componentReport, matchingComponents, "pkg:generic/test@9", "cve", "f19ac613238ca6e4ae77",
+        9.8f, "120", "sonatype_cve_cvss_2", "www.test.com", null, "CVE-2022-1236", "test1");
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+
+    assertThat(vulnerabilities).hasSize(3).extracting("ratings")
+        .flatExtracting(list -> (List<Rating>) list)
+        .extracting("severity")
+        .containsExactlyInAnyOrder(Severity.MEDIUM, Severity.CRITICAL, Severity.UNKNOWN);
+
+    Vulnerability vulnerability =
+        vulnerabilities.stream().filter(v -> v.getSource().getName().equalsIgnoreCase("f19ac613238ca6e4ae78"))
+            .findFirst().get();
+
+    assertThat(vulnerability.getAnalysis().getDetail()).isEqualTo(analysis.detail);
+    assertThat(vulnerability.getAnalysis().getResponses().get(0).getResponseName()).isEqualTo("can_not_fix");
+    assertThat(vulnerability.getAnalysis().getResponses().get(1).getResponseName()).isEqualTo("update");
+    assertThat(vulnerability.getAnalysis().getJustification().getJustificationName()).isEqualTo(analysis.justification);
+    assertThat(vulnerability.getAnalysis().getState().getStateName()).isEqualTo(analysis.state);
+  }
+
   @Test
   public void test_getVulnerabilityInformation_Cwes() {
     List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
@@ -899,7 +941,7 @@ public class ApiCycloneDxServiceV2Test
     return component;
   }
 
-  private void createComponentInformation(
+  private ApiReportComponentDTOV2 createComponentInformation(
       List<ApiReportComponentDTOV2> componentReportList,
       Map<String, Map<String, String>> matchingComponents,
       String purl,
@@ -919,5 +961,7 @@ public class ApiCycloneDxServiceV2Test
     componentInfo.put(componentReport.hash, bomRef);
     matchingComponents.put(componentReport.packageUrl, componentInfo);
     componentReportList.add(componentReport);
+
+    return componentReport;
   }
 }

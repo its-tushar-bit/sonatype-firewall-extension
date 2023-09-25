@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -44,6 +45,13 @@ public class ApiSecurityDataAdapterTest extends AbstractComponentTest
     vuln.setStatus(SecurityVulnerabilityOverrideStatus.CONFIRMED);
     vuln.setUrl("url");
 
+    ThirdPartyVulnerabilityExploitabilityExchange analysis = new ThirdPartyVulnerabilityExploitabilityExchange();
+    analysis.setDetail("Some detail");
+    analysis.setState("resolved");
+    analysis.setJustification("code_not_reachable");
+    analysis.setResponse("will_not_fix,update");
+    vuln.setAnalysis(analysis);
+
     vulnerabilities.add(vuln);
     component.setSecurityVulnerabilities(vulnerabilities);
 
@@ -60,6 +68,10 @@ public class ApiSecurityDataAdapterTest extends AbstractComponentTest
     assertThat(securityIssue.status).isEqualTo("Confirmed");
     assertThat(securityIssue.url).isEqualTo("url");
     assertThat(securityIssue.threatCategory).isEqualTo("critical");
+    assertThat(securityIssue.analysis.detail).isEqualTo(analysis.getDetail());
+    assertThat(securityIssue.analysis.state).isEqualTo(analysis.getState());
+    assertThat(securityIssue.analysis.justification).isEqualTo(analysis.getJustification());
+    assertThat(securityIssue.analysis.response).isEqualTo(analysis.getResponse());
   }
 
   @Test

@@ -8,42 +8,20 @@ package com.sonatype.insight.brain.api.v2.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-public class ApiSecurityIssueDTO
+/**
+ * @since 1.168.0
+ */
+public class ApiSecurityIssueAnalysisDTO
 {
-  public String source;
-
-  public String reference;
-
-  public Float severity;
+  @JsonInclude(Include.NON_NULL)
+  public String state;
 
   @JsonInclude(Include.NON_NULL)
-  public String status;
-
-  /**
-   * @since 1.13.0
-   */
-  public String url;
-
-  /**
-   * @since 1.13.0
-   */
-  public String threatCategory;
-
-  /**
-   * @since 1.43.0
-   */
-  @JsonInclude(Include.NON_NULL)
-  public String cwe;
+  public String justification;
 
   @JsonInclude(Include.NON_NULL)
-  public String cvssVector;
+  public String response;
 
   @JsonInclude(Include.NON_NULL)
-  public String cvssVectorSource;
-
-  /**
-   * @since 1.168.0
-   */
-  @JsonInclude(Include.NON_NULL)
-  public ApiSecurityIssueAnalysisDTO analysis;
+  public String detail;
 }

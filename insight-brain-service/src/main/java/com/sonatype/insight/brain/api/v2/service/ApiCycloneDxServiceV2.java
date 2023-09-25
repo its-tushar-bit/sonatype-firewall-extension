@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -80,6 +81,9 @@ import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Tool;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
+import org.cyclonedx.model.vulnerability.Vulnerability.Analysis;
+import org.cyclonedx.model.vulnerability.Vulnerability.Analysis.Justification;
+import org.cyclonedx.model.vulnerability.Vulnerability.Analysis.State;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
@@ -462,6 +466,19 @@ public class ApiCycloneDxServiceV2
       sourceVuln.setName(source.getName());
       rating.setSource(sourceVuln);
       vulnerability.addRating(rating);
+
+      if (securityIssue.analysis != null) {
+        Analysis analysis = new Analysis();
+        analysis.setDetail(securityIssue.analysis.detail);
+        analysis.setJustification(Justification.fromString(securityIssue.analysis.justification));
+        String response = securityIssue.analysis.response;
+        if (response != null) {
+          analysis.setResponses(
+              Arrays.stream(response.split(",")).map(Analysis.Response::fromString).collect(Collectors.toList()));
+        }
+        analysis.setState(State.fromString(securityIssue.analysis.state));
+        vulnerability.setAnalysis(analysis);
+      }
 
       if (StringUtils.isNotBlank(securityIssue.cwe)) {
         String[] cwes = securityIssue.cwe.split(",");

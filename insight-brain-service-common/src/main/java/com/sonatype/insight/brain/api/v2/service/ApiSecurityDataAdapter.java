@@ -12,9 +12,11 @@ import com.sonatype.clm.dto.model.SecurityThreatLevel;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueAnalysisDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.BaseUrl;
 
@@ -44,6 +46,17 @@ public class ApiSecurityDataAdapter
       sv.cwe = vuln.getCwe();
       sv.cvssVectorSource = vuln.getVectorSource();
       sv.cvssVector = vuln.getVector();
+
+      ThirdPartyVulnerabilityExploitabilityExchange analysis = vuln.getAnalysis();
+      if (analysis != null) {
+        ApiSecurityIssueAnalysisDTO apiSecurityIssueAnalysisDTO = new ApiSecurityIssueAnalysisDTO();
+        apiSecurityIssueAnalysisDTO.state = analysis.getState();
+        apiSecurityIssueAnalysisDTO.justification = analysis.getJustification();
+        apiSecurityIssueAnalysisDTO.response = analysis.getResponse();
+        apiSecurityIssueAnalysisDTO.detail = analysis.getDetail();
+        sv.analysis = apiSecurityIssueAnalysisDTO;
+      }
+
       securityData.securityIssues.add(sv);
     }
 

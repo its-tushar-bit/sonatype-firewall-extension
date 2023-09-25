@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
@@ -382,6 +383,13 @@ public class ComponentDAOTest
     aaDataSecurityData.add(securityVulnerability);
     securityData.set("aaData", aaDataSecurityData);
 
+    ObjectNode analysisNode = objectMapper.createObjectNode();
+    analysisNode.put("detail", "analysis detail");
+    analysisNode.put("justification", "code_not_reachable");
+    analysisNode.put("response", "will_not_fix");
+    analysisNode.put("state", "resolved");
+    securityVulnerability.set("analysis", objectMapper.valueToTree(analysisNode));
+
     Tag tag = tempEntity.newTag(application.getOrganizationId());
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     tempEntity.newVulnerabilityCustomData(application.getOrganizationId(), refId, tag, "custom-remediation", "123",
@@ -402,6 +410,12 @@ public class ComponentDAOTest
     assertThat(customData.getCweId()).isEqualTo("123");
     assertThat(customData.getCvssVector()).isEqualTo("custom/vector");
     assertThat(customData.getCvssSeverity()).isEqualTo(4.4f);
+
+    ThirdPartyVulnerabilityExploitabilityExchange analysis = securityVulnerabilityResult.getAnalysis();
+    assertThat(analysis.getDetail()).isEqualTo("analysis detail");
+    assertThat(analysis.getJustification()).isEqualTo("code_not_reachable");
+    assertThat(analysis.getResponse()).isEqualTo("will_not_fix");
+    assertThat(analysis.getState()).isEqualTo("resolved");
   }
 
   @Test

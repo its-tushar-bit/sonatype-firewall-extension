@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.tenancy.MultiTenantTestSupport;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
@@ -16,10 +18,32 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractConditionTypeTest
+    extends MultiTenantTestSupport
 {
   @Test
   public void testConvertIfNeeded_ReturnsPassedValue() {
-    final AbstractConditionType abstractConditionType = new AbstractConditionType()
+    assertThat(createConditionType().convertIfNeeded("value")).isEqualTo("value");
+  }
+
+  @Test
+  public void testSetEnabled_TenantAware() {
+    ConditionType conditionType = createConditionType();
+
+    testAsNewTenant(t -> {
+      assertThat(conditionType.isEnabled()).isTrue();
+      conditionType.setEnabled(false);
+      assertThat(conditionType.isEnabled()).isFalse();
+    });
+
+    testAsNewTenant(t -> {
+      assertThat(conditionType.isEnabled()).isTrue();
+      conditionType.setEnabled(false);
+      assertThat(conditionType.isEnabled()).isFalse();
+    });
+  }
+
+  private ConditionType createConditionType() {
+    return new AbstractConditionType()
     {
       @Override
       protected String generateDroolsConditionValue(final TransactionContext tx, final String value) {
@@ -61,6 +85,5 @@ public class AbstractConditionTypeTest
         return false;
       }
     };
-    assertThat(abstractConditionType.convertIfNeeded("value")).isEqualTo("value");
   }
 }

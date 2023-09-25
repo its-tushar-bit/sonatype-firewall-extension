@@ -11,12 +11,13 @@ import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public abstract class AbstractConditionType
     implements ConditionType
 {
-  private boolean enabled = true;
+  private final TenantReference<Boolean> enabled = new TenantReference<>(() -> true);
 
   @Override
   public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
@@ -95,7 +96,7 @@ public abstract class AbstractConditionType
    */
   @Override
   public boolean isEnabled() {
-    return enabled;
+    return enabled.get();
   }
 
   /**
@@ -103,6 +104,6 @@ public abstract class AbstractConditionType
    */
   @Override
   public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
+    this.enabled.set(enabled);
   }
 }

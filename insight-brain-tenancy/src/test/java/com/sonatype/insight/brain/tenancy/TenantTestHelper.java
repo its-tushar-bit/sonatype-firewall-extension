@@ -94,6 +94,12 @@ public class TenantTestHelper
     DatamartProvider.setInstance(null);
   }
 
+  public static void testAs(String tenantName, ConsumerWithException<Tenant> test) {
+    Tenant tenant = new Tenant(tenantName);
+    testAs(tenant, test);
+    tenant.invalidate();
+  }
+
   @FunctionalInterface
   public interface ConsumerWithException<T>
   {

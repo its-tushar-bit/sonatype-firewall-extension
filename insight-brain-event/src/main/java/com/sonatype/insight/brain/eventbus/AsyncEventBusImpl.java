@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 
+import com.google.common.eventbus.TenantAwareEventBus;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ public class AsyncEventBusImpl
 
   private final ThreadPoolExecutor threadPoolExecutor;
 
-  private final com.google.common.eventbus.AsyncEventBus delegate;
+  private final com.google.common.eventbus.EventBus delegate;
 
   public AsyncEventBusImpl(int maxPoolSize) {
     ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("AsyncEventBusThread-%d")
@@ -32,7 +33,7 @@ public class AsyncEventBusImpl
     threadPoolExecutor = new TenantThreadPoolExecutor(0, maxPoolSize, 60L, TimeUnit.SECONDS,
         new SynchronousQueue<>(), threadFactory, new AsyncEventBusDiscardPolicy());
 
-    delegate = new com.google.common.eventbus.AsyncEventBus(threadPoolExecutor, new AsyncEventBusExceptionHandler());
+    delegate = new TenantAwareEventBus(threadPoolExecutor, new AsyncEventBusExceptionHandler());
   }
 
   @Override

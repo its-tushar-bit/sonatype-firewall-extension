@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -736,6 +737,32 @@ public class DependencyResolverTest
 
   @Test
   public void testResolve_npm() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+
+    tempEntity.newInnerSourceComponent("pkg:npm/producer-one", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:npm/producer-two", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:npm/consumer", app);
+
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-npm/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-npm/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-npm/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+    assertDependencyInfo(bomJson, 3, 7, 2, 6, 0, 10, 0, summaryJson, dataJson, appInnerSource);
+
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_NPM,
+            AnalysisType.COORDINATE.name(), "cli", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
+  }
+
+  @Test
+  public void testResolve_npm_LookerEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
     tempEntity.newInnerSourceComponent("pkg:npm/producer-one", appInnerSource);

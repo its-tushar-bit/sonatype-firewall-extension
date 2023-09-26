@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.landing;
 
 import java.net.URI;
+import java.util.AbstractMap;
 import java.util.Locale;
-
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -30,12 +33,12 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.codahale.metrics.annotation.Timed;
-import com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
 
@@ -271,11 +274,16 @@ public class UserInterfaceLinksResource
     }
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
-    telemetryData.setAttributes(ImmutableMap
-        .of("source", source.toLowerCase(Locale.ENGLISH),
-            "application_id", HdsClientAnalytics.obfuscate(applicationId),
-            "scan_id", HdsClientAnalytics.obfuscate(scanId),
-            "is_logged_in", !currentUser.isAnonymous()));
+
+    Map<String, Object> telemetryAttributes = Stream.of(
+            new AbstractMap.SimpleImmutableEntry<>("source", source.toLowerCase(Locale.ENGLISH)),
+            new AbstractMap.SimpleImmutableEntry<>("application_id", HdsClientAnalytics.obfuscate(applicationId)),
+            new AbstractMap.SimpleImmutableEntry<>("scan_id", HdsClientAnalytics.obfuscate(scanId)),
+            new AbstractMap.SimpleImmutableEntry<>("is_logged_in", !currentUser.isAnonymous()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    TelemetryUtils.includeRealApplicationId(telemetryAttributes, applicationId);
+    telemetryData.setAttributes(telemetryAttributes);
+
     telemetrySender.send(telemetryData);
   }
 }

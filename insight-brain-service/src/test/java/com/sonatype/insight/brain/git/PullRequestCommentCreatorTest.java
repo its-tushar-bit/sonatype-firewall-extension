@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -171,6 +172,47 @@ public class PullRequestCommentCreatorTest
     verify(mockCommentingMetricsService).sendTelemetry(telemetryCaptor.capture());
     assertThat(telemetryCaptor.getValue().lineCommentCount).isEqualTo(5);
     verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
+    assertThat(telemetryCaptor.getValue().realApplicationId).isNull();
+  }
+
+  @Test
+  public void testCreatePullRequestComment_withMarkup_NoPolicyDiff_Bitbucket_LookerEnabled() throws IOException {
+    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    final String featureBranchHeadCommit = "feature-1-commit-1";
+    TestCase testCase = new TestCase()
+        .forApplication("app1")
+        .withPullRequest(1, featureBranchHeadCommit)
+        .withDefaultBranchPolicyEvaluation("default-eval-1", "default-commit-1")
+        .withFeatureBranchPolicyEvaluation("feature-eval-1", featureBranchHeadCommit)
+        .withContentHash("contentHash");
+
+    PullRequestPostCommentAction mockPostCommentAction = mock(PullRequestPostCommentAction.class);
+
+    PullRequestCommentCreator pullRequestCommentCreator = new TestablePullRequestCommentCreatorBuilder()
+        .withLineComments(5)
+        .withMarkup("simulated-markup")
+        .withPostCommentAction(mockPostCommentAction)
+        .build();
+
+    GitRepositoryInfo repositoryInfo = new GitRepositoryInfo();
+    repositoryInfo.provider = SourceControlProvider.BITBUCKET;
+
+    testCase.pullRequestPolicyEvaluationsDTO.setGitRepositoryInfo(repositoryInfo);
+
+    pullRequestCommentCreator
+        .createPullRequestComment(testCase.pullRequestPolicyEvaluationsDTO, testCase.policyViolationDiff,
+            testCase.remediationVersionMap, testCase.contentHash);
+
+    // For bitbucket, we do not want the PR commenting, but we want the mockPostCommentAction which posts code insights
+    verify(mockCommentingClient, never()).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
+    ArgumentCaptor<PullRequestCommentTelemetry> telemetryCaptor =
+        ArgumentCaptor.forClass(PullRequestCommentTelemetry.class);
+    verify(mockCommentingMetricsService).sendTelemetry(telemetryCaptor.capture());
+    assertThat(telemetryCaptor.getValue().lineCommentCount).isEqualTo(5);
+    verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
+    assertThat(telemetryCaptor.getValue().realApplicationId).isEqualTo("app1");
+
+    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 
   @Test

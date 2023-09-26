@@ -42,6 +42,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.experimental.legal.ComponentLegalService;
 import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
@@ -1300,6 +1301,20 @@ public class ApiLicenseLegalServiceTest
 
   @Test
   public void testGetLicenseLegalApplicationReport() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation);
+    ApiReportRawDataDTOV2 rawReport =
+        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
+    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null,
+        false);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationReport_LookerEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
@@ -3217,7 +3232,8 @@ public class ApiLicenseLegalServiceTest
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
     Map<String, Object> expectedAttributes = new HashMap<>();
-    expectedAttributes.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, new ApplicationLicenseUsageTelemetry(
+
+    final ApplicationLicenseUsageTelemetry applicationLicenseUsageTelemetry = new ApplicationLicenseUsageTelemetry(
         application.getPublicId(),
         rawReport.components.stream()
             .filter(c -> Objects.isNull(c.componentIdentifier) || includeInnerSource
@@ -3234,7 +3250,13 @@ public class ApiLicenseLegalServiceTest
                 Stream.concat(licenseData.declaredLicenses.stream(), licenseData.observedLicenses.stream()),
                 licenseData.effectiveLicenses.stream()))
             .map(license -> license.licenseId)
-            .collect(Collectors.toSet())));
+            .collect(Collectors.toSet()));
+
+    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+      applicationLicenseUsageTelemetry.setRealApplicationId(application.getId());
+    }
+
+    expectedAttributes.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, applicationLicenseUsageTelemetry);
 
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.APPLICATION_LICENSE_USAGE);

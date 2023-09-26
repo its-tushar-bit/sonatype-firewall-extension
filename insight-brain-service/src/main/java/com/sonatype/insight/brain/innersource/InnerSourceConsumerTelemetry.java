@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.innersource;
 
 import java.util.Set;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 
 public class InnerSourceConsumerTelemetry
@@ -15,6 +16,8 @@ public class InnerSourceConsumerTelemetry
 
   private final String consumerAppId;
 
+  private String realConsumerAppId;
+
   private final Set<InnerSourceProducerComponentTelemetry> producers;
 
   public InnerSourceConsumerTelemetry(
@@ -22,6 +25,11 @@ public class InnerSourceConsumerTelemetry
       final Set<InnerSourceProducerComponentTelemetry> producers)
   {
     this.consumerAppId = HdsClientAnalytics.obfuscate(consumerAppId);
+
+    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+      this.realConsumerAppId = consumerAppId;
+    }
+
     this.producers = producers;
   }
 
@@ -31,5 +39,9 @@ public class InnerSourceConsumerTelemetry
 
   public String getConsumerAppId() {
     return consumerAppId;
+  }
+
+  public String getRealConsumerAppId() {
+    return realConsumerAppId;
   }
 }

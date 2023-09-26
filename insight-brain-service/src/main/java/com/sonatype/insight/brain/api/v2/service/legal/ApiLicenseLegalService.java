@@ -41,6 +41,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.experimental.legal.ComponentLegalService;
 import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
@@ -615,7 +616,9 @@ public class ApiLicenseLegalService
         buildMultiLicenseToSingleLicenseMap(allMultiLicenses);
 
     for (int i = 0; i < applications.size(); ++i) {
-      sendApplicationTelemetryData(applications.get(i).getPublicId(), latestRawReports.get(i), allMultiLicenses);
+      Owner application = applications.get(i);
+      sendApplicationTelemetryData(application.getPublicId(), application.getId(), latestRawReports.get(i),
+          allMultiLicenses);
     }
 
     CompletableFuture<Map<String, LicenseMetadataDTO>> licenseMetadataById =
@@ -1304,20 +1307,27 @@ public class ApiLicenseLegalService
 
   private void sendApplicationTelemetryData(
       String applicationPublicId,
+      final String applicationId,
       ApiReportRawDataDTOV2 latestRawReport,
       Set<ApiLicenseDTO> multiLicenses)
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_LICENSE_USAGE);
-    telemetryData.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME,
-        new ApplicationLicenseUsageTelemetry(
-            applicationPublicId,
-            latestRawReport.components.stream()
-                .map(component -> component.hash)
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toCollection(LinkedHashSet::new)),
-            multiLicenses.stream()
-                .map(license -> license.licenseId)
-                .collect(Collectors.toSet())));
+
+    final ApplicationLicenseUsageTelemetry applicationLicenseUsageTelemetry = new ApplicationLicenseUsageTelemetry(
+        applicationPublicId,
+        latestRawReport.components.stream()
+            .map(component -> component.hash)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toCollection(LinkedHashSet::new)),
+        multiLicenses.stream()
+            .map(license -> license.licenseId)
+            .collect(Collectors.toSet()));
+
+    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+      applicationLicenseUsageTelemetry.setRealApplicationId(applicationId);
+    }
+
+    telemetryData.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, applicationLicenseUsageTelemetry);
 
     telemetrySender.send(telemetryData);
   }

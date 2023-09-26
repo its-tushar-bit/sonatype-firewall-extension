@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiRateLimitDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiUserRateLimitsDTO;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
@@ -536,6 +537,26 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
+  public void testAddSourceControlByOwner_licensedByNotifications_LookerEnabled() {
+    // Given
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    setLicensedForSourceControlByNotifications();
+
+    // When
+    ApiSourceControlDTO sourceControlDTO = sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        createSourceControlDtoForTesting()
+    );
+
+    // Then
+    assertThat(sourceControlDTO).isNotNull();
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControlDTO.repositoryUrl,
+        rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch());
+  }
+
+  @Test
   public void testUpdateSourceControlByOwner_unlicensed() {
     setUnlicensedForSourceControl();
     assertThatExceptionOfType(InvalidLicenseException.class)
@@ -751,6 +772,12 @@ public class ApiSourceControlServiceTest
     final Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("method", method);
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
+
+    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING
+        .isEnabled()) {
+      expectedAttributes.put("real_owner_id", ownerId);
+    }
+
     expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(repositoryUrl));
     expectedAttributes.put("provider", provider);
     expectedAttributes.put("enable_pull_requests", remediationPullRequestsEnabled);

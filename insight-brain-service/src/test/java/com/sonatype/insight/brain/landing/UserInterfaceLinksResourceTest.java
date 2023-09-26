@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.security.UserSessionResource;
@@ -164,6 +164,13 @@ public class UserInterfaceLinksResourceTest
 
   @Test
   @ManualServerInit
+  public void testLinkToReport_WithSourceQuery_Anonymous_LookerEnabled() throws Exception {
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    testLinkToReport_WithSourceQuery(true /* anonymous */);
+  }
+
+  @Test
+  @ManualServerInit
   public void testLinkToReport_WithSourceQuery_UserIsLoggedIn() throws Exception {
     testLinkToReport_WithSourceQuery(false /* anonymous */);
   }
@@ -206,6 +213,12 @@ public class UserInterfaceLinksResourceTest
     assertThat(telemetryData.getAttributes().get("source")).isEqualTo("Foo".toLowerCase(Locale.ENGLISH));
     assertThat(telemetryData.getAttributes().get("application_id"))
         .isEqualTo(HdsClientAnalytics.obfuscate(application.getId()));
+
+    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING
+        .isEnabled()) {
+      assertThat(telemetryData.getAttributes().get("real_application_id")).isEqualTo(application.getId());
+    }
+
     assertThat(telemetryData.getAttributes().get("scan_id")).isEqualTo(HdsClientAnalytics.obfuscate("scan id"));
     assertThat(telemetryData.getAttributes().get("is_logged_in")).isEqualTo(!anonymous);
   }

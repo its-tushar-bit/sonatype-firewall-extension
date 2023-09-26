@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
@@ -68,6 +69,7 @@ public final class TelemetryUtils
 
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    includeRealApplicationId(attributes, applicationId);
     attributes.put("stage_id", stageId);
     attributes.put("scan_trigger_type", scanTriggerType.getId());
 
@@ -105,6 +107,26 @@ public final class TelemetryUtils
     telemetryData.setAttributes(attributes);
 
     return telemetryData;
+  }
+
+  /**
+   * This method adds a real_owner_id entry to the telemetry data attributes map. It has a dependency with the
+   * Integrated Enterprise Reporting feature, it has to be enabled.
+   */
+  public static void includeRealOwnerId(Map<String, Object> telemetryAttributes, String attributeValue) {
+    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+      telemetryAttributes.put("real_owner_id", attributeValue);
+    }
+  }
+
+  /**
+   * This method adds a real_application_id entry to the telemetry data attributes map. It has a dependency with the
+   * Integrated Enterprise Reporting feature, it has to be enabled.
+   */
+  public static void includeRealApplicationId(Map<String, Object> telemetryAttributes, String attributeValue) {
+    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+      telemetryAttributes.put("real_application_id", attributeValue);
+    }
   }
 
   private static long getTotalComponentCounts(final Map<String, Number> componentCounts) {

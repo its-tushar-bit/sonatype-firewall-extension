@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -334,10 +335,11 @@ public class ComponentRemediationService
             .anyMatch(action -> Action.ID_FAIL.equals(action.getActionTypeId())));
   }
 
-  private void sendTelemetry(final OwnerType ownerType,
-                             final String ownerId,
-                             final ComponentIdentifier componentIdentifier,
-                             final Map<String, Object> attributes)
+  private void sendTelemetry(
+      final OwnerType ownerType,
+      final String ownerId,
+      final ComponentIdentifier componentIdentifier,
+      final Map<String, Object> attributes)
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.COMPONENT_REMEDIATION);
     attributes.put(COMPONENT_ATTR, HdsClientAnalytics.obfuscate(JsonUtils.writeUnformatted(componentIdentifier)));
@@ -347,6 +349,9 @@ public class ComponentRemediationService
     attributes.putIfAbsent(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(false));
     attributes.putIfAbsent(OPTION_NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES_ATTR, String.valueOf(false));
     attributes.putIfAbsent(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(false));
+
+    TelemetryUtils.includeRealOwnerId(attributes, ownerId);
+
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
   }

@@ -19,6 +19,8 @@ public class ApplicationLicenseUsageTelemetry
 
   private final Set<String> licenseIds;
 
+  private String realApplicationId;
+
   public ApplicationLicenseUsageTelemetry(
       String applicationPublicId,
       Set<String> componentHashes,
@@ -39,5 +41,13 @@ public class ApplicationLicenseUsageTelemetry
 
   public Set<String> getLicenseIds() {
     return licenseIds;
+  }
+
+  public String getRealApplicationId() {
+    return realApplicationId;
+  }
+
+  public void setRealApplicationId(final String realApplicationId) {
+    this.realApplicationId = realApplicationId;
   }
 }

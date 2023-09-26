@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -44,6 +45,28 @@ public class TelemetryUtilsTest
     // then:
     assertThat(telemetryData.getAttributes()).contains(
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
+        entry("stage_id", "build"),
+        entry("scan_trigger_type", "CLI"),
+        entry("number_of_components", "0")
+    );
+    assertThat(telemetryData.getAttributes()).doesNotContainKeys(
+        "client_id", "client_instance_id", "deployment_type", "ide_theme"
+    );
+  }
+
+  @Test
+  public void test_buildApplicationEvaluationTelemetryData_noComponents_noUA_noInstanceId_LookerEnabled() {
+    // Given
+    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+
+    // When
+    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+        "appId", "build", ScanTriggerType.CLI, null, null, new HashMap<>());
+
+    // Then
+    assertThat(telemetryData.getAttributes()).contains(
+        entry("application_id", HdsClientAnalytics.obfuscate("appId")),
+        entry("real_application_id", "appId"),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
         entry("number_of_components", "0")

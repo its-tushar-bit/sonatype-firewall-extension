@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -60,6 +59,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -392,6 +392,7 @@ public class ApiPolicyWaiverService
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.POLICY_WAIVER_API);
     telemetryData.getAttributes().put(OWNER_TYPE_ATTR, ownerType.toString());
     telemetryData.getAttributes().put(OWNER_ID_ATTR, HdsClientAnalytics.obfuscate(ownerId));
+    TelemetryUtils.includeRealOwnerId(telemetryData.getAttributes(), ownerId);
     telemetrySender.send(telemetryData);
   }
 

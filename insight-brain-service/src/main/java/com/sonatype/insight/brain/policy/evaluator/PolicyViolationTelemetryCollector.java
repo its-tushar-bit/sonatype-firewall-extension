@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -163,7 +164,7 @@ public class PolicyViolationTelemetryCollector
   }
 
   private TelemetryData createTelemetry(TelemetryPurpose telemetryPurpose, PolicyViolation policyViolation) {
-    return new TelemetryData(telemetryPurpose)
+    final TelemetryData telemetryData = new TelemetryData(telemetryPurpose)
         .put(APPLICATION_ID, HdsClientAnalytics.obfuscate(policyViolation.getApplicationId()))
         .put(STAGE, policyViolation.getStageTypeId())
         .put(IS_SCM_ENABLED, isScmEnabled)
@@ -172,6 +173,9 @@ public class PolicyViolationTelemetryCollector
         .put(TIME, computeTimeBetween(policyViolation.getOpenTime(), timeOfPolicyEvaluation))
         .put(THREAT_CATEGORY, policyViolation.getThreatCategory().getName())
         .put(THREAT_LEVEL, policyViolation.getThreatLevel());
+    TelemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), policyViolation.getApplicationId());
+
+    return telemetryData;
   }
 
   private long computeTimeBetween(Date date1, Date date2) {

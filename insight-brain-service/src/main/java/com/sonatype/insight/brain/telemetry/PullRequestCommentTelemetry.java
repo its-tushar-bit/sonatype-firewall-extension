@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+
 /**
  * @since 1.88
  */
@@ -17,6 +19,8 @@ public class PullRequestCommentTelemetry
   public static final String ACTION_UPDATED = "updated";
 
   public String applicationId;
+
+  public String realApplicationId;
 
   public int prNumber;
 
@@ -39,5 +43,9 @@ public class PullRequestCommentTelemetry
   public PullRequestCommentTelemetry(final String applicationId, final int prNumber) {
     this.applicationId = applicationId;
     this.prNumber = prNumber;
+
+    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+      this.realApplicationId = applicationId;
+    }
   }
 }

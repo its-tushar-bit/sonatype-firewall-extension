@@ -13,6 +13,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -24,6 +25,8 @@ import org.slf4j.LoggerFactory;
 public class ExternalTelemetryService
 {
   private static final Logger log = LoggerFactory.getLogger(ExternalTelemetryService.class);
+
+  private static final String APPLICATION_ID_KEY = "application_id";
 
   private final TelemetrySender telemetrySender;
 
@@ -73,7 +76,8 @@ public class ExternalTelemetryService
     }
 
     telemetryData.put("ssc_integration_service_version", sscIntegrationServiceVersion);
-    telemetryData.put("application_id", HdsClientAnalytics.obfuscate(telemetryValues.get("application_id")));
+    telemetryData.put(APPLICATION_ID_KEY, HdsClientAnalytics.obfuscate(telemetryValues.get(APPLICATION_ID_KEY)));
+    TelemetryUtils.includeRealApplicationId(telemetryData.getAttributes(), telemetryValues.get(APPLICATION_ID_KEY));
     telemetryData.put("overwrite", Boolean.valueOf(telemetryValues.get("overwrite")));
     String forceUpload = telemetryValues.get("force_upload");
     if (forceUpload != null) {

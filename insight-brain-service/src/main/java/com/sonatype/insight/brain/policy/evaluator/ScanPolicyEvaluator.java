@@ -955,6 +955,7 @@ public class ScanPolicyEvaluator
 
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    TelemetryUtils.includeRealApplicationId(attributes, applicationId);
     attributes.put("grandfathering_enabled",
         String.valueOf(legacyViolationService.isLegacyViolationEnabled(applicationId)));
     attributes.put("number_of_grandfathered_violations", String.valueOf(legacyViolationCount));

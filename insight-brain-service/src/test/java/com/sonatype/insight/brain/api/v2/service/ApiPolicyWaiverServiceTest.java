@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
@@ -1256,7 +1257,12 @@ public class ApiPolicyWaiverServiceTest
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("owner_type", ownerType.toString());
+
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
+    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING
+        .isEnabled()) {
+      expectedAttributes.put("real_owner_id", ownerId);
+    }
 
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.POLICY_WAIVER_API);
@@ -1623,6 +1629,22 @@ public class ApiPolicyWaiverServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), "nonExistingId")
     ).withMessageContaining(expectedErrorMessage);
+  }
+
+  @Test
+  public void testAddPolicyWaiverByPolicyViolationId_Application_WithLookerEnabled() {
+    // Given
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+
+    // When
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null));
+
+    // Then
+    assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", "testuser", "Test User", policyViolation.getHash(),
+        policyViolation.getConstraintFactsJson(), EXACT_COMPONENT, componentPurl.getPackageUrl());
+    assertTelemetry(OwnerType.APPLICATION, app.getId());
+    assertWaiverTelemetry(OwnerType.APPLICATION, policyViolation, policyWaiverDAO.getByOwnerId(app.getId()).get(0));
   }
 
   private void assertWaivers(ApiPolicyWaiverDTO savedWaiver, PolicyWaiver policyWaiver, Policy policy, Owner owner) {

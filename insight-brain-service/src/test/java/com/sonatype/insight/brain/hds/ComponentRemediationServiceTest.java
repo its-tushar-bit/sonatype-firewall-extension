@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -40,14 +41,18 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING;
@@ -59,10 +64,18 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ComponentRemediationServiceTest
     extends AbstractComponentTest
 {
+  private static final String OWNER_TYPE_TELEMETRY_ATTR = "owner_type";
+
+  private static final String OWNER_ID_TELEMETRY_ATTR = "owner_id";
+
+  private static final String REAL_OWNER_ID_TELEMETRY_ATTR = "real_owner_id";
+
   @Mock
   private HdsClient hdsClientMock;
 
@@ -72,10 +85,14 @@ public class ComponentRemediationServiceTest
   @Inject
   private ComponentRemediationService componentRemediationService;
 
+  @Mock
+  private TelemetrySender mockTelemetrySender;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(ProductLicense.class).toInstance(productLicense);
+    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
     super.configure(binder);
   }
 
@@ -365,6 +382,13 @@ public class ComponentRemediationServiceTest
   }
 
   @Test
+  public void testGetSuggestedRemediation_NoAdvanced_NoDependencies_TransitiveEnabled_LookerEnabled() {
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+
+    testGetSuggestedRemediation_NoDependencies(false, true);
+  }
+
+  @Test
   public void testGetSuggestedRemediation_NoAdvanced_NoDependencies_NoTransitive() {
     testGetSuggestedRemediation_NoDependencies(false, false);
   }
@@ -381,6 +405,8 @@ public class ComponentRemediationServiceTest
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2));
     assertThat(dto.versionChanges).hasSize(2);
+
+    assertTelemetryData(org);
   }
 
   /**
@@ -1099,5 +1125,28 @@ public class ComponentRemediationServiceTest
     final int min = 0;
     final int max = 20;
     return (int) ((Math.random() * (max - min)) + min);
+  }
+
+  private void assertTelemetryData(final Organization org) {
+    ArgumentCaptor<TelemetryData> argumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(argumentCaptor.capture());
+
+    TelemetryData telemetryData = argumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.COMPONENT_REMEDIATION);
+
+    final Map<String, Object> attributes = telemetryData.getAttributes();
+    assertThat(attributes.get(OWNER_ID_TELEMETRY_ATTR)).isEqualTo(HdsClientAnalytics.obfuscate(org.getId()));
+    assertThat((String) attributes.get(OWNER_TYPE_TELEMETRY_ATTR)).isEqualTo(org.getType().toString());
+
+    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING
+        .isEnabled()) {
+      assertThat(attributes.containsKey(REAL_OWNER_ID_TELEMETRY_ATTR)).isTrue();
+      assertThat(attributes.get(REAL_OWNER_ID_TELEMETRY_ATTR)).isEqualTo(org.getId());
+    }
+    else {
+      assertThat(attributes.containsKey(REAL_OWNER_ID_TELEMETRY_ATTR)).isFalse();
+    }
   }
 }

@@ -137,3 +137,8 @@ export const selectIsBaseUrlConfigurationEnabled = createSelector(selectTenantMo
 });
 
 export const selectIsDeveloperDashboardEnabled = createSelector(selectProductFeatures, prop('developer-dashboard'));
+
+export const selectIsLookerIntegratedEnterpriseReportingEnabled = createSelector(
+  selectProductFeatures,
+  prop('looker-integrated-enterprise-reporting')
+);

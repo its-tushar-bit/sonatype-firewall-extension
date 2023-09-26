@@ -6,7 +6,8 @@
 package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
-
+import java.net.MalformedURLException;
+import java.net.URL;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.Filter;
@@ -17,6 +18,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.looker.LookerService;
 import com.sonatype.insight.brain.service.Configuration;
 
 /**
@@ -30,9 +33,12 @@ public class CspHeaderFilter
 
   private final Configuration configuration;
 
+  private final LookerService lookerService;
+
   @Inject
-  public CspHeaderFilter(Configuration configuration) {
+  public CspHeaderFilter(Configuration configuration, LookerService lookerService) {
     this.configuration = configuration;
+    this.lookerService = lookerService;
   }
 
   @Override
@@ -47,7 +53,7 @@ public class CspHeaderFilter
       HttpServletResponse httpResponse = (HttpServletResponse) response;
 
       httpResponse.setHeader("Content-Security-Policy",
-          "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:");
+          "default-src 'self'; " + getFrameSrc() + "style-src 'self' 'unsafe-inline'; img-src 'self' data:");
 
       // This header guards against server-reflected XSS attacks (not that our architecture is really at risk
       // of having any).  It is redundant with the CSP header but applicable for browsers that don't fully support CSP
@@ -55,6 +61,27 @@ public class CspHeaderFilter
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  //visible for testing
+  String getFrameSrc() {
+    if (!SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+      return "";
+    }
+
+    String lookerHost = getUrlHost(lookerService.getBaseUrl());
+    return lookerHost != null ? String.format(" frame-src 'self' %s;", lookerHost) : "";
+  }
+
+  private String getUrlHost(String urlString) {
+    try {
+      URL url = new URL(urlString);
+      return url.getHost();
+    }
+    catch (MalformedURLException e) {
+      //in an unlikely case of a wrong config we don't want to break the filter
+      return null;
+    }
   }
 
   @Override

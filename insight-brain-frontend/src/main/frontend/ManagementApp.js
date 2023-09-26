@@ -37,6 +37,7 @@ import baseUrlConfigurationModule from './configuration/baseUrl/module';
 import baseUrlNotSetNoticeModule from 'MainRoot/configuration/baseUrl/baseUrlNotSetNotice/module';
 import sourceControlRateLimitsModule from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/module';
 import integrationsModule from 'MainRoot/integrations/integrations.module';
+import enterpriseReportingModule from 'MainRoot/enterpriseReporting/module';
 
 export default angular
   .module('managementApp', [
@@ -71,6 +72,7 @@ export default angular
     baseUrlNotSetNoticeModule.name,
     sourceControlRateLimitsModule.name,
     integrationsModule.name,
+    enterpriseReportingModule.name,
   ])
   .component('advancedSearch', iqReact2Angular(AdvancedSearchContainer, [], ['$ngRedux', '$state']))
   .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']))

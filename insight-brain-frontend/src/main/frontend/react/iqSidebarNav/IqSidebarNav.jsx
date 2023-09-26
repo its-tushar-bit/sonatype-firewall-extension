@@ -22,6 +22,7 @@ import {
   faShieldCheck,
   faSitemap,
   faDatabase,
+  faChartPieAlt,
 } from '@fortawesome/pro-solid-svg-icons';
 
 import { useRouterState } from '../RouterStateContext';
@@ -50,11 +51,13 @@ function IqSidebarNav(props) {
     isShowVersionEnabled,
     isFirewallOnlyLicense,
     isDeveloperDashboardEnabled,
+    isLookerIntegratedEnterpriseReportingEnabled,
   } = props;
 
   const logo = getProductLogo(productEdition);
 
   const apiHref = uiRouterState.href('api');
+  const enterpriseReportingHref = uiRouterState.href('enterpriseReporting');
   const dashboardHref = isFirewallOnlyLicense
     ? uiRouterState.href('dashboard.overview.waivers')
     : uiRouterState.href('dashboard.overview.violations');
@@ -200,6 +203,15 @@ function IqSidebarNav(props) {
               href={dataInsightsHref}
             />
           )}
+          {isLookerIntegratedEnterpriseReportingEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('enterpriseReporting')}
+              id="enterprise-reporting-navigation-button"
+              icon={faChartPieAlt}
+              text="Rolling Recap (V2)"
+              href={enterpriseReportingHref}
+            />
+          )}
           {isDeveloperDashboardEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('integrations')}
@@ -246,5 +258,6 @@ IqSidebarNav.propTypes = {
   isShowVersionEnabled: PropTypes.bool,
   isFirewallOnlyLicense: PropTypes.bool,
   isDeveloperDashboardEnabled: PropTypes.bool,
+  isLookerIntegratedEnterpriseReportingEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

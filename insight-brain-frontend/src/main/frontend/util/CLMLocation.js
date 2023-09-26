@@ -34,6 +34,8 @@ export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, extraQ
   return urlWithPath;
 }
 
+export const getEnterpriseReportingUrl = () => uriTemplate`/rest/looker/ssoEmbedUrl`;
+
 export function getRoleForNewUrl() {
   return uriTemplate`/rest/security/roles/new`;
 }

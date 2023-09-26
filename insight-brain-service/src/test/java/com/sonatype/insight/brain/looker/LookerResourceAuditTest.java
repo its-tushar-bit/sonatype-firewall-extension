@@ -39,8 +39,11 @@ public class LookerResourceAuditTest
 
   @Test
   public void testCreateSSOEmbedUrl() throws Exception {
-    String expectedResponse = "{\"url\":\"looker.someurl.com\"}";
-    hdsMockServer.respondWith(expectedResponse).atUri("rest/looker/ssoEmbedUrl");
+    String lookerSSOUrl = "looker.someurl.com";
+    String baseUrl = "https://looker.example.com";
+    hdsMockServer.respondWith("{\"url\":\"" + lookerSSOUrl + "\"}").atUri("rest/looker/ssoEmbedUrl");
+    hdsMockServer.respondWith("{\"baseUrl\":\"" + baseUrl + "\"}").atUri("rest/looker/config");
+
     LookerDashboardDTO request = new LookerDashboardDTO("test");
     restRequest().path(SSO_EMBED_URL_PATH).body(request).post();
 

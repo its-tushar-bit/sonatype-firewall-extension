@@ -46,20 +46,15 @@ public class LookerResourceTest
 
   @Test
   public void testCreateSSOEmbedUrl_Success() throws Exception {
-    String expectedResponse = "{\"url\":\"looker.someurl.com\"}";
-    hdsMockServer.respondWith(expectedResponse).atUri("rest/looker/ssoEmbedUrl");
+    String lookerSSOUrl = "looker.someurl.com";
+    String baseUrl = "https://looker.example.com";
+    hdsMockServer.respondWith("{\"url\":\"" + lookerSSOUrl + "\"}").atUri("rest/looker/ssoEmbedUrl");
+    hdsMockServer.respondWith("{\"baseUrl\":\"" + baseUrl + "\"}").atUri("rest/looker/config");
     LookerDashboardDTO lookerDashboardDTO = new LookerDashboardDTO("rolling_recap");
+
     HttpResponse response = restRequest().path(LookerResource.SSO_EMBED_URL_PATH).body(lookerDashboardDTO).post();
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText()).contains(expectedResponse);
-  }
-
-  @Test
-  public void testGetLookerConfig() throws Exception {
-    String expectedResponse = "{\"baseUrl\":\"https://looker.example.com\"}";
-    hdsMockServer.respondWith(expectedResponse).atUri("rest/looker/config");
-    HttpResponse response = restRequest().path(LookerResource.CONFIG_PATH).get();
-    assertResponseStatus(200, response);
+    String expectedResponse = "{\"url\":\"" + lookerSSOUrl + "\",\"baseUrl\":\"" + baseUrl + "\"}";
     assertThat(response.getBodyText()).contains(expectedResponse);
   }
 }

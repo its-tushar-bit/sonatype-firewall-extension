@@ -93,6 +93,7 @@ import baseUrlConfigurationSlice from 'MainRoot/configuration/baseUrl/baseUrlCon
 import waivedComponentUpgradesConfigurationSlice from 'MainRoot/configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfigurationSlice';
 import sourceControlRateLimitsSlice from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimitsSlice';
 import integrationsSlice from 'MainRoot/integrations/integrationsSlice';
+import enterpriseReportingSlice from 'MainRoot/enterpriseReporting/enterpriseReportingSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -184,4 +185,5 @@ export default combineReducers({
   waivedComponentUpgradesConfiguration: waivedComponentUpgradesConfigurationSlice,
   sourceControlRateLimits: sourceControlRateLimitsSlice,
   integrations: integrationsSlice,
+  enterpriseReporting: enterpriseReportingSlice,
 });

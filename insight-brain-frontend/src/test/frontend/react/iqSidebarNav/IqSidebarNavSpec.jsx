@@ -6,6 +6,7 @@
 import { faArrowToLeft, faBars, faStars, faWrench } from '@fortawesome/pro-regular-svg-icons';
 import {
   faChartArea,
+  faChartPieAlt,
   faFileChartLine,
   faGavel,
   faHome,
@@ -159,6 +160,23 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('icon', faStars);
       expect(navLink).toHaveProp('text', 'API');
       expect(navLink).toHaveProp('href', 'href-api');
+      expect(navLink).toHaveProp('isSelected', false);
+    });
+
+    it('renders an NxGlobalSidebarNavigationLink for the rolling recap page if allowed', function () {
+      expect(getShallowComponent({}).find('#enterprise-reporting-navigation-button')).not.toExist();
+      expect(getShallowComponent({ isLoggedIn: true }).find('#enterprise-reporting-navigation-button')).not.toExist();
+      expect(
+        getShallowComponent({ isLookerIntegratedEnterpriseReportingEnabled: true }).find(
+          '#enterprise-reporting-navigation-button'
+        )
+      ).not.toExist();
+      const component = getShallowComponent({ isLoggedIn: true, isLookerIntegratedEnterpriseReportingEnabled: true });
+      const navLink = component.find('#enterprise-reporting-navigation-button');
+      expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
+      expect(navLink).toHaveProp('icon', faChartPieAlt);
+      expect(navLink).toHaveProp('text', 'Rolling Recap (V2)');
+      expect(navLink).toHaveProp('href', 'href-enterpriseReporting');
       expect(navLink).toHaveProp('isSelected', false);
     });
 

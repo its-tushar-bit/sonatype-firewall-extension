@@ -1673,6 +1673,22 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@juggle/resize-observer/-/resize-observer-3.3.1.tgz#b50a781709c81e10701004214340f25475a171a0"
   integrity sha512-zMM9Ds+SawiUkakS7y94Ymqx+S0ORzpG3frZirN3l+UlXUmSUR7hF4wxCVqW+ei94JzV5kt0uXBcoOEAuiydrw==
 
+"@looker/chatty@^2.3.2":
+  version "2.3.9"
+  resolved "https://repo.sonatype.com/repository/npm-all/@looker/chatty/-/chatty-2.3.9.tgz#d2c65189410c881c81447522c9a68f165f4c964b"
+  integrity sha512-Zrixb6hOcEFjJ342cbrWQd7CMdaP6LmyOuzjUZvAW4l2UxNiUWh3bWN2Fpx+4FKIJhDghEl/fG3cszkFxtur4Q==
+  dependencies:
+    core-js "^3.6.4"
+    debug "^2.2.0"
+    es6-promise "^4.2.8"
+
+"@looker/embed-sdk@^1.8.4":
+  version "1.8.4"
+  resolved "https://repo.sonatype.com/repository/npm-all/@looker/embed-sdk/-/embed-sdk-1.8.4.tgz#73846536f94651678da72122e038ef58d897b726"
+  integrity sha512-Zjx7B+fzZJryCc/jcg+boUsa3KCU3hlvcTJuSuPbswmnhNO6rqfYUAuh2xUgk8PKVXrjwiLgD/ZMByQ4Mt+Xow==
+  dependencies:
+    "@looker/chatty" "^2.3.2"
+
 "@material-ui/core@^4.11.2":
   version "4.12.4"
   resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/core/-/core-4.12.4.tgz#4ac17488e8fcaf55eb6a7f5efb2a131e10138a73"
@@ -4238,6 +4254,11 @@ core-js@^3.13.1:
   version "3.13.1"
   resolved "https://repo.sonatype.com/repository/npm-all/core-js/-/core-js-3.13.1.tgz"
   integrity sha512-JqveUc4igkqwStL2RTRn/EPFGBOfEZHxJl/8ej1mXJR75V3go2mFF4bmUYkEIT1rveHKnkUlcJX/c+f1TyIovQ==
+
+core-js@^3.6.4:
+  version "3.32.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/core-js/-/core-js-3.32.1.tgz#a7d8736a3ed9dd05940c3c4ff32c591bb735be77"
+  integrity sha512-lqufgNn9NLnESg5mQeYsxQP5w7wrViSj0jr/kv6ECQiByzQkrn1MKvV0L3acttpDqfQrHLwr2KCMgX5b8X+lyQ==
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"

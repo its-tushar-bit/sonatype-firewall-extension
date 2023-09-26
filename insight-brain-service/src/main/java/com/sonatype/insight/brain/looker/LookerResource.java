@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.looker;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -44,12 +43,5 @@ public class LookerResource
   @Audited(AuditEvent.VIEW_LOOKER_DASHBOARD)
   public SSOEmbedUrlDTO createSSOEmbedUrl(LookerDashboardDTO lookerDashboardDTO) {
     return lookerHdsService.createSSOEmbedUrl(lookerDashboardDTO);
-  }
-
-  @GET
-  @Path(CONFIG_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  public LookerConfigDTO getLookerConfig() {
-    return lookerHdsService.getLookerConfig();
   }
 }

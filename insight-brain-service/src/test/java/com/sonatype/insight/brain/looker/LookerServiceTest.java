@@ -89,14 +89,12 @@ public class LookerServiceTest
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_InternalRealm() {
     when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", InternalRealm.ID));
-    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(mockUserWithUsername("displayName"));
     createSSOEmbedUrl_FeatureEnabled();
   }
 
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_SamlRealm() {
     when(currentUserMock.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", SamlRealm.ID));
-    when(mockSamlUserDAO.getByUsernameNotNull("username")).thenReturn(mockSamlUserWithUsername("displayName"));
     createSSOEmbedUrl_FeatureEnabled();
   }
 
@@ -108,13 +106,35 @@ public class LookerServiceTest
 
   public void createSSOEmbedUrl_FeatureEnabled() {
     String expectedUrl = "looker.url.com";
+    String expectedBaseUrl = "base.looker.com";
     when(hdsClientMock.post(any(), anyString(), any()))
         .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
+    when(hdsClientMock.get(LookerConfigDTO.class, LOOKER_CONFIG_PATH))
+        .thenReturn(new LookerConfigDTO(expectedBaseUrl));
+    when(currentUserMock.getUserPrincipal())
+        .thenReturn(new UserPrincipal("username", "displayName", "test"));
 
     SSOEmbedUrlDTO result = lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test"));
     verify(hdsClientMock).post(eq(SSOEmbedUrlDTO.class), eq(LOOKER_SSO_EMBED_URL_PATH), any());
     assertThat(result).isNotNull();
     assertThat(result.url).isEqualTo(expectedUrl);
+    assertThat(result.baseUrl).isEqualTo(expectedBaseUrl);
+  }
+
+  @Test
+  public void testCreateSSOEmbedUrl_FeatureEnabled_ConfigError() throws Exception {
+    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO, mockConfigCache);
+    String expectedUrl = "looker.url.com";
+    when(hdsClientMock.post(any(), anyString(), any()))
+        .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
+    when(mockConfigCache.get(DEFAULT_CONFIG_CACHE_KEY)).thenThrow(
+        new ExecutionException(new RuntimeException("error")));
+    when(currentUserMock.getUserPrincipal())
+        .thenReturn(new UserPrincipal("username", "displayName", "test"));
+
+    assertThatExceptionOfType(InternalServerErrorException.class)
+        .isThrownBy(() -> lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test")))
+        .withMessage("unable to load looker configuration from sonatype data services");
   }
 
   @Test
@@ -175,11 +195,11 @@ public class LookerServiceTest
   }
 
   @Test
-  public void testGetLookerConfig() {
+  public void testGetBaseUrl() {
+    String expectedBaseUrl = "https://sonatypeexternaldev.cloud.looker.com/";
     when(hdsClientMock.get(LookerConfigDTO.class, LOOKER_CONFIG_PATH))
-        .thenReturn(new LookerConfigDTO("lookerBaseUrl"));
-    LookerConfigDTO config = lookerService.getLookerConfig();
-    assertThat(config.baseUrl).isEqualTo("lookerBaseUrl");
+        .thenReturn(new LookerConfigDTO(expectedBaseUrl));
+    assertThat(lookerService.getBaseUrl()).isEqualTo(expectedBaseUrl);
   }
 
   @Test
@@ -188,7 +208,7 @@ public class LookerServiceTest
     when(mockConfigCache.get(DEFAULT_CONFIG_CACHE_KEY)).thenThrow(
         new ExecutionException(new RuntimeException("error")));
 
-    assertThatExceptionOfType(InternalServerErrorException.class).isThrownBy(() -> lookerService.getLookerConfig())
+    assertThatExceptionOfType(InternalServerErrorException.class).isThrownBy(() -> lookerService.getBaseUrl())
         .withMessage("unable to load looker configuration from sonatype data services");
   }
 

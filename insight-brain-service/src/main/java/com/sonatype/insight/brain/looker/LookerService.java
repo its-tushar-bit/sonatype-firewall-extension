@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-class LookerService
+public class LookerService
 {
   private final HdsClient hdsClient;
 
@@ -105,13 +105,15 @@ class LookerService
     checkLookerIntegratedEnterpriseReportingEnabled();
     validateLookerDashboardValue(lookerDashboard);
     String requestId = UUID.randomUUID().toString().replace("-", "");
-    return hdsClient.post(SSOEmbedUrlDTO.class, LOOKER_SSO_EMBED_URL_PATH,
+    SSOEmbedUrlDTO result = hdsClient.post(SSOEmbedUrlDTO.class, LOOKER_SSO_EMBED_URL_PATH,
         buildRequest(requestId, lookerDashboard.dashboard));
+    result.baseUrl = getBaseUrl();
+    return result;
   }
 
-  public LookerConfigDTO getLookerConfig() {
+  public String getBaseUrl() {
     try {
-      return lookerConfigCache.get(DEFAULT_CONFIG_CACHE_KEY);
+      return lookerConfigCache.get(DEFAULT_CONFIG_CACHE_KEY).baseUrl;
     }
     catch (ExecutionException e) {
       throw new InternalServerErrorException("unable to load looker configuration from sonatype data services", e);

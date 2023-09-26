@@ -9,6 +9,8 @@ public class SSOEmbedUrlDTO
 {
   public String url;
 
+  public String baseUrl;
+
   public SSOEmbedUrlDTO() {
     //for jackson
   }

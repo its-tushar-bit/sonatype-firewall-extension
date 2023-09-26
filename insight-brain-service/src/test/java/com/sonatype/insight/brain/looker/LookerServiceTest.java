@@ -133,7 +133,7 @@ public class LookerServiceTest
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
 
     assertThatExceptionOfType(InternalServerErrorException.class)
-        .isThrownBy(() -> lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("test")))
+        .isThrownBy(() -> lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test")))
         .withMessage("unable to load looker configuration from sonatype data services");
   }
 

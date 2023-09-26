@@ -18,12 +18,9 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.SamlRealm;
@@ -35,6 +32,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shiro.authz.UnauthenticatedException;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,11 +100,7 @@ class LookerService
     };
   }
 
-  @Authorize(permission = Permission.READ)
-  SSOEmbedUrlDTO createSSOEmbedUrl(
-      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
-      LookerDashboardDTO lookerDashboard)
-  {
+  SSOEmbedUrlDTO createSSOEmbedUrl(LookerDashboardDTO lookerDashboard) {
     AuditData.get().setLookerDashboard(lookerDashboard);
     checkLookerIntegratedEnterpriseReportingEnabled();
     validateLookerDashboardValue(lookerDashboard);
@@ -139,6 +133,11 @@ class LookerService
 
   private Pair<String, String> getUserFirstAndLastnames() {
     UserPrincipal principal = currentUser.getUserPrincipal();
+    if (principal == null) {
+      //At a minimum the user needs to be logged into access looker. see CLM-27812
+      throw new UnauthenticatedException("Anonymous access forbidden for createSSOEmbedUrl");
+    }
+
     switch (principal.getRealmId()) {
       case InternalRealm.ID:
         User user = getInternalUser(principal.getUsername());

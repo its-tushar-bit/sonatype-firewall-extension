@@ -12,13 +12,9 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
-import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class LookerServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -38,23 +34,13 @@ public class LookerServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testCreateSSOEmbedUrl_UnAuthenticated() {
-    SSOEmbedUrlDTO ssoEmbedUrl =
-        lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("rolling-recap"));
-    assertThat(ssoEmbedUrl).isNull();
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testCreateSSOEmbedUrl_UnAuthorized() {
-    login();
-    SSOEmbedUrlDTO ssoEmbedUrl =
-        lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO("rolling-recap"));
-    assertThat(ssoEmbedUrl).isNull();
+    lookerService.createSSOEmbedUrl(new LookerDashboardDTO("rolling-recap"));
   }
 
   @Test(expected = BadRequestException.class)
-  public void testCreateSSOEmbedUrl_Authorized() {
-    grantReadPermission(ROOT_ORGANIZATION_ID);
-    lookerService.createSSOEmbedUrl(ROOT_ORGANIZATION_ID, new LookerDashboardDTO(null));
+  public void testCreateSSOEmbedUrl_UnAuthorized() {
+    login();
+    lookerService.createSSOEmbedUrl(new LookerDashboardDTO(null));
   }
 
   private void enableFeature() {

@@ -16,7 +16,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.model.Organization;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -44,7 +43,7 @@ public class LookerResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_LOOKER_DASHBOARD)
   public SSOEmbedUrlDTO createSSOEmbedUrl(LookerDashboardDTO lookerDashboardDTO) {
-    return lookerHdsService.createSSOEmbedUrl(Organization.ROOT_ORGANIZATION_ID, lookerDashboardDTO);
+    return lookerHdsService.createSSOEmbedUrl(lookerDashboardDTO);
   }
 
   @GET

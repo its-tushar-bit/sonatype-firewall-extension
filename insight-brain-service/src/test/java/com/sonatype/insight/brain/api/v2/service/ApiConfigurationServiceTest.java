@@ -1158,7 +1158,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS))).containsEntry(
         SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35);
-    assertMinAndMax(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 30, 60 * 60);
+    assertMinAndMax(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 30, 60 * 300);
   }
 
   @Test

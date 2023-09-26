@@ -96,7 +96,7 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, Integer.class,
           (p, s) -> NumberUtils.toInt(s, 35 * 60),
           (p, o) -> ConfigurationUtils.integerValueToString(o, SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS,
-              30, 60 * 60)),
+              30, 60 * 300)),
       new ConfigurationProperty(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
           Boolean.class,
           (p, s) -> Boolean.parseBoolean(s),

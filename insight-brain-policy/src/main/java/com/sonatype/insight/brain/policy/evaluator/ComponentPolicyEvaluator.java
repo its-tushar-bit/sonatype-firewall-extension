@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -67,6 +66,7 @@ public class ComponentPolicyEvaluator
 
   private static final OwnerDAO ownerDAO = new OwnerDAO();
 
+  // Tenant safe because each key contains multiple UUIDs in specific orders unique to each tenant, see CLM-27348
   private static final LoadingCache<String, Object> droolsCodeKiaBase = CacheBuilder.newBuilder()
       .concurrencyLevel(20)
       .expireAfterAccess(24, TimeUnit.HOURS)

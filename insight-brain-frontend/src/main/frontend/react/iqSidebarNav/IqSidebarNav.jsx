@@ -156,7 +156,7 @@ function IqSidebarNav(props) {
               href={advSearchHref}
             />
           )}
-          {((isLicensed && isFirewallEnabled) || isFirewallOnlyLicense) && (
+          {isLicensed && isFirewallEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isFirewallSelected}
               id="firewall-navigation-button"

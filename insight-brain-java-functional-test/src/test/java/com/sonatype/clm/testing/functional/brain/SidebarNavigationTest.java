@@ -290,8 +290,8 @@ public class SidebarNavigationTest
     refresh();
 
     enableAdvancedSearch();
+    // this is PRODUCT_FIREWALL V1
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
-    setFeatures(LicensedFeature.DATA_INSIGHTS);
 
     refresh();
 
@@ -301,10 +301,10 @@ public class SidebarNavigationTest
     SidebarNavigation.labsNavigationButton().shouldBe(hidden);
     SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
   }
 
   @Test
@@ -315,7 +315,6 @@ public class SidebarNavigationTest
 
     enableAdvancedSearch();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
-    setFeatures(LicensedFeature.DATA_INSIGHTS);
 
     refresh();
 
@@ -328,7 +327,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(visible);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
   }
 
   @Test
@@ -359,6 +358,7 @@ public class SidebarNavigationTest
     testProductLicense.reset();
     refresh();
 
+    // this is PRODUCT_FIREWALL_FOR_ARTIFACTORY v1
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
 
     refresh();
@@ -369,7 +369,7 @@ public class SidebarNavigationTest
     SidebarNavigation.labsNavigationButton().shouldBe(hidden);
     SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
@@ -413,7 +413,7 @@ public class SidebarNavigationTest
     SidebarNavigation.labsNavigationButton().shouldBe(hidden);
     SidebarNavigation.vulnerabilityDetailsNavigationButton().shouldBe(visible);
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
-    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallNavigationButton().shouldBe(hidden);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
@@ -516,7 +516,6 @@ public class SidebarNavigationTest
     enableAdvancedSearch();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_V2,
         ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
-    setFeatures(LicensedFeature.DATA_INSIGHTS);
 
     refresh();
 
@@ -529,7 +528,7 @@ public class SidebarNavigationTest
     SidebarNavigation.firewallNavigationButton().shouldBe(visible);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
   }
 
   @Test
@@ -540,7 +539,6 @@ public class SidebarNavigationTest
 
     enableAdvancedSearch();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
-    setFeatures(LicensedFeature.DATA_INSIGHTS);
 
     refresh();
 
@@ -555,9 +553,6 @@ public class SidebarNavigationTest
 
     SidebarNavigation.firewallNavigationButton().shouldBe(visible).click();
     waitUntilUrl(FirewallPage.url());
-
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(LabsDataInsightsPage.url());
   }
 
   @Test
@@ -569,7 +564,6 @@ public class SidebarNavigationTest
 
     enableAdvancedSearch();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_V2);
-    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.DATA_INSIGHTS);
 
     loginAsAdmin();
 
@@ -583,7 +577,7 @@ public class SidebarNavigationTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
     SidebarNavigation.legalNavigationButton().shouldBe(hidden);
     SidebarNavigation.apiNavigationButton().shouldBe(hidden);
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
     SidebarNavigation.firewallNavigationButton().shouldBe(visible);
     waitUntilUrl(FirewallPage.url());
   }
@@ -598,7 +592,6 @@ public class SidebarNavigationTest
 
     enableAdvancedSearch();
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
-    setFeatures(LicensedFeature.DATA_INSIGHTS);
 
     loginAsAdmin();
 
@@ -620,9 +613,6 @@ public class SidebarNavigationTest
 
     SidebarNavigation.firewallNavigationButton().shouldBe(visible).click();
     waitUntilUrl(FirewallPage.url());
-
-    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(LabsDataInsightsPage.url());
   }
 
   private void enableAdvancedSearch() {

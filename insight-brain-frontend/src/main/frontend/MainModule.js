@@ -34,7 +34,10 @@ import { contains, isEmpty, not, path, tryCatch } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
 import { requestNotificationPermission } from './utility/services/notificationService';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { selectIsAllowExternalHyperlinksSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsAllowExternalHyperlinksSupported,
+  selectIsFirewallSupportedForNavigationContainer,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions as toastSliceActions } from 'MainRoot/toastContainer/toastSlice';
 import { selectToastSlice } from 'MainRoot/toastContainer/toastSelectors';
@@ -120,10 +123,13 @@ export const InitModule = angular
                   const isFirewallAvailable = productFeatures['firewall'];
                   const isFirewallOnlyLicense = selectIsFirewallOnlyLicense($ngRedux.getState());
                   const unconfiguredRepoManager = selectUnconfiguredRepoManager($ngRedux.getState());
-                  if (isFirewallAvailable && unconfiguredRepoManager) {
+                  const isFirewallEnabled = selectIsFirewallSupportedForNavigationContainer($ngRedux.getState());
+                  if (isFirewallAvailable && unconfiguredRepoManager && isFirewallEnabled) {
                     return 'firewallOnboarding.firewallOnboardingPage';
                   } else if (isDashboardAvailable) {
                     return 'dashboard.overview.violations';
+                  } else if (isFirewallOnlyLicense && !isFirewallEnabled) {
+                    return 'dashboard.overview.waivers';
                   } else if (isFirewallOnlyLicense) {
                     return 'firewall.firewallPage';
                   } else if (isReportsListAvailable) {

@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.util.Set;
+
 public class FirewallFilterField
 {
+  public static final String MULTI_VALUE_SEPARATOR = ",";
+
   private final FirewallFilterableField field;
 
   private final String value;
@@ -14,6 +18,11 @@ public class FirewallFilterField
   public FirewallFilterField(final FirewallFilterableField field, final String value) {
     this.field = field;
     this.value = value;
+  }
+
+  public FirewallFilterField(final FirewallFilterableField field, final Set<String> values) {
+    this.field = field;
+    this.value = String.join(MULTI_VALUE_SEPARATOR, values);
   }
 
   public FirewallFilterableField getField() {

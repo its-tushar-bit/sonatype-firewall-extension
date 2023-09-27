@@ -41,6 +41,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.postgres.PostgresServer;
 
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -585,6 +586,35 @@ public class RepositoryComponentDAOTest
     assertThat(dao.getTotalFirewallRepositoryComponents(filter)).isEqualTo(1);
     assertThat(quarantinedFiltered.size()).isEqualTo(1);
     assertComponentForFirewall(quarantinedFiltered.get(0), "/quarantined1", june5th2020, null, null);
+  }
+
+  @Test
+  public void testGetFirewallRepositoryComponents_filterByMultiplePolicyIds() {
+    setupMockDataForGetFirewallRepositoryComponents();
+
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "/quarantined/multiple/test",
+        june7th2020, null, june8th2020, false);
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, component.getPathname(), false, FailActionType.ID,
+        "policy_id_multiple", "policy_multiple", component.getComponentIdentifier());
+
+    // FILTER BY POLICY NAME
+    List<FirewallFilterField> filterFields = new ArrayList<>();
+    filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID,
+        Sets.newHashSet("policy_id_2", "policy_id_multiple")));
+
+    FirewallRepositoryComponentFilter filter = new FirewallRepositoryComponentFilter(1, 2,
+        FirewallComponentFilterState.QUARANTINE, FirewallSortableField.QUARANTINE_TIME, true, filterFields);
+
+    // EXECUTE
+    List<RepositoryComponent> quarantinedFiltered = dao.getFirewallRepositoryComponents(filter);
+
+    // ASSERTION - only the components with the given policies IDs should be returned
+    assertThat(quarantinedFiltered).isNotEmpty();
+    assertThat(dao.getTotalFirewallRepositoryComponents(filter)).isEqualTo(2);
+    assertThat(quarantinedFiltered).hasSize(2);
+    assertComponentForFirewall(quarantinedFiltered.get(0), "/quarantined1", june5th2020, null, null);
+    assertComponentForFirewall(quarantinedFiltered.get(1), "/quarantined/multiple/test", june7th2020, null, null);
   }
 
   @Test

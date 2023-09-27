@@ -6,7 +6,10 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -41,6 +44,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryCompon
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -134,8 +138,9 @@ public class ApiFirewallResource
       @DefaultValue("true") @QueryParam("asc") boolean asc
   )
   {
-    return getComponents(uriInfo, page, pageSize, policyId, componentName, sortBy,
-        FirewallSortableField.RELEASE_QUARANTINE_TIME, asc, FirewallComponentFilterState.UNQUARANTINE_AUTO);
+    return getComponents(uriInfo, page, pageSize, policyId != null ? Collections.singleton(policyId) : null,
+        componentName, sortBy, FirewallSortableField.RELEASE_QUARANTINE_TIME, asc,
+        FirewallComponentFilterState.UNQUARANTINE_AUTO);
   }
 
   @GET
@@ -144,13 +149,13 @@ public class ApiFirewallResource
       @Context UriInfo uriInfo,
       @DefaultValue("1") @QueryParam("page") int page,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
-      @QueryParam("policyId") String policyId,
+      @QueryParam("policyId") Set<String> policyIds,
       @QueryParam("componentName") String componentName,
       @QueryParam("sortBy") String sortBy,
       @DefaultValue("true") @QueryParam("asc") boolean asc
   )
   {
-    return getComponents(uriInfo, page, pageSize, policyId, componentName, sortBy,
+    return getComponents(uriInfo, page, pageSize, policyIds, componentName, sortBy,
         FirewallSortableField.QUARANTINE_TIME, asc, FirewallComponentFilterState.QUARANTINE);
   }
 
@@ -211,7 +216,7 @@ public class ApiFirewallResource
       final UriInfo uriInfo,
       final int page,
       final int pageSize,
-      final String policyId,
+      final Set<String> policyIds,
       final String componentName,
       final String sortBy,
       final FirewallSortableField defaultSortableField,
@@ -219,8 +224,8 @@ public class ApiFirewallResource
       final FirewallComponentFilterState firewallComponentFilterState)
   {
     List<FirewallFilterField> filterFields = new ArrayList<>();
-    if (!StringUtils.isEmpty(policyId)) {
-      filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, policyId));
+    if (CollectionUtils.isNotEmpty(policyIds)) {
+      filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, policyIds));
     }
 
     if (StringUtils.isNotBlank(componentName)) {

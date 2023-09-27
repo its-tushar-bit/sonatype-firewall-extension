@@ -47,6 +47,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
 import org.junit.Assume;
@@ -310,6 +311,7 @@ public class ApiFirewallResourceTest
   @Test
   public void testGetQuarantineList() throws Exception {
     Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 1, 0).toInstant(ZoneOffset.UTC));
+    Date june2st2020 = DateUtils.addDays(june1st2020, 1);
 
     Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
     Condition condition = new Condition("RelativePopularity", "<=", "10");
@@ -323,7 +325,7 @@ public class ApiFirewallResourceTest
 
     // ADD ANOTHER COMPONENT
     RepositoryComponent component2 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june1st2020, null, false);
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june2st2020, null, false);
     component2.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "b", "v"));
     repositoryComponentDAO.update(component2);
 
@@ -350,6 +352,30 @@ public class ApiFirewallResourceTest
     final ApiFirewallComponentDTO componentDTO1 = responseDTO.getResults().get(0);
     ApiFirewallServiceTest
         .assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, null);
+
+    // TEST WITH MULTIPLE POLICIES
+    Policy policy2 = tempEntity.newPolicy("policy2", constraint);
+    PolicyViolationTestHelper.createPolicyViolationFail(policy2, component2, tempEntity);
+
+    response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .query("page", 1)
+        .query("pageSize", 2)
+        .query("policyId", policy1.getId(), policy2.getId())
+        .query("sortBy", FirewallSortableField.QUARANTINE_TIME.getLabel())
+        .query("asc", "true")
+        .get();
+
+    assertResponseStatus(HttpStatus.OK_200, response);
+    responseDTO = getBodyByTypeReference(
+        response.getBodyBytes(),
+        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>() { });
+
+    assertThat(responseDTO.getTotal()).isEqualTo(2);
+
+    assertThat(responseDTO.getResults())
+        .extracting(dto -> dto.componentIdentifier)
+        .containsExactly(component1.getComponentIdentifier(), component2.getComponentIdentifier());
   }
 
   @Test

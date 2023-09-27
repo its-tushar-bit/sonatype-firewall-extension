@@ -198,7 +198,8 @@ public class RepositoryComponentDAO
 
       if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
         paginationQuery.setParameter(parameterIndex++,
-            filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID));
+            filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID)
+                .split(FirewallFilterField.MULTI_VALUE_SEPARATOR));
       }
 
       if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.COMPONENT_NAME)) {
@@ -216,7 +217,8 @@ public class RepositoryComponentDAO
 
     // FILTER
     if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
-      parameters.add(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID));
+      parameters.add(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID)
+          .split(FirewallFilterField.MULTI_VALUE_SEPARATOR));
     }
 
     if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.COMPONENT_NAME)) {
@@ -271,9 +273,9 @@ public class RepositoryComponentDAO
           .append(" AND component.pathname = policyViolation.pathname")
           .append(" AND policyViolation.actionTypeId = 'fail'")
           .append(" AND policyViolation.active = true")
-          .append(" AND policyViolation.policyId=?")
+          .append(" AND policyViolation.policyId IN (?")
           .append(parameterIndex++)
-          .append(" AND policyViolation.isWaived = false");
+          .append(") AND policyViolation.isWaived = false");
       sQueryContainsWhereClause.setTrue();
     }
 

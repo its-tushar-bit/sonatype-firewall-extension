@@ -417,14 +417,14 @@ public class RepositoryComponentDAO
     return getList(sQuery, repositoryId, pathnamePrefix + "%", pathname);
   }
 
-  public RepositoryComponent getByRepositoryIdAndComponentIdentifier(
+  public List<RepositoryComponent> getByRepositoryIdAndComponentIdentifier(
       String repositoryId,
       ComponentIdentifier componentIdentifier)
   {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1" + //
         " AND entity.componentIdFormat=?2 AND entity.componentIdCoordinatesJson=?3";
-    return get(sQuery, repositoryId, componentIdentifier.getFormat(),
+    return getList(sQuery, repositoryId, componentIdentifier.getFormat(),
         ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
   }
 

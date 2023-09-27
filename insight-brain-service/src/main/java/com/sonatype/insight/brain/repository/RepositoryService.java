@@ -17,7 +17,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -310,8 +309,8 @@ public class RepositoryService
   }
 
   /**
-   * Used by the web UI to display various timestamps related to policy evaluations.
-   * The UI calls this method for component versions for which it only has a component identifier (no hash or pathname).
+   * Used by the web UI to display various timestamps related to policy evaluations. The UI calls this method for
+   * component versions for which it only has a component identifier (no hash or pathname).
    *
    * @since 1.139
    */
@@ -322,20 +321,54 @@ public class RepositoryService
   {
     PolicyEvaluationTimestampsDTO policyEvaluationTimestampsDTO = new PolicyEvaluationTimestampsDTO();
 
-    RepositoryComponent repositoryComponent =
+    List<RepositoryComponent> repositoryComponents =
         repositoryComponentDAO.getByRepositoryIdAndComponentIdentifier(repositoryId, componentIdentifier);
 
-    if (repositoryComponent == null) {
+    if (repositoryComponents.isEmpty()) {
       return policyEvaluationTimestampsDTO;
     }
 
-    policyEvaluationTimestampsDTO.firstPolicyEvaluationTime = repositoryComponent.getTime();
-    policyEvaluationTimestampsDTO.latestPolicyEvaluationTime = repositoryComponent.getLastEvaluationTime();
-    policyEvaluationTimestampsDTO.quarantineTime = repositoryComponent.getQuarantineTime();
-    policyEvaluationTimestampsDTO.unquarantineTime = repositoryComponent.getUnquarantineTime();
-    policyEvaluationTimestampsDTO.autoUnquarantined = repositoryComponent.getAutoUnquarantined();
+    for (RepositoryComponent repositoryComponent : repositoryComponents) {
+      policyEvaluationTimestampsDTO.firstPolicyEvaluationTime =
+          min(policyEvaluationTimestampsDTO.firstPolicyEvaluationTime, repositoryComponent.getTime());
+      policyEvaluationTimestampsDTO.latestPolicyEvaluationTime =
+          max(policyEvaluationTimestampsDTO.latestPolicyEvaluationTime, repositoryComponent.getLastEvaluationTime());
+      policyEvaluationTimestampsDTO.quarantineTime =
+          max(policyEvaluationTimestampsDTO.quarantineTime, repositoryComponent.getQuarantineTime());
+      policyEvaluationTimestampsDTO.unquarantineTime =
+          max(policyEvaluationTimestampsDTO.unquarantineTime, repositoryComponent.getUnquarantineTime());
+    }
+    if (repositoryComponents.size() == 1) {
+      policyEvaluationTimestampsDTO.autoUnquarantined = repositoryComponents.get(0).getAutoUnquarantined();
+    }
 
     return policyEvaluationTimestampsDTO;
+  }
+
+  private Date min(Date date1, Date date2) {
+    if (date1 == null && date2 == null) {
+      return null;
+    }
+    if (date1 == null) {
+      return date2;
+    }
+    if (date2 == null) {
+      return date1;
+    }
+    return date1.compareTo(date2) < 0 ? date1 : date2;
+  }
+
+  private Date max(Date date1, Date date2) {
+    if (date1 == null && date2 == null) {
+      return null;
+    }
+    if (date1 == null) {
+      return date2;
+    }
+    if (date2 == null) {
+      return date1;
+    }
+    return date1.compareTo(date2) > 0 ? date1 : date2;
   }
 
   @Authorize(permission = Permission.READ)

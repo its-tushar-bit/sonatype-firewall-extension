@@ -766,6 +766,46 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
+  public void testGetPolicyEvaluationTimestamps_MultipleComponents() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createConanCoordinates("libxml2", "2.9.14", null, null);
+
+    Date firstPolicyEvaluationTime1 = new Date(0);
+    Date lastEvaluationTime1 = new Date(firstPolicyEvaluationTime1.getTime() + 1000);
+    Date quarantineTime1 = firstPolicyEvaluationTime1;
+    Date unquarantineTime1 = new Date(firstPolicyEvaluationTime1.getTime() + 2000);
+
+    Date firstPolicyEvaluationTime2 = new Date(10000);
+    Date lastEvaluationTime2 = new Date(firstPolicyEvaluationTime2.getTime() + 1000);
+    Date quarantineTime2 = firstPolicyEvaluationTime2;
+    Date unquarantineTime2 = new Date(firstPolicyEvaluationTime2.getTime() + 2000);
+
+    RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "testPathname1", "testHash", componentIdentifier, firstPolicyEvaluationTime1, quarantineTime1,
+        unquarantineTime1);
+    RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "testPathname2", "testHash", componentIdentifier, firstPolicyEvaluationTime2, quarantineTime2,
+        unquarantineTime2);
+
+    repositoryComponent1.setLastEvaluationTime(lastEvaluationTime1);
+    repositoryComponent1.setUnquarantineTimeForMonitoring(unquarantineTime1);
+    repositoryComponentDAO.update(repositoryComponent1);
+    repositoryComponent2.setLastEvaluationTime(lastEvaluationTime2);
+    repositoryComponent2.setUnquarantineTimeForMonitoring(unquarantineTime2);
+    repositoryComponentDAO.update(repositoryComponent2);
+
+    PolicyEvaluationTimestampsDTO policyEvaluationTimestampsDTO =
+        repositoryService.getPolicyEvaluationTimestamps(repository.getId(), componentIdentifier);
+
+    assertThat(policyEvaluationTimestampsDTO.firstPolicyEvaluationTime).isEqualTo(firstPolicyEvaluationTime1);
+    assertThat(policyEvaluationTimestampsDTO.latestPolicyEvaluationTime).isEqualTo(lastEvaluationTime2);
+    assertThat(policyEvaluationTimestampsDTO.quarantineTime).isEqualTo(quarantineTime2);
+    assertThat(policyEvaluationTimestampsDTO.unquarantineTime).isEqualTo(unquarantineTime2);
+    assertThat(policyEvaluationTimestampsDTO.autoUnquarantined).isNull();
+  }
+
+  @Test
   public void testGetProprietaryComponentNamePatterns_NullRequest() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(null))

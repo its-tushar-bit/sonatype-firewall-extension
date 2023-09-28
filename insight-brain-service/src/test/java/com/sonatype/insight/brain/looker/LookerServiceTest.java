@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.looker;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.ws.rs.InternalServerErrorException;
 
@@ -13,12 +15,12 @@ import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
-import com.sonatype.insight.brain.model.security.SamlUser;
-import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.SamlRealm;
+import com.sonatype.insight.brain.security.MembershipMappingService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
@@ -28,10 +30,11 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.google.common.cache.LoadingCache;
 import com.google.inject.Binder;
 import com.google.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.looker.LookerService.DEFAULT_CONFIG_CACHE_KEY;
@@ -57,6 +60,9 @@ public class LookerServiceTest
   private CurrentUser currentUserMock;
 
   @Mock
+  private MembershipMappingService mockMembershipMappingService;
+
+  @Mock
   private UserDAO mockUserDAO;
 
   @Mock
@@ -64,6 +70,9 @@ public class LookerServiceTest
 
   @Inject
   private LookerService lookerService;
+
+  @Captor
+  private ArgumentCaptor<LookerSSOEmbedUrlHdsRequest> lookerSSOEmbedUrlHdsRequestArgumentCaptor;
 
   private LoadingCache<String, LookerConfigDTO> mockConfigCache = mock(LoadingCache.class);
 
@@ -73,6 +82,7 @@ public class LookerServiceTest
     binder.bind(CurrentUser.class).toInstance(currentUserMock);
     binder.bind(UserDAO.class).toInstance(mockUserDAO);
     binder.bind(SamlUserDAO.class).toInstance(mockSamlUserDAO);
+    binder.bind(MembershipMappingService.class).toInstance(mockMembershipMappingService);
     super.configure(binder);
   }
 
@@ -104,26 +114,10 @@ public class LookerServiceTest
     createSSOEmbedUrl_FeatureEnabled();
   }
 
-  public void createSSOEmbedUrl_FeatureEnabled() {
-    String expectedUrl = "looker.url.com";
-    String expectedBaseUrl = "base.looker.com";
-    when(hdsClientMock.post(any(), anyString(), any()))
-        .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
-    when(hdsClientMock.get(LookerConfigDTO.class, LOOKER_CONFIG_PATH))
-        .thenReturn(new LookerConfigDTO(expectedBaseUrl));
-    when(currentUserMock.getUserPrincipal())
-        .thenReturn(new UserPrincipal("username", "displayName", "test"));
-
-    SSOEmbedUrlDTO result = lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test"));
-    verify(hdsClientMock).post(eq(SSOEmbedUrlDTO.class), eq(LOOKER_SSO_EMBED_URL_PATH), any());
-    assertThat(result).isNotNull();
-    assertThat(result.url).isEqualTo(expectedUrl);
-    assertThat(result.baseUrl).isEqualTo(expectedBaseUrl);
-  }
-
   @Test
   public void testCreateSSOEmbedUrl_FeatureEnabled_ConfigError() throws Exception {
-    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO, mockConfigCache);
+    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO,
+        mockMembershipMappingService, mockConfigCache);
     String expectedUrl = "looker.url.com";
     when(hdsClientMock.post(any(), anyString(), any()))
         .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
@@ -161,15 +155,6 @@ public class LookerServiceTest
         .isInstanceOf(BadRequestException.class).hasMessage("Bad request");
   }
 
-  @NotNull
-  private static User mockUserWithUsername(final String username) {
-    return new User(username, "pass", "firstName", "lastName", "email");
-  }
-
-  private SamlUser mockSamlUserWithUsername(final String username) {
-    return new SamlUser(username, "firstName", "lastName", "email", Collections.emptySet());
-  }
-
   @Test
   public void testCreateSSOEmbedUrl_HdsNotFound() {
     when(hdsClientMock.post(any(), anyString(), any()))
@@ -204,12 +189,37 @@ public class LookerServiceTest
 
   @Test
   public void testGetLookerConfig_Error() throws Exception {
-    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO, mockConfigCache);
+    lookerService = new LookerService(hdsClientMock, currentUserMock, mockUserDAO, mockSamlUserDAO,
+        mockMembershipMappingService, mockConfigCache);
     when(mockConfigCache.get(DEFAULT_CONFIG_CACHE_KEY)).thenThrow(
         new ExecutionException(new RuntimeException("error")));
 
     assertThatExceptionOfType(InternalServerErrorException.class).isThrownBy(() -> lookerService.getBaseUrl())
         .withMessage("unable to load looker configuration from sonatype data services");
+  }
+
+  private void createSSOEmbedUrl_FeatureEnabled() {
+    String expectedUrl = "looker.url.com";
+    String expectedBaseUrl = "base.looker.com";
+    when(hdsClientMock.post(any(), anyString(), any()))
+        .thenReturn(new SSOEmbedUrlDTO(expectedUrl));
+    when(hdsClientMock.get(LookerConfigDTO.class, LOOKER_CONFIG_PATH))
+        .thenReturn(new LookerConfigDTO(expectedBaseUrl));
+    when(currentUserMock.getUserPrincipal())
+        .thenReturn(new UserPrincipal("username", "displayName", "test"));
+    when(mockMembershipMappingService.getPermissionsForUserPrincipal(any()))
+        .thenReturn(mockGetPermissionsForUserPrincipal());
+
+    SSOEmbedUrlDTO result = lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test"));
+    verify(hdsClientMock).post(eq(SSOEmbedUrlDTO.class), eq(LOOKER_SSO_EMBED_URL_PATH),
+        lookerSSOEmbedUrlHdsRequestArgumentCaptor.capture());
+    LookerSSOEmbedUrlHdsRequest actual = lookerSSOEmbedUrlHdsRequestArgumentCaptor.getValue();
+    assertThat(actual).isNotNull();
+    assertThat(actual.userPermissions).containsExactlyInAnyOrder(mockGetPermissionsForUserPrincipal()
+        .toArray(mockGetPermissionsForUserPrincipal().toArray(new String[0])));
+    assertThat(result).isNotNull();
+    assertThat(result.url).isEqualTo(expectedUrl);
+    assertThat(result.baseUrl).isEqualTo(expectedBaseUrl);
   }
 
   private void enableFeature() {
@@ -220,5 +230,10 @@ public class LookerServiceTest
   private void disableFeature() {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
         .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
+  }
+
+  private static Set<String> mockGetPermissionsForUserPrincipal() {
+    return new HashSet<>(Arrays.asList(Permission.EDIT_ROLES.getDisplayName(),
+        Permission.WAIVE_POLICY_VIOLATIONS.getDisplayName()));
   }
 }

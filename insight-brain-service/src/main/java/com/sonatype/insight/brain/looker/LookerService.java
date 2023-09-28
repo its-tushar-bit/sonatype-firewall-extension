@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.SamlRealm;
+import com.sonatype.insight.brain.security.MembershipMappingService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
@@ -59,6 +60,8 @@ public class LookerService
 
   private final UserDAO userDAO;
 
+  private final MembershipMappingService membershipMappingService;
+
   private final SamlUserDAO samlUserDAO;
 
   @Inject
@@ -66,12 +69,14 @@ public class LookerService
       final HdsClient hdsClient,
       final CurrentUser currentUser,
       final UserDAO userDAO,
-      final SamlUserDAO samlUserDAO)
+      final SamlUserDAO samlUserDAO,
+      final MembershipMappingService membershipMappingService)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
     this.userDAO = userDAO;
     this.samlUserDAO = samlUserDAO;
+    this.membershipMappingService = membershipMappingService;
     this.lookerConfigCache = CacheBuilder.newBuilder().expireAfterWrite(MAX_AGE).build(newLookerConfigCacheLoader());
   }
 
@@ -81,12 +86,14 @@ public class LookerService
       final CurrentUser currentUser,
       final UserDAO userDAO,
       final SamlUserDAO samlUserDAO,
+      final MembershipMappingService membershipMappingService,
       final LoadingCache<String, LookerConfigDTO> cache)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
     this.userDAO = userDAO;
     this.samlUserDAO = samlUserDAO;
+    this.membershipMappingService = membershipMappingService;
     this.lookerConfigCache = cache;
   }
 
@@ -130,9 +137,10 @@ public class LookerService
   private LookerSSOEmbedUrlHdsRequest buildRequest(String requestId, String lookerDashboard) {
     log.debug("Submitting Looker SSOEmbedUrl request {} for dashboard {}", requestId, lookerDashboard);
     Pair<String, String> names = getUserFirstAndLastnames();
-    return new LookerSSOEmbedUrlHdsRequest(requestId, names.getLeft(), names.getRight(), lookerDashboard);
+    return new LookerSSOEmbedUrlHdsRequest(requestId, names.getLeft(), names.getRight(), lookerDashboard,
+        membershipMappingService.getPermissionsForUserPrincipal(currentUser.getUserPrincipal()));
   }
-
+  
   private Pair<String, String> getUserFirstAndLastnames() {
     UserPrincipal principal = currentUser.getUserPrincipal();
     if (principal == null) {

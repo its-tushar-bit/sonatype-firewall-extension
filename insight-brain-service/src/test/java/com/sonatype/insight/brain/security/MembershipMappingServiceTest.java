@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import javax.inject.Inject;
 
@@ -38,6 +41,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -48,6 +52,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.security.Role.APPLICATION_EVALUATOR_ROLE_ID;
 import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
 import static com.sonatype.insight.brain.model.security.Role.POLICY_ADMIN_ROLE_ID;
 import static com.sonatype.insight.brain.model.security.Role.SYSTEM_ADMIN_ROLE_ID;
@@ -602,6 +607,25 @@ public class MembershipMappingServiceTest
     membershipMappingService.grantMembershipMappingsForGlobalContextNoAuthz(roleToMembers);
 
     assertGlobalPermisionsAreGranted(handler, username);
+  }
+
+  @Test
+  public void testGetPermissionsForUserPrincipal() {
+    String username = "username";
+    String displayName = "name";
+    String realmId = "realm";
+    Set<String> membership = new HashSet<>(Arrays.asList("developers", "qa"));
+    UserPrincipal userPrincipal = new UserPrincipal(username, displayName, realmId, membership);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, SYSTEM_ADMIN_ROLE_ID, username);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID, username);
+    tempEntity.newGroupMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, DEVELOPER_ROLE_ID, "developers");
+    tempEntity.newGroupMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, APPLICATION_EVALUATOR_ROLE_ID, "qa");
+
+    Set<String> actual = membershipMappingService.getPermissionsForUserPrincipal(userPrincipal);
+
+    assertThat(actual).isNotNull();
+    assertThat(actual).containsExactlyInAnyOrder("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
+        "Review","View", "Waive");
   }
 
   private void assertGlobalPermisionsAreGranted(final TestEventHandler<RoleEvent> handler, final String username)

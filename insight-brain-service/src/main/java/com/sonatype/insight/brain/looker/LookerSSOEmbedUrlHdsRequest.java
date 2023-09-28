@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.looker;
 
+import java.util.Set;
+
 public class LookerSSOEmbedUrlHdsRequest
 {
   public String requestId;
@@ -15,6 +17,8 @@ public class LookerSSOEmbedUrlHdsRequest
 
   public String dashboardKey;
 
+  public Set<String> userPermissions;
+
   public LookerSSOEmbedUrlHdsRequest() {
     //for jackson
   }
@@ -23,11 +27,13 @@ public class LookerSSOEmbedUrlHdsRequest
       String requestId,
       String userFirstName,
       String userLastName,
-      String dashboardKey)
+      String dashboardKey,
+      Set<String> userPermissions)
   {
     this.requestId = requestId;
     this.userFirstName = userFirstName;
     this.userLastName = userLastName;
     this.dashboardKey = dashboardKey;
+    this.userPermissions = userPermissions;
   }
 }

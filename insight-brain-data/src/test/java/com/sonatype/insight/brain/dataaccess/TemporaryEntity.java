@@ -1350,6 +1350,10 @@ public class TemporaryEntity
     return newMembershipMapping(contextId, roleId, username, MemberType.USER);
   }
 
+  public MembershipMapping newGroupMembershipMapping(String contextId, String roleId, String groupname) {
+    return newMembershipMapping(contextId, roleId, groupname, MemberType.GROUP);
+  }
+
   public MembershipMapping newMembershipMapping(
       String contextId,
       String roleId,

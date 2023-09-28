@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -28,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -35,6 +38,7 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.webhook.EventAction;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
@@ -59,6 +63,8 @@ public class MembershipMappingService
 
   private final RoleDAO roleDAO;
 
+  private final RolePermissionDAO rolePermissionDAO;
+
   private final MembershipMappingDAO membershipMappingDAO;
 
   private final OwnerDAO ownerDAO;
@@ -72,6 +78,7 @@ public class MembershipMappingService
       final ApplicationDAO appDAO,
       OrganizationDAO orgDAO,
       final RoleDAO roleDAO,
+      final RolePermissionDAO rolePermissionDAO,
       final MembershipMappingDAO membershipMappingDAO,
       final OwnerDAO ownerDAO,
       UserDirectory userDirectory,
@@ -80,6 +87,7 @@ public class MembershipMappingService
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
     this.roleDAO = roleDAO;
+    this.rolePermissionDAO = rolePermissionDAO;
     this.membershipMappingDAO = membershipMappingDAO;
     this.ownerDAO = ownerDAO;
     this.userDirectory = userDirectory;
@@ -270,6 +278,15 @@ public class MembershipMappingService
     else {
       setMembershipMappingsForNonGlobalContext(ownerType, internalOwnerId, roleToMembers);
     }
+  }
+
+  public Set<String> getPermissionsForUserPrincipal(UserPrincipal userPrincipal) {
+    return membershipMappingDAO.getByUserAndGroups(userPrincipal.getUsername(), userPrincipal.getMembership()).stream()
+        .map(it -> rolePermissionDAO.getPermissionsForRole(it.getRoleId()))
+        .filter(Objects::nonNull)
+        .flatMap(Collection::stream)
+        .map(Permission::getDisplayName)
+        .collect(Collectors.toSet());
   }
 
   @Authorize(permission = Permission.EDIT_ACCESS_CONTROL)

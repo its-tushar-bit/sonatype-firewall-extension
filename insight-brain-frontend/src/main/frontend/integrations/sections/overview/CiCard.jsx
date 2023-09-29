@@ -9,7 +9,7 @@ import React, { useEffect } from 'react';
 import { actions } from 'MainRoot/integrations/sections/overview/ciUsageSlice';
 import { selectCiUsageSlice } from 'MainRoot/integrations/integrationsSelectors';
 import { NxBinaryDonutChart, NxTile, NxH3, NxLoadWrapper, NxP, NxTextLink } from '@sonatype/react-shared-components';
-import { SECTIONS } from 'MainRoot/integrations/integrations.module';
+import { SECTIONS } from 'MainRoot/integrations/sections';
 import useGetIntegrationsLink from 'MainRoot/integrations/useGetIntegrationsLink';
 import { isNil } from 'ramda';
 import getThreeMonthsAgo from 'MainRoot/integrations/utils/getThreeMonthsAgo';

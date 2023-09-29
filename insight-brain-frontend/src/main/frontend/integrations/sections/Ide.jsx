@@ -14,13 +14,12 @@ import VisualStudioLogo from '../../img/third-party-logos/VisualStudio.png';
 export default function Ide() {
   return (
     <div id="iq-integrations-ide-section">
+      <NxH2>IDEs</NxH2>
       <NxP className="iq-integrations__full-width-text">
         Integrate your DevSecOps SDLC pipeline with Lifecycle using Sonatype integrations plug-ins for complete security
         orchestration, automation and response. You can view the security risks and vulnerabilities for your
         applications and determine steps for remediation.
       </NxP>
-
-      <NxH2>IDEs</NxH2>
 
       <NxCard.Container className="iq-integrations-card-container">
         <IntegrationsCard

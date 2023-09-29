@@ -12,13 +12,12 @@ import AtlassianLogo from '../../img/third-party-logos/atlassian.png';
 export default function IssueTracking() {
   return (
     <div id="iq-integrations-issue-tracking-section">
+      <NxH2>Issue Management Systems</NxH2>
       <NxP className="iq-integrations__full-width-text">
         Integrate your DevSecOps SDLC pipeline with Lifecycle using Sonatype integrations plug-ins for complete security
         orchestration, automation and response. You can view the security risks and vulnerabilities for your
         applications and determine steps for remediation.
       </NxP>
-
-      <NxH2>Issue Management Systems</NxH2>
 
       <NxCard.Container className="iq-integrations-card-container">
         <IntegrationsCard
@@ -27,7 +26,7 @@ export default function IssueTracking() {
           description="Atlassian Jira Server and Datacenter plug-in creating issues in Jira for policy violations."
           linkText="Click here for installation help."
           linkUrl="https://links.sonatype.com/products/nxiq/doc/integrations/scm/issue-tracking/jira"
-          data-analytics-id="sonatype-developer-issue-tracking-jira"
+          dataAnalyticsId="sonatype-developer-issue-tracking-jira"
         />
       </NxCard.Container>
     </div>

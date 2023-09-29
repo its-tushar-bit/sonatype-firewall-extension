@@ -65,21 +65,21 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   @Test
   public void testNavigation() {
     refreshOrOpen(IntegrationsPage.urlOverview());
-    sideNavigation().shouldBe(visible);
+    navigationTabs().shouldBe(visible);
 
-    sideCiCdLink().shouldBe(visible).click();
+    cicdTab().shouldBe(visible).click();
     waitUntilUrl(IntegrationsPage.urlCiCd());
     ciCdSection().shouldBe(visible);
 
-    sideScmLink().shouldBe(visible).click();
+    scmTab().shouldBe(visible).click();
     waitUntilUrl(IntegrationsPage.urlScm());
     scmSection().shouldBe(visible);
 
-    sideIssueTrackingLink().shouldBe(visible).click();
+    issueTrackingTab().shouldBe(visible).click();
     waitUntilUrl(IntegrationsPage.urlIssueTracking());
     issueTrackingSection().shouldBe(visible);
 
-    sideIdeLink().shouldBe(visible).click();
+    ideTab().shouldBe(visible).click();
     waitUntilUrl(IntegrationsPage.urlIde());
     ideSection().shouldBe(visible);
   }
@@ -211,24 +211,28 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
         });
   }
 
-  private SelenideElement sideNavigation() {
-    return $("#integrations-sidebar");
+  private SelenideElement navigationTabs() {
+    return $(".iq-integrations-content .nx-tab-list");
   }
 
-  private SelenideElement sideCiCdLink() {
-    return $("#integrations-sidebar__cicd-link");
+  private SelenideElement overviewTab() {
+    return $(".iq-integrations-content .nx-tab:nth-child(1)");
   }
 
-  private SelenideElement sideScmLink() {
-    return $("#integrations-sidebar__scm-link");
+  private SelenideElement cicdTab() {
+    return $(".iq-integrations-content .nx-tab:nth-child(2)");
   }
 
-  private SelenideElement sideIssueTrackingLink() {
-    return $("#integrations-sidebar__issue-tracking-link");
+  private SelenideElement scmTab() {
+    return $(".iq-integrations-content .nx-tab:nth-child(3)");
   }
 
-  private SelenideElement sideIdeLink() {
-    return $("#integrations-sidebar__ide-link");
+  private SelenideElement issueTrackingTab() {
+    return $(".iq-integrations-content .nx-tab:nth-child(4)");
+  }
+
+  private SelenideElement ideTab() {
+    return $(".iq-integrations-content .nx-tab:nth-child(5)");
   }
 
   private SelenideElement overviewSection() {

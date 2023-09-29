@@ -5,13 +5,7 @@
  */
 
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
-import integrationsTemplate from './integrations.html';
-import IntegrationsNavigation from './IntegrationsNavigation';
-import Overview from './sections/overview/Overview';
-import CiCd from './sections/CiCd';
-import Scm from './sections/Scm';
-import IssueTracking from './sections/IssueTracking';
-import Ide from 'MainRoot/integrations/sections/Ide';
+import SonatypeDeveloperPage from './SonatypeDeveloperPage';
 import AppsWithoutCiIntegrations from './sections/AppsWithoutCiIntegrations/AppsWithoutCiIntegrations';
 
 export const SECTIONS = {
@@ -25,69 +19,43 @@ export const SECTIONS = {
 
 const integrationsModule = angular
   .module('integrationsModule', ['ngRedux'])
-  .component('integrationsNavigation', iqReact2Angular(IntegrationsNavigation, [], ['$ngRedux', '$state']))
-  .component('overview', iqReact2Angular(Overview, [], ['$ngRedux', '$state']))
-  .component('ciCd', iqReact2Angular(CiCd, [], ['$ngRedux']))
-  .component('scm', iqReact2Angular(Scm, [], ['$ngRedux']))
-  .component('issueTracking', iqReact2Angular(IssueTracking, [], ['$ngRedux']))
-  .component('ide', iqReact2Angular(Ide, [], ['$ngRedux']))
+  .component('sonatypeDeveloperPage', iqReact2Angular(SonatypeDeveloperPage, [], ['$ngRedux', '$state']))
   .component('appsWithoutCiIntegrations', iqReact2Angular(AppsWithoutCiIntegrations, [], ['$ngRedux', '$state']))
   .config(routes);
-
-const additionalPageClass = 'iq-integrations-page-wrapper';
 
 function routes($stateProvider) {
   $stateProvider
     .state('integrations', {
       url: '/integrations',
-      template: integrationsTemplate,
+      component: 'sonatypeDeveloperPage',
       redirectTo: `integrations.${SECTIONS.OVERVIEW}`,
       data: {
-        title: 'Integrations',
-        additionalPageClass,
+        title: 'Sonatype Developer',
       },
     })
     .state(`integrations.${SECTIONS.OVERVIEW}`, {
       url: '/overview',
-      component: 'overview',
       data: {
         title: 'Overview',
-        additionalPageClass,
       },
     })
     .state(`integrations.${SECTIONS.CICD}`, {
       url: '/ci-cd',
-      component: 'ciCd',
-      data: {
-        additionalPageClass,
-      },
     })
     .state(`integrations.${SECTIONS.SCM}`, {
       url: '/scm',
-      component: 'scm',
-      data: {
-        additionalPageClass,
-      },
     })
     .state(`integrations.${SECTIONS.ISSUE_TRACKING}`, {
       url: '/issue-tracking',
-      component: 'issueTracking',
-      data: {
-        additionalPageClass,
-      },
     })
     .state(`integrations.${SECTIONS.IDE}`, {
       url: '/ide',
-      component: 'ide',
-      data: {
-        additionalPageClass,
-      },
     })
-    .state(`integrations.${SECTIONS.APPS_WITHOUT_CI_INTEGRATIONS}`, {
+    .state(`integrations-${SECTIONS.APPS_WITHOUT_CI_INTEGRATIONS}`, {
       url: '/apps-without-ci-integrations',
       component: 'appsWithoutCiIntegrations',
       data: {
-        additionalPageClass,
+        title: 'Apps Without CI Integrations',
       },
     });
 }

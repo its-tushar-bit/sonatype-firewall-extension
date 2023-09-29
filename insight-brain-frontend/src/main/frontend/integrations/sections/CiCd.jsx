@@ -13,13 +13,12 @@ import IntegrationsCard from 'MainRoot/integrations/IntegrationsCard';
 export default function CiCd() {
   return (
     <div id="iq-integrations-cicd-section">
+      <NxH2>CI/CD Integrations</NxH2>
       <NxP className="iq-integrations__full-width-text">
         Integrate your DevSecOps SDLC pipeline with Lifecycle using Sonatype integrations plug-ins for complete security
         orchestration, automation and response. You can view the security risks and vulnerabilities for your
         applications and determine steps for remediation.
       </NxP>
-
-      <NxH2>CI/CD Integrations</NxH2>
 
       <NxCard.Container className="iq-integrations-card-container">
         <IntegrationsCard

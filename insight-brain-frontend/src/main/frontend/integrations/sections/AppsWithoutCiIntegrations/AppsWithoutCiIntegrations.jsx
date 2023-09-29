@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxH2, NxP, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import { NxH1, NxH2, NxP, NxPageMain, NxPageTitle, NxTextLink, NxTile } from '@sonatype/react-shared-components';
 import AppsWithoutCiIntegrationsTable from './AppsWithoutCiIntegrationsTable';
 import React from 'react';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { SECTIONS } from 'MainRoot/integrations/integrations.module';
+import { SECTIONS } from 'MainRoot/integrations/sections';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { selectPreviousRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useSelector } from 'react-redux';
@@ -20,21 +20,22 @@ export default function AppsWithoutCiIntegrations() {
   const backButtonHref = prevState ? prevState : `integrations.${SECTIONS.OVERVIEW}`;
 
   return (
-    <div id="iq-integrations-apps-without-ci-integrations-section">
-      <MenuBarBackButton stateName={backButtonHref} />
-      <NxTile>
-        <NxH2>Apps without CI System Integrations</NxH2>
-        <NxTile.Content>
-          <NxP>
-            Learn more about our{' '}
-            <NxTextLink href={pathToCICD} data-analytics-id="sonatype-developer-apptable-ci-integrations">
-              CI System Integration Plugins
-            </NxTextLink>{' '}
-            in details.
-          </NxP>
-          <AppsWithoutCiIntegrationsTable />
-        </NxTile.Content>
-      </NxTile>
-    </div>
+    <NxPageMain>
+      <NxPageTitle>
+        <NxH1>Sonatype Developer</NxH1>
+      </NxPageTitle>
+      <div id="iq-integrations-apps-without-ci-integrations-section">
+        <MenuBarBackButton stateName={backButtonHref} />
+        <NxTile>
+          <NxH2>Apps without CI System Integrations</NxH2>
+          <NxTile.Content>
+            <NxP>
+              Learn more about our <NxTextLink href={pathToCICD}>CI System Integration Plugins</NxTextLink> in details.
+            </NxP>
+            <AppsWithoutCiIntegrationsTable />
+          </NxTile.Content>
+        </NxTile>
+      </div>
+    </NxPageMain>
   );
 }

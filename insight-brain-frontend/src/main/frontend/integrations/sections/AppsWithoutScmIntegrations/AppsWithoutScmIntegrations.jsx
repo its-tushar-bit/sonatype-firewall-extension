@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './appsWithoutScmIntegrationsSlice';
 import { appsWithoutScmIntegrationsSliceSelector } from './appsWithoutScmIntegrationsSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { SECTIONS } from 'MainRoot/integrations/integrations.module';
+import { SECTIONS } from 'MainRoot/integrations/sections';
 
 export default function AppsWithoutScmIntegrations() {
   const uiRouterState = useRouterState();

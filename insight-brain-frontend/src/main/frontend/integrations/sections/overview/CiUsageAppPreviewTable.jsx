@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { actions, PREVIEW_PAGE_SIZE } from '../../slices/appsWithoutRecentCiUsagePreviewSlice';
 import { useEffect } from 'react';
 import { selectappsWithoutRecentCiUsagePreviewSlice } from 'MainRoot/integrations/integrationsSelectors';
-import { SECTIONS } from 'MainRoot/integrations/integrations.module';
+import { SECTIONS } from 'MainRoot/integrations/sections';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { isEmpty } from 'ramda';
 import IntegrationsAppRiskTooltip from '../../IntegrationsAppRiskTooltip';
@@ -72,7 +72,7 @@ export function CiUsageAppPreviewTable() {
   );
 
   function viewAllAppsClicked() {
-    dispatch(stateGo(`integrations.${SECTIONS.APPS_WITHOUT_CI_INTEGRATIONS}`));
+    dispatch(stateGo(`integrations-${SECTIONS.APPS_WITHOUT_CI_INTEGRATIONS}`));
   }
 }
 

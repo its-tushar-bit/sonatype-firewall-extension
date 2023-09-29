@@ -44,12 +44,12 @@ const scmIntegrations = [
 export default function Scm() {
   return (
     <div id="iq-integrations-scm-section">
+      <NxH2>SCM Integrations</NxH2>
       <NxP className="iq-integrations__full-width-text">
         To use Nexus IQ for SCM, your IQ Server must be configured to allow access to your company&apos;s SCM platform.
         To begin, you&apos;ll need to connect Nexus IQ to your SCM system repositories, which is best done by following
         the steps in Easy SCM Onboarding. Following that, you will need to set up your source control configuration.
       </NxP>
-      <NxH2>SCM Integrations</NxH2>
       <NxCard.Container className="iq-integrations-card-container">
         {scmIntegrations.map(({ title, imgUrl, description, linkText, linkUrl, dataAnalyticsId }) => (
           <IntegrationsCard

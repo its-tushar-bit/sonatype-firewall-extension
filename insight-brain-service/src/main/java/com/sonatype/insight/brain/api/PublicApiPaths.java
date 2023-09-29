@@ -142,4 +142,7 @@ public class PublicApiPaths
   public static final String SOURCE_CONTROL_PATH_EXPERIMENTAL_PATH = EXPERIMENTAL_PATH + "sourceControl";
 
   public static final String EXPERIMENTAL_ONBOARDING_RESOURCE_PATH = EXPERIMENTAL_PATH + "onboarding";
+
+  public static final String EXPERIMENTAL_VEX_ANALYSIS_DATA_PATH =
+      EXPERIMENTAL_PATH + "vex/application/{applicationInternalId}/report/{scanId}";
 }

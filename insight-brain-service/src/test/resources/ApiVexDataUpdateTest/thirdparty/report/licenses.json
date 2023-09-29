@@ -1,0 +1,31 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b1792c8a828d6a9fb14",
+    "declaredLicenses" : [ "BSD", "Non-Standard" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "Non-Standard" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 3,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 5.5,
+    "catalogDate" : 1592685465000
+  } ]
+}

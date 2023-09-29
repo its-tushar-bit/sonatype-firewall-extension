@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.IOException;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -51,5 +52,22 @@ public class ReportServiceAuthzTest
   public void testGetReportMetadata_Unauthorized() throws Exception {
     login();
     reportService.getReportMetadata(app.getPublicId(), "12345678");
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testUpdateReportEntry_Authorized() throws IOException {
+    grantWritePermission(app.getId());
+    reportService.updateReportEntry(app.getId(), "unrealId", Report.SECURITY_JSON_FILENAME, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateReportEntry_Unauthenticated() throws IOException {
+    reportService.updateReportEntry(app.getId(), "unrealId", Report.SECURITY_JSON_FILENAME, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdateReportEntry_Unauthorized() throws IOException {
+    login();
+    reportService.updateReportEntry(app.getId(), "unrealId", Report.SECURITY_JSON_FILENAME, null);
   }
 }

@@ -1,0 +1,90 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b1792c8a828d6a9fb14",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34141",
+    "reference" : "CVE-2021-34141",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "697",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-34141" ],
+    "researchType" : "DEEP_DIVE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b1792c8a828d6a9fb14",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41495",
+    "reference" : "CVE-2021-41495",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "476",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-41495" ],
+    "researchType" : "DEEP_DIVE",
+    "analysis" : {
+      "state" : "resolved",
+      "justification" : "code_not_reachable",
+      "response" : "will_not_fix,update",
+      "detail" : "Some analysis details"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "numpy",
+        "qualifier" : "",
+        "version" : "1.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0b1792c8a828d6a9fb14",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41496",
+    "reference" : "CVE-2021-41496",
+    "source" : "cve",
+    "score" : 5.5,
+    "cwe" : "120",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-41496" ],
+    "researchType" : "DEEP_DIVE"
+  } ]
+}

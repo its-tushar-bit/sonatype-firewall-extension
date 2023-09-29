@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -267,5 +268,16 @@ public class ReportService
     File reportFile = getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
 
     return Report.getEntry(reportFile, "bom.json");
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void updateReportEntry(
+      @AuthzContext(Key.APPLICATION_ID) String appInternalId,
+      String scanId,
+      String entryName,
+      byte[] bufferData) throws IOException
+  {
+    File reportFile = getReport(appInternalId, scanId);
+    Report.putEntry(reportFile, entryName, bufferData);
   }
 }

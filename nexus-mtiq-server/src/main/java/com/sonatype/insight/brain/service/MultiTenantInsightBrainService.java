@@ -21,8 +21,6 @@ import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJw
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.MultiTenantAuditRecorder;
-import com.sonatype.insight.brain.component.MultiTenantRepositoryIdentifiedComponentCache;
-import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.datadog.DatadogInterceptor;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
@@ -333,8 +331,6 @@ public class MultiTenantInsightBrainService
 
         bind(TelemetryId.class).to(MultiTenantTelemetryId.class);
         bind(TelemetryCollectorsProvider.class).to(MultiTenantTelemetryCollectorsProvider.class);
-
-        bind(RepositoryIdentifiedComponentCache.class).to(MultiTenantRepositoryIdentifiedComponentCache.class);
 
         bind(FeaturesService.class).to(MTIQFeatureService.class);
 

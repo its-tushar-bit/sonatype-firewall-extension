@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.component;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -54,6 +53,7 @@ public class RepositoryIdentifiedComponentCacheTest
     assertThat(loadingCache).isNotNull();
     verify(spyCacheBuilder).expireAfterWrite(RepositoryIdentifiedComponentCache.MAX_AGE.toMillis(),
         TimeUnit.MILLISECONDS);
+    verify(spyCacheBuilder).maximumSize(RepositoryIdentifiedComponentCache.MAXIMUM_SIZE);
     verify(spyCacheBuilder).build(repositoryIdentifiedComponentCacheLoader);
   }
 

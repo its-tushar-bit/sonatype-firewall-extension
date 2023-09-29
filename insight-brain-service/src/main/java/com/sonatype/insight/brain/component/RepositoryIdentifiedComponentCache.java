@@ -11,7 +11,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,6 +18,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.cache.CacheBuilder;
@@ -31,11 +31,13 @@ public class RepositoryIdentifiedComponentCache
   // Visible for testing
   static final Duration MAX_AGE = Duration.ofDays(1);
 
+  static final long MAXIMUM_SIZE = 100_000L;
+
   private final RepositoryIdentifiedComponentCacheLoader repositoryIdentifiedComponentCacheLoader;
 
-  protected final RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO;
+  private final RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO;
 
-  private final LoadingCache<String, ComponentIdentifier> loadingCache;
+  private final TenantReference<LoadingCache<String, ComponentIdentifier>> loadingCaches;
 
   @Inject
   public RepositoryIdentifiedComponentCache(
@@ -44,13 +46,14 @@ public class RepositoryIdentifiedComponentCache
   {
     this.repositoryIdentifiedComponentCacheLoader = repositoryIdentifiedComponentCacheLoader;
     this.repositoryIdentifiedComponentDAO = repositoryIdentifiedComponentDAO;
-    loadingCache = createLoadingCache();
+    loadingCaches = new TenantReference<>(this::createLoadingCache);
   }
 
   // Visible for testing
   LoadingCache<String, ComponentIdentifier> createLoadingCache() {
     return newCacheBuilder()
         .expireAfterWrite(MAX_AGE.toMillis(), TimeUnit.MILLISECONDS)
+        .maximumSize(MAXIMUM_SIZE)
         .build(repositoryIdentifiedComponentCacheLoader);
   }
 
@@ -61,7 +64,7 @@ public class RepositoryIdentifiedComponentCache
 
   public ComponentIdentifier get(String hash) {
     try {
-      return loadingCache.getUnchecked(hash);
+      return getLoadingCache().getUnchecked(hash);
     }
     catch (Exception e) {
       if (e.getCause() instanceof NotFoundException) {
@@ -76,18 +79,15 @@ public class RepositoryIdentifiedComponentCache
     RepositoryIdentifiedComponent repositoryIdentifiedComponent =
         new RepositoryIdentifiedComponent(hash, componentIdentifier, date, date);
     repositoryIdentifiedComponentDAO.update(repositoryIdentifiedComponent);
-    addToCache(hash, componentIdentifier);
-  }
-
-  protected void addToCache(String hash, ComponentIdentifier componentIdentifier) {
-    loadingCache.put(hash, componentIdentifier);
+    getLoadingCache().put(hash, componentIdentifier);
   }
 
   public ComponentIdentifier removeByHash(String hash) {
-    return loadingCache.asMap().remove(hash);
+    return getLoadingCache().asMap().remove(hash);
   }
 
   public int removeByComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    LoadingCache<String, ComponentIdentifier> loadingCache = getLoadingCache();
     Set<String> toRemove = loadingCache.asMap().entrySet().stream()
         .filter(e -> e.getValue().equals(componentIdentifier))
         .map(Entry::getKey)
@@ -98,10 +98,11 @@ public class RepositoryIdentifiedComponentCache
 
   // Visible for testing
   public LoadingCache<String, ComponentIdentifier> getLoadingCache() {
-    return loadingCache;
+    return loadingCaches.get();
   }
 
   public long removeAll() {
+    LoadingCache<String, ComponentIdentifier> loadingCache = getLoadingCache();
     long size = loadingCache.size();
     loadingCache.invalidateAll();
     return size;

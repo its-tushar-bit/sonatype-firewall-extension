@@ -14,6 +14,10 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -26,6 +30,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentPolicyViolationListDTOV
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList.ApiRepositoryComponentEvaluationResult;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -125,6 +133,38 @@ public class ApiComponentDetailsAdapter
     componentDetailsDTO.projectData = componentProjectDetailsAdapter.convertToDTO(componentDetailsFromHds);
 
     return componentDetailsDTO;
+  }
+
+  public RepositoryComponentEvaluationDataRequestList convertFromDTO(
+      ApiRepositoryComponentEvaluationRequestList apiRepositoryComponentEvaluationRequestList)
+  {
+    RepositoryComponentEvaluationDataRequestList requestList = new RepositoryComponentEvaluationDataRequestList();
+
+    for (ApiRepositoryComponentEvaluationRequest componentRequest :
+        apiRepositoryComponentEvaluationRequestList.components) {
+      requestList.components.add(
+          new RepositoryComponentEvaluationDataRequest(apiRepositoryComponentEvaluationRequestList.format,
+              componentRequest.pathname, componentRequest.hash));
+    }
+    return requestList;
+  }
+
+  public ApiRepositoryComponentEvaluationResultList convertToDTO(
+      RepositoryComponentEvaluationDataList repositoryComponentEvaluationDataList)
+  {
+    ApiRepositoryComponentEvaluationResultList resultDTO = new ApiRepositoryComponentEvaluationResultList();
+
+    for (RepositoryComponentEvaluationData repositoryComponentEvaluationData :
+        repositoryComponentEvaluationDataList.componentEvalResults) {
+
+      ApiRepositoryComponentEvaluationResult componentEvaluationResult =
+          new ApiRepositoryComponentEvaluationResult();
+      for (PolicyAlert policyAlert : repositoryComponentEvaluationData.policyAlerts) {
+        componentEvaluationResult.policyViolations.add(convert(policyAlert));
+      }
+      resultDTO.results.add(componentEvaluationResult);
+    }
+    return resultDTO;
   }
 
   private ApiPolicyViolationDTOV2 convert(final PolicyAlert policyAlert) {

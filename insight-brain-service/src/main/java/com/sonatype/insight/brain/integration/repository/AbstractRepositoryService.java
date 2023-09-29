@@ -557,7 +557,7 @@ public abstract class AbstractRepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  RepositoryComponentEvaluationDataList evaluateComponents(
+  public RepositoryComponentEvaluationDataList evaluateComponents(
       @AuthzContext(Key.REPOSITORY) Repository repository,
       String repositoryManagerInstanceId,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -566,6 +566,8 @@ public abstract class AbstractRepositoryService
       final String clientUserAgent)
   {
     long start = System.currentTimeMillis();
+
+    validateRepositoryMatchesRepositoryManager(repository, repositoryManagerInstanceId);
 
     if (!repository.isAuditEnabled() || (withQuarantine && !repository.isQuarantineEnabled())
         || repository.getFormat() == null) {
@@ -614,6 +616,18 @@ public abstract class AbstractRepositoryService
         System.currentTimeMillis() - start);
 
     return result;
+  }
+
+  private void validateRepositoryMatchesRepositoryManager(
+      final Repository repository,
+      final String repositoryManagerInstanceId)
+  {
+    RepositoryManager repositoryManager  = repositoryManagerDAO.getByIdNotNull(repository.getRepositoryManagerId());
+    if (!repositoryManagerInstanceId.equals(repositoryManager.getInstanceId())) {
+      throw new BadRequestException(
+          String.format("Repository '%s' and Repository Manager '%s' not found", repository.getId(),
+              repositoryManager.getId()));
+    }
   }
 
   private RepositoryPolicyEvaluationSummary getPolicyEvaluationSummaryInternal(final Repository repository) {

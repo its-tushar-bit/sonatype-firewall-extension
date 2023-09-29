@@ -34,6 +34,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummary
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -87,9 +89,14 @@ public class ApiFirewallResource
 
   private static final String REPOSITORY_MANAGER_ID_PATH = "{repositoryManagerId}";
 
+  private static final String REPOSITORY_ID_PATH = "{repositoryId}";
+
   // Visible for testing
   static final String REPOSITORIES_CONFIGURATION_PATH =
       REPOSITORIES_PATH + "/" + CONFIGURATION_PATH + "/" + REPOSITORY_MANAGER_ID_PATH;
+
+  static final String EVALUATE_COMPONENTS_PATH =
+      COMPONENTS_PATH + "/" + REPOSITORY_MANAGER_ID_PATH + "/" + REPOSITORY_ID_PATH + "/evaluate";
 
   private final ApiFirewallService apiFirewallService;
 
@@ -210,6 +217,20 @@ public class ApiFirewallResource
       ApiRepositoryListDTO dto)
   {
     apiFirewallService.configureRepositories(repositoryManagerId, dto);
+  }
+
+  @POST
+  @Path(EVALUATE_COMPONENTS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EVALUATE_REPOSITORY)
+  public ApiRepositoryComponentEvaluationResultList evaluateComponents(
+      @PathParam("repositoryManagerId") final String repositoryManagerId,
+      @PathParam("repositoryId") final String repositoryId,
+      final ApiRepositoryComponentEvaluationRequestList apiRepositoryComponentEvaluationRequestList)
+  {
+    return apiFirewallService.evaluateComponents(repositoryManagerId, repositoryId,
+        apiRepositoryComponentEvaluationRequestList);
   }
 
   private Response getComponents(

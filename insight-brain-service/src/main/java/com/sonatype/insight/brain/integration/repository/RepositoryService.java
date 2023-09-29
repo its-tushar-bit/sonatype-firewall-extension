@@ -73,7 +73,7 @@ public class RepositoryService extends AbstractRepositoryService
    * 
    * @since 1.89
    */
-  RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(
+  public RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(
       String repositoryManagerInstanceId,
       String repositoryPublicId,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,

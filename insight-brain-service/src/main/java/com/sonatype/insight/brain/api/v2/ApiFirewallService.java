@@ -18,6 +18,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
@@ -27,6 +29,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigD
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
@@ -65,6 +70,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.telemetry.AutoReleaseQuarantineTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.lqa.LqaComponentIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -90,6 +96,8 @@ public class ApiFirewallService
 
   static final int MAX_PAGE_SIZE = 10000;
 
+  static final int MAX_COMPONENTS_TO_EVALUATE = 100;
+
   static final String AUTO_RELEASE_QUARANTINE_CONFIG_TELEMETRY = "auto_release_quarantine_config";
 
   private final ProductLicense productLicense;
@@ -107,8 +115,10 @@ public class ApiFirewallService
   private final TelemetrySender telemetrySender;
 
   private final RepositoryManagerDAO repositoryManagerDAO;
-  
+
   private final RepositoryService repositoryService;
+
+  private final ApiComponentDetailsAdapter apiComponentDetailsAdapter;
 
   @Inject
   ApiFirewallService(
@@ -120,7 +130,8 @@ public class ApiFirewallService
       final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
       final TelemetrySender telemetrySender,
       final RepositoryManagerDAO repositoryManagerDAO,
-      final RepositoryService repositoryService)
+      final RepositoryService repositoryService,
+      final ApiComponentDetailsAdapter apiComponentDetailsAdapter)
   {
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -131,6 +142,7 @@ public class ApiFirewallService
     this.telemetrySender = telemetrySender;
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryService = repositoryService;
+    this.apiComponentDetailsAdapter = apiComponentDetailsAdapter;
   }
 
   private void executeWithAuditSession(Runnable runnable) {
@@ -443,7 +455,7 @@ public class ApiFirewallService
 
     return apiRepositoryListDTO;
   }
-  
+
   void configureRepositories(String repositoryManagerId, ApiRepositoryListDTO dto) {
     AuditData.get().setRepositoryManagerId(repositoryManagerId);
     productLicense.validateFeature(LicensedFeature.FIREWALL);
@@ -493,5 +505,54 @@ public class ApiFirewallService
     supportedFormats.add(LqaComponentIdentifier.FORMAT_DEBIAN);
     supportedFormats.add(LqaComponentIdentifier.FORMAT_DRUPAL);
     return supportedFormats;
+  }
+
+  ApiRepositoryComponentEvaluationResultList evaluateComponents(
+      final String repositoryManagerId,
+      final String repositoryId,
+      final ApiRepositoryComponentEvaluationRequestList apiRepositoryComponentEvaluationRequestList)
+  {
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
+    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+    validateApiRepositoryComponentEvaluationRequest(repository, repositoryManager,
+        apiRepositoryComponentEvaluationRequestList);
+
+    AuditData.get().setData("componentCount", apiRepositoryComponentEvaluationRequestList.components ==
+        null ? 0 : apiRepositoryComponentEvaluationRequestList.components.size());
+
+    log.debug("Evaluating components for repository {}:{} ({})", repositoryManager.getInstanceId(),
+        repository.getPublicId(), repository.getId());
+
+    RepositoryComponentEvaluationDataRequestList requestList =
+        apiComponentDetailsAdapter.convertFromDTO(apiRepositoryComponentEvaluationRequestList);
+
+    RepositoryComponentEvaluationDataList result =
+          repositoryService.evaluateComponents(repository, repositoryManager.getInstanceId(), requestList, false,
+            false, null);
+
+    return apiComponentDetailsAdapter.convertToDTO(result);
+  }
+
+  private void validateApiRepositoryComponentEvaluationRequest(
+      final Repository repository,
+      final RepositoryManager repositoryManager,
+      final ApiRepositoryComponentEvaluationRequestList dto)
+  {
+    if (!repository.getRepositoryManagerId().equals(repositoryManager.getId())) {
+      throw new NotFoundException(
+          String.format("Repository '%s' not found in repository manager '%s'.", repository.getId(),
+              repositoryManager.getId()));
+    }
+    if (dto == null || dto.components == null || dto.components.isEmpty()) {
+      throw new BadRequestException("There should be at least 1 component to evaluate.");
+    }
+    if (dto.components.size() > MAX_COMPONENTS_TO_EVALUATE) {
+      throw new BadRequestException(
+          String.format("Max amount of components to evaluate is '%d'.", MAX_COMPONENTS_TO_EVALUATE));
+    }
+    if (dto.format == null || dto.format.isEmpty()) {
+      throw new BadRequestException("The format cannot be null or empty.");
+    }
   }
 }

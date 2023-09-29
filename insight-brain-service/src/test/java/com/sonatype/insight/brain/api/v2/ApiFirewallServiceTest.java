@@ -19,14 +19,24 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -38,6 +48,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryException;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -70,6 +81,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
+import com.google.inject.matcher.Matchers;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
@@ -81,8 +93,13 @@ import static com.sonatype.insight.brain.api.v2.ApiFirewallService.AUTO_RELEASE_
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ApiFirewallServiceTest
     extends AbstractComponentTest
@@ -99,6 +116,9 @@ public class ApiFirewallServiceTest
   @Inject
   private RepositoryDAO repositoryDAO;
 
+  @Mock
+  private RepositoryService repositoryServiceMock;
+
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
   private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
@@ -107,6 +127,12 @@ public class ApiFirewallServiceTest
   @Override
   public void configure(Binder binder) {
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bindInterceptor(Matchers.subclassesOf(RepositoryService.class), Matchers.any(), invocation -> {
+      if (invocation.getMethod().getName().equals("evaluateComponents")) {
+        return invocation.getMethod().invoke(repositoryServiceMock, invocation.getArguments());
+      }
+      return invocation.proceed();
+    });
     super.configure(binder);
   }
 
@@ -833,8 +859,188 @@ public class ApiFirewallServiceTest
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-            apiFirewallService
-                    .getConfiguredRepositories("repositoryManagerId",null));
+        apiFirewallService
+            .getConfiguredRepositories("repositoryManagerId", null));
+  }
+
+  @Test
+  public void testEvaluateComponents_NoFirewallFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+        apiFirewallService
+            .evaluateComponents("repositoryManagerId", "repositoryId",
+                new ApiRepositoryComponentEvaluationRequestList()));
+  }
+
+  @Test
+  public void testEvaluateComponents_RepositoryManagerNotFound() {
+    // given
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    String someOtherRepoManagerId = "someOtherRepoManagerId";
+
+    // then
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+      () -> apiFirewallService.evaluateComponents(someOtherRepoManagerId, repository.getId(), requestList))
+        .withMessage("RepositoryManager with ID " + someOtherRepoManagerId + " does not exist.");
+  }
+
+  @Test
+  public void testEvaluateComponents_RepositoryNotFound() {
+    // given
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    String someOtherRepoId = "someOtherRepoManagerId";
+
+    // then
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), someOtherRepoId, requestList))
+        .withMessage("Repository with ID " + someOtherRepoId + " does not exist.");
+  }
+
+  @Test
+  public void testEvaluateComponents_RepositoryDoesNotBelongToRepoManager() {
+    // given
+    Repository repository = tempEntity.newRepository();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+
+    // then
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiFirewallService.evaluateComponents(repositoryManager.getId(), repository.getId(), requestList))
+        .withMessage(
+            "Repository '" + repository.getId() + "' not found in repository manager '" + repositoryManager.getId() +
+                "'.");
+  }
+
+  @Test
+  public void testEvaluateComponents_NullRequestList() {
+    // given
+    Repository repository = tempEntity.newRepository();
+
+    // then
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), null))
+        .withMessage("There should be at least 1 component to evaluate.");
+  }
+
+  @Test
+  public void testEvaluateComponents_NullComponents() {
+    // given
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.components = null;
+
+    // then
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList))
+        .withMessage("There should be at least 1 component to evaluate.");
+  }
+
+  @Test
+  public void testEvaluateComponents_EmptyComponents() {
+    // given
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+
+    // then
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList))
+        .withMessage("There should be at least 1 component to evaluate.");
+  }
+
+  @Test
+  public void testEvaluateComponents_TooManyComponents() {
+    // given
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_MAVEN;
+    for (int i = 0; i < 101; i++) {
+      requestList.components.add(
+          new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(),
+              repositoryComponent.getHash()));
+    }
+
+    // then
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList))
+        .withMessage("Max amount of components to evaluate is '100'.");
+  }
+
+  @Test
+  public void testEvaluateComponents_RequestWithoutFormat() {
+    // given
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.components.add(
+        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+    // then
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList))
+        .withMessage("The format cannot be null or empty.");
+  }
+
+  @Test
+  public void testEvaluateComponents() {
+    // given
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_MAVEN;
+    requestList.components.add(
+        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+    RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
+    RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
+    PolicyAlert policyAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10),
+        Collections.singletonList(new Action(Action.ID_WARN)));
+    rced.policyAlerts.add(policyAlert);
+    repositoryServiceEvaluateResult.componentEvalResults.add(rced);
+    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(false),
+        isNull())).thenReturn(repositoryServiceEvaluateResult);
+
+    // when
+    ApiRepositoryComponentEvaluationResultList result =
+        apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+            requestList);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.results.size()).isEqualTo(1);
+    assertThat(result.results.get(0).policyViolations.size()).isEqualTo(1);
+    ApiPolicyViolationDTOV2 policyViolationDTOV2 = result.results.get(0).policyViolations.get(0);
+    assertThat(policyViolationDTOV2.policyId).isEqualTo(policyAlert.getTrigger().getPolicyId());
+    assertThat(policyViolationDTOV2.threatLevel).isEqualTo(policyAlert.getTrigger().getThreatLevel());
+  }
+
+  @Test
+  public void testEvaluateComponents_WithoutPolicyAlerts() {
+    // given
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_MAVEN;
+    requestList.components.add(
+        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+    RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
+    repositoryServiceEvaluateResult.componentEvalResults.add(new RepositoryComponentEvaluationData());
+    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(false),
+        isNull())).thenReturn(repositoryServiceEvaluateResult);
+
+    // when
+    ApiRepositoryComponentEvaluationResultList result =
+        apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.results.size()).isEqualTo(1);
+    assertThat(result.results.get(0).policyViolations.size()).isEqualTo(0);
   }
 
   static void assertRepositoryComponentWithOnePolicyViolation(

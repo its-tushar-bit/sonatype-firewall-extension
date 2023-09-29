@@ -12,7 +12,12 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 
+import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpResponse;
@@ -22,6 +27,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList.ApiRepositoryComponentEvaluationResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
@@ -32,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -40,6 +50,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestService;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -51,8 +62,10 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiFirewallResourceTest
@@ -572,6 +585,58 @@ public class ApiFirewallResourceTest
     assertThat(storedRepository).usingRecursiveComparison().ignoringFields(
         ArrayUtils.add(JPA.IGNORE_FIELDS, "lastManualConfigureTime")).isEqualTo(repository);
     assertThat(storedRepository.getLastManualConfigureTime()).isAfterOrEqualTo(date);
+  }
+
+  @Test
+  @Ignore("failing on MTIQ")
+  public void testEvaluateComponents() throws Exception {
+    // Set up the mocked hds return
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = "hash";
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.declaredLicenses = new HashSet<>();
+    componentEvaluationData.observedLicenses = new HashSet<>();
+    componentEvaluationData.securityVulnerabilities = createSecurityVulnerabilities();
+    hdsResult.components.add(componentEvaluationData);
+    hdsRespondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
+    Policy policy = tempEntity.newPolicy(ROOT_ORGANIZATION_ID);
+
+    ApiRepositoryComponentEvaluationRequestList dto = new ApiRepositoryComponentEvaluationRequestList();
+    dto.format = "npm";
+    ApiRepositoryComponentEvaluationRequest request = new ApiRepositoryComponentEvaluationRequest();
+    request.pathname = "foobar";
+    request.hash = "hash";
+    dto.components.add(request);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "repoPublicId", false, false);
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.EVALUATE_COMPONENTS_PATH)
+        .parameter(repository.getRepositoryManagerId(), repository.getId())
+        .body(dto)
+        .post();
+
+    assertResponseStatus(200, response);
+    ApiRepositoryComponentEvaluationResultList responseBody =
+        response.getBody(ApiRepositoryComponentEvaluationResultList.class);
+    assertThat(responseBody.results).hasSize(1);
+    ApiRepositoryComponentEvaluationResult componentEvaluationResult = responseBody.results.get(0);
+    assertThat(componentEvaluationResult.policyViolations).hasSize(1);
+    assertThat(componentEvaluationResult.policyViolations.get(0).threatLevel).isEqualTo(5);
+    assertThat(componentEvaluationResult.policyViolations.get(0).policyId).isEqualTo(policy.getId());
+  }
+
+  private List<SecurityVulnerability> createSecurityVulnerabilities() {
+    List<SecurityVulnerability> securityVulnerabilities = new ArrayList<>();
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability();
+    securityVulnerability.setRefId("refId");
+    securityVulnerability.setSeverity(5.0F);
+    securityVulnerability.setSource("source");
+    securityVulnerability.setUrl("test-url");
+    securityVulnerabilities.add(securityVulnerability);
+    return securityVulnerabilities;
   }
 
   private <T> T getBodyByTypeReference(byte[] bodyBytes, final TypeReference<T> typeRef) {

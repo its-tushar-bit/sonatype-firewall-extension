@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -87,7 +87,6 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -347,9 +346,6 @@ public class ReportResource
     File updatedFile = Files.createTempFile("report", ".zip").toFile();
     try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile,
         new ReportBundleUpdater.FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
-
-      addLegacyReportArtifacts(updater);
-
       updater.remove("detail.rptdesign");
       updater.add(dataPath + "report.pdf", pdfFile);
       updater.add(dataPath + "components.json", reportData);
@@ -439,66 +435,6 @@ public class ReportResource
     });
     response.header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename));
     return response.build();
-  }
-
-  private static final List<String> legacyReportArtifacts = ImmutableList.of(
-      "appcheck.js",
-      "flag_white.png",
-      "header-columns-bg.gif",
-      "lib.min.css",
-      "popularity.png",
-      "protovis-tipsy.js",
-      "red_arrow.png",
-      "report.css",
-      "sort-asc.gif",
-      "yellow_arrow.png",
-      "artifactInfoIcon.png",
-      "dirty.gif",
-      "glyphicons-halflings.png",
-      "history.png",
-      "lib.min.js",
-      "protovis.min.js",
-      "protovis-xpan.js",
-      "release-header-bg.png",
-      "report.js",
-      "sort-desc.gif",
-      "collapse.gif",
-      "expand.gif",
-      "glyphicons-halflings-white.png",
-      "insight-slick-grid.merged.min.js",
-      "orange_arrow.png",
-      "protovis-msie.min.js",
-      "release-tooltip.png",
-      "slick.grid-2.0.merged.min.js",
-      "ui-icons_888888_256x240.png",
-      "public/bg-score-critical.png",
-      "public/bg-score-moderate.png",
-      "public/bg-score-severe.png",
-      "public/blue.png",
-      "public/coord-unknown.png",
-      "public/grey.png",
-      "public/orange.png",
-      "public/security-icon_16x16.png",
-      "public/yellow.png",
-      "public/bg-score-ignore.png",
-      "public/bg-score-none.png",
-      "public/bg-score-unspecified.png",
-      "public/coord-component.png",
-      "public/glypyicons-halfligns-icon-info-sign.png",
-      "public/license-icon_16x16.png",
-      "public/red.png",
-      "public/sonatype.png"
-  );
-
-  private void addLegacyReportArtifacts(final ReportBundleUpdater updater) throws IOException {
-    for (String zipEntry : legacyReportArtifacts) {
-      String resource = "/com/sonatype/insight/brain/legacy.report/" + zipEntry;
-      URL url = Report.class.getResource(resource);
-      if (url == null) {
-        throw new IOException("Cannot locate resource: " + resource);
-      }
-      updater.add(zipEntry, new File(url.getFile()));
-    }
   }
 
   static String toDataPathV3(ComponentIdentifier componentIdentifier) {

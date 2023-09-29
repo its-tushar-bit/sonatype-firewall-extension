@@ -532,6 +532,11 @@ public class ReportResourceTest
       assertThat(zip.getEntry("data/report.pdf")).isNotNull();
       assertThat(zip.getEntry("detail.rptdesign")).isNull();
       assertThat(zip.getEntry("data/index.html")).isNull();
+      // select legacy report artifacts:
+      assertThat(zip.getEntry("appcheck.js")).isNotNull();
+      assertThat(zip.getEntry("expand.gif")).isNotNull();
+      assertThat(zip.getEntry("public/blue.png")).isNotNull();
+
       assertThat(zip.getEntry("data/components.json")).isNotNull();
       assertThat(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png")).isNotNull();
       assertThat(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).isNotNull();
@@ -620,6 +625,10 @@ public class ReportResourceTest
       assertThat(zip.getEntry("data/report.pdf")).isNotNull();
       assertThat(zip.getEntry("detail.rptdesign")).isNull();
       assertThat(zip.getEntry("data/index.html")).isNull();
+      // select legacy report artifacts:
+      assertThat(zip.getEntry("appcheck.js")).isNotNull();
+      assertThat(zip.getEntry("expand.gif")).isNotNull();
+      assertThat(zip.getEntry("public/blue.png")).isNotNull();
 
       ZipEntry componentEntry = zip.getEntry("data/components.json");
       assertThat(componentEntry).isNotNull();
@@ -709,6 +718,10 @@ public class ReportResourceTest
       assertThat(zip.getEntry("data/report.pdf")).isNotNull();
       assertThat(zip.getEntry("detail.rptdesign")).isNull();
       assertThat(zip.getEntry("data/index.html")).isNull();
+      // select legacy report artifacts:
+      assertThat(zip.getEntry("appcheck.js")).isNotNull();
+      assertThat(zip.getEntry("expand.gif")).isNotNull();
+      assertThat(zip.getEntry("public/blue.png")).isNotNull();
 
       ZipEntry componentEntry = zip.getEntry("data/components.json");
       assertThat(componentEntry).isNotNull();

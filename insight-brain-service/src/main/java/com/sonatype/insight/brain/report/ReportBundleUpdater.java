@@ -94,6 +94,16 @@ class ReportBundleUpdater
   }
 
   /**
+   * To be used only by {@link ReportResource}.
+   */
+  void add(String entryName, InputStream inputStream) throws IOException {
+    ZipEntry zipEntry = new ZipEntry(entryName);
+    zipStream.putNextEntry(zipEntry);
+    IOUtils.copy(inputStream, zipStream);
+    addedEntries.add(entryName);
+  }
+
+  /**
    * Adds the specified binary blob into the bundle using the given name.
    */
   public void add(String entryName, byte[] bytes) throws IOException {

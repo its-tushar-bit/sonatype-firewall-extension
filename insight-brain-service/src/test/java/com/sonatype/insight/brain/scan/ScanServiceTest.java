@@ -8,7 +8,10 @@ package com.sonatype.insight.brain.scan;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -23,6 +26,9 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -33,15 +39,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 public class ScanServiceTest
     extends AbstractComponentTest
@@ -60,6 +69,9 @@ public class ScanServiceTest
 
   @Mock
   private ReportDownloader reportDownloader;
+
+  @Inject
+  private Configuration configuration;
 
   private Application app;
 
@@ -108,6 +120,84 @@ public class ScanServiceTest
         scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null);
     assertThat(scanTicket).isNotNull();
     assertThat(scanTicket.ticketId).isNotNull();
+  }
+
+  @Test
+  public void testScanBinary_QueuePerTenant() throws Exception {
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+    List<String> t1TicketIds = new ArrayList<>();
+
+    // Setup mock scan uploader so that it blocks on tenant 1 scans
+    Mockito.reset(scanUploader);
+    when(scanUploader.upload((File) any(), any(Application.class), anyString(), eq(null))).thenAnswer(
+        invocation -> {
+          if (((Application) invocation.getArgument(1)).getPublicId().startsWith("t1") &&
+              !countDownLatch.await(5, TimeUnit.SECONDS)) {
+            return null;
+          }
+          ScanReceipt receipt = new ScanReceipt();
+          receipt.setScanId("scan-id");
+          return receipt;
+        });
+
+    try {
+      TenantTestHelper.initMultiTenantMode();
+
+      // Start 2 binary scans for tenant 1 which should get blocked
+      Tenant tenant1 = TenantTestHelper.testAsNewTenant(testName, t1 -> {
+        configuration.register();
+        Application t1App1 = tempEntity.newApplicationWithParent("t1-app1");
+        Application t1App2 = tempEntity.newApplicationWithParent("t1-app2");
+
+        ScanTicket scanTicket1 =
+            scanService.scanBinary(t1App1.getPublicId(), getBundle("app01.zip"), "app01.zip", new Stage(Stage.ID_BUILD),
+                false, null, null);
+        assertThat(scanTicket1).isNotNull();
+        assertThat(scanTicket1.ticketId).isNotNull();
+        t1TicketIds.add(scanTicket1.ticketId);
+
+        ScanTicket scanTicket2 =
+            scanService.scanBinary(t1App2.getPublicId(), getBundle("app01.zip"), "app01.zip", new Stage(Stage.ID_BUILD),
+                false, null, null);
+        assertThat(scanTicket2).isNotNull();
+        assertThat(scanTicket2.ticketId).isNotNull();
+        t1TicketIds.add(scanTicket2.ticketId);
+      });
+
+      // Start 1 binary scan for tenant 2 and check that it completes (i.e. is not blocked by scans from tenant 1)
+      TenantTestHelper.testAsNewTenant(testName, t2 -> {
+        configuration.register();
+        Application t2App1 = tempEntity.newApplicationWithParent("t2-app1");
+
+        ScanTicket scanTicket3 =
+            scanService.scanBinary(t2App1.getPublicId(), getBundle("app01.zip"), "app01.zip", new Stage(Stage.ID_BUILD),
+                false, null, null);
+        assertThat(scanTicket3).isNotNull();
+        assertThat(scanTicket3.ticketId).isNotNull();
+
+        PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
+        await().atMost(5, TimeUnit.SECONDS)
+            .until(() -> persistedScanTicketDAO.getById(scanTicket3.ticketId).getStateId().equals(State.DONE.name()));
+      });
+
+      // Check scans from tenant 1 are still blocked, unblock them, and check that they complete
+      TenantTestHelper.testAs(tenant1.tenantSlug, t -> {
+        PersistedScanTicketDAO persistedScanTicketDAO = new PersistedScanTicketDAO();
+        for (String t1TicketId : t1TicketIds) {
+          assertThat(persistedScanTicketDAO.getById(t1TicketId)).isNotNull().extracting(PersistedScanTicket::getStateId)
+              .isEqualTo(State.UPLOADING_SCAN.name());
+        }
+
+        countDownLatch.countDown();
+
+        await().atMost(5, TimeUnit.SECONDS).until(
+            () -> persistedScanTicketDAO.getAll().stream().map(PersistedScanTicket::getStateId)
+                .allMatch(s -> s.equals(State.DONE.name())));
+      });
+    }
+    finally {
+      TenantTestHelper.resetAfterTest();
+    }
   }
 
   @Test

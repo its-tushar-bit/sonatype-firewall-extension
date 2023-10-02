@@ -11,9 +11,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -34,6 +33,7 @@ import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -50,6 +50,12 @@ import org.slf4j.LoggerFactory;
 @Named
 public class ScanService
 {
+  private static final int SCAN_CORE_THREAD_POOL_SIZE_PER_TENANT = 2;
+
+  private static final int SCAN_MAX_THREAD_POOL_SIZE_PER_TENANT = 2;
+
+  private static final long SCAN_THREAD_KEEP_ALIVE_TIME_SECONDS = 5L;
+
   public static final Logger log = LoggerFactory.getLogger(ScanService.class);
 
   private final FileCleaner fileCleaner;
@@ -60,7 +66,7 @@ public class ScanService
 
   private final ApplicationDAO applicationDAO;
 
-  private final ThreadPoolExecutor executor;
+  private final TenantReference<TenantThreadPoolExecutor> executors;
 
   private final ProductLicense productLicense;
 
@@ -77,9 +83,19 @@ public class ScanService
     this.persistedScanTicketDAO = persistedScanTicketDAO;
     this.applicationDAO = applicationDAO;
     this.productLicense = productLicense;
-    executor = new TenantThreadPoolExecutor(2, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
-        new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScanTask-%s").build());
-    executor.allowCoreThreadTimeOut(true);
+    ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScanTask-%s").build();
+    executors = new TenantReference<>(() -> {
+      TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
+          SCAN_CORE_THREAD_POOL_SIZE_PER_TENANT,
+          SCAN_MAX_THREAD_POOL_SIZE_PER_TENANT,
+          SCAN_THREAD_KEEP_ALIVE_TIME_SECONDS,
+          TimeUnit.SECONDS,
+          new LinkedBlockingQueue<>(),
+          threadFactory
+      );
+      tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
+      return tenantThreadPoolExecutor;
+    });
   }
 
   /**
@@ -166,7 +182,7 @@ public class ScanService
     scanTask.init(app, binFile, filename, stage, sendNotifications, userAgent, scanType);
     persistedScanTicketDAO.insert(scanTask.toPersistedScanTicket());
     log.debug("Scheduling scan task {}", scanTask.getId());
-    AuditData.get().continueAsync(new OneTimeSystemRunnable(scanTask), executor::submit);
+    AuditData.get().continueAsync(new OneTimeSystemRunnable(scanTask), executors.get()::submit);
     return scanTask;
   }
 

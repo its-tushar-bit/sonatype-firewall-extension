@@ -208,7 +208,7 @@ void pushMTIQDockerImage() {
         runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
 
         // Push for all `main` builds as well as any enabled branches by name or build parameter
-        def pushMtiqImage = params.mtiqImagePushEnabled == null
+        def pushMtiqImage = params.mtiqImagePushEnabled == null 
           ? (isMainBuild || projName.endsWith('_mtiq')) : params.mtiqImagePushEnabled
         echo "pushMtiqImage: $pushMtiqImage"
 
@@ -275,8 +275,7 @@ Map<String, Closure> createGebTests() {
           copyRepo()
           String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker.registry=${sonatypeDockerRegistryId()} --threads 4"
           Map<String, ?> testConfig = testConfig(mavenOptions, 'insight-brain-functional-test/pom.xml')
-          // We just want to execute tests so directly invoke goals. Docker goal is needed.
-          mvn testConfig, 'docker:start failsafe:integration-test failsafe:verify docker:stop'
+          mvn testConfig, 'verify'
         }
         finally {
           captureResultsAndCleanup()
@@ -307,8 +306,7 @@ Map<String, Closure> createFunctionalTests(
               mavenOptions += " -DdetectTestEntityLeaks"
               mavenOptions += " --threads 4"
               Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
-              // We just want to execute tests so directly invoke goals. Docker goal is needed.
-              mvn testConfig, 'docker:start failsafe:integration-test failsafe:verify docker:stop'
+              mvn testConfig, 'verify'
             }
           }
         }
@@ -331,7 +329,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
                     "-Dit.test=%regex[${regex}] -Dskip-functional-test -DdetectTestEntityLeaks " +
                     "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)
-          mvn testConfig, 'surefire:test failsafe:integration-test failsafe:verify'
+          mvn testConfig, 'install'
         }
         finally {
           if (jdk == 'Java 8' && stageName == 'Unit and Integration Tests - Java 8 A') {
@@ -354,7 +352,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
                 "-pl com.sonatype.insight.brain:nexus-mtiq-server -Dskip-functional-test -DdetectTestEntityLeaks " +
                     "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
                 null, jdk)
-          mvn testConfig, 'surefire:test failsafe:integration-test failsafe:verify'
+          mvn testConfig, 'install'
         }
         finally {
           captureResultsAndCleanup()

@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -322,7 +321,9 @@ public class ApiReportServiceV2Test
   }
 
   @Test
-  public void testGetReportHistoryWhenTheReportFileWasDeleted_NoExceptionWasThrow() throws URISyntaxException, IOException {
+  public void testGetReportHistoryWhenTheReportFileWasDeleted_NoExceptionWasThrow()
+      throws URISyntaxException, IOException
+  {
     //setup evaluation
     Application app = tempEntity.newApplicationWithParent("application");
     tempEntity.newPolicy(app);

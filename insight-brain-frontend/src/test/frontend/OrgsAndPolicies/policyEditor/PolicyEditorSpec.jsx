@@ -43,6 +43,7 @@ describe('PolicyEditorSpec', () => {
   const ROOT_ORG_ID = 'ROOT_ORGANIZATION_ID';
   const ORG_ID = '05602dd5ba934c318ad011ca4e4f5cfe';
   const APP_ID = 'testapp';
+  const REPO_ID = 'REPOSITORY_CONTAINER_ID';
   let mockAxiosCalls;
 
   const setInitStateAndMockHttpRequests = (ownerType, ownerId, policyId, mockNotificationEndpoints, permissions) => {
@@ -63,7 +64,9 @@ describe('PolicyEditorSpec', () => {
         },
       },
     };
-    if (ownerType === 'organization') {
+    if (ownerType === 'repository_container') {
+      initState.router.currentParams = { repositoryContainerId: REPO_ID };
+    } else if (ownerType === 'organization') {
       initState.router.currentParams = { organizationId: ownerId };
     } else {
       initState.router.currentParams = { applicationPublicId: ownerId };
@@ -86,10 +89,9 @@ describe('PolicyEditorSpec', () => {
     mockAxiosCalls.onGet(actionStageUrl).reply(200, actionStage);
 
     mockAxiosCalls.onGet(conditionValueTypeUrl).reply(200, conditionValueType);
-    mockAxiosCalls.onGet(applicableCategoriesUrl).reply(200, applicableCategories[ownerType][ownerId]);
-    mockAxiosCalls.onGet(applicablePoliciesUrl).reply(200, applicablePolicies[ownerType][ownerId]);
-
-    mockAxiosCalls.onGet(policyTagUrl).reply(200, policyTag[ownerType][ownerId][policyId]);
+    mockAxiosCalls.onGet(applicableCategoriesUrl).reply(200, applicableCategories[ownerType]?.[ownerId] ?? {});
+    mockAxiosCalls.onGet(applicablePoliciesUrl).reply(200, applicablePolicies[ownerType]?.[ownerId]);
+    mockAxiosCalls.onGet(policyTagUrl).reply(200, policyTag[ownerType]?.[ownerId]?.[policyId] ?? {});
 
     if (mockNotificationEndpoints) {
       const webhooksUrl = getNotificationWebhooksUrl(ownerType, ownerId);
@@ -595,6 +597,98 @@ describe('PolicyEditorSpec', () => {
 
       fireEvent.click(removeButtons[0]);
 
+      const updateButton = screen.getByText('Update');
+      expect(updateButton).not.toHaveClassName('disabled');
+      fireEvent.click(updateButton);
+      const savingMask = screen.getByText('Saving…');
+      expect(savingMask).toBeVisible();
+      const successMask = await screen.findByText(/Success/);
+      expect(successMask).toBeVisible();
+    });
+
+    it('enables the update button when the actions override status changes for repository container', async () => {
+      setInitStateAndMockHttpRequests('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true);
+      renderComponent({
+        ...initState,
+        orgsAndPolicies: {
+          ...(initState?.orgsAndPolicies || {}),
+          policy: {
+            ...(initState?.orgsAndPolicies?.policy || initialState),
+            isInherited: true,
+            overrideActionsFlag: true,
+            originalOverrideActionsFlag: true,
+            overrideNotificationsFlag: true,
+            originalOverrideNotificationsFlag: true,
+            currentPolicy: {
+              ...(initState?.orgsAndPolicies?.policy?.currentPolicy || initialState.currentPolicy),
+              policyActionsOverrideAllowed: true,
+              policyNotificationsOverrideAllowed: true,
+            },
+          },
+        },
+      });
+      let updateButton = await screen.findByText('Update');
+      const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
+      const deleteButton = screen.queryByText('Delete');
+      const policyTitle = screen.getByText('View Policy');
+      expect(policyTitle).toBeVisible();
+      expect(updateButton).toBeVisible();
+      expect(deleteButton).toBeNull();
+      expect(overrideParentActionsInput).not.toBeDisabled();
+      fireEvent.click(overrideParentActionsInput);
+      updateButton = screen.getByText('Update');
+      expect(updateButton).not.toHaveClassName('disabled');
+    });
+
+    it('enables the update button when the notifications override status changes for repository container', async () => {
+      setInitStateAndMockHttpRequests('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_INHERITED, true);
+      const rolesUrl = getRoleMappingForCurrentOwnerUrl('global', 'global');
+      const roles = [{ roleId: '1', roleName: 'developer' }];
+      mockAxiosCalls.onGet(rolesUrl).reply(200, { membersByRole: roles });
+      renderComponent(initState);
+      let updateButton = await screen.findByText('Update');
+      const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
+      const deleteButton = screen.queryByText('Delete');
+      const policyTitle = screen.getByText('View Policy');
+      expect(policyTitle).toBeVisible();
+      expect(updateButton).toBeVisible();
+      expect(deleteButton).toBeNull();
+      expect(overrideParentNotificationsInput).not.toBeDisabled();
+      fireEvent.click(overrideParentNotificationsInput);
+      updateButton = screen.getByText('Update');
+      expect(updateButton).not.toHaveClassName('disabled');
+    });
+
+    it('saves a policy successfully when adding an action override from repository container, shows the save mask with the success message', async () => {
+      setInitStateAndMockHttpRequests('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+      mockAxiosCalls
+        .onPut(getPolicyOverridesUrl('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN))
+        .reply(200, savedPolicy);
+      mockAxiosCalls.onGet(getOwnerDetailsUrl('repository_container', REPO_ID)).reply(200, {});
+      renderComponent(initState);
+      const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
+      fireEvent.click(overrideParentActionsInput);
+      const updateButton = screen.getByText('Update');
+      expect(updateButton).not.toHaveClassName('disabled');
+      fireEvent.click(updateButton);
+      const savingMask = screen.getByText('Saving…');
+      expect(savingMask).toBeVisible();
+      const successMask = await screen.findByText(/Success/);
+      expect(successMask).toBeVisible();
+    });
+
+    it('saves a policy successfully when adding a notification override from repository container, shows the save mask with the success message', async () => {
+      setInitStateAndMockHttpRequests('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true);
+      const rolesUrl = getRoleMappingForCurrentOwnerUrl('global', 'global');
+      const roles = [{ roleId: '1', roleName: 'developer' }];
+      mockAxiosCalls.onGet(rolesUrl).reply(200, { membersByRole: roles });
+      mockAxiosCalls
+        .onPut(getPolicyOverridesUrl('repository_container', REPO_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN))
+        .reply(200, savedPolicy);
+      mockAxiosCalls.onGet(getOwnerDetailsUrl('repository_container', REPO_ID)).reply(200, {});
+      renderComponent(initState);
+      const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
+      fireEvent.click(overrideParentNotificationsInput);
       const updateButton = screen.getByText('Update');
       expect(updateButton).not.toHaveClassName('disabled');
       fireEvent.click(updateButton);

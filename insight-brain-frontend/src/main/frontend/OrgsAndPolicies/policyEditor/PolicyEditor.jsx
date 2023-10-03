@@ -72,7 +72,7 @@ export default function PolicyEditor() {
   const removePolicy = () => dispatch(actions.removePolicy());
 
   const onSave = () => {
-    if (isRepositoriesRelated) {
+    if (isRepositoriesRelated && !isInherited) {
       return savePolicy();
     }
 

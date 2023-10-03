@@ -31,6 +31,217 @@ export const conditionValueType = [
 ];
 
 export const applicablePolicies = {
+  repository_container: {
+    REPOSITORY_CONTAINER_ID: {
+      policiesByOwner: [
+        {
+          ownerId: 'REPOSITORY_CONTAINER_ID',
+          ownerName: 'All Repositories',
+          ownerType: 'repository_container',
+          policies: [
+            {
+              id: '38c6bffbe90042398c71b662b25b3394',
+              name: 'Custom Pol',
+              ownerId: 'REPOSITORY_CONTAINER_ID',
+              threatLevel: 5,
+              policyViolationGrandfatheringAllowed: false,
+              constraints: [
+                {
+                  id: 'aa9baccd1e9f4a1ca2f45363a29f8624',
+                  name: 'Constrain name',
+                  operator: 'OR',
+                  conditions: [
+                    { conditionTypeId: 'AgeInDays', operator: 'older than', value: '365', conditionIndex: 0 },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: false,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: false,
+              policyNotificationsOverrides: null,
+            },
+          ],
+          policyTags: [
+            {
+              id: 'd07a20676a6444e28dfd5dcec244bfa2',
+              policyId: '741ae19c406b4843b5393818808b9a3f',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: '0b44f71e5419493cb60247d2a4e145d6',
+              policyId: '6ba8065aa4ff4b05abbaa4e3eb0cf5a0',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: 'e039d52c97cd4f508eceff273d272335',
+              policyId: '15f557b2f6034faa862b2f85311becb3',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: '65967f6961f94e15bbbfc0e959dc2905',
+              policyId: 'e21f3514fada490fa7fb5bcfd82c288b',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: '0069b777e9ae42fe9cb7d0fc696501c2',
+              policyId: '87fcc415a76b4969830febd7b9e33e98',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: 'd66b601c892b43d293922e844814ea61',
+              policyId: '741ae19c406b4843b5393818808b9a3f',
+              tagId: 'a0531d2e64954a42ae667c8c3ef8002c',
+            },
+            {
+              id: 'b21b16dee6ed457cb856d7f07082a71f',
+              policyId: 'e21f3514fada490fa7fb5bcfd82c288b',
+              tagId: 'a0531d2e64954a42ae667c8c3ef8002c',
+            },
+            {
+              id: '0de5440ea43e4b6aa560c79a98f7e0f4',
+              policyId: '9d5c30f793a54446a9601cf36c18e9e3',
+              tagId: 'a0531d2e64954a42ae667c8c3ef8002c',
+            },
+            {
+              id: 'c5a770abd55f4fe4bb94f81b1f42056c',
+              policyId: '9d5c30f793a54446a9601cf36c18e9e3',
+              tagId: '68b3e3aa1768480fa86a303804f0b68a',
+            },
+          ],
+        },
+        {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+          policies: [
+            {
+              id: '9d5c30f793a54446a9601cf36c18e9e3',
+              name: 'License-Banned',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 10,
+              policyViolationGrandfatheringAllowed: false,
+              constraints: [
+                {
+                  id: 'e42e5a263ebd4c0da8df3503e583cad3',
+                  name: 'Age Constarint',
+                  operator: 'OR',
+                  conditions: [
+                    { conditionTypeId: 'AgeInDays', operator: 'older than', value: '365', conditionIndex: 0 },
+                  ],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: true,
+              policyActionsOverrides: { '05602dd5ba934c318ad011ca4e4f5cfe': { proxy: 'warn' } },
+              policyNotificationsOverrideAllowed: true,
+              policyNotificationsOverrides: {
+                '05602dd5ba934c318ad011ca4e4f5cfe': {
+                  roleNotifications: [{ roleId: 'roleId', stageIds: ['build', 'release'] }],
+                  userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['build', 'release'] }],
+                  webhookNotifications: [{ webhookId: 'webhookId', stageIds: ['build', 'release'] }],
+                  jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: ['build', 'release'] }],
+                },
+              },
+            },
+            {
+              id: '12f2086417ab44f9a63ba5e91786c570',
+              name: 'Security-Malicious',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              threatLevel: 10,
+              policyViolationGrandfatheringAllowed: false,
+              constraints: [
+                {
+                  id: 'a8485c2b06b04e1facb3d75736238e6a',
+                  name: 'Malicious vulnerability category',
+                  operator: 'AND',
+                  conditions: [
+                    { conditionTypeId: 'AgeInDays', operator: 'older than', value: '1095', conditionIndex: 0 },
+                  ],
+                },
+                {
+                  id: 'a8485c2b06b04e1facb3d75736238e6e',
+                  name: 'Malicious vulnerability category',
+                  operator: 'AND',
+                  conditions: [{ conditionTypeId: 'AgeInDays', operator: 'older than', value: '4', conditionIndex: 0 }],
+                },
+              ],
+              actions: {},
+              notifications: {
+                userNotifications: [],
+                roleNotifications: [],
+                jiraNotifications: [],
+                webhookNotifications: [],
+              },
+              policyActionsOverrideAllowed: true,
+              policyActionsOverrides: null,
+              policyNotificationsOverrideAllowed: true,
+              policyNotificationsOverrides: null,
+            },
+          ],
+          policyTags: [
+            {
+              id: 'd07a20676a6444e28dfd5dcec244bfa2',
+              policyId: '741ae19c406b4843b5393818808b9a3f',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: '0b44f71e5419493cb60247d2a4e145d6',
+              policyId: '6ba8065aa4ff4b05abbaa4e3eb0cf5a0',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: 'e039d52c97cd4f508eceff273d272335',
+              policyId: '15f557b2f6034faa862b2f85311becb3',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: '65967f6961f94e15bbbfc0e959dc2905',
+              policyId: 'e21f3514fada490fa7fb5bcfd82c288b',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: '0069b777e9ae42fe9cb7d0fc696501c2',
+              policyId: '87fcc415a76b4969830febd7b9e33e98',
+              tagId: '838a1a1930394199bf0a8f93bf183d5e',
+            },
+            {
+              id: 'd66b601c892b43d293922e844814ea61',
+              policyId: '741ae19c406b4843b5393818808b9a3f',
+              tagId: 'a0531d2e64954a42ae667c8c3ef8002c',
+            },
+            {
+              id: 'b21b16dee6ed457cb856d7f07082a71f',
+              policyId: 'e21f3514fada490fa7fb5bcfd82c288b',
+              tagId: 'a0531d2e64954a42ae667c8c3ef8002c',
+            },
+            {
+              id: '0de5440ea43e4b6aa560c79a98f7e0f4',
+              policyId: '9d5c30f793a54446a9601cf36c18e9e3',
+              tagId: 'a0531d2e64954a42ae667c8c3ef8002c',
+            },
+            {
+              id: 'c5a770abd55f4fe4bb94f81b1f42056c',
+              policyId: '9d5c30f793a54446a9601cf36c18e9e3',
+              tagId: '68b3e3aa1768480fa86a303804f0b68a',
+            },
+          ],
+        },
+      ],
+    },
+  },
   organization: {
     ROOT_ORGANIZATION_ID: {
       policiesByOwner: [

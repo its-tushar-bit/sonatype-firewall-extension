@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Date;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -317,6 +319,32 @@ public class ApiReportServiceV2Test
     //Verify no reports are retrieved
     assertThat(reports.applicationId).isEqualTo(application.getId());
     assertThat(reports.reports).isEmpty();
+  }
+
+  @Test
+  public void testGetReportHistoryWhenTheReportFileWasDeleted_NoExceptionWasThrow() throws URISyntaxException, IOException {
+    //setup evaluation
+    Application app = tempEntity.newApplicationWithParent("application");
+    tempEntity.newPolicy(app);
+    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
+
+    final String scanId1 = "ScanId1";
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId1);
+
+    File reportFile = zipReportDir("/ApiReportResourceV2Test/report", tempDir);
+    FileUtils.copyFile(reportFile, insightWork.getReportFile(app.getId(), scanId1));
+
+    evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
+    //removing report file
+    FileUtils.delete(insightWork.getReportFile(app.getId(), scanId1));
+
+    //executing when the reports were deleted
+    ApiReportHistoryDTO apiReportHistoryDTO =
+        apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
+
+    //no exceptions were thrown
+    assertThat(apiReportHistoryDTO).isNotNull();
   }
 
   private void evalRequest(String appId, String scanId, Stage stage) throws IOException {

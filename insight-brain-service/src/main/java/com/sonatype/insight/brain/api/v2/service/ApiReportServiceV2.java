@@ -178,9 +178,13 @@ public class ApiReportServiceV2
       populateReportDTO(apiReportResultsDTO, application, policyEvaluation);
       apiReportHistoryDTO.reports.add(apiReportResultsDTO);
     }
-    catch (IOException | NotFoundException | NullPointerException e) {
+    catch (IOException | NullPointerException e) {
       log.debug("Could not load violations from report file for application {} scan {}, report is not available",
           policyEvaluation.getApplicationId(), policyEvaluation.getScanId(), e);
+    }
+    catch (NotFoundException e) {
+      log.debug("Could not load violations from report file for application {} scan {}, report is not available.",
+          policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
     }
   }
 }

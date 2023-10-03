@@ -11,6 +11,7 @@ import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import ActionsFooter from 'MainRoot/firewallOnboarding/ActionsFooter';
 import { actions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
 import { steps } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
+import * as PreferenceStore from '../../../main/frontend/util/preferenceStore';
 import * as RouterActions from '../../../main/frontend/reduxUiRouter/routerActions';
 
 describe('ActionsFooter', function () {
@@ -22,6 +23,8 @@ describe('ActionsFooter', function () {
     spyOn(actions, 'continueToNextStep').and.callThrough();
     spyOn(actions, 'goBackToPreviousStep').and.callThrough();
     spyOn(actions, 'configureProtectionRules').and.callThrough();
+    spyOn(actions, 'finishConfiguration').and.callThrough();
+    spyOn(PreferenceStore, 'setLeftNavigationOpen').and.callThrough();
     spyOn(RouterActions, 'stateGo').and.callThrough();
   });
 
@@ -153,6 +156,9 @@ describe('ActionsFooter', function () {
       fireEvent.click(launchButton);
       expect(actions.configureProtectionRules).toHaveBeenCalled();
       expect(actions.saveRepositories).toHaveBeenCalled();
+      expect(actions.finishConfiguration).toHaveBeenCalled();
+      expect(PreferenceStore.setLeftNavigationOpen).toHaveBeenCalled();
+      expect(RouterActions.stateGo).toHaveBeenCalled();
     });
   });
 });

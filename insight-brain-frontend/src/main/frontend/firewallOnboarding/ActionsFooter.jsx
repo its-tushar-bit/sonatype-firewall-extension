@@ -13,6 +13,7 @@ import { actions } from './firewallOnboardingSlice';
 import { next, prev } from './firewallOnboardingUtils';
 import { setShowWelcomeModalToTrueInStore } from '../firewall/firewallWelcomeModalStore';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { setLeftNavigationOpen } from 'MainRoot/util/preferenceStore';
 
 const HELP_URL = 'http://links.sonatype.com/products/nxiq/doc/firewall-onboarding';
 
@@ -30,6 +31,7 @@ export default function ActionsFooter({ currentStep = {}, isNextButtonDisabled, 
     dispatch(actions.configureProtectionRules());
     dispatch(actions.saveRepositories());
     dispatch(actions.finishConfiguration());
+    setLeftNavigationOpen(true);
     dispatch(stateGo('firewall.firewallPage'));
   };
 

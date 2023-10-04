@@ -9,8 +9,12 @@ import { render, screen, within } from 'TestRoot/SpecUtil';
 import SonatypeDeveloperPage from 'MainRoot/integrations/SonatypeDeveloperPage';
 import { SECTIONS } from 'MainRoot/integrations/sections';
 
+import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { DEVELOPER_FEATURE_DISABLED_MESSAGE } from 'MainRoot/integrations/LicenseLockScreen';
+
 describe('SonatypeDeveloperPage', () => {
   let renderComponent;
+  let selectIsDeveloperDashboardEnabled;
 
   const defaultPreloadedState = {
     router: {
@@ -21,6 +25,10 @@ describe('SonatypeDeveloperPage', () => {
   };
 
   beforeEach(() => {
+    selectIsDeveloperDashboardEnabled = jest
+      .spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled')
+      .mockReturnValue(true);
+
     renderComponent = (preloadedState) =>
       render(<SonatypeDeveloperPage />, { preloadedState: preloadedState || defaultPreloadedState });
   });
@@ -38,6 +46,18 @@ describe('SonatypeDeveloperPage', () => {
   it('renders a heading "Sonatype Developer"', () => {
     renderComponent();
     expect(screen.getByRole('heading', { name: 'Sonatype Developer' })).toBeInTheDocument();
+  });
+
+  it('renders an alert in place of content given the feature is not enabled for the license', async () => {
+    selectIsDeveloperDashboardEnabled.mockReturnValue(false);
+
+    renderComponent();
+
+    const alert = screen.getByRole('alert');
+    expect(alert).toBeInTheDocument();
+    expect(alert).toHaveTextContent(DEVELOPER_FEATURE_DISABLED_MESSAGE);
+
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
   });
 
   describe('tabs', () => {

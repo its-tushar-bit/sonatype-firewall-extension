@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
@@ -53,6 +54,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   @Before
   public void before() {
+    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.DASHBOARD);
     refreshOrOpen(IntegrationsPage.urlOverview());
     loginAsAdmin();
   }
@@ -196,6 +198,26 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     applicationNameWithNoScm(0).shouldHave(text(unconfiguredApp.getName()));
 
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testShowsFeatureDisabledMessageWhenFeatureIsNotInLicense() {
+    setMissingFeature(LicensedFeature.DEVELOPER_DASHBOARD);
+
+    refreshOrOpen(IntegrationsPage.urlOverview());
+    assertDisabled();
+
+    refreshOrOpen(IntegrationsPage.urlCiCd());
+    assertDisabled();
+
+    refreshOrOpen(IntegrationsPage.urlScm());
+    assertDisabled();
+
+    refreshOrOpen(IntegrationsPage.urlIssueTracking());
+    assertDisabled();
+
+    refreshOrOpen(IntegrationsPage.urlIde());
+    assertDisabled();
   }
 
   private void createAppsWithPolicyViolations(int numOfViolations) {
@@ -364,7 +386,11 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return appsWithoutScmIntegrationsTableDataRows().get(rowNum).$(".nx-cell:nth-child(1)");
   }
 
-  private SelenideElement applicationTotalRiskWithNoScm(int rowNum) {
-    return appsWithoutScmIntegrationsTableDataRows().get(rowNum).$(".nx-cell:nth-child(1)");
+  private SelenideElement licenseFeatureMissingAlert() {
+    return $("[data-testid='iq-integrations__missing-license']");
+  }
+
+  private void assertDisabled() {
+    licenseFeatureMissingAlert().shouldBe(visible);
   }
 }

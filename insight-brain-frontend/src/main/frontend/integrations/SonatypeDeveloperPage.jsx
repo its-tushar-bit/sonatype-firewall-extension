@@ -26,6 +26,8 @@ import IssueTracking from './sections/IssueTracking';
 import Ide from './sections/Ide';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { SECTIONS } from 'MainRoot/integrations/sections';
+import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import LicenseLockScreen from 'MainRoot/integrations/LicenseLockScreen';
 
 export default function SonatypeDeveloperPage() {
   const tabStates = [
@@ -62,11 +64,16 @@ export default function SonatypeDeveloperPage() {
   ];
 
   const currentRouteName = useSelector(selectCurrentRouteName);
+  const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
   const activeTabId = tabStates.find(({ state }) => state === currentRouteName)?.ndx || 0;
   const dispatch = useDispatch();
 
   const setTab = (index) => dispatch(stateGo(tabStates.find(({ ndx }) => ndx === index)?.state));
+
+  if (!isDeveloperDashboardEnabled) {
+    return <LicenseLockScreen />;
+  }
 
   return (
     <NxPageMain>

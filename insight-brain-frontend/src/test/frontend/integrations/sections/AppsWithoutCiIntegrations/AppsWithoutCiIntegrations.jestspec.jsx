@@ -9,16 +9,20 @@ import { getAppsWithoutCiIntegrations } from 'MainRoot/util/CLMLocation';
 import AppsWithoutCiIntegrations from 'MainRoot/integrations/sections/AppsWithoutCiIntegrations/AppsWithoutCiIntegrations';
 import { map, range } from 'ramda';
 import { NX_STANDARD_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
+import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { DEVELOPER_FEATURE_DISABLED_MESSAGE } from 'MainRoot/integrations/LicenseLockScreen';
 
 describe('AppsWithoutCiIntegrations Page', () => {
   let axiosMock;
-
-  beforeAll(() => {
-    axiosMock = axiosMockAdapter();
-  });
+  let selectIsDeveloperDashboardEnabled;
 
   beforeEach(() => {
+    axiosMock = axiosMockAdapter();
     jest.useFakeTimers();
+
+    selectIsDeveloperDashboardEnabled = jest
+      .spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled')
+      .mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -30,6 +34,19 @@ describe('AppsWithoutCiIntegrations Page', () => {
     render(<AppsWithoutCiIntegrations />);
 
     expect(screen.getByText('Loading…')).toBeInTheDocument();
+  });
+
+  it('renders an alert in place of content given the feature is not enabled for the license', async () => {
+    selectIsDeveloperDashboardEnabled.mockReturnValue(false);
+
+    render(<AppsWithoutCiIntegrations />);
+
+    const alert = screen.getByRole('alert');
+    expect(alert).toBeInTheDocument();
+    expect(alert).toHaveTextContent(DEVELOPER_FEATURE_DISABLED_MESSAGE);
+
+    // never makes network request because the component is not rendered
+    expect(axiosMock.history.post.length).toEqual(0);
   });
 
   describe('on a failed http call', () => {

@@ -12,12 +12,19 @@ import { SECTIONS } from 'MainRoot/integrations/sections';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { selectPreviousRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useSelector } from 'react-redux';
+import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import LicenseLockScreen from 'MainRoot/integrations/LicenseLockScreen';
 
 export default function AppsWithoutCiIntegrations() {
   const uiRouterState = useRouterState();
   const pathToCICD = uiRouterState.href(`integrations.${SECTIONS.CICD}`);
   const prevState = useSelector(selectPreviousRouteName);
+  const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const backButtonHref = prevState ? prevState : `integrations.${SECTIONS.OVERVIEW}`;
+
+  if (!isDeveloperDashboardEnabled) {
+    return <LicenseLockScreen />;
+  }
 
   return (
     <NxPageMain>

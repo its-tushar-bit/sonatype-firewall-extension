@@ -25,7 +25,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQLegacyViolationsIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ResultRow;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage;
@@ -166,15 +166,15 @@ public class ApplicationReportTest
     coverageIndicator.subCaption().shouldHave(exactText("98% of all components identified"));
     coverageIndicator.donutChart().shouldBe(visible);
 
-    IQGrandfatheringIndicator grandfatheringIndicator = reportPage.grandfatheringIndicator();
-    grandfatheringIndicator.caption().shouldHave(exactText("0 LEGACY VIOLATIONS"));
+    IQLegacyViolationsIndicator legacyViolationsIndicator = reportPage.legacyViolationsIndicator();
+    legacyViolationsIndicator.caption().shouldHave(exactText("0 LEGACY VIOLATIONS"));
 
-    activateGrandfathering();
+    activateLegacyViolations();
 
-    grandfatheringIndicator = reportPage.grandfatheringIndicator();
-    grandfatheringIndicator.caption().shouldHave(exactText("46 LEGACY VIOLATIONS"));
+    legacyViolationsIndicator = reportPage.legacyViolationsIndicator();
+    legacyViolationsIndicator.caption().shouldHave(exactText("46 LEGACY VIOLATIONS"));
 
-    // The activateGrandfathering above re-evals and refreshes the page
+    // The activateLegacyViolations above re-evals and refreshes the page
     policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
@@ -239,15 +239,15 @@ public class ApplicationReportTest
     coverageIndicator.subCaption().shouldHave(exactText("98% of all components identified"));
     coverageIndicator.donutChart().shouldBe(visible);
 
-    IQGrandfatheringIndicator grandfatheringIndicator = reportPage.grandfatheringIndicator();
-    grandfatheringIndicator.caption().shouldHave(exactText("0 LEGACY VIOLATIONS"));
+    IQLegacyViolationsIndicator legacyViolationsIndicator = reportPage.legacyViolationsIndicator();
+    legacyViolationsIndicator.caption().shouldHave(exactText("0 LEGACY VIOLATIONS"));
 
-    activateGrandfathering();
+    activateLegacyViolations();
 
-    grandfatheringIndicator = reportPage.grandfatheringIndicator();
-    grandfatheringIndicator.caption().shouldHave(exactText("46 LEGACY VIOLATIONS"));
+    legacyViolationsIndicator = reportPage.legacyViolationsIndicator();
+    legacyViolationsIndicator.caption().shouldHave(exactText("46 LEGACY VIOLATIONS"));
 
-    // The activateGrandfathering above re-evals and refreshes the page
+    // The activateLegacyViolations above re-evals and refreshes the page
     policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
@@ -407,9 +407,9 @@ public class ApplicationReportTest
     reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
     reportPage.resultRow(2).legacyViolationIndicator().shouldNotBe(visible);
 
-    activateGrandfathering();
+    activateLegacyViolations();
 
-    // now the grandfathered indicator should appear
+    // now the legacy violation indicator should appear
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
@@ -725,9 +725,9 @@ public class ApplicationReportTest
     violations.shouldHaveSize(66);
     violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
 
-    activateGrandfathering();
+    activateLegacyViolations();
 
-    // activateGrandfathering refreshes the page so we need to put the filter back how we had it
+    // activateLegacyViolations refreshes the page so we need to put the filter back how we had it
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
     reportPage.filterToggle().click();
@@ -735,16 +735,16 @@ public class ApplicationReportTest
     violationStateFilter.open().click();
     violationStateFilter.waived().click();
 
-    // grandfathered violations not visible
+    // legacy violations not visible
     violations.shouldHaveSize(21);
 
-    // grandfathered violations now visible
-    violationStateFilter.grandfathered().click();
-    violationStateFilter.grandfathered().shouldBe(selected);
+    // legacy violations now visible
+    violationStateFilter.legacyViolations().click();
+    violationStateFilter.legacyViolations().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("3 of 4"));
     violations.shouldHaveSize(66);
 
-    // the waived violation is also grandfathered, so no difference.
+    // the waived violation also has legacy violation status, so no difference.
     violationStateFilter.waived().click();
     violations.shouldHaveSize(66);
 
@@ -753,7 +753,7 @@ public class ApplicationReportTest
     violationStateFilter.counter().shouldHave(exactText("3 of 4"));
     violations.shouldHaveSize(EXPECTED_TOTAL_ROWS_COUNT);
 
-    // all boxes checked - again no difference in count because the waived violation is also grandfathered
+    // all boxes checked - again no difference in count because the waived violation also has legacy violation status
     violationStateFilter.waived().click();
     violationStateFilter.counter().shouldHave(exactText("4 of 4"));
     violations.shouldHaveSize(EXPECTED_TOTAL_ROWS_COUNT);
@@ -764,7 +764,7 @@ public class ApplicationReportTest
     violationStateFilter.notViolating().shouldNotBe(selected);
     violationStateFilter.open().shouldNotBe(selected);
     violationStateFilter.waived().shouldNotBe(selected);
-    violationStateFilter.grandfathered().shouldNotBe(selected);
+    violationStateFilter.legacyViolations().shouldNotBe(selected);
     violationStateFilter.counter().shouldHave(exactText("4"));
     violations.shouldHaveSize(EXPECTED_TOTAL_ROWS_COUNT);
 
@@ -938,7 +938,7 @@ public class ApplicationReportTest
             .shouldHave(texts("com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml", "com.palominolabs"));
   }
 
-  private void activateGrandfathering() throws Exception {
+  private void activateLegacyViolations() throws Exception {
     Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
 
     app.setPolicyViolationGrandfatheringEnabled(true);

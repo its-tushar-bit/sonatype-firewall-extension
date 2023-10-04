@@ -94,7 +94,7 @@ public class ApplicationReportVulnerabilitiesPage
       return component().$(".iq-text-indicator--waived");
     }
 
-    public SelenideElement grandfathered() {
+    public SelenideElement legacyViolationGranted() {
       return component().$(".iq-text-indicator--legacy-violation");
     }
   }

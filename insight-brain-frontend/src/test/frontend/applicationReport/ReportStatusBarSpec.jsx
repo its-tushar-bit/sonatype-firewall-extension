@@ -17,7 +17,7 @@ describe('ReportStatusBar', () => {
       knownArtifactCount: 250,
       totalArtifactCount: 500,
       policyComponentCount: 555,
-      grandfatheredPolicyViolationCount: 33,
+      legacyViolationCount: 33,
       criticalViolationCount: 111,
       severeViolationCount: 222,
       moderateViolationCount: 333,
@@ -31,7 +31,7 @@ describe('ReportStatusBar', () => {
           knownArtifactCount={selectedReport.knownArtifactCount}
           totalArtifactCount={selectedReport.totalArtifactCount}
           policyComponentCount={selectedReport.policyComponentCount}
-          grandfatheredPolicyViolationCount={selectedReport.grandfatheredPolicyViolationCount}
+          legacyViolationCount={selectedReport.legacyViolationCount}
           criticalViolationCount={selectedReport.criticalViolationCount}
           severeViolationCount={selectedReport.severeViolationCount}
           moderateViolationCount={selectedReport.moderateViolationCount}
@@ -151,19 +151,17 @@ describe('ReportStatusBar', () => {
   });
 
   it('renders legacy violation one count', () => {
-    selectedReport.grandfatheredPolicyViolationCount = 1;
+    selectedReport.legacyViolationCount = 1;
     renderComponent();
-    const legacyPoliciesText = screen.getByText(`${selectedReport.grandfatheredPolicyViolationCount} Legacy Violation`);
+    const legacyPoliciesText = screen.getByText(`${selectedReport.legacyViolationCount} Legacy Violation`);
 
     expect(legacyPoliciesText).toBeVisible();
   });
 
   it('renders legacy violations more than one count', () => {
-    selectedReport.grandfatheredPolicyViolationCount = 33;
+    selectedReport.legacyViolationCount = 33;
     renderComponent();
-    const legacyPoliciesText = screen.getByText(
-      `${selectedReport.grandfatheredPolicyViolationCount} Legacy Violations`
-    );
+    const legacyPoliciesText = screen.getByText(`${selectedReport.legacyViolationCount} Legacy Violations`);
 
     expect(legacyPoliciesText).toBeVisible();
   });

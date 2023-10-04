@@ -39,7 +39,7 @@ const violationStateFilterOptions = [
   { id: 'notViolating', name: 'Not Violating' },
   { id: 'open', name: 'Open' },
   { id: 'waived', name: 'Waived' },
-  { id: 'grandfathered', name: 'Legacy' },
+  { id: 'legacyViolation', name: 'Legacy' },
 ];
 
 const dependencyTypeFilterOptions = [
@@ -52,8 +52,8 @@ const dependencyTypeFilterOptions = [
 const violationStateCheckboxFilterMapping = {
   notViolating: new Set(['notViolating']),
   open: new Set(['open']),
-  waived: new Set(['waived', 'waived+grandfathered']),
-  grandfathered: new Set(['grandfathered', 'waived+grandfathered']),
+  waived: new Set(['waived', 'waived+legacyViolation']),
+  legacyViolation: new Set(['legacyViolation', 'waived+legacyViolation']),
 };
 
 export default function ReportFilterPopover() {
@@ -83,7 +83,7 @@ export default function ReportFilterPopover() {
     [...derivedInnerSource].map((option) => (option ? 'innerSource' : 'nonInnerSource'))
   );
 
-  const violationStateCheckedIds = new Set(reject(equals('waived+grandfathered'), setToArray(derivedViolationState)));
+  const violationStateCheckedIds = new Set(reject(equals('waived+legacyViolation'), setToArray(derivedViolationState)));
 
   const onSelectionChange = (filterName, selectedIds) => {
     setExactValueFilter(filterName, new Set(mapActionIds(filterName, selectedIds)));

@@ -86,7 +86,7 @@ describe('Report Page component', () => {
       knownArtifactCount: 250,
       totalArtifactCount: 500,
       policyComponentCount: 555,
-      grandfatheredPolicyViolationCount: 33,
+      legacyViolationCount: 33,
       criticalViolationCount: 111,
       severeViolationCount: 222,
       moderateViolationCount: 333,
@@ -223,7 +223,7 @@ describe('Report Page component', () => {
     const totalArtifactText = screen.getByText(`${selectedReport.totalArtifactCount} COMPONENTS`);
     const coveragePercentageText = screen.getByText('50% of all components identified');
     const legacyPolicyViolationsCountText = screen.getByText(
-      `${selectedReport.grandfatheredPolicyViolationCount} Legacy Violations`
+      `${selectedReport.legacyViolationCount} Legacy Violations`
     );
 
     expect(criticalThreatIndicator).toBeVisible();

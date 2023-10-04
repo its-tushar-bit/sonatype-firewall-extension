@@ -115,7 +115,7 @@ public class ApplicationReportFilter
       return super.checkboxItem(4);
     }
 
-    public NxCheckbox grandfathered() {
+    public NxCheckbox legacyViolations() {
       return super.checkboxItem(5);
     }
   }

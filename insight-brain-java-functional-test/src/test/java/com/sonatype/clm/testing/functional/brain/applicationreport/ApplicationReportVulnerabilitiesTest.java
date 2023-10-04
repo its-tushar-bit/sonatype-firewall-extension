@@ -245,10 +245,10 @@ public class ApplicationReportVulnerabilitiesTest
     }
 
     if (legacy) {
-      row.grandfathered().shouldBe(visible);
+      row.legacyViolationGranted().shouldBe(visible);
     }
     else {
-      row.grandfathered().shouldNotBe(visible);
+      row.legacyViolationGranted().shouldNotBe(visible);
     }
   }
 }

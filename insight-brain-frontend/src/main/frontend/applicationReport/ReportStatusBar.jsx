@@ -27,14 +27,15 @@ export default function ReportStatusBar(props) {
   const policyComponentCount = getReportProp('policyComponentCount');
   const totalArtifactCount = getReportProp('totalArtifactCount');
   const knownArtifactCount = getReportProp('knownArtifactCount');
-  const legacyPolicyViolationsCount = getReportProp('grandfatheredPolicyViolationCount');
+  const legacyPolicyViolationsCount =
+    getReportProp('legacyViolationCount') || getReportProp('grandfatheredPolicyViolationCount');
   const quarantinedComponentCount = getReportProp('quarantinedComponentCount');
   const { totalApplicationRisk, isDeveloperDashboardEnabled } = props;
   const risk = !isNil(totalApplicationRisk) && totalApplicationRisk >= 0 ? totalApplicationRisk : 'N/A';
 
   const showSectionDefault = (propName) => propOr(true, propName, props);
   const hideSectionDefault = (propName) => propOr(false, propName, props);
-  const showLegacyViolationsSection = showSectionDefault('showGrandfatheredSection');
+  const showLegacyViolationsSection = showSectionDefault('showLegacyViolationsSection');
   const showQuarantinedSection = hideSectionDefault('showQuarantinedSection');
 
   const coveragePercent = () => {
@@ -126,12 +127,13 @@ ReportStatusBar.propTypes = {
   knownArtifactCount: PropTypes.number,
   totalArtifactCount: PropTypes.number,
   policyComponentCount: PropTypes.number,
+  legacyViolationCount: PropTypes.number,
   grandfatheredPolicyViolationCount: PropTypes.number,
   criticalViolationCount: PropTypes.number,
   severeViolationCount: PropTypes.number,
   moderateViolationCount: PropTypes.number,
   nonLowViolationCount: PropTypes.number,
-  showGrandfatheredSection: PropTypes.bool,
+  showLegacyViolationsSection: PropTypes.bool,
   showQuarantinedSection: PropTypes.bool,
   totalApplicationRisk: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   isDeveloperDashboardEnabled: PropTypes.bool,

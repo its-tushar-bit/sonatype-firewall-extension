@@ -76,7 +76,7 @@ export default function ReportTableRow({ onClick, component }) {
         allPass([
           prop('policyThreatLevel'),
           compose(not, prop('waived')),
-          compose(not, prop('grandfathered')),
+          compose(not, prop('legacyViolation')),
           compose(includes(component.serializedComponentIdentifier), pathOr('', ['dependencyInfo', 'rootAncestors'])),
         ])
       )
@@ -106,7 +106,7 @@ export default function ReportTableRow({ onClick, component }) {
             <NxFontAwesomeIcon icon={faCheck} />
           </span>
         )}
-        {component.grandfathered && (
+        {component.legacyViolation && (
           <span className="iq-text-indicator iq-text-indicator--legacy-violation iq-pull-right">
             <span>Legacy</span>
             <NxFontAwesomeIcon icon={faHistory} />
@@ -129,7 +129,7 @@ ReportTableRow.propTypes = {
     hash: PropTypes.string,
     derivedDependencyType: PropTypes.string,
     waived: PropTypes.bool,
-    grandfathered: PropTypes.bool,
+    legacyViolation: PropTypes.bool,
     policyThreatLevel: PropTypes.number,
     componentIdentifier: PropTypes.object,
     isOnlyInnerSourceTransitiveDependency: PropTypes.bool,

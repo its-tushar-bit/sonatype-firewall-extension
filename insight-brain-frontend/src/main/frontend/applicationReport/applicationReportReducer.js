@@ -459,7 +459,7 @@ function getViolationCountsPerThreatLevel(entries) {
       ? 'moderateViolationCount'
       : undefined;
   const reduceToCountsByThreatLevel = reduceBy(inc, 0)(groupByThreatLevel);
-  const rejectIgnored = reject((v) => v.grandfathered || v.waived || v.policyThreatLevel < 2);
+  const rejectIgnored = reject((v) => v.legacyViolation || v.grandfathered || v.waived || v.policyThreatLevel < 2);
   const nonZeroCounts = pipe(rejectIgnored, reduceToCountsByThreatLevel)(entries);
   const nonLowViolationCount = sum(values(nonZeroCounts));
   return { ...zeroCounts, ...nonZeroCounts, nonLowViolationCount };

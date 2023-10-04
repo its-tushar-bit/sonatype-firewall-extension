@@ -60,10 +60,18 @@ const joinPathnames = join('\t'),
     policyThreatLevel: 0,
     policyName: 'None',
     waived: false,
-    grandfathered: false,
+    legacyViolation: false,
     derivedComponentName: deriveComponentName(component),
     derivedViolationState: 'notViolating',
   });
+
+export function isLegacyViolation(policy) {
+  if (policy.legacyViolation !== undefined) {
+    return policy.legacyViolation;
+  } else {
+    return policy.grandfathered;
+  }
+}
 
 /**
  * In this version, each entry in policyResult represents a component, with nested lists of violations
@@ -75,8 +83,8 @@ function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
     const key = toKey(component),
       bomComponent = bomDataByKey[key],
       makeEntryForViolation = (violation) => {
-        const { waived, grandfathered } = violation;
-
+        const { waived } = violation,
+          legacyViolationStatus = isLegacyViolation(violation);
         return {
           ...pick(
             ['policyThreatLevel', 'policyName', 'policyThreatCategory', 'policyViolationId', 'constraints', 'actions'],
@@ -84,9 +92,9 @@ function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
           ),
           ...bomComponent,
           waived,
-          grandfathered,
+          legacyViolation: legacyViolationStatus,
           derivedComponentName: deriveComponentName(bomComponent),
-          derivedViolationState: deriveViolationState(waived, grandfathered),
+          derivedViolationState: deriveViolationState(waived, legacyViolationStatus),
         };
       };
 
@@ -104,14 +112,16 @@ function makeViolationEntriesV1V2(policyResult, bomDataByKey) {
   function makeEntriesForComponent(component) {
     const key = toKey(component),
       bomComponent = bomDataByKey[key],
-      makeEntryForViolation = (waived) => (violation) => ({
-        waived,
-        grandfathered: false,
-        ...pick(['policyThreatLevel', 'policyName'], violation),
-        ...bomComponent,
-        derivedComponentName: deriveComponentName(bomComponent),
-        derivedViolationState: deriveViolationState(waived, false),
-      });
+      makeEntryForViolation = (waived) => (violation) => {
+        return {
+          waived,
+          legacyViolation: false,
+          ...pick(['policyThreatLevel', 'policyName'], violation),
+          ...bomComponent,
+          derivedComponentName: deriveComponentName(bomComponent),
+          derivedViolationState: deriveViolationState(waived, false),
+        };
+      };
 
     return concat(
       map(makeEntryForViolation(false), component.activeViolations),
@@ -129,10 +139,9 @@ function makeViolationEntriesNoVersion(policyResult, bomDataByKey) {
   function makeEntryForViolation(violation) {
     const key = toKey(violation),
       bomComponent = bomDataByKey[key];
-
     return {
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       ...pick(['policyThreatLevel', 'policyName'], violation),
       ...bomComponent,
       derivedComponentName: deriveComponentName(bomComponent),
@@ -153,11 +162,17 @@ const getLicenseSortKey = (licenseObj) => {
   return getDeclaredLicensesDisplay(licenseObj) + (observedLicenses ? ', ' + observedLicenses : '');
 };
 
-// Violation state is a combination of Waived and Grandfathered.  These two values need to be stored in the same
+// Violation state is a combination of Waived and Legacy status.  These two values need to be stored in the same
 // field so that OR-based filtering can be performed on them.  If only their separate-field values were used, the
 // current filtering engine could only do AND-based filtering on them.
-const deriveViolationState = (waived, grandfathered) =>
-  waived && grandfathered ? 'waived+grandfathered' : waived ? 'waived' : grandfathered ? 'grandfathered' : 'open';
+const deriveViolationState = (waived, legacyViolation) =>
+  waived && legacyViolation
+    ? 'waived+legacyViolation'
+    : waived
+    ? 'waived'
+    : legacyViolation
+    ? 'legacyViolation'
+    : 'open';
 
 // A map of makeViolationEntries functions, indexed by policyResult version
 const violationEntryMakersByPolicyThreatsVersion = new window.Map([
@@ -411,7 +426,7 @@ function serializeComponentId({ componentIdentifier, pathnames }) {
 }
 
 function highestViolationReducer(highestViolationSoFar, violation) {
-  const isActive = complement(either(isNil, either(prop('waived'), prop('grandfathered')))),
+  const isActive = complement(either(isNil, either(prop('waived'), prop('legacyViolation')))),
     activeViolations = filter(isActive, [highestViolationSoFar, violation]),
     highestActiveViolation =
       activeViolations.length < 2 ? activeViolations[0] : apply(maxBy(prop('policyThreatLevel')))(activeViolations);
@@ -421,33 +436,34 @@ function highestViolationReducer(highestViolationSoFar, violation) {
     return highestActiveViolation;
   } else {
     const waived = (highestViolationSoFar && highestViolationSoFar.waived) || violation.waived,
-      grandfathered = (highestViolationSoFar && highestViolationSoFar.grandfathered) || violation.grandfathered;
+      legacyViolation =
+        (highestViolationSoFar && isLegacyViolation(highestViolationSoFar)) || isLegacyViolation(violation);
 
     return {
       ...violation,
       policyThreatLevel: 0,
       policyName: 'None',
       waived,
-      grandfathered,
-      derivedViolationState: deriveViolationState(waived, grandfathered),
+      legacyViolation,
+      derivedViolationState: deriveViolationState(waived, legacyViolation),
     };
   }
 }
 
-const unsetWaivedAndGrandfatheredOnViolatingEntry = (entry) =>
-  entry.policyThreatLevel === 0 ? entry : { ...entry, waived: false, grandfathered: false };
+const unsetWaivedAndLegacyViolationsOnViolatingEntry = (entry) =>
+  entry.policyThreatLevel === 0 ? entry : { ...entry, waived: false, legacyViolation: false };
 
 /**
  * Take a list of all report entries and return a list of just the "aggregated" entries (ie one entry per component).
  * The violation selected for each component is the one with the highest threat level, that is unwaived and
- * ungrandfathered. If none are unwaived/ungrandfathered, a non-violating component entry is added for that component
+ * not in legacy status. If none are unwaived/non-legacy, a non-violating component entry is added for that component
  */
 export const aggregateReportEntries = pipe(
   reduceBy(highestViolationReducer, null, toKey),
   values,
 
-  // waived and grandfathered indicators should only be shown on non-violating components
-  map(unsetWaivedAndGrandfatheredOnViolatingEntry)
+  // waived and legacy violation indicators should only be shown on non-violating components
+  map(unsetWaivedAndLegacyViolationsOnViolatingEntry)
 );
 
 /**
@@ -551,7 +567,7 @@ export function getVulnerabilities(policyEntries, rawDataEntries) {
 
       return policyEntry
         ? {
-            ...pick(['policyThreatLevel', 'waived', 'grandfathered'], policyEntry),
+            ...pick(['policyThreatLevel', 'waived', 'legacyViolation'], policyEntry),
             ...rawDataEntry,
             violationSortState: vulnerabilitySortStateMap[policyEntry.derivedViolationState],
             key: `${serializedComponentId}\u001D${securityCode}`,
@@ -581,6 +597,6 @@ const vulnerabilitySortStateMap = {
   open: 0,
   notViolating: 1,
   waived: 2,
-  'waived+grandfathered': 3,
-  grandfathered: 4,
+  'waived+legacyViolation': 3,
+  legacyViolation: 4,
 };

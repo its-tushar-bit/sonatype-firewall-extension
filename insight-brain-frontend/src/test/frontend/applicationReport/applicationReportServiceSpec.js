@@ -289,7 +289,7 @@ describe('applicationReportService', function () {
                   policyName: 'Security-High',
                   policyThreatLevel: 9,
                   waived: false,
-                  grandfathered: false,
+                  legacyViolation: false,
                 },
               ],
               waivedViolations: [
@@ -298,7 +298,7 @@ describe('applicationReportService', function () {
                   policyName: 'License-High',
                   policyThreatLevel: 8,
                   waived: true,
-                  grandfathered: false,
+                  legacyViolation: false,
                 },
               ],
               allViolations: [
@@ -307,7 +307,7 @@ describe('applicationReportService', function () {
                   policyName: 'Security-High',
                   policyThreatLevel: 9,
                   waived: false,
-                  grandfathered: false,
+                  legacyViolation: false,
                   actions: [{ actionSummary: 'Build Failed', actionType: 'fail' }],
                 },
                 {
@@ -315,7 +315,7 @@ describe('applicationReportService', function () {
                   policyName: 'License-High',
                   policyThreatLevel: 8,
                   waived: true,
-                  grandfathered: true,
+                  legacyViolation: true,
                 },
               ],
             },
@@ -338,7 +338,7 @@ describe('applicationReportService', function () {
                   policyName: 'Security-High',
                   policyThreatLevel: 9,
                   waived: false,
-                  grandfathered: true,
+                  legacyViolation: true,
                 },
               ],
               waivedViolations: [],
@@ -348,7 +348,7 @@ describe('applicationReportService', function () {
                   policyName: 'Security-High',
                   policyThreatLevel: 9,
                   waived: false,
-                  grandfathered: true,
+                  legacyViolation: true,
                 },
               ],
             },
@@ -400,7 +400,7 @@ describe('applicationReportService', function () {
           policyName: 'Security-High',
           policyThreatLevel: 9,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
           actions: [{ actionSummary: 'Build Failed', actionType: 'fail' }],
         })
       );
@@ -417,11 +417,11 @@ describe('applicationReportService', function () {
           },
           serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
-          derivedViolationState: 'waived+grandfathered',
+          derivedViolationState: 'waived+legacyViolation',
           policyName: 'License-High',
           policyThreatLevel: 8,
           waived: true,
-          grandfathered: true,
+          legacyViolation: true,
         })
       );
 
@@ -438,11 +438,11 @@ describe('applicationReportService', function () {
           },
           serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
           derivedComponentName: 'bargroup : bar : 2',
-          derivedViolationState: 'grandfathered',
+          derivedViolationState: 'legacyViolation',
           policyName: 'Security-High',
           policyThreatLevel: 9,
           waived: false,
-          grandfathered: true,
+          legacyViolation: true,
           matchDetails: partialMatchData.aaData[0].matchDetails,
         })
       );
@@ -456,7 +456,7 @@ describe('applicationReportService', function () {
           policyName: 'None',
           policyThreatLevel: 0,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -480,7 +480,7 @@ describe('applicationReportService', function () {
           policyThreatLevel: 9,
           policyThreatCategory: 'OTHER',
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -496,12 +496,12 @@ describe('applicationReportService', function () {
           },
           serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
-          derivedViolationState: 'waived+grandfathered',
+          derivedViolationState: 'waived+legacyViolation',
           policyName: 'License-High',
           policyThreatLevel: 8,
           policyThreatCategory: 'OTHER',
           waived: true,
-          grandfathered: true,
+          legacyViolation: true,
         })
       );
 
@@ -518,12 +518,12 @@ describe('applicationReportService', function () {
           },
           serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
           derivedComponentName: 'bargroup : bar : 2',
-          derivedViolationState: 'grandfathered',
+          derivedViolationState: 'legacyViolation',
           policyName: 'Security-High',
           policyThreatLevel: 9,
           waived: false,
           policyThreatCategory: 'OTHER',
-          grandfathered: true,
+          legacyViolation: true,
           matchDetails: partialMatchData.aaData[0].matchDetails,
         })
       );
@@ -537,7 +537,7 @@ describe('applicationReportService', function () {
           policyName: 'None',
           policyThreatLevel: 0,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -635,7 +635,7 @@ describe('applicationReportService', function () {
           policyName: 'Security-High',
           policyThreatLevel: 9,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -655,7 +655,7 @@ describe('applicationReportService', function () {
           policyName: 'License-High',
           policyThreatLevel: 8,
           waived: true,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -676,7 +676,7 @@ describe('applicationReportService', function () {
           policyName: 'Security-High',
           policyThreatLevel: 9,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
           matchDetails: partialMatchData.aaData[0].matchDetails,
         })
       );
@@ -690,7 +690,7 @@ describe('applicationReportService', function () {
           policyName: 'None',
           policyThreatLevel: 0,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -772,7 +772,7 @@ describe('applicationReportService', function () {
           policyName: 'Security-High',
           policyThreatLevel: 9,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -792,7 +792,7 @@ describe('applicationReportService', function () {
           policyName: 'License-High',
           policyThreatLevel: 8,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -813,7 +813,7 @@ describe('applicationReportService', function () {
           policyName: 'Security-High',
           policyThreatLevel: 9,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
           matchDetails: partialMatchData.aaData[0].matchDetails,
         })
       );
@@ -827,7 +827,7 @@ describe('applicationReportService', function () {
           policyName: 'None',
           policyThreatLevel: 0,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -901,7 +901,7 @@ describe('applicationReportService', function () {
           policyName: 'Security-High',
           policyThreatLevel: 9,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -920,7 +920,7 @@ describe('applicationReportService', function () {
           policyName: 'License-High',
           policyThreatLevel: 8,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
 
@@ -940,7 +940,7 @@ describe('applicationReportService', function () {
           policyName: 'Security-High',
           policyThreatLevel: 9,
           waived: false,
-          grandfathered: false,
+          legacyViolation: false,
         })
       );
     });
@@ -974,7 +974,7 @@ describe('applicationReportService', function () {
                   policyName: 'Security-High',
                   policyThreatLevel: 9,
                   waived: false,
-                  grandfathered: false,
+                  legacyViolation: false,
                 },
               ],
               waivedViolations: [
@@ -983,7 +983,7 @@ describe('applicationReportService', function () {
                   policyName: 'License-High',
                   policyThreatLevel: 8,
                   waived: true,
-                  grandfathered: false,
+                  legacyViolation: false,
                 },
               ],
               allViolations: [
@@ -992,14 +992,14 @@ describe('applicationReportService', function () {
                   policyName: 'Security-High',
                   policyThreatLevel: 9,
                   waived: false,
-                  grandfathered: false,
+                  legacyViolation: false,
                 },
                 {
                   policyId: '546fa744e6434a9e855e1ef5bcaf2068',
                   policyName: 'License-High',
                   policyThreatLevel: 8,
                   waived: true,
-                  grandfathered: true,
+                  legacyViolation: true,
                 },
               ],
             },
@@ -1056,7 +1056,7 @@ describe('applicationReportService', function () {
       expect(result).toContain(
         jasmine.objectContaining({
           hash: 'fooHash',
-          derivedViolationState: 'waived+grandfathered',
+          derivedViolationState: 'waived+legacyViolation',
           policyName: 'License-High',
           policyThreatLevel: 8,
           dependencyInfo: { isDirectDependency: true },
@@ -1374,7 +1374,7 @@ describe('applicationReportService', function () {
                 policyName: 'Security-High',
                 policyThreatLevel: 9,
                 waived: false,
-                grandfathered: false,
+                legacyViolation: false,
               },
             ],
             waivedViolations: [
@@ -1383,7 +1383,7 @@ describe('applicationReportService', function () {
                 policyName: 'License-High',
                 policyThreatLevel: 8,
                 waived: true,
-                grandfathered: false,
+                legacyViolation: false,
               },
             ],
             allViolations: [
@@ -1392,14 +1392,14 @@ describe('applicationReportService', function () {
                 policyName: 'Security-High',
                 policyThreatLevel: 9,
                 waived: false,
-                grandfathered: false,
+                legacyViolation: false,
               },
               {
                 policyId: '546fa744e6434a9e855e1ef5bcaf2068',
                 policyName: 'License-High',
                 policyThreatLevel: 8,
                 waived: true,
-                grandfathered: true,
+                legacyViolation: true,
               },
             ],
           },
@@ -1468,7 +1468,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 9,
         policyName: 'Policy 4',
         waived: true,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'bar',
         displayName: {
           parts: [
@@ -1486,7 +1486,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 4,
         policyName: 'Policy 2',
         waived: false,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'baz',
         derivedComponentName: 'junit.junit.4.8',
       },
@@ -1495,7 +1495,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 3,
         policyName: 'Policy 3',
         waived: false,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'baz',
         derivedComponentName: 'ant.ant.1.62',
       },
@@ -1504,7 +1504,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 4,
         policyName: 'Policy 1',
         waived: false,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'bar',
         derivedComponentName: 'junit.junit.4.12',
       },
@@ -1513,7 +1513,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 4,
         policyName: 'Policy 5',
         waived: true,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'qux',
         displayName: {
           parts: [
@@ -1531,7 +1531,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 8,
         policyName: 'Policy 6',
         waived: false,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'bar',
         derivedComponentName: 'junit.junit.4.12',
       },
@@ -1540,7 +1540,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 9,
         policyName: 'Policy 9',
         waived: true,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'bar',
         displayName: {
           parts: [
@@ -1558,7 +1558,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 5,
         policyName: 'Policy 7',
         waived: true,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'qux',
         displayName: {
           parts: [
@@ -1576,7 +1576,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 4,
         policyName: 'Policy 8',
         waived: true,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'qux',
         displayName: {
           parts: [
@@ -1594,7 +1594,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 0,
         policyName: 'None',
         waived: false,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'apache',
         derivedComponentName: 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29',
       },
@@ -1603,7 +1603,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 3,
         policyName: 'Policy 11',
         waived: false,
-        grandfathered: true,
+        legacyViolation: true,
         componentIdentifier: 'foo',
         displayName: {
           parts: [
@@ -1621,7 +1621,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 2,
         policyName: 'Policy 10',
         waived: false,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'foo',
         derivedComponentName: 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1',
       },
@@ -1630,7 +1630,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 5,
         policyName: 'Policy 12',
         waived: false,
-        grandfathered: true,
+        legacyViolation: true,
         componentIdentifier: 'foo',
         displayName: {
           parts: [
@@ -1648,7 +1648,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 5,
         policyName: 'Policy 12',
         waived: false,
-        grandfathered: true,
+        legacyViolation: true,
         componentIdentifier: 'foo2',
         displayName: {
           parts: [
@@ -1666,7 +1666,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 5,
         policyName: 'Policy 13',
         waived: false,
-        grandfathered: true,
+        legacyViolation: true,
         componentIdentifier: 'foo3',
         displayName: {
           parts: [
@@ -1684,7 +1684,7 @@ describe('applicationReportService', function () {
         policyThreatLevel: 6,
         policyName: 'Policy 14',
         waived: true,
-        grandfathered: false,
+        legacyViolation: false,
         componentIdentifier: 'foo3',
         displayName: {
           parts: [
@@ -1700,7 +1700,7 @@ describe('applicationReportService', function () {
     ];
 
     describe('aggregateReportEntries', function () {
-      it('returns a list including only the highest-threat unwaived ungrandfathered violation for each component', function () {
+      it('returns a list including only the highest-threat unwaived non-legacy violation for each component', function () {
         const result = applicationReportService.aggregateReportEntries(input),
           hash1Result = result.filter((r) => r.hash === '1'),
           hash2Result = result.filter((r) => r.hash === '2'),
@@ -1712,19 +1712,19 @@ describe('applicationReportService', function () {
         expect(hash1Result[0].policyThreatLevel).toBe(8);
         expect(hash1Result[0].policyName).toBe('Policy 6');
         expect(hash1Result[0].waived).toBe(false);
-        expect(hash1Result[0].grandfathered).toBe(false);
+        expect(hash1Result[0].legacyViolation).toBe(false);
         expect(hash1Result[0].componentIdentifier).toBe('bar');
 
         expect(hash2Result[0].policyThreatLevel).toBe(4);
         expect(hash2Result[0].policyName).toBe('Policy 2');
         expect(hash2Result[0].waived).toBe(false);
-        expect(hash2Result[0].grandfathered).toBe(false);
+        expect(hash2Result[0].legacyViolation).toBe(false);
         expect(hash2Result[0].componentIdentifier).toBe('baz');
 
         expect(hash5Result[0].policyThreatLevel).toBe(2);
         expect(hash5Result[0].policyName).toBe('Policy 10');
         expect(hash5Result[0].waived).toBe(false);
-        expect(hash5Result[0].grandfathered).toBe(false);
+        expect(hash5Result[0].legacyViolation).toBe(false);
         expect(hash5Result[0].componentIdentifier).toBe('foo');
       });
 
@@ -1737,11 +1737,11 @@ describe('applicationReportService', function () {
         expect(hash3Result[0].policyThreatLevel).toBe(0);
         expect(hash3Result[0].policyName).toBe('None');
         expect(hash3Result[0].waived).toBe(true);
-        expect(hash3Result[0].grandfathered).toBe(false);
+        expect(hash3Result[0].legacyViolation).toBe(false);
         expect(hash3Result[0].componentIdentifier).toBe('qux');
       });
 
-      it('includes a zero-threat record in the output if all violations for a component are grandfathered', function () {
+      it('includes a zero-threat record in the output if all violations for a component have legacy violation status', function () {
         const result = applicationReportService.aggregateReportEntries(input),
           hash6Result = result.filter((r) => r.hash === '6');
 
@@ -1750,11 +1750,11 @@ describe('applicationReportService', function () {
         expect(hash6Result[0].policyThreatLevel).toBe(0);
         expect(hash6Result[0].policyName).toBe('None');
         expect(hash6Result[0].waived).toBe(false);
-        expect(hash6Result[0].grandfathered).toBe(true);
+        expect(hash6Result[0].legacyViolation).toBe(true);
         expect(hash6Result[0].componentIdentifier).toBe('foo2');
       });
 
-      it('sets grandfathered and waived in the zero-threat record if there are some violations with each', function () {
+      it('sets legacyViolation and waived in the zero-threat record if there are some violations with each', function () {
         const result = applicationReportService.aggregateReportEntries(input),
           hash7Result = result.filter((r) => r.hash === '7');
 
@@ -1763,7 +1763,7 @@ describe('applicationReportService', function () {
         expect(hash7Result[0].policyThreatLevel).toBe(0);
         expect(hash7Result[0].policyName).toBe('None');
         expect(hash7Result[0].waived).toBe(true);
-        expect(hash7Result[0].grandfathered).toBe(true);
+        expect(hash7Result[0].legacyViolation).toBe(true);
         expect(hash7Result[0].componentIdentifier).toBe('foo3');
       });
 
@@ -1776,7 +1776,7 @@ describe('applicationReportService', function () {
         expect(hash4Result[0].policyThreatLevel).toBe(0);
         expect(hash4Result[0].policyName).toBe('None');
         expect(hash4Result[0].waived).toBe(false);
-        expect(hash4Result[0].grandfathered).toBe(false);
+        expect(hash4Result[0].legacyViolation).toBe(false);
         expect(hash4Result[0].componentIdentifier).toBe('apache');
       });
     });
@@ -1805,7 +1805,7 @@ describe('applicationReportService', function () {
             policyThreatLevel: 4,
             policyName: 'Policy 2',
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
             componentIdentifier: 'baz',
             derivedComponentName: 'junit.junit.4.8',
           },
@@ -1814,7 +1814,7 @@ describe('applicationReportService', function () {
             policyThreatLevel: 4,
             policyName: 'Policy 1',
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
             componentIdentifier: 'bar',
             derivedComponentName: 'junit.junit.4.12',
           },
@@ -2123,13 +2123,13 @@ describe('applicationReportService', function () {
           // CVE-1234 has two open violations (one of which is shared with CVE-1235)
           mkPolicyEntry(1234, {
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
             policyThreatLevel: 1,
             derivedViolationState: 'open',
           }),
           mkPolicyEntry([1234, 1235], {
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
             policyThreatLevel: 2,
             derivedViolationState: 'open',
           }),
@@ -2137,33 +2137,33 @@ describe('applicationReportService', function () {
           // CVE-1235 has one open violation (shared with CVE-1234) and one waived violation
           mkPolicyEntry(1235, {
             waived: true,
-            grandfathered: false,
+            legacyViolation: false,
             policyThreatLevel: 3,
             derivedViolationState: 'waived',
           }),
 
-          // CVE-1236 has one open violation and one grandfathered violation
+          // CVE-1236 has one open violation and one legacy violation
           mkPolicyEntry(1236, {
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
             policyThreatLevel: 1,
             derivedViolationState: 'open',
           }),
           mkPolicyEntry(1236, {
             waived: false,
-            grandfathered: true,
+            legacyViolation: true,
             policyThreatLevel: 2,
             derivedViolationState: 'waived',
           }),
 
-          // CVE-1236 on baz only has one grandfathered violation
+          // CVE-1236 on baz only has one legacy violation
           mkPolicyEntry(
             1236,
             {
               waived: false,
-              grandfathered: true,
+              legacyViolation: true,
               policyThreatLevel: 1,
-              derivedViolationState: 'grandfathered',
+              derivedViolationState: 'legacyViolation',
             },
             'baz'
           ),
@@ -2171,13 +2171,13 @@ describe('applicationReportService', function () {
           // CVE-1238 has two waived violations
           mkPolicyEntry(1238, {
             waived: true,
-            grandfathered: false,
+            legacyViolation: false,
             policyThreatLevel: 1,
             derivedViolationState: 'waived',
           }),
           mkPolicyEntry(1238, {
             waived: true,
-            grandfathered: false,
+            legacyViolation: false,
             policyThreatLevel: 2,
             derivedViolationState: 'waived',
           }),
@@ -2186,19 +2186,19 @@ describe('applicationReportService', function () {
           // is open
           mkPolicyEntry(1239, {
             waived: true,
-            grandfathered: false,
+            legacyViolation: false,
             policyThreatLevel: 1,
             derivedViolationState: 'waived',
           }),
           mkPolicyEntry(1239, {
             waived: true,
-            grandfathered: true,
+            legacyViolation: true,
             policyThreatLevel: 2,
-            derivedViolationState: 'waived+grandfathered',
+            derivedViolationState: 'waived+legacyViolation',
           }),
           mkPolicyEntry(1239, {
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
             policyThreatLevel: 3,
             derivedViolationState: 'open',
           }),
@@ -2206,23 +2206,23 @@ describe('applicationReportService', function () {
           // CVE-1240 has one violation that is both
           mkPolicyEntry(1240, {
             waived: true,
-            grandfathered: true,
+            legacyViolation: true,
             policyThreatLevel: 1,
-            derivedViolationState: 'waived+grandfathered',
+            derivedViolationState: 'waived+legacyViolation',
           }),
 
-          // CVE-1241 has one violation that is waived and one that is grandfathered
+          // CVE-1241 has one violation that is waived and one that is legacyViolation enabled
           mkPolicyEntry(1241, {
             waived: true,
-            grandfathered: false,
+            legacyViolation: false,
             policyThreatLevel: 1,
             derivedViolationState: 'waived',
           }),
           mkPolicyEntry(1241, {
             waived: false,
-            grandfathered: true,
+            legacyViolation: true,
             policyThreatLevel: 2,
-            derivedViolationState: 'grandfathered',
+            derivedViolationState: 'legacyViolation',
           }),
 
           // CVE-1242 does not have any violations
@@ -2239,54 +2239,54 @@ describe('applicationReportService', function () {
           mkRawDataEntry(1242),
         ];
 
-      it('includes the waived flag and grandfathered flags only if every matching violation is waived or grandfathered', function () {
+      it('includes the waived flag and legacyViolation flags only if every matching violation is waived or legacy violations are enabled', function () {
         expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
           jasmine.objectContaining({
             securityCode: 'CVE-1234',
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
           }),
           jasmine.objectContaining({
             securityCode: 'CVE-1235',
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
           }),
           jasmine.objectContaining({
             securityCode: 'CVE-1236',
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
           }),
           jasmine.objectContaining({
             securityCode: 'CVE-1236',
             waived: false,
-            grandfathered: true,
+            legacyViolation: true,
           }),
           jasmine.objectContaining({
             securityCode: 'CVE-1238',
             waived: true,
-            grandfathered: false,
+            legacyViolation: false,
           }),
           jasmine.objectContaining({
             securityCode: 'CVE-1239',
             waived: false,
-            grandfathered: false,
+            legacyViolation: false,
           }),
           jasmine.objectContaining({
             securityCode: 'CVE-1240',
             waived: true,
-            grandfathered: true,
+            legacyViolation: true,
           }),
           jasmine.objectContaining({
             securityCode: 'CVE-1241',
             waived: true,
-            grandfathered: true,
+            legacyViolation: true,
           }),
         ]);
       });
 
       it(
         'calculates a violationSortState that sorts open violations first, followed by non-violating, ' +
-          'followed by waived, grandfathered & waived, and then finally grandfathered',
+          'followed by waived, legacyViolation & waived, and then finally legacyViolation',
         function () {
           expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
             jasmine.objectContaining({
@@ -2327,7 +2327,7 @@ describe('applicationReportService', function () {
 
       it(
         'includes the highest matching policyThreatLevel for each vulnerability, ' +
-          'treating waived and grandfathered violations as 0',
+          'treating waived and legacy violations as 0',
         function () {
           expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
             jasmine.objectContaining({

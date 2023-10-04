@@ -82,8 +82,8 @@ public class ApplicationReportPage
     return new IQCoverageIndicator(childSelector(".iq-coverage-indicator"));
   }
 
-  public IQGrandfatheringIndicator grandfatheringIndicator() {
-    return new IQGrandfatheringIndicator(childSelector(".iq-legacy-violations-indicator"));
+  public IQLegacyViolationsIndicator legacyViolationsIndicator() {
+    return new IQLegacyViolationsIndicator(childSelector(".iq-legacy-violations-indicator"));
   }
 
   public SelenideElement filterToggle() {
@@ -251,10 +251,10 @@ public class ApplicationReportPage
     }
   }
 
-  public static class IQGrandfatheringIndicator
-      extends BasicElement<IQGrandfatheringIndicator>
+  public static class IQLegacyViolationsIndicator
+      extends BasicElement<IQLegacyViolationsIndicator>
   {
-    public IQGrandfatheringIndicator(String selector) {
+    public IQLegacyViolationsIndicator(String selector) {
       super(selector);
     }
 

@@ -145,7 +145,7 @@ export default function RepositoryResultsSummaryPage() {
               repositorySummary.moderateViolationCount
             }
             showQuarantinedSection={true}
-            showGrandfatheredSection={false}
+            showLegacyViolationsSection={false}
           />
           <RepositoryResultsComponentsTable repositoryId={params.repositoryId} />
         </NxLoadWrapper>

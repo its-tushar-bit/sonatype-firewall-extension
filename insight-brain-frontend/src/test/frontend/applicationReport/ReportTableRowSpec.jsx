@@ -25,7 +25,7 @@ describe('ReportTableRow component', function () {
     {
       policyThreatLevel: 9,
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       directDependency: false,
       dependencyInfo: {
         rootAncestors: [npmProducerComponentKey],
@@ -34,7 +34,7 @@ describe('ReportTableRow component', function () {
     {
       policyThreatLevel: 9,
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       directDependency: false,
       dependencyInfo: {
         rootAncestors: [npmProducerComponentKey],
@@ -43,7 +43,7 @@ describe('ReportTableRow component', function () {
     {
       policyThreatLevel: 9,
       waived: true,
-      grandfathered: false,
+      legacyViolation: false,
       directDependency: false,
       dependencyInfo: {
         rootAncestors: [npmProducerComponentKey],
@@ -52,7 +52,7 @@ describe('ReportTableRow component', function () {
     {
       policyThreatLevel: 9,
       waived: false,
-      grandfathered: true,
+      legacyViolation: true,
       directDependency: false,
       dependencyInfo: {
         rootAncestors: [npmProducerComponentKey],
@@ -61,7 +61,7 @@ describe('ReportTableRow component', function () {
     {
       policyThreatLevel: 0,
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       directDependency: false,
       dependencyInfo: {
         rootAncestors: [npmProducerComponentKey],
@@ -70,7 +70,7 @@ describe('ReportTableRow component', function () {
     {
       policyThreatLevel: 9,
       waived: false,
-      grandfathered: false,
+      legacyViolation: false,
       directDependency: false,
       dependencyInfo: {},
     },
@@ -271,7 +271,7 @@ describe('ReportTableRow component', function () {
         policyName: 'None',
         policyThreatLevel: 0,
         derivedDependencyType: 'unknown',
-        grandfathered: true,
+        legacyViolation: true,
       },
     };
     renderComponent(props);

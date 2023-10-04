@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.UserDirectory;
+import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -53,6 +54,8 @@ public class ApplicationHelper
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
+
   private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
 
   @Inject
@@ -65,6 +68,7 @@ public class ApplicationHelper
       final ProductLicense productLicense,
       final CurrentUser currentUser,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      final OrganizationApplicationManagementEventService organizationApplicationManagementEventService,
       final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
   {
     this.applicationDAO = applicationDAO;
@@ -75,6 +79,7 @@ public class ApplicationHelper
     this.currentUser = currentUser;
     this.membershipMappingDAO = membershipMappingDAO;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
   }
 
@@ -97,6 +102,7 @@ public class ApplicationHelper
       addApplication(tx, application);
       tx.commit();
     }
+    postAddApplicationEvent();
     return application;
   }
 
@@ -148,6 +154,12 @@ public class ApplicationHelper
             + " that does not exist.");
       }
     }
+  }
+
+  public void postAddApplicationEvent() {
+    // Post event here instead of ApplicationService so that SCM imports and automatic application creation (CLI)
+    // are covered
+    organizationApplicationManagementEventService.postEvent();
   }
 
   private void addUserToApplicationOwnerRole(final TransactionContext tx, Application application) {

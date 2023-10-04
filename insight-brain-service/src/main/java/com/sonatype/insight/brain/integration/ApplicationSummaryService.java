@@ -212,6 +212,7 @@ public class ApplicationSummaryService
         application = new Application(applicationPublicId, applicationPublicId, targetOrganizationId);
         applicationHelper.validateNewApplication(application);
         applicationDAO.insert(application);
+        applicationHelper.postAddApplicationEvent();
         auditCreateApplication(application, targetOrganization);
         sendApplicationCreatedTelemetryData(application, true, clientUserAgent);
       }

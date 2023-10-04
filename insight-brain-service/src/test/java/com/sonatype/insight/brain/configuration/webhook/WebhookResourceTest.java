@@ -11,6 +11,7 @@ import java.util.HashSet;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -26,6 +27,7 @@ import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECR
 import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAKE_SECRET_KEY;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.ORG_APP_MANAGEMENT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_ALERT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_MANAGEMENT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT;
@@ -94,6 +96,7 @@ public class WebhookResourceTest
 
   @Test
   public void testGetAllWebhookEventTypes_ReturnsAllWebhookEventTypes() throws Exception {
+    // Without org app management webhook enabled
     HttpResponse response = restRequest().path(WEBHOOK_EVENT_TYPES_PATH).get();
     assertResponseStatus(200, response);
 
@@ -101,6 +104,17 @@ public class WebhookResourceTest
 
     assertThat(results).containsExactly(POLICY_MANAGEMENT, APPLICATION_EVALUATION, POLICY_ALERT,
         LICENSE_OVERRIDE_MANAGEMENT, SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT, WAIVER_REQUEST);
+
+    // With org app management webhook enabled
+    SystemConfigurationPropertyFeature.ORG_APP_MANAGEMENT_WEBHOOK_EVENT.setEnabled(true);
+
+    response = restRequest().path(WEBHOOK_EVENT_TYPES_PATH).get();
+    assertResponseStatus(200, response);
+
+    results = response.getBody(WebhookEventType[].class);
+
+    assertThat(results).containsExactly(POLICY_MANAGEMENT, APPLICATION_EVALUATION, POLICY_ALERT,
+        LICENSE_OVERRIDE_MANAGEMENT, SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT, WAIVER_REQUEST, ORG_APP_MANAGEMENT);
   }
 
   @Test

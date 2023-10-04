@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
+import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -63,6 +64,8 @@ public class ApplicationService
 
   private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
 
+  private final OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
+
   @Inject
   public ApplicationService(
       ApplicationDAO applicationDAO,
@@ -71,6 +74,7 @@ public class ApplicationService
       final ManagementEventService managementEventService,
       final OrganizationDAO organizationDAO,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      final OrganizationApplicationManagementEventService organizationApplicationManagementEventService,
       final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
   {
     this.applicationDAO = applicationDAO;
@@ -79,6 +83,7 @@ public class ApplicationService
     this.managementEventService = managementEventService;
     this.organizationDAO = organizationDAO;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
   }
 
@@ -244,6 +249,7 @@ public class ApplicationService
     applicationHelper.addApplication(application);
     AuditData.get().setApplicationWithDetails(application);
 
+    // Org app summary event post for application insert is in ApplicationHelper to cover SCM importing
     managementEventService.postEvent(CREATED, application);
 
     return application;
@@ -257,6 +263,7 @@ public class ApplicationService
         OwnerMaintenanceTelemetry.TYPE_UPDATE);
 
     managementEventService.postEvent(UPDATED, application);
+    organizationApplicationManagementEventService.postEvent();
 
     return application;
   }
@@ -279,6 +286,7 @@ public class ApplicationService
       policyViolationLoggerFactory.newLogger(new Date(), application).logClearEvent();
     }
     managementEventService.postEvent(DELETED, application);
+    organizationApplicationManagementEventService.postEvent();
   }
 
   public Set<String> getApplicationIdsByOrganizationIds(Set<String> organizationIds) {

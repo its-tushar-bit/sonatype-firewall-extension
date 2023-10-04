@@ -18,7 +18,8 @@ public enum WebhookEventType
   LICENSE_OVERRIDE_MANAGEMENT("License Override Management", "iq:licenseOverrideManagement"),
   SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT("Security Vulnerability Override Management",
       "iq:securityVulnerabilityOverrideManagement"),
-  WAIVER_REQUEST("Waiver Request", "iq:waiverRequest");
+  WAIVER_REQUEST("Waiver Request", "iq:waiverRequest"),
+  ORG_APP_MANAGEMENT("Organization and Application Management", "iq:orgAppManagement");
 
   private final String displayName;
 

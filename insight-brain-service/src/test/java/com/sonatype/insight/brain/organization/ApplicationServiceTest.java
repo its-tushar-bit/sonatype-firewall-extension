@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -38,6 +39,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
+import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -220,7 +222,7 @@ public class ApplicationServiceTest
 
   @Test
   public void testAddUpdateAndDeleteApplicationPostEvents() throws Exception {
-    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<WebhookEvent> handler = new TestEventHandler<>(new CountDownLatch(2));
     eventBus.register(handler);
 
     Organization org = tempEntity.newOrganization();
@@ -229,28 +231,55 @@ public class ApplicationServiceTest
     final String applicationId = app.getId();
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
-    assertThat(handler.getEvent().action).isEqualTo(CREATED);
-    assertThat(handler.getEvent().ownerId).isEqualTo(applicationId);
-    assertThat(handler.getEvent().owner.getId()).isEqualTo(applicationId);
 
-    handler.setLatch(new CountDownLatch(1));
+    OwnerEvent ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
+        .findFirst().get();
+    OrganizationApplicationManagementEvent orgAppSummaryEvent =
+        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+
+    assertThat(ownerEvent.action).isEqualTo(CREATED);
+    assertThat(ownerEvent.ownerId).isEqualTo(applicationId);
+    assertThat(ownerEvent.owner.getId()).isEqualTo(applicationId);
+    assertThat(orgAppSummaryEvent.organizations).hasSize(3);
+    assertThat(orgAppSummaryEvent.applications).hasSize(3);
+
+    handler.setLatch(new CountDownLatch(2));
 
     app.setName("new appId");
     applicationService.updateApplication(app);
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
-    assertThat(handler.getEvent().action).isEqualTo(UPDATED);
-    assertThat(handler.getEvent().ownerId).isEqualTo(applicationId);
-    assertThat(handler.getEvent().owner.getId()).isEqualTo(applicationId);
 
-    handler.setLatch(new CountDownLatch(1));
+    ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
+        .findFirst().get();
+    orgAppSummaryEvent =
+        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+
+    assertThat(ownerEvent.action).isEqualTo(UPDATED);
+    assertThat(ownerEvent.ownerId).isEqualTo(applicationId);
+    assertThat(ownerEvent.owner.getId()).isEqualTo(applicationId);
+    assertThat(orgAppSummaryEvent.organizations).hasSize(3);
+    assertThat(orgAppSummaryEvent.applications).hasSize(3);
+
+    handler.setLatch(new CountDownLatch(2));
 
     applicationService.deleteApplicationByPublicId(app.getPublicId());
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
-    assertThat(handler.getEvent().action).isEqualTo(DELETED);
-    assertThat(handler.getEvent().ownerId).isEqualTo(applicationId);
-    assertThat(handler.getEvent().owner.getId()).isEqualTo(applicationId);
+
+    ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
+        .findFirst().get();
+    orgAppSummaryEvent =
+        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+
+    assertThat(ownerEvent.action).isEqualTo(DELETED);
+    assertThat(ownerEvent.ownerId).isEqualTo(applicationId);
+    assertThat(ownerEvent.owner.getId()).isEqualTo(applicationId);
+    assertThat(orgAppSummaryEvent.organizations).hasSize(3);
+    assertThat(orgAppSummaryEvent.applications).hasSize(2);
 
     eventBus.unregister(handler);
   }

@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage.WebhookListElement;
 import com.sonatype.clm.testing.functional.pages.WebhookEditPage;
 import com.sonatype.clm.testing.functional.utils.InputUtils;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -116,6 +117,7 @@ public class WebhookConfigurationTest
 
   @Test
   public void testCanNavigateToAndEditWebhook() {
+    SystemConfigurationPropertyFeature.ORG_APP_MANAGEMENT_WEBHOOK_EVENT.setEnabled(true);
     WebhookListElement firstWebhook = webhookConfigurationPage.webhook(0);
     firstWebhook.link().click();
 

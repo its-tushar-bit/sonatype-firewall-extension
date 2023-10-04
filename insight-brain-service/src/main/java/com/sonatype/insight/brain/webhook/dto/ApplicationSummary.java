@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.webhook.dto;
 
+import com.sonatype.insight.brain.model.Application;
+
 public class ApplicationSummary
 {
   public String id;
@@ -14,4 +16,14 @@ public class ApplicationSummary
   public String name;
 
   public String organizationId;
+
+  public ApplicationSummary() {
+  }
+
+  public ApplicationSummary(final Application application) {
+    this.id = application.getId();
+    this.publicId = application.getPublicId();
+    this.name = application.getName();
+    this.organizationId = application.getOrganizationId();
+  }
 }

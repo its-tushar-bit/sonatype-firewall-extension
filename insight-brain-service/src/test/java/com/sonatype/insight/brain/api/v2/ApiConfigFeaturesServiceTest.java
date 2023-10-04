@@ -734,4 +734,48 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> service.disableFeature(LOOKER_INTEGRATED_ENTERPRISE_REPORTING))
         .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_OrgAppManagementWebhookEvent() {
+    assertThat(service.getSystemConfigurationPropertyFeature("ORG-APP-MANAGEMENT-WEBHOOK-EVENT"))
+        .isEqualTo(SystemConfigurationPropertyFeature.ORG_APP_MANAGEMENT_WEBHOOK_EVENT);
+    assertThat(service.getSystemConfigurationPropertyFeature("org-app-management-webhook-event"))
+        .isEqualTo(SystemConfigurationPropertyFeature.ORG_APP_MANAGEMENT_WEBHOOK_EVENT);
+    assertThat(service.getSystemConfigurationPropertyFeature("Org_App_Management_Webhook_Event"))
+        .isEqualTo(SystemConfigurationPropertyFeature.ORG_APP_MANAGEMENT_WEBHOOK_EVENT);
+    assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("orgAppManagementWebhookEvent"))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature not supported: orgAppManagementWebhookEvent");
+  }
+
+  @Test
+  public void testEnableFeature_OrgAppManagementWebhookEvent() {
+    service.enableFeature(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT)
+        .getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_OrgAppManagementWebhookEvent_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_OrgAppManagementWebhookEvent() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.ORG_APP_MANAGEMENT_WEBHOOK_EVENT
+        .getPropertyName(), "true");
+    service.disableFeature(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT))
+        .isNull();
+  }
+
+  @Test
+  public void testDisableFeature_OrgAppManagementWebhookEvent_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+  }
 }

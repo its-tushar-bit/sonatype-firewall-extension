@@ -203,6 +203,8 @@ public class SystemConfigurationProperty
   public static final String POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED =
       "policyManagementAtRepositoryManagerLevelEnabled";
 
+  public static final String ORG_APP_MANAGEMENT_WEBHOOK_EVENT = "ORG_APP_MANAGEMENT_WEBHOOK_EVENT";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

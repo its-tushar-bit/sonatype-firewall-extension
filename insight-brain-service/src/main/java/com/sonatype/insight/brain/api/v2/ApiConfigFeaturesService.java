@@ -181,7 +181,9 @@ public class ApiConfigFeaturesService
     SCM_UX_IMPROVEMENTS(SystemConfigurationProperty.SCM_UX_IMPROVEMENTS, true, false),
 
     POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED(
-        SystemConfigurationProperty.POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED, false, false);
+        SystemConfigurationProperty.POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED, false, false),
+
+    ORG_APP_MANAGEMENT_WEBHOOK_EVENT(SystemConfigurationProperty.ORG_APP_MANAGEMENT_WEBHOOK_EVENT, false);
 
     private final String propertyName;
 

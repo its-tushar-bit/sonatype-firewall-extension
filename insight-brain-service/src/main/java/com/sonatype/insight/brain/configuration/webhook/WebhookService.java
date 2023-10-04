@@ -6,13 +6,17 @@
 package com.sonatype.insight.brain.configuration.webhook;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -24,11 +28,12 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
-import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +54,19 @@ public class WebhookService
 
   private final ProductLicense productLicense;
 
+  private final OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
+
   @Inject
-  public WebhookService(final Configuration configuration,
-                        final PlexusCipher plexusCipher,
-                        final ProductLicense productLicense)
+  public WebhookService(
+      final Configuration configuration,
+      final PlexusCipher plexusCipher,
+      final ProductLicense productLicense,
+      final OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
   {
     this.configuration = configuration;
     this.plexusCipher = plexusCipher;
     this.productLicense = productLicense;
+    this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -109,7 +119,11 @@ public class WebhookService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public List<WebhookEventType> getAllWebhookEventTypes() {
-    return Lists.newArrayList(WebhookEventType.values());
+    final List<WebhookEventType> eventTypes = new LinkedList<>(Arrays.asList(WebhookEventType.values()));
+    if (!SystemConfigurationPropertyFeature.ORG_APP_MANAGEMENT_WEBHOOK_EVENT.isEnabled()) {
+      eventTypes.remove(WebhookEventType.ORG_APP_MANAGEMENT);
+    }
+    return eventTypes;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -121,6 +135,10 @@ public class WebhookService
     }
     encryptWebhookSecretKey(webhook);
     webhookDao.insert(webhook);
+    final Set<WebhookEventType> eventTypes = webhook.getEventTypes();
+    if (!CollectionUtils.isEmpty(eventTypes) && eventTypes.contains(WebhookEventType.ORG_APP_MANAGEMENT)) {
+      organizationApplicationManagementEventService.postEvent();
+    }
     auditWebhook(webhook);
     webhook.setSecretKey(FAKE_SECRET_KEY);
     return webhook;
@@ -140,7 +158,18 @@ public class WebhookService
     else {
       encryptWebhookSecretKey(webhook);
     }
+    final Webhook preUpdateWebhook = webhookDao.getById(webhook.getId());
     webhookDao.update(webhook);
+
+    final Set<WebhookEventType> preUpdateEventTypes = preUpdateWebhook.getEventTypes();
+    final Set<WebhookEventType> eventTypes = webhook.getEventTypes();
+    // Check if this webhook already has org app summary included - if it does, don't post the payload
+    if (!CollectionUtils.isEmpty(preUpdateEventTypes) &&
+        !preUpdateEventTypes.contains(WebhookEventType.ORG_APP_MANAGEMENT) &&
+        !CollectionUtils.isEmpty(eventTypes) &&
+        eventTypes.contains(WebhookEventType.ORG_APP_MANAGEMENT)) {
+      organizationApplicationManagementEventService.postEvent();
+    }
     auditWebhook(webhook);
 
     webhook.setSecretKey(FAKE_SECRET_KEY);

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.integration;
 
 import java.util.Date;
-
+import java.util.concurrent.CountDownLatch;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -22,6 +23,8 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEvent;
+import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -32,6 +35,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,6 +52,9 @@ public class ApplicationSummaryServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private AsyncEventBus eventBus;
 
   @Inject
   private ApplicationDAO applicationDAO;
@@ -365,6 +372,31 @@ public class ApplicationSummaryServiceTest
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
         () -> service.getApplications(Goal.EVALUATE_COMPONENT, org.getId()));
+  }
+
+  @Test
+  public void testAddApplicationPostEvent() throws Exception {
+    final TestEventHandler<OrganizationApplicationManagementEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1));
+    eventBus.register(handler);
+
+    final Organization org = tempEntity.newOrganization();
+    final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+
+    service.verifyOrCreateApplication("appPublicId", org.getId(), Goal.EVALUATE_APPLICATION,
+        "test_client_user_agent");
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+
+    final OrganizationApplicationManagementEvent event = handler.getEvent();
+
+    assertThat(event).isNotNull();
+    assertThat(event.applications).isNotEmpty();
+    assertThat(event.organizations).isNotEmpty();
+
+    eventBus.unregister(handler);
   }
 
   private void testGetApplicationsByOrganization_SortedByCaseInsensitiveName(Goal goal) {

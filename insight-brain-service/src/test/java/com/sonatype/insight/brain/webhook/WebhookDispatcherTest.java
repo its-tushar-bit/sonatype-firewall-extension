@@ -10,7 +10,7 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
-
+import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -47,6 +47,8 @@ import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.Appli
 import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
+import com.sonatype.insight.brain.webhook.dto.OrganizationApplicationSummaryPayload;
+import com.sonatype.insight.brain.webhook.dto.OrganizationSummary;
 import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload.PolicyAlertDTO;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
@@ -651,6 +653,41 @@ public class WebhookDispatcherTest
         "https://encoded.policy.violation.link:8182?additionalParameters&anotherOne=yeah");
     assertThat(webhookPayload.addWaiverLink).isEqualTo(
         "https://encoded.add.waiver.link:8182?additionalParameters&anotherOne=yeah");
+  }
+
+  @Test
+  public void testOn_HandlesOrganizationApplicationSummaryEvent() {
+    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.ORG_APP_MANAGEMENT));
+
+    final Organization organization = tempEntity.newOrganization();
+    final OrganizationSummary organizationSummary = new OrganizationSummary(organization);
+    final List<OrganizationSummary> organizationSummaries = Collections.singletonList(organizationSummary);
+
+    final Application application = tempEntity.newApplicationWithParent();
+    final ApplicationSummary applicationSummary = new ApplicationSummary(application);
+    final List<ApplicationSummary> applicationSummaries = Collections.singletonList(applicationSummary);
+
+    final OrganizationApplicationManagementEvent event =
+        new OrganizationApplicationManagementEvent(organizationSummaries, applicationSummaries);
+    event.initiator = "initiator";
+    asyncEventBus.post(event);
+
+    final ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
+    final ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.ORG_APP_MANAGEMENT.getId()),
+            webhookPayloadArgumentCaptor.capture());
+
+    final Webhook webhook = webhookArgumentCaptor.getValue();
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
+
+    final OrganizationApplicationSummaryPayload webhookPayload =
+        (OrganizationApplicationSummaryPayload) webhookPayloadArgumentCaptor.getValue();
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.timestamp).isNotNull();
+    assertThat(webhookPayload.organizations).hasSameElementsAs(organizationSummaries);
+    assertThat(webhookPayload.applications).hasSameElementsAs(applicationSummaries);
   }
 
   private void testEventTypesWithOwner(Owner owner) {

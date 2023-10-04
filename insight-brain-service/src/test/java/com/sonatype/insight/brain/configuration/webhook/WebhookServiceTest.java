@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -28,8 +29,14 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
 import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAKE_SECRET_KEY;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.ORG_APP_MANAGEMENT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_ALERT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.WAIVER_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class WebhookServiceTest
     extends AbstractComponentTest
@@ -45,6 +52,9 @@ public class WebhookServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
 
   @Test
   public void testGetPolicyNotificationWebhooks_Organization() {
@@ -134,6 +144,57 @@ public class WebhookServiceTest
   }
 
   @Test
+  public void testAddWebhook_PostOrgAppManagementListOnPolicyManagementEventType() {
+    final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
+        spy(organizationApplicationManagementEventService);
+    final WebhookService webhookService =
+        new WebhookService(configuration, plexusCipher, testProductLicense, orgAppManagementEventServiceSpy);
+
+    final String secretKey = "some secret key";
+    final Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setSecretKey(secretKey);
+    webhook.setEventTypes(EnumSet.of(ORG_APP_MANAGEMENT));
+    webhookService.addWebhook(webhook);
+
+    verify(orgAppManagementEventServiceSpy).postEvent();
+  }
+
+  @Test
+  public void testAddWebhook_DoNotPostOrgAppManagementListWhenPolicyManagementEventTypeDoesNotExist() {
+    final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
+        spy(organizationApplicationManagementEventService);
+    final WebhookService webhookService =
+        new WebhookService(configuration, plexusCipher, testProductLicense, orgAppManagementEventServiceSpy);
+
+    final String secretKey = "some secret key";
+    final Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setSecretKey(secretKey);
+    webhook.setEventTypes(EnumSet.of(WAIVER_REQUEST, POLICY_ALERT));
+    webhookService.addWebhook(webhook);
+
+    verify(orgAppManagementEventServiceSpy, never()).postEvent();
+  }
+
+  @Test
+  public void testAddWebhook_DoNotPostOrgAppManagementListWhenEventTypesSetIsNull() {
+    final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
+        spy(organizationApplicationManagementEventService);
+    final WebhookService webhookService =
+        new WebhookService(configuration, plexusCipher, testProductLicense, orgAppManagementEventServiceSpy);
+
+    final String secretKey = "some secret key";
+    final Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setSecretKey(secretKey);
+    webhook.setEventTypes(null);
+    webhookService.addWebhook(webhook);
+
+    verify(orgAppManagementEventServiceSpy, never()).postEvent();
+  }
+
+  @Test
   public void testAddAndDeleteWebhook_RepositoryLicensed_Allowed() {
     testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
@@ -213,6 +274,84 @@ public class WebhookServiceTest
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
 
     webhookService.updateWebhook(webhook);
+  }
+
+  @Test
+  public void testUpdateWebhook_PostOrgAppManagementListWhenPolicyManagementEventTypeIsAdded() {
+    final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
+        spy(organizationApplicationManagementEventService);
+    final WebhookService webhookService =
+        new WebhookService(configuration, plexusCipher, testProductLicense, orgAppManagementEventServiceSpy);
+
+    final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+    webhook.getEventTypes().add(ORG_APP_MANAGEMENT);
+
+    webhookService.updateWebhook(webhook);
+
+    verify(orgAppManagementEventServiceSpy).postEvent();
+  }
+
+  @Test
+  public void testUpdateWebhook_DoNotPostOrgAppManagementListWhenPolicyManagementEventTypeIsNotAdded() {
+    final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
+        spy(organizationApplicationManagementEventService);
+    final WebhookService webhookService =
+        new WebhookService(configuration, plexusCipher, testProductLicense, orgAppManagementEventServiceSpy);
+
+    final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+    webhook.getEventTypes().add(WAIVER_REQUEST);
+
+    webhookService.updateWebhook(webhook);
+
+    verify(orgAppManagementEventServiceSpy, never()).postEvent();
+  }
+
+  @Test
+  public void testUpdateWebhook_DoNotPostOrgAppManagementListWhenPolicyManagementEventTypeAlreadyExists() {
+    final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
+        spy(organizationApplicationManagementEventService);
+    final WebhookService webhookService =
+        new WebhookService(configuration, plexusCipher, testProductLicense, orgAppManagementEventServiceSpy);
+
+    final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(POLICY_ALERT, ORG_APP_MANAGEMENT));
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+
+    webhookService.updateWebhook(webhook);
+
+    verify(orgAppManagementEventServiceSpy, never()).postEvent();
+  }
+
+  @Test
+  public void testUpdateWebhook_DoNotPostOrgAppManagementListWhenPolicyManagementEventTypeIsRemoved() {
+    final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
+        spy(organizationApplicationManagementEventService);
+    final WebhookService webhookService =
+        new WebhookService(configuration, plexusCipher, testProductLicense, orgAppManagementEventServiceSpy);
+
+    final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(POLICY_ALERT, ORG_APP_MANAGEMENT));
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+    webhook.getEventTypes().remove(ORG_APP_MANAGEMENT);
+
+    webhookService.updateWebhook(webhook);
+
+    verify(orgAppManagementEventServiceSpy, never()).postEvent();
+  }
+
+  @Test
+  public void testUpdateWebhook_DoNotPostOrgAppManagementListWhenEventTypesSetIsNull() {
+    final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
+        spy(organizationApplicationManagementEventService);
+    final WebhookService webhookService =
+        new WebhookService(configuration, plexusCipher, testProductLicense, orgAppManagementEventServiceSpy);
+
+    final Webhook webhook = tempEntity.newWebhook("http://localhost", null);
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+
+    webhookService.updateWebhook(webhook);
+
+    verify(orgAppManagementEventServiceSpy, never()).postEvent();
   }
 
   @Test

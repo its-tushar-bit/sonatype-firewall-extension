@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
+import com.sonatype.insight.brain.webhook.dto.OrganizationApplicationSummaryPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload.ComponentFactDTO;
 import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload.PolicyAlertDTO;
@@ -249,6 +250,19 @@ public class WebhookDispatcher
     }
   }
 
+  @Subscribe
+  public void on(final OrganizationApplicationManagementEvent organizationApplicationManagementEvent) {
+    final WebhookEventType eventType = WebhookEventType.ORG_APP_MANAGEMENT;
+    if (!checkEventIsLicensed(Organization.ROOT_ORGANIZATION_ID, eventType)) {
+      return;
+    }
+    for (Webhook webhook : getWebhooksOfEventType(eventType)) {
+      invokeWithAudit(webhook, eventType,
+          () -> sendOrganizationApplicationSummaryPayload(webhookService.getDecrypted(webhook.getId()),
+              organizationApplicationManagementEvent));
+    }
+  }
+
   private void invokeWithAudit(Webhook webhook, WebhookEventType webhookEventType, Runnable invocation) {
     try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.INVOKE_WEBHOOK)) {
       try {
@@ -420,6 +434,19 @@ public class WebhookDispatcher
     payload.addWaiverLink = event.addWaiverLink;
 
     webhookClientUtil.post(webhook, WebhookEventType.WAIVER_REQUEST.getId(), payload);
+  }
+
+  private void sendOrganizationApplicationSummaryPayload(
+      final Webhook webhook,
+      final OrganizationApplicationManagementEvent event)
+  {
+    final OrganizationApplicationSummaryPayload payload = new OrganizationApplicationSummaryPayload();
+    payload.timestamp = new Date();
+    payload.initiator = event.initiator;
+    payload.organizations = event.organizations;
+    payload.applications = event.applications;
+
+    webhookClientUtil.post(webhook, WebhookEventType.ORG_APP_MANAGEMENT.getId(), payload);
   }
 
   @Override

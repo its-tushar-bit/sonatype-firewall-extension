@@ -49,7 +49,7 @@ public class WebhookEditPage
   }
 
   public NxCheckbox management() {
-    return new NxCheckbox(eventTypes().get(2));
+    return new NxCheckbox(eventTypes().get(3));
   }
 
   public NxCheckbox applicationEvaluation() {
@@ -57,7 +57,7 @@ public class WebhookEditPage
   }
 
   public NxCheckbox violationAlert() {
-    return new NxCheckbox(eventTypes().get(4));
+    return new NxCheckbox(eventTypes().get(5));
   }
 
   public SelenideElement save() {

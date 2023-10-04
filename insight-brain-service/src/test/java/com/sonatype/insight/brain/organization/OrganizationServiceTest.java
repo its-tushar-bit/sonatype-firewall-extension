@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplications
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
+import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
@@ -166,7 +168,7 @@ public class OrganizationServiceTest
   @Test
   public void testGetAll() {
     OrganizationService organizationService =
-        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory);
+        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory, null);
 
     List<Organization> orgs = organizationService.getAll();
     assertThat(orgs).hasSize(1);
@@ -175,7 +177,7 @@ public class OrganizationServiceTest
   @Test
   public void testGetOrganization() {
     OrganizationService organizationService =
-        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory);
+        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory, null);
 
     Organization testOrg = tempEntity.newOrganization();
 
@@ -188,7 +190,7 @@ public class OrganizationServiceTest
   @Test
   public void testGetOrganization_idDoesNotExist() {
     OrganizationService organizationService =
-        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory);
+        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory, null);
 
     Organization resultOrg = organizationService.getOrganization("NOT_REAL_ID");
     assertThat(resultOrg).isNull();
@@ -196,7 +198,7 @@ public class OrganizationServiceTest
 
   @Test
   public void testAddUpdateAndDeleteOrganizationPostEvents() throws Exception {
-    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<WebhookEvent> handler = new TestEventHandler<>(new CountDownLatch(2));
     eventBus.register(handler);
 
     Organization org = new Organization("testOrg");
@@ -204,28 +206,55 @@ public class OrganizationServiceTest
     final String organizationId = created.getId();
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
-    assertThat(handler.getEvent().action).isEqualTo(CREATED);
-    assertThat(handler.getEvent().ownerId).isEqualTo(organizationId);
-    assertThat(handler.getEvent().owner.getId()).isEqualTo(organizationId);
 
-    handler.setLatch(new CountDownLatch(1));
+    OwnerEvent ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
+        .findFirst().get();
+    OrganizationApplicationManagementEvent orgAppSummaryEvent =
+        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+
+    assertThat(ownerEvent.action).isEqualTo(CREATED);
+    assertThat(ownerEvent.ownerId).isEqualTo(organizationId);
+    assertThat(ownerEvent.owner.getId()).isEqualTo(organizationId);
+    assertThat(orgAppSummaryEvent.organizations).hasSize(1);
+    assertThat(orgAppSummaryEvent.applications).isEmpty();
+
+    handler.setLatch(new CountDownLatch(2));
 
     created.setName("new appId");
     created = organizationService.updateOrganization(created);
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
-    assertThat(handler.getEvent().action).isEqualTo(UPDATED);
-    assertThat(handler.getEvent().ownerId).isEqualTo(organizationId);
-    assertThat(handler.getEvent().owner.getId()).isEqualTo(organizationId);
 
-    handler.setLatch(new CountDownLatch(1));
+    ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
+        .findFirst().get();
+    orgAppSummaryEvent =
+        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+
+    assertThat(ownerEvent.action).isEqualTo(UPDATED);
+    assertThat(ownerEvent.ownerId).isEqualTo(organizationId);
+    assertThat(ownerEvent.owner.getId()).isEqualTo(organizationId);
+    assertThat(orgAppSummaryEvent.organizations).hasSize(1);
+    assertThat(orgAppSummaryEvent.applications).isEmpty();
+
+    handler.setLatch(new CountDownLatch(2));
 
     organizationService.deleteOrganization(created.getId());
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
-    assertThat(handler.getEvent().action).isEqualTo(DELETED);
-    assertThat(handler.getEvent().ownerId).isEqualTo(organizationId);
-    assertThat(handler.getEvent().owner.getId()).isEqualTo(organizationId);
+
+    ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
+        .findFirst().get();
+    orgAppSummaryEvent =
+        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+
+    assertThat(ownerEvent.action).isEqualTo(DELETED);
+    assertThat(ownerEvent.ownerId).isEqualTo(organizationId);
+    assertThat(ownerEvent.owner.getId()).isEqualTo(organizationId);
+    assertThat(orgAppSummaryEvent.organizations).isEmpty();
+    assertThat(orgAppSummaryEvent.applications).isEmpty();
 
     eventBus.unregister(handler);
   }
@@ -234,13 +263,14 @@ public class OrganizationServiceTest
   public void testDeleteOrganization_NLevel_CascadeToChildOrganizations() throws Exception {
     List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
     List<Organization> deletedOrgs = testList.subList(0, 6);
-    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(deletedOrgs.size()));
+    TestEventHandler<WebhookEvent> handler = new TestEventHandler<>(new CountDownLatch(deletedOrgs.size()));
     List<OwnerEvent> deleteOrgEvents;
     eventBus.register(handler);
     organizationService.deleteOrganization(testList.get(5).getId());
 
     assertThat(handler.getLatch().await(10, SECONDS)).isTrue();
-    deleteOrgEvents = (List<OwnerEvent>) handler.getAllEvents();
+    deleteOrgEvents = handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
+        .map(event -> (OwnerEvent) event).collect(Collectors.toList());
     assertThat(deleteOrgEvents).hasSameSizeAs(deletedOrgs);
 
     OrganizationDAO organizationDAO = new OrganizationDAO();

@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
+import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -65,6 +66,8 @@ public class OrganizationService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
+
   @Inject
   public OrganizationService(
       final InsightWork work,
@@ -72,7 +75,8 @@ public class OrganizationService
       final FileCleaner fileCleaner,
       final OrganizationDAO organizationDAO,
       final ManagementEventService managementEventService,
-      final PolicyViolationLoggerFactory policyViolationLoggerFactory)
+      final PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      final OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;
@@ -80,6 +84,7 @@ public class OrganizationService
     this.organizationDAO = organizationDAO;
     this.managementEventService = managementEventService;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
@@ -104,6 +109,7 @@ public class OrganizationService
     AuditData.get().setOrganization(organization);
 
     managementEventService.postEvent(CREATED, organization);
+    organizationApplicationManagementEventService.postEvent();
 
     return organization;
   }
@@ -115,6 +121,8 @@ public class OrganizationService
     AuditData.get().setOrganization(organization);
 
     managementEventService.postEvent(UPDATED, organization);
+    organizationApplicationManagementEventService.postEvent();
+
     return organization;
   }
 
@@ -174,6 +182,7 @@ public class OrganizationService
         organizationDAO.delete(tx, organization);
         tx.commit();
         managementEventService.postEvent(DELETED, organization);
+        organizationApplicationManagementEventService.postEvent();
         policyViolationLoggerFactory.newLogger(new Date(), organization).logClearEvent();
 
         log.info("Deleted organization '{}' with id {}.", organization.getName(), organization.getId());

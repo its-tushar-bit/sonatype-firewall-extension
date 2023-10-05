@@ -132,11 +132,9 @@ public class ApplicationRiskService
 
   public ApplicationRiskScoreDTO getRiskForApp(
       final Application application,
-      final Set<String> stageIds
+      final Set<StageType> stageTypes
   )
   {
-    final Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
-
     final ApplicationView appView =
         policyViolationLoader.getViolations(
             Collections.singleton(application),

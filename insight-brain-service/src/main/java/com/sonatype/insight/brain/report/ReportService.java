@@ -225,8 +225,8 @@ public class ReportService
     if (productLicense.hasFeature(LicensedFeature.DEVELOPER_DASHBOARD)) {
       final ApplicationRiskScoreDTO applicationRiskScoreDTO = applicationRiskService.getRiskForApp(
           application,
-          Collections.singleton(evaluation.getStageTypeId())
-      );
+          Collections.singleton(StageTypes.getById(evaluation.getStageTypeId())
+      ));
       metadata.setTotalRisk(finalExtractTotalRiskOrDefault(applicationRiskScoreDTO));
     }
 

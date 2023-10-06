@@ -60,6 +60,20 @@ public class AbstractPolicyEvaluatorTest
   }
 
   @Test
+  public void testGetModuleIndices_WithModuleAsTarget() {
+    File module = new File(
+        Objects.requireNonNull(getClass().getClassLoader()
+            .getResource("AbstractPolicyEvaluatorTest/artifact/sonatype-clm/module.xml")).getFile());
+
+    List<File> moduleIndices = abstractPolicyEvaluator.getModuleIndices(null, Collections.singletonList(module),null);
+
+    assertThat(moduleIndices)
+        .extracting(File::getPath)
+        .extracting(path -> path.substring(path.indexOf("AbstractPolicyEvaluatorTest")).replaceAll("\\\\", "/"))
+        .containsExactly("AbstractPolicyEvaluatorTest/artifact/sonatype-clm/module.xml");
+  }
+
+  @Test
   public void testGetModuleIndices_WithExcludes() {
     File baseDirectory = new File(
         Objects.requireNonNull(getClass().getClassLoader().getResource("AbstractPolicyEvaluatorTest")).getFile());
@@ -93,7 +107,7 @@ public class AbstractPolicyEvaluatorTest
   public void testGetModuleIndices_IgnoresFiles() {
     File target = new File(
         Objects.requireNonNull(
-                getClass().getClassLoader().getResource("AbstractPolicyEvaluatorTest/artifact/sonatype-clm/module.xml"))
+                getClass().getClassLoader().getResource("AbstractParametersTest/invalid-metadata.json"))
             .getFile());
 
     List<File> moduleIndices = abstractPolicyEvaluator.getModuleIndices(null, Collections.singletonList(target), null);

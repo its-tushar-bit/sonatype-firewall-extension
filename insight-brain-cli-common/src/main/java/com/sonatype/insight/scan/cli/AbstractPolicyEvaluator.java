@@ -42,6 +42,7 @@ import com.sonatype.insight.scanner.call.flow.analyzer.CallFlowGraphHandler;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.client.HttpResponseException;
@@ -57,6 +58,11 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private static final List<String> DEFAULT_MODULE_INCLUDES =
       Collections.unmodifiableList(Arrays.asList("**/sonatype-clm/module.xml", "**/nexus-iq/module.xml"));
+
+  private static final String[] MODULE_INDICES_SUFFIXES = {
+      "/sonatype-clm/module.xml",
+      "/nexus-iq/module.xml"
+  };
 
   protected final RestClientFactory restClientFactory;
 
@@ -229,16 +235,35 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   // Visible for testing
   List<File> getModuleIndices(File baseDirectory, List<File> targets, List<String> moduleExcludes) {
     List<File> moduleIndices = new ArrayList<>();
+
     for (File target : targets) {
-      if (target.getPath().startsWith("container:") || target.getPath().startsWith("iac:") || target.isFile()) {
+      if (target.getPath().startsWith("container:") || target.getPath().startsWith("iac:") ) {
         continue;
       }
-      if (baseDirectory != null && !target.isAbsolute()) {
-        target = baseDirectory.toPath().resolve(target.getPath()).toFile();
+      if (target.isFile()) {
+        if (fileIsModule(target)) {
+          moduleIndices.add(target);
+        }
       }
-      moduleIndices.addAll(getModuleIndices(target.getAbsoluteFile(), moduleExcludes));
+      else
+      {
+        if (baseDirectory != null && !target.isAbsolute()) {
+          target = baseDirectory.toPath().resolve(target.getPath()).toFile();
+        }
+        moduleIndices.addAll(getModuleIndices(target.getAbsoluteFile(), moduleExcludes));
+      }
     }
     return moduleIndices;
+  }
+
+  private boolean fileIsModule(File file) {
+    for (String suffix : MODULE_INDICES_SUFFIXES) {
+      String path = FilenameUtils.separatorsToUnix(file.getAbsolutePath());
+      if (path.endsWith(suffix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Visible for testing

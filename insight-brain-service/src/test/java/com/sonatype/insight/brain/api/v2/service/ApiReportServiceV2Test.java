@@ -119,9 +119,9 @@ public class ApiReportServiceV2Test
     createReportFile(app.getId(), scanId3, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
 
     // Eval policy
-    evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
-    evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
-    evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
+    evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD), ScanTriggerType.WEB_UI);
+    evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE), ScanTriggerType.IDE);
+    evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD), ScanTriggerType.REPOSITORY_MANAGER);
 
     //When fetching all reports for application
     ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
@@ -132,6 +132,10 @@ public class ApiReportServiceV2Test
     assertPolicyEvaluationResults(reports.reports.get(0));
     assertPolicyEvaluationResults(reports.reports.get(1));
     assertPolicyEvaluationResults(reports.reports.get(2));
+
+    assertThat(reports.reports.get(0).scanTriggerType).isEqualTo(ScanTriggerType.REPOSITORY_MANAGER.getId());
+    assertThat(reports.reports.get(1).scanTriggerType).isEqualTo(ScanTriggerType.IDE.getId());
+    assertThat(reports.reports.get(2).scanTriggerType).isEqualTo(ScanTriggerType.WEB_UI.getId());
   }
 
   @Test
@@ -349,7 +353,11 @@ public class ApiReportServiceV2Test
   }
 
   private void evalRequest(String appId, String scanId, Stage stage) throws IOException {
-    policyEvaluateService.evaluate(appId, scanId, stage, ScanTriggerType.CLI);
+    evalRequest(appId, scanId, stage, ScanTriggerType.CLI);
+  }
+
+  private void evalRequest(String appId, String scanId, Stage stage, ScanTriggerType triggerType) throws IOException {
+    policyEvaluateService.evaluate(appId, scanId, stage, triggerType);
   }
 
   private void assertPolicyEvaluationResults(ApiReportResultsDTO apiReportResultsDTO) {

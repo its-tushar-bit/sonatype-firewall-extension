@@ -21,6 +21,11 @@ public class ApiReportResultsDTO
 
   public String commitHash;
 
+  /**
+   * @since 1.168
+   */
+  public String scanTriggerType;
+
   public PolicyEvaluationResult policyEvaluationResult;
 
   public ApiReportResultsDTO() {
@@ -38,6 +43,8 @@ public class ApiReportResultsDTO
     this.policyEvaluationId = policyEvaluation.getId();
     this.evaluationDate = policyEvaluation.getTime();
     this.commitHash = policyEvaluation.getCommitHash();
+    this.scanTriggerType = policyEvaluation.getScanTriggerType()
+         != null ? policyEvaluation.getScanTriggerType().getId() : null;
     this.policyEvaluationResult = policyEvaluationResult;
   }
 
@@ -52,6 +59,7 @@ public class ApiReportResultsDTO
         ", isForMonitoring=" + isForMonitoring + //
         ", reportDate=" + evaluationDate + " (" + (evaluationDate == null ? "" : evaluationDate.getTime()) + ")" + //
         ", commitHash='" + commitHash + '\'' + //
+        ", scanTriggerType='" + scanTriggerType + //
         '}';
   }
 }

@@ -261,7 +261,6 @@ Map<String, Closure> getParallelTests() {
   testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 B', 'OpenJDK 11', '.*/[D-K].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 C', 'OpenJDK 11', '.*/[L-P].*Test.class')
   testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 D', 'OpenJDK 11', '.*/[R-Z].*Test.class')
-  testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 8', 'Java 8')
   testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 11', 'OpenJDK 11')
 
   return testStages

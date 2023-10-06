@@ -29,6 +29,14 @@ export const selectRepositories = createSelector(selectFirewallOnboardingSlice, 
 export const selectRepositoriesList = createSelector(selectRepositories, prop('list'));
 export const selectSupportedFormats = createSelector(selectFirewallOnboardingSlice, prop('supportedFormats'));
 
+export const selectProxyRepositoriesList = createSelector(selectRepositoriesList, (list) => {
+  return list?.filter((repo) => repo.repositoryType === 'proxy') || [];
+});
+
+export const selectHostedRepositoriesList = createSelector(selectRepositoriesList, (list) => {
+  return list?.filter((repo) => repo.repositoryType === 'hosted') || [];
+});
+
 export const selectRepositoriesByType = createSelector(
   selectRepositoriesList,
   selectSupportedFormats,

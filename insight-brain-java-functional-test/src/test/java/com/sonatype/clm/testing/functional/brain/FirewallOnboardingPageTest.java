@@ -975,9 +975,17 @@ public class FirewallOnboardingPageTest
 
     // Hosted Repositories count will be implemented: CLM-25614
     page.shouldHave(text("Inspect and complete configuration"));
-    page.shouldHave(text("Congratulations, you’re all set!"));
-    page.shouldHave(text("Once you launch Firewall, malicious blocking will be enabled for 8 proxy repositories"
-        + " and namespace confusion protection will be enabled for 8 hosted repositories."));
+    page.shouldHave(text("Congratulations, you’ve reached the final step."));
+    page.shouldHave(text(
+        "After you complete, Firewall configuration will run in the background and populate " +
+            "data related to all your\n enabled repositories."));
+    page.shouldHave(text(
+        "Time taken to complete this process depends on the number of enabled repositories and " +
+            "size of each individual\nrepository."));
+    page.shouldHave(text(
+        "Malicious blocking will be enabled for 8 out of 14 proxy repositories."));
+    page.shouldHave(text(
+        "Namespace confusion protection will block selected namespaces from 8 out of 14 hosted repositories."));
 
     eyesWatcher.eyesCheck("Firewall onboarding: inspect and complete onboarding step");
 
@@ -987,8 +995,11 @@ public class FirewallOnboardingPageTest
     page.continueButton().click();
     firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
     page.continueButton().click();
-    page.shouldHave(text("Once you launch Firewall, malicious blocking will be enabled for 10 proxy repositories"
-        + " and namespace confusion protection will be enabled for 10 hosted repositories."));
+
+    page.shouldHave(text(
+        "Malicious blocking will be enabled for 10 out of 14 proxy repositories."));
+    page.shouldHave(text(
+        "Namespace confusion protection will block selected namespaces from 10 out of 14 hosted repositories."));
 
     page.previousButton().click();
     page.previousButton().click();
@@ -996,8 +1007,10 @@ public class FirewallOnboardingPageTest
     page.continueButton().click();
     firewallRepositoryLists.get(0).checkAllHeaderColumn().selectAllCheckbox().click();
     page.continueButton().click();
-    page.shouldHave(text("Once you launch Firewall, malicious blocking will be enabled for 5 proxy repositories"
-        + " and namespace confusion protection will be enabled for 5 hosted repositories."));
+    page.shouldHave(text(
+        "Malicious blocking will be enabled for 5 out of 14 proxy repositories."));
+    page.shouldHave(text(
+        "Namespace confusion protection will block selected namespaces from 5 out of 14 hosted repositories."));
   }
 
   @Test
@@ -1054,8 +1067,16 @@ public class FirewallOnboardingPageTest
 
     page.continueButton().click();
     page.shouldHave(text("Inspect and complete configuration"));
-    page.shouldHave(text("Once you launch Firewall, malicious blocking will be enabled for 6 proxy repositories"
-        + " and namespace confusion protection will be enabled for 6 hosted repositories."));
+    page.shouldHave(text(
+        "After you complete, Firewall configuration will run in the background and populate data related " +
+            "to all your\n enabled repositories."));
+    page.shouldHave(text(
+        "Time taken to complete this process depends on the number of enabled repositories and " +
+            "size of each individual\nrepository."));
+    page.shouldHave(text(
+        "Malicious blocking will be enabled for 6 out of 16 proxy repositories."));
+    page.shouldHave(text(
+        "Namespace confusion protection will block selected namespaces from 6 out of 16 hosted repositories."));
   }
 
   @Test

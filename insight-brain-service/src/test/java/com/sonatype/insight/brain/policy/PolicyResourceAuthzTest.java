@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
@@ -50,6 +51,11 @@ public class PolicyResourceAuthzTest
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     testAuthzGet(restRequest().parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID));
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    grantReadPermission(repositoryManager.getId());
+
+    testAuthzGet(restRequest().parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
   }
 
   @Test
@@ -67,6 +73,11 @@ public class PolicyResourceAuthzTest
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     testAuthzGet(request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID));
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    grantReadPermission(repositoryManager.getId());
+
+    testAuthzGet(restRequest().parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
   }
 
   @Test
@@ -83,6 +94,13 @@ public class PolicyResourceAuthzTest
 
     HttpResponse response = testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    assertResponseStatus(200, response);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    grantWritePermission(repositoryManager.getId());
+
+    response = testAuthzPost(
+        restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
     assertResponseStatus(200, response);
   }
 
@@ -103,6 +121,12 @@ public class PolicyResourceAuthzTest
     policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID));
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    grantWritePermission(repositoryManager.getId());
+
+    policy = tempEntity.newPolicy(repositoryManager);
+    testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
   }
 
   @Test
@@ -124,6 +148,13 @@ public class PolicyResourceAuthzTest
     policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     testAuthzDelete(
         request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    grantWritePermission(repositoryManager.getId());
+
+    policy = tempEntity.newPolicy(repositoryManager);
+    testAuthzDelete(
+        request.parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), policy.getId()));
   }
 
   @Test

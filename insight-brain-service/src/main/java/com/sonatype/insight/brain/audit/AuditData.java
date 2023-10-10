@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.policy.ActionDTO;
 import com.sonatype.insight.brain.policy.ConstraintDTO;
@@ -232,6 +233,15 @@ public abstract class AuditData
 
   AuditData setRepositoryContainer() {
     setData("scope", "all-repositories");
+    return this;
+  }
+
+  AuditData setRepositoryManager(RepositoryManager repositoryManager) {
+    if (repositoryManager != null) {
+      setRepositoryManagerId(repositoryManager.getId());
+      setRepositoryManagerInstanceId(repositoryManager.getInstanceId());
+      setRepositoryManagerName(repositoryManager.getName());
+    }
     return this;
   }
 

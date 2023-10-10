@@ -473,6 +473,31 @@ public class AuditContainerRequestFilterTest
     assertThat(priority.value()).isLessThan(Priorities.AUTHENTICATION);
   }
 
+  @Test
+  public void testFilter_RepositoryManagerOwnerIdAndType_SetsRepositoryManager() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", repositoryManager.getId());
+    pathParameters.add("ownerType", OwnerType.REPOSITORY_MANAGER.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData, atLeastOnce()).setRepositoryManagerId(repositoryManager.getId());
+    verify(mockAuditData).setRepositoryManager((RepositoryManager) ownerArgumentCaptor.capture());
+    assertThat(ownerArgumentCaptor.getValue().getId()).isEqualTo(repositoryManager.getId());
+  }
+
+  @Test
+  public void testFilter_BadRepositoryManagerOwnerIdAndType_SetsRepositoryManagerId() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTest.class.getMethod("audited"));
+    pathParameters.add("ownerId", BAD_ID);
+    pathParameters.add("ownerType", OwnerType.REPOSITORY_MANAGER.toString());
+
+    auditContainerRequestFilter.filter(mockContainerRequestContext);
+
+    verify(mockAuditData).setRepositoryManagerId(BAD_ID);
+    verify(mockAuditData).setRepositoryManager(null);
+  }
+
   private static class AuditedAnnotationTest
   {
     @Audited(value = AuditEvent.AUTHENTICATION_FAILURE)

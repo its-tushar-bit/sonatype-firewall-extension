@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.policy.ActionDTO;
@@ -326,5 +327,11 @@ public interface AuditTestSupport
     assertCustomObject(auditDTO, "policyConstraints", constraints);
     assertCustomObject(auditDTO, "actions", ActionDTO.transcribe(policy.getActions()));
     assertCustomObject(auditDTO, "notifications", NotificationDTO.transcribe(policy.getNotifications()));
+  }
+
+  default void assertRepositoryManagerData(AuditDTO auditDTO, RepositoryManager repositoryManager) {
+    assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+    assertCustomData(auditDTO, "repositoryManagerName", repositoryManager.getName());
   }
 }

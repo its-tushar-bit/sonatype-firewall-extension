@@ -20,6 +20,7 @@ import javax.ws.rs.ext.Provider;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -45,6 +46,8 @@ class AuditContainerRequestFilter
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private RepositoryDAO repositoryDAO = new RepositoryDAO();
+
+  private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
   @VisibleForTesting
   public AuditContainerRequestFilter() {}
@@ -141,6 +144,12 @@ class AuditContainerRequestFilter
         }
         break;
       }
+      case "repository_manager": {
+        if (ownerId != null) {
+          setByRepositoryManagerId(ownerId);
+        }
+        break;
+      }
       case "repository_container": {
         AuditData.get().setRepositoryContainer();
         break;
@@ -182,5 +191,10 @@ class AuditContainerRequestFilter
   private void setByRepositoryPublicId(String repositoryPublicId, String repositoryManagerInstanceId) {
     AuditData.get().setRepositoryPublicId(repositoryPublicId).setRepository(
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId));
+  }
+
+  private void setByRepositoryManagerId(String repositoryManagerId) {
+    AuditData.get().setRepositoryManagerId(repositoryManagerId)
+        .setRepositoryManager(repositoryManagerDAO.getById(repositoryManagerId));
   }
 }

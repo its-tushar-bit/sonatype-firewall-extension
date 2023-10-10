@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
@@ -86,6 +87,12 @@ public class PolicyResourceTest
   @Test
   public void testCRUD_RepositoryContainerLevel() throws Exception {
     testCRUD(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testCRUD_RepositoryManagerLevel() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    testCRUD(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId());
   }
 
   @Test

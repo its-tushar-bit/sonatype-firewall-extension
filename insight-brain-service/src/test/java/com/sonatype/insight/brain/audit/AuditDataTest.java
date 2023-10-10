@@ -11,6 +11,7 @@ import java.util.function.Function;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -203,6 +204,16 @@ public class AuditDataTest
     auditData.setGlobal();
 
     verify(auditData).setData("scope", "global");
+  }
+
+  @Test
+  public void testSetRepositoryManager() {
+    RepositoryManager repositoryManager = new RepositoryManager();
+    auditData.setRepositoryManager(repositoryManager);
+
+    verify(auditData).setData("repositoryManagerId", repositoryManager.getId());
+    verify(auditData).setData("repositoryManagerInstanceId", repositoryManager.getInstanceId());
+    verify(auditData).setData("repositoryManagerName", repositoryManager.getName());
   }
 
   private Function<Runnable, Void> runnableSubmitter() {

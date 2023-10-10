@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -35,9 +34,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityE
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.util.SbomUtils;
@@ -1481,7 +1480,7 @@ public class SbomResultHandlerTest
   public void testParseInvalidJsonVersion() throws Exception {
     ThirdPartyScanContent contentJson =
         new ThirdPartyScanContent("sbom-simple.json", null, null, null, getSbomJsonFile("sbom-simple.json"));
-    assertThatExceptionOfType(InvalidSbomException.class)
+    assertThatExceptionOfType(UnsupportedSbomException.class)
         .isThrownBy(() ->  sbomResultHandler.parseBom(contentJson))
         .withMessage("CycloneDX JSON 1.2 version is not supported");
   }

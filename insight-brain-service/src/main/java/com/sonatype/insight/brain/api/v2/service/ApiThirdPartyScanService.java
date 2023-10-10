@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Date;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -55,6 +54,7 @@ import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.ThirdPartyUtils.SbomFormat;
+import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ItemContentType;
 
@@ -166,7 +166,7 @@ public class ApiThirdPartyScanService
     catch (ParseException | IOException | InvalidSPDXAnalysisException e) {
       throw new BadRequestException("sbom content cannot be parsed", e);
     }
-    catch (InvalidSbomException e) {
+    catch (InvalidSbomException | UnsupportedSbomException e) {
       StringBuilder message = new StringBuilder(e.getMessage());
       for (Throwable suppressedEx : e.getSuppressed()) {
         message.append("\n - ").append(suppressedEx.getMessage());

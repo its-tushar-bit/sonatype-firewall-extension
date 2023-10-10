@@ -468,6 +468,9 @@ public class CreateOwnerTest
 
     testNoDirtyState();
 
+    refreshOrOpen(OwnerSummaryPage.url(parentOrg));
+    waitUntilUrl(OwnerSummaryPage.url(parentOrg));
+
     selectAddOrganizationIcon(orgsAndPoliciesSidebar);
     OwnerEditorDialog.name().shouldBe(focused);
 

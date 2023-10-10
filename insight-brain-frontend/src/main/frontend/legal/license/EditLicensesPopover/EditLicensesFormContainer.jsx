@@ -6,7 +6,7 @@
 import { connect } from 'react-redux';
 
 import { actions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
-import { saveLicenses, setShowLicensesModal } from 'MainRoot/legal/files/advancedLegalFileActions';
+import { saveLicenses, deleteLicenses, setShowLicensesModal } from 'MainRoot/legal/files/advancedLegalFileActions';
 import { selectComponentIdentificationSource } from 'MainRoot/componentDetails/componentDetailsSelectors';
 import EditLicensesForm from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesForm';
 import {
@@ -66,7 +66,7 @@ const mapDispatchToProps = {
   onClose,
   resetFormFields: setLicenseFormResetFormFields,
   saveForm: saveLicenses,
-  deleteLicenseOverride: actions.deleteLicenseOverride,
+  deleteLicenseOverride: deleteLicenses,
   setLicenseStatus: setLicenseFormStatus,
   setLicenseComment: setLicenseFormComment,
   setLicenseScope: setLicenseFormScope,

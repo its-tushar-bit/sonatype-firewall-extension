@@ -321,7 +321,7 @@ const saveLicensesRequested = (_, state) =>
     state
   );
 
-const saveLicensesSucceeded = (payload, state) => {
+const saveLicensesSucceeded = (_, state) => {
   return updateLicenseFilesLegalData(
     {
       saveLicensesSubmitMask: true,

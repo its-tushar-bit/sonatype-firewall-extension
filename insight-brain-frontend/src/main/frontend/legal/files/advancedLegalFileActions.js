@@ -8,6 +8,7 @@ import { find, propEq } from 'ramda';
 import axios from 'axios';
 import {
   getBaseLicenseOverrideUrl,
+  getDeleteLicenseOverrideUrl,
   getLegalFileUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
@@ -118,6 +119,41 @@ export function saveLicenses() {
       };
     return axios
       .post(url, payload)
+      .then(() => {
+        dispatch(loadAvailableScopes(visitedScope.type, visitedScope.publicId));
+        dispatch(componentPromise);
+        dispatch(saveLicensesSucceeded());
+      })
+      .catch((error) => {
+        dispatch(saveLicensesFailed(error));
+        return Promise.reject(error);
+      });
+  };
+}
+
+export function deleteLicenses() {
+  return (dispatch, getState) => {
+    dispatch(saveLicensesRequested());
+    const state = getState();
+    const advancedLegalState = state.advancedLegal;
+    const { scope } = advancedLegalState.editLicensesForm;
+    const { ownerType, ownerId, licenseOverride } = scope;
+
+    const { availableScopes } = advancedLegalState;
+    const visitedScope = availableScopes.values[0];
+    const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
+    const { hash } = state.router.currentParams;
+    const componentPromise = hash
+      ? loadComponent(visitedScope.type, visitedScope.publicId, hash)
+      : loadComponentByComponentIdentifier(JSON.stringify(componentIdentifier));
+    if (!licenseOverride) {
+      dispatch(loadAvailableScopes(visitedScope.type, visitedScope.publicId));
+      dispatch(componentPromise);
+      dispatch(saveLicensesSucceeded());
+      return;
+    }
+    return axios
+      .delete(getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverride.id))
       .then(() => {
         dispatch(loadAvailableScopes(visitedScope.type, visitedScope.publicId));
         dispatch(componentPromise);

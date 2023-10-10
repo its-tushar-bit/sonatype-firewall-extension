@@ -50,4 +50,8 @@ export type FirewallOnboardingState = {
     configuring: boolean,
     configureError: any,
   },
+  launchFirewall: {
+    saving: boolean,
+    saveError: any,
+  },
 };

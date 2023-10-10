@@ -42,6 +42,10 @@ const firewallOnboardingPreloadedState = {
       loading: false,
       loadError: null,
     },
+    launchFirewall: {
+      saving: false,
+      saveError: null,
+    },
   },
 };
 
@@ -49,19 +53,55 @@ describe('FirewallConfigurationOverview', function () {
   const renderComponent = (preloadedState = firewallOnboardingPreloadedState) =>
     render(<FirewallConfigurationOverview />, { preloadedState });
 
-  it('renders correct number of selected proxy repositories', () => {
+  it('renders the namespace confusion protected repositories and proxy repositories', () => {
     renderComponent();
-    const counter = screen.getByTestId('proxy-repositories-count');
 
-    expect(counter).toBeVisible();
-    expect(counter).toHaveTextContent('2 out of 3');
+    const proxyCounter = screen.getByTestId('proxy-repositories-count');
+    expect(proxyCounter).toBeVisible();
+    expect(proxyCounter).toHaveTextContent('2 out of 3');
+
+    const hostedCounter = screen.getByTestId('hosted-repositories-count');
+    expect(hostedCounter).toBeVisible();
+    expect(hostedCounter).toHaveTextContent('3 out of 4');
   });
 
-  it('renders the namespace confusion protected repositories count', () => {
-    renderComponent();
-    const counter = screen.getByTestId('hosted-repositories-count');
+  it('renders message error', () => {
+    const newState = JSON.parse(JSON.stringify(firewallOnboardingPreloadedState));
+    newState.firewallOnboarding.launchFirewall = {
+      saving: false,
+      saveError: 'Some Error',
+    };
 
-    expect(counter).toBeVisible();
-    expect(counter).toHaveTextContent('3 out of 4');
+    renderComponent(newState);
+
+    const proxyCounter = screen.getByTestId('proxy-repositories-count');
+    expect(proxyCounter).toBeVisible();
+    expect(proxyCounter).toHaveTextContent('2 out of 3');
+
+    const hostedCounter = screen.getByTestId('hosted-repositories-count');
+    expect(hostedCounter).toBeVisible();
+    expect(hostedCounter).toHaveTextContent('3 out of 4');
+
+    expect(screen.getByText('Some Error')).toBeVisible();
+  });
+
+  it('renders loading spinner', () => {
+    const newState = JSON.parse(JSON.stringify(firewallOnboardingPreloadedState));
+    newState.firewallOnboarding.launchFirewall = {
+      saving: true,
+      saveError: null,
+    };
+
+    renderComponent(newState);
+
+    const proxyCounter = screen.getByTestId('proxy-repositories-count');
+    expect(proxyCounter).toBeVisible();
+    expect(proxyCounter).toHaveTextContent('2 out of 3');
+
+    const hostedCounter = screen.getByTestId('hosted-repositories-count');
+    expect(hostedCounter).toBeVisible();
+    expect(hostedCounter).toHaveTextContent('3 out of 4');
+
+    expect(screen.getByText('Loading…')).toBeVisible();
   });
 });

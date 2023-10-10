@@ -66,3 +66,5 @@ export const selectProtectionRules = createSelector(
   selectFirewallOnboardingSlice,
   compose(pick(['supplyChainAttacksProtectionEnabled', 'namespaceConfusionProtectionEnabled']), prop('protectionRules'))
 );
+
+export const selectLaunchFirewall = createSelector(selectFirewallOnboardingSlice, prop('launchFirewall'));

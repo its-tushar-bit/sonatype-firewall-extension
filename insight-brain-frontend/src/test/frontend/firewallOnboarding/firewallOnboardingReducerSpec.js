@@ -11,15 +11,12 @@ import { steps } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
 const LOAD_UNCONFIGURED_REPOMANAGER_REQUESTED = `${REDUCER_NAME}/loadUnconfiguredRepoManagers/pending`;
 const LOAD_UNCONFIGURED_REPOMANAGER_FULFILLED = `${REDUCER_NAME}/loadUnconfiguredRepoManagers/fulfilled`;
 const LOAD_UNCONFIGURED_REPOMANAGER_FAILED = `${REDUCER_NAME}/loadUnconfiguredRepoManagers/rejected`;
-const SAVE_REPOSITORIES_REQUESTED = `${REDUCER_NAME}/saveRepositories/pending`;
-const SAVE_REPOSITORIES_FULFILLED = `${REDUCER_NAME}/saveRepositories/fulfilled`;
-const SAVE_REPOSITORIES_FAILED = `${REDUCER_NAME}/saveRepositories/rejected`;
 const LOAD_REPOSITORIES_REQUESTED = `${REDUCER_NAME}/loadRepositories/pending`;
 const LOAD_REPOSITORIES_FULFILLED = `${REDUCER_NAME}/loadRepositories/fulfilled`;
 const LOAD_REPOSITORIES_FAILED = `${REDUCER_NAME}/loadRepositories/rejected`;
-const CONFIGURE_PROTECTION_RULES_REQUESTED = `${REDUCER_NAME}/configureProtectionRules/pending`;
-const CONFIGURE_PROTECTION_RULES_FULFILLED = `${REDUCER_NAME}/configureProtectionRules/fulfilled`;
-const CONFIGURE_PROTECTION_RULES_FAILED = `${REDUCER_NAME}/configureProtectionRules/rejected`;
+const LAUNCH_FIREWALL_REQUESTED = `${REDUCER_NAME}/launchFirewall/pending`;
+const LAUNCH_FIREWALL_FULFILLED = `${REDUCER_NAME}/launchFirewall/fulfilled`;
+const LAUNCH_FIREWALL_FAILED = `${REDUCER_NAME}/launchFirewall/rejected`;
 
 describe('FirewallOnboardingReducer', () => {
   describe('unknown action', () => {
@@ -127,100 +124,6 @@ describe('FirewallOnboardingReducer', () => {
         expect(newState.unconfiguredRepoManagers.loading).toBe(false);
         expect(newState.unconfiguredRepoManagers.loadError).toBe(null);
         expect(newState.unconfiguredRepoManagers.repoManagers).toBe(repoManagers);
-      });
-    });
-  });
-
-  describe('saveRepositories', () => {
-    describe(SAVE_REPOSITORIES_REQUESTED, () => {
-      it('sets loading to true and clears error', () => {
-        const state = Object.freeze({
-          unconfiguredRepoManagers: {
-            repoManagers: [],
-            loading: false,
-            loadError: null,
-          },
-          repositories: {
-            loading: false,
-            loadError: null,
-            saving: false,
-            saveError: null,
-            list: [
-              {
-                id: 'id',
-                repositoryManagerId: 'repoManagerId',
-                publicId: 'publicId',
-                repositoryType: 'proxy',
-                auditEnabled: true,
-                quarantineEnabled: true,
-                policyCompliantComponentSelectionEnabled: false,
-                namespaceConfusionProtectionEnabled: false,
-                format: 'maven',
-              },
-            ],
-          },
-        });
-
-        const newState = reduce(state, {
-          type: SAVE_REPOSITORIES_REQUESTED,
-        });
-
-        expect(newState.repositories.saving).toBe(true);
-        expect(newState.repositories.saveError).toBe(null);
-      });
-    });
-
-    describe(SAVE_REPOSITORIES_FAILED, () => {
-      it('clears loading state and sets a load error', () => {
-        const state = Object.freeze({
-          unconfiguredRepoManagers: {
-            repoManagers: [],
-            loading: false,
-            loadError: null,
-          },
-          repositories: {
-            loading: false,
-            loadError: null,
-            saving: false,
-            saveError: null,
-            list: [],
-          },
-        });
-
-        const newState = reduce(state, {
-          type: SAVE_REPOSITORIES_FAILED,
-          payload: 'test error',
-        });
-
-        expect(newState.repositories.saving).toBe(false);
-        expect(newState.repositories.saveError).toBe('test error');
-      });
-    });
-
-    describe(SAVE_REPOSITORIES_FULFILLED, () => {
-      it('sets loading to false and clears load error', () => {
-        const state = Object.freeze({
-          unconfiguredRepoManagers: {
-            repoManagers: [],
-            loading: false,
-            loadError: null,
-          },
-          repositories: {
-            loading: false,
-            loadError: null,
-            saving: false,
-            saveError: null,
-            list: [],
-          },
-        });
-
-        const newState = reduce(state, {
-          type: SAVE_REPOSITORIES_FULFILLED,
-          payload: state.saveRepositories,
-        });
-
-        expect(newState.repositories.saving).toBe(false);
-        expect(newState.repositories.saveError).toBe(null);
       });
     });
   });
@@ -359,66 +262,59 @@ describe('FirewallOnboardingReducer', () => {
     });
   });
 
-  describe('configureProtectionRules', () => {
-    describe(CONFIGURE_PROTECTION_RULES_REQUESTED, () => {
-      it('sets configuring to true and clears error', () => {
+  describe('launchFirewall', () => {
+    describe(LAUNCH_FIREWALL_REQUESTED, () => {
+      it('sets saving to true and clears saveError', () => {
         const state = Object.freeze({
-          protectionRules: {
-            supplyChainAttacksProtectionEnabled: false,
-            namespaceConfusionProtectionEnabled: false,
-            configuring: false,
-            configureError: null,
+          launchFirewall: {
+            saving: false,
+            saveError: null,
           },
         });
 
         const newState = reduce(state, {
-          type: CONFIGURE_PROTECTION_RULES_REQUESTED,
+          type: LAUNCH_FIREWALL_REQUESTED,
         });
 
-        expect(newState.protectionRules.configuring).toBe(true);
-        expect(newState.protectionRules.configureError).toBe(null);
+        expect(newState.launchFirewall.saving).toBe(true);
+        expect(newState.launchFirewall.saveError).toBe(null);
       });
     });
 
-    describe(CONFIGURE_PROTECTION_RULES_FAILED, () => {
-      it('clears configuring state and sets a configure error', () => {
+    describe(LAUNCH_FIREWALL_FAILED, () => {
+      it('sets saving to false and sets a saveError', () => {
         const state = Object.freeze({
-          protectionRules: {
-            supplyChainAttacksProtectionEnabled: false,
-            namespaceConfusionProtectionEnabled: false,
-            configuring: true,
-            configureError: null,
+          launchFirewall: {
+            saving: true,
+            saveError: null,
           },
         });
 
         const newState = reduce(state, {
-          type: CONFIGURE_PROTECTION_RULES_FAILED,
+          type: LAUNCH_FIREWALL_FAILED,
           payload: 'test error',
         });
 
-        expect(newState.protectionRules.configuring).toBe(false);
-        expect(newState.protectionRules.configureError).toBe('test error');
+        expect(newState.launchFirewall.saving).toBe(false);
+        expect(newState.launchFirewall.saveError).toBe('test error');
       });
     });
 
-    describe(CONFIGURE_PROTECTION_RULES_FULFILLED, () => {
-      it('sets configuring to false and clears configure error', () => {
+    describe(LAUNCH_FIREWALL_FULFILLED, () => {
+      it('sets saving to false and clears saveError', () => {
         const state = Object.freeze({
-          protectionRules: {
-            supplyChainAttacksProtectionEnabled: false,
-            namespaceConfusionProtectionEnabled: false,
-            configuring: true,
-            configureError: null,
+          launchFirewall: {
+            saving: true,
+            saveError: null,
           },
         });
 
         const newState = reduce(state, {
-          type: CONFIGURE_PROTECTION_RULES_FULFILLED,
-          payload: state.configureProtectionRules,
+          type: LAUNCH_FIREWALL_FULFILLED,
         });
 
-        expect(newState.protectionRules.configuring).toBe(false);
-        expect(newState.protectionRules.configureError).toBe(null);
+        expect(newState.launchFirewall.saving).toBe(false);
+        expect(newState.launchFirewall.saveError).toBe(null);
       });
     });
   });

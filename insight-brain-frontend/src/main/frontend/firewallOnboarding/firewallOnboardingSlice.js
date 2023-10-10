@@ -9,6 +9,9 @@ import { head as first, path } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { next, prev, steps, updateRepositories } from './firewallOnboardingUtils';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { setLeftNavigationOpen } from 'MainRoot/util/preferenceStore';
+import { setShowWelcomeModalToTrueInStore } from 'MainRoot/firewall/firewallWelcomeModalStore';
 import {
   getUnconfiguredRepositoriesManager,
   getRepositoryListUrl,
@@ -50,6 +53,10 @@ export const initialState = {
     namespaceConfusionProtectionEnabled: false,
     configuring: false,
     configureError: null,
+  },
+  launchFirewall: {
+    saving: false,
+    saveError: null,
   },
 };
 
@@ -173,34 +180,60 @@ const loadRepositoriesFailed = (state, { payload }) => {
   };
 };
 
-const saveRepositories = createAsyncThunk(`${REDUCER_NAME}/saveRepositories`, (_, { getState, rejectWithValue }) => {
-  const repoManager = selectUnconfiguredRepoManager(getState());
-  const repositories = selectRepositoriesList(getState());
-  return axios.put(getConfigureRepositoriesUrl(repoManager.id), repositories).catch(rejectWithValue);
-});
+const launchFirewall = createAsyncThunk(
+  `${REDUCER_NAME}/launchFirewall`,
+  (_, { dispatch, getState, rejectWithValue }) => {
+    const protectionRules = selectProtectionRules(getState());
 
-const saveRepositoriesRequested = (state) => ({
+    const unconfiguredRepoManager = selectUnconfiguredRepoManager(getState());
+    if (!unconfiguredRepoManager) {
+      const errorMessage = 'There is no unconfigured repository manager selected';
+      return rejectWithValue(errorMessage);
+    }
+
+    const repositories = selectRepositoriesList(getState());
+
+    const errorMessage = 'Firewall configuration request could not be completed. Try again';
+    return axios
+      .put(getConfigureFirewallOnboardingUrl(), { ...protectionRules })
+      .then(() => {
+        return axios
+          .put(getConfigureRepositoriesUrl(unconfiguredRepoManager.id), repositories)
+          .then(() => {
+            setShowWelcomeModalToTrueInStore();
+            setLeftNavigationOpen(true);
+            dispatch(actions.finishConfiguration());
+            dispatch(stateGo('firewall.firewallPage'));
+          })
+          .catch(() => {
+            return rejectWithValue(errorMessage);
+          });
+      })
+      .catch(() => {
+        return rejectWithValue(errorMessage);
+      });
+  }
+);
+
+const launchFirewallRequested = (state) => ({
   ...state,
-  repositories: {
-    ...state.repositories,
+  launchFirewall: {
     saving: true,
     saveError: null,
   },
 });
 
-const saveRepositoriesFulfilled = (state) => ({
+const launchFirewallFulfilled = (state) => ({
   ...state,
-  repositories: {
-    ...state.repositories,
+  launchFirewall: {
     saving: false,
     saveError: null,
   },
 });
 
-const saveRepositoriesFailed = (state, { payload }) => ({
+const launchFirewallFailed = (state, { payload }) => ({
   ...state,
-  repositories: {
-    ...state.repositories,
+  launchFirewall: {
     saving: false,
     saveError: Messages.getHttpErrorMessage(payload),
   },
@@ -211,41 +244,6 @@ const toggleProtectionRule = (state, { payload }) => ({
   protectionRules: {
     ...state.protectionRules,
     [payload]: !state.protectionRules[payload],
-  },
-});
-
-const configureProtectionRules = createAsyncThunk(
-  `${REDUCER_NAME}/configureProtectionRules`,
-  (_, { getState, rejectWithValue }) => {
-    const protectionRules = selectProtectionRules(getState());
-    return axios.put(getConfigureFirewallOnboardingUrl(), { ...protectionRules }).catch(rejectWithValue);
-  }
-);
-
-const configureProtectionRulesRequested = (state) => ({
-  ...state,
-  protectionRules: {
-    ...state.protectionRules,
-    configuring: true,
-    configureError: null,
-  },
-});
-
-const configureProtectionRulesFulfilled = (state) => ({
-  ...state,
-  protectionRules: {
-    ...state.protectionRules,
-    configuring: false,
-    configureError: null,
-  },
-});
-
-const configureProtectionRulesFailed = (state, { payload }) => ({
-  ...state,
-  protectionRules: {
-    ...state.protectionRules,
-    configuring: false,
-    configureError: Messages.getHttpErrorMessage(payload),
   },
 });
 
@@ -272,12 +270,9 @@ const firewallOnboardingSlice = createSlice({
     [loadRepositories.pending]: loadRepositoriesRequested,
     [loadRepositories.fulfilled]: loadRepositoriesFulfilled,
     [loadRepositories.rejected]: loadRepositoriesFailed,
-    [saveRepositories.pending]: saveRepositoriesRequested,
-    [saveRepositories.fulfilled]: saveRepositoriesFulfilled,
-    [saveRepositories.rejected]: saveRepositoriesFailed,
-    [configureProtectionRules.pending]: configureProtectionRulesRequested,
-    [configureProtectionRules.fulfilled]: configureProtectionRulesFulfilled,
-    [configureProtectionRules.rejected]: configureProtectionRulesFailed,
+    [launchFirewall.pending]: launchFirewallRequested,
+    [launchFirewall.fulfilled]: launchFirewallFulfilled,
+    [launchFirewall.rejected]: launchFirewallFailed,
   },
 });
 
@@ -285,8 +280,7 @@ export const actions = {
   ...firewallOnboardingSlice.actions,
   loadUnconfiguredRepoManagers,
   loadRepositories,
-  saveRepositories,
-  configureProtectionRules,
+  launchFirewall,
 };
 
 export default firewallOnboardingSlice.reducer;

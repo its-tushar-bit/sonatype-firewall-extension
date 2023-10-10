@@ -39,6 +39,10 @@ describe('FirewallOnboardingPage', function () {
           supplyChainAttacksProtectionEnabled: false,
           namespaceConfusionProtectionEnabled: false,
         },
+        launchFirewall: {
+          saving: false,
+          saveError: null,
+        },
       },
     };
     renderComponent = (preloadedState = firewallOnboardingPreloadedState) =>

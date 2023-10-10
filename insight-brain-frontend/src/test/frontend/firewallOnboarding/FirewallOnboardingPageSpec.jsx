@@ -32,6 +32,10 @@ const firewallOnboardingPreloadedState = {
       configuring: false,
       configureError: null,
     },
+    launchFirewall: {
+      saving: false,
+      saveError: null,
+    },
   },
 };
 const FIRST_STEP_TITLE = 'Enable Repository Firewall features';

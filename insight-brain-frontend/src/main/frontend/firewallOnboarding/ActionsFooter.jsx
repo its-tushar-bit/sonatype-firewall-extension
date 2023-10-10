@@ -5,15 +5,14 @@
  */
 
 import React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { NxButton, NxFooter } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
 import { actions } from './firewallOnboardingSlice';
 import { next, prev } from './firewallOnboardingUtils';
-import { setShowWelcomeModalToTrueInStore } from '../firewall/firewallWelcomeModalStore';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { setLeftNavigationOpen } from 'MainRoot/util/preferenceStore';
+import { selectLaunchFirewall } from './firewallOnboardingSelectors';
 
 const HELP_URL = 'http://links.sonatype.com/products/nxiq/doc/firewall-onboarding';
 
@@ -26,17 +25,12 @@ export default function ActionsFooter({ currentStep = {}, isNextButtonDisabled, 
   // When cancelling onboarding it should go back to firewall initial screen
   const handleCancel = () => dispatch(stateGo('firewall.firewallPage'));
 
-  const launchFirewall = () => {
-    setShowWelcomeModalToTrueInStore();
-    dispatch(actions.configureProtectionRules());
-    dispatch(actions.saveRepositories());
-    dispatch(actions.finishConfiguration());
-    setLeftNavigationOpen(true);
-    dispatch(stateGo('firewall.firewallPage'));
-  };
+  const launchFirewall = () => dispatch(actions.launchFirewall());
 
   const isPrevAvailable = !!prev(currentStep);
   const isNextAvailable = !!next(currentStep);
+
+  const { saving } = useSelector(selectLaunchFirewall);
 
   return (
     <NxFooter className="actions-footer" id="actions-footer" role="navigation" {...otherProps}>
@@ -59,7 +53,7 @@ export default function ActionsFooter({ currentStep = {}, isNextButtonDisabled, 
             Continue
           </NxButton>
         ) : (
-          <NxButton variant="primary" id="launch-button" onClick={launchFirewall}>
+          <NxButton variant="primary" id="launch-button" onClick={launchFirewall} disabled={saving}>
             Launch Firewall
           </NxButton>
         )}

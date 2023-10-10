@@ -66,6 +66,10 @@ describe('RepositoriesSelector', function () {
           supplyChainAttacksProtectionEnabled: true,
           namespaceConfusionProtectionEnabled: true,
         },
+        launchFirewall: {
+          saving: false,
+          saveError: null,
+        },
       },
     };
 

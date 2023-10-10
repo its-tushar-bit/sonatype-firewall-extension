@@ -5,20 +5,23 @@
  */
 
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { NxTile, NxPageTitle, NxP, NxH1, NxH2 } from '@sonatype/react-shared-components';
+import { useDispatch, useSelector } from 'react-redux';
+import { NxTile, NxLoadingSpinner, NxPageTitle, NxH1, NxH2, NxLoadError } from '@sonatype/react-shared-components';
 import ActionsFooter from './ActionsFooter';
 import { stepsById } from './firewallOnboardingUtils';
 import {
   selectHostedRepositoriesList,
   selectProxyRepositoriesList,
   selectTotalEnabledRepositoriesByTypeAndProp,
+  selectLaunchFirewall,
 } from './firewallOnboardingSelectors';
+import { actions } from './firewallOnboardingSlice';
 import logo from '../img/inspect_and_complete_page_image.svg';
 
 const currentStep = stepsById.protect;
 
 export default function FirewallConfigurationOverview() {
+  const dispatch = useDispatch();
   const totalEnabledProxyRepositories = useSelector((state) =>
     selectTotalEnabledRepositoriesByTypeAndProp(state, 'proxy', 'quarantineEnabled')
   );
@@ -27,6 +30,7 @@ export default function FirewallConfigurationOverview() {
     selectTotalEnabledRepositoriesByTypeAndProp(state, 'hosted', 'namespaceConfusionProtectionEnabled')
   );
   const totalHostedRepositories = useSelector(selectHostedRepositoriesList);
+  const { saving, saveError } = useSelector(selectLaunchFirewall);
 
   return (
     <>
@@ -62,6 +66,10 @@ export default function FirewallConfigurationOverview() {
             <img src={logo} alt="Inspect and complete logo" />
           </div>
         </NxTile.Content>
+        {saving && <NxLoadingSpinner />}
+        {saveError && (
+          <NxLoadError titleMessage={' '} error={saveError} retryHandler={() => dispatch(actions.launchFirewall())} />
+        )}
         <ActionsFooter currentStep={currentStep} />
       </NxTile>
     </>

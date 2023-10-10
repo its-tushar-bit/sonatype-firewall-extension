@@ -9,17 +9,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Triple;
 
 public class ConfigurationProperty
 {
@@ -173,6 +180,15 @@ public class ConfigurationProperty
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(
       Collectors.toMap(ConfigurationProperty::getName, Function.identity()));
+
+  // Multiple permissions grouped by each Triple will be ORed in order to check access
+  public static final Map<String, Set<Triple<OwnerType, String, Set<Permission>>>> additionalPermissionsPerProperty =
+      ImmutableMap.of(
+          SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE,
+          Sets.newHashSet(Triple.of(OwnerType.ORGANIZATION,
+              Organization.ROOT_ORGANIZATION_ID,
+              Sets.newHashSet(Permission.EVALUATE_COMPONENT)))
+      );
 
   private final String name;
 

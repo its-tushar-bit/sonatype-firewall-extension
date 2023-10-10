@@ -5,16 +5,23 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Arrays;
 import java.util.Collections;
-
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 public class ApiConfigurationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -27,10 +34,46 @@ public class ApiConfigurationServiceAuthzTest
     service.getConfiguration(Collections.emptySet());
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetConfiguration_Unauthorized() {
     login();
-    service.getConfiguration(Collections.emptySet());
+    Set<String> allPropertiesThatRequireConfigureSystemPermission =
+        Arrays.stream(ConfigurationProperty.PROPERTIES).map(property -> property.getName()).collect(Collectors.toSet());
+    for (String property : allPropertiesThatRequireConfigureSystemPermission) {
+      assertThrows("Insufficient permissions",
+          UnauthorizedException.class,
+          () -> service.getConfiguration(Collections.singleton(property)));
+    }
+  }
+
+  @Test
+  public void testGetConfiguration_WithConfigureSystemPermission_Authorized() {
+    grantConfigureSystemPermission();
+    Set<String> allPropertiesThatRequireConfigureSystemPermission =
+        Arrays.stream(ConfigurationProperty.PROPERTIES)
+            .map(x -> x.getName()).collect(Collectors.toSet());
+    assertNotNull(service.getConfiguration(allPropertiesThatRequireConfigureSystemPermission));
+  }
+
+  @Test
+  public void testGetConfiguration_WithEvaluateComponentPermission_Authorized() {
+    grantEvaluateComponentPermission(Organization.ROOT_ORGANIZATION_ID);
+    assertNotNull(
+        service.getConfiguration(Collections.singleton(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE)));
+  }
+
+  @Test
+  public void testGetConfiguration_WithEvaluateComponentPermission_NotAuthorized() {
+    grantEvaluateComponentPermission(Organization.ROOT_ORGANIZATION_ID);
+    Set<String> allPropertiesThatRequireConfigureSystemPermission =
+        Arrays.stream(ConfigurationProperty.PROPERTIES).map(property -> property.getName())
+            .filter(property -> !property.equals(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE))
+            .collect(Collectors.toSet());
+    for (String property : allPropertiesThatRequireConfigureSystemPermission) {
+      assertThrows("Insufficient permissions",
+          UnauthorizedException.class,
+          () -> service.getConfiguration(Collections.singleton(property)));
+    }
   }
 
   @Test(expected = BadRequestException.class)

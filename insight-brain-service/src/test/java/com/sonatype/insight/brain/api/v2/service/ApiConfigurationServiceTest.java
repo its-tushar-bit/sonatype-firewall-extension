@@ -112,7 +112,7 @@ public class ApiConfigurationServiceTest
     dao.set(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
     dao.set(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(Boolean.TRUE));
 
-    Map<String, Object> configuration = service.getConfiguration(
+    Map<String, Object> configuration = service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
 
     assertThat(configuration).hasSize(2).containsEntry(SystemConfigurationProperty.BASE_URL, "http://baseUrl/")
@@ -648,7 +648,7 @@ public class ApiConfigurationServiceTest
 
     assertThat(dao.get(SystemConfigurationProperty.BASE_URL)).isNull();
     assertThat(dao.get(SystemConfigurationProperty.FORCE_BASE_URL)).isNull();
-    assertThat(service.getConfiguration(
+    assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)))
         .containsEntry(SystemConfigurationProperty.BASE_URL, null)
         .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, false);
@@ -665,7 +665,7 @@ public class ApiConfigurationServiceTest
 
     assertThat(dao.get(SystemConfigurationProperty.BASE_URL)).isEqualTo("http://my-base-url/");
     assertThat(dao.get(SystemConfigurationProperty.FORCE_BASE_URL)).isEqualTo("true");
-    assertThat(service.getConfiguration(
+    assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)))
         .containsEntry(SystemConfigurationProperty.BASE_URL, "http://my-base-url/")
         .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, true);
@@ -679,7 +679,7 @@ public class ApiConfigurationServiceTest
     setHdsUrl(null);
 
     assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isNull();
-    assertThat(service.getConfiguration(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
         SystemConfigurationProperty.HDS_URL, "https://clm.sonatype.com/");
   }
 
@@ -691,7 +691,7 @@ public class ApiConfigurationServiceTest
     setHdsUrl(null);
 
     assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isNull();
-    assertThat(service.getConfiguration(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
         SystemConfigurationProperty.HDS_URL, expected);
   }
 
@@ -703,7 +703,7 @@ public class ApiConfigurationServiceTest
     setHdsUrl(expected);
 
     assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isEqualTo(expected);
-    assertThat(service.getConfiguration(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
         SystemConfigurationProperty.HDS_URL, expected);
   }
 
@@ -715,7 +715,7 @@ public class ApiConfigurationServiceTest
     setHdsUrl(expected);
 
     assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isEqualTo(expected);
-    assertThat(service.getConfiguration(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
         SystemConfigurationProperty.HDS_URL, expected);
   }
 

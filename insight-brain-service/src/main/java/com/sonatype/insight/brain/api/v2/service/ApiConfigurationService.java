@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -20,12 +21,14 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -35,6 +38,10 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.util.CollectionUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -85,6 +92,8 @@ public class ApiConfigurationService
 
   private final Provider<ScanFileCleaner> scanFileCleanerProvider;
 
+  private final PermissionService permissionService;
+
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
@@ -92,7 +101,8 @@ public class ApiConfigurationService
       InsightConfig insightConfig,
       TaskScheduler taskScheduler,
       ProductLicense productLicense,
-      Provider<ScanFileCleaner> scanFileCleanerProvider)
+      Provider<ScanFileCleaner> scanFileCleanerProvider,
+      PermissionService permissionService)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.configurationListeners = configurationListeners;
@@ -100,11 +110,49 @@ public class ApiConfigurationService
     this.taskScheduler = taskScheduler;
     this.productLicense = productLicense;
     this.scanFileCleanerProvider = scanFileCleanerProvider;
+    this.permissionService = permissionService;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Map<String, Object> getConfiguration(Set<String> propertyNames) {
+    checkAuthenticated();
+    checkPropertiesPermissions(propertyNames);
     return getConfigurationNoAuthz(propertyNames);
+  }
+
+  private static void checkAuthenticated() {
+    Object principal = SecurityUtils.getSubject().getPrincipal();
+    if (principal == null) {
+      throw new UnauthenticatedException("Anonymous access forbidden");
+    }
+  }
+
+  private void checkPropertiesPermissions(final Set<String> propertyNames) {
+    if (propertyNames == null) {
+      return;
+    }
+
+    for (String propertyName : propertyNames) {
+      ConfigurationProperty property = ConfigurationProperty.getConfigurationPropertiesByName().get(propertyName);
+      if (property != null && !checkPermissionForProperty(propertyName)) {
+        throw new UnauthorizedException("Insufficient permissions");
+      }
+    }
+  }
+
+  private boolean checkPermissionForProperty(final String propertyName) {
+    Set<Triple<OwnerType, String, Set<Permission>>> permissionsToCheck =
+        ConfigurationProperty.additionalPermissionsPerProperty.getOrDefault(propertyName, new HashSet<>());
+
+    // By default all properties can be accessed with the admin (global)  CONFIGURE_SYSTEM permission
+    permissionsToCheck.add(Triple.of(OwnerType.GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)));
+
+    // We are authorized if PermissionService.validatePermission returns a non-empty value for any triplet
+    // since we pass it a singleton containing our desired permission on each iteration
+    // (i.e. permissionA OR permissionB or ...)
+    return permissionsToCheck.stream().anyMatch(
+        permissionGroup -> !permissionService.validatePermission(SecurityUtils.getSubject(), permissionGroup.getLeft(),
+            permissionGroup.getMiddle(),
+            permissionGroup.getRight()).isEmpty());
   }
 
   public Map<String, Object> getConfigurationNoAuthz(Set<String> propertyNames) {

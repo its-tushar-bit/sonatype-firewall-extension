@@ -44,7 +44,7 @@ public class PullRequestCommentTelemetry
     this.applicationId = applicationId;
     this.prNumber = prNumber;
 
-    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       this.realApplicationId = applicationId;
     }
   }

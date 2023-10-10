@@ -109,13 +109,13 @@ public class InsightBrainServiceTest
   public void before() throws JobPersistenceException {
     quartzJobStoreTX = mock(QuartzJobStoreTX.class);
     when(quartzJobStoreTX.getSchedulerStateRecords()).thenReturn(Collections.nCopies(2, null));
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
   }
 
   @After
   public void after() {
     System.setProperty(InsightBrainService.SISU_URL_CACHES, "true");
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(
         false);
   }
 

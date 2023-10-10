@@ -169,8 +169,8 @@ public class LookerService
   }
 
   private void checkLookerIntegratedEnterpriseReportingEnabled() {
-    if (!SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
-      throw new NotAuthorizedException(SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.getId()
+    if (!SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+      throw new NotAuthorizedException(SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.getId()
           + " feature is disabled.");
     }
   }

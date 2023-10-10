@@ -167,11 +167,11 @@ describe('IqSidebarNav', function () {
       expect(getShallowComponent({}).find('#enterprise-reporting-navigation-button')).not.toExist();
       expect(getShallowComponent({ isLoggedIn: true }).find('#enterprise-reporting-navigation-button')).not.toExist();
       expect(
-        getShallowComponent({ isLookerIntegratedEnterpriseReportingEnabled: true }).find(
+        getShallowComponent({ isIntegratedEnterpriseReportingEnabled: true }).find(
           '#enterprise-reporting-navigation-button'
         )
       ).not.toExist();
-      const component = getShallowComponent({ isLoggedIn: true, isLookerIntegratedEnterpriseReportingEnabled: true });
+      const component = getShallowComponent({ isLoggedIn: true, isIntegratedEnterpriseReportingEnabled: true });
       const navLink = component.find('#enterprise-reporting-navigation-button');
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
       expect(navLink).toHaveProp('icon', faChartPieAlt);

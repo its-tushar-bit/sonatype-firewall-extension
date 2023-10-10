@@ -70,7 +70,7 @@ public class ApplicationTelemetryCollectorTest
 
   private static void toggleFeature(boolean toggle) {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(toggle);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(toggle);
   }
 
   @After

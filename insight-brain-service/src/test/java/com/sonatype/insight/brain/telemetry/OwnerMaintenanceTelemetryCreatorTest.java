@@ -49,7 +49,7 @@ public class OwnerMaintenanceTelemetryCreatorTest
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
   }
 
   @Test
@@ -81,9 +81,9 @@ public class OwnerMaintenanceTelemetryCreatorTest
   }
 
   @Test
-  public void testSendOwnerMaintenanceTelemetry_LookerDisabled() {
+  public void testSendOwnerMaintenanceTelemetry_IntegratedEnterpriseReportingDisabled() {
     // Given
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(
         false);
     organization = tempEntity.newOrganization("Some Organization");
     application = tempEntity.newApplication("Other App", "publicIdB", organization.getId());

@@ -247,7 +247,7 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationEnabled_LookerEnabled() {
+  public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationEnabled_IEREnabled() {
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
     doAnswer(x -> invocation[0] = x).when(telemetrySenderMock).send(any(TelemetryData.class),
         eq("test_client_user_agent"));
@@ -260,7 +260,7 @@ public class ApplicationSummaryServiceTest
 
     String appPublicId = "NoSuchAppPublicID";
 
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
 
     // The app does not exist, so it will be created. We expect telemetry data that says the app was created
     // automatically.
@@ -268,7 +268,7 @@ public class ApplicationSummaryServiceTest
     service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
     Date after = new Date();
     assertTelemetryData(invocation[0], before, after, true);
-    assertLookerTelemetryData(invocation[0], appPublicId);
+    assertIntegratedEnterpriseReportingEnabledTelemetryData(invocation[0], appPublicId);
     clearInvocations(telemetrySenderMock);
   }
 
@@ -299,17 +299,20 @@ public class ApplicationSummaryServiceTest
   }
 
   private void assertTelemetryData(InvocationOnMock invocation, Date before, Date after, boolean expected) {
-    final boolean lookerEnabled = SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled();
+    final boolean integratedEnterpriseReportingEnabled = SystemConfigurationPropertyFeature
+        .INTEGRATED_ENTERPRISE_REPORTING.isEnabled();
     TelemetryData telemetryData = invocation.getArgument(0);
 
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
-    assertThat(telemetryData.getAttributes()).hasSize(lookerEnabled ? 2 : 1)
+    assertThat(telemetryData.getAttributes()).hasSize(integratedEnterpriseReportingEnabled ? 2 : 1)
         .containsEntry(ApplicationSummaryService.APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR, String.valueOf(expected));
     assertThat(telemetryData.getTimestamp()).isGreaterThanOrEqualTo(before.getTime())
         .isLessThanOrEqualTo(after.getTime());
   }
 
-  private void assertLookerTelemetryData(InvocationOnMock invocation, final String appPublicId) {
+  private void assertIntegratedEnterpriseReportingEnabledTelemetryData(InvocationOnMock invocation,
+                                                                       final String appPublicId)
+  {
     TelemetryData telemetryData = invocation.getArgument(0);
 
     OwnerMaintenanceTelemetry ownerMaintenanceTelemetryData =

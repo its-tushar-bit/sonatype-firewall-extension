@@ -114,7 +114,7 @@ public final class TelemetryUtils
    * Integrated Enterprise Reporting feature, it has to be enabled.
    */
   public static void includeRealOwnerId(Map<String, Object> telemetryAttributes, String attributeValue) {
-    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       telemetryAttributes.put("real_owner_id", attributeValue);
     }
   }
@@ -124,7 +124,7 @@ public final class TelemetryUtils
    * Integrated Enterprise Reporting feature, it has to be enabled.
    */
   public static void includeRealApplicationId(Map<String, Object> telemetryAttributes, String attributeValue) {
-    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       telemetryAttributes.put("real_application_id", attributeValue);
     }
   }

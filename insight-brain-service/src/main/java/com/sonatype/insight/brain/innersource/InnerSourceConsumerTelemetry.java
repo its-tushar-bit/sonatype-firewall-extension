@@ -26,7 +26,7 @@ public class InnerSourceConsumerTelemetry
   {
     this.consumerAppId = HdsClientAnalytics.obfuscate(consumerAppId);
 
-    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       this.realConsumerAppId = consumerAppId;
     }
 

@@ -29,7 +29,7 @@ import {
   selectProductFeaturesSlice,
   selectProductFeatures,
   selectIsBaseUrlConfigurationEnabled,
-  selectIsLookerIntegratedEnterpriseReportingEnabled,
+  selectIsIntegratedEnterpriseReportingEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -59,7 +59,7 @@ describe('productFeaturesSelectors', () => {
           'data-insights': true,
           'inner-source-transitive-waiver': true,
           'allow-external-hyperlinks': true,
-          'looker-integrated-enterprise-reporting': true,
+          'integrated-enterprise-reporting': true,
         },
       },
     };
@@ -215,14 +215,14 @@ describe('productFeaturesSelectors', () => {
     });
   });
 
-  describe('selectIsLookerIntegratedEnterpriseReportingEnabled', () => {
-    it('returns true if looker-integrated-enterprise-reporting is enabled', () => {
-      expect(selectIsLookerIntegratedEnterpriseReportingEnabled(mockState)).toBeTrue();
+  describe('selectIsIntegratedEnterpriseReportingEnabled', () => {
+    it('returns true if integrated-enterprise-reporting is enabled', () => {
+      expect(selectIsIntegratedEnterpriseReportingEnabled(mockState)).toBeTrue();
     });
 
-    it('returns false if looker-integrated-enterprise-reporting is disabled', () => {
-      mockState.productFeatures.productFeatures['looker-integrated-enterprise-reporting'] = false;
-      expect(selectIsLookerIntegratedEnterpriseReportingEnabled(mockState)).toBeFalse();
+    it('returns false if integrated-enterprise-reporting is disabled', () => {
+      mockState.productFeatures.productFeatures['integrated-enterprise-reporting'] = false;
+      expect(selectIsIntegratedEnterpriseReportingEnabled(mockState)).toBeFalse();
     });
   });
 

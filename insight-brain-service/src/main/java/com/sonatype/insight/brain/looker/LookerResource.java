@@ -40,7 +40,7 @@ public class LookerResource
   @Path(SSO_EMBED_URL_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Audited(AuditEvent.VIEW_LOOKER_DASHBOARD)
+  @Audited(AuditEvent.VIEW_INTEGRATED_ENTERPRISE_REPORTING_DASHBOARD)
   public SSOEmbedUrlDTO createSSOEmbedUrl(LookerDashboardDTO lookerDashboardDTO) {
     return lookerHdsService.createSSOEmbedUrl(lookerDashboardDTO);
   }

@@ -37,7 +37,7 @@ public class ApplicationTelemetryCollector
 
   @Override
   public TelemetryData collectData() {
-    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REAL_OWNER_IDS);
       List<OwnerData> ownerData = applicationDAO.getAll().stream()
           .map(app -> new OwnerData(app.getId(), OwnerType.APPLICATION.toString(), app.getName()))

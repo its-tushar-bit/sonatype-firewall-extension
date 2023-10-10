@@ -59,7 +59,7 @@ export default angular
         'isShowVersionEnabled',
         'isFirewallOnlyLicense',
         'isDeveloperDashboardEnabled',
-        'isLookerIntegratedEnterpriseReportingEnabled',
+        'isIntegratedEnterpriseReportingEnabled',
       ],
       ['$state']
     )

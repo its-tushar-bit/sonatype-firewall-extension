@@ -198,7 +198,7 @@ public class SystemConfigurationProperty
    */
   public static final String INTERNAL_FIREWALL_ONBOARDING_ENABLED = "internalFirewallOnboardingEnabled";
 
-  public static final String LOOKER_INTEGRATED_ENTERPRISE_REPORTING = "lookerIntegratedEnterpriseReporting";
+  public static final String INTEGRATED_ENTERPRISE_REPORTING = "integratedEnterpriseReporting";
 
   public static final String POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED =
       "policyManagementAtRepositoryManagerLevelEnabled";

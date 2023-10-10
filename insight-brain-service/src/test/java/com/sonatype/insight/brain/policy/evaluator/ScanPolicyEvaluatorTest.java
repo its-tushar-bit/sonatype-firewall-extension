@@ -970,9 +970,9 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testSendLegacyViolationCounts_LookerEnabled() {
+  public void testSendLegacyViolationCounts_IntegratedEnterpriseReportingEnabled() {
     // Given
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     application.setPolicyViolationGrandfatheringEnabled(true);
     new ApplicationDAO().update(application);
 

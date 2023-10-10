@@ -537,9 +537,9 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testAddSourceControlByOwner_licensedByNotifications_LookerEnabled() {
+  public void testAddSourceControlByOwner_licensedByNotifications_IntegratedEnterpriseReportingEnabled() {
     // Given
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     setLicensedForSourceControlByNotifications();
 
     // When
@@ -773,7 +773,7 @@ public class ApiSourceControlServiceTest
     expectedAttributes.put("method", method);
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
 
-    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING
+    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING
         .isEnabled()) {
       expectedAttributes.put("real_owner_id", ownerId);
     }

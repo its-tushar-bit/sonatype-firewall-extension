@@ -27,13 +27,13 @@ public class LookerResourceTest
   @Before
   public void before() {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
   }
 
   @After
   public void cleanup() {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 
   @Test

@@ -1259,7 +1259,7 @@ public class ApiPolicyWaiverServiceTest
     expectedAttributes.put("owner_type", ownerType.toString());
 
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
-    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING
+    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING
         .isEnabled()) {
       expectedAttributes.put("real_owner_id", ownerId);
     }
@@ -1632,9 +1632,9 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
-  public void testAddPolicyWaiverByPolicyViolationId_Application_WithLookerEnabled() {
+  public void testAddPolicyWaiverByPolicyViolationId_Application_WithEnabled() {
     // Given
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
 
     // When
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),

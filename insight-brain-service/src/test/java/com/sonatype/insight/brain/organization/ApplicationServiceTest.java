@@ -175,9 +175,9 @@ public class ApplicationServiceTest
   }
 
   @Test
-  public void testAddApplication_LicenseWithoutApplicationLimit_LookerEnabled() {
+  public void testAddApplication_LicenseWithoutApplicationLimit_IntegratedEnterpriseReportingEnabled() {
     // Given
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     testProductLicense.setMaxApplications(null);
 
     Application app = new Application("appPublicId", "appName", org.getId());

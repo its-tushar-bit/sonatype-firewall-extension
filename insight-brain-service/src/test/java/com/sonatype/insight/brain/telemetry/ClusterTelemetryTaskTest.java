@@ -107,7 +107,7 @@ public class ClusterTelemetryTaskTest
 
   private static void toggleLookerIntegration(boolean toggle) {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(toggle);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(toggle);
   }
 
   @After

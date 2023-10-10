@@ -1323,7 +1323,7 @@ public class ApiLicenseLegalService
             .map(license -> license.licenseId)
             .collect(Collectors.toSet()));
 
-    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       applicationLicenseUsageTelemetry.setRealApplicationId(applicationId);
     }
 

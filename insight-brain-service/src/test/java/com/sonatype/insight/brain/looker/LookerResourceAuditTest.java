@@ -28,13 +28,13 @@ public class LookerResourceAuditTest
   @Before
   public void before() {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
   }
 
   @After
   public void after() {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 
   @Test
@@ -47,7 +47,7 @@ public class LookerResourceAuditTest
     LookerDashboardDTO request = new LookerDashboardDTO("test");
     restRequest().path(SSO_EMBED_URL_PATH).body(request).post();
 
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_LOOKER_DASHBOARD, null);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_INTEGRATED_ENTERPRISE_REPORTING_DASHBOARD, null);
     assertCustomData(auditDTO, "dashboard", "test");
   }
 }

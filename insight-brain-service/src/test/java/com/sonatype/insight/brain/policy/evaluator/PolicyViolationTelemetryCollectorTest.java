@@ -407,9 +407,9 @@ public class PolicyViolationTelemetryCollectorTest
   }
 
   @Test
-  public void testAddTelemetryForConditionTypeViolation_LookerEnabled() {
+  public void testAddTelemetryForConditionTypeViolation_IntegratedEnterpriseReportingEnabled() {
     // setup : create a condition type policy violation
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     final int threatLevel = 7;
     final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
     final boolean isScmEnabled = false;

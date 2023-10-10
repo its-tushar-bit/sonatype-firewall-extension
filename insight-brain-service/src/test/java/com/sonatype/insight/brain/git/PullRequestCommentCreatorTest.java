@@ -176,8 +176,10 @@ public class PullRequestCommentCreatorTest
   }
 
   @Test
-  public void testCreatePullRequestComment_withMarkup_NoPolicyDiff_Bitbucket_LookerEnabled() throws IOException {
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+  public void testCreatePullRequestComment_withMarkup_NoPolicyDiff_Bitbucket_IntegratedEnterpriseReportingEnabled()
+      throws IOException
+  {
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     final String featureBranchHeadCommit = "feature-1-commit-1";
     TestCase testCase = new TestCase()
         .forApplication("app1")
@@ -212,7 +214,7 @@ public class PullRequestCommentCreatorTest
     verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
     assertThat(telemetryCaptor.getValue().realApplicationId).isEqualTo("app1");
 
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 
   @Test

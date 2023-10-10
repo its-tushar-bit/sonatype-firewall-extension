@@ -65,7 +65,7 @@ public class CspHeaderFilter
 
   //visible for testing
   String getFrameSrc() {
-    if (!SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (!SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       return "";
     }
 

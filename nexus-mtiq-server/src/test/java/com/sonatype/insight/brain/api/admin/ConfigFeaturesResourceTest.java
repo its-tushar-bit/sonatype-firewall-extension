@@ -62,7 +62,7 @@ public class ConfigFeaturesResourceTest
       new String[]{
           SystemConfigurationPropertyFeature.POLICY_MANAGEMENT_AT_REPOSITORY_MANAGER_LEVEL_ENABLED.getId(),
           SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
-          SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.getId(),
+          SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.getId(),
           SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId()
       }
   )).toArray(String[]::new);

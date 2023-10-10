@@ -761,8 +761,8 @@ public class DependencyResolverTest
   }
 
   @Test
-  public void testResolve_npm_LookerEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+  public void testResolve_npm_IntegratedEnterpriseReportingEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
     tempEntity.newInnerSourceComponent("pkg:npm/producer-one", appInnerSource);

@@ -153,9 +153,9 @@ public class ApplicationCloneServiceTest
   }
 
   @Test
-  public void testCloneApplication_Application_LookerEnabled() {
+  public void testCloneApplication_Application_IntegratedEnterpriseReportingEnabled() {
     // Given
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
 
     String clonedAppName = "clonedAppName";
     String clonedAppPublicId = "clonedAppPublicId";

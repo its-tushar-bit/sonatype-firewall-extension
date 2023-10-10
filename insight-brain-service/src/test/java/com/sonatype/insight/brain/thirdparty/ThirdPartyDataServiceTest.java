@@ -361,8 +361,8 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
-  public void testSendIacMetricsTelemetry_LookerEnabled() {
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+  public void testSendIacMetricsTelemetry_IntegratedEnterpriseReportingEnabled() {
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Map<String, Integer> inputTypeCount = new HashMap<>();
     Map<String, Integer> providerCount = new HashMap<>();
 

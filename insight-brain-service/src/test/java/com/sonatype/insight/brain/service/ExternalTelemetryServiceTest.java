@@ -117,8 +117,8 @@ public class ExternalTelemetryServiceTest
   }
 
   @Test
-  public void testSendTelemetry_SscIntegrationTelemetry_LookerEnabled() {
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+  public void testSendTelemetry_SscIntegrationTelemetry_IntegratedEnterpriseReportingEnabled() {
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Map<String, String> telemetryValues = new HashMap<>();
     telemetryValues.put("telemetry_purpose", "SSC_INTEGRATION_METRICS");
     telemetryValues.put("ssc_integration_service_version", "1");

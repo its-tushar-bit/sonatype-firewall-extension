@@ -45,11 +45,11 @@ public class LookerServiceAuthzTest
 
   private void enableFeature() {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
   }
 
   private void disableFeature() {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 }

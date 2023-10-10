@@ -1313,8 +1313,8 @@ public class ApiLicenseLegalServiceTest
   }
 
   @Test
-  public void testGetLicenseLegalApplicationReport_LookerEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+  public void testGetLicenseLegalApplicationReport_IntegratedEnterpriseReportingEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
@@ -3252,7 +3252,7 @@ public class ApiLicenseLegalServiceTest
             .map(license -> license.licenseId)
             .collect(Collectors.toSet()));
 
-    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       applicationLicenseUsageTelemetry.setRealApplicationId(application.getId());
     }
 

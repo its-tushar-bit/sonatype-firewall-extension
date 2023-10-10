@@ -382,8 +382,8 @@ public class ComponentRemediationServiceTest
   }
 
   @Test
-  public void testGetSuggestedRemediation_NoAdvanced_NoDependencies_TransitiveEnabled_LookerEnabled() {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+  public void testGetSuggestedRemediation_NoAdvanced_NoDependencies_TransitiveEnabled_IEREnabled() {
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
 
     testGetSuggestedRemediation_NoDependencies(false, true);
   }
@@ -1140,7 +1140,7 @@ public class ComponentRemediationServiceTest
     assertThat(attributes.get(OWNER_ID_TELEMETRY_ATTR)).isEqualTo(HdsClientAnalytics.obfuscate(org.getId()));
     assertThat((String) attributes.get(OWNER_TYPE_TELEMETRY_ATTR)).isEqualTo(org.getType().toString());
 
-    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING
+    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING
         .isEnabled()) {
       assertThat(attributes.containsKey(REAL_OWNER_ID_TELEMETRY_ATTR)).isTrue();
       assertThat(attributes.get(REAL_OWNER_ID_TELEMETRY_ATTR)).isEqualTo(org.getId());

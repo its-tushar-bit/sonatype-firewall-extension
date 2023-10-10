@@ -43,7 +43,7 @@ public class PullRequestCommentingMetricsServiceTest
   }
 
   @Test
-  public void testSendTelemetry_LookerDisabled() {
+  public void testSendTelemetry_IntegratedEnterpriseReportingDisabled() {
     // given: comment in PR of an application
     PullRequestCommentTelemetry commentTelemetry = new PullRequestCommentTelemetry("app1", 100);
     ArgumentCaptor<TelemetryData> argCaptor = ArgumentCaptor.forClass(TelemetryData.class);
@@ -63,9 +63,9 @@ public class PullRequestCommentingMetricsServiceTest
   }
 
   @Test
-  public void testSendTelemetry_LookerEnabled() {
+  public void testSendTelemetry_IntegratedEnterpriseReportingEnabled() {
     // given: comment in PR of an application
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     String realAppId = "app1";
     PullRequestCommentTelemetry commentTelemetry = new PullRequestCommentTelemetry(realAppId, 100);
     ArgumentCaptor<TelemetryData> argCaptor = ArgumentCaptor.forClass(TelemetryData.class);

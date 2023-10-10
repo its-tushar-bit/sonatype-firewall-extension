@@ -164,8 +164,8 @@ public class UserInterfaceLinksResourceTest
 
   @Test
   @ManualServerInit
-  public void testLinkToReport_WithSourceQuery_Anonymous_LookerEnabled() throws Exception {
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+  public void testLinkToReport_WithSourceQuery_Anonymous_IntegratedEnterpriseReportingEnabled() throws Exception {
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     testLinkToReport_WithSourceQuery(true /* anonymous */);
   }
 
@@ -214,7 +214,7 @@ public class UserInterfaceLinksResourceTest
     assertThat(telemetryData.getAttributes().get("application_id"))
         .isEqualTo(HdsClientAnalytics.obfuscate(application.getId()));
 
-    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING
+    if (ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING
         .isEnabled()) {
       assertThat(telemetryData.getAttributes().get("real_application_id")).isEqualTo(application.getId());
     }

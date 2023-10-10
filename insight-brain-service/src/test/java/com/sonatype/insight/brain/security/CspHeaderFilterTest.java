@@ -41,14 +41,14 @@ public class CspHeaderFilterTest
 
   @Test
   public void testGetFrameSrc_Valid_FeatureEnabled() {
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     when(lookerService.getBaseUrl()).thenReturn("https://sonatypeexternaldev.cloud.looker.com/");
     assertThat(cspHeaderFilter.getFrameSrc()).isEqualTo(" frame-src 'self' sonatypeexternaldev.cloud.looker.com;");
   }
 
   @Test
   public void testGetFrameSrc_Invalid_FeatureEnabled() {
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     when(lookerService.getBaseUrl()).thenReturn("blah");
     assertThat(cspHeaderFilter.getFrameSrc()).isEmpty();
   }
@@ -60,6 +60,6 @@ public class CspHeaderFilterTest
 
   @After
   public void after() {
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 }

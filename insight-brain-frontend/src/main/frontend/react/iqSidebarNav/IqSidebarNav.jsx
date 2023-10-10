@@ -51,7 +51,7 @@ function IqSidebarNav(props) {
     isShowVersionEnabled,
     isFirewallOnlyLicense,
     isDeveloperDashboardEnabled,
-    isLookerIntegratedEnterpriseReportingEnabled,
+    isIntegratedEnterpriseReportingEnabled,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -203,7 +203,7 @@ function IqSidebarNav(props) {
               href={dataInsightsHref}
             />
           )}
-          {isLookerIntegratedEnterpriseReportingEnabled && (
+          {isIntegratedEnterpriseReportingEnabled && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('enterpriseReporting')}
               id="enterprise-reporting-navigation-button"
@@ -258,6 +258,6 @@ IqSidebarNav.propTypes = {
   isShowVersionEnabled: PropTypes.bool,
   isFirewallOnlyLicense: PropTypes.bool,
   isDeveloperDashboardEnabled: PropTypes.bool,
-  isLookerIntegratedEnterpriseReportingEnabled: PropTypes.bool,
+  isIntegratedEnterpriseReportingEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

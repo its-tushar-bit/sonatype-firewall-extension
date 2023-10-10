@@ -224,12 +224,12 @@ public class LookerServiceTest
 
   private void enableFeature() {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
   }
 
   private void disableFeature() {
     ApiConfigFeaturesService.SystemConfigurationPropertyFeature
-        .LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
+        .INTEGRATED_ENTERPRISE_REPORTING.setEnabled(false);
   }
 
   private static Set<String> mockGetPermissionsForUserPrincipal() {

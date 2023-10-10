@@ -220,7 +220,7 @@ public class ApiApplicationServiceTest
   @Test
   public void testUpdateApplication() {
     // Given
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     app.setName("New Name");
 

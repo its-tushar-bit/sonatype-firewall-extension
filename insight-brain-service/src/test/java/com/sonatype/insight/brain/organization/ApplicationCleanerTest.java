@@ -67,9 +67,9 @@ public class ApplicationCleanerTest
   }
 
   @Test
-  public void testDelete_DeleteIconDirectory_LookerEnabled() throws Exception {
+  public void testDelete_DeleteIconDirectory_IntegratedEnterpriseReportingEnabled() throws Exception {
     // Given
-    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    ApiConfigFeaturesService.SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
     Application app = tempEntity.newApplicationWithParent();
     File iconDir = new File(work.getApplicationIconDir(), app.getId());
     iconDir.mkdirs();

@@ -55,9 +55,9 @@ public class TelemetryUtilsTest
   }
 
   @Test
-  public void test_buildApplicationEvaluationTelemetryData_noComponents_noUA_noInstanceId_LookerEnabled() {
+  public void test_buildApplicationEvaluationTelemetryData_noComponents_noUA_noInstanceId_IEREnabled() {
     // Given
-    SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
+    SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.setEnabled(true);
 
     // When
     TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(

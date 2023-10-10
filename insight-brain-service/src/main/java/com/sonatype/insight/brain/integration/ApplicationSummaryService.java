@@ -291,7 +291,7 @@ public class ApplicationSummaryService
     telemetryData.getAttributes().put(APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR,
         String.valueOf(appCreatedAutomatically));
 
-    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
           new OwnerMaintenanceTelemetry(application.getId(), application.getName(), OwnerMaintenanceTelemetry.TYPE_ADD);
       telemetryData.getAttributes()

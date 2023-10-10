@@ -24,7 +24,7 @@ public class OwnerMaintenanceTelemetryCreator
   }
 
   public void sendOwnerMaintenanceTelemetry(Application application, String maintenanceType) {
-    if (SystemConfigurationPropertyFeature.LOOKER_INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
+    if (SystemConfigurationPropertyFeature.INTEGRATED_ENTERPRISE_REPORTING.isEnabled()) {
       final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
           new OwnerMaintenanceTelemetry(application.getId(), application.getName(), maintenanceType);
 

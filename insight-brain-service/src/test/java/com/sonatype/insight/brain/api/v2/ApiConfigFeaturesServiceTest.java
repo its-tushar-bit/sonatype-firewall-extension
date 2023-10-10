@@ -709,29 +709,29 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_LookerIntegratedEnterpriseReporting() {
-    service.enableFeature(LOOKER_INTEGRATED_ENTERPRISE_REPORTING);
-    assertThat(systemConfigurationPropertyDAO.getByName(LOOKER_INTEGRATED_ENTERPRISE_REPORTING)
+  public void testEnableFeature_IntegratedEnterpriseReporting() {
+    service.enableFeature(INTEGRATED_ENTERPRISE_REPORTING);
+    assertThat(systemConfigurationPropertyDAO.getByName(INTEGRATED_ENTERPRISE_REPORTING)
         .getValue()).isEqualTo("true");
   }
 
   @Test
-  public void testEnableFeature_LookerIntegratedEnterpriseReporting_AlreadyEnabled() {
-    service.enableFeature(LOOKER_INTEGRATED_ENTERPRISE_REPORTING);
-    assertThatThrownBy(() -> service.enableFeature(LOOKER_INTEGRATED_ENTERPRISE_REPORTING))
+  public void testEnableFeature_IntegratedEnterpriseReporting_AlreadyEnabled() {
+    service.enableFeature(INTEGRATED_ENTERPRISE_REPORTING);
+    assertThatThrownBy(() -> service.enableFeature(INTEGRATED_ENTERPRISE_REPORTING))
         .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
-  public void testDisableFeature_LookerIntegratedEnterpriseReporting() {
-    tempEntity.newSystemConfigurationProperty(LOOKER_INTEGRATED_ENTERPRISE_REPORTING, "true");
-    service.disableFeature(LOOKER_INTEGRATED_ENTERPRISE_REPORTING);
-    assertThat(systemConfigurationPropertyDAO.getByName(LOOKER_INTEGRATED_ENTERPRISE_REPORTING)).isNull();
+  public void testDisableFeature_IntegratedEnterpriseReporting() {
+    tempEntity.newSystemConfigurationProperty(INTEGRATED_ENTERPRISE_REPORTING, "true");
+    service.disableFeature(INTEGRATED_ENTERPRISE_REPORTING);
+    assertThat(systemConfigurationPropertyDAO.getByName(INTEGRATED_ENTERPRISE_REPORTING)).isNull();
   }
 
   @Test
-  public void testDisableFeature_LookerIntegratedEnterpriseReporting_AlreadyDisabled() {
-    assertThatThrownBy(() -> service.disableFeature(LOOKER_INTEGRATED_ENTERPRISE_REPORTING))
+  public void testDisableFeature_IntegratedEnterpriseReporting_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(INTEGRATED_ENTERPRISE_REPORTING))
         .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 

@@ -16,7 +16,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -31,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -38,7 +38,6 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.webhook.EventAction;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
@@ -46,6 +45,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +55,9 @@ import org.slf4j.LoggerFactory;
 @Named
 public class MembershipMappingService
 {
+  private static final Set<OwnerType> INTERESTED_OWNER_TYPES = ImmutableSet
+      .of(OwnerType.APPLICATION, OwnerType.ORGANIZATION);
+
   private static final Logger log = LoggerFactory.getLogger(MembershipMappingService.class);
 
   private final ApplicationDAO appDAO;
@@ -280,12 +283,23 @@ public class MembershipMappingService
     }
   }
 
-  public Set<String> getPermissionsForUserPrincipal(UserPrincipal userPrincipal) {
-    return membershipMappingDAO.getByUserAndGroups(userPrincipal.getUsername(), userPrincipal.getMembership()).stream()
+  public Set<String> getPermissionsForUserPrincipal(String username, Set<String> userMembership) {
+    return membershipMappingDAO.getByUserAndGroups(username, userMembership).stream()
         .map(it -> rolePermissionDAO.getPermissionsForRole(it.getRoleId()))
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
         .map(Permission::getDisplayName)
+        .collect(Collectors.toSet());
+  }
+
+  public Set<String> getApplicationIdsForUser(String username, Set<String> userMembership) {
+    return membershipMappingDAO.getByUserAndGroups(username, userMembership).stream()
+        .map(m -> ownerDAO.getById(m.getContextId()))
+        .filter(Objects::nonNull)
+        .filter(o -> INTERESTED_OWNER_TYPES.contains(o.getType()))
+        .map(ownerDAO::getDescendantOrSelfApplications)
+        .flatMap(Collection::stream)
+        .map(Application::getId)
         .collect(Collectors.toSet());
   }
 

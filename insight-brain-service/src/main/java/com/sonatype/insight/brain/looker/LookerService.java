@@ -137,10 +137,14 @@ public class LookerService
   private LookerSSOEmbedUrlHdsRequest buildRequest(String requestId, String lookerDashboard) {
     log.debug("Submitting Looker SSOEmbedUrl request {} for dashboard {}", requestId, lookerDashboard);
     Pair<String, String> names = getUserFirstAndLastnames();
+    final UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+
     return new LookerSSOEmbedUrlHdsRequest(requestId, names.getLeft(), names.getRight(), lookerDashboard,
-        membershipMappingService.getPermissionsForUserPrincipal(currentUser.getUserPrincipal()));
+        membershipMappingService.getPermissionsForUserPrincipal(userPrincipal.getUsername(),
+            userPrincipal.getMembership()),
+        membershipMappingService.getApplicationIdsForUser(userPrincipal.getUsername(), userPrincipal.getMembership()));
   }
-  
+
   private Pair<String, String> getUserFirstAndLastnames() {
     UserPrincipal principal = currentUser.getUserPrincipal();
     if (principal == null) {

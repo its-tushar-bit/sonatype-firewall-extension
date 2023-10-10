@@ -19,6 +19,8 @@ public class LookerSSOEmbedUrlHdsRequest
 
   public Set<String> userPermissions;
 
+  public Set<String> applicationIds;
+
   public LookerSSOEmbedUrlHdsRequest() {
     //for jackson
   }
@@ -28,12 +30,14 @@ public class LookerSSOEmbedUrlHdsRequest
       String userFirstName,
       String userLastName,
       String dashboardKey,
-      Set<String> userPermissions)
+      Set<String> userPermissions,
+      Set<String> applicationIds)
   {
     this.requestId = requestId;
     this.userFirstName = userFirstName;
     this.userLastName = userLastName;
     this.dashboardKey = dashboardKey;
     this.userPermissions = userPermissions;
+    this.applicationIds = applicationIds;
   }
 }

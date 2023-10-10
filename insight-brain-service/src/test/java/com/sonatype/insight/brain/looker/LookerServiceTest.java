@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
-import com.sonatype.insight.brain.security.SamlRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
+import com.sonatype.insight.brain.security.SamlRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
@@ -207,16 +207,22 @@ public class LookerServiceTest
         .thenReturn(new LookerConfigDTO(expectedBaseUrl));
     when(currentUserMock.getUserPrincipal())
         .thenReturn(new UserPrincipal("username", "displayName", "test"));
-    when(mockMembershipMappingService.getPermissionsForUserPrincipal(any()))
-        .thenReturn(mockGetPermissionsForUserPrincipal());
+    final Set<String> permissionsForUserPrincipalMock = mockGetPermissionsForUserPrincipal();
+    final Set<String> applicationIdsForUserMock = mockGetApplicationIdsForUser();
 
+    when(hdsClientMock.post(any(), anyString(), any())).thenReturn(new SSOEmbedUrlDTO(expectedUrl));
+    when(mockMembershipMappingService.getPermissionsForUserPrincipal(any(), any()))
+        .thenReturn(permissionsForUserPrincipalMock);
+    when(mockMembershipMappingService.getApplicationIdsForUser(any(), any()))
+        .thenReturn(applicationIdsForUserMock);
     SSOEmbedUrlDTO result = lookerService.createSSOEmbedUrl(new LookerDashboardDTO("test"));
+
     verify(hdsClientMock).post(eq(SSOEmbedUrlDTO.class), eq(LOOKER_SSO_EMBED_URL_PATH),
         lookerSSOEmbedUrlHdsRequestArgumentCaptor.capture());
     LookerSSOEmbedUrlHdsRequest actual = lookerSSOEmbedUrlHdsRequestArgumentCaptor.getValue();
     assertThat(actual).isNotNull();
-    assertThat(actual.userPermissions).containsExactlyInAnyOrder(mockGetPermissionsForUserPrincipal()
-        .toArray(mockGetPermissionsForUserPrincipal().toArray(new String[0])));
+    assertThat(actual.userPermissions).containsExactlyInAnyOrderElementsOf(permissionsForUserPrincipalMock);
+    assertThat(actual.applicationIds).containsExactlyInAnyOrderElementsOf(applicationIdsForUserMock);
     assertThat(result).isNotNull();
     assertThat(result.url).isEqualTo(expectedUrl);
     assertThat(result.baseUrl).isEqualTo(expectedBaseUrl);
@@ -235,5 +241,9 @@ public class LookerServiceTest
   private static Set<String> mockGetPermissionsForUserPrincipal() {
     return new HashSet<>(Arrays.asList(Permission.EDIT_ROLES.getDisplayName(),
         Permission.WAIVE_POLICY_VIOLATIONS.getDisplayName()));
+  }
+
+  private static Set<String> mockGetApplicationIdsForUser() {
+    return new HashSet<>(Arrays.asList("appId1", "appId2"));
   }
 }

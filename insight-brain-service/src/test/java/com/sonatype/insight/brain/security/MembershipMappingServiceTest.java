@@ -41,7 +41,6 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -612,20 +611,108 @@ public class MembershipMappingServiceTest
   @Test
   public void testGetPermissionsForUserPrincipal() {
     String username = "username";
-    String displayName = "name";
-    String realmId = "realm";
     Set<String> membership = new HashSet<>(Arrays.asList("developers", "qa"));
-    UserPrincipal userPrincipal = new UserPrincipal(username, displayName, realmId, membership);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, SYSTEM_ADMIN_ROLE_ID, username);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, POLICY_ADMIN_ROLE_ID, username);
     tempEntity.newGroupMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, DEVELOPER_ROLE_ID, "developers");
     tempEntity.newGroupMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, APPLICATION_EVALUATOR_ROLE_ID, "qa");
 
-    Set<String> actual = membershipMappingService.getPermissionsForUserPrincipal(userPrincipal);
+    Set<String> actual = membershipMappingService.getPermissionsForUserPrincipal(username, membership);
 
     assertThat(actual).isNotNull();
     assertThat(actual).containsExactlyInAnyOrder("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
         "Review","View", "Waive");
+  }
+
+  @Test
+  public void testGetApplicationIdsForUser_withApplicationMembershipMappings() {
+    String username = "username";
+    Set<String> membership = new HashSet<>(Arrays.asList("developers", "qa"));
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Some App", "SOME_APP", organization.getId());
+    final Application application2 = tempEntity.newApplication("Some App 2", "SOME_APP2", organization.getId());
+    final Application application3 = tempEntity.newApplication("Some App 3", "SOME_APP3", organization.getId());
+    final Application application4 = tempEntity.newApplication("Some App 4", "SOME_APP4", organization.getId());
+    tempEntity.newMembershipMapping(application.getId(), SYSTEM_ADMIN_ROLE_ID, username);
+    tempEntity.newMembershipMapping(application2.getId(), SYSTEM_ADMIN_ROLE_ID, username);
+    tempEntity.newMembershipMapping(application3.getId(), SYSTEM_ADMIN_ROLE_ID, username);
+    tempEntity.newMembershipMapping(application4.getId(), SYSTEM_ADMIN_ROLE_ID, username);
+
+    Set<String> userApplicationIds = membershipMappingService.getApplicationIdsForUser(username, membership);
+
+    assertThat(userApplicationIds).containsExactlyInAnyOrder(application.getId(), application2.getId(),
+        application3.getId(),
+        application4.getId());
+  }
+
+  @Test
+  public void testGetApplicationIdsForUser_withOrganizationMembershipMappings_noChildren() {
+    String username = "username";
+    Set<String> membership = new HashSet<>(Arrays.asList("developers", "qa"));
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Some App", "SOME_APP", organization.getId());
+    final Application application2 = tempEntity.newApplication("Some App 2", "SOME_APP2", organization.getId());
+    final Application application3 = tempEntity.newApplication("Some App 3", "SOME_APP3", organization.getId());
+    final Application application4 = tempEntity.newApplication("Some App 4", "SOME_APP4", organization.getId());
+    tempEntity.newMembershipMapping(organization.getId(), SYSTEM_ADMIN_ROLE_ID, username);
+
+    Set<String> userApplicationIds = membershipMappingService.getApplicationIdsForUser(username, membership);
+
+    assertThat(userApplicationIds).containsExactlyInAnyOrder(application.getId(), application2.getId(),
+        application3.getId(),
+        application4.getId());
+  }
+
+  @Test
+  public void testGetApplicationIdsForUser_withMixedMembershipMappings_noChildren() {
+    String username = "username";
+    Set<String> membership = new HashSet<>(Arrays.asList("developers", "qa"));
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Organization organization2 = tempEntity.newOrganization("Test Org 2");
+    final Application application = tempEntity.newApplication("Some App", "SOME_APP", organization.getId());
+    final Application application2 = tempEntity.newApplication("Some App 2", "SOME_APP2", organization.getId());
+    final Application application3 = tempEntity.newApplication("Some App 3", "SOME_APP3", organization.getId());
+    final Application application4 = tempEntity.newApplication("Some App 4", "SOME_APP4", organization.getId());
+    final Application application5 = tempEntity.newApplication("Some App 5", "SOME_APP5", organization2.getId());
+    tempEntity.newMembershipMapping(organization.getId(), SYSTEM_ADMIN_ROLE_ID, username);
+    tempEntity.newMembershipMapping(application5.getId(), SYSTEM_ADMIN_ROLE_ID, username);
+
+    Set<String> userApplicationIds = membershipMappingService.getApplicationIdsForUser(username, membership);
+
+    assertThat(userApplicationIds).containsExactlyInAnyOrder(application.getId(), application2.getId(),
+        application3.getId(),
+        application4.getId(),
+        application5.getId());
+  }
+
+  @Test
+  public void testGetApplicationIdsForUser_withMixedMembershipMappings_withChildren() {
+    String username = "username";
+    Set<String> membership = new HashSet<>(Arrays.asList("developers", "qa"));
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Organization organization2 = tempEntity.newOrganization("Test Org 2");
+    final Application application = tempEntity.newApplication("Some App", "SOME_APP", organization.getId());
+    final Application application2 = tempEntity.newApplication("Some App 2", "SOME_APP2", organization.getId());
+    final Application application3 = tempEntity.newApplication("Some App 3", "SOME_APP3", organization.getId());
+    final Application application4 = tempEntity.newApplication("Some App 4", "SOME_APP4", organization.getId());
+    final Application application5 = tempEntity.newApplication("Some App 5", "SOME_APP5", organization2.getId());
+
+    final Organization childOrg = tempEntity.newOrganization("Child Org", organization);
+    final Application childApp1 = tempEntity.newApplication("Child App 1", "CHILD_APP", childOrg.getId());
+    final Application childApp2 = tempEntity.newApplication("Child App 2", "CHILD_APP2", childOrg.getId());
+
+    final Organization grandChildOrg = tempEntity.newOrganization("Grand Child Org", childOrg);
+    final Application grandChildApp1 =
+        tempEntity.newApplication("Grand Child App 1", "GRAND_CHILD_APP", grandChildOrg.getId());
+
+    tempEntity.newMembershipMapping(organization.getId(), SYSTEM_ADMIN_ROLE_ID, username);
+    tempEntity.newMembershipMapping(application5.getId(), SYSTEM_ADMIN_ROLE_ID, username);
+
+    Set<String> userApplicationIds = membershipMappingService.getApplicationIdsForUser(username, membership);
+
+    assertThat(userApplicationIds).containsExactlyInAnyOrder(application.getId(), application2.getId(),
+        application3.getId(), application4.getId(), application5.getId(), childApp1.getId(),
+        childApp2.getId(), grandChildApp1.getId());
   }
 
   private void assertGlobalPermisionsAreGranted(final TestEventHandler<RoleEvent> handler, final String username)

@@ -16,14 +16,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,17 +28,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiFirewallResourceAuditTest
     extends AbstractAuditTest
 {
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
-
-  private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
-      new AutoUnquarantinePolicyConditionTypeDAO();
-
-  @After
-  public void cleanUp() {
-    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
-    autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
-  }
-
   @Test
   public void testSetFirewallAutoUnquarantineConfig() throws Exception {
     //setup: add new dto to list

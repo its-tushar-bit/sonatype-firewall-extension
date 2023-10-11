@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummary
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,13 +34,6 @@ public class ApiFirewallServiceAuthzTest
 {
   @Inject
   private ApiFirewallService apiFirewallService;
-
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
-
-  @After
-  public void cleanUp() {
-    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
-  }
 
   @Test
   public void testGetReleaseQuarantineSummary_Authorized() {

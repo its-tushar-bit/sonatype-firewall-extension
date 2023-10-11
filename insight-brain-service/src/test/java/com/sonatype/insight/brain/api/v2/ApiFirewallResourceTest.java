@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.JPA;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -60,7 +59,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.http.HttpStatus;
-import org.junit.After;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -73,16 +71,9 @@ public class ApiFirewallResourceTest
 {
   private static final ObjectMapper JSON = new ObjectMapper();
 
-  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
-
   private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   private final RepositoryDAO repositoryDAO = new RepositoryDAO();
-
-  @After
-  public void cleanUp() {
-    policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
-  }
 
   @Test
   public void testGetFirewallUnquarantineSummary() throws Exception {

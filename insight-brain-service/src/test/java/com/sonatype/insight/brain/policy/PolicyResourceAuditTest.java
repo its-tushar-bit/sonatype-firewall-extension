@@ -398,7 +398,7 @@ public class PolicyResourceAuditTest
   @Test
   public void testUpdatePolicy_RepositoryManager() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    String existingPolicyId =  tempEntity.newPolicy(repositoryManager.getId(), tempEntity.uuid()).getId();;
+    String existingPolicyId = tempEntity.newPolicy(repositoryManager.getId(), tempEntity.uuid()).getId();
 
     Policy policy = aComplexPolicy();
     policy.setId(existingPolicyId);

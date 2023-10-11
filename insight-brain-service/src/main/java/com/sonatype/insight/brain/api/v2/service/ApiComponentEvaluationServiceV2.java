@@ -45,7 +45,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -124,7 +124,7 @@ public class ApiComponentEvaluationServiceV2
         .setData("componentCount", evaluationRequest.components.size()) //
         .setData("resultId", evaluationTicketDTO.resultId) //
         .continueAsync(executor,
-            new SystemRunnable(new ComponentEvaluationTask(evaluationTicketDTO, evaluationRequest)));
+            new OneTimeSystemRunnable(new ComponentEvaluationTask(evaluationTicketDTO, evaluationRequest)));
 
     return evaluationTicketDTO;
   }

@@ -73,7 +73,7 @@ export default function DataRetentionEditorItem({ stage, stages, parentData }) {
       key={stage}
       label={
         stage === 'successMetrics'
-          ? ''
+          ? 'Reports'
           : stage
               .split('-')
               .map((word) => capitalize(word))

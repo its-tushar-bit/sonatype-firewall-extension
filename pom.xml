@@ -48,8 +48,8 @@
     <keycloak.version>21.1.2</keycloak.version>
     <sisu-inject.version>0.3.5</sisu-inject.version>
     <clm.dto.model.version>1.56.0</clm.dto.model.version>
-    <!-- The jetty.version must match the jersey version used by dropwizard -->
-    <jetty.version>9.4.52.v20230823</jetty.version>
+    <!-- The jetty.version must match (or be compatible with) the jersey version used by dropwizard -->
+    <jetty.version>9.4.53.v20231009</jetty.version>
     <!-- The jakarta.servlet-api.version must match the jersey version used by dropwizard -->
     <jakarta.servlet-api.version>4.0.4</jakarta.servlet-api.version>
     <!-- dropwizard 3.x and 4.x require Java 11 -->

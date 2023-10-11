@@ -1266,6 +1266,12 @@
             </systemPropertyVariables>
           </configuration>
         </plugin>
+        <plugin>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <configuration>
+            <excludePackageNames>com.google.*</excludePackageNames>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>

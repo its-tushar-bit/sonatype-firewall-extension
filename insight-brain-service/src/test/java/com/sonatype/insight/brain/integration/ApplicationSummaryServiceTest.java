@@ -321,7 +321,7 @@ public class ApplicationSummaryServiceTest
     assertThat(ownerMaintenanceTelemetryData).isNotNull();
 
     final Application application = applicationDAO.getByPublicId(appPublicId);
-    assertThat(ownerMaintenanceTelemetryData.getApplicationId()).isEqualTo(application.getId());
+    assertThat(ownerMaintenanceTelemetryData.getRealApplicationId()).isEqualTo(application.getId());
     assertThat(ownerMaintenanceTelemetryData.getApplicationName()).isEqualTo(application.getName());
     assertThat(ownerMaintenanceTelemetryData.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_ADD);
   }

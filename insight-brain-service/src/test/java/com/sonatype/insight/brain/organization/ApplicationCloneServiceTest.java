@@ -181,7 +181,7 @@ public class ApplicationCloneServiceTest
             .get(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY);
     assertThat(ownerMaintenanceTelemetryData).isNotNull();
 
-    assertThat(ownerMaintenanceTelemetryData.getApplicationId()).isEqualTo(clonedAppDTO.id);
+    assertThat(ownerMaintenanceTelemetryData.getRealApplicationId()).isEqualTo(clonedAppDTO.id);
     assertThat(ownerMaintenanceTelemetryData.getApplicationName()).isEqualTo(clonedAppDTO.name);
     assertThat(ownerMaintenanceTelemetryData.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_ADD);
   }

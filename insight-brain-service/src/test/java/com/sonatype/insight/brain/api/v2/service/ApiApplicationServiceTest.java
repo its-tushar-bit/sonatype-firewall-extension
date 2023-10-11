@@ -242,7 +242,7 @@ public class ApiApplicationServiceTest
 
     final OwnerMaintenanceTelemetry actualAttributes =
         (OwnerMaintenanceTelemetry) attributesMap.get(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY);
-    assertThat(actualAttributes.getApplicationId()).isEqualTo(app.getId());
+    assertThat(actualAttributes.getRealApplicationId()).isEqualTo(app.getId());
     assertThat(actualAttributes.getApplicationName()).isEqualTo(updatedApp.name);
     assertThat(actualAttributes.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_UPDATE);
   }

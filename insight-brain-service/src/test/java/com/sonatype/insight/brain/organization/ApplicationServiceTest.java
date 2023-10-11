@@ -195,7 +195,7 @@ public class ApplicationServiceTest
             .get(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY);
     assertThat(ownerMaintenanceTelemetryData).isNotNull();
 
-    assertThat(ownerMaintenanceTelemetryData.getApplicationId()).isEqualTo(app.getId());
+    assertThat(ownerMaintenanceTelemetryData.getRealApplicationId()).isEqualTo(app.getId());
     assertThat(ownerMaintenanceTelemetryData.getApplicationName()).isEqualTo(app.getName());
     assertThat(ownerMaintenanceTelemetryData.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_ADD);
   }

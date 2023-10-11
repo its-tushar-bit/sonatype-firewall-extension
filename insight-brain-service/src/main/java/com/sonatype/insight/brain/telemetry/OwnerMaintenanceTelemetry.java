@@ -16,27 +16,27 @@ public class OwnerMaintenanceTelemetry
   public static final String TYPE_DELETE = "Delete";
 
   public OwnerMaintenanceTelemetry(
-      final String applicationId,
+      final String realApplicationId,
       final String applicationName,
       final String ownerMaintenanceType)
   {
-    this.applicationId = applicationId;
+    this.realApplicationId = realApplicationId;
     this.applicationName = applicationName;
     this.ownerMaintenanceType = ownerMaintenanceType;
   }
 
-  private String applicationId;
+  private String realApplicationId;
 
   private String applicationName;
 
   private String ownerMaintenanceType;
 
-  public String getApplicationId() {
-    return applicationId;
+  public String getRealApplicationId() {
+    return realApplicationId;
   }
 
-  public void setApplicationId(final String applicationId) {
-    this.applicationId = applicationId;
+  public void setRealApplicationId(final String realApplicationId) {
+    this.realApplicationId = realApplicationId;
   }
 
   public String getApplicationName() {

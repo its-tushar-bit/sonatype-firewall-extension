@@ -127,7 +127,7 @@ public class OwnerMaintenanceTelemetryCreatorTest
   }
 
   private void assertTelemetryData(final OwnerMaintenanceTelemetry expected, final OwnerMaintenanceTelemetry actual) {
-    assertThat(actual.getApplicationId()).isEqualTo(expected.getApplicationId());
+    assertThat(actual.getRealApplicationId()).isEqualTo(expected.getRealApplicationId());
     assertThat(actual.getApplicationName()).isEqualTo(expected.getApplicationName());
     assertThat(actual.getOwnerMaintenanceType()).isEqualTo(expected.getOwnerMaintenanceType());
   }

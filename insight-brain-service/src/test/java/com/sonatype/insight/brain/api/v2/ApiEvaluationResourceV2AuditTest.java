@@ -34,10 +34,13 @@ import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ApiEvaluationResourceV2AuditTest
     extends AbstractAuditTest
 {

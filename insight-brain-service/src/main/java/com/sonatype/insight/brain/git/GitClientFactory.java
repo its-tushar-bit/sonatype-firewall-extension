@@ -7,13 +7,13 @@ package com.sonatype.insight.brain.git;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -38,22 +38,18 @@ public class GitClientFactory
   /**
    * Caches API URLs for git API clients
    */
-  private final Cache<String, String> apiClientUrlCache;
+  private final TenantReference<Cache<String, String>> apiClientUrlCache =
+      new TenantReference<>(() -> CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build());
 
   /**
    * Caches API URLs for PullRequest info clients
    */
-  private final Cache<String, String> prInfoClientUrlCache;
+  private final TenantReference<Cache<String, String>> prInfoClientUrlCache =
+      new TenantReference<>(() -> CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build());
 
   @Inject
   public GitClientFactory(final InsightProxy insightProxy) {
     this.insightProxy = insightProxy;
-    apiClientUrlCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(1, TimeUnit.HOURS)
-        .build();
-    prInfoClientUrlCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(1, TimeUnit.HOURS)
-        .build();
   }
 
   public GitApiClient createApiClient(GitRepositoryInfo gitRepositoryInfo) {
@@ -115,12 +111,12 @@ public class GitClientFactory
   }
 
   private String getApiUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
-    return getUrl(gitRepositoryInfo, apiClientUrlCache,
+    return getUrl(gitRepositoryInfo, apiClientUrlCache.get(),
         gri -> getClientUtils(gri.provider, configuration).getApiUrl(gri.normalizedRepositoryUrl, gri.token));
   }
 
   private String getPullRequestInfoClientUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
-    return getUrl(gitRepositoryInfo, prInfoClientUrlCache,
+    return getUrl(gitRepositoryInfo, prInfoClientUrlCache.get(),
         gri -> getClientUtils(gri.provider, configuration)
             .getPullRequestInfoProviderUrl(gri.normalizedRepositoryUrl, gri.token));
   }
@@ -128,18 +124,18 @@ public class GitClientFactory
   @VisibleForTesting
   void addApiUrlMapping(String repositoryUrl, String apiUrl) {
     String cacheKey = computeKey(repositoryUrl);
-    apiClientUrlCache.put(cacheKey, apiUrl);
+    apiClientUrlCache.get().put(cacheKey, apiUrl);
   }
 
   @VisibleForTesting
   void addPullRequestInfoClientUrlMapping(String repositoryUrl, String apiUrl) {
     String cacheKey = computeKey(repositoryUrl);
-    prInfoClientUrlCache.put(cacheKey, apiUrl);
+    prInfoClientUrlCache.get().put(cacheKey, apiUrl);
   }
 
   @VisibleForTesting
   void clearUrlCaches() {
-    apiClientUrlCache.invalidateAll();
-    prInfoClientUrlCache.invalidateAll();
+    apiClientUrlCache.get().invalidateAll();
+    prInfoClientUrlCache.get().invalidateAll();
   }
 }

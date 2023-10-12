@@ -553,6 +553,10 @@ public final class Report
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = new HashSet<>();
 
+    if (!hasAnyLicenseOverrides(licenseOverrideDAO, application.getId())) {
+      return componentIdentifiersWithLicenseOverrides;
+    }
+
     ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
     Iterator<JsonNode> iterLicenseData = licensesAaData.iterator();
     int licenseOverrideCount = 0;
@@ -580,6 +584,11 @@ public final class Report
 
     log.debug("applyLicenseOverrides: {} components, {} overrides.", licensesAaData.size(), licenseOverrideCount);
     return componentIdentifiersWithLicenseOverrides;
+  }
+
+  @VisibleForTesting
+  static boolean hasAnyLicenseOverrides(LicenseOverrideDAO licenseOverrideDAO, String applicationId) {
+    return licenseOverrideDAO.getCountByOwnerId(applicationId) > 0;
   }
 
   private static void applySecurityVulnerabilityOverrides(ContainerNode<?> securityJsonData, Application application) {

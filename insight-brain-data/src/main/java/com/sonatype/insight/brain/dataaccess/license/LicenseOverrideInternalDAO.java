@@ -65,6 +65,11 @@ public class LicenseOverrideInternalDAO
     }
   }
 
+  public int getCountByOwnerId(TransactionContext tx, String ownerId) {
+    String sQuery = "SELECT COUNT(entity.id) FROM LicenseOverrideInternal entity WHERE entity.ownerId=?1";
+    return getSingle(tx, Number.class, sQuery, ownerId).intValue();
+  }
+
   @Override
   public void insert(TransactionContext tx, LicenseOverrideInternal entity) {
     if (getByOwnerIdAndComponentIdentifier(tx, entity.getOwnerId(), entity.getComponentIdentifier()) != null) {

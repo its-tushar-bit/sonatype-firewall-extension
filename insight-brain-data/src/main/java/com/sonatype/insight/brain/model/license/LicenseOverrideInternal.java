@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.license;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -16,12 +17,16 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.model.HasStringId;
 
+import org.apache.openjpa.persistence.DataCache;
+
 /**
  * The license of a component (identified by GAV) can be overridden at application or organization (i.e. owner) level.
  * If it is overridden at both application and organization levels, the application one wins.
  *
  * @since 1.13.0
  */
+@DataCache(timeout = 10000)
+@Cacheable
 @Entity
 @Table(name = "license_override")
 public class LicenseOverrideInternal

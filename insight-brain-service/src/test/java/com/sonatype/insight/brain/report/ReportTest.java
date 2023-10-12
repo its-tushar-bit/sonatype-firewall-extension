@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -86,6 +87,22 @@ public class ReportTest
     entry = Report.appendCacheBustingParams(entry, "1.0");
 
     assertThat(entry.buf).isEqualTo(expectedIndexContent.getBytes(StandardCharsets.UTF_8));
+  }
+
+  @Test
+  public void testHasAnyLicenseOverrides() {
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    String applicationId = tempEntity.newApplicationWithParent().getId();
+
+    boolean hasAnyLicenseOverrides = Report.hasAnyLicenseOverrides(licenseOverrideDAO, applicationId);
+
+    assertThat(hasAnyLicenseOverrides).isFalse();
+
+    ComponentIdentifier anameHawk111 = ComponentIdentifier.createAnameCoordinates("hawk", "", "1.1.1");
+    tempEntity.newLicenseOverride(applicationId, anameHawk111, OVERRIDDEN, "Beerware");
+    hasAnyLicenseOverrides = Report.hasAnyLicenseOverrides(licenseOverrideDAO, applicationId);
+
+    assertThat(hasAnyLicenseOverrides).isTrue();
   }
 
   @Test

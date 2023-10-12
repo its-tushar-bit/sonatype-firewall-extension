@@ -105,6 +105,21 @@ public class LicenseOverrideDAOTest
   }
 
   @Test
+  public void testGetCountByOwnerId() {
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+
+    assertThat(dao.getCountByOwnerId("xyz123xyz")).isZero();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    LicenseOverride licenseOverride =
+        new LicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
+            null);
+    dao.insert(licenseOverride);
+    assertThat(dao.getCountByOwnerId(application.getId())).isEqualTo(1);
+    dao.delete(licenseOverride);
+    assertThat(dao.getCountByOwnerId(application.getId())).isZero();
+  }
+
+  @Test
   public void testCommentTooLong() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
     LicenseOverride override = new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,

@@ -124,6 +124,12 @@ public class LicenseOverrideDAO
     }
   }
 
+  public int getCountByOwnerId(String ownerId) {
+    try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
+      return licenseOverrideInternalDAO.getCountByOwnerId(tx, ownerId);
+    }
+  }
+
   public void insert(TransactionContext tx, LicenseOverride entity) {
     validate(entity);
 

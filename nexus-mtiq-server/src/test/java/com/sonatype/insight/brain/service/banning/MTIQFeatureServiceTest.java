@@ -73,7 +73,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(25)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(24)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
 
     List<String> flagsSet = propertyKeyCaptor.getAllValues();
 
@@ -192,6 +192,7 @@ public class MTIQFeatureServiceTest
         .filter(f -> !f.equals(PR_LINE_COMMENTING))
         .filter(f -> !f.equals(ADVANCED_SEARCH_CONFIGURATION))
         .filter(f -> !f.equals(INTERNAL_FIREWALL_ONBOARDING_ENABLED))
+        .filter(f -> !f.equals(AUTOMATIC_APPLICATION_CONFIGURATION))
         .map(SystemConfigurationPropertyFeature::getPropertyName)
         .collect(Collectors.toList()).toArray(new String[]{});
   }

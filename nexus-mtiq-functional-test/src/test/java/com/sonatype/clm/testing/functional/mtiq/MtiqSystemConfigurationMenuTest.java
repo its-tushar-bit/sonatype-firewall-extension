@@ -131,7 +131,6 @@ public class MtiqSystemConfigurationMenuTest
   }
 
   private void checkMtiqOmissions() {
-    mtiqSystemConfigMenu.automaticApplications().shouldBe(hidden);
     mtiqSystemConfigMenu.baseUrlConfiguration().shouldBe(hidden);
     mtiqSystemConfigMenu.ldap().shouldBe(hidden);
     mtiqSystemConfigMenu.productLicense().shouldBe(hidden);

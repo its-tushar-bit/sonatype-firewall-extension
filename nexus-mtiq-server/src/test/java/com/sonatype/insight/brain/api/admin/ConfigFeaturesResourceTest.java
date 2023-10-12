@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
-
 import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -46,6 +45,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
+      SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
       SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
       SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
@@ -53,7 +53,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
       SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
-  };
+      };
 
   /**
    * SystemConfigurationPropertyFeature that are allowed to be used in MTIQ should be added to this list

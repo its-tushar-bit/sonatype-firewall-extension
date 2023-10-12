@@ -59,6 +59,7 @@ public class MTIQFeatureService
    */
   private static final List<SystemConfigurationPropertyFeature> MTIQ_ENABLED_FEATURES = Arrays.asList(
       ENABLE_SSO_ONLY,
+      AUTOMATIC_APPLICATION_CONFIGURATION,
       LOGOUT_AUTH0_ON_LOGOUT);
 
   /**
@@ -68,7 +69,6 @@ public class MTIQFeatureService
       LicensedFeature.DATA_INSIGHTS,
       SystemConfigurationPropertyFeature.API_PAGE,
       SUCCESS_METRICS_CONFIGURATION,
-      AUTOMATIC_APPLICATION_CONFIGURATION,
       INNER_SOURCE_TRANSITIVE_WAIVER,
       PRODUCT_LICENSE_CONFIGURATION,
       SYSTEM_NOTICE_CONFIGURATION,

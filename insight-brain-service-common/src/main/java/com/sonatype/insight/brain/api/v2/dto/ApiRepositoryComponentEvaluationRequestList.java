@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.api.v2.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 public class ApiRepositoryComponentEvaluationRequestList
 {
   public String format;
@@ -18,13 +20,23 @@ public class ApiRepositoryComponentEvaluationRequestList
   {
     public String pathname;
 
+    @JsonAlias({"sha1", "sonatypeFingerprint"})
     public String hash;
+
+    @JsonAlias({"purl"})
+    public String packageUrl;
 
     public ApiRepositoryComponentEvaluationRequest() { }
 
     public ApiRepositoryComponentEvaluationRequest(final String pathname, final String hash) {
       this.pathname = pathname;
       this.hash = hash;
+    }
+
+    public ApiRepositoryComponentEvaluationRequest(final String pathname, final String hash, final String packageUrl) {
+      this.pathname = pathname;
+      this.hash = hash;
+      this.packageUrl = packageUrl;
     }
   }
 }

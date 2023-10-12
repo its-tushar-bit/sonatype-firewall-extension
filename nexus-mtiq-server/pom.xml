@@ -174,6 +174,16 @@
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
           <forkCount>1</forkCount>
           <argLine>@{argLine} -Xmx768M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <!-- 
+              insight-brain-service-[version]-server.jar!/META-INF/kie/*/kie.conf
+              can conflict with kie.conf files in other dependencies
+          -->
+          <classpathDependencyExcludes>
+            <classpathDependencyExclude>org.drools:drools-core</classpathDependencyExclude>
+            <classpathDependencyExclude>org.drools:drools-compiler</classpathDependencyExclude>
+            <classpathDependencyExclude>org.drools:drools-mvel</classpathDependencyExclude>
+            <classpathDependencyExclude>org.kie:kie-internal</classpathDependencyExclude>
+          </classpathDependencyExcludes>
         </configuration>
         <executions>
           <execution>

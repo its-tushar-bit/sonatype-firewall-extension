@@ -7,7 +7,8 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collection;
 import java.util.Date;
-
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -34,8 +35,16 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationReq
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList.ApiRepositoryComponentEvaluationResult;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.utils.RepositoryPathnameSerializer;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 /**
@@ -50,15 +59,23 @@ public class ApiComponentDetailsAdapter
 
   private final ApiComponentProjectDetailsAdapter componentProjectDetailsAdapter;
 
+  private final RepositoryComponentDAO repositoryComponentDAO;
+  
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
   @Inject
   public ApiComponentDetailsAdapter(
       final ApiLicenseDataAdapter licenseDataAdapter,
       final ApiSecurityDataAdapter securityDataAdapter,
-      final ApiComponentProjectDetailsAdapter componentProjectDetailsAdapter)
+      final ApiComponentProjectDetailsAdapter componentProjectDetailsAdapter,
+      final RepositoryComponentDAO repositoryComponentDAO,
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO)
   {
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
     this.componentProjectDetailsAdapter = componentProjectDetailsAdapter;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
   }
 
   public ApiComponentDetailsDTOV2 convertToDTO(final Component component, final Collection<PolicyAlert> policyAlerts) {
@@ -142,29 +159,68 @@ public class ApiComponentDetailsAdapter
 
     for (ApiRepositoryComponentEvaluationRequest componentRequest :
         apiRepositoryComponentEvaluationRequestList.components) {
+      String pathname = componentRequest.pathname;
+      if (pathname == null && componentRequest.packageUrl != null) {
+        pathname = RepositoryPathnameSerializer.toPathname(componentRequest.packageUrl);
+      }
       requestList.components.add(
-          new RepositoryComponentEvaluationDataRequest(apiRepositoryComponentEvaluationRequestList.format,
-              componentRequest.pathname, componentRequest.hash));
+          new RepositoryComponentEvaluationDataRequest(apiRepositoryComponentEvaluationRequestList.format, pathname,
+              HashHelper.truncateHash(componentRequest.hash)));
     }
     return requestList;
   }
 
   public ApiRepositoryComponentEvaluationResultList convertToDTO(
+      RepositoryManager repositoryManager,
+      Repository repository,
+      ApiRepositoryComponentEvaluationRequestList apiRepositoryComponentEvaluationRequestList,
       RepositoryComponentEvaluationDataList repositoryComponentEvaluationDataList)
   {
     ApiRepositoryComponentEvaluationResultList resultDTO = new ApiRepositoryComponentEvaluationResultList();
-
+    resultDTO.repositoryManagerId = repositoryManager.getId();
+    resultDTO.repositoryId = repository.getId();
+    resultDTO.repositoryPublicId = repository.getPublicId();
+    resultDTO.repositoryType = repository.getRepositoryType().name();
     for (RepositoryComponentEvaluationData repositoryComponentEvaluationData :
         repositoryComponentEvaluationDataList.componentEvalResults) {
-
       ApiRepositoryComponentEvaluationResult componentEvaluationResult =
           new ApiRepositoryComponentEvaluationResult();
-      for (PolicyAlert policyAlert : repositoryComponentEvaluationData.policyAlerts) {
-        componentEvaluationResult.policyViolations.add(convert(policyAlert));
+
+      int index = repositoryComponentEvaluationData.requestIndex;
+      ApiRepositoryComponentEvaluationRequest apiRepositoryComponentEvaluationRequest =
+          apiRepositoryComponentEvaluationRequestList.components.get(index);
+
+      componentEvaluationResult.quarantined = repositoryComponentEvaluationData.quarantine;
+      String pathname = apiRepositoryComponentEvaluationRequest.pathname;
+      if (pathname == null && apiRepositoryComponentEvaluationRequest.packageUrl != null) {
+        pathname = RepositoryPathnameSerializer.toPathname(apiRepositoryComponentEvaluationRequest.packageUrl);
       }
+      RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+          pathname);
+      if (repositoryComponent != null) {
+        componentEvaluationResult.quarantineDate = repositoryComponent.getQuarantineTime();
+      }
+      componentEvaluationResult.component = apiRepositoryComponentEvaluationRequest;
+      componentEvaluationResult.catalogDate = repositoryComponentEvaluationData.catalogDate;
+      List<RepositoryPolicyViolation> repositoryPolicyViolations =
+          repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+      componentEvaluationResult.policyViolations.addAll(
+          repositoryPolicyViolations.stream().map(this::convert).collect(Collectors.toList()));
       resultDTO.results.add(componentEvaluationResult);
     }
     return resultDTO;
+  }
+
+  private ApiPolicyViolationDTOV2 convert(RepositoryPolicyViolation repositoryPolicyViolation) {
+    ApiPolicyViolationDTOV2 dto = new ApiPolicyViolationDTOV2();
+    dto.policyId = repositoryPolicyViolation.getPolicyId();
+    dto.policyName = repositoryPolicyViolation.getPolicyName();
+    dto.policyViolationId = repositoryPolicyViolation.getId();
+    dto.threatLevel = repositoryPolicyViolation.getThreatLevel();
+    for (ConstraintFact constraintFact : repositoryPolicyViolation.getConstraintFacts()) {
+      dto.constraintViolations.add(convert(constraintFact));
+    }
+    return dto;
   }
 
   private ApiPolicyViolationDTOV2 convert(final PolicyAlert policyAlert) {

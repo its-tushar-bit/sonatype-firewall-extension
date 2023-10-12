@@ -30,12 +30,13 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummary
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList.ApiRepositoryComponentEvaluationRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -73,6 +74,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.lqa.LqaComponentIdentifier;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -518,8 +520,7 @@ public class ApiFirewallService
     validateApiRepositoryComponentEvaluationRequest(repository, repositoryManager,
         apiRepositoryComponentEvaluationRequestList);
 
-    AuditData.get().setData("componentCount", apiRepositoryComponentEvaluationRequestList.components ==
-        null ? 0 : apiRepositoryComponentEvaluationRequestList.components.size());
+    AuditData.get().setData("componentCount", apiRepositoryComponentEvaluationRequestList.components.size());
 
     log.debug("Evaluating components for repository {}:{} ({})", repositoryManager.getInstanceId(),
         repository.getPublicId(), repository.getId());
@@ -527,11 +528,17 @@ public class ApiFirewallService
     RepositoryComponentEvaluationDataRequestList requestList =
         apiComponentDetailsAdapter.convertFromDTO(apiRepositoryComponentEvaluationRequestList);
 
-    RepositoryComponentEvaluationDataList result =
-          repositoryService.evaluateComponents(repository, repositoryManager.getInstanceId(), requestList, false,
-            false, null);
+    RepositoryComponentEvaluationDataList result = repositoryService.evaluateComponents(
+        repository,
+        repositoryManager.getInstanceId(),
+        requestList,
+        repository.isQuarantineEnabled(),
+        true,
+        null /* clientUserAgent */
+    );
 
-    return apiComponentDetailsAdapter.convertToDTO(result);
+    return apiComponentDetailsAdapter.convertToDTO(repositoryManager, repository,
+        apiRepositoryComponentEvaluationRequestList, result);
   }
 
   private void validateApiRepositoryComponentEvaluationRequest(
@@ -552,7 +559,22 @@ public class ApiFirewallService
           String.format("Max amount of components to evaluate is '%d'.", MAX_COMPONENTS_TO_EVALUATE));
     }
     if (dto.format == null || dto.format.isEmpty()) {
-      throw new BadRequestException("The format cannot be null or empty.");
+      throw new BadRequestException("The format must be specified.");
+    }
+    for (ApiRepositoryComponentEvaluationRequest component : dto.components) {
+      if (component.hash == null) {
+        throw new BadRequestException("The hash must be specified.");
+      }
+      if (component.pathname == null && component.packageUrl == null) {
+        throw new BadRequestException("One of pathname or packageUrl must be specified.");
+      }
+      if (component.pathname == null) {
+        ComponentIdentifier componentIdentifier =
+            new PackageUrlIdentifier(component.packageUrl).ensureCompleteIdentifier();
+        if (!dto.format.equals(componentIdentifier.getFormat())) {
+          throw new BadRequestException("Component format must match that of the request.");
+        }
+      }
     }
   }
 }

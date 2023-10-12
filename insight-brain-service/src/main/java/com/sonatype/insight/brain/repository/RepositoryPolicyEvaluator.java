@@ -245,6 +245,9 @@ public class RepositoryPolicyEvaluator
       repositoryComponentEvaluationResult.requestIndex = requestIndex;
       Component component = components.get(requestIndex);
       if (component != null) {
+        if (component.getCatalogDate() != null) {
+          repositoryComponentEvaluationResult.catalogDate = new Date(component.getCatalogDate());
+        }
         if (persistEvaluationResults) {
           RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
               policyResults, policies, withQuarantine, shouldSendNotifications, forMonitoring);

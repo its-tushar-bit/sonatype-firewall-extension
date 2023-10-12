@@ -604,6 +604,7 @@ public class RepositoryPolicyEvaluatorTest
     requestList.components.add(ignorableRequest);
     requestList.components.add(unignorableRequest);
 
+    Date now = new Date();
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components.add(createComponentEvaluationData(
         ignorableComponent.getComponentIdentifier(), ignorableComponent.getHash(),
@@ -623,9 +624,12 @@ public class RepositoryPolicyEvaluatorTest
     // Ignored component is not evaluated and cannot have security vulnerabilities and so should not be quarantined
     assertThat(resultList.componentEvalResults.get(0).requestIndex).isEqualTo(0);
     assertThat(resultList.componentEvalResults.get(0).quarantine).isFalse();
+    // Catalog date is not available from an ignored component
+    assertThat(resultList.componentEvalResults.get(0).catalogDate).isNull();
     // Unignored component is evaluated and has a security vulnerability and so should be quarantined
     assertThat(resultList.componentEvalResults.get(1).requestIndex).isEqualTo(1);
     assertThat(resultList.componentEvalResults.get(1).quarantine).isTrue();
+    assertThat(resultList.componentEvalResults.get(1).catalogDate).isAfterOrEqualTo(now);
 
     assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), ignorableRequest.pathname))
         .isNull();
@@ -733,6 +737,7 @@ public class RepositoryPolicyEvaluatorTest
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
+    Date now = new Date();
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     for (int i = 0; i < 2; i++) {
       componentEvaluationDataRequestList.components
@@ -749,7 +754,9 @@ public class RepositoryPolicyEvaluatorTest
 
     assertThat(resultList.componentEvalResults).hasSize(2);
     assertThat(resultList.componentEvalResults.get(0).quarantine).isTrue();
+    assertThat(resultList.componentEvalResults.get(0).catalogDate).isAfterOrEqualTo(now);
     assertThat(resultList.componentEvalResults.get(1).quarantine).isFalse();
+    assertThat(resultList.componentEvalResults.get(1).catalogDate).isAfterOrEqualTo(now);
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repo.getId());
     assertThat(policyViolations).hasSize(1);

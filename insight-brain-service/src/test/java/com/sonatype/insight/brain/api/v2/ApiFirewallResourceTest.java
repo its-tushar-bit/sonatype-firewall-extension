@@ -53,14 +53,16 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.MultiTenantBrainServiceTestService;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Assume;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -579,7 +581,6 @@ public class ApiFirewallResourceTest
   }
 
   @Test
-  @Ignore("failing on MTIQ")
   public void testEvaluateComponents() throws Exception {
     // Set up the mocked hds return
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
@@ -609,11 +610,99 @@ public class ApiFirewallResourceTest
         .body(dto)
         .post();
 
+    assertEvaluateSuccess(response, repository, "hash", "foobar", null, policy);
+  }
+
+  @Test
+  public void testEvaluateComponents_AlternativeDtoNames() throws Exception {
+    // Set up the mocked hds return
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = "hash";
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.declaredLicenses = new HashSet<>();
+    componentEvaluationData.observedLicenses = new HashSet<>();
+    componentEvaluationData.securityVulnerabilities = createSecurityVulnerabilities();
+    hdsResult.components.add(componentEvaluationData);
+    hdsRespondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
+    Policy policy = tempEntity.newPolicy(ROOT_ORGANIZATION_ID);
+
+    ObjectNode dto = JSON.createObjectNode();
+    dto.put("format", "maven");
+    ArrayNode components = dto.putArray("components");
+    ObjectNode component = JSON.createObjectNode();
+    component.put("pathname", "foobar");
+    component.put("sha1", "hash");
+    components.add(component);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "repoPublicId", false, false);
+
+    HttpResponse response;
+
+    response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.EVALUATE_COMPONENTS_PATH)
+        .parameter(repository.getRepositoryManagerId(), repository.getId())
+        .body(dto)
+        .post();
+    assertEvaluateSuccess(response, repository, "hash", "foobar", null, policy);
+
+    component.remove("sha1");
+    component.put("sonatypeFingerprint", "hash");
+    response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.EVALUATE_COMPONENTS_PATH)
+        .parameter(repository.getRepositoryManagerId(), repository.getId())
+        .body(dto)
+        .post();
+    assertEvaluateSuccess(response, repository, "hash", "foobar", null, policy);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
+
+    component.remove("pathname");
+    component.put("packageUrl", packageUrl);
+    response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.EVALUATE_COMPONENTS_PATH)
+        .parameter(repository.getRepositoryManagerId(), repository.getId())
+        .body(dto)
+        .post();
+    assertEvaluateSuccess(response, repository, "hash", null, packageUrl, policy);
+
+    component.remove("packageUrl");
+    component.put("purl", packageUrl);
+    response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.EVALUATE_COMPONENTS_PATH)
+        .parameter(repository.getRepositoryManagerId(), repository.getId())
+        .body(dto)
+        .post();
+    assertEvaluateSuccess(response, repository, "hash", null, packageUrl, policy);
+  }
+
+  private void assertEvaluateSuccess(
+      HttpResponse response,
+      Repository repository,
+      String hash,
+      String pathname,
+      String packageUrl,
+      Policy policy)
+  {
     assertResponseStatus(200, response);
-    ApiRepositoryComponentEvaluationResultList responseBody =
+    ApiRepositoryComponentEvaluationResultList dto =
         response.getBody(ApiRepositoryComponentEvaluationResultList.class);
-    assertThat(responseBody.results).hasSize(1);
-    ApiRepositoryComponentEvaluationResult componentEvaluationResult = responseBody.results.get(0);
+    assertThat(dto).isNotNull();
+    assertThat(dto.repositoryManagerId).isEqualTo(repository.getRepositoryManagerId());
+    assertThat(dto.repositoryId).isEqualTo(repository.getId());
+    assertThat(dto.repositoryPublicId).isEqualTo(repository.getPublicId());
+    assertThat(dto.repositoryType).isEqualTo(repository.getRepositoryType().name());
+    assertThat(dto.results).hasSize(1);
+    ApiRepositoryComponentEvaluationResult componentEvaluationResult = dto.results.get(0);
+    assertThat(componentEvaluationResult.component).isNotNull();
+    assertThat(componentEvaluationResult.component.hash).isEqualTo(hash);
+    assertThat(componentEvaluationResult.component.pathname).isEqualTo(pathname);
+    assertThat(componentEvaluationResult.component.packageUrl).isEqualTo(packageUrl);
+    assertThat(componentEvaluationResult.quarantined).isFalse();
+    assertThat(componentEvaluationResult.quarantineDate).isNull();
+    assertThat(componentEvaluationResult.catalogDate).isNull();
     assertThat(componentEvaluationResult.policyViolations).hasSize(1);
     assertThat(componentEvaluationResult.policyViolations.get(0).threatLevel).isEqualTo(5);
     assertThat(componentEvaluationResult.policyViolations.get(0).policyId).isEqualTo(policy.getId());

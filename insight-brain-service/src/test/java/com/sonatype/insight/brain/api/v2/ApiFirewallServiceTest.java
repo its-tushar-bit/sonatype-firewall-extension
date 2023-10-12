@@ -17,15 +17,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
@@ -46,6 +43,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryCompon
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryException;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -73,9 +71,12 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.AutoReleaseQuarantineTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.RepositoryPathnameSerializer;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.InvalidPackageURLException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -113,6 +114,9 @@ public class ApiFirewallServiceTest
 
   @Inject
   private RepositoryDAO repositoryDAO;
+  
+  @Inject
+  private RepositoryComponentDAO repositoryComponentDAO;
 
   @Mock
   private RepositoryService repositoryServiceMock;
@@ -969,26 +973,80 @@ public class ApiFirewallServiceTest
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
       () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList))
-        .withMessage("The format cannot be null or empty.");
+        .withMessage("The format must be specified.");
   }
 
   @Test
-  public void testEvaluateComponents() {
+  public void testEvaluateComponents_NoHash() {
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = "npm";
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest("somePathname", null, null));
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
+            repository.getId(), requestList))
+        .withMessage("The hash must be specified.");
+  }
+
+  @Test
+  public void testEvaluateComponents_NoPathnameOrPackageUrl() {
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = "npm";
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest(null, "someHash", null));
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
+            repository.getId(), requestList))
+        .withMessage("One of pathname or packageUrl must be specified.");
+  }
+
+  @Test
+  public void testEvaluateComponents_InvalidPackageUrl() {
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = "npm";
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest(null, "someHash", "invalidPackageUrl"));
+
+    assertThatExceptionOfType(InvalidPackageURLException.class)
+        .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
+            repository.getId(), requestList))
+        .withMessage("Invalid package url");
+  }
+
+  @Test
+  public void testEvaluateComponents_PackageUrlFormatMismatch() {
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = "npm";
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest(null, "someHash",
+        "pkg:maven/commons-fileupload/commons-fileupload@1.3.2?type=jar"));
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
+            repository.getId(), requestList))
+        .withMessage("Component format must match that of the request.");
+  }
+
+  @Test
+  public void testEvaluateComponents_PathnameAndHash() {
     // given
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent =
-        tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
+        tempEntity.newRepositoryComponent(repository.getId(), "/audit", new Date(), null);
     ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
     requestList.format = ComponentIdentifier.FORMAT_MAVEN;
     requestList.components.add(
         new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
-    PolicyAlert policyAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10),
-        Collections.singletonList(new Action(Action.ID_WARN)));
-    rced.policyAlerts.add(policyAlert);
+    rced.quarantine = true;
+    rced.catalogDate = new Date();
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repositoryComponent, 10, false, "Policy Name", null);
     repositoryServiceEvaluateResult.componentEvalResults.add(rced);
-    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(false),
+    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
         isNull())).thenReturn(repositoryServiceEvaluateResult);
 
     // when
@@ -998,11 +1056,71 @@ public class ApiFirewallServiceTest
 
     // then
     assertThat(result).isNotNull();
+    assertThat(result.repositoryManagerId).isEqualTo(repository.getRepositoryManagerId());
+    assertThat(result.repositoryId).isEqualTo(repository.getId());
+    assertThat(result.repositoryPublicId).isEqualTo(repository.getPublicId());
+    assertThat(result.repositoryType).isEqualTo(repository.getRepositoryType().name());
     assertThat(result.results.size()).isEqualTo(1);
+    assertThat(result.results.get(0).quarantined).isEqualTo(rced.quarantine);
+    assertThat(result.results.get(0).quarantineDate).isEqualTo(repositoryComponent.getQuarantineTime());
+    assertThat(result.results.get(0).component).isEqualTo(requestList.components.get(0));
+    assertThat(result.results.get(0).catalogDate).isAfterOrEqualTo(rced.catalogDate);
     assertThat(result.results.get(0).policyViolations.size()).isEqualTo(1);
     ApiPolicyViolationDTOV2 policyViolationDTOV2 = result.results.get(0).policyViolations.get(0);
-    assertThat(policyViolationDTOV2.policyId).isEqualTo(policyAlert.getTrigger().getPolicyId());
-    assertThat(policyViolationDTOV2.threatLevel).isEqualTo(policyAlert.getTrigger().getThreatLevel());
+    assertThat(policyViolationDTOV2.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
+    assertThat(policyViolationDTOV2.threatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
+  }
+
+  @Test
+  public void testEvaluateComponents_PurlAndHash() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    String fakePathname = RepositoryPathnameSerializer.toPathname(componentIdentifier);
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), fakePathname, new Date(), null);
+    repositoryComponent.setComponentIdentifier(componentIdentifier);
+    repositoryComponentDAO.update(repositoryComponent);
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_MAVEN;
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
+        null,
+        repositoryComponent.getHash(),
+        PackageUrlIdentifier.fromComponentIdentifier(repositoryComponent.getComponentIdentifier()).getPackageUrl())
+    );
+    RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
+    RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
+    rced.quarantine = true;
+    rced.catalogDate = new Date();
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repositoryComponent, 10, false, "Policy Name", null);
+    repositoryServiceEvaluateResult.componentEvalResults.add(rced);
+    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
+        isNull())).thenReturn(repositoryServiceEvaluateResult);
+
+    ApiRepositoryComponentEvaluationResultList result =
+        apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+            requestList);
+
+    assertThat(result).isNotNull();
+    assertThat(result.repositoryManagerId).isEqualTo(repository.getRepositoryManagerId());
+    assertThat(result.repositoryId).isEqualTo(repository.getId());
+    assertThat(result.repositoryPublicId).isEqualTo(repository.getPublicId());
+    assertThat(result.repositoryType).isEqualTo(repository.getRepositoryType().name());
+    assertThat(result.results.size()).isEqualTo(1);
+    assertThat(result.results.get(0).quarantined).isEqualTo(rced.quarantine);
+    assertThat(result.results.get(0).quarantineDate).isEqualTo(repositoryComponent.getQuarantineTime());
+    assertThat(result.results.get(0).component).isEqualTo(requestList.components.get(0));
+    assertThat(result.results.get(0).catalogDate).isAfterOrEqualTo(rced.catalogDate);
+    assertThat(result.results.get(0).policyViolations.size()).isEqualTo(1);
+    ApiPolicyViolationDTOV2 policyViolationDTOV2 = result.results.get(0).policyViolations.get(0);
+    assertThat(policyViolationDTOV2.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
+    assertThat(policyViolationDTOV2.threatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
+    ArgumentCaptor<RepositoryComponentEvaluationDataRequestList> captor = ArgumentCaptor.forClass(
+        RepositoryComponentEvaluationDataRequestList.class);
+    verify(repositoryServiceMock).evaluateComponents(any(Repository.class), anyString(), captor.capture(), eq(false),
+        eq(true), isNull());
+    RepositoryComponentEvaluationDataRequestList request = captor.getValue();
+    assertThat(request.components.get(0).pathname).isEqualTo(fakePathname);
   }
 
   @Test
@@ -1017,7 +1135,7 @@ public class ApiFirewallServiceTest
         new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     repositoryServiceEvaluateResult.componentEvalResults.add(new RepositoryComponentEvaluationData());
-    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(false),
+    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
         isNull())).thenReturn(repositoryServiceEvaluateResult);
 
     // when
@@ -1026,8 +1144,40 @@ public class ApiFirewallServiceTest
 
     // then
     assertThat(result).isNotNull();
+    assertThat(result.repositoryManagerId).isEqualTo(repository.getRepositoryManagerId());
+    assertThat(result.repositoryId).isEqualTo(repository.getId());
+    assertThat(result.repositoryPublicId).isEqualTo(repository.getPublicId());
+    assertThat(result.repositoryType).isEqualTo(repository.getRepositoryType().name());
     assertThat(result.results.size()).isEqualTo(1);
-    assertThat(result.results.get(0).policyViolations.size()).isEqualTo(0);
+    assertThat(result.results.get(0).quarantined).isFalse();
+    assertThat(result.results.get(0).quarantineDate).isNull();
+    assertThat(result.results.get(0).component).isEqualTo(requestList.components.get(0));
+    assertThat(result.results.get(0).catalogDate).isNull();
+    assertThat(result.results.get(0).policyViolations).isEmpty();
+  }
+
+  @Test
+  public void testEvaluateComponents_WithQuarantine() {
+    Repository repository = tempEntity.newRepository();
+    repository.setQuarantineEnabled(true);
+    repositoryDAO.update(repository);
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "/audit", null, null);
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_MAVEN;
+    requestList.components.add(
+        new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
+    RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
+    repositoryServiceEvaluateResult.componentEvalResults.add(new RepositoryComponentEvaluationData());
+    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(true), eq(true),
+        isNull())).thenReturn(repositoryServiceEvaluateResult);
+
+    ApiRepositoryComponentEvaluationResultList result =
+        apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList);
+
+    assertThat(result).isNotNull();
+    verify(repositoryServiceMock).evaluateComponents(any(Repository.class), anyString(), any(), eq(true), eq(true),
+        isNull());
   }
 
   static void assertRepositoryComponentWithOnePolicyViolation(

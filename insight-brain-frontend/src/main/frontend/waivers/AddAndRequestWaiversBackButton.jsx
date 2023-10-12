@@ -69,6 +69,24 @@ export default function AddAndRequestWaiversBackButton(props) {
         publicId,
       });
       backButtonTitle = 'Back to Component Details';
+    }
+    // Navigated from Security Details page/popover
+    else if (prevStateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY) {
+      backButtonHref = uiRouterState.href(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY, {
+        hash,
+        scanId,
+        publicId,
+      });
+      backButtonTitle = 'Back to Component Details';
+    }
+    // Navigated from Legal Details page/popover
+    else if (prevStateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL) {
+      backButtonHref = uiRouterState.href(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL, {
+        hash,
+        scanId,
+        publicId,
+      });
+      backButtonTitle = 'Back to Component Details';
       // Navigated from any other page
     } else {
       backButtonHref = uiRouterState.href(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, { violationId });

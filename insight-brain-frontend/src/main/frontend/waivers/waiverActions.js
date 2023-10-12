@@ -209,6 +209,12 @@ export function returnToAddWaiverOriginPage() {
       case originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS:
         return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS, prevParams));
 
+      case originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL:
+        return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL, prevParams));
+
+      case originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY:
+        return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY, prevParams));
+
       case originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION:
         return dispatch(stateGo(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, prevParams));
 

@@ -29,6 +29,10 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
       let href;
       if (stateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS) {
         href = 'componentDetailsHref';
+      } else if (stateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL) {
+        href = 'componentDetailsHrefLegal';
+      } else if (stateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY) {
+        href = 'componentDetailsHrefSecurity';
       } else if (stateName === originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS) {
         href = 'listWaiversComponentDetailsHref';
       } else if (stateName === originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW) {
@@ -87,6 +91,46 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
         expect(component).toMatchSelector(MenuBarBackButton);
         expect(component).toHaveProp('text', 'Back to Component Details');
         expect(component).toHaveProp('href', 'componentDetailsHref');
+      });
+    });
+
+    describe('if navigated to Request Waivers Page via Security Details Popover/Page', () => {
+      it(`renders a MenuBarBackButton with title 'Back to Component Details'
+      and navigates from the Request Waiver Page to Legal Details Popover`, () => {
+        const component = getShallowComponent({
+          ...minimalProps,
+          prevStateName: originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL,
+        });
+
+        expect(routerContext.useRouterState).toHaveBeenCalled();
+        expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_LEGAL, {
+          publicId: 'publicId',
+          scanId: 'scanId',
+          hash: 'hash',
+        });
+        expect(component).toMatchSelector(MenuBarBackButton);
+        expect(component).toHaveProp('text', 'Back to Component Details');
+        expect(component).toHaveProp('href', 'componentDetailsHrefLegal');
+      });
+    });
+
+    describe('if navigated to Request Waivers Page via Legal Details Popover/Page', () => {
+      it(`renders a MenuBarBackButton with title 'Back to Component Details'
+      and navigates from the Request Waiver Page to Security Details Popover`, () => {
+        const component = getShallowComponent({
+          ...minimalProps,
+          prevStateName: originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY,
+        });
+
+        expect(routerContext.useRouterState).toHaveBeenCalled();
+        expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS_SECURITY, {
+          publicId: 'publicId',
+          scanId: 'scanId',
+          hash: 'hash',
+        });
+        expect(component).toMatchSelector(MenuBarBackButton);
+        expect(component).toHaveProp('text', 'Back to Component Details');
+        expect(component).toHaveProp('href', 'componentDetailsHrefSecurity');
       });
     });
 

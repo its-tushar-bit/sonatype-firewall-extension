@@ -25,6 +25,10 @@ export const originNamesForAddRequestPages = {
   APP_REPORT_VIOLATION_WAIVERS: 'applicationReport.violationWaivers',
   // App Report -> Component Details -> Policy Violations -> Violation Details Popover -> Manage Waivers dropdown, Add Waiver
   APP_REPORT_COMPONENT_DETAILS: 'applicationReport.componentDetails.violations',
+  // App Report -> Component Details -> Security Violations -> Violation Details Popover -> Manage Waivers dropdown, Add Waiver
+  APP_REPORT_COMPONENT_DETAILS_SECURITY: 'applicationReport.componentDetails.security',
+  // App Report -> Component Details -> Legal Violations -> Violation Details Popover -> Manage Waivers dropdown, Add Waiver
+  APP_REPORT_COMPONENT_DETAILS_LEGAL: 'applicationReport.componentDetails.legal',
   // Dashboard -> Violations -> Violation Details -> Manage Waivers dropdown -> Add Waiver
   DASHBOARD_VIOLATIONS_VIEW: 'sidebarView.violation',
   // Dashboard -> Violations -> Violation Details -> Manage Waivers -> Add Waiver

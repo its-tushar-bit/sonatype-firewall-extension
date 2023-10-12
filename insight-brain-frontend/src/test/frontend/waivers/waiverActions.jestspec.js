@@ -1187,7 +1187,7 @@ describe('waiverActions', function () {
       });
     });
 
-    it('dispatches STATE_GO with the route to the Component Details violation details tile when the router comes from the that tile in the app report', function () {
+    it('dispatches STATE_GO with the route to the Component Details violation details tab when the router comes from the violation tab in the app report', function () {
       const state = {
         router: {
           prevState: { name: 'applicationReport.componentDetails.violations' },
@@ -1212,6 +1212,66 @@ describe('waiverActions', function () {
           publicId: 'appPublicId',
           scanId: 'scanId',
           tabId: 'violations',
+        },
+        options: undefined,
+      });
+    });
+
+    it('dispatches STATE_GO with the route to the Component Details security tab when the router comes from the security tab in the app report', function () {
+      const state = {
+        router: {
+          prevState: { name: 'applicationReport.componentDetails.security' },
+          prevParams: {
+            hash: 'hash',
+            publicId: 'appPublicId',
+            scanId: 'scanId',
+            tabId: 'security',
+          },
+          currentParams: { violationId: 'policyViolationId' },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(returnToAddWaiverOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'applicationReport.componentDetails.security',
+        params: {
+          hash: 'hash',
+          publicId: 'appPublicId',
+          scanId: 'scanId',
+          tabId: 'security',
+        },
+        options: undefined,
+      });
+    });
+
+    it('dispatches STATE_GO with the route to the Component Details legal tab popover when the router comes from the legal tab in the app report', function () {
+      const state = {
+        router: {
+          prevState: { name: 'applicationReport.componentDetails.legal' },
+          prevParams: {
+            hash: 'hash',
+            publicId: 'appPublicId',
+            scanId: 'scanId',
+            tabId: 'legal',
+          },
+          currentParams: { violationId: 'policyViolationId' },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(returnToAddWaiverOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'applicationReport.componentDetails.legal',
+        params: {
+          hash: 'hash',
+          publicId: 'appPublicId',
+          scanId: 'scanId',
+          tabId: 'legal',
         },
         options: undefined,
       });

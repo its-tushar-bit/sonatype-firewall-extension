@@ -230,9 +230,11 @@ public class PullRequestLineCommentingService
       ComponentIdentifier componentIdentifier = lineCommentDTO.getComponentIdentifier();
       RemediationVersionDTO remediationVersion = remediationVersionMap.get(componentIdentifier);
       Optional<String> codeSuggestion = createCodeSuggestion(
+              provider,
               componentIdentifier,
               remediationVersion,
-              lineCommentDTO.getDiffPosition().getNewLineContent()
+              lineCommentDTO.getDiffPosition().getNewLineContent(),
+              lineCommentDTO.getDiffPosition().getFilePath()
       );
       //Create the line comment body, if possible
       Optional<String> markupOptional = pullRequestFeedbackMarkupService.createLineMarkup(
@@ -244,14 +246,21 @@ public class PullRequestLineCommentingService
   }
 
   private Optional<String> createCodeSuggestion(
+          SourceControlProvider provider,
           ComponentIdentifier componentIdentifier,
           RemediationVersionDTO remediationVersion,
-          String existingContent
+          String existingContent,
+          String filePath
   )
   {
     String codeSuggestion = null;
     String componentVersion = componentIdentifier.get("version");
-    if (remediationVersion != null && existingContent.contains(componentVersion)) {
+    // Temporarily suppress code suggestions on root-level pom.xml files in GitHub repos due to a bug in GitHub
+    // See https://sonatype.atlassian.net/browse/SDEV-538
+    if (provider == SourceControlProvider.GITHUB && filePath.equals("pom.xml")) {
+      return Optional.empty();
+    }
+    else if (remediationVersion != null && existingContent.contains(componentVersion)) {
       // TODO: handling for non-specific dependency versions: https://sonatype.atlassian.net/browse/SDEV-282.
       codeSuggestion = existingContent.replace(componentVersion, remediationVersion.getVersion());
     }

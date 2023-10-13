@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -428,7 +429,7 @@ public class ApiFirewallService
     checkReadPermission(RepositoryContainer.SINGLETON);
     productLicense.validateFeature(LicensedFeature.FIREWALL);
     List<ApiRepositoryManagerDTO> apiRepositoryManagerDTOS =
-        repositoryManagerDAO.getAll().stream().map(ApiRepositoryManagerDTO::fromRepositoryManager)
+        repositoryManagerDAO.getAll().stream().map(ApiFirewallService::fromRepositoryManager)
             .collect(
                 Collectors.toList());
 
@@ -576,5 +577,41 @@ public class ApiFirewallService
         }
       }
     }
+  }
+
+  public ApiRepositoryManagerDTO addRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    checkWritePermission(RepositoryContainer.SINGLETON);
+    
+    if (apiRepositoryManagerDTO.id != null) {
+      throw new BadRequestException("The repository manager ID must be null.");
+    }
+
+    RepositoryManager repositoryManager = toRepositoryManager(apiRepositoryManagerDTO);
+    repositoryManagerDAO.insert(repositoryManager);
+    
+    AuditData.get().setRepositoryManager(repositoryManager);
+
+    return fromRepositoryManager(repositoryManager);
+  }
+
+  private static ApiRepositoryManagerDTO fromRepositoryManager(RepositoryManager repositoryManager) {
+    ApiRepositoryManagerDTO dto = new ApiRepositoryManagerDTO();
+    dto.id = repositoryManager.getId();
+    dto.name = repositoryManager.getName();
+    dto.instanceId = repositoryManager.getInstanceId();
+    dto.productName = repositoryManager.getProductName();
+    dto.productVersion = repositoryManager.getProductVersion();
+    return dto;
+  }
+
+  private static RepositoryManager toRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
+    RepositoryManager repositoryManager = new RepositoryManager();
+    repositoryManager.setId(apiRepositoryManagerDTO.id);
+    repositoryManager.setName(apiRepositoryManagerDTO.name);
+    repositoryManager.setInstanceId(apiRepositoryManagerDTO.instanceId);
+    repositoryManager.setProductName(apiRepositoryManagerDTO.productName);
+    repositoryManager.setProductVersion(apiRepositoryManagerDTO.productVersion);
+    return repositoryManager;
   }
 }

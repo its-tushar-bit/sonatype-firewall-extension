@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -82,7 +83,7 @@ public class ApiFirewallResource
   static final String QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS_SET =
       QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS + "/{enabled: true|false}";
 
-  static final String REPOSITORY_MANAGER_PATH = "repositoryManager";
+  static final String REPOSITORY_MANAGERS_PATH = "repositoryManagers";
 
   private static final String REPOSITORIES_PATH = "repositories";
 
@@ -191,10 +192,19 @@ public class ApiFirewallResource
   }
 
   @GET
-  @Path(REPOSITORY_MANAGER_PATH)
+  @Path(REPOSITORY_MANAGERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public ApiRepositoryManagerListDTO getAllRepositoryManagers() {
     return apiFirewallService.getAllRepositoryManagers();
+  }
+
+  @POST
+  @Path(REPOSITORY_MANAGERS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_REPOSITORY_MANAGER)
+  public ApiRepositoryManagerDTO addRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
+    return apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
   }
 
   @GET

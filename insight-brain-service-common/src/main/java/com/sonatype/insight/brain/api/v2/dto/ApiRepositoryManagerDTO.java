@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import com.sonatype.insight.brain.model.repository.RepositoryManager;
-
 public class ApiRepositoryManagerDTO
 {
   public String id;
@@ -18,14 +16,4 @@ public class ApiRepositoryManagerDTO
   public String productName;
 
   public String productVersion;
-
-  public static ApiRepositoryManagerDTO fromRepositoryManager(RepositoryManager repositoryManager) {
-    ApiRepositoryManagerDTO dto = new ApiRepositoryManagerDTO();
-    dto.id = repositoryManager.getId();
-    dto.name = repositoryManager.getName();
-    dto.instanceId = repositoryManager.getInstanceId();
-    dto.productName = repositoryManager.getProductName();
-    dto.productVersion = repositoryManager.getProductVersion();
-    return dto;
-  }
 }

@@ -14,11 +14,14 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
@@ -79,5 +82,38 @@ public class ApiFirewallResourceAuditTest
     AuditDTO auditLog = awaitLogEntries(AuditEvent.CONFIGURE_REPOSITORY, 1).get(0);
     assertCustomData(auditLog, "repositoryManagerId", repository.getRepositoryManagerId());
     assertRepositoryData(auditLog, repository);
+  }
+
+  @Test
+  public void testAddRepositoryManager() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.instanceId = "testInstanceId";
+    apiRepositoryManagerDTO.name = "testName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    HttpResponse response =
+        restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGERS_PATH)
+            .body(apiRepositoryManagerDTO).post();
+
+    assertResponseStatus(200, response);
+    apiRepositoryManagerDTO = response.getBody(ApiRepositoryManagerDTO.class);
+    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(apiRepositoryManagerDTO.id);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_REPOSITORY_MANAGER, null);
+    assertRepositoryManagerData(auditDTO, repositoryManager);
+  }
+
+  @Test
+  public void testAddRepositoryManager_Unauthorized() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.instanceId = "testInstanceId";
+    apiRepositoryManagerDTO.name = "testName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGERS_PATH)
+            .with(unauthorizedUser()).body(apiRepositoryManagerDTO).post();
+
+    assertAuditLog(AuditEvent.CREATE_REPOSITORY_MANAGER, "unauthorized");
   }
 }

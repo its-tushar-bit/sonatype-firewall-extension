@@ -236,7 +236,7 @@ public abstract class AuditData
     return this;
   }
 
-  AuditData setRepositoryManager(RepositoryManager repositoryManager) {
+  public AuditData setRepositoryManager(RepositoryManager repositoryManager) {
     if (repositoryManager != null) {
       setRepositoryManagerId(repositoryManager.getId());
       setRepositoryManagerInstanceId(repositoryManager.getInstanceId());

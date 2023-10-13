@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationReq
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -45,6 +47,7 @@ import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryExcepti
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -1493,6 +1496,62 @@ public class ApiFirewallServiceTest
     // Update namespace confusion protection
     hostedRepository.setNamespaceConfusionProtectionEnabled(true);
     configureAndAssertRepositories(proxyRepository, null, hostedRepository, new Date());
+  }
+
+  @Test
+  public void testAddRepositoryManager() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.instanceId = "testInstanceId";
+    apiRepositoryManagerDTO.name = "testName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    apiRepositoryManagerDTO = apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
+
+    // Assert the repository manager data in the response
+    assertThat(apiRepositoryManagerDTO.id).isNotNull();
+    assertThat(apiRepositoryManagerDTO.instanceId).isEqualTo("testInstanceId");
+    assertThat(apiRepositoryManagerDTO.name).isEqualTo("testName");
+    assertThat(apiRepositoryManagerDTO.productName).isEqualTo("testProductName");
+    assertThat(apiRepositoryManagerDTO.productVersion).isEqualTo("testProductVersion");
+
+    // Assert the repository manager data in the db
+    RepositoryManager repositoryManager = new RepositoryManagerDAO().getById(apiRepositoryManagerDTO.id);
+    assertThat(repositoryManager.getInstanceId()).isEqualTo("testInstanceId");
+    assertThat(repositoryManager.getName()).isEqualTo("testName");
+    assertThat(repositoryManager.getProductName()).isEqualTo("testProductName");
+    assertThat(repositoryManager.getProductVersion()).isEqualTo("testProductVersion");
+  }
+
+  @Test
+  public void testAddRepositoryManager_CannotSpecifyRepositoryManagerId() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.id = "testId";
+    apiRepositoryManagerDTO.instanceId = "testInstanceId";
+    apiRepositoryManagerDTO.name = "testName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> {
+          apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
+        }).withMessageContaining("The repository manager ID must be null.");
+  }
+
+  @Test
+  public void testAddRepositoryManager_NoFirewallFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.id = "testId";
+    apiRepositoryManagerDTO.instanceId = "testInstanceId";
+    apiRepositoryManagerDTO.name = "testName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
+    });
   }
 
   private ApiRepositoryListDTO createApiRepositoryListDTO(Repository... repositories) {

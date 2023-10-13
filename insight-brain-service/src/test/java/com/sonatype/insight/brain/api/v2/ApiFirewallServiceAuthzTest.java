@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummary
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -211,6 +212,30 @@ public class ApiFirewallServiceAuthzTest
   public void testConfigureRepositories_Authorized() {
     grantWritePermission(RepositoryContainer.SINGLETON.getId());
     configureRepositories();
+  }
+
+  @Test
+  public void testAddRepositoryManager_Authorized() {
+    grantWritePermission(RepositoryContainer.SINGLETON.getId());
+
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.instanceId = "testInstanceId";
+    apiRepositoryManagerDTO.name = "testName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddRepositoryManager_Unauthorized() {
+    login();
+    apiFirewallService.addRepositoryManager(new ApiRepositoryManagerDTO());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddRepositoryManager_Unauthenticated() {
+    apiFirewallService.addRepositoryManager(new ApiRepositoryManagerDTO());
   }
 
   private void configureRepositories() {

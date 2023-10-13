@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUp
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.organization.ApplicationCountHistoryKeeper;
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
@@ -362,6 +363,7 @@ public class TestMultiTenantInsightBrainService
     getInstance(SourceControlEventOrchestrator.class).disableForTesting = true;
     getInstance(PullRequestCommentPurger.class).disableForTesting = true;
     getInstance(AutomaticQuarantineReleaseScheduler.class).disableForTesting = true;
+    getInstance(ApplicationCountHistoryKeeper.class).disableForTesting = true;
   }
 
   @Override

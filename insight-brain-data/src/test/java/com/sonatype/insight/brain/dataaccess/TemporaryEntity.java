@@ -544,6 +544,8 @@ public class TemporaryEntity
 
   private final PerpetualLockDAO perpetualLockDAO = new PerpetualLockDAO();
 
+  private final ApplicationCountHistoryDAO applicationCountHistoryDAO = new ApplicationCountHistoryDAO();
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -808,7 +810,9 @@ public class TemporaryEntity
       userIdePolicyEvaluationDAO.getAll().forEach(userIdePolicyEvaluationDAO::delete);
       delete(lockDAO.getAll(), lockDAO);
       delete(perpetualLockDAO.getAll(), perpetualLockDAO);
-
+      applicationCountHistoryDAO.getAll().stream()
+          .filter(applicationCountHistory -> !applicationCountHistory.getId().equals("initialization"))
+          .forEach(applicationCountHistoryDAO::delete);
       if (forInMemoryDatabase != OperationalDataStoreProvider.isDatabaseInMemory()) {
         throw new RuntimeException(
             "TemporaryEntity incorrectly used. Created for inMemoryDatabase=" + forInMemoryDatabase

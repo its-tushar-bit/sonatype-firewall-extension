@@ -11,6 +11,7 @@
     <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
     <class>com.sonatype.insight.brain.model.Application</class>
     <class>com.sonatype.insight.brain.model.ApplicationComponent</class>
+    <class>com.sonatype.insight.brain.model.ApplicationCountHistory</class>
     <class>com.sonatype.insight.brain.model.Nameable</class>
     <class>com.sonatype.insight.brain.model.Organization</class>
     <class>com.sonatype.insight.brain.model.MigrationTracker</class>

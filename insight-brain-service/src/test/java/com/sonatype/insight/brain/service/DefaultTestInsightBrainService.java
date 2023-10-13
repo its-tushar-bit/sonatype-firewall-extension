@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.function.BiConsumer;
-
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -29,6 +28,7 @@ import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUp
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.organization.ApplicationCountHistoryKeeper;
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
-
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import io.dropwizard.configuration.ConfigurationException;
@@ -349,6 +348,7 @@ public class DefaultTestInsightBrainService
     getInstance(PullRequestCommentPurger.class).disableForTesting = true;
     getInstance(AutomaticQuarantineReleaseScheduler.class).disableForTesting = true;
     getInstance(WaivedComponentUpgradeScheduler.class).disableForTesting = true;
+    getInstance(ApplicationCountHistoryKeeper.class).disableForTesting = true;
   }
 
   @Override

@@ -100,27 +100,19 @@ export default function OwnerSideNav() {
       active: isOrganization,
     });
 
-    if (isApplication || isRepositoriesRelated) {
-      const organizationUrl = uiRouterState.href('management.view.organization', {
-        organizationId: displayedOrganization.id,
-      });
-
-      return (
-        <>
-          <NxOverflowTooltip>
-            <a className={orgClassnames} href={organizationUrl}>
-              {displayedOrganization.name}
-            </a>
-          </NxOverflowTooltip>
-          <div className="iq-selected-org__pseudo-border"></div>
-        </>
-      );
-    }
+    const organizationUrl = uiRouterState.href('management.view.organization', {
+      organizationId: displayedOrganization.id,
+    });
 
     return (
-      <NxOverflowTooltip>
-        <NxP className={orgClassnames}>{displayedOrganization.name}</NxP>
-      </NxOverflowTooltip>
+      <>
+        <NxOverflowTooltip>
+          <a className={orgClassnames} href={organizationUrl}>
+            {displayedOrganization.name}
+          </a>
+        </NxOverflowTooltip>
+        {(isApplication || isRepositoriesRelated) && <div className="iq-selected-org__pseudo-border"></div>}
+      </>
     );
   };
 

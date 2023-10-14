@@ -280,7 +280,7 @@ describe('OwnerSideNav', () => {
         renderComponent();
         const currentOrg = await screen.findByText(/ROOT_ORGANIZATION_NAME/i);
         expect(currentOrg).toBeVisible();
-        expect(currentOrg).toHaveClassName('nx-p iq-navbar-item iq-selected-org active');
+        expect(currentOrg).toHaveClassName('iq-navbar-item iq-selected-org active');
       });
     });
 
@@ -511,7 +511,7 @@ describe('OwnerSideNav', () => {
         const matchingOrgNames = await screen.findAllByText(selectedOrg.name);
         // first match is the breadcrumb.
         expect(matchingOrgNames[1]).toBeVisible();
-        expect(matchingOrgNames[1]).toHaveClassName('nx-p iq-navbar-item iq-selected-org active');
+        expect(matchingOrgNames[1]).toHaveClassName('iq-navbar-item iq-selected-org active');
       });
     });
 
@@ -853,7 +853,7 @@ describe('OwnerSideNav', () => {
         const matchingOrgNames = await screen.findAllByText(selectedOrg.name);
         // first match is the breadcrumb.
         expect(matchingOrgNames[1]).toBeVisible();
-        expect(matchingOrgNames[1]).toHaveClassName('nx-p iq-navbar-item iq-selected-org active');
+        expect(matchingOrgNames[1]).toHaveClassName('iq-navbar-item iq-selected-org active');
       });
     });
 

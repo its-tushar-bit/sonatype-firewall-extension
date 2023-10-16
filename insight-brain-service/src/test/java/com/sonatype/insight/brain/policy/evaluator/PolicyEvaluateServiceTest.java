@@ -311,7 +311,7 @@ public class PolicyEvaluateServiceTest
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     PolicyViolation policyViolation = policyViolationDAO
         .getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId()).get(0);
-    policyViolation.setGrandfatherTime(new Date());
+    policyViolation.setLegacyViolationTime(new Date());
     policyViolationDAO.update(policyViolation);
     scanId = simulateReportIsAvailable();
     ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);

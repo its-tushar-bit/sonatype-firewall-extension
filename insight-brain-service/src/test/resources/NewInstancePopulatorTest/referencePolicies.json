@@ -5,7 +5,7 @@
       "name": "policy1",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 1,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "07a1317eb3ee40e48129c6eb8e5317ba",
@@ -52,7 +52,7 @@
       "name": "policy2",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 1,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "15397d9327fb4d71a1ff3fd7ac5a1627",

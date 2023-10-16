@@ -459,8 +459,8 @@ public class ScanPolicyEvaluator
           if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
             results.notifiableViolations.add(newPolicyViolation);
           }
-          if (newPolicyViolation.isGrandfathered()) {
-            newPolicyViolation.setGrandfatherApplied(true);
+          if (newPolicyViolation.isLegacyViolation()) {
+            newPolicyViolation.setLegacyViolationApplied(true);
           }
 
           policyViolationDAO.insert(tx, newPolicyViolation);
@@ -476,7 +476,7 @@ public class ScanPolicyEvaluator
             telemetryCollector.addTelemetryForWaivedViolation(newPolicyViolation, component);
             results.waivedViolations.add(newPolicyViolation);
           }
-          if (newPolicyViolation.isGrandfathered()) {
+          if (newPolicyViolation.isLegacyViolation()) {
             telemetryCollector.addTelemetryForGrandfatheredViolation(newPolicyViolation, component);
             policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, newPolicyViolation);
           }
@@ -538,13 +538,14 @@ public class ScanPolicyEvaluator
                 results.waivedViolations.add(oldPolicyViolation);
               }
             }
-            if (oldPolicyViolation.isGrandfathered() && !oldPolicyViolation.isGrandfatherApplied()) {
-              oldPolicyViolation.setGrandfatherApplied(true);
+            if (oldPolicyViolation.isLegacyViolation() && !oldPolicyViolation.isLegacyViolationApplied()) {
+              oldPolicyViolation.setLegacyViolationApplied(true);
               telemetryCollector.addTelemetryForGrandfatheredViolation(oldPolicyViolation, component);
             }
-            else if (!oldPolicyViolation.isGrandfathered() && oldPolicyViolation.isGrandfatherApplied()) {
+            else if (!oldPolicyViolation.isLegacyViolation() &&
+                oldPolicyViolation.isLegacyViolationApplied()) {
               // Grandfathering was revoked
-              oldPolicyViolation.setGrandfatherApplied(false);
+              oldPolicyViolation.setLegacyViolationApplied(false);
             }
             policyViolationDAO.update(tx, oldPolicyViolation);
 
@@ -626,8 +627,8 @@ public class ScanPolicyEvaluator
       Map<String, Policy> policiesById = policies.stream().collect(toMap(Policy::getId, Function.identity()));
       policyViolations.stream() //
           .filter(policyViolation -> policiesById.get(policyViolation.getPolicyId())
-              .isPolicyViolationGrandfatheringAllowed())
-          .forEach(policyViolation -> policyViolation.setGrandfatherTime(policyEvaluationTime));
+              .isLegacyViolationAllowed())
+          .forEach(policyViolation -> policyViolation.setLegacyViolationTime(policyEvaluationTime));
     }
     else {
       List<PolicyViolation> legacyViolations =
@@ -637,7 +638,7 @@ public class ScanPolicyEvaluator
             .digestPolicyViolations(legacyViolations, policyViolations);
         policyViolationDiff.getSame().forEach( //
             (legacyViolation, newPolicyViolation) -> newPolicyViolation
-                .setGrandfatherTime(legacyViolation.getGrandfatherTime()));
+                .setLegacyViolationTime(legacyViolation.getLegacyViolationTime()));
       }
     }
   }
@@ -769,7 +770,7 @@ public class ScanPolicyEvaluator
             throw new IllegalArgumentException("Unknown threat level " + policyThreatLevel);
         }
       }
-      else if (policyViolation.isGrandfathered()) {
+      else if (policyViolation.isLegacyViolation()) {
         legacyViolationCount++;
       }
     }
@@ -942,7 +943,7 @@ public class ScanPolicyEvaluator
 
     int legacyViolationCount = 0;
     for (PolicyViolation policyViolation : policyViolations) {
-      if (policyViolation.isGrandfathered()) {
+      if (policyViolation.isLegacyViolation()) {
         ThreatLevel threatLevel = ThreatLevel.from(policyViolation.getThreatLevel());
         threatLevels.put(threatLevel, threatLevels.get(threatLevel) + 1);
 

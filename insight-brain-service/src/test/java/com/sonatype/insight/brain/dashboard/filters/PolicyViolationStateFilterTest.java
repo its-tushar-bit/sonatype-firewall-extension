@@ -37,15 +37,15 @@ public class PolicyViolationStateFilterTest
 
     PolicyViolation v1 = new PolicyViolation();
     v1.setWaiveTime(null);
-    v1.setGrandfatherTime(null);
+    v1.setLegacyViolationTime(null);
 
     PolicyViolation v2 = new PolicyViolation();
     v2.setWaiveTime(new Date());
-    v2.setGrandfatherTime(null);
+    v2.setLegacyViolationTime(null);
 
     PolicyViolation v3 = new PolicyViolation();
     v3.setWaiveTime(null);
-    v3.setGrandfatherTime(new Date());
+    v3.setLegacyViolationTime(new Date());
 
     assertThat(filter.asPolicyViolationPredicate().test(v1)).isTrue();
     assertThat(filter.asPolicyViolationPredicate().test(v2)).isTrue();
@@ -61,7 +61,7 @@ public class PolicyViolationStateFilterTest
 
     PolicyViolation v1 = new PolicyViolation();
     v1.setWaiveTime(new Date());
-    v1.setGrandfatherTime(new Date());
+    v1.setLegacyViolationTime(new Date());
 
     assertThat(grandfatherFilter.asPolicyViolationPredicate().test(v1)).isTrue();
     assertThat(waivedFilter.asPolicyViolationPredicate().test(v1)).isTrue();
@@ -74,19 +74,19 @@ public class PolicyViolationStateFilterTest
 
     PolicyViolation v1 = new PolicyViolation();
     v1.setWaiveTime(null);
-    v1.setGrandfatherTime(null);
+    v1.setLegacyViolationTime(null);
 
     PolicyViolation v2 = new PolicyViolation();
     v2.setWaiveTime(new Date());
-    v2.setGrandfatherTime(null);
+    v2.setLegacyViolationTime(null);
 
     PolicyViolation v3 = new PolicyViolation();
     v3.setWaiveTime(null);
-    v3.setGrandfatherTime(new Date());
+    v3.setLegacyViolationTime(new Date());
 
     PolicyViolation v4 = new PolicyViolation();
     v4.setWaiveTime(new Date());
-    v4.setGrandfatherTime(new Date());
+    v4.setLegacyViolationTime(new Date());
 
     assertThat(filter.asPolicyViolationPredicate().test(v1)).isFalse();
     assertThat(filter.asPolicyViolationPredicate().test(v2)).isFalse();
@@ -100,15 +100,15 @@ public class PolicyViolationStateFilterTest
 
     PolicyViolation v1 = new PolicyViolation();
     v1.setWaiveTime(null);
-    v1.setGrandfatherTime(null);
+    v1.setLegacyViolationTime(null);
 
     PolicyViolation v2 = new PolicyViolation();
     v2.setWaiveTime(new Date());
-    v2.setGrandfatherTime(null);
+    v2.setLegacyViolationTime(null);
 
     PolicyViolation v3 = new PolicyViolation();
     v3.setWaiveTime(null);
-    v3.setGrandfatherTime(new Date());
+    v3.setLegacyViolationTime(new Date());
 
     assertThat(filter.asPolicyViolationPredicate().test(v1)).isTrue();
     assertThat(filter.asPolicyViolationPredicate().test(v2)).isTrue();

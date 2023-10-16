@@ -58,6 +58,6 @@ public class ApplicationPolicyViolationLogger
                                                    PolicyViolation policyViolation)
   {
     return super.shouldIncludeStagePolicyAction(policyViolationLogEvent, policyViolation) &&
-        !policyViolation.isGrandfathered() && !policyViolation.isWaived();
+        !policyViolation.isLegacyViolation() && !policyViolation.isWaived();
   }
 }

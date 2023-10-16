@@ -32,17 +32,18 @@ public class Organization extends Nameable
   @Column(name = "parent_organization_id")
   private String parentOrganizationId;
 
+
   /**
-   * @since 1.50
+   * @since 1.168
    */
-  @Column(name = "policy_violation_grandfathering_enabled")
-  private Boolean policyViolationGrandfatheringEnabled;
+  @Column(name = "legacy_violation_enabled")
+  private Boolean legacyViolationEnabled;
 
   /**
    * @since 1.50
    */
-  @Column(name = "allow_policy_violation_grandfathering_override")
-  private boolean allowPolicyViolationGrandfatheringOverride = true;
+  @Column(name = "allow_legacy_violation_override")
+  private boolean allowLegacyViolationOverride = true;
 
   /**
    * @since 1.132
@@ -118,20 +119,20 @@ public class Organization extends Nameable
     return parentOrganizationId;
   }
 
-  public Boolean isPolicyViolationGrandfatheringEnabled() {
-    return policyViolationGrandfatheringEnabled;
+  public Boolean isLegacyViolationEnabled() {
+    return legacyViolationEnabled;
   }
 
-  public void setPolicyViolationGrandfatheringEnabled(Boolean policyViolationGrandfatheringEnabled) {
-    this.policyViolationGrandfatheringEnabled = policyViolationGrandfatheringEnabled;
+  public void setLegacyViolationEnabled(Boolean legacyViolationEnabled) {
+    this.legacyViolationEnabled = legacyViolationEnabled;
   }
 
-  public boolean isAllowPolicyViolationGrandfatheringOverride() {
-    return allowPolicyViolationGrandfatheringOverride;
+  public boolean isAllowLegacyViolationOverride() {
+    return allowLegacyViolationOverride;
   }
 
-  public void setAllowPolicyViolationGrandfatheringOverride(boolean allowPolicyViolationGrandfatheringOverride) {
-    this.allowPolicyViolationGrandfatheringOverride = allowPolicyViolationGrandfatheringOverride;
+  public void setAllowLegacyViolationOverride(boolean allowLegacyViolationOverride) {
+    this.allowLegacyViolationOverride = allowLegacyViolationOverride;
   }
 
   public Boolean isRepositoryConnectionEnabled() {

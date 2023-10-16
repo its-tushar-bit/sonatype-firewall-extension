@@ -62,14 +62,14 @@ describe('OwnerSummary', () => {
       axiosMock.onGet(getOrganizationsUrl()).reply(200, [
         {
           allowArtifactoryConnectionOverride: true,
-          allowPolicyViolationGrandfatheringOverride: true,
+          allowLegacyViolationOverride: true,
           allowRepositoryConnectionOverride: true,
           artifactoryConnectionEnabled: null,
           id: 'be17ea5538de4679ba3a9220734ddbf7',
           name: 'broadcast',
           nameLowercaseNoWhitespace: 'broadcast',
           parentOrganizationId: 'ROOT_ORGANIZATION_ID',
-          policyViolationGrandfatheringEnabled: null,
+          legacyViolationEnabled: null,
           repositoryConnectionEnabled: null,
           contact: {
             displayName: 'Provided Contact Display Name',
@@ -77,14 +77,14 @@ describe('OwnerSummary', () => {
         },
         {
           allowArtifactoryConnectionOverride: true,
-          allowPolicyViolationGrandfatheringOverride: true,
+          allowLegacyViolationOverride: true,
           allowRepositoryConnectionOverride: true,
           artifactoryConnectionEnabled: null,
           id: 'b4483a7072384f59a1387fed9e501dce',
           name: 'new org',
           nameLowercaseNoWhitespace: 'neworg',
           parentOrganizationId: 'ROOT_ORGANIZATION_ID',
-          policyViolationGrandfatheringEnabled: null,
+          legacyViolationEnabled: null,
           repositoryConnectionEnabled: null,
         },
       ]);

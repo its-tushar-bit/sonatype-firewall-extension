@@ -225,8 +225,8 @@ public abstract class AbstractPolicyViolation
     return getWaiveTime() != null;
   }
 
-  // to be overridden in subclasses which support grandfathering
-  public boolean isGrandfathered() {
+  // to be overridden in subclasses which support legacy policy violation
+  public boolean isLegacyViolation() {
     return false;
   }
 

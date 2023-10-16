@@ -128,7 +128,7 @@ public class ApplicationCloneServiceTest
     // The application cloning is supposed to disable grandfathering for the cloned app.
     // So we set it to true in the source application in order to verify
     // that is not copied to the cloned application.
-    sourceApp.setPolicyViolationGrandfatheringEnabled(true);
+    sourceApp.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(sourceApp);
 
     ApiApplicationDTO clonedAppDTO =
@@ -147,7 +147,7 @@ public class ApplicationCloneServiceTest
     assertThat(clonedApp.getName()).isEqualTo(clonedAppName);
     assertThat(clonedApp.getPublicId()).isEqualTo(clonedAppPublicId);
     assertThat(clonedApp.getContactInternalName()).isEqualTo(contactUsername);
-    assertThat(clonedApp.isPolicyViolationGrandfatheringEnabled()).isFalse();
+    assertThat(clonedApp.isLegacyViolationEnabled()).isFalse();
 
     verifyNoInteractions(telemetrySenderMock);
   }
@@ -164,7 +164,7 @@ public class ApplicationCloneServiceTest
     // The application cloning is supposed to disable grandfathering for the cloned app.
     // So we set it to true in the source application in order to verify
     // that is not copied to the cloned application.
-    sourceApp.setPolicyViolationGrandfatheringEnabled(true);
+    sourceApp.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(sourceApp);
 
     // When
@@ -461,8 +461,8 @@ public class ApplicationCloneServiceTest
     assertThat(clonedPolicy.getId()).isNotEqualTo(sourcePolicy.getId());
     assertThat(clonedPolicy.getName()).isEqualTo(sourcePolicy.getName());
     assertThat(clonedPolicy.getThreatLevel()).isEqualTo(sourcePolicy.getThreatLevel());
-    assertThat(clonedPolicy.isPolicyViolationGrandfatheringAllowed())
-        .isEqualTo(sourcePolicy.isPolicyViolationGrandfatheringAllowed());
+    assertThat(clonedPolicy.isLegacyViolationAllowed())
+        .isEqualTo(sourcePolicy.isLegacyViolationAllowed());
     assertThat(clonedPolicy.getActions()).isEqualTo(sourcePolicy.getActions());
     assertThat(clonedPolicy.getNotifications()).isEqualTo(sourcePolicy.getNotifications());
     Constraint clonedConstraint = clonedPolicy.getConstraints().get(0);

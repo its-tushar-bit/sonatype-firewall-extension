@@ -58,7 +58,7 @@ public class PolicyThreatsAdapter
 
         if (!violation.isWaived()) {
           component.activeViolations.add(policyThreatsPolicyViolation);
-          if (!violation.isGrandfathered() && (violation.getThreatLevel() > component.policyThreatLevel ||
+          if (!violation.isLegacyViolation() && (violation.getThreatLevel() > component.policyThreatLevel ||
               component.policyId == null)) {
             component.policyId = violation.getPolicyId();
             component.policyName = violation.getPolicyName();
@@ -81,8 +81,7 @@ public class PolicyThreatsAdapter
     result.policyName = violation.getPolicyName();
     result.policyThreatLevel = violation.getThreatLevel();
     result.waived = violation.isWaived();
-    result.grandfathered = violation.isGrandfathered();
-    result.legacyViolation = violation.isGrandfathered();
+    result.legacyViolation = violation.isLegacyViolation();
     result.actions.addAll(toPolicyThreatsPolicyActions(violation));
     result.constraints.addAll(toPolicyThreatsPolicyConstraints(violation.getConstraintFacts()));
     result.constraintFactsJson = violation.getConstraintFactsJson();

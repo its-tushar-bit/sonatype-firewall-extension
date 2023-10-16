@@ -155,8 +155,8 @@ public class ReportResourceTest
     mockReport(scanId, reportResource);
     createScanFile(app.getId(), scanId);
 
-    //This will trigger two grandfathered policy violations upon evaluation.
-    app.setPolicyViolationGrandfatheringEnabled(true);
+    //This will trigger two legacy violations upon evaluation.
+    app.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(app);
     Constraint constraint = new Constraint(null /* constraintId */, "Constraint Coordinates", LogicalOperator.OR);
     Condition condition1 = new Condition(CoordinatesConditionType.ID, "match",
@@ -170,7 +170,7 @@ public class ReportResourceTest
     policy.addConstraint(constraint);
     policy.setName("testPolicy");
     policy.setAction(BuildStageType.ID, WarnActionType.ID);
-    policy.setPolicyViolationGrandfatheringAllowed(true);
+    policy.setLegacyViolationAllowed(true);
     tempEntity.newPolicy(policy);
 
     HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
@@ -267,8 +267,8 @@ public class ReportResourceTest
     mockReport(scanId, reportResource);
     createScanFile(app.getId(), scanId);
 
-    //This will trigger two grandfathered policy violations upon evaluation.
-    app.setPolicyViolationGrandfatheringEnabled(true);
+    //This will trigger two legacy violations upon evaluation.
+    app.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(app);
     Constraint constraint = new Constraint(null /* constraintId */, "Constraint Coordinates", LogicalOperator.OR);
     Condition condition1 = new Condition(CoordinatesConditionType.ID, "match",
@@ -282,7 +282,7 @@ public class ReportResourceTest
     policy.addConstraint(constraint);
     policy.setName("testPolicy");
     policy.setAction(BuildStageType.ID, WarnActionType.ID);
-    policy.setPolicyViolationGrandfatheringAllowed(true);
+    policy.setLegacyViolationAllowed(true);
     tempEntity.newPolicy(policy);
 
     HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)

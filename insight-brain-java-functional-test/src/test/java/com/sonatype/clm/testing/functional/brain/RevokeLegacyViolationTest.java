@@ -92,8 +92,8 @@ public class RevokeLegacyViolationTest
   public void testRevokeLegacyViolation_Revoke() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
-    PolicyViolation legacyPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isGrandfathered()).isTrue();
+    PolicyViolation legacyPolicyViolation = tempEntity.newLegacyPolicyViolation(policyEvaluation, policy);
+    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isLegacyViolation()).isTrue();
 
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.revokeLegacyViolation().shouldBe(visible).click();
@@ -102,7 +102,7 @@ public class RevokeLegacyViolationTest
     modal.revokeButton().click();
     FormMask.seeAndWaitForDismissal();
 
-    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isGrandfathered()).isFalse();
+    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isLegacyViolation()).isFalse();
     modal.shouldBe(hidden);
   }
 
@@ -110,16 +110,14 @@ public class RevokeLegacyViolationTest
   public void testRevokeLegacyViolation_Cancel() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
-    PolicyViolation legacyPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isGrandfathered()).isTrue();
-
+    PolicyViolation legacyPolicyViolation = tempEntity.newLegacyPolicyViolation(policyEvaluation, policy);
+    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isLegacyViolation()).isTrue();
     ActionDropDown.actionButton().click();
     ActionDropDown.revokeLegacyViolation().click();
     RevokeLegacyViolationModal modal = new RevokeLegacyViolationModal();
-
     modal.cancelButton().click();
 
-    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isGrandfathered()).isTrue();
+    assertThat(policyViolationDAO.getById(legacyPolicyViolation.getId()).isLegacyViolation()).isTrue();
     modal.shouldBe(hidden);
   }
 }

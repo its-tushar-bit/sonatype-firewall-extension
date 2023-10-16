@@ -48,10 +48,10 @@ public class Application extends Nameable
   private Organization organization = null;
 
   /**
-   * @since 1.50
+   * @since 1.168
    */
-  @Column(name = "policy_violation_grandfathering_enabled")
-  private Boolean policyViolationGrandfatheringEnabled;
+  @Column(name = "legacy_violation_enabled")
+  private Boolean legacyViolationEnabled;
 
   /**
    * @since 1.132
@@ -162,12 +162,12 @@ public class Application extends Nameable
     return OwnerType.APPLICATION;
   }
 
-  public Boolean isPolicyViolationGrandfatheringEnabled() {
-    return policyViolationGrandfatheringEnabled;
+  public Boolean isLegacyViolationEnabled() {
+    return legacyViolationEnabled;
   }
 
-  public void setPolicyViolationGrandfatheringEnabled(Boolean policyViolationGrandfatheringEnabled) {
-    this.policyViolationGrandfatheringEnabled = policyViolationGrandfatheringEnabled;
+  public void setLegacyViolationEnabled(Boolean legacyViolationEnabled) {
+    this.legacyViolationEnabled = legacyViolationEnabled;
   }
 
   public Organization getOrganization() {

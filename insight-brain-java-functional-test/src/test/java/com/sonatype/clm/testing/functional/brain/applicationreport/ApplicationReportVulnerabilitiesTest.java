@@ -88,7 +88,7 @@ public class ApplicationReportVulnerabilitiesTest
     Policy securityHigh = policyDAO.getByName("Security-High").get(0);
 
     // grant legacy status to the security-low policy
-    app.setPolicyViolationGrandfatheringEnabled(true);
+    app.setLegacyViolationEnabled(true);
     applicationDAO.update(app);
     legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
 

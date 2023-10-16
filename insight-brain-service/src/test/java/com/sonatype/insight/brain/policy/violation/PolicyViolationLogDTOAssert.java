@@ -257,7 +257,7 @@ public class PolicyViolationLogDTOAssert
                                                   PolicyViolationLogEvent policyViolationLogEvent,
                                                   PolicyViolation policyViolation)
   {
-    if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent) && !policyViolation.isGrandfathered() &&
+    if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent) && !policyViolation.isLegacyViolation() &&
         !policyViolation.isWaived()) {
       assertThat(policyViolationLogDTO.stagePolicyAction)
           .isEqualTo(policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId());

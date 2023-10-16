@@ -23,12 +23,12 @@ export default function PolicyViolationsTableRow({
   toggleShowViolationsDetailPopover,
   setSelectedPolicyViolationId,
 }) {
-  const { policyThreatLevel, policyName, constraints, actions, grandfathered, waived, policyViolationId } = violation;
+  const { policyThreatLevel, policyName, constraints, actions, legacyViolation, waived, policyViolationId } = violation;
   const [firstConstraint] = constraints;
   const reasons = flatten(
     constraints.map((constraint) => constraint.conditions.map((condition) => condition.conditionReason))
   );
-  const isRemediated = grandfathered || waived;
+  const isRemediated = legacyViolation || waived;
   const rowClassNames = classnames('iq-policy-violation-row', {
     'iq-policy-violation-row--remediated': isRemediated,
   });
@@ -116,10 +116,10 @@ PolicyViolationsTableRow.propTypes = {
 
 /* Helper component for grandfathering and waiver indicators. */
 const PolicyViolationsGrandfatheringAndWaiverIndicators = ({ violation }) => {
-  const { waived, grandfathered, applicableWaivers = [] } = violation;
+  const { waived, legacyViolation, applicableWaivers = [] } = violation;
   const numberOfWaivers = applicableWaivers.length;
 
-  const grandfatheredIndicator = grandfathered ? (
+  const grandfatheredIndicator = legacyViolation ? (
     <div>
       <NxFontAwesomeIcon icon={faHistory} />
       <span>Legacy</span>

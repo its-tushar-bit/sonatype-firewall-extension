@@ -5,7 +5,7 @@
       "name": "Architecture-Cleanup",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 1,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "d7c198948c93468a805a87742852c67a",
@@ -47,7 +47,7 @@
       "name": "Architecture-Quality",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 1,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "b113185c7e884cc6ab941610042f3b70",
@@ -86,7 +86,7 @@
       "name": "Component-Similar",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 7,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "bdb449daf73c4c56a4408ab916eabfad",
@@ -118,7 +118,7 @@
       "name": "Component-Unknown",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 2,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "67ba5b12b17747b895b9e257a3b2550b",
@@ -150,7 +150,7 @@
       "name": "License-Banned",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 10,
-      "policyViolationGrandfatheringAllowed": false,
+      "legacyViolationAllowed": false,
       "constraints": [
         {
           "id": "9f628901b8f24ac29068a4fd80cb4e92",
@@ -177,7 +177,7 @@
       "name": "License-Copyleft",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 8,
-      "policyViolationGrandfatheringAllowed": false,
+      "legacyViolationAllowed": false,
       "constraints": [
         {
           "id": "10223d1787104302813feedd195aeffa",
@@ -204,7 +204,7 @@
       "name": "License-Modified Weak Copyleft",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 5,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "9f45b2bf1f7f4dd284f39e8d19eb351f",
@@ -241,7 +241,7 @@
       "name": "License-None",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 9,
-      "policyViolationGrandfatheringAllowed": false,
+      "legacyViolationAllowed": false,
       "constraints": [
         {
           "id": "27b3535c34214dedae563bae3b2cd638",
@@ -375,7 +375,7 @@
       "name": "License-Non Standard",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 5,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "8d69cb7b4d2f4fdbb8f75d695ed11b56",
@@ -402,7 +402,7 @@
       "name": "License-Threat Not Assigned",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 7,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "b2b3e5430bea4f3a910164f5775440b0",
@@ -429,7 +429,7 @@
       "name": "Security-Critical",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 10,
-      "policyViolationGrandfatheringAllowed": false,
+      "legacyViolationAllowed": false,
       "constraints": [
         {
           "id": "695eba814fe3490ab1bda518e0a92e8d",
@@ -461,7 +461,7 @@
       "name": "Security-High",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 9,
-      "policyViolationGrandfatheringAllowed": false,
+      "legacyViolationAllowed": false,
       "constraints": [
         {
           "id": "7649f56558f843a1b0e4b6c2ebcfedde",
@@ -498,7 +498,7 @@
       "name": "Security-Low",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 3,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "41d687faa68140f688c6f0ba5431d7e9",
@@ -535,7 +535,7 @@
       "name": "Security-Medium",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 7,
-      "policyViolationGrandfatheringAllowed": true,
+      "legacyViolationAllowed": true,
       "constraints": [
         {
           "id": "4288a6ed4f9b434ab77b80c2f8355706",

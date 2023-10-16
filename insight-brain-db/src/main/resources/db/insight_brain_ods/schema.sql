@@ -10,11 +10,13 @@ CREATE TABLE organization (
   name varchar(200) NOT NULL,
   name_lowercase_no_whitespace varchar(200) NOT NULL,
   policy_violation_grandfathering_enabled boolean,
-  allow_policy_violation_grandfathering_override boolean DEFAULT true NOT NULL, -- Whether policy violation grandfathering can be overridden by children (orgs and apps).
+  allow_policy_violation_grandfathering_override boolean, -- Whether policy violation grandfathering can be overridden by children (orgs and apps).
   repository_connection_enabled boolean,
   allow_repository_connection_override boolean DEFAULT true NOT NULL,
   artifactory_connection_enabled boolean,
   allow_artifactory_connection_override boolean DEFAULT true NOT NULL,
+  legacy_violation_enabled boolean,
+  allow_legacy_violation_override boolean DEFAULT true NOT NULL, -- Whether policy legacy status can be overridden by children (orgs and apps).
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)
@@ -33,6 +35,7 @@ CREATE TABLE application (
   policy_violation_grandfathering_enabled boolean,
   repository_connection_enabled boolean,
   artifactory_connection_enabled boolean,
+  legacy_violation_enabled boolean,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
   CONSTRAINT application_uk UNIQUE (public_id_lowercase),
   CONSTRAINT application_name_uk UNIQUE (name_lowercase_no_whitespace),
@@ -101,9 +104,10 @@ CREATE TABLE policy (
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   threat_level smallint NOT NULL,
-  policy_violation_grandfathering_allowed boolean NOT NULL,
+  policy_violation_grandfathering_allowed boolean,
   content text NOT NULL,
   drools_code text NOT NULL,
+  legacy_violation_allowed boolean NOT NULL,
   CONSTRAINT policy_pk PRIMARY KEY (policy_id),
   CONSTRAINT policy_name_uk UNIQUE (owner_id, name_lowercase_no_whitespace)
 );
@@ -423,7 +427,9 @@ CREATE TABLE policy_violation (
   seen_by_monitoring_evaluation bool NOT NULL,
 
   -- whether the grandfather was applied by a new evaluation or a re-evaluation of a report
-  grandfather_applied bool NOT NULL DEFAULT false,
+  grandfather_applied bool,
+  legacy_violation_time timestamp NULL, -- when there is a legacy policy violation
+  legacy_violation_applied bool NOT NULL DEFAULT false,
 
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)

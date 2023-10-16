@@ -30,7 +30,7 @@ describe('PolicyViolationsTableRow', () => {
           },
           { conditions: [{ conditionReason: 'first reason from second constraint' }] },
         ],
-        grandfathered: false,
+        legacyViolation: false,
         waived: false,
         applicableWaivers: [],
       },
@@ -128,7 +128,7 @@ describe('PolicyViolationsTableRow', () => {
                 actionSummary: 'Build Failure',
               },
             ],
-            grandfathered: true,
+            legacyViolation: true,
           },
         }),
         rowCells = component.find(NxTableCell),
@@ -170,7 +170,7 @@ describe('PolicyViolationsTableRow', () => {
       };
 
       it('renders a legacy violations indicator if it is a legacy violation', () => {
-        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, grandfathered: true } });
+        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, legacyViolation: true } });
         expect(indicators).toExist();
 
         const legacyIcon = indicators.find(NxFontAwesomeIcon);
@@ -180,7 +180,7 @@ describe('PolicyViolationsTableRow', () => {
       });
 
       it('does not render a legacy violations indicator if it is a legacy violation', () => {
-        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, grandfathered: false } });
+        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, legacyViolation: false } });
         expect(indicators.find('span')).not.toExist();
       });
 

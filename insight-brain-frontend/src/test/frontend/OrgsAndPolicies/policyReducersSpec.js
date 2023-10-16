@@ -215,16 +215,16 @@ describe('policySlice reducers', () => {
   });
 
   describe('policy/toggleLegacyViolationAllowed', () => {
-    it('toggles policyViolationGrandfatheringAllowed for a category', () => {
+    it('toggles LegacyViolationAllowed for a category', () => {
       const state = Object.freeze({
-        currentPolicy: { policyViolationGrandfatheringAllowed: false, constraints: [] },
+        currentPolicy: { legacyViolationAllowed: false, constraints: [] },
       });
 
       const { currentPolicy } = reducer(state, {
         type: 'policy/toggleLegacyViolationAllowed',
       });
 
-      expect(currentPolicy.policyViolationGrandfatheringAllowed).toBeTrue();
+      expect(currentPolicy.legacyViolationAllowed).toBeTrue();
     });
   });
 

@@ -302,7 +302,7 @@ public abstract class AuditData
     if (policy != null) {
       setPolicy(policy);
       setPolicyThreatLevel(policy.getThreatLevel());
-      setPolicyGrandfatheringMode(policy.isPolicyViolationGrandfatheringAllowed());
+      setLegacyViolationMode(policy.isLegacyViolationAllowed());
       setPolicyActionsOverrideMode(policy.isPolicyActionsOverrideAllowed());
       setPolicyNotificationsOverrideMode(policy.isPolicyNotificationsOverrideAllowed());
       setPolicyConstraints(policy.getConstraints());
@@ -327,8 +327,8 @@ public abstract class AuditData
     return this;
   }
 
-  AuditData setPolicyGrandfatheringMode(final boolean policyViolationGrandfatheringAllowed) {
-    setData("policyGrandfatheringMode", policyViolationGrandfatheringAllowed ? "allow" : "disallow");
+  AuditData setLegacyViolationMode(final boolean legacyViolationAllowed) {
+    setData("legacyViolationMode", legacyViolationAllowed ? "allow" : "disallow");
     return this;
   }
 

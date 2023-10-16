@@ -457,7 +457,7 @@ describe('policySlice actions', () => {
       name: 'safssss',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 8,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [
         {
           id: '8080ad77e13840789d70c79e0d507172',

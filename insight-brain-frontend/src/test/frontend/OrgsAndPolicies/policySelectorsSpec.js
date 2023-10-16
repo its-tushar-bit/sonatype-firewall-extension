@@ -1283,9 +1283,9 @@ describe('policySelectors', () => {
       expect(selectCurrentLegacyViolationAllowed.dependencies).toEqual([selectCurrentPolicy]);
     });
 
-    it('selects CurrentPolicy isLegacyViolationAllowed', () => {
+    it('selects CurrentPolicy legacyViolationAllowed', () => {
       const currentPolicy = {
-        policyViolationGrandfatheringAllowed: true,
+        legacyViolationAllowed: true,
       };
 
       const selected = selectCurrentLegacyViolationAllowed.resultFunc(currentPolicy);

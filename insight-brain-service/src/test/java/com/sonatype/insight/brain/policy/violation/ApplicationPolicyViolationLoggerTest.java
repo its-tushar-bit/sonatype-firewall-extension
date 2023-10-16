@@ -163,7 +163,7 @@ public class ApplicationPolicyViolationLoggerTest
         new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
-    policyViolation.setGrandfatherTime(new Date());
+    policyViolation.setLegacyViolationTime(new Date());
     policyViolationLogger.add(policyViolationLogEvent, policyViolation);
 
     policyViolationLogger.log();

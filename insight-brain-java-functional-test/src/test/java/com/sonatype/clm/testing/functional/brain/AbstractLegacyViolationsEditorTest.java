@@ -61,8 +61,8 @@ public abstract class AbstractLegacyViolationsEditorTest
 
     // Save the root org legacy violations settings so we can restore them after the tests.
     Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    legacyViolationsEnabled = rootOrg.isPolicyViolationGrandfatheringEnabled();
-    legacyViolationsOverrideEnabled = rootOrg.isAllowPolicyViolationGrandfatheringOverride();
+    legacyViolationsEnabled = rootOrg.isLegacyViolationEnabled();
+    legacyViolationsOverrideEnabled = rootOrg.isAllowLegacyViolationOverride();
 
     legacyViolationService = testCLMServer.getCLMServer().getInstance(LegacyViolationService.class);
   }
@@ -70,8 +70,8 @@ public abstract class AbstractLegacyViolationsEditorTest
   @After
   public void restoreRootOrganizationLegacyViolationSettings() {
     Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
-    rootOrg.setPolicyViolationGrandfatheringEnabled(legacyViolationsEnabled);
-    rootOrg.setAllowPolicyViolationGrandfatheringOverride(legacyViolationsOverrideEnabled);
+    rootOrg.setLegacyViolationEnabled(legacyViolationsEnabled);
+    rootOrg.setAllowLegacyViolationOverride(legacyViolationsOverrideEnabled);
     organizationDAO.update(rootOrg);
   }
 

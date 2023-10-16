@@ -522,7 +522,7 @@ public abstract class AbstractPolicyEditorTest
   private void testEditPolicy_summarySection(String policyId) {
     Policy policy = policyDAO.getById(policyId);
     // Sanity check to verify that the initial value is as expected.
-    assertThat(policy.isPolicyViolationGrandfatheringAllowed()).isFalse();
+    assertThat(policy.isLegacyViolationAllowed()).isFalse();
 
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().input().val("updated name");
@@ -542,7 +542,7 @@ public abstract class AbstractPolicyEditorTest
 
     Policy updatedPolicy = policyDAO.getById(policy.getId());
     assertThat(updatedPolicy.getName()).isEqualTo("updated name");
-    assertThat(updatedPolicy.isPolicyViolationGrandfatheringAllowed()).isTrue();
+    assertThat(updatedPolicy.isLegacyViolationAllowed()).isTrue();
     assertThat(updatedPolicy.getThreatLevel()).isEqualTo(6);
   }
 

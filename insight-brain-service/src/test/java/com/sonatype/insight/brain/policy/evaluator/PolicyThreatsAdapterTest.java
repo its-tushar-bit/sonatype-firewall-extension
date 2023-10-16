@@ -234,7 +234,7 @@ public class PolicyThreatsAdapterTest
       violation.setWaiveTime(violation.getOpenTime());
     }
     if (grandfathered) {
-      violation.setGrandfatherTime(new Date());
+      violation.setLegacyViolationTime(new Date());
     }
     violation.setActionTypeId(actionType);
 
@@ -327,8 +327,7 @@ public class PolicyThreatsAdapterTest
     assertThat(policyViolation.policyViolationId).isEqualTo(violation.getId());
     assertThat(policyViolation.policyName).isEqualTo(violation.getPolicyName());
     assertThat(policyViolation.waived).isEqualTo(violation.isWaived());
-    assertThat(policyViolation.grandfathered).isEqualTo(violation.isGrandfathered());
-    assertThat(policyViolation.legacyViolation).isEqualTo(violation.isGrandfathered());
+    assertThat(policyViolation.legacyViolation).isEqualTo(violation.isLegacyViolation());
     assertThat(policyViolation.constraintFactsJson).isEqualTo(violation.getConstraintFactsJson());
     assertThat(policyViolation.policyThreatCategory).isEqualTo(violation.getThreatCategory().toString());
 

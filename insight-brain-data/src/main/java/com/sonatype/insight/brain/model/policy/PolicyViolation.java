@@ -41,8 +41,8 @@ public class PolicyViolation
   @Column(name = "open_time")
   private Date openTime;
 
-  @Column(name = "grandfather_time")
-  private Date grandfatherTime;
+  @Column(name = "legacy_violation_time")
+  private Date legacyViolationTime;
 
   @Column(name = "fix_time")
   private Date fixTime;
@@ -53,8 +53,8 @@ public class PolicyViolation
   @Column(name = "seen_by_monitoring_evaluation")
   private boolean seenByMonitoringEvaluation;
 
-  @Column(name = "grandfather_applied")
-  private boolean grandfatherApplied;
+  @Column(name = "legacy_violation_applied")
+  private boolean legacyViolationApplied;
 
   public PolicyViolation() {
   }
@@ -149,16 +149,16 @@ public class PolicyViolation
   }
 
   @Override
-  public boolean isGrandfathered() {
-    return grandfatherTime != null;
+  public boolean isLegacyViolation() {
+    return legacyViolationTime != null;
   }
 
-  public Date getGrandfatherTime() {
-    return grandfatherTime;
+  public Date getLegacyViolationTime() {
+    return legacyViolationTime;
   }
 
-  public void setGrandfatherTime(Date grandfatherTime) {
-    this.grandfatherTime = grandfatherTime;
+  public void setLegacyViolationTime(Date legacyViolationTime) {
+    this.legacyViolationTime = legacyViolationTime;
   }
 
   public boolean isFixed() {
@@ -194,7 +194,7 @@ public class PolicyViolation
 
   @Transient
   public boolean isActive() {
-    return !isFixed() && !isWaived() && !isGrandfathered();
+    return !isFixed() && !isWaived() && !isLegacyViolation();
   }
 
   /**
@@ -216,12 +216,13 @@ public class PolicyViolation
     }
   }
 
-  public boolean isGrandfatherApplied() {
-    return grandfatherApplied;
+  public boolean isLegacyViolationApplied() {
+    return this.legacyViolationApplied;
   }
 
-  public void setGrandfatherApplied(boolean grandfatherApplied) {
-    this.grandfatherApplied = grandfatherApplied;
+  public void setLegacyViolationApplied(boolean legacyPolicyViolationApplied) {
+    this.legacyViolationApplied = legacyPolicyViolationApplied;
+
   }
 
   @Transient
@@ -237,6 +238,6 @@ public class PolicyViolation
         + ", fixTime=" + getFixTime() + ", policyId=" + getPolicyId() + ", policyName=" + getPolicyName()
         + ", threatLevel=" + getThreatLevel() + ", threatCategory=" + getThreatCategory() + ", hash=" + getHash()
         + ", componentIdentifier=" + getComponentIdentifier() + ", actionTypeId=" + getActionTypeId()
-        + ", grandfatherApplied=" + isGrandfatherApplied() + "]";
+        + ", legacyViolationApplied=" + isLegacyViolationApplied() + "]";
   }
 }

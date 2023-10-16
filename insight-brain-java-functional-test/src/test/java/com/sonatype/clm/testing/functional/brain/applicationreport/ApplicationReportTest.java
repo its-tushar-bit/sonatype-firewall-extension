@@ -941,8 +941,8 @@ public class ApplicationReportTest
   private void activateLegacyViolations() throws Exception {
     Policy licenseBanned = new PolicyDAO().getByName("License-Banned").get(0);
 
-    app.setPolicyViolationGrandfatheringEnabled(true);
-    licenseBanned.setPolicyViolationGrandfatheringAllowed(true);
+    app.setLegacyViolationEnabled(true);
+    licenseBanned.setLegacyViolationAllowed(true);
     applicationDAO.update(app);
     policyDAO.update(licenseBanned);
     legacyViolationService.grantLegacyViolationStatus(app.getPublicId());

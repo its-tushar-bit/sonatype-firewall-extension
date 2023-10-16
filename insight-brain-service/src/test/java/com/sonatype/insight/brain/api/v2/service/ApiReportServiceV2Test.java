@@ -295,9 +295,9 @@ public class ApiReportServiceV2Test
     final String scanId2 = "ScanId2";
     ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId2);
     createReportFile(app.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
-    app.setPolicyViolationGrandfatheringEnabled(true);
+    app.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(app);
-    policy.setPolicyViolationGrandfatheringAllowed(true);
+    policy.setLegacyViolationAllowed(true);
     new PolicyDAO().update(policy);
     legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));

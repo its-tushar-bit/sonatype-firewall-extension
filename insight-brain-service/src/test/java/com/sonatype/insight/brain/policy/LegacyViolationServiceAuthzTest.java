@@ -42,7 +42,7 @@ public class LegacyViolationServiceAuthzTest
   @Test
   public void testGrantLegacyViolationStatus_Authorized() {
     grantWritePermission(app.getId());
-    app.setPolicyViolationGrandfatheringEnabled(true);
+    app.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(app);
     legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
   }

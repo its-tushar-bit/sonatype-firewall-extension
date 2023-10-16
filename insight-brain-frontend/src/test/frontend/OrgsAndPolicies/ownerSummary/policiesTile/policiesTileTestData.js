@@ -23,7 +23,7 @@ const organizationWithPoliciesPayload = {
       name: 'Testing Policy 1',
       ownerId: 'adbf8ae5db8a421881f0c2faf20df9ba',
       threatLevel: 1,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {
         source: 'warn',
@@ -63,7 +63,7 @@ export const rootOrganizationPolicies = {
       name: 'Architecture-Cleanup',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 1,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -80,7 +80,7 @@ export const rootOrganizationPolicies = {
       name: 'Architecture-Quality',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 1,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -97,7 +97,7 @@ export const rootOrganizationPolicies = {
       name: 'Component-Similar',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 7,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -114,7 +114,7 @@ export const rootOrganizationPolicies = {
       name: 'Component-Unknown',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 2,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -131,7 +131,7 @@ export const rootOrganizationPolicies = {
       name: 'New ROOT ORG policy',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {
         proxy: 'warn',
@@ -159,7 +159,7 @@ export const rootOrganizationPolicies = {
       name: 'Security-Critical',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [],
       actions: {},
       notifications: {
@@ -176,7 +176,7 @@ export const rootOrganizationPolicies = {
       name: 'Security-High',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 9,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [],
       actions: {},
       notifications: {
@@ -193,7 +193,7 @@ export const rootOrganizationPolicies = {
       name: 'Security-Low',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 3,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -210,7 +210,7 @@ export const rootOrganizationPolicies = {
       name: 'Security-Malicious',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [],
       actions: {},
       notifications: {
@@ -227,7 +227,7 @@ export const rootOrganizationPolicies = {
       name: 'Security-Medium',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 7,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -244,7 +244,7 @@ export const rootOrganizationPolicies = {
       name: 'Security-Namespace Conflict',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [],
       actions: {
         proxy: 'fail',
@@ -263,7 +263,7 @@ export const rootOrganizationPolicies = {
       name: 'Testing simple constraint',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 5,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {
         source: 'warn',
@@ -335,7 +335,7 @@ export const applicationWithPolicies = {
       name: 'New ROOT ORG policy',
       ownerId: '6b4684c392e2453aa9a3d2483c9611c4',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {
         proxy: 'warn',
@@ -369,7 +369,7 @@ export const applicationWithPolicies = {
       name: 'Security-Critical',
       ownerId: '6b4684c392e2453aa9a3d2483c9611c4',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [],
       actions: {},
       notifications: {
@@ -410,7 +410,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'test-pol',
           ownerId: 'f857a3ea49af492481112d6c6ab24054',
           threatLevel: 5,
-          policyViolationGrandfatheringAllowed: true,
+          legacyViolationAllowed: true,
           constraints: [],
           actions: {
             develop: 'fail',
@@ -460,7 +460,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Security-Namespace Conflict',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 10,
-          policyViolationGrandfatheringAllowed: false,
+          legacyViolationAllowed: false,
           constraints: [],
           actions: {
             proxy: 'fail',
@@ -484,7 +484,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Security-Malicious',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 10,
-          policyViolationGrandfatheringAllowed: false,
+          legacyViolationAllowed: false,
           constraints: [],
           actions: {},
           notifications: {
@@ -504,7 +504,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Security-Critical',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 10,
-          policyViolationGrandfatheringAllowed: false,
+          legacyViolationAllowed: false,
           constraints: [],
           actions: {},
           notifications: {
@@ -524,7 +524,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'License-Banned',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 10,
-          policyViolationGrandfatheringAllowed: false,
+          legacyViolationAllowed: false,
           constraints: [],
           actions: {},
           notifications: {
@@ -544,7 +544,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Security-High',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 9,
-          policyViolationGrandfatheringAllowed: false,
+          legacyViolationAllowed: false,
           constraints: [],
           actions: {},
           notifications: {
@@ -564,7 +564,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Integrity-Rating',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 9,
-          policyViolationGrandfatheringAllowed: false,
+          legacyViolationAllowed: false,
           constraints: [],
           actions: {
             proxy: 'fail',
@@ -588,7 +588,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Security-Medium',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 7,
-          policyViolationGrandfatheringAllowed: true,
+          legacyViolationAllowed: true,
           constraints: [],
           actions: {},
           notifications: {
@@ -608,7 +608,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'License-Threat Not Assigned',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 7,
-          policyViolationGrandfatheringAllowed: true,
+          legacyViolationAllowed: true,
           constraints: [],
           actions: {},
           notifications: {
@@ -628,7 +628,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Component-Similar',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 7,
-          policyViolationGrandfatheringAllowed: true,
+          legacyViolationAllowed: true,
           constraints: [],
           actions: {},
           notifications: {
@@ -648,7 +648,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Security-Low',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 3,
-          policyViolationGrandfatheringAllowed: true,
+          legacyViolationAllowed: true,
           constraints: [],
           actions: {},
           notifications: {
@@ -668,7 +668,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Component-Unknown',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 2,
-          policyViolationGrandfatheringAllowed: true,
+          legacyViolationAllowed: true,
           constraints: [],
           actions: {},
           notifications: {
@@ -688,7 +688,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Architecture-Quality',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 1,
-          policyViolationGrandfatheringAllowed: true,
+          legacyViolationAllowed: true,
           constraints: [],
           actions: {},
           notifications: {
@@ -708,7 +708,7 @@ export const applicationPoliciesByOwnerPayload = {
           name: 'Architecture-Cleanup',
           ownerId: 'ROOT_ORGANIZATION_ID',
           threatLevel: 1,
-          policyViolationGrandfatheringAllowed: true,
+          legacyViolationAllowed: true,
           constraints: [],
           actions: {},
           notifications: {
@@ -740,7 +740,7 @@ export const rootOrganizationWithPolicies = {
       name: 'New ROOT ORG policy',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {
         proxy: 'warn',
@@ -774,7 +774,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Security-Critical',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [],
       actions: {},
       notifications: {
@@ -792,7 +792,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Security-Malicious',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [],
       actions: {},
       notifications: {
@@ -810,7 +810,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Security-Namespace Conflict',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [],
       actions: {
         proxy: 'fail',
@@ -832,7 +832,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Security-High',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 9,
-      policyViolationGrandfatheringAllowed: false,
+      legacyViolationAllowed: false,
       constraints: [],
       actions: {},
       notifications: {
@@ -850,7 +850,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Component-Similar',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 7,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -868,7 +868,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Security-Medium',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 7,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -886,7 +886,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Testing simple constraint',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 5,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {
         source: 'warn',
@@ -916,7 +916,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Security-Low',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 3,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -934,7 +934,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Component-Unknown',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 2,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -952,7 +952,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Architecture-Cleanup',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 1,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -970,7 +970,7 @@ export const rootOrganizationWithPolicies = {
       name: 'Architecture-Quality',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 1,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {},
       notifications: {
@@ -998,7 +998,7 @@ export const rootOrganizationWithOnePolicy = {
       name: 'New ROOT ORG policy',
       ownerId: 'ROOT_ORGANIZATION_ID',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {
         proxy: 'warn',
@@ -1042,7 +1042,7 @@ export const inheritanceOrgWithOnePolicy = {
       name: 'New Top ORG policy',
       ownerId: 'inheritance_policy',
       threatLevel: 10,
-      policyViolationGrandfatheringAllowed: true,
+      legacyViolationAllowed: true,
       constraints: [],
       actions: {
         proxy: 'warn',

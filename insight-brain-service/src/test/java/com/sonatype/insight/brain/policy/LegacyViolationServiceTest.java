@@ -85,9 +85,9 @@ public class LegacyViolationServiceTest
     legacyViolationService.revokeLegacyViolationStatus(app1.getPublicId());
     Date after = new Date();
 
-    assertThat(policyViolationDAO.getById(fixedLegacyViolation.getId()).isGrandfathered()).isTrue();
-    assertThat(policyViolationDAO.getById(legacyViolation1.getId()).isGrandfathered()).isFalse();
-    assertThat(policyViolationDAO.getById(legacyViolation2.getId()).isGrandfathered()).isTrue();
+    assertThat(policyViolationDAO.getById(fixedLegacyViolation.getId()).isLegacyViolation()).isTrue();
+    assertThat(policyViolationDAO.getById(legacyViolation1.getId()).isLegacyViolation()).isFalse();
+    assertThat(policyViolationDAO.getById(legacyViolation2.getId()).isLegacyViolation()).isTrue();
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNGRANDFATHER, app1, before, after,
         Collections.singletonList(legacyViolation1), currentUser.getUsernameOrSystem());
@@ -103,7 +103,7 @@ public class LegacyViolationServiceTest
   
   private Policy newPolicyAllowingLegacyViolations() {
     Policy policy = tempEntity.newPolicy();
-    policy.setPolicyViolationGrandfatheringAllowed(true);
+    policy.setLegacyViolationAllowed(true);
     new PolicyDAO().update(policy);
     return policy;
   }
@@ -123,7 +123,7 @@ public class LegacyViolationServiceTest
     policyViolationDAO.update(fixedPolicyViolation1);
     PolicyViolation legacyViolation1 = tempEntity.newPolicyViolation(policyEvaluationApp1, policyForLegacyViolation);
     Date inThePast = new Date(System.currentTimeMillis() - 1);
-    legacyViolation1.setGrandfatherTime(inThePast);
+    legacyViolation1.setLegacyViolationTime(inThePast);
     policyViolationDAO.update(legacyViolation1);
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policyWaived.getId(), app.getId());
     PolicyViolation waivedPolicyViolation1 =
@@ -152,8 +152,8 @@ public class LegacyViolationServiceTest
     }
     Date after = new Date();
 
-    assertThat(policyViolationDAO.getById(fixedPolicyViolation1.getId()).isGrandfathered()).isFalse();
-    assertThat(policyViolationDAO.getById(legacyViolation1.getId()).getGrandfatherTime())
+    assertThat(policyViolationDAO.getById(fixedPolicyViolation1.getId()).isLegacyViolation()).isFalse();
+    assertThat(policyViolationDAO.getById(legacyViolation1.getId()).getLegacyViolationTime())
         .isEqualTo(inThePast);
     unfixedPolicyViolation1 = policyViolationDAO.getById(unfixedPolicyViolation1.getId());
     waivedPolicyViolation1 = policyViolationDAO.getById(waivedPolicyViolation1.getId());
@@ -164,18 +164,18 @@ public class LegacyViolationServiceTest
       assertPolicyViolationGrandfatherTime(waivedPolicyViolation1, before, after);
       assertPolicyViolationGrandfatherTime(unfixedPolicyViolation1PolicyDoesNotExist, before, after);
 
-      Date grandfatherTime = unfixedPolicyViolation1.getGrandfatherTime();
-      assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANDFATHER, app, grandfatherTime, grandfatherTime,
+      Date legacyViolationTime = unfixedPolicyViolation1.getLegacyViolationTime();
+      assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANDFATHER, app, legacyViolationTime,
+          legacyViolationTime,
           Arrays.asList(unfixedPolicyViolation1, waivedPolicyViolation1, unfixedPolicyViolation1PolicyDoesNotExist),
           currentUser.getUsernameOrSystem());
     }
     else {
-      assertThat(unfixedPolicyViolation1.isGrandfathered()).isFalse();
-      assertThat(waivedPolicyViolation1.isGrandfathered()).isFalse();
-      assertThat(unfixedPolicyViolation1PolicyDoesNotExist.isGrandfathered()).isFalse();
+      assertThat(unfixedPolicyViolation1.isLegacyViolation()).isFalse();
+      assertThat(unfixedPolicyViolation1PolicyDoesNotExist.isLegacyViolation()).isFalse();
     }
 
-    assertThat(policyViolationDAO.getById(unfixedPolicyViolation2.getId()).isGrandfathered()).isFalse();
+    assertThat(policyViolationDAO.getById(unfixedPolicyViolation2.getId()).isLegacyViolation()).isFalse();
   }
 
   private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
@@ -195,11 +195,11 @@ public class LegacyViolationServiceTest
   @Test
   public void testGrantLegacyViolationStatus_LegacyViolationsNotConfiguredForAppOrOrg() throws Exception {
     Organization organization = tempEntity.newOrganization();
-    organization.setPolicyViolationGrandfatheringEnabled(null);
-    organization.setAllowPolicyViolationGrandfatheringOverride(true);
+    organization.setLegacyViolationEnabled(null);
+    organization.setAllowLegacyViolationOverride(true);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
-    application.setPolicyViolationGrandfatheringEnabled(null);
+    application.setLegacyViolationEnabled(null);
     new ApplicationDAO().update(application);
     testGrantLegacyViolationStatus(application, false);
   }
@@ -210,11 +210,11 @@ public class LegacyViolationServiceTest
   {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
-    organization.setPolicyViolationGrandfatheringEnabled(false);
-    organization.setAllowPolicyViolationGrandfatheringOverride(true);
+    organization.setLegacyViolationEnabled(false);
+    organization.setAllowLegacyViolationOverride(true);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
-    application.setPolicyViolationGrandfatheringEnabled(true);
+    application.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(application);
     testGrantLegacyViolationStatus(application, true);
   }
@@ -224,11 +224,11 @@ public class LegacyViolationServiceTest
       throws Exception
   {
     Organization organization = tempEntity.newOrganization();
-    organization.setPolicyViolationGrandfatheringEnabled(true);
-    organization.setAllowPolicyViolationGrandfatheringOverride(true);
+    organization.setLegacyViolationEnabled(true);
+    organization.setAllowLegacyViolationOverride(true);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
-    application.setPolicyViolationGrandfatheringEnabled(false);
+    application.setLegacyViolationEnabled(false);
     new ApplicationDAO().update(application);
     testGrantLegacyViolationStatus(application, false);
   }
@@ -238,11 +238,11 @@ public class LegacyViolationServiceTest
       throws Exception
   {
     Organization organization = tempEntity.newOrganization();
-    organization.setPolicyViolationGrandfatheringEnabled(false);
-    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    organization.setLegacyViolationEnabled(false);
+    organization.setAllowLegacyViolationOverride(false);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
-    application.setPolicyViolationGrandfatheringEnabled(true);
+    application.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(application);
     testGrantLegacyViolationStatus(application, false);
   }
@@ -253,11 +253,11 @@ public class LegacyViolationServiceTest
   {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
-    organization.setPolicyViolationGrandfatheringEnabled(true);
-    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    organization.setLegacyViolationEnabled(true);
+    organization.setAllowLegacyViolationOverride(false);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
-    application.setPolicyViolationGrandfatheringEnabled(false);
+    application.setLegacyViolationEnabled(false);
     new ApplicationDAO().update(application);
     testGrantLegacyViolationStatus(application, true);
   }
@@ -268,11 +268,11 @@ public class LegacyViolationServiceTest
   {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
-    organization.setPolicyViolationGrandfatheringEnabled(true);
-    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    organization.setLegacyViolationEnabled(true);
+    organization.setLegacyViolationEnabled(false);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
-    application.setPolicyViolationGrandfatheringEnabled(true);
+    application.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(application);
     testGrantLegacyViolationStatus(application, true);
   }
@@ -282,11 +282,11 @@ public class LegacyViolationServiceTest
       throws Exception
   {
     Organization organization = tempEntity.newOrganization();
-    organization.setPolicyViolationGrandfatheringEnabled(false);
-    organization.setAllowPolicyViolationGrandfatheringOverride(false);
+    organization.setLegacyViolationEnabled(false);
+    organization.setAllowLegacyViolationOverride(false);
     new OrganizationDAO().update(organization);
     Application application = tempEntity.newApplication(organization.getId());
-    application.setPolicyViolationGrandfatheringEnabled(false);
+    application.setLegacyViolationEnabled(false);
     new ApplicationDAO().update(application);
     testGrantLegacyViolationStatus(application, false);
   }
@@ -299,15 +299,15 @@ public class LegacyViolationServiceTest
   }
 
   private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {
-    assertThat(policyViolation.getGrandfatherTime()).isAfterOrEqualTo(before);
-    assertThat(policyViolation.getGrandfatherTime()).isBeforeOrEqualTo(after);
+    assertThat(policyViolation.getLegacyViolationTime()).isAfterOrEqualTo(before);
+    assertThat(policyViolation.getLegacyViolationTime()).isBeforeOrEqualTo(after);
   }
 
   @Test
   public void testGetLegacyViolationsStatus_Application() {
     // The parent org doesn't allow override, legacy violations are not specified at any level.
     Organization org = tempEntity.newOrganization();
-    org.setAllowPolicyViolationGrandfatheringOverride(false);
+    org.setAllowLegacyViolationOverride(false);
     new OrganizationDAO().update(org);
     Application app = tempEntity.newApplication(org.getId());
     LegacyViolationStatusDTO result =
@@ -315,38 +315,38 @@ public class LegacyViolationServiceTest
     assertLegacyViolationDTO(result, null, null, "Root Organization", false, false);
 
     // The parent org allows override, legacy violations are not specified at any level.
-    org.setAllowPolicyViolationGrandfatheringOverride(true);
+    org.setAllowLegacyViolationOverride(true);
     new OrganizationDAO().update(org);
     result = legacyViolationService.getLegacyViolationsStatus(OwnerType.APPLICATION, app.getPublicId());
     assertLegacyViolationDTO(result, null, null, "Root Organization", false, true);
 
     // The parent org allows override and legacy violations are specified at org level as true.
-    org.setPolicyViolationGrandfatheringEnabled(true);
+    org.setLegacyViolationEnabled(true);
     new OrganizationDAO().update(org);
     result = legacyViolationService.getLegacyViolationsStatus(OwnerType.APPLICATION, app.getPublicId());
     assertLegacyViolationDTO(result, true, true, org.getName(), false, true);
 
     // The parent org allows override and legacy violations are specified at org level as false.
-    app.setPolicyViolationGrandfatheringEnabled(true);
+    app.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(app);
-    org.setPolicyViolationGrandfatheringEnabled(false);
+    org.setLegacyViolationEnabled(false);
     new OrganizationDAO().update(org);
     result = legacyViolationService.getLegacyViolationsStatus(OwnerType.APPLICATION, app.getPublicId());
     assertLegacyViolationDTO(result, true, false, null, false, true);
 
     // The parent org allows override and legacy violations are specified at app and org level.
-    org.setPolicyViolationGrandfatheringEnabled(null);
+    org.setLegacyViolationEnabled(null);
     new OrganizationDAO().update(org);
-    app.setPolicyViolationGrandfatheringEnabled(false);
+    app.setLegacyViolationEnabled(false);
     new ApplicationDAO().update(app);
     result = legacyViolationService.getLegacyViolationsStatus(OwnerType.APPLICATION, app.getPublicId());
     assertLegacyViolationDTO(result, false, null, null, false, true);
 
     // The parent org doesn't allow override, legacy violations are specified at app level.
-    org.setPolicyViolationGrandfatheringEnabled(null);
-    org.setAllowPolicyViolationGrandfatheringOverride(false);
+    org.setLegacyViolationEnabled(null);
+    org.setAllowLegacyViolationOverride(false);
     new OrganizationDAO().update(org);
-    app.setPolicyViolationGrandfatheringEnabled(true);
+    app.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(app);
     result = legacyViolationService.getLegacyViolationsStatus(OwnerType.APPLICATION, app.getPublicId());
     assertLegacyViolationDTO(result, null, null, "Root Organization", false, false);
@@ -355,53 +355,53 @@ public class LegacyViolationServiceTest
   @Test
   public void testgetLegacyViolationsStatus_Organization() {
     Organization rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
-    Boolean legacyViolationsEnabled = rootOrganization.isPolicyViolationGrandfatheringEnabled();
-    boolean legacyViolationsOverrideEnabled = rootOrganization.isAllowPolicyViolationGrandfatheringOverride();
+    Boolean legacyViolationsEnabled = rootOrganization.isLegacyViolationEnabled();
+    boolean legacyViolationsOverrideEnabled = rootOrganization.isAllowLegacyViolationOverride();
     try {
       // The parent org doesn't allow override, legacy violations are not specified at any level.
-      rootOrganization.setAllowPolicyViolationGrandfatheringOverride(false);
+      rootOrganization.setAllowLegacyViolationOverride(false);
       new OrganizationDAO().update(rootOrganization);
       Organization org = tempEntity.newOrganization();
-      org.setAllowPolicyViolationGrandfatheringOverride(false);
+      org.setAllowLegacyViolationOverride(false);
       new OrganizationDAO().update(org);
       LegacyViolationStatusDTO result =
           legacyViolationService.getLegacyViolationsStatus(OwnerType.ORGANIZATION, org.getId());
       assertLegacyViolationDTO(result, null, null, "Root Organization", false, false);
   
       // The parent org allows override, legacy violations are not specified at any level.
-      rootOrganization.setAllowPolicyViolationGrandfatheringOverride(true);
+      rootOrganization.setAllowLegacyViolationOverride(true);
       new OrganizationDAO().update(rootOrganization);
       result = legacyViolationService.getLegacyViolationsStatus(OwnerType.ORGANIZATION, org.getId());
       assertLegacyViolationDTO(result, null, null, "Root Organization", false, true);
   
       // The parent org allows override and legacy violations are specified at parent org level.
-      rootOrganization.setPolicyViolationGrandfatheringEnabled(true);
+      rootOrganization.setLegacyViolationEnabled(true);
       new OrganizationDAO().update(rootOrganization);
       result = legacyViolationService.getLegacyViolationsStatus(OwnerType.ORGANIZATION, org.getId());
       assertLegacyViolationDTO(result, true, true, rootOrganization.getName(), false, true);
   
       // The parent org allows override and legacy violations are specified at this org level.
-      org.setPolicyViolationGrandfatheringEnabled(false);
+      org.setLegacyViolationEnabled(false);
       new OrganizationDAO().update(org);
       result = legacyViolationService.getLegacyViolationsStatus(OwnerType.ORGANIZATION, org.getId());
       assertLegacyViolationDTO(result, false, true, null, false, true);
 
       // The parent org doesn't allow override, legacy violations are specified at this org level.
-      rootOrganization.setPolicyViolationGrandfatheringEnabled(null);
-      rootOrganization.setAllowPolicyViolationGrandfatheringOverride(false);
+      rootOrganization.setLegacyViolationEnabled(null);
+      rootOrganization.setAllowLegacyViolationOverride(false);
       new OrganizationDAO().update(rootOrganization);
       result = legacyViolationService.getLegacyViolationsStatus(OwnerType.ORGANIZATION, org.getId());
       assertLegacyViolationDTO(result, null, null, rootOrganization.getName(), false, false);
 
       // The parent org doesn't allow override, this org allows override.
-      org.setAllowPolicyViolationGrandfatheringOverride(true);
+      org.setAllowLegacyViolationOverride(true);
       new OrganizationDAO().update(org);
       result = legacyViolationService.getLegacyViolationsStatus(OwnerType.ORGANIZATION, org.getId());
       assertLegacyViolationDTO(result, null, null, rootOrganization.getName(), true, false);
     }
     finally {
-      rootOrganization.setPolicyViolationGrandfatheringEnabled(legacyViolationsEnabled);
-      rootOrganization.setAllowPolicyViolationGrandfatheringOverride(legacyViolationsOverrideEnabled);
+      rootOrganization.setLegacyViolationEnabled(legacyViolationsEnabled);
+      rootOrganization.setAllowLegacyViolationOverride(legacyViolationsOverrideEnabled);
       new OrganizationDAO().update(rootOrganization);
     }
   }
@@ -425,7 +425,6 @@ public class LegacyViolationServiceTest
   @Test
   public void testSetLegacyViolationStatus_Application() {
     Application app = tempEntity.newApplicationWithParent();
-    app.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(app);
 
     // Set to not null value
@@ -434,21 +433,21 @@ public class LegacyViolationServiceTest
     legacyViolationService.setLegacyViolationStatus(OwnerType.APPLICATION, app.getPublicId(),
         legacyViolationStatusDTO);
 
-    assertThat(new ApplicationDAO().getById(app.getId()).isPolicyViolationGrandfatheringEnabled()).isTrue();
+    assertThat(new ApplicationDAO().getById(app.getId()).isLegacyViolationEnabled()).isTrue();
 
     // Set to null value
     legacyViolationStatusDTO.enabled = null;
     legacyViolationService.setLegacyViolationStatus(OwnerType.APPLICATION, app.getPublicId(),
         legacyViolationStatusDTO);
 
-    assertThat(new ApplicationDAO().getById(app.getId()).isPolicyViolationGrandfatheringEnabled()).isNull();
+    assertThat(new ApplicationDAO().getById(app.getId()).isLegacyViolationEnabled()).isNull();
   }
 
   @Test
   public void testSetLegacyViolationStatus_Organization() {
     Organization org = tempEntity.newOrganization();
-    org.setPolicyViolationGrandfatheringEnabled(false);
-    org.setAllowPolicyViolationGrandfatheringOverride(false);
+    org.setAllowLegacyViolationOverride(false);
+    org.setAllowLegacyViolationOverride(false);
     new OrganizationDAO().update(org);
 
     // Set to not null value
@@ -459,8 +458,8 @@ public class LegacyViolationServiceTest
         legacyViolationStatusDTO);
 
     org = new OrganizationDAO().getById(org.getId());
-    assertThat(org.isPolicyViolationGrandfatheringEnabled()).isTrue();
-    assertThat(org.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
+    assertThat(org.isLegacyViolationEnabled()).isTrue();
+    assertThat(org.isAllowLegacyViolationOverride()).isTrue();
 
     // Set to null value
     legacyViolationStatusDTO.enabled = null;
@@ -468,8 +467,8 @@ public class LegacyViolationServiceTest
         legacyViolationStatusDTO);
 
     org = new OrganizationDAO().getById(org.getId());
-    assertThat(org.isPolicyViolationGrandfatheringEnabled()).isNull();
-    assertThat(org.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
+    assertThat(org.isLegacyViolationEnabled()).isNull();
+    assertThat(org.isAllowLegacyViolationOverride()).isTrue();
   }
 
   @Test

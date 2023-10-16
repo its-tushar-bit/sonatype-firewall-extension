@@ -320,8 +320,8 @@ public interface AuditTestSupport
     }
     assertCustomData(auditDTO, "policyName", policy.getName());
     assertCustomData(auditDTO, "policyThreatLevel", policy.getThreatLevel());
-    assertCustomData(auditDTO, "policyGrandfatheringMode",
-        policy.isPolicyViolationGrandfatheringAllowed() ? "allow" : "disallow");
+    assertCustomData(auditDTO, "legacyViolationMode",
+        policy.isLegacyViolationAllowed() ? "allow" : "disallow");
     assertCustomData(auditDTO, "policyActionsOverrideMode",
         policy.isPolicyActionsOverrideAllowed() ? "allow" : "disallow");
     assertCustomObject(auditDTO, "policyConstraints", constraints);

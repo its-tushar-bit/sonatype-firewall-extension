@@ -255,7 +255,7 @@ export const applicablePolicies = {
               name: 'Architecture-Cleanup',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 1,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'fe980110c55941ffa6317e8dc6ba3dfa',
@@ -306,7 +306,7 @@ export const applicablePolicies = {
               name: 'Architecture-Quality',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 1,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'f2a50ed36ec64d3fadc198a20aebed64',
@@ -342,7 +342,7 @@ export const applicablePolicies = {
               name: 'Component-Similar',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'c500f3e197ad4d17bb43b6da4790d4bb',
@@ -376,7 +376,7 @@ export const applicablePolicies = {
               name: 'Component-Unknown',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 2,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '59b5aa8ddcf24f738f146985b6b37eef',
@@ -411,7 +411,7 @@ export const applicablePolicies = {
               name: 'Custom Policy',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'dd3a399782cf4575b8af9bdca598fb6d',
@@ -439,7 +439,7 @@ export const applicablePolicies = {
               name: 'Integrity-Rating',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'c8c4ba643e9544e9a3c2891dc61824d8',
@@ -471,7 +471,7 @@ export const applicablePolicies = {
               name: 'License-Banned',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'e42e5a263ebd4c0da8df3503e583cad3',
@@ -506,7 +506,7 @@ export const applicablePolicies = {
               name: 'License-Commercial',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'd4f40734d68d4fc4a5133d0b8bef99b1',
@@ -539,7 +539,7 @@ export const applicablePolicies = {
               name: 'License-Copyleft',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 8,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'cc7cdfa2ce394f7d89e3ad5afe5ad04b',
@@ -572,7 +572,7 @@ export const applicablePolicies = {
               name: 'License-Modified Weak Copyleft',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 5,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '41d7e9c7d8a94c33bf4fdb44604f163f',
@@ -612,7 +612,7 @@ export const applicablePolicies = {
               name: 'License-None',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: '2859dc55039a49779169529668d7d89e',
@@ -695,7 +695,7 @@ export const applicablePolicies = {
               name: 'License-Non Standard',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 5,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '63a09275952e4aa1bd316ec5c9f9f3f2',
@@ -728,7 +728,7 @@ export const applicablePolicies = {
               name: 'License-Threat Not Assigned',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '79430a7e6c5a491ab93deff03331e660',
@@ -761,7 +761,7 @@ export const applicablePolicies = {
               name: 'Security-Critical',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: '5c0a0f8f90a14474b218337882174c83',
@@ -789,7 +789,7 @@ export const applicablePolicies = {
               name: 'Security-High',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: '7c4e15b1d50543a681859c220feafa6b',
@@ -818,7 +818,7 @@ export const applicablePolicies = {
               name: 'Security-Low',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 3,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'f3053dfc430a4ceab7837761acd7fca8',
@@ -847,7 +847,7 @@ export const applicablePolicies = {
               name: 'Security-Malicious',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'a8485c2b06b04e1facb3d75736238e6a',
@@ -881,7 +881,7 @@ export const applicablePolicies = {
               name: 'Security-Medium',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'e88abc1901c2433aa83317a163e78ba6',
@@ -910,7 +910,7 @@ export const applicablePolicies = {
               name: 'Security-Namespace Conflict',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'f0bcc4e0078048d3a3c5b852eb32b5ac',
@@ -1001,7 +1001,7 @@ export const applicablePolicies = {
               name: 'Custom Pol',
               ownerId: '05602dd5ba934c318ad011ca4e4f5cfe',
               threatLevel: 5,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'aa9baccd1e9f4a1ca2f45363a29f8624',
@@ -1037,7 +1037,7 @@ export const applicablePolicies = {
               name: 'Architecture-Cleanup',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 1,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'fe980110c55941ffa6317e8dc6ba3dfa',
@@ -1088,7 +1088,7 @@ export const applicablePolicies = {
               name: 'Architecture-Quality',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 1,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'f2a50ed36ec64d3fadc198a20aebed64',
@@ -1124,7 +1124,7 @@ export const applicablePolicies = {
               name: 'Component-Similar',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'c500f3e197ad4d17bb43b6da4790d4bb',
@@ -1158,7 +1158,7 @@ export const applicablePolicies = {
               name: 'Component-Unknown',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 2,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '59b5aa8ddcf24f738f146985b6b37eef',
@@ -1193,7 +1193,7 @@ export const applicablePolicies = {
               name: 'Custom Policy',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'dd3a399782cf4575b8af9bdca598fb6d',
@@ -1221,7 +1221,7 @@ export const applicablePolicies = {
               name: 'Integrity-Rating',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'c8c4ba643e9544e9a3c2891dc61824d8',
@@ -1253,7 +1253,7 @@ export const applicablePolicies = {
               name: 'License-Banned',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'e42e5a263ebd4c0da8df3503e583cad3',
@@ -1288,7 +1288,7 @@ export const applicablePolicies = {
               name: 'License-Commercial',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'd4f40734d68d4fc4a5133d0b8bef99b1',
@@ -1321,7 +1321,7 @@ export const applicablePolicies = {
               name: 'License-Copyleft',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 8,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'cc7cdfa2ce394f7d89e3ad5afe5ad04b',
@@ -1354,7 +1354,7 @@ export const applicablePolicies = {
               name: 'License-Modified Weak Copyleft',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 5,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '41d7e9c7d8a94c33bf4fdb44604f163f',
@@ -1394,7 +1394,7 @@ export const applicablePolicies = {
               name: 'License-None',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: '2859dc55039a49779169529668d7d89e',
@@ -1477,7 +1477,7 @@ export const applicablePolicies = {
               name: 'License-Non Standard',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 5,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '63a09275952e4aa1bd316ec5c9f9f3f2',
@@ -1510,7 +1510,7 @@ export const applicablePolicies = {
               name: 'License-Threat Not Assigned',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '79430a7e6c5a491ab93deff03331e660',
@@ -1543,7 +1543,7 @@ export const applicablePolicies = {
               name: 'Security-Critical',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: '5c0a0f8f90a14474b218337882174c83',
@@ -1571,7 +1571,7 @@ export const applicablePolicies = {
               name: 'Security-High',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: '7c4e15b1d50543a681859c220feafa6b',
@@ -1600,7 +1600,7 @@ export const applicablePolicies = {
               name: 'Security-Low',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 3,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'f3053dfc430a4ceab7837761acd7fca8',
@@ -1629,7 +1629,7 @@ export const applicablePolicies = {
               name: 'Security-Malicious',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'a8485c2b06b04e1facb3d75736238e6a',
@@ -1663,7 +1663,7 @@ export const applicablePolicies = {
               name: 'Security-Medium',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'e88abc1901c2433aa83317a163e78ba6',
@@ -1692,7 +1692,7 @@ export const applicablePolicies = {
               name: 'Security-Namespace Conflict',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'f0bcc4e0078048d3a3c5b852eb32b5ac',
@@ -1792,7 +1792,7 @@ export const applicablePolicies = {
               name: 'Custom Pol',
               ownerId: '05602dd5ba934c318ad011ca4e4f5cfe',
               threatLevel: 5,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'aa9baccd1e9f4a1ca2f45363a29f8624',
@@ -1828,7 +1828,7 @@ export const applicablePolicies = {
               name: 'Architecture-Cleanup',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 1,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'fe980110c55941ffa6317e8dc6ba3dfa',
@@ -1879,7 +1879,7 @@ export const applicablePolicies = {
               name: 'Architecture-Quality',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 1,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'f2a50ed36ec64d3fadc198a20aebed64',
@@ -1915,7 +1915,7 @@ export const applicablePolicies = {
               name: 'Component-Similar',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'c500f3e197ad4d17bb43b6da4790d4bb',
@@ -1949,7 +1949,7 @@ export const applicablePolicies = {
               name: 'Component-Unknown',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 2,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '59b5aa8ddcf24f738f146985b6b37eef',
@@ -1984,7 +1984,7 @@ export const applicablePolicies = {
               name: 'Custom Policy',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'dd3a399782cf4575b8af9bdca598fb6d',
@@ -2012,7 +2012,7 @@ export const applicablePolicies = {
               name: 'Integrity-Rating',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'c8c4ba643e9544e9a3c2891dc61824d8',
@@ -2044,7 +2044,7 @@ export const applicablePolicies = {
               name: 'License-Threat Not Assigned',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: '79430a7e6c5a491ab93deff03331e660',
@@ -2077,7 +2077,7 @@ export const applicablePolicies = {
               name: 'Security-Critical',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: '5c0a0f8f90a14474b218337882174c83',
@@ -2105,7 +2105,7 @@ export const applicablePolicies = {
               name: 'Security-High',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 9,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: '7c4e15b1d50543a681859c220feafa6b',
@@ -2134,7 +2134,7 @@ export const applicablePolicies = {
               name: 'Security-Low',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 3,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'f3053dfc430a4ceab7837761acd7fca8',
@@ -2163,7 +2163,7 @@ export const applicablePolicies = {
               name: 'Security-Malicious',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'a8485c2b06b04e1facb3d75736238e6a',
@@ -2197,7 +2197,7 @@ export const applicablePolicies = {
               name: 'Security-Medium',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 7,
-              policyViolationGrandfatheringAllowed: true,
+              legacyViolationAllowed: true,
               constraints: [
                 {
                   id: 'e88abc1901c2433aa83317a163e78ba6',
@@ -2226,7 +2226,7 @@ export const applicablePolicies = {
               name: 'Security-Namespace Conflict',
               ownerId: 'ROOT_ORGANIZATION_ID',
               threatLevel: 10,
-              policyViolationGrandfatheringAllowed: false,
+              legacyViolationAllowed: false,
               constraints: [
                 {
                   id: 'f0bcc4e0078048d3a3c5b852eb32b5ac',
@@ -2520,7 +2520,7 @@ export const savedPolicy = {
   name: 'Security-Malicious',
   ownerId: 'ROOT_ORGANIZATION_ID',
   threatLevel: 10,
-  policyViolationGrandfatheringAllowed: false,
+  legacyViolationAllowed: false,
   constraints: [
     {
       id: 'a8485c2b06b04e1facb3d75736238e6a',

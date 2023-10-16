@@ -228,10 +228,11 @@ public class ApplicationCloneService
   {
     Application clonedApp = new Application(clonedAppPublicId, clonedAppName, sourceApp.getOrganizationId());
     clonedApp.setContactInternalName(sourceApp.getContactInternalName());
-    // Disable policy violation grandfathering in the cloned application.
-    // If grandfathering is enabled, then all policy violations will be grandfathered when the first policy evaluation
+    // Disable legacy violation in the cloned application.
+    // If legacy violation is enabled, then all policy violations will be legacy violation
+    // when the first policy evaluation
     // happens.
-    clonedApp.setPolicyViolationGrandfatheringEnabled(false);
+    clonedApp.setLegacyViolationEnabled(false);
     appDAO.insert(tx, clonedApp);
     ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(clonedApp,
         OwnerMaintenanceTelemetry.TYPE_ADD);

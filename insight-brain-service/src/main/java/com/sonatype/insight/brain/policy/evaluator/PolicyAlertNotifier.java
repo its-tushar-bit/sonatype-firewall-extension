@@ -106,7 +106,7 @@ public class PolicyAlertNotifier
   private int getGrandfatheredPolicyViolationCount(final ScanPolicyEvaluatorResults results) {
     int grandfatheredPolicyViolationCount = 0;
     for (PolicyViolation policyViolation : results.allViolations) {
-      if (policyViolation.isGrandfathered()) {
+      if (policyViolation.isLegacyViolation()) {
         grandfatheredPolicyViolationCount++;
       }
     }

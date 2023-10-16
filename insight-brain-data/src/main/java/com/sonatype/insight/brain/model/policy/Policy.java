@@ -43,10 +43,7 @@ public class Policy
 
   private int threatLevel = 5;
 
-  /**
-   * @since 1.50
-   */
-  private boolean policyViolationGrandfatheringAllowed;
+  private boolean legacyViolationAllowed;
 
   private List<Constraint> constraints;
 
@@ -102,12 +99,12 @@ public class Policy
     this.threatLevel = threatLevel;
   }
 
-  public boolean isPolicyViolationGrandfatheringAllowed() {
-    return policyViolationGrandfatheringAllowed;
+  public boolean isLegacyViolationAllowed() {
+    return legacyViolationAllowed;
   }
 
-  public void setPolicyViolationGrandfatheringAllowed(boolean policyViolationGrandfatheringAllowed) {
-    this.policyViolationGrandfatheringAllowed = policyViolationGrandfatheringAllowed;
+  public void setLegacyViolationAllowed(boolean legacyViolationAllowed) {
+    this.legacyViolationAllowed = legacyViolationAllowed;
   }
 
   public List<Constraint> getConstraints() {

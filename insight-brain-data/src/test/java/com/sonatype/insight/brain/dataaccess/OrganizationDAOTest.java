@@ -124,13 +124,13 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   }
 
   @Test
-  public void testInsert_AllowPolicyViolationGrandfatheringOverride_DefaultsToTrue() {
+  public void testInsert_AllowLegacyViolationOverride_DefaultsToTrue() {
     organization = new Organization("OrganizationDAOTest");
-    assertThat(organization.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
+    assertThat(organization.isAllowLegacyViolationOverride()).isTrue();
 
     dao.insert(organization);
     organization = dao.getById(organization.getId());
-    assertThat(organization.isAllowPolicyViolationGrandfatheringOverride()).isTrue();
+    assertThat(organization.isAllowLegacyViolationOverride()).isTrue();
   }
 
   @Test

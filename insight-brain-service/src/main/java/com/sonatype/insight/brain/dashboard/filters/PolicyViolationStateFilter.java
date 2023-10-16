@@ -68,7 +68,7 @@ public class PolicyViolationStateFilter
         if (policyViolation.isWaived()) {
           states.add(PolicyViolationState.WAIVED);
         }
-        if (policyViolation.isGrandfathered()) {
+        if (policyViolation.isLegacyViolation()) {
           states.add(PolicyViolationState.GRANDFATHERED);
         }
         if (states.isEmpty()) {

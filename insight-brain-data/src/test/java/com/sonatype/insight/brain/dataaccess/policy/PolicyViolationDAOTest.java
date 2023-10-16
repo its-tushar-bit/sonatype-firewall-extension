@@ -126,7 +126,7 @@ public class PolicyViolationDAOTest
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
         tempEntity.newWaiver(policy.getId(), application.getId()));
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
 
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan-3");
@@ -163,7 +163,7 @@ public class PolicyViolationDAOTest
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
         tempEntity.newWaiver(policy.getId(), application.getId()));
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
 
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan-4");
@@ -207,7 +207,7 @@ public class PolicyViolationDAOTest
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, null,
         null, tempEntity.newWaiver(policy.getId(), application.getId()));
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, null, null);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
 
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan-4");
@@ -239,7 +239,7 @@ public class PolicyViolationDAOTest
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
         tempEntity.newWaiver(policy.getId(), application.getId()));
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
     PolicyViolation fixedViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     fixedViolation.setFixTime(policyEvaluation.getTime());
@@ -272,7 +272,7 @@ public class PolicyViolationDAOTest
     fixedViolation.setFixTime(policyEvaluation.getTime());
     dao.update(fixedViolation);
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
 
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan-2");
@@ -301,7 +301,7 @@ public class PolicyViolationDAOTest
     fixedViolation.setFixTime(policyEvaluation.getTime());
     dao.update(fixedViolation);
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
 
     tempEntity.newPolicyViolation(policyEvaluation, policy, null, "other-hash", "reason");
@@ -331,7 +331,7 @@ public class PolicyViolationDAOTest
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
         tempEntity.newWaiver(policy.getId(), application.getId()));
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
     PolicyViolation fixedViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     fixedViolation.setFixTime(policyEvaluation.getTime());
@@ -364,7 +364,7 @@ public class PolicyViolationDAOTest
     fixedViolation.setFixTime(policyEvaluation.getTime());
     dao.update(fixedViolation);
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
 
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan-2");
@@ -391,7 +391,7 @@ public class PolicyViolationDAOTest
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
         tempEntity.newWaiver(policy.getId(), application.getId()));
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
     PolicyViolation fixedViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     fixedViolation.setFixTime(policyEvaluation.getTime());
@@ -605,7 +605,7 @@ public class PolicyViolationDAOTest
     fixedViolation.setFixTime(policyEvaluation.getTime());
     dao.update(fixedViolation);
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
 
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, "scan-2");
@@ -637,7 +637,7 @@ public class PolicyViolationDAOTest
     fixedViolation.setFixTime(policyEvaluation.getTime());
     dao.update(fixedViolation);
     PolicyViolation grandfatheredViolation = tempEntity.newPolicyViolation(policyEvaluation, policy1);
-    grandfatheredViolation.setGrandfatherTime(policyEvaluation.getTime());
+    grandfatheredViolation.setLegacyViolationTime(policyEvaluation.getTime());
     dao.update(grandfatheredViolation);
     // Open policy violation for a different policy
     tempEntity.newPolicyViolation(policyEvaluation, policy2);
@@ -658,7 +658,7 @@ public class PolicyViolationDAOTest
       PolicyViolationDAO dao,
       String stageTypeId,
       Date openTime,
-      Date grandfatherTime,
+      Date legacyViolationTime,
       Date waiveTime,
       Date fixTime,
       int threatLevel,
@@ -682,7 +682,7 @@ public class PolicyViolationDAOTest
     else {
       violation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     }
-    violation.setGrandfatherTime(grandfatherTime);
+    violation.setLegacyViolationTime(legacyViolationTime);
     violation.setWaiveTime(waiveTime);
     violation.setFixTime(fixTime);
     dao.update(violation);
@@ -693,7 +693,7 @@ public class PolicyViolationDAOTest
   private String addViolation(PolicyViolationDAO dao,
                               String stageTypeId,
                               Date openTime,
-                              Date grandfatherTime,
+                              Date legacyViolationTime,
                               Date waiveTime,
                               Date fixTime)
   {
@@ -709,7 +709,7 @@ public class PolicyViolationDAOTest
     else {
       violation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     }
-    violation.setGrandfatherTime(grandfatherTime);
+    violation.setLegacyViolationTime(legacyViolationTime);
     violation.setWaiveTime(waiveTime);
     violation.setFixTime(fixTime);
     dao.update(violation);
@@ -724,7 +724,7 @@ public class PolicyViolationDAOTest
     Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
     Date cutoff = new Date(reference.toEpochMilli());
     Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
-    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
+    Date legacyViolationTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
     Date waiveTime = new Date(reference.plus(Duration.ofMinutes(3)).toEpochMilli());
     Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
     Date notGrandfathered = null;
@@ -737,10 +737,10 @@ public class PolicyViolationDAOTest
     expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
     expectedIds.add(addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
 
-    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, cutoff, legacyViolationTime, notWaived, notFixed);
     addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, fixTime);
     addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed);
-    addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, openAfter, legacyViolationTime, notWaived, notFixed);
     addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, fixTime);
     addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, fixTime);
     addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed);
@@ -759,7 +759,7 @@ public class PolicyViolationDAOTest
     Instant reference = Instant.now();
     Date cutoff = new Date(reference.toEpochMilli());
     Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
-    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
+    Date legacyViolationTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
     Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
 
     List<String> expectedIds = new ArrayList<>();
@@ -769,7 +769,7 @@ public class PolicyViolationDAOTest
     // matches by date but not threat level
     addViolation(dao, BuildStageType.ID, openAfter, null, null, null, 2, null);
     // matches by threat level but not date
-    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, null, null, 10, null);
+    addViolation(dao, BuildStageType.ID, cutoff, legacyViolationTime, null, null, 10, null);
     // matches neither by date nor by threat level
     addViolation(dao, BuildStageType.ID, cutoff, null, null, fixTime, 2, null);
     List<PolicyViolation> violations = dao.getActiveByApplicationIdsOpenedAfterDate(
@@ -785,7 +785,7 @@ public class PolicyViolationDAOTest
     Instant reference = Instant.now();
     Date cutoff = new Date(reference.toEpochMilli());
     Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
-    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
+    Date legacyViolationTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
     Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
 
     List<String> expectedIds = new ArrayList<>();
@@ -797,7 +797,7 @@ public class PolicyViolationDAOTest
     // matches by date but not threat category
     addViolation(dao, BuildStageType.ID, openAfter, null, null, null, 10, licenseCondition);
     // matches by threat category but not date
-    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, null, null, 10, null);
+    addViolation(dao, BuildStageType.ID, cutoff, legacyViolationTime, null, null, 10, null);
     // matches neither by date nor by threat category
     addViolation(dao, BuildStageType.ID, cutoff, null, null, fixTime, 10, licenseCondition);
 
@@ -817,7 +817,7 @@ public class PolicyViolationDAOTest
     Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
     Date cutoff = new Date(reference.toEpochMilli());
     Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
-    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
+    Date legacyViolationTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
     Date waiveTime = new Date(reference.plus(Duration.ofMinutes(3)).toEpochMilli());
     Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
     Date notGrandfathered = null;
@@ -826,20 +826,20 @@ public class PolicyViolationDAOTest
 
     List<String> expectedIds = new ArrayList<>();
 
-    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, legacyViolationTime, notWaived, notFixed));
     expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, notFixed));
     expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed));
     expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
     expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed));
-    expectedIds.add(addViolation(dao, ReleaseStageType.ID, cutoff, grandfatherTime, notWaived, notFixed));
+    expectedIds.add(addViolation(dao, ReleaseStageType.ID, cutoff, legacyViolationTime, notWaived, notFixed));
     expectedIds.add(addViolation(dao, ReleaseStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed));
     expectedIds.add(addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
     expectedIds.add(addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed));
 
-    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, cutoff, legacyViolationTime, notWaived, fixTime);
     addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, fixTime);
     addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, fixTime);
-    addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, fixTime);
+    addViolation(dao, BuildStageType.ID, openAfter, legacyViolationTime, notWaived, fixTime);
     addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, fixTime);
     addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, fixTime);
     addViolation(dao, BuildStageType.ID, openBefore, notGrandfathered, notWaived, notFixed);
@@ -858,7 +858,7 @@ public class PolicyViolationDAOTest
     Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
     Date cutoff = new Date(reference.toEpochMilli());
     Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
-    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
+    Date legacyViolationTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
     Date waiveTime = new Date(reference.plus(Duration.ofMinutes(3)).toEpochMilli());
     Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
     Date notGrandfathered = null;
@@ -870,10 +870,10 @@ public class PolicyViolationDAOTest
     expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, notFixed));
     expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
 
-    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, cutoff, legacyViolationTime, notWaived, notFixed);
     addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, fixTime);
     addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed);
-    addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, notFixed);
+    addViolation(dao, BuildStageType.ID, openAfter, legacyViolationTime, notWaived, notFixed);
     addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, fixTime);
     addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, fixTime);
     addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed);
@@ -924,7 +924,7 @@ public class PolicyViolationDAOTest
     dao.update(openedBeforeFixedDuring);
     // opened before time range and grandfathered during time range
     PolicyViolation openedBeforeGrandfatheredDuring = tempEntity.newPolicyViolation(policyEvalBeforeDateRange, policy);
-    openedBeforeGrandfatheredDuring.setGrandfatherTime(during1);
+    openedBeforeGrandfatheredDuring.setLegacyViolationTime(during1);
     dao.update(openedBeforeGrandfatheredDuring);
 
     PolicyEvaluation policyEvalOnStartDateRange = tempEntity
@@ -943,7 +943,7 @@ public class PolicyViolationDAOTest
     dao.update(openedDuringFixedAfter);
     // opened during time range and grandfathered after time range
     PolicyViolation openedDuringGrandfatheredAfter = tempEntity.newPolicyViolation(policyEvalOnStartDateRange, policy);
-    openedDuringGrandfatheredAfter.setGrandfatherTime(to);
+    openedDuringGrandfatheredAfter.setLegacyViolationTime(to);
     dao.update(openedDuringGrandfatheredAfter);
 
     PolicyEvaluation policyEvalInDateRange = tempEntity
@@ -958,7 +958,7 @@ public class PolicyViolationDAOTest
     dao.update(openedAndFixedDuring);
     // opened and grandfathered during time range
     PolicyViolation openedAndGrandfatheredDuring = tempEntity.newPolicyViolation(policyEvalInDateRange, policy);
-    openedAndGrandfatheredDuring.setGrandfatherTime(during2);
+    openedAndGrandfatheredDuring.setLegacyViolationTime(during2);
     dao.update(openedAndGrandfatheredDuring);
 
     PolicyEvaluation policyEvalOnEndDateRange = tempEntity
@@ -995,11 +995,11 @@ public class PolicyViolationDAOTest
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1");
     tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation unfixedGrandfatheredViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
-    unfixedGrandfatheredViolation1.setGrandfatherTime(policyEvaluation1.getTime());
+    unfixedGrandfatheredViolation1.setLegacyViolationTime(policyEvaluation1.getTime());
     dao.update(unfixedGrandfatheredViolation1);
     PolicyViolation fixedGrandfatheredViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     fixedGrandfatheredViolation1.setFixTime(new Date());
-    fixedGrandfatheredViolation1.setGrandfatherTime(new Date());
+    fixedGrandfatheredViolation1.setLegacyViolationTime(new Date());
     dao.update(fixedGrandfatheredViolation1);
 
     Application application2 = tempEntity.newApplicationWithParent();
@@ -1008,11 +1008,11 @@ public class PolicyViolationDAOTest
         "scan-2");
     tempEntity.newPolicyViolation(policyEvaluation2, policy2);
     PolicyViolation unfixedGrandfatheredViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy2);
-    unfixedGrandfatheredViolation2.setGrandfatherTime(new Date());
+    unfixedGrandfatheredViolation2.setLegacyViolationTime(new Date());
     dao.update(unfixedGrandfatheredViolation2);
     PolicyViolation fixedGrandfatheredViolation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy2);
     fixedGrandfatheredViolation2.setFixTime(new Date());
-    fixedGrandfatheredViolation2.setGrandfatherTime(new Date());
+    fixedGrandfatheredViolation2.setLegacyViolationTime(new Date());
     dao.update(fixedGrandfatheredViolation2);
 
     try (TransactionContext tx = dao.createTransactionContext()) {

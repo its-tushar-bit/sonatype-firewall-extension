@@ -77,7 +77,7 @@ public class PolicyViolationDAO
   public List<PolicyViolation> getActiveByApplicationIdAndStageId(String applicationId, String stageTypeId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL";
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL";
     return getList(sQuery, applicationId, stageTypeId);
   }
 
@@ -87,7 +87,7 @@ public class PolicyViolationDAO
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.hash=?3" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL";
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL";
     return getList(sQuery, applicationId, stageTypeId, hash);
   }
 
@@ -133,7 +133,7 @@ public class PolicyViolationDAO
         " AND entity.threatLevel <= ?4" + //
         " AND entity.fixTime IS NULL" + //
         " AND entity.threatCategory IN (?5)" + //
-        (onlyActiveViolations ? " AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL " : "");
+        (onlyActiveViolations ? " AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL " : "");
     return getUnfixed(sQuery, applicationIds, minDate, minThreatLevel, maxThreatLevel, policyThreatCategories);
   }
 
@@ -152,7 +152,7 @@ public class PolicyViolationDAO
         " WHERE entity.applicationId=?1" + //
         " AND entity.fixTime IS NULL" + //
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "") + //
-        (onlyActiveViolations ? " AND entity.grandfatherTime IS NULL " : "");
+        (onlyActiveViolations ? " AND entity.legacyViolationTime IS NULL " : "");
     return getUnfixed(sQuery, applicationIds);
   }
 
@@ -183,7 +183,7 @@ public class PolicyViolationDAO
         " AND entity.threatLevel <= ?5" + //
         " AND entity.threatCategory IN (?6)" + //
         " AND entity.fixTime IS NULL" + //
-        " AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL";
+        " AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL";
     return getUnfixed(sQuery, applicationIds, stageTypeIds, minDate, minThreatLevel, maxThreatLevel,
         policyThreatCategories);
   }
@@ -207,7 +207,7 @@ public class PolicyViolationDAO
         " AND entity.threatLevel <= ?4" + //
         " AND entity.threatCategory IN (?5)" + //
         " AND entity.waiveTime IS NULL" + //
-        " AND entity.grandfatherTime IS NULL";
+        " AND entity.legacyViolationTime IS NULL";
 
     return getUnfixed(sQuery, applicationIds, stageTypeIds, minThreatLevel, maxThreatLevel, policyThreatCategories);
   }
@@ -289,13 +289,13 @@ public class PolicyViolationDAO
 
       List<String> stateQuery = new ArrayList<>();
       if (violationStateOpen) {
-        stateQuery.add("(entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL)");
+        stateQuery.add("(entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL)");
       }
       if (violationStateWaived) {
         stateQuery.add("entity.waiveTime IS NOT NULL");
       }
       if (violationStateGrandfathered) {
-        stateQuery.add("entity.grandfatherTime IS NOT NULL");
+        stateQuery.add("entity.legacyViolationTime IS NOT NULL");
       }
       policyStateFilter += StringUtils.join(stateQuery.toArray(), " OR ");
       policyStateFilter += ")";
@@ -312,7 +312,7 @@ public class PolicyViolationDAO
         " WHERE entity.applicationId=?1 AND entity.policyId IN (?2)" + //
         " AND entity.fixTime IS NULL" + //
         " AND entity.waiveTime IS NULL" + //
-        " AND entity.grandfatherTime IS NULL";
+        " AND entity.legacyViolationTime IS NULL";
     return getUnfixed(sQuery, applicationIds, policyIds);
   }
 
@@ -345,12 +345,12 @@ public class PolicyViolationDAO
         " AND (" + //
         "   (entity.openTime >= ?3 AND entity.openTime < ?4" + // opened during time range
         "    AND (entity.waiveTime > entity.openTime OR entity.waiveTime IS NULL) " + // not immediately waived
-        "    AND (entity.grandfatherTime > entity.openTime OR entity.grandfatherTime IS NULL)) " + // not grandfathered
+        "    AND (entity.legacyViolationTime > entity.openTime OR entity.legacyViolationTime IS NULL)) " +
         "   OR " + //
         "   (entity.openTime < ?3 " + // opened before time range
         "    AND CASE WHEN entity.fixTime <= ?3 THEN false" + // not fixed before time range
         "             WHEN entity.waiveTime <= ?3 THEN false" + // not waived before time range
-        "             WHEN entity.grandfatherTime <= ?3 THEN false" + // not grandfathered before time range
+        "             WHEN entity.legacyViolationTime <= ?3 THEN false" + // not legacy status before time range
         "             ELSE true " + //
         "        END = true))";
     return getList(sQuery, appId, stageTypeIds, from, to);
@@ -359,7 +359,7 @@ public class PolicyViolationDAO
   public List<PolicyViolation> getUnfixedGrandfatheredByApplicationId(TransactionContext tx, String appId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1" + //
-        " AND entity.fixTime IS NULL AND entity.grandfatherTime IS NOT NULL";
+        " AND entity.fixTime IS NULL AND entity.legacyViolationTime IS NOT NULL";
     return getList(tx, sQuery, appId);
   }
 

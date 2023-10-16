@@ -96,7 +96,7 @@ public class LegacyViolationService
       List<PolicyViolation> legacyViolations =
           policyViolationDAO.getUnfixedGrandfatheredByApplicationId(tx, app.getId());
       for (PolicyViolation legacyViolation : legacyViolations) {
-        legacyViolation.setGrandfatherTime(null);
+        legacyViolation.setLegacyViolationTime(null);
         policyViolationDAO.update(tx, legacyViolation);
 
         policyViolationLogger.add(PolicyViolationLogEvent.UNGRANDFATHER, legacyViolation);
@@ -133,10 +133,10 @@ public class LegacyViolationService
       List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());
       int changedPolicyViolationCount = 0;
       for (PolicyViolation policyViolation : policyViolations) {
-        if (!policyViolation.isGrandfathered()) {
+        if (!policyViolation.isLegacyViolation()) {
           Policy policy = policyDAO.getById(tx, policyViolation.getPolicyId());
-          if (policy == null || policy.isPolicyViolationGrandfatheringAllowed()) {
-            policyViolation.setGrandfatherTime(now);
+          if (policy == null || policy.isLegacyViolationAllowed()) {
+            policyViolation.setLegacyViolationTime(now);
             policyViolationDAO.update(tx, policyViolation);
 
             policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, policyViolation);
@@ -165,13 +165,13 @@ public class LegacyViolationService
     switch (ownerType) {
       case APPLICATION:
         Application app = applicationDAO.getByPublicIdNotNull(ownerId);
-        legacyViolationStatusDTO.enabled = app.isPolicyViolationGrandfatheringEnabled();
+        legacyViolationStatusDTO.enabled = app.isLegacyViolationEnabled();
         parentOrgId = app.getOrganizationId();
         break;
       case ORGANIZATION:
         Organization org = organizationDAO.getByIdNotNull(ownerId);
-        legacyViolationStatusDTO.enabled = org.isPolicyViolationGrandfatheringEnabled();
-        legacyViolationStatusDTO.allowOverride = org.isAllowPolicyViolationGrandfatheringOverride();
+        legacyViolationStatusDTO.enabled = org.isLegacyViolationEnabled();
+        legacyViolationStatusDTO.allowOverride = org.isAllowLegacyViolationOverride();
         parentOrgId = org.getParentOrganizationId();
         break;
       default:
@@ -182,16 +182,16 @@ public class LegacyViolationService
       Organization org = organizationDAO.getByIdNotNull(parentOrgId);
 
       if (legacyViolationStatusDTO.enabledInParent == null) {
-        legacyViolationStatusDTO.enabledInParent = org.isPolicyViolationGrandfatheringEnabled();
+        legacyViolationStatusDTO.enabledInParent = org.isLegacyViolationEnabled();
       }
 
-      if (!org.isAllowPolicyViolationGrandfatheringOverride()) {
-        legacyViolationStatusDTO.enabled = org.isPolicyViolationGrandfatheringEnabled();
+      if (!org.isAllowLegacyViolationOverride()) {
+        legacyViolationStatusDTO.enabled = org.isLegacyViolationEnabled();
         legacyViolationStatusDTO.inheritedFromOrganizationName = org.getName();
         legacyViolationStatusDTO.allowChange = false;
       }
       else if (legacyViolationStatusDTO.enabled == null) {
-        legacyViolationStatusDTO.enabled = org.isPolicyViolationGrandfatheringEnabled();
+        legacyViolationStatusDTO.enabled = org.isLegacyViolationEnabled();
         legacyViolationStatusDTO.inheritedFromOrganizationName = org.getName();
       }
 
@@ -212,13 +212,13 @@ public class LegacyViolationService
     switch (ownerType) {
       case APPLICATION:
         Application app = applicationDAO.getByPublicIdNotNull(ownerId);
-        app.setPolicyViolationGrandfatheringEnabled(legacyViolationStatusDTO.enabled);
+        app.setLegacyViolationEnabled(legacyViolationStatusDTO.enabled);
         applicationDAO.update(app);
         break;
       case ORGANIZATION:
         Organization org = organizationDAO.getByIdNotNull(ownerId);
-        org.setPolicyViolationGrandfatheringEnabled(legacyViolationStatusDTO.enabled);
-        org.setAllowPolicyViolationGrandfatheringOverride(legacyViolationStatusDTO.allowOverride);
+        org.setLegacyViolationEnabled(legacyViolationStatusDTO.enabled);
+        org.setAllowLegacyViolationOverride(legacyViolationStatusDTO.allowOverride);
         organizationDAO.update(org);
         AuditData.get()
             .setData("overrideByChild", legacyViolationStatusDTO.allowOverride ? "allow" : "disallow");
@@ -244,17 +244,16 @@ public class LegacyViolationService
 
   public boolean isLegacyViolationEnabled(TransactionContext tx, String appId) {
     Application app = applicationDAO.getById(tx, appId);
-    Boolean enabled = app.isPolicyViolationGrandfatheringEnabled();
-
+    Boolean enabled = app.isLegacyViolationEnabled();
     String parentOrgId = app.getOrganizationId();
     while (parentOrgId != null) {
       Organization org = organizationDAO.getById(tx, parentOrgId);
 
-      if (!org.isAllowPolicyViolationGrandfatheringOverride()) {
-        enabled = org.isPolicyViolationGrandfatheringEnabled();
+      if (!org.isAllowLegacyViolationOverride()) {
+        enabled = org.isLegacyViolationEnabled();
       }
       else if (enabled == null) {
-        enabled = org.isPolicyViolationGrandfatheringEnabled();
+        enabled = org.isLegacyViolationEnabled();
       }
 
       parentOrgId = org.getParentOrganizationId();

@@ -111,10 +111,7 @@ export const selectIsInheritanceDirty = createSelector(
 export const selectCurrentPolicyActions = createSelector(selectCurrentPolicy, prop('actions'));
 export const selectCurrentPolicyName = createSelector(selectCurrentPolicy, prop('name'));
 export const selectCurrentPolicyThreatLevel = createSelector(selectCurrentPolicy, prop('threatLevel'));
-export const selectCurrentLegacyViolationAllowed = createSelector(
-  selectCurrentPolicy,
-  prop('policyViolationGrandfatheringAllowed')
-);
+export const selectCurrentLegacyViolationAllowed = createSelector(selectCurrentPolicy, prop('legacyViolationAllowed'));
 export const selectShouldShowQuarantineWarning = createSelector(
   selectCurrentPolicyActions,
   selectOriginalProxyStageAction,

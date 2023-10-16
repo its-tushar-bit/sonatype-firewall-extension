@@ -51,7 +51,7 @@ public class PolicyViolationTelemetryCollector
 
   static final String WAIVE_TIME = "waive_time";
 
-  static final String GRANDFATHER_TIME = "grandfather_time";
+  static final String LEGACY_VIOLATION_TIME = "grandfather_time";
 
   static final String INNERSOURCE_DEPENDENCY = "innersource_dependency";
 
@@ -143,11 +143,11 @@ public class PolicyViolationTelemetryCollector
     }
   }
 
-  public void addTelemetryForGrandfatheredViolation(PolicyViolation grandfatheredPolicyViolation, Component component) {
-    if (grandfatheredPolicyViolation != null) {
+  public void addTelemetryForGrandfatheredViolation(PolicyViolation legacyViolation, Component component) {
+    if (legacyViolation != null) {
       TelemetryData telemetryData =
-          createTelemetry(TelemetryPurpose.TIME_TO_GRANDFATHER_POLICY_VIOLATION, grandfatheredPolicyViolation);
-      telemetryData.put(GRANDFATHER_TIME, timeOfPolicyEvaluation.getTime());
+          createTelemetry(TelemetryPurpose.TIME_TO_GRANDFATHER_POLICY_VIOLATION, legacyViolation);
+      telemetryData.put(LEGACY_VIOLATION_TIME, timeOfPolicyEvaluation.getTime());
       if (component != null) {
         addTelemetryDependencyInfo(component, telemetryData);
       }

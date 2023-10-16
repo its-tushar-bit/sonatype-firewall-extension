@@ -238,12 +238,12 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testIsActive_Grandfathered() {
+  public void testIsActive_LegacyViolation() {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
     assertThat(policyViolation.isActive()).isTrue();
 
-    policyViolation.setGrandfatherTime(new Date());
+    policyViolation.setLegacyViolationTime(new Date());
     assertThat(policyViolation.isActive()).isFalse();
   }
 

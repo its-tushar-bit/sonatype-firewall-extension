@@ -49,16 +49,16 @@ public class LegacyViolationResourceAuditTest
 
   @Test
   public void testGrantLegacyViolationStatus() throws Exception {
-    application.setPolicyViolationGrandfatheringEnabled(true);
+    application.setLegacyViolationEnabled(true);
     new ApplicationDAO().update(application);
 
     Policy policyLegacyAllowed = tempEntity.newPolicy();
-    policyLegacyAllowed.setPolicyViolationGrandfatheringAllowed(true);
+    policyLegacyAllowed.setLegacyViolationAllowed(true);
     new PolicyDAO().update(policyLegacyAllowed);
 
     // Policy violation that is already in legacy status - is not counted
     PolicyViolation policyViolationAlreadyLegacy = tempEntity.newPolicyViolation(policyEvaluation, policyLegacyAllowed);
-    policyViolationAlreadyLegacy.setGrandfatherTime(new Date());
+    policyViolationAlreadyLegacy.setLegacyViolationTime(new Date());
     new PolicyViolationDAO().update(policyViolationAlreadyLegacy);
 
     // Policy violation for a policy that cannot be found - is counted

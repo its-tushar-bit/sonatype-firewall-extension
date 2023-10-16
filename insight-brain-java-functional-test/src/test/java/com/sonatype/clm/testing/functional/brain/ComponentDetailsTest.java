@@ -1154,8 +1154,8 @@ public class ComponentDetailsTest
   private void activateGrandfathering() {
     Policy licenseBannedPolicy = new PolicyDAO().getByName("License-Banned").get(0);
 
-    app.setPolicyViolationGrandfatheringEnabled(true);
-    licenseBannedPolicy.setPolicyViolationGrandfatheringAllowed(true);
+    app.setLegacyViolationEnabled(true);
+    licenseBannedPolicy.setLegacyViolationAllowed(true);
     new ApplicationDAO().update(app);
     new PolicyDAO().update(licenseBannedPolicy);
     LegacyViolationService legacyViolationService =

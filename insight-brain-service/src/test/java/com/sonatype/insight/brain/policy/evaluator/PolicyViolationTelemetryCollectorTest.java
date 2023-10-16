@@ -345,7 +345,7 @@ public class PolicyViolationTelemetryCollectorTest
     component.setDirectDependency(isDirectDependency);
 
     PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, commonsLang3);
-    policyViolation.setGrandfatherTime(new Date());
+    policyViolation.setLegacyViolationTime(new Date());
     policyViolation.setOpenTime(openTime);
     PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
@@ -362,7 +362,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertTelemetryAttributes(TIME_TO_GRANDFATHER_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, null, 1, isDirectDependency, isInnerSource, null,
         telemetryData.get(0));
-    assertThat(attributes.get(GRANDFATHER_TIME)).isEqualTo(evalTime.getTime());
+    assertThat(attributes.get(LEGACY_VIOLATION_TIME)).isEqualTo(evalTime.getTime());
   }
 
   @Test

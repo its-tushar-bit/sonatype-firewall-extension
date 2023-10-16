@@ -146,7 +146,7 @@ export const initialState = {
     id: undefined,
     name: initUserInput('', policyNameValidator([], '')),
     threatLevel: 5,
-    policyViolationGrandfatheringAllowed: null,
+    legacyViolationAllowed: null,
     policyActionsOverrideAllowed: null,
     actions: {},
     policyActionsOverrides: null,
@@ -832,7 +832,7 @@ const computeIsDirty = (state) => {
   const isDirtyObservedProps = [
     ['name', 'value'],
     ['threatLevel'],
-    ['policyViolationGrandfatheringAllowed'],
+    ['legacyViolationAllowed'],
     ['policyActionsOverrideAllowed'],
     ['policyNotificationsOverrideAllowed'],
   ];
@@ -1393,7 +1393,7 @@ const policySlice = createSlice({
       return updatedComputedProps(reduxPropSet('hasPolicyCategories', state, payload));
     },
     toggleCategoryIsApplied,
-    toggleLegacyViolationAllowed: toggleField('policyViolationGrandfatheringAllowed'),
+    toggleLegacyViolationAllowed: toggleField('legacyViolationAllowed'),
     togglePolicyActionsOverrideAllowed,
     togglePolicyNotificationsOverrideAllowed,
     setPolicyName: setPolicyNameField(),

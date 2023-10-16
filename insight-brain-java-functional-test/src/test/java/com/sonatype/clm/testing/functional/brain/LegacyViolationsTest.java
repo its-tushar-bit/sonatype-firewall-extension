@@ -57,7 +57,7 @@ public class LegacyViolationsTest
   public void init() {
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
-    application.setPolicyViolationGrandfatheringEnabled(true);
+    application.setLegacyViolationEnabled(true);
     applicationDAO.update(application);
 
     refreshOrOpen(OwnerSummaryPage.url(application));
@@ -82,7 +82,7 @@ public class LegacyViolationsTest
 
   @Test
   public void testLegacyViolations_ModalInitialState_LegacyViolationDisabled() {
-    application.setPolicyViolationGrandfatheringEnabled(false);
+    application.setLegacyViolationEnabled(false);
     applicationDAO.update(application);
 
     refreshOrOpen(OwnerSummaryPage.url(application));
@@ -115,12 +115,12 @@ public class LegacyViolationsTest
   @Test
   public void testLegacyViolations_SetLegacyViolationStatus() {
     Policy policy = tempEntity.newPolicy(application);
-    policy.setPolicyViolationGrandfatheringAllowed(true);
+    policy.setLegacyViolationAllowed(true);
     policyDAO.update(policy);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
     PolicyViolation legacyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(legacyViolation.getId()).isGrandfathered()).isFalse();
+    assertThat(policyViolationDAO.getById(legacyViolation.getId()).isLegacyViolation()).isFalse();
 
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.legacyViolation().shouldBe(visible).click();
@@ -129,19 +129,19 @@ public class LegacyViolationsTest
     modal.updateButton().click();
     FormMask.seeAndWaitForDismissal();
 
-    assertThat(policyViolationDAO.getById(legacyViolation.getId()).isGrandfathered()).isTrue();
+    assertThat(policyViolationDAO.getById(legacyViolation.getId()).isLegacyViolation()).isTrue();
     modal.shouldBe(hidden);
   }
 
   @Test
   public void testLegacyViolations_Cancel() {
     Policy policy = tempEntity.newPolicy(application);
-    policy.setPolicyViolationGrandfatheringAllowed(true);
+    policy.setLegacyViolationAllowed(true);
     policyDAO.update(policy);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan");
     PolicyViolation legacyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    assertThat(policyViolationDAO.getById(legacyViolation.getId()).isGrandfathered()).isFalse();
+    assertThat(policyViolationDAO.getById(legacyViolation.getId()).isLegacyViolation()).isFalse();
 
     ActionDropDown.actionButton().click();
     ActionDropDown.legacyViolation().click();
@@ -149,7 +149,7 @@ public class LegacyViolationsTest
 
     modal.cancelButton().click();
 
-    assertThat(policyViolationDAO.getById(legacyViolation.getId()).isGrandfathered()).isFalse();
+    assertThat(policyViolationDAO.getById(legacyViolation.getId()).isLegacyViolation()).isFalse();
     modal.shouldBe(hidden);
   }
 }

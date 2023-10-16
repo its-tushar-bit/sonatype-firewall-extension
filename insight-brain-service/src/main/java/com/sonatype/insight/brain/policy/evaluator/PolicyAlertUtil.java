@@ -173,7 +173,7 @@ public class PolicyAlertUtil
           policyViolation.setWaiveTime(new Date());
         }
         if (legacyViolation) {
-          policyViolation.setGrandfatherTime(new Date());
+          policyViolation.setLegacyViolationTime(new Date());
         }
         allViolations.add(policyViolation);
       }

@@ -67,8 +67,8 @@ describe('PoliciesTile', () => {
             selectedOwner: {
               id: ownerId,
               name: ownerName,
-              policyViolationGrandfatheringEnabled: null,
-              allowPolicyViolationGrandfatheringOverride: true,
+              legacyViolationEnabled: null,
+              allowLegacyViolationOverride: true,
               repositoryConnectionEnabled: null,
               allowRepositoryConnectionOverride: true,
               artifactoryConnectionEnabled: null,
@@ -164,8 +164,8 @@ describe('PoliciesTile', () => {
             selectedOwner: {
               id: ownerId,
               name: ownerName,
-              policyViolationGrandfatheringEnabled: null,
-              allowPolicyViolationGrandfatheringOverride: true,
+              legacyViolationEnabled: null,
+              allowLegacyViolationOverride: true,
               repositoryConnectionEnabled: null,
               allowRepositoryConnectionOverride: true,
               artifactoryConnectionEnabled: null,

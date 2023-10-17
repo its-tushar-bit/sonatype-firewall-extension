@@ -30,10 +30,12 @@ import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 @Named
 @Singleton
 @Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
+@Order(Integer.MAX_VALUE - TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
 public class MultiTenantTaskScheduler
     extends TaskScheduler
 {

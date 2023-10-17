@@ -331,6 +331,10 @@
       <groupId>io.dropwizard.modules</groupId>
       <artifactId>dropwizard-web</artifactId>
     </dependency>
+    <dependency>
+      <groupId>ru.vyarus</groupId>
+      <artifactId>dropwizard-guicey</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
@@ -674,7 +678,7 @@
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
           <forkCount>${test.forkCount}</forkCount>
-          <argLine>@{argLine} -Xmx768M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <argLine>@{argLine} -Xmx1G -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
           <systemPropertyVariables>
             <test.forkId>#${surefire.forkNumber}</test.forkId>
           </systemPropertyVariables>
@@ -827,6 +831,7 @@
                 <include>**/BrainInjectedTest*</include>
                 <include>**/AuditTestSupport*</include>
                 <include>**/TestAuditSession*</include>
+                <include>**/MockCleaner*</include>
                 <include>**/*Test*</include>
               </includes>
             </configuration>

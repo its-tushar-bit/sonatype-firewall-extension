@@ -37,6 +37,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.MockCleaner;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -104,6 +105,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.vyarus.dropwizard.guice.module.context.SharedConfigurationState;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -147,6 +149,9 @@ public abstract class AbstractBrainServiceTest
   @Rule
   public TestName testName = new TestName();
 
+  @Rule
+  public MockCleaner mockCleaner = new MockCleaner();
+
   private static boolean productlicenseWasUninstalled;
 
   protected static final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
@@ -157,7 +162,9 @@ public abstract class AbstractBrainServiceTest
 
   protected static TestCLMServer testCLMServer;
 
-  protected static JiraClient mockJiraClient;
+  protected static JiraClient mockJiraClient = mock(JiraClient.class);
+
+  private static JiraClientFactory mockJiraClientFactory = mock(JiraClientFactory.class);
 
   protected DatabaseContainer databaseContainer;
 
@@ -193,6 +200,9 @@ public abstract class AbstractBrainServiceTest
     }
 
     MultiTenantBrainServiceTestService.beforeTestHandler(this);
+
+    // This must get reset for every test because MockCleaner undoes it after every test
+    when(mockJiraClientFactory.create(any())).thenReturn(mockJiraClient);
   }
 
   protected void initDatabaseContainer() {
@@ -265,6 +275,7 @@ public abstract class AbstractBrainServiceTest
     log.info("After: {}", testName.getMethodName());
 
     MultiTenantBrainServiceTestService.afterTestHandler(this);
+    SharedConfigurationState.clear();
 
     boolean installLicense = false;
     if (savedLicenseFingerprint != null) {
@@ -377,10 +388,8 @@ public abstract class AbstractBrainServiceTest
         bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
         bind(TaskScheduler.class).to(TestTaskScheduler.class);
 
-        mockJiraClient = mock(JiraClient.class);
-        JiraClientFactory jiraClientFactory = mock(JiraClientFactory.class);
-        when(jiraClientFactory.create(any())).thenReturn(mockJiraClient);
-        bind(JiraClientFactory.class).toInstance(jiraClientFactory);
+        // using a provider so the MockCleaner doesn't break the mocked JiraClientFactory between tests
+        bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
       }
     });
 

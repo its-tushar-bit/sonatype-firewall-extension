@@ -55,6 +55,7 @@
     <!-- dropwizard 3.x and 4.x require Java 11 -->
     <dropwizard.version>2.1.7</dropwizard.version>
     <dropwizard-web.version>1.5.0</dropwizard-web.version>
+    <dropwizard-guicey.version>5.9.1</dropwizard-guicey.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
     <jersey.version>2.39.1</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
@@ -899,6 +900,11 @@
         <groupId>io.dropwizard.modules</groupId>
         <artifactId>dropwizard-web</artifactId>
         <version>${dropwizard-web.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ru.vyarus</groupId>
+        <artifactId>dropwizard-guicey</artifactId>
+        <version>${dropwizard-guicey.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey</groupId>

@@ -46,10 +46,12 @@ import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 @Named
 @Singleton
 @Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
+@Order(Integer.MAX_VALUE - TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
 public class TaskScheduler
     implements Managed
 {

@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.audit;
 
 import java.lang.reflect.Method;
-import javax.inject.Named;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.ext.Provider;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -22,7 +22,7 @@ import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProp
  * differently, this request filter is the first opportunity where the request path has been mapped to a REST resource,
  * allowing to reason about the specific operation undertaken by the caller.
  */
-@Named
+@Provider
 public class AdminAuditContainerRequestFilter
     implements ContainerRequestFilter
 {

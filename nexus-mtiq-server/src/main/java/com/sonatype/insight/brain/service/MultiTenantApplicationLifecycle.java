@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.version.VersionService;
 
 import io.dropwizard.lifecycle.Managed;
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
@@ -28,11 +29,14 @@ import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
  */
 @Named
 @Singleton
-@Priority(1)
+@Priority(MultiTenantApplicationLifecycle.PRIORITY)
+@Order(Integer.MAX_VALUE - MultiTenantApplicationLifecycle.PRIORITY)
 public class MultiTenantApplicationLifecycle
     extends DefaultApplicationLifecycle
     implements Managed
 {
+  public static final int PRIORITY = 1;
+
   @Inject
   public MultiTenantApplicationLifecycle(
       InsightConfig configuration,

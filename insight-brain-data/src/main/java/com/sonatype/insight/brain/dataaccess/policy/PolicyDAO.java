@@ -160,7 +160,11 @@ public class PolicyDAO
 
     Policy existingPolicyById = PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(tx, policy.getId()));
 
-    validateNameWithinHierarchy(tx, ownerId, policy);
+    if (!existingPolicyById.getName().equals(policy.getName())) {
+      // only validate name if the name of the policy has changed
+      // no validations needed if the name has not been modified
+      validateNameWithinHierarchy(tx, ownerId, policy);
+    }
 
     // Allocate ids to new constraints
     for (Constraint constraint : policy.getConstraints()) {

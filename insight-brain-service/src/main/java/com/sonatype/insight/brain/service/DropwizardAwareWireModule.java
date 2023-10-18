@@ -21,13 +21,11 @@ public class DropwizardAwareWireModule<C extends Configuration>
 {
   private WireModule wireModule;
 
-  @SuppressWarnings("unchecked")
   public DropwizardAwareWireModule(List<Module> modules) {
     super(modules);
     wireModule = new WireModule(modules);
   }
 
-  @SuppressWarnings("unchecked")
   public DropwizardAwareWireModule(Module... modules) {
     super(modules);
     wireModule = new WireModule(modules);

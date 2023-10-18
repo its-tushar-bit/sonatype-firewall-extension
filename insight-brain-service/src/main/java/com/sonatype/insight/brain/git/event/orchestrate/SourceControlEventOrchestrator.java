@@ -5,14 +5,14 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate;
 
-import java.io.PrintWriter;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -22,19 +22,15 @@ import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
-import com.sonatype.insight.brain.tenancy.TenantManaged;
-import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.servlets.tasks.Task;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.NotImplementedException;
-import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,25 +62,21 @@ import static java.lang.System.currentTimeMillis;
 @Named
 @Singleton
 public class SourceControlEventOrchestrator
-    extends Task
-    implements TenantManaged, SourceControlEventCreationListener, InsightJob, MtiqBatchJob
+    implements Managed, SourceControlEventCreationListener
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlEventOrchestrator.class);
-
-  public static final String TASK_NAME = "SourceControlEventOrchestrator";
-
-  private static final String ERROR_FETCHING_NEW_EVENTS = "An error occurred while fetching new events";
 
   // arbitrarily picking 2 minutes to detect when another instance of IQ server has gone down/offline and is no longer
   // processing events
   private static final int STALE_EVENT_CUTOFF_MS = 1_000 * 120;
 
-  private final TenantReference<Map<String, UserEventManager>> userEventManagerMap =
-      new TenantReference<>(HashMap::new);
+  private final Map<String, UserEventManager> userEventManagerMap = new HashMap<>();
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
   private final SourceControlEventProcessor sourceControlEventProcessor;
+
+  private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private final SourceControlInstanceManager sourceControlInstanceManager;
 
@@ -92,7 +84,7 @@ public class SourceControlEventOrchestrator
 
   private final IqForScmLicenseChecker licenseChecker;
 
-  private final TaskScheduler taskScheduler;
+  private ScheduledExecutorService scheduledExecutorService;
 
   private int otherInstanceEventProcessingIntervalSeconds = 15;
 
@@ -102,7 +94,6 @@ public class SourceControlEventOrchestrator
 
   @Inject
   public SourceControlEventOrchestrator(
-      TaskScheduler taskScheduler,
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlEventProcessor sourceControlEventProcessor,
       SourceControlEventPublisher sourceControlEventPublisher,
@@ -110,14 +101,12 @@ public class SourceControlEventOrchestrator
       IqForScmLicenseChecker licenseChecker,
       SourceControlUtils sourceControlUtils)
   {
-    super("sourceControlEventOrchestrator");
-    this.taskScheduler = taskScheduler;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlEventProcessor = sourceControlEventProcessor;
+    this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
     this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
-    sourceControlEventPublisher.setSourceControlEventListener(this);
   }
 
   /**
@@ -125,7 +114,7 @@ public class SourceControlEventOrchestrator
    */
   @Override
   public void onNewEvent(SourceControlEvent event) {
-    synchronized (userEventManagerMap.get()) {
+    synchronized (userEventManagerMap) {
       if (sourceControlInstanceManager.canProcessEvents()) {
         assignEventForProcessing(event);
       }
@@ -133,34 +122,23 @@ public class SourceControlEventOrchestrator
   }
 
   @Override
-  public void register() {
+  public void start() {
     if (!disableForTesting) {
-      startEventProcessingService();
+      sourceControlEventPublisher.setSourceControlEventListener(this);
+      startEventProcessingExecutorService();
     }
   }
 
   @Override
-  public void deregister() {
-    synchronized (userEventManagerMap.get()) {
-      taskScheduler.unscheduleTask(this);
-      userEventManagerMap.get().forEach((user, userEventManager) -> userEventManager.stop());
+  public void stop() {
+    synchronized (userEventManagerMap) {
+      if (null != scheduledExecutorService) {
+        scheduledExecutorService.shutdown();
+        scheduledExecutorService = null;
+      }
+      userEventManagerMap.forEach((user, userEventManager) -> userEventManager.stop());
       sourceControlEventProcessor.shutdown();
     }
-  }
-
-  @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter output) throws Exception {
-    throw new NotImplementedException("Manual execution of SCM event orchestrator is not implemented");
-  }
-
-  @Override
-  public void execute(JobExecutionContext context) {
-    execute(this::fetchAndRouteEvents, log, ERROR_FETCHING_NEW_EVENTS);
-  }
-
-  @Override
-  public String getJobName() {
-    return TASK_NAME;
   }
 
   @VisibleForTesting
@@ -172,7 +150,7 @@ public class SourceControlEventOrchestrator
     log.debug("Routing event '{}' for application {} for processing", event.getEventType(), event.getApplicationId());
     GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
-    UserEventManager userEventManager = userEventManagerMap.get().computeIfAbsent(event.getScmUsername(),
+    UserEventManager userEventManager = userEventManagerMap.computeIfAbsent(event.getScmUsername(),
         k -> new UserEventManager(sourceControlEventDAO, sourceControlEventProcessor, gitRepositoryInfo.getProvider(),
             sourceControlUtils));
     userEventManager.addEvent(event);
@@ -185,8 +163,8 @@ public class SourceControlEventOrchestrator
    * - fetches all untagged new events and routes them to the appropriate UserEventManager for processing
    */
   private void fetchAndRouteEvents() {
-    if (licenseChecker.isIqForScmSupported() && sourceControlInstanceManager.canProcessEvents()) {
-      synchronized (userEventManagerMap.get()) {
+    if (licenseChecker.isIqForScmSupported()) {
+      synchronized (userEventManagerMap) {
         sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS), getInstanceId());
         List<SourceControlEvent> sourceControlEvents =
             sourceControlEventDAO.selectUnassignedNewEventsAndAssignToInstance(getInstanceId());
@@ -206,12 +184,18 @@ public class SourceControlEventOrchestrator
     // tests will 'spy' on this method to know when the scheduled event routing has finished
   }
 
-  private void startEventProcessingService() {
-    Date startTime = Date.from(
-        LocalDateTime.now().plusSeconds(otherInstanceEventProcessingStartupDelaySeconds).atZone(ZoneId.systemDefault())
-            .toInstant());
-    taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(otherInstanceEventProcessingIntervalSeconds),
-        startTime);
+  private void startEventProcessingExecutorService() {
+    Runnable sourceControlEventProcessingTask = new SystemRunnable(() -> {
+      if (sourceControlInstanceManager.canProcessEvents()) {
+        fetchAndRouteEvents();
+      }
+    });
+    ThreadFactory threadFactory =
+        new ThreadFactoryBuilder().setNameFormat("SourceControlEventOrchestrator-%d").setDaemon(true).build();
+    scheduledExecutorService = new TenantScheduledThreadPoolExecutor(1, threadFactory);
+    scheduledExecutorService.scheduleAtFixedRate(sourceControlEventProcessingTask,
+        otherInstanceEventProcessingStartupDelaySeconds, otherInstanceEventProcessingIntervalSeconds,
+        TimeUnit.SECONDS);
     log.info("Scheduled possible processing of events coming from other IQ instances to run every {} second(s) " +
             "starting in {} second(s)",
         otherInstanceEventProcessingIntervalSeconds, otherInstanceEventProcessingStartupDelaySeconds);

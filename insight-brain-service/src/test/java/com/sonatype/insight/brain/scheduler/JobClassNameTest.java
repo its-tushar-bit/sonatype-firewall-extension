@@ -42,9 +42,6 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.migration.ScanFileCleaner", "ScanFileCleaner");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.policy.PolicyMonitoringTask",
         "PolicyMonitoringTask");
-    insightJobClassNameToExpectedJobName.put(
-        "com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator",
-        "SourceControlEventOrchestrator");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.report.ReportPurger", "ReportPurger");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.repository.IgnoredRepositoryComponentCleaner",
         "IgnoredRepositoryComponentCleaner");

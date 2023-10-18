@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,7 +16,6 @@ import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
@@ -43,9 +41,6 @@ import static org.mockito.Mockito.when;
 
 public class SourceControlEventOrchestratorTest
 {
-  @Mock
-  private TaskScheduler taskSchedulerMock;
-
   @Mock
   private SourceControlEventDAO mockSourceControlEventDAO;
 
@@ -74,7 +69,7 @@ public class SourceControlEventOrchestratorTest
   public void testOnNewEvent_differentUsersDifferentListeners() {
     // given: an orchestrator and two events for different scm users
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
-        taskSchedulerMock, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
@@ -110,7 +105,7 @@ public class SourceControlEventOrchestratorTest
   public void testOnNewEvent_sameUsersSameListeners() {
     // given: an orchestrator and two events for the same scm user
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
-        taskSchedulerMock, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
@@ -146,7 +141,7 @@ public class SourceControlEventOrchestratorTest
   public void testOnNewEvent_eventNotProcessed() {
     // given: an orchestrator configured not to process events
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
-        taskSchedulerMock, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(false);
@@ -171,7 +166,7 @@ public class SourceControlEventOrchestratorTest
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
-        taskSchedulerMock, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
     );
 
@@ -187,10 +182,7 @@ public class SourceControlEventOrchestratorTest
     SourceControlEventOrchestrator spyOrchestrator = Mockito.spy(sourceControlEventOrchestrator);
     CountDownLatch executorFiredLatch = new CountDownLatch(1);
     unlatch(executorFiredLatch).when(spyOrchestrator).notifyRoutingComplete();
-    spyOrchestrator.register();
-    spyOrchestrator.execute(null);
-
-    verify(taskSchedulerMock).schedulePeriodicTask(eq(spyOrchestrator), eq(Duration.ofSeconds(2)), any());
+    spyOrchestrator.start();
 
     verifyUnlatched(executorFiredLatch, 10);
     verify(mockSourceControlEventProcessor).processEvent(eq(event), any());
@@ -201,22 +193,22 @@ public class SourceControlEventOrchestratorTest
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(false);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
-        taskSchedulerMock, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
     );
 
     // the orchestrator starts, but it does nothing
-    sourceControlEventOrchestrator.register();
+    sourceControlEventOrchestrator.start();
     verify(mockSourceControlEventDAO, never()).resetStaleEvents(any(), any());
   }
 
   @Test
   public void testStop() {
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
-        taskSchedulerMock, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
     );
-    sourceControlEventOrchestrator.deregister();
+    sourceControlEventOrchestrator.stop();
     verify(mockSourceControlEventProcessor, times(1)).shutdown();
   }
 

@@ -55,7 +55,7 @@ public class MultiTenantPostgresDataSourceProviderTest
   }
 
   @Test
-  public void testCreateDataSource() {
+  public void testCreateDataSource() throws Exception {
     DataSource mainDataSource = dataSourceProvider.getDataSource(mainConfig, null);
     DataSource locksDataSource = dataSourceProvider.getLocksDataSource();
 
@@ -64,19 +64,21 @@ public class MultiTenantPostgresDataSourceProviderTest
 
     assertThat(mainDataSource).isExactlyInstanceOf(BasicDataSource.class);
 
-    BasicDataSource mainBasicDataSource = (BasicDataSource) mainDataSource;
-    assertThat(mainBasicDataSource.getUrl()).isEqualTo("jdbc:postgresql://hostname:5432/dbname");
-    assertThat(mainBasicDataSource.getUsername()).isEqualTo("foo");
-    assertThat(mainBasicDataSource.getPassword()).isEqualTo("bar");
-    assertThat(mainBasicDataSource.getMaxTotal()).isEqualTo(4);
-    assertThat(mainBasicDataSource.getMaxIdle()).isEqualTo(3);
+    try (BasicDataSource mainBasicDataSource = (BasicDataSource) mainDataSource) {
+      assertThat(mainBasicDataSource.getUrl()).isEqualTo("jdbc:postgresql://hostname:5432/dbname");
+      assertThat(mainBasicDataSource.getUsername()).isEqualTo("foo");
+      assertThat(mainBasicDataSource.getPassword()).isEqualTo("bar");
+      assertThat(mainBasicDataSource.getMaxTotal()).isEqualTo(4);
+      assertThat(mainBasicDataSource.getMaxIdle()).isEqualTo(3);
+    }
 
-    BasicDataSource locksBasicDataSource = (BasicDataSource) locksDataSource;
-    assertThat(locksBasicDataSource.getUrl()).isEqualTo("jdbc:postgresql://hostname:5432/locksdbname");
-    assertThat(locksBasicDataSource.getUsername()).isEqualTo("biz");
-    assertThat(locksBasicDataSource.getPassword()).isEqualTo("baz");
-    assertThat(locksBasicDataSource.getMaxTotal()).isEqualTo(2);
-    assertThat(locksBasicDataSource.getMaxIdle()).isEqualTo(1);
+    try (BasicDataSource locksBasicDataSource = (BasicDataSource) locksDataSource) {
+      assertThat(locksBasicDataSource.getUrl()).isEqualTo("jdbc:postgresql://hostname:5432/locksdbname");
+      assertThat(locksBasicDataSource.getUsername()).isEqualTo("biz");
+      assertThat(locksBasicDataSource.getPassword()).isEqualTo("baz");
+      assertThat(locksBasicDataSource.getMaxTotal()).isEqualTo(2);
+      assertThat(locksBasicDataSource.getMaxIdle()).isEqualTo(1);
+    }
 
     // Make sure a second invocation does not produce different DataSource objects
     DataSource mainDataSource2 = dataSourceProvider.getDataSource(mainConfig, null);

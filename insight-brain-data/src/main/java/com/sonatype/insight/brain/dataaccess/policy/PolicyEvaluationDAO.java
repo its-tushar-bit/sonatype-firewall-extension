@@ -443,4 +443,15 @@ public class PolicyEvaluationDAO
         " AND entity.time >= ?2";
     return getSingle(Number.class, sQuery, ScanTriggerType.CONTINUOUS_INTEGRATION, sinceUtcDate).intValue();
   }
+
+  public boolean hasCIIntegrationEvaluation(final String applicationId) {
+    String sQuery = "SELECT COUNT(entity.applicationId)" +
+        " FROM PolicyEvaluation entity" +
+        " WHERE entity.applicationId = ?1" +
+        " AND entity.scanTriggerType = ?2" +
+        " AND entity.isReevaluation = false" +
+        " AND entity.isForMonitoring = false" +
+        " AND entity.isForObsoleteScan = false";
+    return getSingle(Long.class, sQuery, applicationId, ScanTriggerType.CONTINUOUS_INTEGRATION) > 0;
+  }
 }

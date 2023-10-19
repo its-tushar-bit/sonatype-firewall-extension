@@ -123,7 +123,7 @@ public class ApplicationDAOTest extends NameableDAOTest<Application>
   protected AbstractOperationalSqlDAO<Application> getDao() {
     return applicationDAO;
   }
-  
+
   @Override
   protected int getMaxNameLength() {
     return NameHelper.MAX_NAME_LENGTH_APP_ORG;

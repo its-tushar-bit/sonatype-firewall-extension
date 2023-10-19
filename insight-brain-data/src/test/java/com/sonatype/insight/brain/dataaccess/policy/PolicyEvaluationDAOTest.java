@@ -1282,6 +1282,38 @@ public class PolicyEvaluationDAOTest
     assertThat(numAppsResult).isZero();
   }
 
+  @Test
+  public void testHasCIIntegrationEvaluation() {
+    final Application application2 = tempEntity.newApplication(organization.getId());
+    final Application application3 = tempEntity.newApplication(organization.getId());
+    final Application application4 = tempEntity.newApplication(organization.getId());
+
+    // App 1 has CI eval
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
+        false, false, false, new Date(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
+    // App 2 has CI eval
+    tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "scan-build-2",
+        false, false, false, new Date(), "hash-2", ScanTriggerType.CONTINUOUS_INTEGRATION);
+    // App 3 has no CI evals
+    tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_BUILD, "scan-build-3",
+        false, false, false, new Date(), "hash-3", ScanTriggerType.CLI);
+    // App 4 has no evals
+
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    boolean hasCIIntegrationEvaluationApp1 = dao.hasCIIntegrationEvaluation(application.getId());
+    assertThat(hasCIIntegrationEvaluationApp1).isTrue();
+
+    boolean hasCIIntegrationEvaluationApp2 = dao.hasCIIntegrationEvaluation(application2.getId());
+    assertThat(hasCIIntegrationEvaluationApp2).isTrue();
+
+    boolean hasCIIntegrationEvaluationApp3 = dao.hasCIIntegrationEvaluation(application3.getId());
+    assertThat(hasCIIntegrationEvaluationApp3).isFalse();
+
+    boolean hasCIIntegrationEvaluationApp4 = dao.hasCIIntegrationEvaluation(application4.getId());
+    assertThat(hasCIIntegrationEvaluationApp4).isFalse();
+  }
+
   @FunctionalInterface
   interface PolicyEvaluationChooser
   {

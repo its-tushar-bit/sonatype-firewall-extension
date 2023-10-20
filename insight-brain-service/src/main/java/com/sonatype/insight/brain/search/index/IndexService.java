@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.concurrent.ForkJoinPool;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -63,6 +63,7 @@ import com.sonatype.insight.brain.tenancy.AllTenantsJob;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -107,6 +108,14 @@ public class IndexService
 
   public static final String SEARCH_INDEX_REINDEX = "search_index_reindex";
 
+  private static final int INDEX_THREADS_MIN = 1;
+
+  private static final int INDEX_THREADS_MAX = 7;
+
+  private static final int INDEX_THREADS_DEFAULT = 1;
+
+  public static final String SEARCH_INDEX_CONFIG_PROPS = "AdvancedSearch.createSearchIndex";
+
   private static final Logger log = LoggerFactory.getLogger(IndexService.class);
 
   private final OrganizationDAO organizationDAO;
@@ -138,6 +147,8 @@ public class IndexService
   public boolean disableForTesting;
 
   private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
+
+  private final ForkJoinPool searchIndexPool;
 
   @Override
   public String getJobName() {
@@ -206,6 +217,10 @@ public class IndexService
     this.taskScheduler = taskScheduler;
     this.luceneComponents = luceneComponents;
     this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
+
+    searchIndexPool = ExecutorThreadPools.getInstance()
+      .createThreadPool(INDEX_THREADS_MIN, INDEX_THREADS_MAX, INDEX_THREADS_DEFAULT,
+          SEARCH_INDEX_CONFIG_PROPS);
   }
 
   @Override
@@ -281,16 +296,17 @@ public class IndexService
       indexingContext.addOwners(applications);
 
       CompletableFuture<Void> orgDocs = CompletableFuture.supplyAsync(
-              new TenantAwareSupplier<>(() -> buildOrganizationDocs(indexingContext, organizations)))
+              new TenantAwareSupplier<>(() -> buildOrganizationDocs(indexingContext, organizations)), searchIndexPool)
           .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
       CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(
-              new TenantAwareSupplier<>(() -> buildApplicationDocs(indexingContext, applications)))
+              new TenantAwareSupplier<>(() -> buildApplicationDocs(indexingContext, applications)), searchIndexPool)
           .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
       TenantAwareFunction<Application, CompletableFuture<Void>> function =
           new TenantAwareFunction<>(application -> CompletableFuture
-              .supplyAsync(new TenantAwareSupplier<>(() -> buildApplicationSVDocs(indexingContext, application)))
+              .supplyAsync(new TenantAwareSupplier<>(() -> buildApplicationSVDocs(indexingContext, application)),
+                  searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs)));
       List<CompletableFuture<Void>> appSVDocs = applications
           .parallelStream()
@@ -298,15 +314,17 @@ public class IndexService
           .collect(toList());
 
       CompletableFuture<Void> tagDocs =
-          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildTagDocs(indexingContext)))
+          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildTagDocs(indexingContext)), searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
       CompletableFuture<Void> labelDocs =
-          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildLabelDocs(indexingContext)))
+          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildLabelDocs(indexingContext)),
+                  searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
       CompletableFuture<Void> policyDocs =
-          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildPolicyDocs(indexingContext)))
+          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildPolicyDocs(indexingContext)),
+                  searchIndexPool)
               .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
       log.info("indexing threads started");

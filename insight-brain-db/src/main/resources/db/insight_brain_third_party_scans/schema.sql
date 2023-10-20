@@ -67,6 +67,7 @@ CREATE TABLE coordinate_license (
   CONSTRAINT license_coordinate_uk UNIQUE (license_id, file_coordinate_id),
   CONSTRAINT license_coordinate_fk FOREIGN KEY (file_coordinate_id) REFERENCES file_coordinate(file_coordinate_id)
 );
+CREATE INDEX coordinate_license_file_coordinate_id ON coordinate_license (file_coordinate_id);
 
 CREATE TABLE third_party_vulnerability (
   third_party_vulnerability_id VARCHAR(50) NOT NULL,

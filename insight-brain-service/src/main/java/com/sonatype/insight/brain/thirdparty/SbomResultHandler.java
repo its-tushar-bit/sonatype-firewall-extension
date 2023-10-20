@@ -119,7 +119,8 @@ public class SbomResultHandler
       ThirdPartyFile thirdPartyFile)
   {
     try {
-      if (!StringUtils.isBlank(content.getContent())) {
+      if (!StringUtils.isBlank(content.getContent()) &&
+          ThirdPartyUtils.looksLikeCycloneDX(content.getContent())) {
         Bom sourceBom = parseBom(content);
         Bom targetBom = new Bom();
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();

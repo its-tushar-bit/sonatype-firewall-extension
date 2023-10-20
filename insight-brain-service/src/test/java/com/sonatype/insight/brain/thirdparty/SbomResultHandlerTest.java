@@ -136,6 +136,22 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_xmlContentWithoutSBomContent() throws Exception {
+    String sbomContent = getSbomXmlFile("bom-file-name-without-bom.xml");
+    String identificationSource = "identification-source-very-long";
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent(identificationSource + "-bom.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertThat(filteredContent).isEqualTo(sbomContent);
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource())
+        .isEqualTo(StringUtils.truncate(identificationSource, IDENTIFICATION_SOURCE_MAX_LENGTH)));
+  }
+
+  @Test
   public void testHandleAndFilterContents_priorityPurl_Then_Sha1_Then_Coordinates() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-component-purl-hashes-coordinates-components.xml");
     ThirdPartyScanContent content =

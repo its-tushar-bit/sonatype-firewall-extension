@@ -9,6 +9,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
@@ -111,6 +112,14 @@ public abstract class SisuApplication<T extends Configuration>
 
     ClassSpace space = new URLClassSpace(getClass().getClassLoader());
     modules.add(new SpaceModule(space, scanning()));
+
+    modules.add(new DropwizardAwareModule<T>()
+    {
+      @Override
+      public void configure() {
+        bind(ObjectMapper.class).toInstance(bootstrap().getObjectMapper());
+      }
+    });
 
     return modules;
   }

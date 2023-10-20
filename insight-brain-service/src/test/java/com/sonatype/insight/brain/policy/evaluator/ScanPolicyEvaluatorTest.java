@@ -1069,7 +1069,7 @@ public class ScanPolicyEvaluatorTest
   private void assertLegacyViolationAttributes(TelemetryData telemetryData, Map<String, Object> expectedAttributes) {
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose())
-        .isEqualTo(TelemetryPurpose.APPLICATION_EVALUATION_GRANDFATHERED_VIOLATION_COUNTS);
+        .isEqualTo(TelemetryPurpose.APPLICATION_EVALUATION_LEGACY_VIOLATION_COUNTS);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
@@ -2457,7 +2457,7 @@ public class ScanPolicyEvaluatorTest
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
     assertThat(telemetryDataList).hasSize(36);
     for (TelemetryData telemetryData : telemetryDataList) {
-      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_GRANDFATHER_POLICY_VIOLATION);
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION);
       assertThat(telemetryData.getAttributes()).containsEntry(COUNT, 1);
       assertThat(telemetryData.getAttributes().get(LEGACY_VIOLATION_TIME)).isNotNull();
     }

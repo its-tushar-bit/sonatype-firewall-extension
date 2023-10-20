@@ -143,10 +143,10 @@ public class PolicyViolationTelemetryCollector
     }
   }
 
-  public void addTelemetryForGrandfatheredViolation(PolicyViolation legacyViolation, Component component) {
+  public void addTelemetryForLegacyViolation(PolicyViolation legacyViolation, Component component) {
     if (legacyViolation != null) {
       TelemetryData telemetryData =
-          createTelemetry(TelemetryPurpose.TIME_TO_GRANDFATHER_POLICY_VIOLATION, legacyViolation);
+          createTelemetry(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION, legacyViolation);
       telemetryData.put(LEGACY_VIOLATION_TIME, timeOfPolicyEvaluation.getTime());
       if (component != null) {
         addTelemetryDependencyInfo(component, telemetryData);

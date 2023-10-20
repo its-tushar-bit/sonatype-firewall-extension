@@ -34,7 +34,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.*;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION;
-import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_GRANDFATHER_POLICY_VIOLATION;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_LEGACY_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -328,7 +328,7 @@ public class PolicyViolationTelemetryCollectorTest
   }
 
   @Test
-  public void testAddTelemetryForGrandfatheredViolation() {
+  public void testAddTelemetryForLegacyViolation() {
     // setup : create a grandfathered policy violation
     final int threatLevel = 7;
     final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
@@ -351,15 +351,15 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
-    telemetryCollector.addTelemetryForGrandfatheredViolation(policyViolation, component);
+    telemetryCollector.addTelemetryForLegacyViolation(policyViolation, component);
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
 
     // then
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.size()).isEqualTo(1);
-    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TIME_TO_GRANDFATHER_POLICY_VIOLATION);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TIME_TO_LEGACY_VIOLATION);
     Map<String, Object> attributes = telemetryData.get(0).getAttributes();
-    assertTelemetryAttributes(TIME_TO_GRANDFATHER_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
+    assertTelemetryAttributes(TIME_TO_LEGACY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, null, 1, isDirectDependency, isInnerSource, null,
         telemetryData.get(0));
     assertThat(attributes.get(LEGACY_VIOLATION_TIME)).isEqualTo(evalTime.getTime());

@@ -70,14 +70,18 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.FileUtils;
+import org.asynchttpclient.uri.Uri;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 
 public class ReportResourceTest
     extends AbstractResourceTest
@@ -380,14 +384,28 @@ public class ReportResourceTest
 
     HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
 
-    HttpResponse response = request.subpath("../restricted.txt").get();
-    assertResponseStatus(400, response);
+    // In the latest version of async-http-client they implemented their own UriParser which strips out any dots by
+    // default. There is no way to customize this behaviour so we are forced to override using a static mock
+    // https://github.com/AsyncHttpClient/async-http-client/blob/main/client/src/main/java/org/
+    // asynchttpclient/uri/UriParser.java#L293
+    try (MockedStatic<Uri> mockUri = Mockito.mockStatic(Uri.class, Mockito.CALLS_REAL_METHODS)) {
+      mockUri.when(() -> Uri.create(any(), any())).thenAnswer(i -> {
+        String urlString = i.getArgument(1);
 
-    response = request.subpath("%2E%2E/restricted.txt").get();
-    assertResponseStatus(400, response);
+        URL url = new URL(urlString);
+        return new Uri(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(),
+                url.getQuery(), url.getRef());
+      });
 
-    response = request.subpath("%2E%2E%5Crestricted.txt").get();
-    assertResponseStatus(400, response);
+      HttpResponse response = request.subpath("../restricted.txt").get();
+      assertResponseStatus(400, response);
+
+      response = request.subpath("%2E%2E/restricted.txt").get();
+      assertResponseStatus(400, response);
+
+      response = request.subpath("%2E%2E%5Crestricted.txt").get();
+      assertResponseStatus(400, response);
+    }
   }
 
   @Test

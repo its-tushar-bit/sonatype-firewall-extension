@@ -477,7 +477,7 @@ public class ScanPolicyEvaluator
             results.waivedViolations.add(newPolicyViolation);
           }
           if (newPolicyViolation.isLegacyViolation()) {
-            telemetryCollector.addTelemetryForGrandfatheredViolation(newPolicyViolation, component);
+            telemetryCollector.addTelemetryForLegacyViolation(newPolicyViolation, component);
             policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, newPolicyViolation);
           }
         }
@@ -540,7 +540,7 @@ public class ScanPolicyEvaluator
             }
             if (oldPolicyViolation.isLegacyViolation() && !oldPolicyViolation.isLegacyViolationApplied()) {
               oldPolicyViolation.setLegacyViolationApplied(true);
-              telemetryCollector.addTelemetryForGrandfatheredViolation(oldPolicyViolation, component);
+              telemetryCollector.addTelemetryForLegacyViolation(oldPolicyViolation, component);
             }
             else if (!oldPolicyViolation.isLegacyViolation() &&
                 oldPolicyViolation.isLegacyViolationApplied()) {
@@ -920,7 +920,7 @@ public class ScanPolicyEvaluator
    */
   void sendLegacyViolationTelemetryData(String applicationId, List<PolicyViolation> policyViolations) {
     TelemetryData telemetryData = new TelemetryData(
-        TelemetryPurpose.APPLICATION_EVALUATION_GRANDFATHERED_VIOLATION_COUNTS);
+        TelemetryPurpose.APPLICATION_EVALUATION_LEGACY_VIOLATION_COUNTS);
     telemetryData.setAttributes(getLegacyViolationCountsAttributes(applicationId, policyViolations));
     telemetrySender.send(telemetryData);
   }

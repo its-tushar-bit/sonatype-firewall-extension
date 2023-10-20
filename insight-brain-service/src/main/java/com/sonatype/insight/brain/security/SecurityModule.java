@@ -74,8 +74,8 @@ public class SecurityModule
   private void configureFilterChains(FilterChainManager manager) {
     configureFilterChainsForIntegrations(manager);
 
-    String anonFilters = "anon, clientIPAddressFilter, sessionExpirationCookie, secureCookies";
-    String anonUnrestrictedIPFilters = "anon, sessionExpirationCookie, secureCookies";
+    String anonFilters = "anon, clientIPAddressFilter, secureCookies, sessionExpirationCookie";
+    String anonUnrestrictedIPFilters = "anon, secureCookies, sessionExpirationCookie";
     String telemetryFilters = "anon, clientIPAddressFilter, secureCookies";
 
     // Activate the antiCsrf filter for static assets so that the first resource loaded for any given page sets the CSRF
@@ -131,17 +131,17 @@ public class SecurityModule
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "sessionExpirationCookie, clientIPAddressFilter, antiCsrf["
-        + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, authcBasic, saml, requireAuth, secureCookies");
+        + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, secureCookies, authcBasic, saml, requireAuth");
 
     configureFilterChainsForNonAjaxFormSubmissions(manager);
 
     // SAML callbacks
-    manager.createChain("/saml/**", "clientIPAddressFilter, saml");
+    manager.createChain("/saml/**", "clientIPAddressFilter, secureCookies, saml");
 
     // internal REST API
     manager.createChain("/**/*",
-        "noSessionCreation, clientIPAddressFilter, antiCsrf, reverseProxy, authcBasic, saml, requireAuth, " +
-            "sessionExpirationCookie, secureCookies");
+        "noSessionCreation, clientIPAddressFilter, antiCsrf, reverseProxy, secureCookies, authcBasic, saml, " +
+            "requireAuth, sessionExpirationCookie");
   }
 
   private void configureFilterChainsForNonAjaxFormSubmissions(FilterChainManager manager) {

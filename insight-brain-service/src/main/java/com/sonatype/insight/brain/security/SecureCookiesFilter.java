@@ -27,11 +27,16 @@ public class SecureCookiesFilter
 {
   public static final String SECURE_FLAGS = "; Secure; SameSite=None";
 
+  /**
+   * Perform filtering as a post handler
+   *
+   * Performing the filtering after the other filters have finished ensures that the secure flags are always set
+   * even if the filter chain is stopped.
+   */
   @Override
-  protected boolean preHandle(final ServletRequest request, final ServletResponse response) throws Exception {
+  protected void postHandle(final ServletRequest request, final ServletResponse response) throws Exception {
     // session cookies are expected to be set already by another filter
     filterCookies(request, response);
-    return true;
   }
 
   /**

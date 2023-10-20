@@ -540,52 +540,6 @@ public class ApiEvaluationResourceV2Test
     assertThat(apiApplicationEvaluationResultDTOV2.status).isNotNull();
   }
 
-  @SuppressWarnings("deprecation")
-  @Test
-  public void testDeprecatedManifestEvaluation() throws Exception {
-    // given an application
-    Application app = tempEntity.newApplicationWithParent();
-
-    // and a root-org source control definition
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-
-    // and app-level source control
-    PasswordHandler pwHandler = getCLMServer().getInstance(PasswordHandler.class);
-    tempEntity.newSourceControl(app.getId(), "http://example.com/my/repo.git", null,
-        new String(pwHandler.encryptPassword("TOKEN".toCharArray())), null, null, true, "customBranch", null);
-
-    // and we can query for Source Control events
-    SourceControlEventDAO sourceControlEventDAO = new SourceControlEventDAO();
-
-    // and events are empty
-    assertThat(sourceControlEventDAO.getAll()).isEmpty();
-
-    // when application source control is scanned
-    ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
-        new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "customBranch");
-    HttpResponse response = restRequest() //
-        .path(APPLICATION_EVALUATION_PATH_V2, DefaultApiEvaluationResourceV2.DEPRECATED_MANIFEST_EVALUATION_PATH) //
-        .parameter(app.getId()) //
-        .body(apiSourceControlEvaluationRequestDTO).post();
-
-    // the response contains status ID
-    assertResponseStatus(200, response);
-    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 =
-        response.getBody(ApiApplicationEvaluationStatusDTOV2.class);
-    assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl).isNotNull();
-
-    // and the event was published
-    List<SourceControlEvent> allEvents = sourceControlEventDAO.getAll();
-    assertThat(allEvents.size()).isEqualTo(1);
-
-    // and it matches expected values
-    SourceControlEvent event = allEvents.get(0);
-    assertThat(event.getApplicationId()).isEqualTo(app.getId());
-    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
-    assertThat(event.getStageTypeId()).isEqualTo("develop");
-    assertThat(event.getBranchName()).isEqualTo("customBranch");
-  }
-
   @Test
   public void testEvaluateSourceControl_NoScanTarget() throws Exception {
     // given an application

@@ -46,12 +46,6 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
 {
   public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
 
-  /**
-   * @deprecated Use EVALUATE_SOURCE_CONTROL_PATH instead. Scheduled for removal in April 2022.
-   */
-  @Deprecated
-  public static final String DEPRECATED_MANIFEST_EVALUATION_PATH = "{applicationId}/manifestEvaluation";
-
   public static final String SOURCE_CONTROL_EVALUATION_PATH = "{applicationId}/sourceControlEvaluation";
 
   private final ApiComponentEvaluationServiceV2 componentEvaluationService;
@@ -109,24 +103,6 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
   {
     return promoteScanService.promoteScan(applicationId,
         promoteScanRequest,
-        DefaultHdsClient.getClientUserAgent(request));
-  }
-
-  /**
-   * @deprecated Use evaluateSourceControl instead. Scheduled for removal in April 2022.
-   */
-  @Deprecated
-  @Path(DEPRECATED_MANIFEST_EVALUATION_PATH)
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Audited(value = AuditEvent.EVALUATE_APPLICATION)
-  public ApiApplicationEvaluationStatusDTOV2 deprecatedManifestEvaluation(
-      @PathParam("applicationId") String applicationId,
-      ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
-      @Context HttpServletRequest request)
-  {
-    return sourceControlEvaluationService.evaluateSourceControl(applicationId, sourceControlEvaluationRequest,
         DefaultHdsClient.getClientUserAgent(request));
   }
 

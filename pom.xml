@@ -270,6 +270,7 @@
         <artifactId>jsoup</artifactId>
         <version>1.16.1</version>
       </dependency>
+      <!-- Avoid security vulnerabilities -->
       <dependency>
         <groupId>org.json</groupId>
         <artifactId>json</artifactId>

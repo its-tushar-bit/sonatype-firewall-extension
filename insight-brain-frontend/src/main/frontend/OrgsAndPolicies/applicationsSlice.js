@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { findIndex, isEmpty, prop, propEq, reject } from 'ramda';
+import { isEmpty, prop, propEq, reject } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -59,16 +59,6 @@ const loadApplicationSummary = createAsyncThunk(
   async (id, { rejectWithValue }) => axios.get(getApplicationSummaryUrl(id)).then(prop('data')).catch(rejectWithValue)
 );
 
-const updateApplication = (state, { payload }) => {
-  const { isNew, application } = payload;
-  if (isNew) {
-    state.applications.push(application);
-  } else {
-    const index = findIndex(propEq('id', application.id), state.applications);
-    state.applications[index] = application;
-  }
-};
-
 const removeApplicationFromList = (state, { payload }) => {
   state.applications = reject(propEq('id', payload))(state.applications);
 };
@@ -83,7 +73,6 @@ const applicationsSlice = createSlice({
   reducers: {
     removeApplicationsFromList,
     removeApplicationFromList,
-    updateApplication,
   },
   extraReducers: {
     [loadApplications.pending]: loadApplicationsRequested,

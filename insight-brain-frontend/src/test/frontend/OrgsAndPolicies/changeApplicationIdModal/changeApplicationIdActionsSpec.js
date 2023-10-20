@@ -69,6 +69,14 @@ describe('ChangeApplicationIdModal actions', () => {
         organizationId: 'organizationTwoID',
       },
     });
+    mock.onGet(getApplicationsUrl()).reply(200, {
+      data: {
+        id: 'applicationThreeID',
+        name: OWNER_APP_NAME,
+        publicId: 'newAppPublicID',
+        organizationId: 'organizationTwoID',
+      },
+    });
 
     store.dispatch(actions.changeApplicationId()).then(() => {
       expect(mock.history.put.length).toBe(1);
@@ -76,19 +84,20 @@ describe('ChangeApplicationIdModal actions', () => {
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(6);
+      expect(actions.length).toBe(7);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/changeApplicationId/changeApplicationId/pending',
-        'ownerActions/updateApplication/pending',
-        'applications/updateApplication',
-        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/updateOwner/pending',
+        'applications/loadApplications/pending',
+        'ownerActions/updateOwner/fulfilled',
         'ownerSideNav/updateOwnersMapWithNewAppId',
+        'applications/loadApplications/fulfilled',
         'ownerActions/changeApplicationId/changeApplicationId/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(7);
+      expect(actions.length).toBe(8);
       expect(actions).toHaveActionType('ownerActions/changeApplicationId/closeModal');
 
       done();

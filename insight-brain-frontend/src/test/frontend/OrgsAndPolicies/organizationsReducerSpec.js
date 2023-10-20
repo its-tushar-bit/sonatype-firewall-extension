@@ -103,44 +103,4 @@ describe('organizations reducer', () => {
       expect(newState.organizations).toEqual([{ id: 'org-two', name: 'org two' }]);
     });
   });
-
-  describe('organizations/updateOrganization', () => {
-    it('sets newly created organization', () => {
-      const newOrganization = {
-        id: 'newOrganization',
-      };
-      const state = Object.freeze({
-        organizations: [],
-      });
-
-      const newState = reducer(state, {
-        type: 'organizations/updateOrganization',
-        payload: { organization: newOrganization, isNew: true },
-      });
-
-      expect(newState.organizations).toEqual([newOrganization]);
-    });
-
-    it('updates edited application', () => {
-      const editedOrganization = {
-        id: 'newOrganization',
-        name: 'newName',
-      };
-      const state = Object.freeze({
-        organizations: [
-          {
-            id: 'newOrganization',
-            name: 'oldName',
-          },
-        ],
-      });
-
-      const newState = reducer(state, {
-        type: 'organizations/updateOrganization',
-        payload: { organization: editedOrganization, isNew: false },
-      });
-
-      expect(newState.organizations).toEqual([editedOrganization]);
-    });
-  });
 });

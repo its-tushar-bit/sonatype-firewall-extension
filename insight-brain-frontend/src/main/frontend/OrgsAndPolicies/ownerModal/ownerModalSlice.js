@@ -23,7 +23,7 @@ import { getAddIconUrl } from 'MainRoot/util/CLMLocation';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsApplication, selectIsRepository } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectOwnerById } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { selectOwnerModalSlice } from './ownerModalSelectors';
 import { stateGo, stateReload } from 'MainRoot/reduxUiRouter/routerActions';
@@ -64,11 +64,11 @@ const appData = (name, id, currentOwner) => ({
   isNew: true,
 });
 
-const orgData = (name, currentOwner) => ({
+const orgData = (name, currentOwner, isRepo) => ({
   id: null,
   name: name,
   isNew: true,
-  parentOrganizationId: currentOwner.id,
+  parentOrganizationId: isRepo ? null : currentOwner.id,
 });
 
 const getRandomRobotIconHash = () => Math.floor(Math.random() * 10000);
@@ -169,6 +169,7 @@ const createNewOwner = createAsyncThunk(
     const state = getState();
     const { ownerName, appId, isApplication, ownerIconType, robotHash, ownerIcon } = selectOwnerModalSlice(state);
     const isCurrentOwnerAnApp = selectIsApplication(state);
+    const isRepo = selectIsRepository(state);
     let currentOwner = selectSelectedOwner(state);
 
     if (isCurrentOwnerAnApp) {
@@ -177,8 +178,7 @@ const createNewOwner = createAsyncThunk(
 
     const ownerToSave = isApplication
       ? appData(ownerName.trimmedValue, appId.trimmedValue, currentOwner)
-      : orgData(ownerName.trimmedValue, currentOwner);
-
+      : orgData(ownerName.trimmedValue, currentOwner, isRepo);
     try {
       const updatedOwnerAction = await dispatch(ownerEditorActions.updateOwner({ ownerToSave, isApp: isApplication }));
       const payload = unwrapResult(updatedOwnerAction);

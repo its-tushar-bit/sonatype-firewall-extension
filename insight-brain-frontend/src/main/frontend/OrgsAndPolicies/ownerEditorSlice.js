@@ -13,7 +13,7 @@ import { actions as applicationsActions } from './applicationsSlice';
 const REDUCER_NAME = 'ownerActions';
 
 const updateOwner = createAsyncThunk(
-  `${REDUCER_NAME}/updateApplication`,
+  `${REDUCER_NAME}/updateOwner`,
   ({ ownerToSave, isApp }, { dispatch, rejectWithValue }) => {
     const isNew = !!ownerToSave.isNew;
 
@@ -27,8 +27,8 @@ const updateOwner = createAsyncThunk(
         const updatedOwner = { isNew, [isApp ? 'application' : 'organization']: data };
 
         isApp
-          ? dispatch(applicationsActions.updateApplication(updatedOwner))
-          : dispatch(organizationActions.updateOrganization(updatedOwner));
+          ? dispatch(applicationsActions.loadApplications(true))
+          : dispatch(organizationActions.loadOrganizations(true));
 
         return updatedOwner;
       })

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { isEmpty, findIndex, prop, propEq, reject } from 'ramda';
+import { isEmpty, prop, propEq, reject } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { getOrganizationsUrl, getOrganizationUrl } from '../util/CLMLocation';
@@ -32,17 +32,6 @@ const loadOrganizationsFulfilled = (state, { payload }) => {
 const loadOrganizationsRejected = (state, { payload }) => {
   state.loading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
-};
-
-const updateOrganization = (state, { payload }) => {
-  const { isNew, organization } = payload;
-
-  if (isNew) {
-    state.organizations.push(organization);
-  } else {
-    const index = findIndex(propEq('id', organization.id), state.organizations);
-    state.organizations[index] = organization;
-  }
 };
 
 const removeOrganizationFromList = (state, { payload }) => {
@@ -77,7 +66,6 @@ const organizationsSlice = createSlice({
   reducers: {
     removeOrganizationsFromList,
     removeOrganizationFromList,
-    updateOrganization,
   },
   extraReducers: {
     [loadOrganizations.pending]: loadOrganizationsRequested,

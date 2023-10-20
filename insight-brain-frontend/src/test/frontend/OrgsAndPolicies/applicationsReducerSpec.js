@@ -72,46 +72,6 @@ describe('applications reducer', () => {
     });
   });
 
-  describe('applications/updateApplication', () => {
-    it('sets newly created application', () => {
-      const newApplication = {
-        id: 'newApplication',
-      };
-      const state = Object.freeze({
-        applications: [],
-      });
-
-      const newState = reducer(state, {
-        type: 'applications/updateApplication',
-        payload: { application: newApplication, isNew: true },
-      });
-
-      expect(newState.applications).toEqual([newApplication]);
-    });
-
-    it('updates edited application', () => {
-      const editedApplication = {
-        id: 'newApplication',
-        name: 'newName',
-      };
-      const state = Object.freeze({
-        applications: [
-          {
-            id: 'newApplication',
-            name: 'oldName',
-          },
-        ],
-      });
-
-      const newState = reducer(state, {
-        type: 'applications/updateApplication',
-        payload: { application: editedApplication, isNew: false },
-      });
-
-      expect(newState.applications).toEqual([editedApplication]);
-    });
-  });
-
   describe('applications/removeApplicationFromList', () => {
     it('removes application from the list by id', () => {
       const state = Object.freeze({

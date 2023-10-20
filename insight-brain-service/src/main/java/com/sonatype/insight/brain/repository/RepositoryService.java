@@ -17,6 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -25,6 +26,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -270,9 +272,13 @@ public class RepositoryService
         .collect(Collectors.toSet());
   }
 
-  @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY)
   public List<Repository> getRepositoriesWithReadPermission() {
-    return repositoryDAO.getAll();
+    return filterRepositoriesWithReadPermission(repositoryDAO.getAll());
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY)
+  List<Repository> filterRepositoriesWithReadPermission(List<Repository> repositories) {
+    return repositories;
   }
 
   private RepositoryDTO convertRepository(Repository repository) {
@@ -434,8 +440,6 @@ public class RepositoryService
   public ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatterns(
       ProprietaryComponentNamePatternRequest request)
   {
-    checkReadPermission(RepositoryContainer.SINGLETON);
-
     log.debug("Getting proprietary component name patterns");
 
     if (request == null) {
@@ -444,8 +448,12 @@ public class RepositoryService
 
     ProprietaryComponentNamePatternFilter filter = validateAndInitializeFilter(request);
 
+    List<Repository> hostedRepositoriesWithReadPermission =
+        filterRepositoriesWithReadPermission(repositoryDAO.getByRepositoryType(RepositoryType.hosted));
+    Set<String> repositoryIds =
+        hostedRepositoriesWithReadPermission.stream().map(Repository::getId).collect(Collectors.toSet());
     List<ProprietaryComponentNamePatternDTO> proprietaryComponentNamePatterns =
-        proprietaryComponentNamePatternDAO.getByFilter(filter);
+        proprietaryComponentNamePatternDAO.getByFilter(repositoryIds, filter);
 
     ProprietaryComponentNamePatternsPage result = new ProprietaryComponentNamePatternsPage();
 
@@ -468,8 +476,6 @@ public class RepositoryService
   public void updateProprietaryComponentNamePattern(
       ProprietaryComponentNamePatternDTO proprietaryComponentNamePatternDTO)
   {
-    checkWritePermission(RepositoryContainer.SINGLETON);
-
     if (proprietaryComponentNamePatternDTO == null) {
       throw new BadRequestException("Missing request parameters");
     }
@@ -483,6 +489,9 @@ public class RepositoryService
           "Cannot find a proprietary component name pattern with ID=" + proprietaryComponentNamePatternDTO.id);
     }
 
+    Repository repository = repositoryDAO.getByIdNotNull(proprietaryComponentNamePattern.getRepositoryId());
+    checkWritePermission(repository);
+
     // Only the enabled flag can be updated
     proprietaryComponentNamePattern.setEnabled(proprietaryComponentNamePatternDTO.enabled);
     proprietaryComponentNamePatternDAO.update(proprietaryComponentNamePattern);
@@ -492,9 +501,9 @@ public class RepositoryService
 
   List<Repository> getRepositoriesByRepositoryManagerId(String repositoryManagerId) {
     log.debug("Getting repositories for repository manager ID {}...", repositoryManagerId);
-    checkReadPermission(RepositoryContainer.SINGLETON);
 
-    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManagerId);
+    List<Repository> repositories =
+        filterRepositoriesWithReadPermission(repositoryDAO.getByRepositoryManagerId(repositoryManagerId));
     log.debug("Found {} repositories for repository manager ID {}.", repositories.size(), repositoryManagerId);
 
     return repositories;
@@ -587,7 +596,11 @@ public class RepositoryService
   /**
    * @since 1.161
    */
-  void configureRepositories(String repositoryManagerId, List<Repository> repositories) {
+  @Authorize(permission = Permission.WRITE)
+  void configureRepositories(
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId,
+      List<Repository> repositories)
+  {
     AuditData.get().setRepositoryManagerId(repositoryManagerId);
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getById(repositoryManagerId);
@@ -595,8 +608,6 @@ public class RepositoryService
     if (repositoryManager != null) {
       AuditData.get().setRepositoryManagerInstanceId(repositoryManager.getInstanceId());
     }
-
-    checkWritePermission(RepositoryContainer.SINGLETON);
 
     if (repositoryManager == null) {
       throw new NotFoundException("Cannot find a repository manager with ID " + repositoryManagerId + ".");
@@ -753,10 +764,9 @@ public class RepositoryService
     }
   }
 
-  void updateName(String repositoryManagerId, String name) {
+  @Authorize(permission = Permission.WRITE)
+  void updateName(@AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId, String name) {
     AuditData.get().setRepositoryManagerId(repositoryManagerId);
-
-    checkWritePermission(RepositoryContainer.SINGLETON);
 
     log.debug("Updating name of repository manager with id {} to: {}", repositoryManagerId, name);
 

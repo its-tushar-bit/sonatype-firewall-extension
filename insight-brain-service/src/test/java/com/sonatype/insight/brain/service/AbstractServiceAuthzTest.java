@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -30,6 +31,8 @@ import org.apache.shiro.util.ThreadContext;
 public class AbstractServiceAuthzTest
     extends AbstractComponentTest
 {
+  protected RepositoryManager repositoryManager;
+
   protected Repository repository;
 
   protected Organization org;
@@ -59,7 +62,8 @@ public class AbstractServiceAuthzTest
 
   @Override
   protected void setUpSecurity() {
-    repository = tempEntity.newRepository();
+    repositoryManager = tempEntity.newRepositoryManager();
+    repository = tempEntity.newRepository(repositoryManager, "testPublicId");
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     user = tempEntity.newUser();

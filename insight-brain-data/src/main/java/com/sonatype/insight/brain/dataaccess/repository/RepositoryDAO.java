@@ -284,4 +284,10 @@ public class RepositoryDAO
         " WHERE entity.repositoryManagerId=?1 AND entity.lastManualConfigureTime >= ?2";
     return getList(sQuery, repositoryManagerId, lastManualConfigureTime);
   }
+
+  public List<Repository> getByRepositoryType(RepositoryType repositoryType) {
+    String sQuery = "SELECT entity FROM Repository entity" + //
+        " WHERE entity.repositoryType=?1";
+    return getList(sQuery, repositoryType);
+  }
 }

@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -104,6 +105,9 @@ public class AuthorizationChecker
       case REPOSITORY:
         return (Collection<T>) filter(user, permission, (Iterable<Repository>) entities,
             contextResolver.resolverForRepository);
+      case REPOSITORY_MANAGER:
+        return (Collection<T>) filter(user, permission, (Iterable<RepositoryManager>) entities,
+            contextResolver.resolverForRepositoryManager);
       default:
         throw new IllegalStateException("Cannot check authorization in unknown context " + contextEntity);
     }

@@ -508,7 +508,7 @@ public class ApiFirewallResourceTest
   }
 
   @Test
-  public void getAllRepositoryManagers() throws Exception {
+  public void testGetRepositoryManagers() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId", "repoName",
         "repoProductName", "repoProductVersion");
     String repositoryManagerId = repositoryManager.getId();
@@ -524,6 +524,14 @@ public class ApiFirewallResourceTest
     assertThat(apiRepositoryManagerListDTO.repositoryManagers.get(0).name).isEqualTo("repoName");
     assertThat(apiRepositoryManagerListDTO.repositoryManagers.get(0).productName).isEqualTo("repoProductName");
     assertThat(apiRepositoryManagerListDTO.repositoryManagers.get(0).productVersion).isEqualTo("repoProductVersion");
+  }
+
+  @Test
+  public void testGetRepositoryManagers_Unauthenticated() throws Exception {
+    HttpResponse response = restRequest().anon()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGERS_PATH).get();
+
+    assertResponseStatus(401, response);
   }
 
   @Test

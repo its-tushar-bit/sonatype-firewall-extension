@@ -140,7 +140,14 @@ class ContextResolver
       }
       else {
         // New repository
-        return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+        if (repository.getRepositoryManagerId() != null) {
+          // Existing repository manager
+          return resolveContextIdsForOwner(repository.getRepositoryManagerId());
+        }
+        else {
+          // New repository manager
+          return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+        }
       }
     }
   };

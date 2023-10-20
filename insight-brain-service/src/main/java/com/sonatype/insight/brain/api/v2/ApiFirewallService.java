@@ -69,6 +69,9 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.security.AuthzFilter.Context;
 import com.sonatype.insight.brain.telemetry.AutoReleaseQuarantineTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -425,23 +428,28 @@ public class ApiFirewallService
     return Boolean.toString(quarantinedComponentAccessDAO.isAnonymousAccessEnabled());
   }
 
-  ApiRepositoryManagerListDTO getAllRepositoryManagers() {
-    checkReadPermission(RepositoryContainer.SINGLETON);
+  ApiRepositoryManagerListDTO getRepositoryManagers() {
     productLicense.validateFeature(LicensedFeature.FIREWALL);
-    List<ApiRepositoryManagerDTO> apiRepositoryManagerDTOS =
-        repositoryManagerDAO.getAll().stream().map(ApiFirewallService::fromRepositoryManager)
-            .collect(
-                Collectors.toList());
+
+    List<RepositoryManager> repositoryManagersWithReadPermission =
+        filterRepositoryManagersWithReadPermission(repositoryManagerDAO.getAll());
+    List<ApiRepositoryManagerDTO> apiRepositoryManagerDTOS = repositoryManagersWithReadPermission.stream()
+        .map(ApiFirewallService::fromRepositoryManager).collect(Collectors.toList());
 
     return new ApiRepositoryManagerListDTO(apiRepositoryManagerDTOS);
   }
 
+  @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)
+  List<RepositoryManager> filterRepositoryManagersWithReadPermission(List<RepositoryManager> repositoryManagers) {
+    return repositoryManagers;
+  }
+
+  @Authorize(permission = Permission.READ)
   ApiRepositoryListDTO getConfiguredRepositories(
-      String repositoryManagerId,
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId,
       Long sinceUtcTimestamp)
   {
     productLicense.validateFeature(LicensedFeature.FIREWALL);
-    checkReadPermission(RepositoryContainer.SINGLETON);
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
 
@@ -459,10 +467,14 @@ public class ApiFirewallService
     return apiRepositoryListDTO;
   }
 
-  void configureRepositories(String repositoryManagerId, ApiRepositoryListDTO dto) {
+  @Authorize(permission = Permission.WRITE)
+  void configureRepositories(
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId,
+      ApiRepositoryListDTO dto)
+  {
     AuditData.get().setRepositoryManagerId(repositoryManagerId);
     productLicense.validateFeature(LicensedFeature.FIREWALL);
-    checkWritePermission(RepositoryContainer.SINGLETON);
+
     validate(repositoryManagerId, dto);
     List<RepositoryDTO> repositoryDTOs = dto.repositories.stream()
         .map(ApiRepositoryDTO::toRepositoryDTO)

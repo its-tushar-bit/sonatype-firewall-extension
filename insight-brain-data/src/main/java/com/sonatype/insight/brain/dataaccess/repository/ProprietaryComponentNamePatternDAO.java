@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,8 +71,13 @@ public class ProprietaryComponentNamePatternDAO
   }
 
   public List<ProprietaryComponentNamePatternDTO> getByFilter(
+      Set<String> repositoryIds,
       ProprietaryComponentNamePatternFilter filter)
   {
+    if (repositoryIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    
     // We need two SELECTs to be able to have namespace_pattern and name_pattern concatenated,
     // so we can filter and sort on it.
     String innerSelect = "SELECT pattern.proprietary_component_name_pattern_id, " + //
@@ -87,7 +94,11 @@ public class ProprietaryComponentNamePatternDAO
         " INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository repo" + //
         " ON pattern.repository_id = repo.repository_id" + //
         " INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_manager repoManager" + //
-        " ON repo.repository_manager_id = repoManager.repository_manager_id";
+        " ON repo.repository_manager_id = repoManager.repository_manager_id" + //
+        " WHERE repo.repository_id IN " + //
+        // I did not find a way to pass the list of repository IDs as query param
+        "(" + repositoryIds.stream().map(repositoryId -> "'" + repositoryId + "'").collect(Collectors.joining(","))
+        + ")";
     String sQuery = "SELECT proprietary_component_name_pattern_id, " + //
         "format, " + //
         "namespace_pattern, " + //

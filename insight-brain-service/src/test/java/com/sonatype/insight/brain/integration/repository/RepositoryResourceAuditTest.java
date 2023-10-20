@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import org.junit.Test;
 
@@ -83,12 +84,14 @@ public class RepositoryResourceAuditTest
 
   @Test
   public void testRemoveProprietaryComponentNames_Unauthorized() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newHostedRepository(repoManager, "testPublicId", "npm", true);
     restRequest().path(getResourcePath(), AbstractRepositoryResource.PROPRIETARY_NAMES_PATH)
-        .parameter(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID).with(unauthorizedUser()).delete();
+        .parameter(repoManager.getInstanceId(), repo.getPublicId()).with(unauthorizedUser()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_PROPRIETARY_COMPONENT_NAMES, "unauthorized");
-    assertCustomData(auditDTO, "repositoryManagerInstanceId", REPOSITORY_MANAGER_INSTANCE_ID);
-    assertCustomData(auditDTO, "repositoryPublicId", REPOSITORY_PUBLIC_ID);
+    assertCustomData(auditDTO, "repositoryManagerInstanceId", repoManager.getInstanceId());
+    assertCustomData(auditDTO, "repositoryPublicId", repo.getPublicId());
   }
 
   @Override

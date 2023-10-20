@@ -18,9 +18,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -163,25 +165,22 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test
-  public void testGetAllRepositoryManagers_Authorized() {
-    grantReadPermission(RepositoryContainer.SINGLETON.getId());
-    apiFirewallService.getAllRepositoryManagers();
-  }
+  public void testGetRepositoryManagers_Authorized() {
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
 
-  @Test(expected = UnauthorizedException.class)
-  public void testGetAllRepositoryManagers_Unauthorized() {
-    login();
-    apiFirewallService.getAllRepositoryManagers();
-  }
+    grantReadPermission(repositoryManager.getId());
+    ApiRepositoryManagerListDTO result = apiFirewallService.getRepositoryManagers();
+    assertThat(result.repositoryManagers).extracting(rm -> rm.id).containsExactlyInAnyOrder(repositoryManager.getId());
 
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetAllRepositoryManagers_Unauthenticated() {
-    apiFirewallService.getAllRepositoryManagers();
+    grantReadPermission(repositoryManager1.getId());
+    result = apiFirewallService.getRepositoryManagers();
+    assertThat(result.repositoryManagers).extracting(rm -> rm.id).containsExactlyInAnyOrder(repositoryManager.getId(),
+        repositoryManager1.getId());
   }
 
   @Test
   public void testGetConfiguredRepositories_Authorized() {
-    grantReadPermission(RepositoryContainer.SINGLETON.getId());
+    grantReadPermission(repository.getRepositoryManagerId());
     apiFirewallService
             .getConfiguredRepositories(repository.getRepositoryManagerId(), 0L);
   }
@@ -210,7 +209,7 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testConfigureRepositories_Authorized() {
-    grantWritePermission(RepositoryContainer.SINGLETON.getId());
+    grantWritePermission(repository.getRepositoryManagerId());
     configureRepositories();
   }
 

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -194,8 +195,8 @@ public class ApiFirewallResource
   @GET
   @Path(REPOSITORY_MANAGERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiRepositoryManagerListDTO getAllRepositoryManagers() {
-    return apiFirewallService.getAllRepositoryManagers();
+  public ApiRepositoryManagerListDTO getRepositoryManagers() {
+    return apiFirewallService.getRepositoryManagers();
   }
 
   @POST

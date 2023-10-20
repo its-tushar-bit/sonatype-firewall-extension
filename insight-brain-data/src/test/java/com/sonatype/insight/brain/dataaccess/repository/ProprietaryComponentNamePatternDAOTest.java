@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.PersistenceException;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.postgres.PostgresServer;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -146,14 +148,14 @@ public class ProprietaryComponentNamePatternDAOTest
     ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
     filter.page = 1;
     filter.pageSize = 1;
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(2);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
 
     filter.page = 1;
     filter.pageSize = 2;
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
@@ -161,7 +163,7 @@ public class ProprietaryComponentNamePatternDAOTest
 
     filter.page = 1;
     filter.pageSize = 3;
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
@@ -170,21 +172,21 @@ public class ProprietaryComponentNamePatternDAOTest
     // Second page
     filter.page = 2;
     filter.pageSize = 1;
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(2);
     assertPattern(result.get(0), pattern2);
     assertPattern(result.get(1), pattern3);
 
     filter.page = 2;
     filter.pageSize = 2;
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(1);
     assertPattern(result.get(0), pattern3);
 
     // Beyond last page
     filter.page = 3;
     filter.pageSize = 2;
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).isEmpty();
   }
 
@@ -203,7 +205,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.pageSize = 3;
 
     // No filters
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
@@ -213,7 +215,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
         ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         "testNamespacePattern2x"));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(1);
     assertPattern(result.get(0), pattern2);
 
@@ -221,7 +223,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
         ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         "NamespacePattern2"));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(1);
     assertPattern(result.get(0), pattern2);
 
@@ -229,7 +231,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
         ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         "testNamePattern2x"));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(1);
     assertPattern(result.get(0), pattern2);
 
@@ -237,7 +239,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
         ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         "NamePattern2"));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(1);
     assertPattern(result.get(0), pattern2);
   }
@@ -258,7 +260,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.page = 1;
     filter.pageSize = 3;
     // No sorting specified - defaults to namespace+name
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
@@ -268,7 +270,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.searchFilters = Collections.emptyList();
     filter.sortFields = Collections.emptyList();
     // No sorting specified - defaults to namespace+name
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
@@ -294,7 +296,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
         ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         true /* asc */, 1 /* sortPriority */));
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern2);
     assertPattern(result.get(1), pattern1);
@@ -304,7 +306,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
         ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         false /* asc */, 1 /* sortPriority */));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern3);
     assertPattern(result.get(1), pattern1);
@@ -335,7 +337,8 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
         ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
         true /* asc */, 1 /* sortPriority */));
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+    Set<String> repoIds = ImmutableSet.of(repo1.getId(), repo2.getId(), repo3.getId());
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
@@ -346,7 +349,7 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
         false /* asc */,
         1 /* sortPriority */));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(repoIds, filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern3);
     assertPattern(result.get(1), pattern2);
@@ -370,7 +373,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
         SortableField.ENABLED,
         true /* asc */, 1 /* sortPriority */));
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(2);
     assertPattern(result.get(0), pattern2);
     assertPattern(result.get(1), pattern1);
@@ -379,7 +382,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
         SortableField.ENABLED,
         false /* asc */, 1 /* sortPriority */));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
     assertThat(result).hasSize(2);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
@@ -406,7 +409,8 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
         ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_PUBLIC_ID, true /* asc */,
         1 /* sortPriority */));
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+    Set<String> repoIds = ImmutableSet.of(repo1.getId(), repo2.getId(), repo3.getId());
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
@@ -416,7 +420,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
         ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_PUBLIC_ID, false /* asc */,
         1 /* sortPriority */));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(repoIds, filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern3);
     assertPattern(result.get(1), pattern2);
@@ -449,7 +453,8 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
         true /* asc */,
         1 /* sortPriority */));
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+    Set<String> repoIds = ImmutableSet.of(repo1.getId(), repo2.getId());
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern1);
     assertPattern(result.get(1), pattern2);
@@ -464,7 +469,7 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
         true /* asc */,
         1 /* sortPriority */));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(repoIds, filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern2);
     assertPattern(result.get(1), pattern1);
@@ -478,7 +483,7 @@ public class ProprietaryComponentNamePatternDAOTest
     filter.sortFields.add(new ProprietaryComponentNamePatternFilter.SortField(
         ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
         false /* asc */, 1 /* sortPriority */));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(repoIds, filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern3);
     assertPattern(result.get(1), pattern1);
@@ -493,7 +498,7 @@ public class ProprietaryComponentNamePatternDAOTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
         false /* asc */,
         1 /* sortPriority */));
-    result = dao.getByFilter(filter);
+    result = dao.getByFilter(repoIds, filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern3);
     assertPattern(result.get(1), pattern2);
@@ -527,7 +532,8 @@ public class ProprietaryComponentNamePatternDAOTest
         false /* asc */,
         1 /* sortPriority */));
 
-    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+    Set<String> repoIds = ImmutableSet.of(repo1.getId(), repo2.getId(), repo3.getId());
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);
     assertThat(result).hasSize(2);
     assertPattern(result.get(0), pattern2);
     assertPattern(result.get(1), pattern1);
@@ -563,7 +569,8 @@ public class ProprietaryComponentNamePatternDAOTest
           ProprietaryComponentNamePatternFilter.SortField.SortableField.REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME,
           false /* asc */, 1 /* sortPriority */));
 
-      List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(filter);
+      Set<String> repoIds = ImmutableSet.of(repo1.getId(), repo2.getId(), repo3.getId());
+      List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);
       assertThat(result).hasSize(2);
       assertPattern(result.get(0), pattern2);
       assertPattern(result.get(1), pattern1);
@@ -571,6 +578,51 @@ public class ProprietaryComponentNamePatternDAOTest
     finally {
       DataSourceFactory.clear_ForTestsOnly();
     }
+  }
+
+  @Test
+  public void testGetByFilter_NoRepositories() {
+    repo = tempEntity.newRepository(repoManager, "testMavenRepo", RepositoryType.hosted, "maven");
+    ProprietaryComponentNamePattern pattern =
+        tempEntity.newProprietaryComponentNamePattern(repo, "testNamespacePattern1x", "testNamePattern1x");
+
+    ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
+    filter.page = 1;
+    filter.pageSize = 3;
+
+    // Sanity check
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(Collections.singleton(repo.getId()), filter);
+    assertThat(result).hasSize(1);
+    assertPattern(result.get(0), pattern);
+
+    // No repositories
+    result = dao.getByFilter(Collections.emptySet(), filter);
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByFilter_FilterByRepositoryIds() {
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager("testInstanceId1");
+    Repository repo1 = tempEntity.newRepository(repositoryManager1, "testMavenRepo1", RepositoryType.hosted, "maven");
+    tempEntity.newProprietaryComponentNamePattern(repo1, "testNamespacePattern1", "testNamePattern1");
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager("testInstanceId2");
+    Repository repo2 = tempEntity.newRepository(repositoryManager2, "testMavenRepo2", RepositoryType.hosted, "maven");
+    ProprietaryComponentNamePattern pattern2 =
+        tempEntity.newProprietaryComponentNamePattern(repo2, "testNamespacePattern2", "testNamePattern2");
+    RepositoryManager repositoryManager3 = tempEntity.newRepositoryManager("testInstanceId3");
+    Repository repo3 = tempEntity.newRepository(repositoryManager3, "testMavenRepo3", RepositoryType.hosted, "maven");
+    ProprietaryComponentNamePattern pattern3 =
+        tempEntity.newProprietaryComponentNamePattern(repo3, "testNamespacePattern3", "testNamePattern3");
+
+    ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
+    filter.page = 1;
+    filter.pageSize = 3;
+
+    Set<String> repoIds = ImmutableSet.of(repo2.getId(), repo3.getId());
+    List<ProprietaryComponentNamePatternDTO> result = dao.getByFilter(repoIds, filter);
+    assertThat(result).hasSize(2);
+    assertPattern(result.get(0), pattern2);
+    assertPattern(result.get(1), pattern3);
   }
 
   private void assertPattern(ProprietaryComponentNamePatternDTO actual, ProprietaryComponentNamePattern expected) {

@@ -236,12 +236,23 @@ public class ContextResolverTest
   }
 
   @Test
-  public void testResolveContextIds_RepositoryEntity_New() {
+  public void testResolveContextIds_RepositoryEntity_NewRepositoryManager_NewRepository() {
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
-    Repository newRepository = new Repository("repositoryManagerId", "publicId");
+    Repository newRepository = new Repository(null /* repositoryManagerId */, "publicId");
     parameters.put(AuthzContext.Key.REPOSITORY, newRepository);
     assertThat(resolver.resolveContextIds(parameters)).containsExactly(RepositoryContainer.REPOSITORY_CONTAINER_ID,
         Organization.ROOT_ORGANIZATION_ID, MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
+
+  @Test
+  public void testResolveContextIds_RepositoryEntity_ExistingManager_NewRepository() {
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository newRepository = new Repository(repositoryManager.getId(), "publicId");
+    parameters.put(AuthzContext.Key.REPOSITORY, newRepository);
+    assertThat(resolver.resolveContextIds(parameters)).containsExactly(repositoryManager.getId(),
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID,
+        MembershipMapping.GLOBAL_CONTEXT_ID);
   }
 
   @Test

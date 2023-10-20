@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -195,7 +196,12 @@ public abstract class AbstractRepositoryService
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
         repositoryPublicId);
     if (repository == null) {
-      repository = new Repository(null, repositoryPublicId);
+      String repositoryManagerId = null;
+      RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
+      if (repositoryManager != null) {
+        repositoryManagerId = repositoryManager.getId();
+      }
+      repository = new Repository(repositoryManagerId, repositoryPublicId);
     }
     else {
       validateIsProxyRepository(repository);
@@ -799,8 +805,6 @@ public abstract class AbstractRepositoryService
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
     checkLicenseFeature();
 
-    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
-
     if (proprietaryComponentNames == null) {
       throw new BadRequestException("No component name patterns specified");
     }
@@ -811,14 +815,16 @@ public abstract class AbstractRepositoryService
     Repository repository =
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId);
     if (repository == null) {
-      RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
-
-      repository = new Repository(repositoryManager.getId(), repositoryPublicId);
+      String repositoryManagerId = null;
+      RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
+      if (repositoryManager != null) {
+        repositoryManagerId = repositoryManager.getId();
+      }
+      repository = new Repository(repositoryManagerId, repositoryPublicId);
       repository.setAuditEnabled(false);
       repository.setRepositoryType(RepositoryType.hosted);
       repository.setFormat(proprietaryComponentNames.format);
       repository.setNamespaceConfusionProtectionEnabled(true);
-      repositoryDAO.insert(repository);
     }
     else {
       validateIsHostedRepository(repository);
@@ -826,6 +832,21 @@ public abstract class AbstractRepositoryService
         throw new BadRequestException("Format '" + proprietaryComponentNames.format
             + "' does not match the repository format '" + repository.getFormat() + "'.");
       }
+    }
+
+    addProprietaryComponentNames(repositoryManagerInstanceId, repository, proprietaryComponentNames);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void addProprietaryComponentNames(
+      String repositoryManagerInstanceId,
+      @AuthzContext(Key.REPOSITORY) Repository repository,
+      ProprietaryComponentNames proprietaryComponentNames)
+  {
+    if (repository.getId() == null) {
+      RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
+      repository.setRepositoryManagerId(repositoryManager.getId());
+      repositoryDAO.insert(repository);
     }
 
     String format = translateRepositoryFormat(proprietaryComponentNames.format);
@@ -886,12 +907,11 @@ public abstract class AbstractRepositoryService
   void removeProprietaryComponentNames(String repositoryManagerInstanceId, String repositoryPublicId) {
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
 
-    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
-
     Repository repository =
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId);
     if (repository != null) {
       validateIsHostedRepository(repository);
+      checkEvaluateComponentPermission(repository);
       proprietaryComponentNameDetector.removePatterns(repository.getId());
     }
   }
@@ -974,11 +994,19 @@ public abstract class AbstractRepositoryService
 
     checkLicenseFeature();
 
-    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
+    if (repositoryManager == null) {
+      checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+
+      repositoryManager = new RepositoryManager(repositoryManagerInstanceId);
+      repositoryManagerDAO.insert(repositoryManager);
+    }
+    else {
+      checkEvaluateComponentPermission(repositoryManager);
+    }
 
     validateConfigureRepositoriesRequest(configureRepositoriesRequest);
 
-    RepositoryManager repositoryManager = getOrCreateRepositoryManager(repositoryManagerInstanceId);
     if (!configureRepositoriesRequest.repositoryManagerProductName.equals(repositoryManager.getProductName())
         || !configureRepositoriesRequest.repositoryManagerProductVersion
             .equals(repositoryManager.getProductVersion())) {
@@ -1106,8 +1134,6 @@ public abstract class AbstractRepositoryService
   }
 
   void removeRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
-    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
-
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
     AuditData.get().setRepositoryPublicId(repositoryPublicId);
 
@@ -1115,6 +1141,7 @@ public abstract class AbstractRepositoryService
         repositoryManagerInstanceId, repositoryPublicId);
 
     if (repository != null) {
+      checkEvaluateComponentPermission(repository);
       repositoryDAO.delete(repository);
 
       log.info("Deleted repository {}:{} ({})", repositoryManagerInstanceId, repositoryPublicId, repository.getId());
@@ -1132,9 +1159,17 @@ public abstract class AbstractRepositoryService
       Long sinceUtcTimestamp,
       String clientUserAgent)
   {
-    checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
-
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceIdNotNull(repositoryManagerInstanceId);
+
+    return getConfiguredRepositories(repositoryManager, sinceUtcTimestamp, clientUserAgent);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  List<RepositoryDTO> getConfiguredRepositories(
+      @AuthzContext(Key.REPOSITORY_MANAGER) RepositoryManager repositoryManager,
+      Long sinceUtcTimestamp,
+      String clientUserAgent)
+  {
     List<Repository> repositories = getConfiguredRepositoriesNoAuthz(repositoryManager,
         sinceUtcTimestamp,
         clientUserAgent);

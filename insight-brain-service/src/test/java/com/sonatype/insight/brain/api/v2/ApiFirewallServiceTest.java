@@ -746,7 +746,7 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void testGetAllRepositoryManagers() {
+  public void testGetRepositoryManagers() {
     //given
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId1", "repoName1",
         "repoProductName1", "repoProductVersion1");
@@ -756,7 +756,7 @@ public class ApiFirewallServiceTest
     String repositoryManagerId2 = repositoryManager2.getId();
 
     //when
-    ApiRepositoryManagerListDTO repositoryManagers = apiFirewallService.getAllRepositoryManagers();
+    ApiRepositoryManagerListDTO repositoryManagers = apiFirewallService.getRepositoryManagers();
 
     //then
     assertThat(repositoryManagers.repositoryManagers.size()).isEqualTo(2);
@@ -773,9 +773,9 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void testGetAllRepositoryManagers_Empty() {
+  public void testGetRepositoryManagers_Empty() {
     //when
-    ApiRepositoryManagerListDTO repositoryManagers = apiFirewallService.getAllRepositoryManagers();
+    ApiRepositoryManagerListDTO repositoryManagers = apiFirewallService.getRepositoryManagers();
 
     //then
     assertThat(repositoryManagers.repositoryManagers).isEmpty();
@@ -1220,12 +1220,11 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void testGetAllRepositoryManagers_NoFirewallFeature() {
+  public void testGetRepositoryManagers_NoFirewallFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService
-            .getAllRepositoryManagers());
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.getRepositoryManagers());
   }
 
   @Test

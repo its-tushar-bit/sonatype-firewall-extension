@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -690,5 +691,18 @@ public class RepositoryDAOTest
         repository.isPolicyCompliantComponentSelectionEnabled());
     assertThat(resultRepo.isNamespaceConfusionProtectionEnabled()).isEqualTo(
         repository.isNamespaceConfusionProtectionEnabled());
+  }
+
+  @Test
+  public void testGetByRepositoryType() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository hostedRepo = tempEntity.newHostedRepository(repoManager, "testHostedRepo", "npm", true);
+
+    List<Repository> proxyRepos = dao.getByRepositoryType(RepositoryType.proxy);
+    assertThat(proxyRepos).hasSize(1);
+    assertThat(proxyRepos.get(0)).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(repository);
+    List<Repository> hostedRepos = dao.getByRepositoryType(RepositoryType.hosted);
+    assertThat(hostedRepos).hasSize(1);
+    assertThat(hostedRepos.get(0)).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(hostedRepo);
   }
 }

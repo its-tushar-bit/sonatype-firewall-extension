@@ -185,16 +185,13 @@ public class RepositoryResourceAuditTest
   public void testConfigureRepositories_Unauthorized() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     configureRepositoriesRequest(repositoryManager.getId(), null).with(unauthorizedUser()).put();
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY, "unauthorized");
-    assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
-    assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
+    assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY, "unauthorized");
   }
 
   @Test
   public void testConfigureRepositories_NotExistingRepositoryManager() throws Exception {
     configureRepositoriesRequest("repositoryManagerId", Collections.singletonList(new Repository())).put();
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY, "not-found");
-    assertCustomData(auditDTO, "repositoryManagerId", "repositoryManagerId");
+    assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY, "not-found");
   }
 
   @Test
@@ -393,7 +390,6 @@ public class RepositoryResourceAuditTest
             .put();
 
     assertResponseStatus(403, response);
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_REPOSITORY_MANAGER, "unauthorized");
-    assertCustomData(auditDTO, "repositoryManagerId", repositoryManager.getId());
+    assertAuditLog(AuditEvent.UPDATE_REPOSITORY_MANAGER, "unauthorized");
   }
 }

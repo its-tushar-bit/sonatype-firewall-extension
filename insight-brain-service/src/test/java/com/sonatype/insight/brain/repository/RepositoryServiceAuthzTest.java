@@ -18,7 +18,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
@@ -33,7 +32,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -42,14 +40,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-  private static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
-
-  private static final String MANUAL_REPO_MAN_ID = "manualDeleteRepoManagerId";
-
-  private static final String REPOSITORY_PUBLIC_ID = "publicId";
-
-  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
-  
   @Inject
   private RepositoryService repositoryService;
 
@@ -61,14 +51,6 @@ public class RepositoryServiceAuthzTest
 
   @Mock
   private TaskScheduler mockTaskScheduler;
-
-  @After
-  public void cleanup() {
-    RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
-    if (repositoryManager != null) {
-      repositoryManagerDAO.delete(repositoryManager);
-    }
-  }
 
   @Override
   public void configure(Binder binder) {
@@ -161,8 +143,8 @@ public class RepositoryServiceAuthzTest
   }
 
   private Repository createRepository() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(MANUAL_REPO_MAN_INSTANCE_ID);
-    return tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    return tempEntity.newRepository(repositoryManager, "testPublicId");
   }
 
   @Test
@@ -389,34 +371,42 @@ public class RepositoryServiceAuthzTest
 
   @Test
   public void testGetProprietaryComponentNamePatterns_Authorized() {
-    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 =
+        tempEntity.newRepository(repoManager, "testPublicId1", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    ProprietaryComponentNamePattern proprietaryComponentNamePattern1 =
+        tempEntity.newProprietaryComponentNamePattern(repo1, "namespacePattern1", null);
+    Repository repo2 =
+        tempEntity.newRepository(repoManager, "testPublicId2", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    ProprietaryComponentNamePattern proprietaryComponentNamePattern2 =
+        tempEntity.newProprietaryComponentNamePattern(repo2, "namespacePattern2", null);
 
     ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
     request.page = 1;
-    request.pageSize = 1;
-    repositoryService.getProprietaryComponentNamePatterns(request);
-  }
+    request.pageSize = 5;
 
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetProprietaryComponentNamePatterns_Unauthenticated() {
-    repositoryService.getProprietaryComponentNamePatterns(null);
-  }
+    grantReadPermission(repo1.getId());
+    ProprietaryComponentNamePatternsPage result = repositoryService.getProprietaryComponentNamePatterns(request);
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(1);
+    assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(proprietaryComponentNamePattern1.getId());
 
-  @Test(expected = UnauthorizedException.class)
-  public void testGetProprietaryComponentNamePatterns_Unauthorized() {
-    login();
-    repositoryService.getProprietaryComponentNamePatterns(null);
+    grantReadPermission(repo2.getId());
+    result = repositoryService.getProprietaryComponentNamePatterns(request);
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
+    assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(proprietaryComponentNamePattern1.getId());
+    assertThat(result.proprietaryComponentNamePatterns.get(1).id).isEqualTo(proprietaryComponentNamePattern2.getId());
   }
 
   @Test
   public void testUpdateProprietaryComponentNamePattern_Authorized() {
-    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo =
         tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
     ProprietaryComponentNamePattern proprietaryComponentNamePattern = tempEntity.newProprietaryComponentNamePattern(
         repo, "namespacePattern", null);
+
+    grantWritePermission(repo.getId());
+
     ProprietaryComponentNamePatternDTO request = new ProprietaryComponentNamePatternDTO(
         proprietaryComponentNamePattern.getId(), proprietaryComponentNamePattern.getFormat(),
         proprietaryComponentNamePattern.getNamespacePattern(), proprietaryComponentNamePattern.getNamePattern(),
@@ -426,13 +416,34 @@ public class RepositoryServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateProprietaryComponentNamePattern_Unauthenticated() {
-    repositoryService.updateProprietaryComponentNamePattern(null);
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    ProprietaryComponentNamePattern proprietaryComponentNamePattern =
+        tempEntity.newProprietaryComponentNamePattern(repo, "namespacePattern", null);
+
+    ProprietaryComponentNamePatternDTO request = new ProprietaryComponentNamePatternDTO(
+        proprietaryComponentNamePattern.getId(), proprietaryComponentNamePattern.getFormat(),
+        proprietaryComponentNamePattern.getNamespacePattern(), proprietaryComponentNamePattern.getNamePattern(),
+        repoManager.getInstanceId(), repoManager.getName(), repo.getPublicId(), false /* enabled */);
+    repositoryService.updateProprietaryComponentNamePattern(request);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdateProprietaryComponentNamePattern_Unauthorized() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    ProprietaryComponentNamePattern proprietaryComponentNamePattern =
+        tempEntity.newProprietaryComponentNamePattern(repo, "namespacePattern", null);
+
     login();
-    repositoryService.updateProprietaryComponentNamePattern(null);
+
+    ProprietaryComponentNamePatternDTO request = new ProprietaryComponentNamePatternDTO(
+        proprietaryComponentNamePattern.getId(), proprietaryComponentNamePattern.getFormat(),
+        proprietaryComponentNamePattern.getNamespacePattern(), proprietaryComponentNamePattern.getNamePattern(),
+        repoManager.getInstanceId(), repoManager.getName(), repo.getPublicId(), false /* enabled */);
+    repositoryService.updateProprietaryComponentNamePattern(request);
   }
 
   @Test
@@ -469,38 +480,40 @@ public class RepositoryServiceAuthzTest
     repositoryService.getUnconfiguredRepositoryManagers();
   }
 
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetRepositoriesByRepositoryManagerId_Unauthenticated() {
-    repositoryService.getRepositoriesByRepositoryManagerId(MANUAL_REPO_MAN_INSTANCE_ID);
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testGetRepositoriesByRepositoryManagerId_Unauthorized() {
-    login();
-    repositoryService.getRepositoriesByRepositoryManagerId(MANUAL_REPO_MAN_INSTANCE_ID);
-  }
-
   @Test
   public void testGetRepositoriesByRepositoryManagerId_Authorized() {
-    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    repositoryService.getRepositoriesByRepositoryManagerId(MANUAL_REPO_MAN_INSTANCE_ID);
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 =
+        tempEntity.newRepository(repoManager, "testPublicId1", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    Repository repo2 =
+        tempEntity.newRepository(repoManager, "testPublicId2", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    grantReadPermission(repo1.getId());
+    List<Repository> result = repositoryService.getRepositoriesByRepositoryManagerId(repoManager.getId());
+    assertThat(result).extracting(Repository::getId).containsExactly(repo1.getId());
+
+    grantReadPermission(repo2.getId());
+    result = repositoryService.getRepositoriesByRepositoryManagerId(repoManager.getId());
+    assertThat(result).extracting(Repository::getId).containsExactlyInAnyOrder(repo1.getId(), repo2.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testConfigureRepositories_Unauthenticated() {
-    repositoryService.configureRepositories(MANUAL_REPO_MAN_ID, null /* repositoryDTOs */);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryService.configureRepositories(repositoryManager.getId(), null /* repositoryDTOs */);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testConfigureRepositories_Unauthorized() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     login();
-    repositoryService.configureRepositories(MANUAL_REPO_MAN_ID, null /* repositoryDTOs */);
+    repositoryService.configureRepositories(repositoryManager.getId(), null /* repositoryDTOs */);
   }
 
   @Test
   public void testConfigureRepositories_Authorized() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    grantWritePermission(repositoryManager.getId());
     repositoryService.configureRepositories(repositoryManager.getId(), null /* repositoryDTOs */);
   }
 
@@ -523,19 +536,21 @@ public class RepositoryServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateName_Unauthenticated() {
-    repositoryService.updateName("repositoryManagerId", "newName");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryService.updateName(repositoryManager.getId(), "newName");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdateName_Unauthorized() {
     login();
-    repositoryService.updateName("repositoryManagerId", "newName");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryService.updateName(repositoryManager.getId(), "newName");
   }
 
   @Test
   public void testUpdateName_Authorized() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    grantWritePermission(repositoryManager.getId());
     repositoryService.updateName(repositoryManager.getId(), "newName");
   }
 }

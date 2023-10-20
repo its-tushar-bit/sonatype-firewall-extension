@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -205,6 +206,19 @@ public class AuthorizationCheckerTest
 
     UserPrincipal userPrincipal = newPrincipal(user);
     assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.REPOSITORY))
+        .containsExactly(entities.get(0));
+  }
+
+  @Test
+  public void testFilter_RepositorManagers() {
+    List<RepositoryManager> entities =
+        Arrays.asList(tempEntity.newRepositoryManager(), tempEntity.newRepositoryManager());
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    newMembershipMapping(user, entities.get(0).getId(), role.getId());
+
+    UserPrincipal userPrincipal = newPrincipal(user);
+    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.REPOSITORY_MANAGER))
         .containsExactly(entities.get(0));
   }
 

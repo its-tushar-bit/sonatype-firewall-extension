@@ -119,6 +119,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlOrganiza
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
+import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
@@ -438,6 +439,8 @@ public class TemporaryEntity
   private final SuccessMetricsReportDAO successMetricsReportDAO = new SuccessMetricsReportDAO();
 
   private final SuccessMetricsReportDataDAO successMetricsReportDataDAO = new SuccessMetricsReportDataDAO();
+
+  private final FirewallMetricsDAO firewallMetricsDAO = new FirewallMetricsDAO();
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
@@ -760,6 +763,7 @@ public class TemporaryEntity
       delete(webhookDAO.getAll(), webhookDAO);
       delete(policyViolationAggregationDAO.getAll(), policyViolationAggregationDAO);
       delete(successMetricsReportDAO.getAll(), successMetricsReportDAO);
+      delete(firewallMetricsDAO.getAll(), firewallMetricsDAO);
       delete(sourceControlPullRequestDAO.getAll(), sourceControlPullRequestDAO);
       delete(sourceControlDAO.getAll(), sourceControlDAO);
       samlConfigurationDAO.delete();

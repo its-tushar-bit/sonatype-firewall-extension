@@ -177,6 +177,7 @@
     <class>com.sonatype.insight.brain.model.HasComponentId</class>
     <class>com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport</class>
     <class>com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData</class>
+    <class>com.sonatype.insight.brain.model.successmetrics.FirewallMetrics</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

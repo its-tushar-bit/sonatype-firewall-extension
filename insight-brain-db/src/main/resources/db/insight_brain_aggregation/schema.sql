@@ -123,3 +123,13 @@ CREATE TABLE IF NOT EXISTS schema_version (
   schema_version int NOT NULL
 );
 INSERT INTO schema_version (data_store_id , schema_version) VALUES ('insight_brain_aggregation', -1);
+
+CREATE TABLE firewall_metrics (
+    firewall_metrics_id varchar(50) NOT NULL,
+    metrics_date date NOT NULL,
+    metrics_name varchar(255) NOT NULL,
+    metrics_value int NOT NULL,
+    metrics_last_updated_at timestamp NOT NULL,
+
+    CONSTRAINT firewall_metrics_id_pk PRIMARY KEY (firewall_metrics_id)
+);

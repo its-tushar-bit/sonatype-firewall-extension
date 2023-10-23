@@ -53,6 +53,8 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
       SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
+      SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),
+      SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId(),
       };
 
   /**

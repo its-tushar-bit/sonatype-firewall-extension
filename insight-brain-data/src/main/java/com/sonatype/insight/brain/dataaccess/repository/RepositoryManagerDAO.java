@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -53,12 +54,20 @@ public class RepositoryManagerDAO
     }
   }
 
+  private void validateName(RepositoryManager repositoryManager) {
+    // We default the name to the instance ID if the name was not set.
+    // So we need to accept any instance ID as name, and only validate the name if it is set to something different from
+    // the instance ID.
+    if (!Objects.equals(repositoryManager.getInstanceId(), repositoryManager.getName())) {
+      NameHelper.validate("Name", repositoryManager.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
+    }
+  }
+
   @Override
   public void insert(TransactionContext tx, RepositoryManager repositoryManager) {
     validateInstanceId(repositoryManager.getInstanceId());
-    if (repositoryManager.getName() != null) {
-      NameHelper.validate("Name", repositoryManager.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
-    }
+
+    validateName(repositoryManager);
 
     if (getByInstanceId(tx, repositoryManager.getInstanceId()) != null) {
       throw new InvalidRepositoryManagerException("There is already a repository manager with instance ID "
@@ -76,9 +85,8 @@ public class RepositoryManagerDAO
   @Override
   public void update(TransactionContext tx, RepositoryManager repositoryManager) {
     validateInstanceId(repositoryManager.getInstanceId());
-    if (repositoryManager.getName() != null) {
-      NameHelper.validate("Name", repositoryManager.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
-    }
+
+    validateName(repositoryManager);
 
     RepositoryManager existingRepositoryManager = getByInstanceId(tx, repositoryManager.getInstanceId());
     if (existingRepositoryManager != null && !existingRepositoryManager.getId().equals(repositoryManager.getId())) {

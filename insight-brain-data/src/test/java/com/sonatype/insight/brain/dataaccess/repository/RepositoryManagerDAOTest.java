@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -186,5 +187,27 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
     RepositoryManager resultRepositoryManager = dao.getById(repositoryManager.getId());
 
     assertThat(resultRepositoryManager.getName()).isEqualTo(repositoryManager.getInstanceId());
+  }
+
+  @Test
+  public void testInsert_InstanceIdWithInvalidNameChars() {
+    for (String invalidChar : NameHelperTest.INVALID_CHARACTERS) {
+      RepositoryManager repositoryManager = tempEntity.newRepositoryManager("a" + invalidChar + "b");
+
+      RepositoryManager resultRepositoryManager = dao.getById(repositoryManager.getId());
+      assertThat(resultRepositoryManager.getName()).isEqualTo(repositoryManager.getInstanceId());
+    }
+  }
+
+  @Test
+  public void testUpdate_InstanceIdWithInvalidNameChars() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    for (String invalidChar : NameHelperTest.INVALID_CHARACTERS) {
+      repositoryManager.setInstanceId("a" + invalidChar + "b");
+      dao.update(repositoryManager);
+
+      RepositoryManager resultRepositoryManager = dao.getById(repositoryManager.getId());
+      assertThat(resultRepositoryManager.getName()).isEqualTo(repositoryManager.getInstanceId());
+    }
   }
 }

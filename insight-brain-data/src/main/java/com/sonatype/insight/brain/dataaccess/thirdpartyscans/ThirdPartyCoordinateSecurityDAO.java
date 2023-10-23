@@ -47,12 +47,12 @@ public class ThirdPartyCoordinateSecurityDAO
     String sQuery = "DELETE from ThirdPartyCoordinateSecurity entity WHERE entity.fileCoordinateId=?1";
     Query<ThirdPartyCoordinateSecurity> query = createQuery(sQuery, fileCoordinateId);
 
+    ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDao = new ThirdPartyVulnerabilityExploitabilityExchangeDAO();
     // cascade delete vulnerability exploitability exchanges
-    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList = getByFileCoordinateId(fileCoordinateId);
-    thirdPartyCoordinateSecurityList.stream().forEach(
-        thirdPartyCoordinateSecurity -> new ThirdPartyVulnerabilityExploitabilityExchangeDAO()
-            .deleteByCoordinateSecurityId(tx, thirdPartyCoordinateSecurity.getId())
-    );
+    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList = getByFileCoordinateId(tx, fileCoordinateId);
+    for (ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity : thirdPartyCoordinateSecurityList) {
+      vexDao.deleteByCoordinateSecurityId(tx, thirdPartyCoordinateSecurity.getId());
+    }
 
     return query.executeUpdate(tx);
   }

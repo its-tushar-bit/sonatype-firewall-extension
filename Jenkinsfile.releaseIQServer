@@ -111,18 +111,16 @@ pipeline {
     }
 
     stage('Publish Docker Images') {
-      parallel {
-        stage ('Publish Image') {
-          steps {
-            build(job: 'insight/insight-brain/docker/main-image/release',
-              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
-          }
+      stage ('Publish Image') {
+        steps {
+          build(job: 'insight/insight-brain/docker/main-image/release',
+            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
         }
-        stage('Publish Slim Image') {
-          steps {
-            build(job: 'insight/insight-brain/docker/slim-image/release',
-              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
-          }
+      }
+      stage('Publish Slim Image') {
+        steps {
+          build(job: 'insight/insight-brain/docker/slim-image/release',
+            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
         }
       }
     }

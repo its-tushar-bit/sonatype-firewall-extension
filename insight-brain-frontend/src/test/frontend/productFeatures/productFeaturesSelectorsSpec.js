@@ -30,6 +30,7 @@ import {
   selectProductFeatures,
   selectIsBaseUrlConfigurationEnabled,
   selectIsIntegratedEnterpriseReportingEnabled,
+  selectTenantScmProviderTypes,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -247,6 +248,18 @@ describe('productFeaturesSelectors', () => {
     it('returns true in single-tenant mode', () => {
       mockState.productFeatures.productFeatures['single-tenant'] = true;
       expect(selectIsBaseUrlConfigurationEnabled(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectScmProviders', () => {
+    it('returns only github in multi-tenant mode', () => {
+      mockState.productFeatures.productFeatures['multi-tenant'] = true;
+      expect(selectTenantScmProviderTypes(mockState)).toHaveSize(1);
+    });
+
+    it('returns all providers in single-tenant mode', () => {
+      mockState.productFeatures.productFeatures['single-tenant'] = true;
+      expect(selectTenantScmProviderTypes(mockState)).toHaveSize(4);
     });
   });
 });

@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -43,16 +45,34 @@ public class ApiSourceControlAdapter
   }
 
   private static SourceControlProvider getSourceControlProvider(final String provider) {
+    List<String> availableSourceControlValues = getAvailableSourceControlValues();
     try {
+      if (provider != null && availableSourceControlValues.stream().noneMatch(provider::equals)) {
+        throw new IllegalArgumentException("Provider not available");
+      }
       return SourceControlProvider.fromString(provider);
     }
     catch (IllegalArgumentException ex) {
-      String allowedValues = Arrays.stream(SourceControlProvider.values())
-          .map(SourceControlProvider::toString)
-          .collect(Collectors.joining(", "));
+      String allowedValues = String.join(", ", availableSourceControlValues);
       throw new BadRequestException(String
           .format("SourceControl provider value '%s' is invalid, valid options are: %s", provider,
               allowedValues));
+    }
+  }
+
+  private static List<String> getAvailableSourceControlValues() {
+    return Arrays.stream(SourceControlProvider.values())
+        .filter(getSourceControlPredicate())
+        .map(provider -> provider.name().toLowerCase())
+        .collect(Collectors.toList());
+  }
+
+  private static Predicate<SourceControlProvider> getSourceControlPredicate() {
+    if (new TenantUtil().isMultiTenant()) {
+      return provider -> provider.equals(SourceControlProvider.GITHUB);
+    }
+    else {
+      return provider -> true;
     }
   }
 

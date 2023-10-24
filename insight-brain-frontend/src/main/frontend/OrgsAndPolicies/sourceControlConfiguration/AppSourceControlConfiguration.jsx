@@ -23,7 +23,6 @@ import TestConfigurationButton from 'MainRoot/OrgsAndPolicies/sourceControlConfi
 import {
   getValidationMessage,
   isAccessTokenRequiredOnNode,
-  PROVIDER_TYPES,
   providerNeedsUsername,
   PROVIDERS_WITH_USERNAME,
   SOURCE_CONTROL_OPTIONS,
@@ -39,6 +38,7 @@ import { selectIsAutomationSupported } from 'MainRoot/productFeatures/productFea
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import ScmProviderOptions from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ScmProviderOptions';
 
 const AppSourceControlConfiguration = () => {
   const dispatch = useDispatch();
@@ -180,12 +180,7 @@ const AppSourceControlConfiguration = () => {
           disabled={sourceControl?.provider.isInherited}
           validatable
         >
-          <option value="">-- Not Configured --</option>
-          {PROVIDER_TYPES.map(({ name, value }) => (
-            <option key={value} value={value}>
-              {name}
-            </option>
-          ))}
+          <ScmProviderOptions />
         </NxFormSelect>
       </NxFieldset>
       <NxFieldset

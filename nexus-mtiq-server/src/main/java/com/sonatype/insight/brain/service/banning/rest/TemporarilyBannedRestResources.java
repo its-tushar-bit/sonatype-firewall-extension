@@ -7,15 +7,8 @@ package com.sonatype.insight.brain.service.banning.rest;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalResource;
-import com.sonatype.insight.brain.api.v2.*;
+import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
-import com.sonatype.insight.brain.ide.IdeResource;
-import com.sonatype.insight.brain.integration.DefaultApplicationEvaluationResource;
-import com.sonatype.insight.brain.integration.DefaultApplicationSummaryResource;
-import com.sonatype.insight.brain.integration.DefaultOrganizationSummaryResource;
-import com.sonatype.insight.brain.labs.LabsResource;
-import com.sonatype.insight.brain.search.AdvancedSearchResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsResource;
 
@@ -33,28 +26,7 @@ public class TemporarilyBannedRestResources
   private static final List<Class> BANNED_REST_RESOURCES = ImmutableList.of(
       LdapResource.class,
       ApiProxyServerConfigurationResource.class,
-      SuccessMetricsResource.class,
-
-      // Integrations CLM-27720
-      IdeResource.class,
-      DefaultApplicationEvaluationResource.class,
-      DefaultApplicationSummaryResource.class,
-      DefaultOrganizationSummaryResource.class,
-
-      // Advanced search CLM-27720
-      AdvancedSearchResource.class,
-      DefaultApiAdvancedSearchResourceV2.class,
-
-      // Labs CLM-27720
-      LabsResource.class,
-
-      // Jira CLM-27720
-      DefaultApiJiraConfigurationResource.class,
-
-      // Advanced legal pack CLM-27720
-      ApiLicenseLegalResource.class,
-      DefaultApiLegalAttributionReportTemplateResourceV2.class,
-      DefaultApiLegalReportResourceV2.class
+      SuccessMetricsResource.class
   );
 
   @Override

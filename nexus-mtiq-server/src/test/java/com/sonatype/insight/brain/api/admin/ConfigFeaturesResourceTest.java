@@ -50,6 +50,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
       SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
       SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
+      SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
       SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
       SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),

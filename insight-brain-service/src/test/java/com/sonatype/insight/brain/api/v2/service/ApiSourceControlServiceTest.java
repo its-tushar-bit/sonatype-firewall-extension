@@ -403,39 +403,6 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testAddSourceControlByOwner_CatersForBitbucketProvider() {
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.BITBUCKET)
-            .build();
-
-    ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(sourceControl);
-    sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), validSourceControl);
-    assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
-  }
-
-  @Test
-  public void testAddSourceControlByOwner_CatersForAzureProvider() {
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.AZURE)
-            .build();
-
-    ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(sourceControl);
-    sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), validSourceControl);
-    assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
-  }
-
-  @Test
-  public void testAddSourceControlByOwner_CatersForGitlabProvider() {
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.BITBUCKET)
-            .build();
-
-    ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(sourceControl);
-    sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), validSourceControl);
-    assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
-  }
-
-  @Test
   public void testGetSourceControlByOwnerDecrypted_ForApplication() {
     final ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)

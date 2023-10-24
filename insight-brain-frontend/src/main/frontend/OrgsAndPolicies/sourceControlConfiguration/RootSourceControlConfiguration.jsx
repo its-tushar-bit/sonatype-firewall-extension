@@ -18,6 +18,7 @@ import {
 import {
   getValidationMessage,
   providerNeedsUsername,
+  PROVIDER_TYPES,
   SOURCE_CONTROL_OPTIONS,
   DEFAULT_BRANCH_SUBLABEL,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
@@ -28,7 +29,6 @@ import {
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import { selectIsAutomationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
-import ScmProviderOptions from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ScmProviderOptions';
 
 const RootSourceControlConfiguration = () => {
   const dispatch = useDispatch();
@@ -84,7 +84,12 @@ const RootSourceControlConfiguration = () => {
           className="iq-source-control-provider-select"
           validatable
         >
-          <ScmProviderOptions />
+          <option value="">-- Not Configured --</option>
+          {PROVIDER_TYPES.map(({ name, value }) => (
+            <option key={value} value={value}>
+              {name}
+            </option>
+          ))}
         </NxFormSelect>
       </NxFormGroup>
       <NxFormRow>

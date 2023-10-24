@@ -21,6 +21,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import SourceControlInheritedInput from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/SourceControlInheritedInput';
 import {
   getValidationMessage,
+  PROVIDER_TYPES,
   providerNeedsUsername,
   PROVIDERS_WITH_USERNAME,
   SOURCE_CONTROL_OPTIONS,
@@ -34,7 +35,6 @@ import {
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
-import ScmProviderOptions from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ScmProviderOptions';
 
 const OrgSourceControlConfiguration = () => {
   const dispatch = useDispatch();
@@ -49,7 +49,6 @@ const OrgSourceControlConfiguration = () => {
   } = useSelector(selectSourceControlConfigurationSlice);
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const validationError = useSelector(selectValidationError);
-
   const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
   const showResetModal = () => dispatch(actions.showResetModal());
@@ -151,7 +150,12 @@ const OrgSourceControlConfiguration = () => {
           disabled={sourceControl?.provider.isInherited}
           validatable
         >
-          <ScmProviderOptions />
+          <option value="">-- Not Configured --</option>
+          {PROVIDER_TYPES.map(({ name, value }) => (
+            <option key={value} value={value}>
+              {name}
+            </option>
+          ))}
         </NxFormSelect>
       </NxFieldset>
       <NxFieldset

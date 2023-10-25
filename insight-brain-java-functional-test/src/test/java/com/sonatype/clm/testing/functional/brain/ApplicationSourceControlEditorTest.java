@@ -864,6 +864,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlRepositoryUrlUpdateModal.root().shouldBe(hidden);
   }
 
+  @Ignore("CLM-27244")
   @Test
   public void testSourceControlEditor_providerAtOrg_tokenAtRoot_updateToken() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));

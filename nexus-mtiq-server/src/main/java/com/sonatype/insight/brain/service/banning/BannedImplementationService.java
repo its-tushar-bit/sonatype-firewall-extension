@@ -8,14 +8,13 @@ package com.sonatype.insight.brain.service.banning;
 import java.util.Arrays;
 import java.util.List;
 
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.DropwizardAwareWireModule;
 import com.sonatype.insight.brain.service.banning.rest.PermanentlyBannedRestResources;
 import com.sonatype.insight.brain.service.banning.rest.TemporarilyBannedRestResources;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Module;
-import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
+import com.google.inject.spi.Elements;
+import org.eclipse.sisu.wire.WireModule;
 
 public class BannedImplementationService
 {
@@ -40,9 +39,9 @@ public class BannedImplementationService
     return listOfBannedTypes.stream().anyMatch(implementation -> implementation.isBanned(clazz));
   }
 
-  public DropwizardAwareModule getBannedModule(final List<Module> modules) {
-    return new DropwizardAwareWireModule<InsightConfig>(
-        new RequiredExplicitBindingModule(modules, this)
+  public Module getBannedModule(final List<Module> modules) {
+    return new WireModule(
+        new RequiredExplicitBindingModule(Elements.getElements(modules), this)
     ).with(new IgnoreBannedImplementationStrategy(this));
   }
 }

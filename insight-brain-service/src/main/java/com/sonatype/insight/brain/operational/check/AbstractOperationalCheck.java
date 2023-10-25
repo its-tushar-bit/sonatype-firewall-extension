@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
-import ru.vyarus.dropwizard.guice.module.installer.feature.health.NamedHealthCheck;
+import com.codahale.metrics.health.HealthCheck;
 
 public abstract class AbstractOperationalCheck
-    extends NamedHealthCheck
+    extends HealthCheck
 {
   private final String name;
 
@@ -16,8 +16,12 @@ public abstract class AbstractOperationalCheck
     this.name = name;
   }
 
-  @Override
   public String getName() {
     return name;
+  }
+
+  @Override
+  public String toString() {
+    return getName();
   }
 }

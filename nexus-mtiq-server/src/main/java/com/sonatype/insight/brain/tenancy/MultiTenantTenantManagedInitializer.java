@@ -11,11 +11,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.TenantManagedInitializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 /**
  * The priority is set to be less than the TaskScheduler to ensure that start() is called on the TaskScheduler before
@@ -24,8 +24,7 @@ import ru.vyarus.dropwizard.guice.module.installer.order.Order;
  */
 @Named
 @Singleton
-@Priority(TenantManagedInitializer.PRIORITY)
-@Order(Integer.MAX_VALUE - TenantManagedInitializer.PRIORITY)
+@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY - 1)
 public class MultiTenantTenantManagedInitializer
     implements TenantManagedInitializer
 {

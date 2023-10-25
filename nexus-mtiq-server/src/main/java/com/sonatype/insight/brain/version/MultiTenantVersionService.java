@@ -8,16 +8,11 @@ package com.sonatype.insight.brain.version;
 import javax.annotation.Priority;
 import javax.inject.Named;
 
-import ru.vyarus.dropwizard.guice.module.installer.order.Order;
-
 @Named
-@Priority(MultiTenantVersionService.PRIORITY)
-@Order(Integer.MAX_VALUE - MultiTenantVersionService.PRIORITY)
+@Priority(1)
 public class MultiTenantVersionService
     extends DefaultVersionService
 {
-  public static final int PRIORITY = 1;
-
   @Override
   public String getShortVersion() {
     return getBuild();

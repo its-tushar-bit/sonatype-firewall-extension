@@ -139,7 +139,7 @@ public class TestInsightBrainServiceRule
   }
 
   public <T> T getInstance(Class<T> type) {
-    if (!brain.isInitialized()) {
+    if (brain.getInjector() == null) {
       return null;
     }
     return brain.getInstance(type);
@@ -163,7 +163,7 @@ public class TestInsightBrainServiceRule
   }
 
   public void resetDisableForTesting() {
-    if (brain != null && brain.isInitialized()) {
+    if (brain != null && brain.getInjector() != null) {
       brain.disableForTesting();
       log.info("Reset TestInsightBrainService");
     }

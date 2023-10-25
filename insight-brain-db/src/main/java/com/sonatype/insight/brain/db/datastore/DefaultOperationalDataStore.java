@@ -132,17 +132,8 @@ public class DefaultOperationalDataStore
   @Override
   public void clear_ForTestsOnly() {
     super.clear_ForTestsOnly();
-
-    if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
-      entityManagerFactory.close();
-    }
     entityManagerFactory = null;
-
-    if (entityManagerFactoryForLocks != null && entityManagerFactoryForLocks.isOpen()) {
-      entityManagerFactoryForLocks.close();
-    }
     entityManagerFactoryForLocks = null;
-
     isInitialized = false;
     isDatabaseEmbedded = null;
   }

@@ -7,10 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.BiConsumer;
 
 import javax.servlet.ServletRequest;
@@ -54,7 +51,6 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
-import com.google.inject.Module;
 import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.ConfigurationFactoryFactory;
@@ -101,8 +97,6 @@ public class TestMultiTenantInsightBrainService
   private BiConsumer<ServletRequest, ServletResponse> restRequestFilterHandler;
 
   private MultiTenantJwkProvider multiTenantJwkTestProvider;
-
-  private Collection<Module> extraModules = new ArrayList<>();
 
   @Override
   public void setHttpPort(final int port) {
@@ -184,8 +178,28 @@ public class TestMultiTenantInsightBrainService
   }
 
   @Override
-  protected BeanScanning scanning() {
+  protected BeanScanning scanning(InsightConfig configuration) {
     return BeanScanning.CACHE;
+  }
+
+  @Override
+  protected boolean acceptComponent(Class<?> type) {
+    if (!super.acceptComponent(type)) {
+      return false;
+    }
+    // the test classpath can be messy when used in Hudson/Nexus/etc., so let's be a little defensive
+    String name = type.getName();
+    if (name.startsWith("com.sonatype.insight.") || name.startsWith("com.sonatype.clm.")) {
+      return true;
+    }
+    if (name.startsWith("org.sonatype.licensing.") || name.startsWith("codeguard.licensing.")) {
+      return true;
+    }
+    if (name.startsWith("org.sonatype.micromailer.")) {
+      return true;
+    }
+    log.debug("Excluding {} from test Brain server", name);
+    return false;
   }
 
   @Override
@@ -307,10 +321,10 @@ public class TestMultiTenantInsightBrainService
   }
 
   @Override
-  public DatabaseContainer createDatabaseContainer(InsightConfig config) {
+  public DatabaseContainer createDatabaseContainer() {
     // If no DatabaseContainer was pre-configured then create the default one
     if (databaseContainer == null) {
-      databaseContainer = super.createDatabaseContainer(config);
+      databaseContainer = super.createDatabaseContainer();
     }
     return databaseContainer;
   }
@@ -372,19 +386,6 @@ public class TestMultiTenantInsightBrainService
   @Override
   public InsightConfig getConfiguration() {
     return insightConfig;
-  }
-
-  @Override
-  public void addModules(Collection<Module> modules) {
-    extraModules.addAll(modules);
-  }
-
-  @Override
-  public List<Module> modules() {
-    List<Module> modules = new ArrayList<>(extraModules);
-    modules.addAll(super.modules());
-
-    return modules;
   }
 
   @Override

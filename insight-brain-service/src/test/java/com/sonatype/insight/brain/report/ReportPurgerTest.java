@@ -318,7 +318,6 @@ public class ReportPurgerTest
   @Test
   public void testPurgeReports_RetryAfterLockTimeout() throws Exception {
     DataSourceFactory.clear_ForTestsOnly();
-    Thread thread = null;
     try {
       DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
       odsDatabaseConfig.setUrl("jdbc:h2:" + tempDir.newFolder("data").getAbsolutePath() + "/ods"
@@ -334,7 +333,7 @@ public class ReportPurgerTest
 
       CountDownLatch latch = new CountDownLatch(1);
       AtomicReference<Exception> error = new AtomicReference<>();
-      thread = new Thread(() -> {
+      Thread thread = new Thread(() -> {
         try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
           tx.begin();
           new PolicyEvaluationDAO() //
@@ -365,11 +364,6 @@ public class ReportPurgerTest
       assertThat(error).hasValue(null);
     }
     finally {
-      // wait for the tx commit before running clear_forTestsOnly as it now closes the EntityManagerFactory
-      if (thread != null && thread.isAlive()) {
-        thread.join();
-      }
-
       DataSourceFactory.clear_ForTestsOnly();
     }
   }
@@ -377,7 +371,6 @@ public class ReportPurgerTest
   @Test
   public void testPurgeReports_RetryAfterLockTimeout_LimitedRetry() throws Exception {
     DataSourceFactory.clear_ForTestsOnly();
-    Thread thread = null;
     try {
       DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
       odsDatabaseConfig.setUrl("jdbc:h2:" + tempDir.newFolder("data").getAbsolutePath() + "/ods"
@@ -391,7 +384,7 @@ public class ReportPurgerTest
 
       CountDownLatch latch = new CountDownLatch(1);
       AtomicReference<Exception> error = new AtomicReference<>();
-      thread = new Thread(() -> {
+      Thread thread = new Thread(() -> {
         try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
           tx.begin();
           new PolicyEvaluationDAO() //
@@ -418,11 +411,6 @@ public class ReportPurgerTest
       assertThat(error).hasValue(null);
     }
     finally {
-      // wait for the tx commit before running clear_forTestsOnly as it now closes the EntityManagerFactory
-      if (thread != null && thread.isAlive()) {
-        thread.join();
-      }
-
       DataSourceFactory.clear_ForTestsOnly();
     }
   }

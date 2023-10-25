@@ -7,16 +7,12 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.BiConsumer;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -53,7 +49,6 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
-import com.google.inject.Module;
 import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.ConfigurationFactoryFactory;
@@ -96,8 +91,6 @@ public class DefaultTestInsightBrainService
   private InsightConfig insightConfig;
 
   private BiConsumer<ServletRequest, ServletResponse> restRequestFilterHandler;
-
-  private Collection<Module> extraModules = new ArrayList<>();
 
   @Override
   public void setHttpPort(final int port) {
@@ -179,8 +172,28 @@ public class DefaultTestInsightBrainService
   }
 
   @Override
-  protected BeanScanning scanning() {
+  protected BeanScanning scanning(InsightConfig configuration) {
     return BeanScanning.CACHE;
+  }
+
+  @Override
+  protected boolean acceptComponent(Class<?> type) {
+    if (!super.acceptComponent(type)) {
+      return false;
+    }
+    // the test classpath can be messy when used in Hudson/Nexus/etc., so let's be a little defensive
+    String name = type.getName();
+    if (name.startsWith("com.sonatype.insight.") || name.startsWith("com.sonatype.clm.")) {
+      return true;
+    }
+    if (name.startsWith("org.sonatype.licensing.") || name.startsWith("codeguard.licensing.")) {
+      return true;
+    }
+    if (name.startsWith("org.sonatype.micromailer.")) {
+      return true;
+    }
+    log.debug("Excluding {} from test Brain server", name);
+    return false;
   }
 
   @Override
@@ -243,7 +256,6 @@ public class DefaultTestInsightBrainService
         }
       };
     });
-
   }
 
   @Override
@@ -264,10 +276,8 @@ public class DefaultTestInsightBrainService
     adminConnector.setPort(testAdminPort);
     // disable graceful shutdown, i.e. don't waste time waiting nor risk timeout errors
     defaultServerFactory.setShutdownGracePeriod(Duration.milliseconds(0));
-
     if (testHdsUrl != null) {
       new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.HDS_URL, testHdsUrl);
-      getInstance(ApiConfigurationService.class).applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
     }
 
     if (testProxyServerConfiguration != null) {
@@ -276,8 +286,6 @@ public class DefaultTestInsightBrainService
     else {
       new ProxyServerConfigurationDAO().delete();
     }
-    getInstance(ApiProxyServerConfigurationService.class).applyProxyServerConfigurationToClients();
-
     insightConfig = config;
 
     initWorkDirectory(config.getSonatypeWork());
@@ -299,10 +307,10 @@ public class DefaultTestInsightBrainService
   }
 
   @Override
-  public DatabaseContainer createDatabaseContainer(InsightConfig config) {
+  public DatabaseContainer createDatabaseContainer() {
     // If no DatabaseContainer was pre-configured then create the default one
     if (databaseContainer == null) {
-      databaseContainer = super.createDatabaseContainer(config);
+      databaseContainer = super.createDatabaseContainer();
     }
     return databaseContainer;
   }
@@ -374,19 +382,6 @@ public class DefaultTestInsightBrainService
   @Override
   public InsightConfig getConfiguration() {
     return insightConfig;
-  }
-
-  @Override
-  public void addModules(Collection<Module> modules) {
-    extraModules.addAll(modules);
-  }
-
-  @Override
-  public List<Module> modules() {
-    List<Module> modules = new ArrayList<>(extraModules);
-    modules.addAll(super.modules());
-
-    return modules;
   }
 
   private void initWorkDirectory(File workDir) throws Exception {

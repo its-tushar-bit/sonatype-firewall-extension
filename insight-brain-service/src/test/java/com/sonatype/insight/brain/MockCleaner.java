@@ -46,7 +46,7 @@ public class MockCleaner
 
   @Override
   protected void after() {
-    Mockito.reset(mocks.toArray());
+    Mockito.clearInvocations(mocks.toArray());
     Mockito.framework().removeListener(mockCreationListener);
     mocks.clear();
   }

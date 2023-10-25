@@ -5,9 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import javax.servlet.DispatcherType;
@@ -77,16 +76,12 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.Singleton;
-import com.google.inject.name.Names;
 import io.dropwizard.cli.Command;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.eclipse.sisu.BeanEntry;
 import org.eclipse.sisu.inject.BeanLocator;
-import ru.vyarus.dropwizard.guice.GuiceBundle;
-import ru.vyarus.dropwizard.guice.module.installer.feature.jersey.ResourceInstaller;
-import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
 
 public class MultiTenantInsightBrainService
     extends InsightBrainService
@@ -152,12 +147,8 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
-  public DatabaseContainer createDatabaseContainer(InsightConfig configuration) {
+  public DatabaseContainer createDatabaseContainer() {
     MultiTenantDataSourceFactory multiTenantDataSourceFactory = new MultiTenantDataSourceFactory();
-
-    // The MTIQ has additional control over the 'locks' DataSource object. The configuration for this comes from a
-    // custom property defined in MultiTenantInsightConfig which we then need to set into the factory.
-    multiTenantDataSourceFactory.setInsightConfig((MultiTenantInsightConfig) configuration);
 
     DatabaseMigrator databaseMigrator = new DatabaseMigrator(multiTenantDataSourceFactory);
 
@@ -190,6 +181,17 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
+  public void run(InsightConfig configuration, Environment environment) throws Exception {
+    // The MTIQ has additional control over the 'locks' DataSource object. The configuration for this comes from a
+    // custom property defined in MultiTenantInsightConfig which we then need to set into the factory.
+    MultiTenantDataSourceFactory dataSourceFactory =
+        (MultiTenantDataSourceFactory) databaseContainer.getDataSourceFactory();
+    dataSourceFactory.setInsightConfig((MultiTenantInsightConfig) configuration);
+
+    super.run(configuration, environment);
+  }
+
+  @Override
   public void initialize(final Bootstrap<InsightConfig> bootstrap) {
     super.initialize(bootstrap);
     bootstrap.addCommand(new MigrateTenantsCommand());
@@ -206,16 +208,13 @@ public class MultiTenantInsightBrainService
   protected void customize(InsightConfig configuration, Environment environment) {
     super.customize(configuration, environment);
 
-    // Most jersey components are injected automatically by dropwizard-guicey. However it seems to be unable
-    // to correctly handle @Context injections on @Providers. So for that case, we register them here. Note that
-    // even doing it manually, jersey won't do the @Context injection if you provide it a class, it only seems to
-    // work with an instance. This means that classes registered this way are effectively singletons
-    environment.jersey().register(new BlockEndpointsContainerRequestFilter());
+    // Adding filter to look for banned endpoints
+    environment.jersey().register(BlockEndpointsContainerRequestFilter.class);
 
     // Ensuring we have the same jersey configuration we have for the application context
     adminResourceBundle.jersey().register(new InsightJacksonMessageBodyProvider(environment.getObjectMapper()));
     adminResourceBundle.jersey().register(new ComponentIdentifierParamConverterProvider(environment.getObjectMapper()));
-    adminResourceBundle.jersey().register(new AdminAuditContainerRequestFilter());
+    adminResourceBundle.jersey().register(AdminAuditContainerRequestFilter.class);
     JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
     adminResourceBundle.jersey().register(jaxRsExceptionMapper);
 
@@ -278,10 +277,8 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
-  protected List<Module> modules() {
-    List<Module> modules = new ArrayList<>();
-
-    modules.add(new AbstractModule()
+  protected List<Module> modules(InsightConfig config) {
+    Module bindings = new AbstractModule()
     {
       @Override
       protected void configure() {
@@ -289,17 +286,12 @@ public class MultiTenantInsightBrainService
         bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
 
         bind(GuiceShiroFilter.class);
-
-        // This binding is referenced by a class present in sonatype-licensing that we don't actually use.
-        // For unclear reasons, since the switch to dropwizard-guicey leaving this binding null has prevented
-        // the server from starting. A proper solution cound not be found, so just fill it in with a dummy value
-        bind(File.class).annotatedWith(Names.named("licensing.access.file")).toInstance(new File("workaround"));
       }
-    });
+    };
 
-    modules.add(new SecurityModule());
-    modules.add(new SecurityAopModule());
-    modules.add(new DropwizardAwareModule<InsightConfig>()
+    Module authc = new SecurityModule();
+    Module authz = new SecurityAopModule();
+    Module dbModule = new AbstractModule()
     {
       @Override
       protected void configure() {
@@ -308,15 +300,11 @@ public class MultiTenantInsightBrainService
         bind(DataMartDataStore.class).toInstance(DatamartProvider.getInstance());
         bind(ThirdPartyScansDataStore.class).toInstance(ThirdPartyScansProvider.getInstance());
         bind(ThirdPartyScansDataStore.class).toInstance(ThirdPartyScansProvider.getInstance());
-        bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(configuration()));
+        bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(config));
       }
-    });
+    };
 
-    modules.add(buildMultiTenantModule());
-
-    modules.addAll(baseModules());
-
-    return modules;
+    return Arrays.asList(bindings, authc, authz, dbModule, buildMultiTenantModule(config));
   }
 
   @Override
@@ -324,8 +312,8 @@ public class MultiTenantInsightBrainService
     return new MultiTenantDbMigrationCommand();
   }
 
-  protected Module buildMultiTenantModule() {
-    return new DropwizardAwareModule<InsightConfig>()
+  protected Module buildMultiTenantModule(InsightConfig config) {
+    return new AbstractModule()
     {
       @Override
       protected void configure() {
@@ -333,10 +321,10 @@ public class MultiTenantInsightBrainService
         requestStaticInjection(ExecutorThreadPools.class);
 
         bind(TenantManagedInitializer.class).to(MultiTenantTenantManagedInitializer.class).in(Singleton.class);
-
         bind(DatabaseProvisionUtils.class).toInstance(databaseContainer.getDatabaseProvisionUtils());
 
         bind(ApplicationLifecycle.class).to(MultiTenantApplicationLifecycle.class);
+        bind(InsightConfig.class).to(MultiTenantInsightConfig.class);
 
         bind(QuartzJobStoreTX.class).to(MultiTenantQuartzJobStoreTX.class);
         bind(TaskScheduler.class).to(MultiTenantTaskScheduler.class);
@@ -350,7 +338,7 @@ public class MultiTenantInsightBrainService
 
         bind(VersionService.class).to(MultiTenantVersionService.class);
 
-        bind(MultiTenantJwkProvider.class).toInstance(getMultitenantJwkProvider(configuration()));
+        bind(MultiTenantJwkProvider.class).toInstance(getMultitenantJwkProvider(config));
 
         bind(UserDirectory.class).to(MultiTenantUserDirectory.class);
       }
@@ -372,14 +360,15 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
-  protected DropwizardAwareModule wire(final List<Module> modules) {
-    return bannedImplementationService.getBannedModule(modules);
+  protected boolean acceptComponent(Class<?> type) {
+    if (bannedImplementationService.isBanned(type)) {
+      return false;
+    }
+    return super.acceptComponent(type);
   }
 
   @Override
-  protected GuiceBundle.Builder customizeGuiceBundle(GuiceBundle.Builder builder) {
-    return builder
-        .disableInstallers(ResourceInstaller.class)
-        .installers(MtiqResourceInstaller.class);
+  protected Module wire(final List<Module> modules) {
+    return bannedImplementationService.getBannedModule(modules);
   }
 }

@@ -165,24 +165,6 @@ public class JsonUtilsTest
     assertThat(pairs).containsExactly(pair1, pair2, pair3);
   }
 
-  @Test
-  public void testSetFieldToEmptyArray() {
-    String jsonInput = "{\"name\":\"John\",\"last_name\":\"Doe\",\"toRemove\":[\"some_value1\", \"some_value2\"]," +
-        "\"details\":{\"city\":\"New York\",\"toRemove\":[\"some_value1\", \"some_value2\"]}}";
-    String expectedOutput = "{\"name\":\"John\",\"last_name\":\"Doe\",\"toRemove\":[]," +
-        "\"details\":{\"city\":\"New York\",\"toRemove\":[]}}";
-    byte[] modifiedJson = JsonUtils.setFieldToEmptyArray(jsonInput.getBytes(), "toRemove");
-    assertThat(expectedOutput.getBytes()).containsExactly(modifiedJson);
-  }
-
-  @Test
-  public void testSetFieldToEmptyArray_MalformedJson() {
-    String jsonInputWrongFormatted = "{\"name\":\"John\",\"age\":30.0,\"toRemove\":\"[s\"ome_value1, some_value2]\"," +
-        "\"details\":{\"city\":\"New York\",\"toRemove\":\"[another_value1, another_value2]\"}}";
-    assertThatExceptionOfType(UncheckedIOException.class)
-        .isThrownBy(() -> JsonUtils.setFieldToEmptyArray(jsonInputWrongFormatted.getBytes(), "toRemove"));
-  }
-
   private static class Pair
   {
     public Object a;

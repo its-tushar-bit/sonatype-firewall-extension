@@ -112,8 +112,6 @@ public class ReportResource
 
   private static final Set<Character> INVALID_FILESYSTEM_CHARACTERS;
 
-  public static Long FILE_SIZE_THRESHOLD = (long) 100 * 1048576;
-
   private static final long YEAR = (long) 365 * 24 * 60 * 60 * 1000;
 
   private final InsightWork work;
@@ -183,7 +181,7 @@ public class ReportResource
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId,
       @PathParam("path") final String path,
-      @Context final HttpServletRequest httpRequest) throws IOException
+      @Context final HttpServletRequest httpRequest)
   {
     Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();
@@ -213,9 +211,6 @@ public class ReportResource
         if (ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000) {
           return Response.status(304).build();
         }
-      }
-      if ("bom.json".equals(name) && (reportEntry.buf.length > FILE_SIZE_THRESHOLD)) {
-        reportEntry = removeBomPathnames(reportEntry);
       }
       String mimeType = httpRequest.getServletContext().getMimeType(name);
       if (mimeType == null) {
@@ -254,11 +249,6 @@ public class ReportResource
       return new ReportEntry(Report.SECURITY_JSON_FILENAME, reportEntry.time, JsonUtils.generate(securityNode));
     }
     return reportEntry;
-  }
-
-  private ReportEntry removeBomPathnames(ReportEntry reportEntry) throws IOException {
-    byte[] jsonWithoutFieldBuf = JsonUtils.setFieldToEmptyArray(reportEntry.buf, "pathnames");
-    return new ReportEntry(reportEntry.name, reportEntry.time, jsonWithoutFieldBuf);
   }
 
   private void auditBrowseReport(final String scanId, final String name) {

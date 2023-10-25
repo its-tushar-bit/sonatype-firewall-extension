@@ -73,7 +73,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(22)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(23)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
 
     List<String> flagsSet = propertyKeyCaptor.getAllValues();
 
@@ -114,7 +114,7 @@ public class MTIQFeatureServiceTest
 
         //Add all licensed Features
         stream(LicensedFeature.values())
-            .filter(f -> !f.equals(DATA_INSIGHTS)))
+            .filter(f -> !f.equals(DATA_INSIGHTS) && !f.equals(ADVANCED_LEGAL_PACK)))
         .collect(toSet()).toArray(new Feature[]{});
 
     assertThat(features).containsExactlyInAnyOrder(expectedFeatures);
@@ -190,7 +190,6 @@ public class MTIQFeatureServiceTest
         .filter(f -> !f.equals(DEFAULT_BRANCH_MONITORING))
         .filter(f -> !f.equals(PR_COMMENTING))
         .filter(f -> !f.equals(PR_LINE_COMMENTING))
-        .filter(f -> !f.equals(ADVANCED_SEARCH_CONFIGURATION))
         .filter(f -> !f.equals(INTERNAL_FIREWALL_ONBOARDING_ENABLED))
         .filter(f -> !f.equals(AUTOMATIC_APPLICATION_CONFIGURATION))
         .filter(f -> !f.equals(INNER_SOURCE_REPOSITORY_INTEGRATION))

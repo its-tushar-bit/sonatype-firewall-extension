@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.json.store;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -33,6 +36,9 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
 public final class JsonUtils
 {
@@ -277,5 +283,110 @@ public final class JsonUtils
       }
     }
     return null;
+  }
+
+  /**
+   * Receives a JSON object and iterates over its fields. Replaces the value of any occurrence
+   * of {@code fieldNameToEmpty} with an empty array.
+   *
+   * <p>For example, given the following JSON object and {@code fieldNameToEmpty} as "field2":
+   * <pre>
+   * {
+   *     "field1": ["field1_value"],
+   *     "field2": ["field2_value"],
+   *     "field3": {
+   *         "field31": "field31_value",
+   *         "field32": "field32_value",
+   *         "field2": ["field2_value"]
+   *     }
+   * }
+   * </pre>
+   * The method will return:
+   * <pre>
+   * {
+   *     "field1": ["field1_value"],
+   *     "field2": [],
+   *     "field3": {
+   *         "field31": "field31_value",
+   *         "field32": "field32_value",
+   *         "field2": []
+   *     }
+   * }
+   * </pre>
+   *
+   * @param jsonByteBuffer The JSON object to transform.
+   * @param fieldNameToEmpty The name of the field whose value should be replaced with an empty array.
+   * @return The modified JSON object.
+   */
+  public static byte[] setFieldToEmptyArray(byte[] jsonByteBuffer, String fieldNameToEmpty) {
+    try (ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        JsonReader reader = new JsonReader(new InputStreamReader(new ByteArrayInputStream(jsonByteBuffer),
+            StandardCharsets.UTF_8));
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(outStream, StandardCharsets.UTF_8)) ) {
+      iterateJsonExcludingField(reader, writer, fieldNameToEmpty);
+      writer.close();
+      reader.close();
+      return outStream.toByteArray();
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("Failed to process json to remove field streams", e);
+    }
+  }
+
+  private static void iterateJsonExcludingField(JsonReader reader, JsonWriter writer, String fieldNameToExclude)
+      throws IOException
+  {
+    JsonToken token = reader.peek();
+
+    switch (token) {
+      case BEGIN_ARRAY:
+        reader.beginArray();
+        writer.beginArray();
+        while (reader.hasNext()) {
+          iterateJsonExcludingField(reader, writer, fieldNameToExclude);
+        }
+        reader.endArray();
+        writer.endArray();
+        break;
+
+      case BEGIN_OBJECT:
+        reader.beginObject();
+        writer.beginObject();
+        while (reader.hasNext()) {
+          String name = reader.nextName();
+          if (name.equals(fieldNameToExclude)) {
+            reader.skipValue();
+            writer.name(fieldNameToExclude).beginArray().endArray();
+          }
+          else
+          {
+            writer.name(name);
+            iterateJsonExcludingField(reader, writer, fieldNameToExclude);
+          }
+        }
+        reader.endObject();
+        writer.endObject();
+        break;
+
+      case STRING:
+        writer.value(reader.nextString());
+        break;
+
+      case NUMBER:
+        writer.value(reader.nextDouble());
+        break;
+
+      case BOOLEAN:
+        writer.value(reader.nextBoolean());
+        break;
+
+      case NULL:
+        reader.nextNull();
+        writer.nullValue();
+        break;
+
+      default:
+        throw new IllegalStateException("Unexpected JSON token: " + token);
+    }
   }
 }

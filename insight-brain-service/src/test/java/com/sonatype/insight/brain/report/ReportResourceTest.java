@@ -263,6 +263,27 @@ public class ReportResourceTest
   }
 
   @Test
+  public void testBrowseReportRemovesPathNames() throws Exception {
+
+    ReportResource.FILE_SIZE_THRESHOLD = 1L;
+
+    final String scanId = "ReportResourceTest_ScanId";
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
+
+    String reportResource = "/ReportResourceTest/report";
+    mockReport(scanId, reportResource);
+    createScanFile(app.getId(), scanId);
+
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
+        .parameter(app.getPublicId()).body(new Stage(Stage.ID_BUILD)).post();
+    assertResponseStatus(200, response);
+
+    response = request.subpath("bom.json").get();
+    assertResponseStatus(200, response);
+    testAllPathNamesEntriesAreEmpty(response.getBodyText());
+  }
+
+  @Test
   public void testBrowseReport_SharedResources() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
     HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
@@ -944,6 +965,15 @@ public class ReportResourceTest
       for (JsonNode matchDetail : matchedComponentNodes) {
         testJsonApplyDisplayNameChanges(matchDetail);
       }
+    }
+  }
+
+  private void testAllPathNamesEntriesAreEmpty(String json) throws IOException {
+    final ContainerNode<?> partialMatched = JsonUtils.parse(json);
+    final JsonNode aaNode = partialMatched.get("aaData");
+    for (JsonNode license : aaNode) {
+      final ArrayNode pathnames = (ArrayNode) license.get("pathnames");
+      assertThat(pathnames).isEmpty();
     }
   }
 

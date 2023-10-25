@@ -55,7 +55,6 @@
     <!-- dropwizard 3.x and 4.x require Java 11 -->
     <dropwizard.version>2.1.9</dropwizard.version>
     <dropwizard-web.version>1.5.0</dropwizard-web.version>
-    <guice.version>6.0.0</guice.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
     <jersey.version>2.40</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
@@ -493,7 +492,12 @@
       <dependency>
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
-        <version>${guice.version}</version>
+        <version>4.1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.inject.extensions</groupId>
+        <artifactId>guice-multibindings</artifactId>
+        <version>4.1.0</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.sisu</groupId>

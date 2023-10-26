@@ -47,7 +47,7 @@ public class SourceControlEditorPage
     return new NxFormSelect("#source-control-provider-select");
   }
 
-  public static SourceControlFieldset credentailsFieldset() {
+  public static SourceControlFieldset credentialsFieldset() {
     return new SourceControlFieldset("#editor-source-control-token");
   }
 

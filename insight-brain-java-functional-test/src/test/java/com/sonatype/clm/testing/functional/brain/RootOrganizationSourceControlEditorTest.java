@@ -296,7 +296,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.providerSelect().chooseOption(new Option(1, "Azure DevOps"));
 
     // then credentials are shown
-    SourceControlEditorPage.credentailsFieldset().labels().get(0).shouldNotBe(visible);
+    SourceControlEditorPage.credentialsFieldset().labels().get(0).shouldNotBe(visible);
     SourceControlEditorPage.username().shouldBe(visible);
     SourceControlEditorPage.token().shouldBe(visible);
 
@@ -323,7 +323,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.title().click();
     eyesWatcher.eyesCheck("Source Control Editor Bitbucket Default State");
 
-    SourceControlEditorPage.credentailsFieldset().labels().get(0).shouldNotBe(visible);
+    SourceControlEditorPage.credentialsFieldset().labels().get(0).shouldNotBe(visible);
     SourceControlEditorPage.username().shouldBe(visible);
     SourceControlEditorPage.token().shouldBe(visible);
 
@@ -347,7 +347,7 @@ public class RootOrganizationSourceControlEditorTest
     verifyStartWithSourceControl();
     SourceControlEditorPage.providerSelect().chooseOption(new Option(2, "Bitbucket"));
 
-    SourceControlEditorPage.credentailsFieldset().labels().get(0).shouldNotBe(visible);
+    SourceControlEditorPage.credentialsFieldset().labels().get(0).shouldNotBe(visible);
     SourceControlEditorPage.username().shouldBe(visible);
     SourceControlEditorPage.token().shouldBe(visible);
 
@@ -401,8 +401,8 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.providerSelect().chooseOption(new Option(0, "-- Not Configured --"));
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldNotBe(visible);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldNotBe(visible);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(visible);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldNotBe(visible);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Create"));
@@ -455,8 +455,8 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldNotBe(visible);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldNotBe(visible);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(visible);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldNotBe(visible);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));

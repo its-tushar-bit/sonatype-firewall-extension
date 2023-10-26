@@ -70,11 +70,11 @@ public class OrganizationSourceControlEditorTest
 
     verifyStartWithSourceControlInherited();
     SourceControlEditorPage.token().shouldBe(visible, disabled);
-    SourceControlEditorPage.credentailsFieldset().shouldBe(visible);
-    SourceControlEditorPage.credentailsFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldBe(enabled);
-    SourceControlEditorPage.credentailsFieldset().labels().get(1).shouldHave(text("Override"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldBe(enabled).shouldNotBe(selected);
+    SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
+    SourceControlEditorPage.credentialsFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(enabled);
+    SourceControlEditorPage.credentialsFieldset().labels().get(1).shouldHave(text("Override"));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(enabled).shouldNotBe(selected);
   }
 
   @Test
@@ -93,11 +93,11 @@ public class OrganizationSourceControlEditorTest
 
     verifyStartWithSourceControl();
     SourceControlEditorPage.token().shouldBe(visible, disabled);
-    SourceControlEditorPage.credentailsFieldset().shouldBe(visible);
-    SourceControlEditorPage.credentailsFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldBe(enabled);
-    SourceControlEditorPage.credentailsFieldset().labels().get(1).shouldHave(text("Override"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldBe(enabled).shouldNotBe(selected);
+    SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
+    SourceControlEditorPage.credentialsFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(enabled);
+    SourceControlEditorPage.credentialsFieldset().labels().get(1).shouldHave(text("Override"));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(enabled).shouldNotBe(selected);
   }
 
   @Test
@@ -117,11 +117,11 @@ public class OrganizationSourceControlEditorTest
     verifyStartWithSourceControl();
     SourceControlEditorPage.token().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
-    SourceControlEditorPage.credentailsFieldset().shouldBe(visible);
-    SourceControlEditorPage.credentailsFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldBe(enabled);
-    SourceControlEditorPage.credentailsFieldset().labels().get(1).shouldHave(text("Override"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldBe(enabled).shouldBe(selected);
+    SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
+    SourceControlEditorPage.credentialsFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(enabled);
+    SourceControlEditorPage.credentialsFieldset().labels().get(1).shouldHave(text("Override"));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(enabled).shouldBe(selected);
   }
 
   @Test
@@ -131,9 +131,9 @@ public class OrganizationSourceControlEditorTest
     tempEntity.newSourceControl(rootOrganization.getId(), null, "Root_org_token", SourceControlProvider.GITHUB);
     refresh();
 
-    SourceControlEditorPage.credentailsFieldset().labels().get(1).click();
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldBe(selected);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldNotBe(selected);
+    SourceControlEditorPage.credentialsFieldset().labels().get(1).click();
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(selected);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldNotBe(selected);
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
     SourceControlEditorPage.saveButton().click();
@@ -144,8 +144,8 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.token().setValue(TOKEN);
     eyesWatcher.eyesCheck("Source Control Editor Update With Token Provided");
 
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldBe(selected);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldNotBe(selected);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(selected);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldNotBe(selected);
     SourceControlEditorPage.saveButton().shouldBe(enabled).shouldHave(text("Update"));
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -156,8 +156,8 @@ public class OrganizationSourceControlEditorTest
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
     SourceControlEditorPage.resetButton().shouldBe(enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldBe(selected);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldNotBe(selected);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(selected);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldNotBe(selected);
   }
 
   @Test
@@ -180,13 +180,13 @@ public class OrganizationSourceControlEditorTest
 
     verifyStartWithSourceControl();
     SourceControlEditorPage.token().shouldBe(visible, disabled);
-    SourceControlEditorPage.credentailsFieldset().shouldBe(visible);
-    SourceControlEditorPage.credentailsFieldset().labels()
+    SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
+    SourceControlEditorPage.credentialsFieldset().labels()
         .shouldHave(CollectionCondition.texts("Inherit from Root Organization", "Override"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldNotBe(selected);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(selected);
 
-    SourceControlEditorPage.credentailsFieldset().labels().get(1).click();
+    SourceControlEditorPage.credentialsFieldset().labels().get(1).click();
     SourceControlEditorPage.username().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldBe(visible, enabled);
     SourceControlEditorPage.username().setValue("orgusername");
@@ -221,12 +221,12 @@ public class OrganizationSourceControlEditorTest
     // then we should see the username for credentials
     verifyStartWithSourceControl();
     SourceControlEditorPage.token().shouldBe(visible, disabled);
-    SourceControlEditorPage.credentailsFieldset().shouldBe(visible);
-    SourceControlEditorPage.credentailsFieldset().labels()
+    SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
+    SourceControlEditorPage.credentialsFieldset().labels()
         .shouldHave(CollectionCondition.texts("Inherit from Root Organization", "Override"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldNotBe(selected);
-    SourceControlEditorPage.credentailsFieldset().labels().get(1).click();
+    SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(selected);
+    SourceControlEditorPage.credentialsFieldset().labels().get(1).click();
     SourceControlEditorPage.username().setValue("orgusername");
     SourceControlEditorPage.token().setValue("orgsecrettoken");
 
@@ -266,7 +266,7 @@ public class OrganizationSourceControlEditorTest
     // then the credentials should be shown with no option to inherit
     SourceControlEditorPage.username().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldBe(visible, enabled);
-    SourceControlEditorPage.credentailsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
+    SourceControlEditorPage.credentialsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
   }
 
   @Test
@@ -299,8 +299,8 @@ public class OrganizationSourceControlEditorTest
     // then the credentials should be shown with no option to inherit and should be enabled
     SourceControlEditorPage.username().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldBe(visible, enabled);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldNotBe(visible);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldNotBe(visible);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldNotBe(visible);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(visible);
   }
 
   @Ignore("CLM-26304")
@@ -311,7 +311,7 @@ public class OrganizationSourceControlEditorTest
     tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
     refresh();
 
-    SourceControlEditorPage.credentailsFieldset().labels().get(1).click();
+    SourceControlEditorPage.credentialsFieldset().labels().get(1).click();
     SourceControlEditorPage.token().setValue(TOKEN);
 
     //Create the entry to make the insert fail
@@ -333,7 +333,7 @@ public class OrganizationSourceControlEditorTest
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldBe(selected);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(selected);
   }
 
   @Test
@@ -489,11 +489,11 @@ public class OrganizationSourceControlEditorTest
     refresh();
 
     // then elements show inherit status
-    SourceControlEditorPage.credentailsFieldset().shouldBe(visible);
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldBe(selected);
-    SourceControlEditorPage.credentailsFieldset().labels().get(0)
+    SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(selected);
+    SourceControlEditorPage.credentialsFieldset().labels().get(0)
         .shouldHave(text("Inherit from Root Organization"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldBe(enabled);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(enabled);
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.providerFieldset().radioInputs().get(1).shouldBe(enabled);
     SourceControlEditorPage.providerFieldset().radioInputs().get(0).shouldBe(selected, enabled);
@@ -507,16 +507,16 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.providerSelect().chooseOption(new NxFormSelect.Option( 2, "Bitbucket"));
 
     // then credentials are shown with no inherit/override radio buttons
-    SourceControlEditorPage.credentailsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
+    SourceControlEditorPage.credentialsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
     SourceControlEditorPage.username().shouldBe(visible, enabled);
 
     // when change to gitlab (no user name required)
     SourceControlEditorPage.providerSelect().chooseOption(new NxFormSelect.Option(4, "GitLab"));
 
     // then username is not show, and token inherit radio buttons also not shown
-    SourceControlEditorPage.credentailsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
+    SourceControlEditorPage.credentialsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
     SourceControlEditorPage.username().shouldNotBe(visible);
-    SourceControlEditorPage.credentailsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
+    SourceControlEditorPage.credentialsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
     SourceControlEditorPage.token().shouldBe(visible, enabled);
     SourceControlEditorPage.token().setValue(TOKEN);
 
@@ -525,7 +525,7 @@ public class OrganizationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     // then token inherit still not shown and value is set to be the fake
-    SourceControlEditorPage.credentailsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
+    SourceControlEditorPage.credentialsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
     SourceControlEditorPage.token().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
   }
@@ -549,12 +549,12 @@ public class OrganizationSourceControlEditorTest
     FormUtils.getAlertElement(SourceControlEditorPage.root()).shouldBe(visible)
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
 
-    SourceControlEditorPage.credentailsFieldset().shouldBe(visible);
-    SourceControlEditorPage.credentailsFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(0).shouldBe(disabled);
+    SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
+    SourceControlEditorPage.credentialsFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(disabled);
 
-    SourceControlEditorPage.credentailsFieldset().labels().get(1).shouldHave(text("Override"));
-    SourceControlEditorPage.credentailsFieldset().radioInputs().get(1).shouldBe(disabled);
+    SourceControlEditorPage.credentialsFieldset().labels().get(1).shouldHave(text("Override"));
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(disabled);
 
     SourceControlEditorPage.token().shouldBe(disabled);
 

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.net.URI;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,6 +19,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.landing.LandingService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
@@ -61,17 +62,21 @@ class SamlFilter
 
   private final SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder;
 
+  private final Configuration configuration;
+
   @Inject
   public SamlFilter(
       SamlDeploymentManager samlDeploymentManager,
       LandingService landingService,
       SamlSessionIdMapper samlSessionIdMapper,
-      SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder)
+      SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder,
+      Configuration configuration)
   {
     this.samlDeploymentManager = samlDeploymentManager;
     this.landingService = landingService;
     this.samlSessionIdMapper = samlSessionIdMapper;
     this.samlIdPLogoutUrlBuilder = samlIdPLogoutUrlBuilder;
+    this.configuration = configuration;
   }
 
   // Visible for testing
@@ -140,6 +145,18 @@ class SamlFilter
       // there's no point in sending out a SAML challenge to a client which is not prepared for it
       if (requestPath.startsWith("/saml") || EcpAuthenticationHandler.canHandle(httpFacade)) {
         request.removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
+
+        if (configuration.isCspEnabled()) {
+          String frameAncestorsHeader = "";
+          List<String> allowList = configuration.getFrameAncestorsAllowList();
+          if (allowList != null && !allowList.isEmpty()) {
+            frameAncestorsHeader = "frame-ancestors " + String.join(" ", allowList) + ";";
+          }
+
+          httpResponse.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
+              "img-src 'self'; style-src 'self';" + frameAncestorsHeader);
+        }
+
         log.debug("Initiating SAML authentication via identity provider");
         try {
           challenge.challenge(httpFacade);

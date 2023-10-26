@@ -16,9 +16,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.nexus.scm.SourceControlProvider;
+
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
@@ -30,13 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public abstract class AbstractSourceControlEditorTest
     extends AbstractFunctionalTest
 {
-  static final SourceControlEditorPage PAGE = new SourceControlEditorPage();
-
-  static String TOKEN;
+  protected static String TOKEN;
 
   protected final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
-  Organization rootOrganization;
+  protected Organization rootOrganization;
 
   protected Organization organization;
 
@@ -52,28 +50,18 @@ public abstract class AbstractSourceControlEditorTest
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }
 
-  @After
-  public void after() {
-    deleteRootOrgSourceControl();
-  }
-
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
     loginAsAdmin();
   }
 
-  void deleteRootOrgSourceControl() {
-    final SourceControl sourceControl = sourceControlDAO.getByOwnerId(ROOT_ORGANIZATION_ID);
-    sourceControlDAO.delete(sourceControl);
-  }
-
-  void deleteSourceControl(final String ownerId) {
+  protected void deleteSourceControl(final String ownerId) {
     final SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
     sourceControlDAO.delete(sourceControl);
   }
 
-  void assertSourceControl(
+  protected void assertSourceControl(
       final String ownerId,
       final String repositoryUrl,
       final String token,
@@ -91,18 +79,14 @@ public abstract class AbstractSourceControlEditorTest
     return new String(new PasswordHandler(new DefaultPlexusCipher()).decryptPassword(token.toCharArray()));
   }
 
-  void assertSourceControlDoesNotExist(final String ownerId) {
+  protected void assertSourceControlDoesNotExist(final String ownerId) {
     final SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
     assertThat(sourceControl).isNull();
   }
 
-  void assertToolTip(final String text) {
-    Tooltip.get().shouldHave(text(text));
-  }
+  protected abstract void verifyStartNoSourceControl();
 
-  abstract void verifyStartNoSourceControl();
-
-  abstract void verifyStartWithSourceControl();
+  protected abstract void verifyStartWithSourceControl();
 
   protected void verifyNotificationFeaturesOnly() {
     final String unsupportedMessage = "This feature is not supported by your license";

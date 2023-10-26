@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -391,7 +392,7 @@ public class RootOrganizationSourceControlEditorTest
   }
 
   @Override
-  void verifyStartNoSourceControl() {
+  protected void verifyStartNoSourceControl() {
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(
@@ -444,7 +445,7 @@ public class RootOrganizationSourceControlEditorTest
   }
 
   @Override
-  void verifyStartWithSourceControl() {
+  protected void verifyStartWithSourceControl() {
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(
@@ -468,5 +469,10 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
+  }
+
+  private void deleteRootOrgSourceControl() {
+    final SourceControl sourceControl = sourceControlDAO.getByOwnerId(ROOT_ORGANIZATION_ID);
+    sourceControlDAO.delete(sourceControl);
   }
 }

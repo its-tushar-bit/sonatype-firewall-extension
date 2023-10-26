@@ -37,16 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.attribute;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.matchText;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -61,12 +52,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationSourceControlEditorTest
     extends AbstractSourceControlEditorTest
 {
-  public static final CollectionCondition CONFIG_TEST_NAMES = texts(
+  private static final CollectionCondition CONFIG_TEST_NAMES = texts(
       "Configuration complete",
       "Private repository",
       "Sufficient token permissions");
 
-  public static final CollectionCondition CONFIG_TEST_SSH_NAMES = texts(
+  private static final CollectionCondition CONFIG_TEST_SSH_NAMES = texts(
       "Configuration complete",
       "Private repository",
       "Sufficient token permissions",
@@ -99,7 +90,6 @@ public class ApplicationSourceControlEditorTest
             .withBody("{\"username\":\"foo\"}")));
   }
 
-  @Override
   @After
   public void after() {
     ApiCompositeSourceControlConfigValidatorService.disableSshForFunctionalTest = false;
@@ -982,7 +972,7 @@ public class ApplicationSourceControlEditorTest
   }
 
   @Override
-  void verifyStartNoSourceControl() {
+  protected void verifyStartNoSourceControl() {
     System.out.println("verifyStartNoSourceControl: Application id: " + application.getId() + ", public id: "
         + application.getPublicId());
     SourceControlEditorPage.root().shouldBe(visible);
@@ -1066,7 +1056,7 @@ public class ApplicationSourceControlEditorTest
   }
 
   @Override
-  void verifyStartWithSourceControl() {
+  protected void verifyStartWithSourceControl() {
     verifyStartWithSourceControl(false);
   }
 

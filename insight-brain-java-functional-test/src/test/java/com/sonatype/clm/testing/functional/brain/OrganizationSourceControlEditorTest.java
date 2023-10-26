@@ -531,7 +531,7 @@ public class OrganizationSourceControlEditorTest
   }
 
   @Override
-  void verifyStartNoSourceControl() {
+  protected void verifyStartNoSourceControl() {
     System.out.println("verifyStartNoSourceControl: Organization id: " + organization.getId());
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
@@ -615,7 +615,7 @@ public class OrganizationSourceControlEditorTest
   }
 
   @Override
-  void verifyStartWithSourceControl() {
+  protected void verifyStartWithSourceControl() {
     verifyStartWithSourceControl(false);
   }
 

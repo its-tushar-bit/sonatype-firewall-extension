@@ -10,5 +10,4 @@ export const SECTIONS = {
   SCM: 'scm',
   ISSUE_TRACKING: 'issuetracking',
   IDE: 'ide',
-  APPS_WITHOUT_CI_INTEGRATIONS: 'appsWithoutCiIntegrations',
 };

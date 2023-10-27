@@ -6,20 +6,17 @@
 
 package com.sonatype.clm.testing.functional;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.stream.IntStream;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
@@ -32,19 +29,14 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
 public class IntegrationsPageTest extends AbstractFunctionalTest
 {
-  private static final String DONUT_TEST_ID = "iq-integrations-cicard__donut";
-
-  private static final String CI_USAGE_APP_TABLE_TEST_ID = "iq-integrations-apps-without-recent-usage-preview";
-
-  private static final String CI_USAGE_PERCENT_SELECTOR = ".iq-integrations-cicard__donut-col";
-
-  private static final int TOTAL_APPS_WITHOUT_CI_INTEGRATIONS = 10;
+  private static final int TOTAL_APPS_FOR_INTEGRATION_AND_RISKS = 10;
 
   private static final String REPO_URL = "https://example.com/organization/project";
 
@@ -84,35 +76,10 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     ideTab().shouldBe(visible).click();
     waitUntilUrl(IntegrationsPage.urlIde());
     ideSection().shouldBe(visible);
-  }
 
-  @Test
-  public void testCiUsageIsShown() {
-    final Organization givenOrg = tempEntity.newOrganization("Parent Org");
-
-    final String appNameWithCiUsage = "App With Ci Scan";
-    final String appNameWithoutCiUsage = "App With No Ci Scan";
-
-    givenAppWithEvalFromCi(appNameWithCiUsage, "app-for-ci-scan", givenOrg);
-    givenAppWithoutEvalFromCi(appNameWithoutCiUsage, "app-with-no-ci-scan", givenOrg);
-
-    refreshOrOpen(IntegrationsPage.urlOverview());
-
-    ciUsageDonut().shouldBe(visible);
-    ciUsagePercentMessage().shouldHave(text("50% of your apps are not integrated with CI"));
-    ciUsageAppTable().shouldBe(visible);
-    ciUsageAppTable().shouldHave(text(appNameWithoutCiUsage));
-    ciUsageAppTable().shouldNotHave(text(appNameWithCiUsage));
-
-    viewAllAppsButton().shouldNotBe(visible);
-
-    Arrays.asList("app1", "app2", "app3", "app4", "app5", "app6")
-        .forEach(newApp -> givenAppWithoutEvalFromCi(newApp, newApp, givenOrg));
-
-    refreshOrOpen(IntegrationsPage.urlOverview());
-    viewAllAppsButton().shouldBe(visible).click();
-
-    appsWithoutCiIntegrationsTable().shouldBe(visible);
+    overviewTab().shouldBe(visible).click();
+    waitUntilUrl(IntegrationsPage.urlOverview());
+    overviewSection().shouldBe(visible);
   }
 
   @Test
@@ -137,67 +104,81 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   }
 
   @Test
-  public void testAppsWithoutCiIntegrationsPage() {
-    createAppsWithPolicyViolations(TOTAL_APPS_WITHOUT_CI_INTEGRATIONS);
+  public void testAppIntegrationsAndRiskTable() throws Exception {
+    setUpAppsForIntegrationAndRisks();
+    refreshOrOpen(IntegrationsPage.urlOverview());
 
-    refreshOrOpen(IntegrationsPage.urlAppsWithoutCiIntegrations());
+    scrollIntoView(appIntegrationsAndRiskTable());
 
-    appsWithoutCiIntegrationsTable().shouldBe(visible);
+    appIntegrationsAndRiskTable().shouldBe(visible);
 
-    appsWithoutCiIntegrationsTableDataRows().shouldHaveSize(TOTAL_APPS_WITHOUT_CI_INTEGRATIONS);
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(TOTAL_APPS_FOR_INTEGRATION_AND_RISKS);
 
     applicationName(0).shouldHave(text("appName9"));
+    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
+    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 3, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 6, 2023"));
     totalRisk(0).shouldHave(text("9"));
+
+    applicationName(9).shouldHave(text("appName0"));
+    cicdStatus(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    scmFeedbackStatus(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    lastCommitDate(9).shouldBe(visible).shouldHave(text("February 12, 2023"));
+    lastEvaluationDate(9).shouldBe(visible).shouldHave(text("March 15, 2023"));
+    totalRisk(9).shouldHave(text("0"));
 
     eyesWatcher.eyesCheck();
 
     //Sorting by total risk
     totalRiskColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
+    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
 
     //Sorting by app name
     applicationColumnHeader().click();
     applicationName(0).shouldHave(text("appName9"));
+    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
+    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 3, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 6, 2023"));
     totalRisk(0).shouldHave(text("9"));
+
+    totalRiskColumnHeader().click();
+
+    //Sorting by last commit
+    lastCommitColumnHeader().click();
+    applicationName(0).shouldHave(text("appName0"));
+    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
+    totalRisk(0).shouldHave(text("0"));
+
+    totalRiskColumnHeader().click();
+
+    //Sorting by last evaluation
+    lastEvaluationColumnHeader().click();
+    applicationName(0).shouldHave(text("appName0"));
+    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
+    totalRisk(0).shouldHave(text("0"));
 
     //Searching for application
     applicationFilterInput().sendKeys("appName5");
     applicationName(0).shouldHave(text("appName5"));
+    cicdStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
+    scmFeedbackStatus(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-disabled"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 7, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 10, 2023"));
     totalRisk(0).shouldHave(text("5"));
-    appsWithoutCiIntegrationsTableDataRows().shouldHaveSize(1);
-
-    //Clicking back button
-    backButton().shouldHave(text("Back to Overview")).click();
-    appsWithoutCiIntegrationsTable().shouldNotBe(visible);
-
-    waitUntilUrl(IntegrationsPage.urlOverview());
-    overviewSection().shouldBe(visible);
-  }
-
-  @Test
-  public void testAppsWithoutScmIntegrationsPage() throws Exception {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null,
-            (new DefaultPlexusCipher()).encrypt(ROOT_TOKEN, ENC),
-            SourceControlProvider.GITHUB);
-
-    final Application configuredApp = tempEntity.newApplicationWithParent("app1", "Configured App");
-    final Application unconfiguredApp = tempEntity.newApplicationWithParent("app2", "Unconfigured App");
-
-    // Add a source control record for configuredApp with ASCF enabled, so it shouldn't be in the result list
-    // unconfiguredApp has no source control record, so it should be in the result list
-    tempEntity.newSourceControl(configuredApp.getId(), REPO_URL, null, null, null, null, false,
-            null, null, null, true, true, "/target/*", true, true);
-
-    refreshOrOpen(IntegrationsPage.urlOverview());
-
-    appsWithoutScmIntegrationsTable().shouldBe(visible);
-
-    appsWithoutScmIntegrationsTableDataRows().shouldHaveSize(1);
-
-    applicationNameWithNoScm(0).shouldHave(text(unconfiguredApp.getName()));
-
-    eyesWatcher.eyesCheck();
+    appIntegrationsAndRiskTableDataRows().shouldHaveSize(1);
   }
 
   @Test
@@ -220,17 +201,42 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     assertDisabled();
   }
 
-  private void createAppsWithPolicyViolations(int numOfViolations) {
-    IntStream.range(0, numOfViolations)
-        .forEach(i -> {
-          final Application application = tempEntity.newApplicationWithParent("appId" + i, "appName" + i);
-          final Policy policy = tempEntity.newPolicy(application);
-          policy.setThreatLevel(i);
-          final PolicyEvaluation policyEvaluation =
-                  tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-" + i,
-                          new Date(System.currentTimeMillis() - 2000));
-          tempEntity.newPolicyViolation(policyEvaluation, policy);
-        });
+  private void setUpAppsForIntegrationAndRisks() throws Exception {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null,
+            (new DefaultPlexusCipher()).encrypt(ROOT_TOKEN, ENC),
+            SourceControlProvider.GITHUB);
+
+    Calendar calendarForLastEval = Calendar.getInstance();
+    calendarForLastEval.set(2023, Calendar.MARCH, 15);
+
+    Calendar calendarForLastCommit = Calendar.getInstance();
+    calendarForLastCommit.set(2023, Calendar.FEBRUARY, 12);
+
+    IntStream.range(0, TOTAL_APPS_FOR_INTEGRATION_AND_RISKS)
+            .forEach(i -> {
+              final Application application = tempEntity.newApplicationWithParent("appId" + i, "appName" + i);
+              final Policy policy = tempEntity.newPolicy(application);
+              policy.setThreatLevel(i);
+              final PolicyEvaluation policyEvaluation =
+                      tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-" + i,
+                              calendarForLastEval.getTime());
+              tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+              tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(),
+                      "commit1", calendarForLastCommit.getTime(), null);
+
+              if (i == 0 || i == 1) {
+                tempEntity.newSourceControl(application.getId(), REPO_URL, null, null, null, null, false,
+                        null, null, null, true,
+                        true, "/target/*", true, true);
+                tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-id-1",
+                        false, false, false,
+                        calendarForLastEval.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
+              }
+
+              calendarForLastEval.add(Calendar.DATE, -1);
+              calendarForLastCommit.add(Calendar.DATE, -1);
+            });
   }
 
   private SelenideElement navigationTabs() {
@@ -277,117 +283,64 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return $("#iq-integrations-ide-section");
   }
 
-  private SelenideElement ciUsageDonut() {
-    return $(String.format("[data-testid='%s']", DONUT_TEST_ID));
-  }
-
-  private SelenideElement ciUsagePercentMessage() {
-    return $(CI_USAGE_PERCENT_SELECTOR);
-  }
-
   private SelenideElement ideUserCount() {
-    return overviewSection().$(".nx-card__call-out");
-  }
-
-  private SelenideElement ciUsageAppTable() {
-    return $(String.format("[data-testid='%s'", CI_USAGE_APP_TABLE_TEST_ID));
-  }
-
-  private SelenideElement viewAllAppsButton() {
-    return overviewSection().$(".nx-btn");
-  }
-
-  private SelenideElement backButton() {
-    return $("#menu-bar__back-button-container");
-  }
-
-  private void givenAppWithEvalFromCi(
-      final String appName,
-      final String publicId,
-      final Organization organization)
-  {
-    final Application givenApp = tempEntity.newApplication(appName, publicId, organization.getId());
-
-    final PolicyEvaluation givenEval = new PolicyEvaluation(
-        givenApp.getId(),
-        "random-stage-type-id",
-        "random-scan-id",
-        false,
-        false,
-        "random-initiator",
-        ScanTriggerType.CONTINUOUS_INTEGRATION,
-        ClientScanType.SONATYPE
-    );
-    givenEval.setForObsoleteScan(false);
-    givenEval.setTime(Date.from(Instant.now()));
-
-    tempEntity.insertPolicyEvaluation(givenEval);
-  }
-
-  private void givenAppWithoutEvalFromCi(
-      final String appName,
-      final String publicId,
-      final Organization organization)
-  {
-    final Application givenApp = tempEntity.newApplication(appName, publicId, organization.getId());
-
-    final PolicyEvaluation givenEval = new PolicyEvaluation(
-        givenApp.getId(),
-        "random-stage-type-id-not-ci",
-        "random-scan-id-not-ci",
-        false,
-        true,
-        "random-initiator",
-        ScanTriggerType.SOURCE_CONTROL_API,
-        ClientScanType.SONATYPE
-    );
-    givenEval.setTime(Date.from(Instant.now()));
-
-    tempEntity.insertPolicyEvaluation(givenEval);
-  }
-
-  private SelenideElement appsWithoutCiIntegrationsTable() {
-    return $("#iq-integrations-apps-without-ci-integrations-section-table");
+    return overviewSection().$(".iq-integrations-card-callout--count");
   }
 
   private SelenideElement applicationName(int rowNum) {
-    return appsWithoutCiIntegrationsTableDataRows().get(rowNum).$(".nx-cell:nth-child(1)");
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(1)");
+  }
+
+  private SelenideElement cicdStatus(int rowNum) {
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(2) svg");
+  }
+
+  private SelenideElement scmFeedbackStatus(int rowNum) {
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(3) svg");
+  }
+
+  private SelenideElement lastCommitDate(int rowNum) {
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(4)");
+  }
+
+  private SelenideElement lastEvaluationDate(int rowNum) {
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(5)");
   }
 
   private SelenideElement totalRisk(int rowNum) {
-    return appsWithoutCiIntegrationsTableDataRows().get(rowNum).$(".nx-cell:nth-child(2)");
-  }
-
-  private ElementsCollection appsWithoutCiIntegrationsTableDataRows() {
-    return appsWithoutCiIntegrationsTable().findAll(" tbody .nx-table-row");
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(6)");
   }
 
   private SelenideElement applicationFilterInput() {
-    return appsWithoutCiIntegrationsTable().$(".nx-text-input__input");
+    return appIntegrationsAndRiskTable().$(".nx-text-input__input");
   }
 
   private SelenideElement applicationColumnHeader() {
-    return appsWithoutCiIntegrationsTable().$(".nx-cell--header:nth-child(1)");
+    return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(1)");
+  }
+
+  private SelenideElement lastCommitColumnHeader() {
+    return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(4)");
+  }
+
+  private SelenideElement lastEvaluationColumnHeader() {
+    return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(5)");
   }
 
   private SelenideElement totalRiskColumnHeader() {
-    return appsWithoutCiIntegrationsTable().$(".nx-cell--header:nth-child(2)");
-  }
-
-  private SelenideElement appsWithoutScmIntegrationsTable() {
-    return $("#iq-integrations-apps-without-scm-integrations-section");
-  }
-
-  private ElementsCollection appsWithoutScmIntegrationsTableDataRows() {
-    return appsWithoutScmIntegrationsTable().findAll(" tbody .nx-table-row");
-  }
-
-  private SelenideElement applicationNameWithNoScm(int rowNum) {
-    return appsWithoutScmIntegrationsTableDataRows().get(rowNum).$(".nx-cell:nth-child(1)");
+    return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(6)");
   }
 
   private SelenideElement licenseFeatureMissingAlert() {
     return $("[data-testid='iq-integrations__missing-license']");
+  }
+
+  private SelenideElement appIntegrationsAndRiskTable() {
+    return $("#iq-developer-app-integrations-and-risk-table");
+  }
+
+  private ElementsCollection appIntegrationsAndRiskTableDataRows() {
+    return appIntegrationsAndRiskTable().findAll(" tbody .nx-table-row");
   }
 
   private void assertDisabled() {

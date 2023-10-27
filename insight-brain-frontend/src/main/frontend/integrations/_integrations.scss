@@ -51,14 +51,14 @@ a.nx-text-link.integrations-link.integrations-link-selected {
   height: 48px;
 }
 
-.iq-integrations-card--align-left {
-  text-align: left;
-}
-
 .iq-integrations__full-width-text {
   &.nx-p {
     max-width: unset;
   }
+}
+
+.iq-integrations-card--align-left {
+  text-align: left;
 }
 
 .iq-integrations-card-container {
@@ -77,65 +77,16 @@ a.nx-text-link.integrations-link.integrations-link-selected {
   max-width: $page-max-width;
 }
 
-.iq-integrations-cicard__content {
-  &.nx-card__content {
-    align-items: start;
-  }
-}
-
-.iq-integrations-cicard__donut-wrapper {
-  display: flex;
-  gap: var(--nx-spacing-4x);
-  flex-direction: row;
-  align-items: center;
-  max-width: 468px;
-
-  .iq-integrations-cicard__donut {
-    &.nx-binary-donut-chart {
-      height: $donut-size;
-
-      .nx-binary-donut-chart__arc {
-        stroke: var(--nx-swatch-red-40);
-      }
-    }
-  }
-
-  .iq-integrations-cicard__donut-caption {
-    font-weight: bold;
-    color: var(--nx-color-text-dark);
-    text-align: center;
-    max-width: 311px;
+.iq-integrations-card-cicd,
+.iq-integrations-card-ide {
+  &.nx-card {
     text-align: left;
-  }
-}
-
-.iq-integrations-cicard__left {
-  min-width: $apps-without-ci-preview-table-place-holder-width;
-}
-
-.iq-integrations-cicard__left,
-.iq-integrations-cicard__right {
-  width: 100%;
-}
-
-.iq-integrations-cicard__content {
-  display: flex;
-  flex-direction: row;
-  gap: var(--nx-spacing-6x);
-}
-
-.iq-integrations-ci-usage-preview-view-all {
-  &.nx-btn {
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
   }
 }
 
 .iq-integrations-card-ide {
-  &.nx-card {
-    max-width: 486px;
-    text-align: left;
+  .nx-card__content {
+    align-items: flex-start;
   }
 
   .nx-card__content--row {
@@ -157,13 +108,26 @@ a.nx-text-link.integrations-link.integrations-link-selected {
   }
 
   .iq-integrations-card-callout {
-    min-width: 140px;
-    font-size: var(--nx-font-size-s);
-    text-align: center;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 20px;
 
-    .nx-card__call-out {
-      color: var(--nx-swatch-blue-50);
-      margin-bottom: var(--nx-spacing-4x);
+    .iq-integrations-card-callout--count {
+      background-color: var(--nx-swatch-blue-50);
+      border-radius: 8px;
+      color: var(--nx-swatch-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      height: 60px;
+      width: 94px;
+    }
+
+    .iq-integrations-card-callout--message {
+      color: var(--nx-color-text-dark);
+      font-weight: 600;
     }
   }
 }
@@ -178,6 +142,14 @@ svg.nx-icon.iq-total-risk-info-icon {
   color: var(--nx-color-text-dark);
 }
 
-.nx-p.iq-integrations-page-full-width {
-  max-width: 100%;
+.nx-cell.iq-developer-app-integrations-header {
+  text-align: center;
+}
+
+.iq-integrations-and-risk-enabled {
+  color: var(--nx-swatch-green-40);
+}
+
+.iq-integrations-and-risk-disabled {
+  color: var(--nx-swatch-red-40);
 }

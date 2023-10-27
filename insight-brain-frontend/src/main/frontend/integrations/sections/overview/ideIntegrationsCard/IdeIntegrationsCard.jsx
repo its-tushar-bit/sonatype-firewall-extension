@@ -32,18 +32,18 @@ export default function IdeIntegrationsCard() {
       <NxCard.Header>
         <NxH3>Integrate using IDEs</NxH3>
       </NxCard.Header>
-      <NxCard.Content className={`nx-card__content--columns ${loadError ? 'nx-card__content--row' : ''}`}>
+      <NxCard.Content className={loadError ? 'nx-card__content--row' : ''}>
         <div className="iq-integrations-card-callout">
           <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
-            <div className="nx-card__call-out">{ideIntegratedUserCount}</div>
-            <div>{ideUserCountMessage}</div>
+            <div className="iq-integrations-card-callout--count">{ideIntegratedUserCount}</div>
+            <div className="iq-integrations-card-callout--message">{ideUserCountMessage}</div>
           </NxLoadWrapper>
         </div>
 
         <NxCard.Text>
           IDE integrations give you immediate visibility into open-source issues that do not meet AppSec requirements.
-          Prevent frustrating rework by discovering issues before committing any code.
         </NxCard.Text>
+        <NxCard.Text>Prevent frustrating rework by discovering issues before committing any code.</NxCard.Text>
       </NxCard.Content>
       <NxCard.Footer>
         <NxTextLink href={ideHref} data-analytics-id="sonatype-developer-overview-ide-integration">

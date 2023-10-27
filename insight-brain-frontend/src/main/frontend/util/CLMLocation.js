@@ -1329,9 +1329,7 @@ export const getConfigureFirewallOnboardingUrl = () => uriTemplate`/rest/reposit
 
 export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositories/proprietaryComponentNamePatterns`;
 
-export const getAppsWithoutCiIntegrations = () => uriTemplate`/rest/plugin/apps/ci`;
-
-export const getAppsWithoutScmIntegrations = () => uriTemplate`/rest/sourceControl/application`;
+export const getAppIntegrationsAndRisk = () => uriTemplate`/rest/integrations/statuses`;
 
 export const getConfigurationUrl = () => {
   return uriTemplate`/api/v2/config`;

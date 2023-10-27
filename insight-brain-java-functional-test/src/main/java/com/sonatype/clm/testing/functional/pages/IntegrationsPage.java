@@ -30,8 +30,4 @@ public class IntegrationsPage extends BasicElement<IntegrationsPage>
   public static String urlIde() {
     return BaseUrl.resolvePageUrl("/integrations/ide");
   }
-
-  public static String urlAppsWithoutCiIntegrations() {
-    return BaseUrl.resolvePageUrl("/apps-without-ci-integrations");
-  }
 }

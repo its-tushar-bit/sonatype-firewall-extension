@@ -4,21 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { combineReducers } from 'redux';
-import ciUsageRequestSlice from './sections/overview/ciUsageSlice';
 import ideIntegrationsSlice from './sections/overview/ideIntegrationsCard/ideIntegrationsSlice';
-import appsWithoutRecentCiUsagePreviewSlice from 'MainRoot/integrations/slices/appsWithoutRecentCiUsagePreviewSlice';
-import appsWithoutCiIntegrationsSlice from './sections/AppsWithoutCiIntegrations/appsWithoutCiIntegrationsSlice';
-import appsWithoutScmIntegrationsSlice from './sections/AppsWithoutScmIntegrations/appsWithoutScmIntegrationsSlice';
+import appIntegrationsAndRiskSlice from './sections/AppIntegrationsAndRiskTable/appIntegrationsAndRiskSlice';
 
 export const INTEGRATIONS = 'integrations';
-export const CI_USAGE = 'ciUsage';
-export const APPS_WITHOUT_SCM_INTEGRATIONS = 'appsWithoutScmIntegrations';
-export const CI_APPS_WITHOUT_RECENT_CI_USAGE_PREVIEW = 'appsWithoutRecentCiUsagePreview';
+export const APP_INTEGRATIONS_AND_RISK = 'appIntegrationsAndRisk';
 
 export default combineReducers({
-  [CI_USAGE]: ciUsageRequestSlice,
   ideIntegrations: ideIntegrationsSlice,
-  [CI_APPS_WITHOUT_RECENT_CI_USAGE_PREVIEW]: appsWithoutRecentCiUsagePreviewSlice,
-  appsWithoutCiIntegrations: appsWithoutCiIntegrationsSlice,
-  [APPS_WITHOUT_SCM_INTEGRATIONS]: appsWithoutScmIntegrationsSlice,
+  [APP_INTEGRATIONS_AND_RISK]: appIntegrationsAndRiskSlice,
 });

@@ -6,7 +6,6 @@
 
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import SonatypeDeveloperPage from './SonatypeDeveloperPage';
-import AppsWithoutCiIntegrations from './sections/AppsWithoutCiIntegrations/AppsWithoutCiIntegrations';
 
 export const SECTIONS = {
   OVERVIEW: 'overview',
@@ -14,13 +13,11 @@ export const SECTIONS = {
   SCM: 'scm',
   ISSUE_TRACKING: 'issuetracking',
   IDE: 'ide',
-  APPS_WITHOUT_CI_INTEGRATIONS: 'appsWithoutCiIntegrations',
 };
 
 const integrationsModule = angular
   .module('integrationsModule', ['ngRedux'])
   .component('sonatypeDeveloperPage', iqReact2Angular(SonatypeDeveloperPage, [], ['$ngRedux', '$state']))
-  .component('appsWithoutCiIntegrations', iqReact2Angular(AppsWithoutCiIntegrations, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -50,13 +47,6 @@ function routes($stateProvider) {
     })
     .state(`integrations.${SECTIONS.IDE}`, {
       url: '/ide',
-    })
-    .state(`integrations-${SECTIONS.APPS_WITHOUT_CI_INTEGRATIONS}`, {
-      url: '/apps-without-ci-integrations',
-      component: 'appsWithoutCiIntegrations',
-      data: {
-        title: 'Apps Without CI Integrations',
-      },
     });
 }
 

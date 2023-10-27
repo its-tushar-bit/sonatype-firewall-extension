@@ -5,24 +5,22 @@
  */
 
 import React from 'react';
+import { NxCard, NxH2 } from '@sonatype/react-shared-components';
 import CiCard from 'MainRoot/integrations/sections/overview/CiCard';
-import { NxH2, NxCard } from '@sonatype/react-shared-components';
 import IdeIntegrationsCard from './ideIntegrationsCard/IdeIntegrationsCard';
-import AppsWithoutScmIntegrations from '../AppsWithoutScmIntegrations/AppsWithoutScmIntegrations';
+import AppIntegrationsAndRiskTable from '../AppIntegrationsAndRiskTable/AppIntegrationsAndRiskTable';
 
 export default function Overview() {
   return (
     <div id="iq-integrations-overview-section">
       <NxH2>Understanding Your Code Risks</NxH2>
 
-      <CiCard />
-
-      <NxH2>Remediating Your Code Risks</NxH2>
-      <AppsWithoutScmIntegrations />
-
       <NxCard.Container>
+        <CiCard />
         <IdeIntegrationsCard />
       </NxCard.Container>
+
+      <AppIntegrationsAndRiskTable />
     </div>
   );
 }

@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -52,7 +52,8 @@ public abstract class AbstractSourceControlEditorTest
 
   @BeforeClass
   public static void beforeClass() {
-    refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
+    // not a page that's relevant to this test, just somewhere to log in. Each test must navigate to its relevant page
+    refreshOrOpen(GettingStartedPage.url());
     loginAsAdmin();
   }
 

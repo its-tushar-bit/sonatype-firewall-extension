@@ -32,7 +32,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.http.HttpHeaders;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -543,7 +542,6 @@ public class ApplicationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
   }
 
-  @Ignore("CLM-26304")
   @Test
   public void testSourceControlEditor_updateFailure() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
@@ -717,7 +715,6 @@ public class ApplicationSourceControlEditorTest
     assertSourceControlDoesNotExist(application.getId());
   }
 
-  @Ignore("CLM-26304")
   @Test
   public void testSourceControlEditor_deleteFailure() {
     tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
@@ -854,7 +851,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlRepositoryUrlUpdateModal.root().shouldBe(hidden);
   }
 
-  @Ignore("CLM-27244")
   @Test
   public void testSourceControlEditor_providerAtOrg_tokenAtRoot_updateToken() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));

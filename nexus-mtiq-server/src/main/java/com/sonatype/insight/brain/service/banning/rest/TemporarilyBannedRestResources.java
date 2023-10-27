@@ -8,12 +8,13 @@ package com.sonatype.insight.brain.service.banning.rest;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalResource;
-import com.sonatype.insight.brain.api.v2.*;
+import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
+import com.sonatype.insight.brain.api.v2.DefaultApiAdvancedSearchResourceV2;
+import com.sonatype.insight.brain.api.v2.DefaultApiJiraConfigurationResource;
+import com.sonatype.insight.brain.api.v2.DefaultApiLegalAttributionReportTemplateResourceV2;
+import com.sonatype.insight.brain.api.v2.DefaultApiLegalReportResourceV2;
 import com.sonatype.insight.brain.configuration.ldap.LdapResource;
 import com.sonatype.insight.brain.ide.IdeResource;
-import com.sonatype.insight.brain.integration.DefaultApplicationEvaluationResource;
-import com.sonatype.insight.brain.integration.DefaultApplicationSummaryResource;
-import com.sonatype.insight.brain.integration.DefaultOrganizationSummaryResource;
 import com.sonatype.insight.brain.labs.LabsResource;
 import com.sonatype.insight.brain.search.AdvancedSearchResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
@@ -37,9 +38,6 @@ public class TemporarilyBannedRestResources
 
       // Integrations CLM-27720
       IdeResource.class,
-      DefaultApplicationEvaluationResource.class,
-      DefaultApplicationSummaryResource.class,
-      DefaultOrganizationSummaryResource.class,
 
       // Advanced search CLM-27720
       AdvancedSearchResource.class,

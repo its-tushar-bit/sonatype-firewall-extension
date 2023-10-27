@@ -1212,6 +1212,13 @@
         <artifactId>testcontainers</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
+      <!-- Avoid old version of jna brought in by downstream (oshi) components, to support running ITs on Arm/M1 -->
+      <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna</artifactId>
+        <version>5.8.0</version>
+        <scope>test</scope>
+      </dependency>
       <!-- Avoid old version brought in by selenide
       <dependency>
         <groupId>org.junit.platform</groupId>

@@ -14,9 +14,15 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyApplicationDTO;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryContainerDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryManagerDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
@@ -83,15 +89,76 @@ public class SidebarServiceTest
   }
 
   @Test
+  public void testGetOwnerDetails_RepositoryContainer() {
+    Policy policy = tempEntity.newPolicy(RepositoryContainer.SINGLETON);
+
+    OwnerDetailsDTO ownerDetailsDTO =
+        sidebarService.getOwnerDetails(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(ownerDetailsDTO.tags).isEmpty();
+
+    assertThat(ownerDetailsDTO.policies).hasSize(1);
+    assertThat(ownerDetailsDTO.policies.get(0).getId()).isEqualTo(policy.getId());
+
+    assertThat(ownerDetailsDTO.labels).isEmpty();
+
+    assertThat(ownerDetailsDTO.licenseThreatGroups).isEmpty();
+
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
+  }
+
+  @Test
+  public void testGetOwnerDetails_RepositoryManager() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+
+    Policy policy = tempEntity.newPolicy(repoManager);
+
+    OwnerDetailsDTO ownerDetailsDTO = sidebarService.getOwnerDetails(OwnerType.REPOSITORY_MANAGER, repoManager.getId());
+    assertThat(ownerDetailsDTO.tags).isEmpty();
+
+    assertThat(ownerDetailsDTO.policies).hasSize(1);
+    assertThat(ownerDetailsDTO.policies.get(0).getId()).isEqualTo(policy.getId());
+
+    assertThat(ownerDetailsDTO.labels).isEmpty();
+
+    assertThat(ownerDetailsDTO.licenseThreatGroups).isEmpty();
+
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
+  }
+
+  @Test
+  public void testGetOwnerDetails_Repository() {
+    Repository repo = tempEntity.newRepository();
+
+    Policy policy = tempEntity.newPolicy(repo);
+
+    OwnerDetailsDTO ownerDetailsDTO = sidebarService.getOwnerDetails(OwnerType.REPOSITORY, repo.getId());
+    assertThat(ownerDetailsDTO.tags).isEmpty();
+
+    assertThat(ownerDetailsDTO.policies).hasSize(1);
+    assertThat(ownerDetailsDTO.policies.get(0).getId()).isEqualTo(policy.getId());
+
+    assertThat(ownerDetailsDTO.labels).isEmpty();
+
+    assertThat(ownerDetailsDTO.licenseThreatGroups).isEmpty();
+
+    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(new RoleDAO().getApplicationRoles());
+  }
+
+  @Test
   public void testGetOwnerList() {
     Organization orgOne = tempEntity.newOrganization();
     Application appOne = tempEntity.newApplication(orgOne.getId());
     Application appTwo = tempEntity.newApplication(orgOne.getId());
     Organization orgTwo = tempEntity.newOrganization(orgOne);
     Application appThree = tempEntity.newApplication(orgTwo.getId());
+    RepositoryManager repositoryManagerOne = tempEntity.newRepositoryManager();
+    Repository repositoryOne = tempEntity.newRepository(repositoryManagerOne, "repository-one");
+    RepositoryManager repositoryManagerTwo = tempEntity.newRepositoryManager();
+    Repository repositoryTwo = tempEntity.newRepository(repositoryManagerTwo, "repository-two");
+    Repository repositoryThree = tempEntity.newRepository(repositoryManagerTwo, "repository-three");
 
     OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
-    assertThat(ownerHierarchyDTO.ownersMap).hasSize(6);
+    assertThat(ownerHierarchyDTO.ownersMap).hasSize(12);
     OwnerHierarchyOrganizationDTO rootOrg = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(
         ownerHierarchyDTO.topParentOrganizationId
     );
@@ -132,5 +199,57 @@ public class SidebarServiceTest
     assertThat(secondLevelOrgApplication.id).isEqualTo(appThree.getId());
     assertThat(secondLevelOrg.subOrgs).isEqualTo(0);
     assertThat(secondLevelOrg.totalApps).isEqualTo(1);
+
+    // repository container
+    OwnerHierarchyRepositoryContainerDTO repositoryContainer =
+        (OwnerHierarchyRepositoryContainerDTO) ownerHierarchyDTO.ownersMap.get(
+            RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(repositoryContainer.repositoryManagerIds).hasSize(2);
+    assertThat(repositoryContainer.repositoryManagerIds).containsExactlyInAnyOrder(
+        repositoryManagerOne.getId(),
+        repositoryManagerTwo.getId()
+    );
+
+    // repository manager one
+    OwnerHierarchyRepositoryManagerDTO repositoryManagerOneDTO =
+        (OwnerHierarchyRepositoryManagerDTO) ownerHierarchyDTO.ownersMap.get(repositoryManagerOne.getId());
+    assertThat(repositoryManagerOneDTO.name).isEqualTo(repositoryManagerOne.getName());
+    assertThat(repositoryManagerOneDTO.repositoryIds).hasSize(1);
+    assertThat(repositoryManagerOneDTO.repositoryIds).containsExactlyInAnyOrder(repositoryOne.getId());
+    assertThat(repositoryManagerOneDTO.id).isEqualTo(repositoryManagerOne.getId());
+    assertThat(repositoryManagerOneDTO.instanceId).isEqualTo(repositoryManagerOne.getInstanceId());
+
+    // repository manager two
+    OwnerHierarchyRepositoryManagerDTO repositoryManagerTwoDTO =
+        (OwnerHierarchyRepositoryManagerDTO) ownerHierarchyDTO.ownersMap.get(repositoryManagerTwo.getId());
+    assertThat(repositoryManagerTwoDTO.name).isEqualTo(repositoryManagerTwo.getName());
+    assertThat(repositoryManagerTwoDTO.repositoryIds).hasSize(2);
+    assertThat(repositoryManagerTwoDTO.repositoryIds).containsExactlyInAnyOrder(
+        repositoryTwo.getId(),
+        repositoryThree.getId()
+    );
+    assertThat(repositoryManagerTwoDTO.id).isEqualTo(repositoryManagerTwo.getId());
+    assertThat(repositoryManagerTwoDTO.instanceId).isEqualTo(repositoryManagerTwo.getInstanceId());
+
+    // repository one
+    OwnerHierarchyRepositoryDTO repositoryOneDTO =
+        (OwnerHierarchyRepositoryDTO) ownerHierarchyDTO.ownersMap.get(repositoryOne.getId());
+    assertThat(repositoryOneDTO.id).isEqualTo(repositoryOne.getId());
+    assertThat(repositoryOneDTO.name).isEqualTo(repositoryOne.getName());
+    assertThat(repositoryOneDTO.repositoryManagerId).isEqualTo(repositoryManagerOne.getId());
+
+    // repository two
+    OwnerHierarchyRepositoryDTO repositoryTwoDTO =
+        (OwnerHierarchyRepositoryDTO) ownerHierarchyDTO.ownersMap.get(repositoryTwo.getId());
+    assertThat(repositoryTwoDTO.id).isEqualTo(repositoryTwo.getId());
+    assertThat(repositoryTwoDTO.name).isEqualTo(repositoryTwo.getName());
+    assertThat(repositoryTwoDTO.repositoryManagerId).isEqualTo(repositoryManagerTwo.getId());
+
+    // repository three
+    OwnerHierarchyRepositoryDTO repositoryThreeDTO =
+        (OwnerHierarchyRepositoryDTO) ownerHierarchyDTO.ownersMap.get(repositoryThree.getId());
+    assertThat(repositoryThreeDTO.id).isEqualTo(repositoryThree.getId());
+    assertThat(repositoryThreeDTO.name).isEqualTo(repositoryThree.getName());
+    assertThat(repositoryThreeDTO.repositoryManagerId).isEqualTo(repositoryManagerTwo.getId());
   }
 }

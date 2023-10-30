@@ -781,4 +781,9 @@ public class RepositoryService
 
     log.debug("Repository manager with id {} updated to name: {}", repositoryManagerId, name);
   }
+
+  @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)
+  public List<RepositoryManager> getRepositoryManagers() {
+    return repositoryManagerDAO.getAll();
+  }
 }

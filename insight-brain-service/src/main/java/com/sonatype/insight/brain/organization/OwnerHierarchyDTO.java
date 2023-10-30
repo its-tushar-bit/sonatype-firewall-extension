@@ -6,16 +6,29 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import static java.util.Collections.emptySet;
 
 /**
  * @since 1.20.0
@@ -29,13 +42,22 @@ public class OwnerHierarchyDTO
   @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
   @JsonSubTypes({
       @Type(value = OwnerHierarchyApplicationDTO.class, name = "application"),
-      @Type(value = OwnerHierarchyOrganizationDTO.class, name = "organization")
+      @Type(value = OwnerHierarchyOrganizationDTO.class, name = "organization"),
+      @Type(value = OwnerHierarchyRepositoryContainerDTO.class, name = "repository_container"),
+      @Type(value = OwnerHierarchyRepositoryManagerDTO.class, name = "repository_manager"),
+      @Type(value = OwnerHierarchyRepositoryDTO.class, name = "repository")
   })
-  public static class OwnerHierarchyEntityDTO
+  public abstract static class OwnerHierarchyEntityDTO
   {
     public String id;
 
     public String name;
+
+    abstract String getParentId();
+
+    abstract Set<String> getChildIds(OwnerType... types);
+
+    public abstract void addChild(OwnerHierarchyEntityDTO child);
   }
 
   public static class OwnerHierarchyOrganizationDTO
@@ -52,6 +74,9 @@ public class OwnerHierarchyDTO
     public int totalApps;
 
     public List<String> organizationIds;
+
+    @JsonInclude(Include.NON_NULL)
+    public String repositoryContainerId;
 
     public static Function<Organization, OwnerHierarchyOrganizationDTO> transformToOrganizationDTO = organization -> {
       String organizationId = organization.getId();
@@ -73,6 +98,41 @@ public class OwnerHierarchyDTO
           ownerHierarchyOrganizationDTO.synthetic = true;
           return ownerHierarchyOrganizationDTO;
         };
+
+    @Override
+    String getParentId() {
+      return parentOrganizationId;
+    }
+
+    @Override
+    Set<String> getChildIds(OwnerType... types) {
+      return Stream.of(types == null ? OwnerType.values() : types)
+          .flatMap(type -> {
+            if (type.equals(OwnerType.APPLICATION)) {
+              return applicationIds.stream();
+            }
+            else if (type.equals(OwnerType.ORGANIZATION)) {
+              return organizationIds.stream();
+            }
+            else {
+              return Stream.empty();
+            }
+          })
+          .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void addChild(final OwnerHierarchyEntityDTO child) {
+      if (child instanceof OwnerHierarchyApplicationDTO) {
+        applicationIds.add(((OwnerHierarchyApplicationDTO)child).publicId);
+      }
+      else if (child instanceof OwnerHierarchyOrganizationDTO) {
+        organizationIds.add(child.id);
+      }
+      else {
+        throw new IllegalArgumentException("Cannot add child of this type to organization");
+      }
+    }
 
     @Override
     public String toString() {
@@ -101,8 +161,116 @@ public class OwnerHierarchyDTO
     };
 
     @Override
+    String getParentId() {
+      return organizationId;
+    }
+
+    @Override
+    Set<String> getChildIds(OwnerType... types) {
+      return emptySet();
+    }
+
+    @Override
+    public void addChild(final OwnerHierarchyEntityDTO child) {
+      throw new UnsupportedOperationException("Cannot add child to application");
+    }
+
+    @Override
     public String toString() {
       return "<Application [name=" + name + ", id=" + id + ", parentId=" + organizationId + "]>";
+    }
+  }
+
+  public static class OwnerHierarchyRepositoryContainerDTO
+      extends OwnerHierarchyEntityDTO
+  {
+    public Set<String> repositoryManagerIds = new HashSet<>();
+
+    OwnerHierarchyRepositoryContainerDTO() {
+      id = RepositoryContainer.REPOSITORY_CONTAINER_ID;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getParentId() {
+      return Organization.ROOT_ORGANIZATION_ID;
+    }
+
+    @Override
+    Set<String> getChildIds(OwnerType... ignored) {
+      return repositoryManagerIds;
+    }
+
+    @Override
+    public void addChild(final OwnerHierarchyEntityDTO child) {
+      repositoryManagerIds.add(child.id);
+    }
+  }
+
+  public static class OwnerHierarchyRepositoryManagerDTO
+      extends OwnerHierarchyEntityDTO
+  {
+    public String instanceId;
+
+    public Set<String> repositoryIds = new HashSet<>();
+
+    @Override
+    public String getParentId() {
+      return RepositoryContainer.REPOSITORY_CONTAINER_ID;
+    }
+
+    @Override
+    Set<String> getChildIds(OwnerType... ignored) {
+      return repositoryIds;
+    }
+
+    @Override
+    public void addChild(final OwnerHierarchyEntityDTO child) {
+      repositoryIds.add(child.id);
+    }
+
+    public static Function<RepositoryManager, OwnerHierarchyRepositoryManagerDTO> transformToRepositoryManagerDTO =
+        repositoryManager -> {
+          OwnerHierarchyRepositoryManagerDTO ownerHierarchyRepositoryManagerDTO =
+              new OwnerHierarchyRepositoryManagerDTO();
+          ownerHierarchyRepositoryManagerDTO.id = repositoryManager.getId();
+          ownerHierarchyRepositoryManagerDTO.name = repositoryManager.getName();
+          ownerHierarchyRepositoryManagerDTO.instanceId = repositoryManager.getInstanceId();
+          return ownerHierarchyRepositoryManagerDTO;
+        };
+  }
+
+  public static class OwnerHierarchyRepositoryDTO
+      extends OwnerHierarchyEntityDTO
+  {
+    public String repositoryManagerId;
+
+    public static Function<Repository, OwnerHierarchyRepositoryDTO> transformToRepositoryDTO = repository -> {
+      OwnerHierarchyRepositoryDTO ownerHierarchyRepositoryDTO = new OwnerHierarchyRepositoryDTO();
+      ownerHierarchyRepositoryDTO.id = repository.getId();
+      ownerHierarchyRepositoryDTO.name = repository.getName();
+      ownerHierarchyRepositoryDTO.repositoryManagerId = repository.getRepositoryManagerId();
+      return ownerHierarchyRepositoryDTO;
+    };
+
+    @Override
+    String getParentId() {
+      return repositoryManagerId;
+    }
+
+    @Override
+    Set<String> getChildIds(OwnerType... ignored) {
+      return emptySet();
+    }
+
+    @Override
+    public void addChild(final OwnerHierarchyEntityDTO child) {
+      throw new UnsupportedOperationException("Cannot add child to repository");
+    }
+
+    @Override
+    public String toString() {
+      return "<Repository [id=" + id + ", repositoryManagerId=" + repositoryManagerId + "]>";
     }
   }
 }

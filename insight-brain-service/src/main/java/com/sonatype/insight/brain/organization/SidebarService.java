@@ -6,9 +6,10 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-
+import java.util.Objects;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -19,8 +20,11 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO;
+import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -46,6 +50,8 @@ class SidebarService
 
   private final ApplicationService applicationService;
 
+  private final RepositoryService repositoryService;
+
   @Inject
   public SidebarService(
       final TagDAO tagDAO,
@@ -54,7 +60,8 @@ class SidebarService
       final LicenseThreatGroupDAO licenseThreatGroupDAO,
       final MembershipMappingService membershipMappingService,
       final OrganizationService organizationService,
-      final ApplicationService applicationService)
+      final ApplicationService applicationService,
+      final RepositoryService repositoryService)
   {
     this.tagDAO = tagDAO;
     this.policyDAO = policyDAO;
@@ -63,6 +70,7 @@ class SidebarService
     this.membershipMappingService = membershipMappingService;
     this.organizationService = organizationService;
     this.applicationService = applicationService;
+    this.repositoryService = repositoryService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -91,8 +99,10 @@ class SidebarService
     ownerHierarchyDTO.ownersMap = new HashMap<>();
     List<Organization> orgs = organizationService.getAll();
     List<Application> apps = applicationService.getApplicationsOrderedByName();
+    List<RepositoryManager> repositoryManagers = repositoryService.getRepositoryManagers();
+    List<Repository> repositories = repositoryService.getRepositoriesWithReadPermission();
 
-    OwnerHierarchy hierarchy = createOrganizationHierarchy(orgs, apps);
+    OwnerHierarchy hierarchy = createOrganizationHierarchy(orgs, apps, repositoryManagers, repositories);
 
     if (hierarchy.root() != null) {
       calculateChildrenSize(hierarchy, hierarchy.root());
@@ -103,8 +113,17 @@ class SidebarService
     return ownerHierarchyDTO;
   }
 
+  private OwnerHierarchy createOrganizationHierarchy(
+      final List<Organization> orgs,
+      final List<Application> apps,
+      final List<RepositoryManager> repositoryManagers,
+      final List<Repository> repositories)
+  {
+    return new OwnerHierarchy(orgs, apps, repositoryManagers, repositories);
+  }
+
   private OwnerHierarchy createOrganizationHierarchy(List<Organization> orgs, List<Application> apps) {
-    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps);
+    OwnerHierarchy hierarchy = new OwnerHierarchy(orgs, apps, Collections.emptyList(), Collections.emptyList());
     return hierarchy;
   }
 
@@ -122,10 +141,21 @@ class SidebarService
 
     if (!childOrgIds.isEmpty()) {
       for (String id : childOrgIds) {
-        calculateChildrenSize(hierarchy, hierarchy.getOrganizationById(id));
+        OwnerHierarchyOrganizationDTO organizationById = hierarchy.getOrganizationById(id);
+        if (organizationById != null) {
+          calculateChildrenSize(hierarchy, organizationById);
+        }
       }
-      subOrgsSize += childOrgIds.stream().mapToInt(id -> hierarchy.getOrganizationById(id).subOrgs).sum();
-      totalApps += childOrgIds.stream().mapToInt(id -> hierarchy.getOrganizationById(id).totalApps).sum();
+      subOrgsSize += childOrgIds.stream()
+          .map(hierarchy::getOrganizationById)
+          .filter(Objects::nonNull)
+          .mapToInt(org -> org.subOrgs)
+          .sum();
+      totalApps += childOrgIds.stream()
+          .map(hierarchy::getOrganizationById)
+          .filter(Objects::nonNull)
+          .mapToInt(org -> org.totalApps)
+          .sum();
     }
     organization.subOrgs = subOrgsSize;
     organization.totalApps = totalApps;

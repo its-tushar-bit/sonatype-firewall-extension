@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -35,6 +34,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static java.util.stream.Collectors.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoryServiceAuthzTest
@@ -552,5 +552,41 @@ public class RepositoryServiceAuthzTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     grantWritePermission(repositoryManager.getId());
     repositoryService.updateName(repositoryManager.getId(), "newName");
+  }
+
+  @Test
+  public void testGetRepositoryManagers_Unauthenticated() {
+    tempEntity.newRepositoryManager();
+    assertThat(repositoryService.getRepositoryManagers()).isEmpty();
+  }
+
+  @Test
+  public void testGetRepositoryManagers_Unauthorized() {
+    tempEntity.newRepositoryManager();
+    login();
+    List<RepositoryManager> allRepositoryManagers = repositoryService.getRepositoryManagers();
+    assertThat(allRepositoryManagers).isEmpty();
+  }
+
+  @Test
+  public void testGetRepositoryManagers_Authorized() {
+    RepositoryManager repositoryManagerOne = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManagerTwo = tempEntity.newRepositoryManager();
+    tempEntity.newRepositoryManager();
+
+    grantReadPermission(repositoryManagerOne.getId());
+
+    List<RepositoryManager> allRepositoryManagers = repositoryService.getRepositoryManagers();
+    assertThat(allRepositoryManagers).hasSize(1);
+    assertThat(allRepositoryManagers.get(0).getId()).isEqualTo(repositoryManagerOne.getId());
+
+    grantReadPermission(repositoryManagerTwo.getId());
+
+    List<String> allRepositoryManagersIds = repositoryService.getRepositoryManagers().stream()
+        .map(RepositoryManager::getId)
+        .collect(toList());
+    assertThat(allRepositoryManagersIds).containsExactlyInAnyOrder(
+        repositoryManagerOne.getId(),
+        repositoryManagerTwo.getId());
   }
 }

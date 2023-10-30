@@ -13,22 +13,33 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyApplicationDTO;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyEntityDTO;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryContainerDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryDTO;
+import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryManagerDTO;
 
 import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyApplicationDTO.transformToApplicationDTO;
 import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO.transformToOrganizationDTO;
 import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO.transformToSyntheticOrganizationDTO;
+import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryDTO.transformToRepositoryDTO;
+import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryManagerDTO.transformToRepositoryManagerDTO;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 public class OwnerHierarchy
 {
@@ -40,23 +51,40 @@ public class OwnerHierarchy
 
   private Map<String, OwnerHierarchyApplicationDTO> applicationMap;
 
+  private Map<String, OwnerHierarchyRepositoryManagerDTO> repositoryManagerMap;
+
+  private Map<String, OwnerHierarchyRepositoryDTO> repositoryMap;
+
+  private OwnerHierarchyRepositoryContainerDTO repositoryContainer;
+
   private OrganizationDAO organizationDAO;
 
   public OwnerHierarchy(
       List<Organization> orgs,
-      List<Application> apps)
+      List<Application> apps,
+      List<RepositoryManager> repositoryManagers,
+      List<Repository> repositories)
   {
     this.organizationDAO = new OrganizationDAO();
     this.syntheticOrganizationMap = new HashMap<>();
     this.applicationMap = new HashMap<>();
+    this.repositoryMap = new HashMap<>();
+
     initSidebarOrganizationMap(orgs);
     addAppsToParentOrgs(apps);
+    initSidebarRepositoryManagerMap(repositoryManagers);
+    addRepositoriesToParent(repositories);
     createOrganizationHierarchy();
+    createRepositoriesHierarchy();
     removeUnauthorizedAncestor();
   }
 
   public OwnerHierarchyOrganizationDTO root() {
-    return getOrganizationById(topParentOrganizationId);
+    OwnerHierarchyOrganizationDTO root = getOrganizationById(topParentOrganizationId);
+    if (root != null) {
+      root.repositoryContainerId = repositoryContainer.id;
+    }
+    return root;
   }
 
   public boolean contains(String organizationId) {
@@ -93,11 +121,29 @@ public class OwnerHierarchy
         : syntheticOrganizationMap.get(organizationId);
   }
 
+  // Visible for testing
+  OwnerHierarchyRepositoryContainerDTO getRepositoryContainer() {
+    return repositoryContainer;
+  }
+
+  // Visible for testing
+  OwnerHierarchyRepositoryManagerDTO getRepositoryManagerById(String repositoryManagerId) {
+    return repositoryManagerMap.get(repositoryManagerId);
+  }
+
+  // Visible for testing
+  OwnerHierarchyRepositoryDTO getRepositoryById(final String id) {
+    return repositoryMap.get(id);
+  }
+
   public Map<String, OwnerHierarchyEntityDTO> asHashMap() {
     Map<String, OwnerHierarchyEntityDTO> owners = new HashMap<>();
     owners.putAll(applicationMap);
     owners.putAll(organizationMap);
     owners.putAll(syntheticOrganizationMap);
+    owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryContainer);
+    owners.putAll(repositoryManagerMap);
+    owners.putAll(repositoryMap);
     return owners;
   }
 
@@ -122,16 +168,9 @@ public class OwnerHierarchy
     return syntheticOrganizationMap.computeIfAbsent(organizationId, this::getSyntheticOrganization);
   }
 
-  private void addChildOrgToParentOrganizationIfAbsent(
-      final OwnerHierarchyOrganizationDTO childOrganization,
-      final OwnerHierarchyOrganizationDTO parentOrganization)
-  {
-    String childOrganizationId = childOrganization.id;
-    boolean organizationExistsInParent = parentOrganization.organizationIds.stream()
-        .anyMatch(id -> id.equals(childOrganizationId));
-
-    if (!organizationExistsInParent) {
-      parentOrganization.organizationIds.add(childOrganizationId);
+  private void addChildToParentIfAbsent(final OwnerHierarchyEntityDTO child, final OwnerHierarchyEntityDTO parent) {
+    if (!parent.getChildIds().contains(child.id)) {
+      parent.addChild(child);
     }
   }
 
@@ -175,20 +214,52 @@ public class OwnerHierarchy
     return organizationMap.computeIfAbsent(organizationId, this::getSyntheticOrganization);
   }
 
-  private void initSidebarOrganizationMap(List<Organization> organizations) {
-    this.organizationMap = organizations.stream()
-        .map(transformToOrganizationDTO)
-        .collect(Collectors.toMap(
-            organizationDTO -> organizationDTO.id,
-            Function.identity()));
+  private OwnerHierarchyRepositoryManagerDTO getRepositoryManager(String repositoryManagerId) {
+    return repositoryManagerMap.get(repositoryManagerId);
+  }
+
+  private void initSidebarOrganizationMap(final List<Organization> organizations) {
+    organizationMap = initializeEntityMap(organizations, transformToOrganizationDTO);
+  }
+
+  private void initSidebarRepositoryManagerMap(final List<RepositoryManager> repositoryManagers) {
+    repositoryManagerMap = initializeEntityMap(repositoryManagers, transformToRepositoryManagerDTO);
+  }
+
+  private <T, R extends OwnerHierarchyEntityDTO> Map<String, R> initializeEntityMap(
+      final List<T> entities,
+      final Function<T, R> transform)
+  {
+    return entities.stream()
+        .map(transform)
+        .collect(toMap(entityDto -> entityDto.id, identity()));
   }
 
   private void addAppsToParentOrgs(List<Application> apps) {
-    apps.forEach(app -> {
-      OwnerHierarchyOrganizationDTO parentOrganization = getOrComputeApplicationHolderIfAbsent(app.getOrganizationId());
-      parentOrganization.applicationIds.add(app.getPublicId());
-      applicationMap.put(app.getPublicId(), transformToApplicationDTO.apply(app));
-    });
+    convertToMapAndUpdateParents(apps, transformToApplicationDTO, this::getOrComputeApplicationHolderIfAbsent)
+        .forEach(application -> applicationMap.put(application.publicId, application));
+  }
+
+  private void addRepositoriesToParent(List<Repository> repositories) {
+    convertToMapAndUpdateParents(repositories, transformToRepositoryDTO, this::getRepositoryManager)
+        .forEach(repository -> repositoryMap.put(repository.id, repository));
+  }
+
+  private <T, R extends OwnerHierarchyEntityDTO> Stream<R> convertToMapAndUpdateParents(
+      final List<T> entities,
+      final Function<T, R> transform,
+      final Function<String, OwnerHierarchyEntityDTO> getParent)
+  {
+    return entities.stream()
+        .map(transform)
+        .peek(addEntityToItsParent(getParent));
+  }
+
+  private static <R extends OwnerHierarchyEntityDTO> Consumer<R> addEntityToItsParent(
+      final Function<String, OwnerHierarchyEntityDTO> getParent)
+  {
+    return entity -> getParent.andThen(Optional::ofNullable).apply(entity.getParentId())
+        .ifPresent(parentEntity -> parentEntity.addChild(entity));
   }
 
   private void createOrganizationHierarchy() {
@@ -199,12 +270,17 @@ public class OwnerHierarchy
       }
 
       OwnerHierarchyOrganizationDTO parentOrganization = getOrComputeIfAbsent(parentOrganizationId);
-      addChildOrgToParentOrganizationIfAbsent(currentOrganizationDTO, parentOrganization);
+      addChildToParentIfAbsent(currentOrganizationDTO, parentOrganization);
 
       if (parentOrganization.synthetic) {
         createMissingAncestors(parentOrganization);
       }
     });
+  }
+
+  private void createRepositoriesHierarchy() {
+    repositoryContainer = new OwnerHierarchyRepositoryContainerDTO();
+    repositoryManagerMap.forEach((key, value) -> addChildToParentIfAbsent(value, repositoryContainer));
   }
 
   // creates synthetic ancestors all the way up to ROOT_ORGANIZATION
@@ -217,7 +293,7 @@ public class OwnerHierarchy
       OwnerHierarchyOrganizationDTO parentOrganizationDTO = getOrganizationById(currentOrgDTOParentOrganizationId);
 
       if (parentOrganizationDTO != null) {
-        addChildOrgToParentOrganizationIfAbsent(currentOrganizationDTO, parentOrganizationDTO);
+        addChildToParentIfAbsent(currentOrganizationDTO, parentOrganizationDTO);
         break;
       }
 

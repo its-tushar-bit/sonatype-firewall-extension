@@ -1430,4 +1430,15 @@ public class RepositoryServiceTest extends AbstractComponentTest
             .isThrownBy(() -> repositoryService.updateName(null, "Repo Name2"))
             .withMessage("RepositoryManager with ID null does not exist.");
   }
+
+  @Test
+  public void testGetRepositoryManagers() {
+    RepositoryManager repoManagerOne = tempEntity.newRepositoryManager();
+    RepositoryManager repoManagerTwo = tempEntity.newRepositoryManager();
+
+    List<RepositoryManager> repoManagers = repositoryService.getRepositoryManagers();
+
+    assertThat(repoManagers).usingRecursiveComparison().ignoringCollectionOrder()
+        .isEqualTo(Arrays.asList(repoManagerOne, repoManagerTwo));
+  }
 }

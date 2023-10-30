@@ -29,7 +29,7 @@ public class OrganizationApplicationManagementEvent
 
   @Override
   public String toString() {
-    return "OrganizationApplicationSummaryEvent{" +
+    return getClass().getSimpleName() + "{" +
         "organizations=" + organizations +
         ", applications=" + applications +
         '}';

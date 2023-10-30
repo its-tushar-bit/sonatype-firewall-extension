@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupCond
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
@@ -346,6 +347,21 @@ public class PolicyResourceAuditTest
   }
 
   @Test
+  public void testAddPolicy_Repository() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    Policy policy = aComplexPolicy();
+
+    HttpResponse response =
+        restRequest().path(PolicyResource.RESOURCE_PATH).parameter(repository.getType(), repository.getId())
+            .body(policy).post();
+    assertResponseStatus(200, response);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
+    assertCustomData(auditDTO, "repositoryId", repository.getId());
+    assertPolicyData(auditDTO, policy, false);
+  }
+
+  @Test
   public void testAddPolicy_Unauthorized() throws Exception {
     Policy policy = policy();
     policyResourceRequest(organization).with(unauthorizedUser()).body(policy).post();
@@ -407,6 +423,22 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
     assertRepositoryManagerData(auditDTO, repositoryManager);
+    assertPolicyData(auditDTO, policy, false);
+  }
+
+  @Test
+  public void testUpdatePolicy_Repository() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    String existingPolicyId = tempEntity.newPolicy(repository.getId(), tempEntity.uuid()).getId();
+
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicyId);
+
+    restRequest().path(PolicyResource.RESOURCE_PATH).parameter(repository.getType(), repository.getId()).body(policy)
+        .put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
+    assertCustomData(auditDTO, "repositoryId", repository.getId());
     assertPolicyData(auditDTO, policy, false);
   }
 
@@ -475,6 +507,21 @@ public class PolicyResourceAuditTest
     assertRepositoryManagerData(auditDTO, repositoryManager);
     assertPolicyData(auditDTO, policy, true);
 
+  }
+
+  @Test
+  public void testDeletePolicy_Repository() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    Policy policy = aComplexPolicy();
+    policy.setOwnerId(repository.getId());
+    tempEntity.newPolicy(policy);
+
+    restRequest().path(PolicyResource.RESOURCE_PATH).parameter(repository.getType(), repository.getId())
+        .path(policy.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, null);
+    assertCustomData(auditDTO, "repositoryId", repository.getId());
+    assertPolicyData(auditDTO, policy, true);
   }
 
   @Test

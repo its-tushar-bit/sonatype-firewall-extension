@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
-import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
@@ -39,45 +38,83 @@ public class PolicyResourceAuthzTest
   }
 
   @Test
-  public void testGetPolicies() throws Exception {
-    grantReadPermission(app.getId());
-
-    testAuthzGet(restRequest().parameter(OwnerType.APPLICATION, app.getPublicId()));
-
+  public void testGetPolicies_Org() throws Exception {
     grantReadPermission(org.getId());
 
     testAuthzGet(restRequest().parameter(OwnerType.ORGANIZATION, org.getId()));
+  }
 
+  @Test
+  public void testGetPolicies_Application() throws Exception {
+    grantReadPermission(app.getId());
+
+    testAuthzGet(restRequest().parameter(OwnerType.APPLICATION, app.getPublicId()));
+  }
+
+  @Test
+  public void testGetPolicies_RepoContainer() throws Exception {
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     testAuthzGet(restRequest().parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID));
+  }
 
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+  @Test
+  public void testGetPolicies_RepoManager() throws Exception {
     grantReadPermission(repositoryManager.getId());
 
     testAuthzGet(restRequest().parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
   }
 
   @Test
-  public void testGetApplicablePolicies() throws Exception {
+  public void testGetPolicies_Repo() throws Exception {
+    grantReadPermission(repo.getId());
+
+    testAuthzGet(restRequest().parameter(OwnerType.REPOSITORY, repo.getId()));
+  }
+
+  @Test
+  public void testGetApplicablePolicies_Org() throws Exception {
+    HttpRequest request = restRequest().path("applicable");
+
+    grantReadPermission(org.getId());
+
+    testAuthzGet(request.parameter(OwnerType.ORGANIZATION, org.getId()));
+  }
+
+  @Test
+  public void testGetApplicablePolicies_Application() throws Exception {
     HttpRequest request = restRequest().path("applicable");
 
     grantReadPermission(app.getId());
 
     testAuthzGet(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
+  }
 
-    grantReadPermission(org.getId());
-
-    testAuthzGet(request.parameter(OwnerType.ORGANIZATION, org.getId()));
+  @Test
+  public void testGetApplicablePolicies_RepoContainer() throws Exception {
+    HttpRequest request = restRequest().path("applicable");
 
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     testAuthzGet(request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID));
+  }
 
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+  @Test
+  public void testGetApplicablePolicies_RepoManager() throws Exception {
+    HttpRequest request = restRequest().path("applicable");
+
     grantReadPermission(repositoryManager.getId());
 
-    testAuthzGet(restRequest().parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
+    testAuthzGet(request.parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
+  }
+
+  @Test
+  public void testGetApplicablePolicies_Repo() throws Exception {
+    HttpRequest request = restRequest().path("applicable");
+
+    grantReadPermission(repo.getId());
+
+    testAuthzGet(request.parameter(OwnerType.REPOSITORY, repo.getId()));
   }
 
   @Test
@@ -96,11 +133,16 @@ public class PolicyResourceAuthzTest
         RepositoryContainer.REPOSITORY_CONTAINER_ID));
     assertResponseStatus(200, response);
 
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     grantWritePermission(repositoryManager.getId());
 
     response = testAuthzPost(
         restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
+    assertResponseStatus(200, response);
+
+    grantWritePermission(repo.getId());
+
+    response = testAuthzPost(
+        restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY, repo.getId()));
     assertResponseStatus(200, response);
   }
 
@@ -122,11 +164,15 @@ public class PolicyResourceAuthzTest
     testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID));
 
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     grantWritePermission(repositoryManager.getId());
 
     policy = tempEntity.newPolicy(repositoryManager);
     testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId()));
+
+    grantWritePermission(repo.getId());
+
+    policy = tempEntity.newPolicy(repo);
+    testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY, repo.getId()));
   }
 
   @Test
@@ -149,12 +195,17 @@ public class PolicyResourceAuthzTest
     testAuthzDelete(
         request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
 
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     grantWritePermission(repositoryManager.getId());
 
     policy = tempEntity.newPolicy(repositoryManager);
     testAuthzDelete(
         request.parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), policy.getId()));
+
+    grantWritePermission(repo.getId());
+
+    policy = tempEntity.newPolicy(repo);
+    testAuthzDelete(
+        request.parameter(OwnerType.REPOSITORY, repo.getId(), policy.getId()));
   }
 
   @Test

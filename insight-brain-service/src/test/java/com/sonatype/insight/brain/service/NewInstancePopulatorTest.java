@@ -273,6 +273,9 @@ public class NewInstancePopulatorTest
     if (shouldHaveBeenImported) {
       assertThat(policyNames).containsExactlyInAnyOrder("policy1", "policy2");
 
+      assertThat(policyDAO.getByName("policy1").get(0).isLegacyViolationAllowed()).isTrue();
+      assertThat(policyDAO.getByName("policy2").get(0).isLegacyViolationAllowed()).isTrue();
+
       assertThat(labels).containsExactlyInAnyOrder("label1", "label2", "label3");
 
       assertThat(ltgNames).containsExactlyInAnyOrder("ltg1", "ltg2");

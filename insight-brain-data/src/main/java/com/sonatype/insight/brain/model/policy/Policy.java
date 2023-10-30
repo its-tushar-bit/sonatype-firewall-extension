@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +99,23 @@ public class Policy
 
   public void setThreatLevel(final int threatLevel) {
     this.threatLevel = threatLevel;
+  }
+
+  /**
+   * @deprecated Use isLegacyViolationAllowed
+   */
+  @Deprecated
+  public boolean isPolicyViolationGrandfatheringAllowed() {
+    return legacyViolationAllowed;
+  }
+
+  /**
+   * @deprecated Use setLegacyViolationAllowed
+   */
+  @JsonProperty(access = Access.WRITE_ONLY)
+  @Deprecated
+  public void setPolicyViolationGrandfatheringAllowed(boolean policyViolationGrandfatheringAllowed) {
+    setLegacyViolationAllowed(policyViolationGrandfatheringAllowed);
   }
 
   public boolean isLegacyViolationAllowed() {

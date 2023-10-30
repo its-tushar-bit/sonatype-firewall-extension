@@ -52,7 +52,7 @@
       "name": "policy2",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "threatLevel": 1,
-      "legacyViolationAllowed": true,
+      "policyViolationGrandfatheringAllowed": true,
       "constraints": [
         {
           "id": "15397d9327fb4d71a1ff3fd7ac5a1627",

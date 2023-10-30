@@ -539,7 +539,7 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testGetApplicablePolicies() throws Exception {
+  public void testGetApplicablePolicies_OrgsAndApps() throws Exception {
     // Create an organization and an application
     String orgName = "testGetApplicablePoliciesOrg";
     Organization org = tempEntity.newOrganization(orgName);
@@ -690,6 +690,127 @@ public class PolicyResourceTest
     assertPoliciesByOwner(parentOrgId, parentOrgName, OwnerType.ORGANIZATION, 1,
         applicablePolicies.policiesByOwner.get(0));
     assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(parentOrgPolicy.getId());
+  }
+
+  @Test
+  public void testGetApplicablePolicies_RepositoryContainer() throws Exception {
+    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+
+    // Verify the applicable policies for the repository container
+    HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .path("applicable").get();
+    assertResponseStatus(200, response);
+    ApplicablePolicies applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertThat(applicablePolicies.policiesByOwner).hasSize(2);
+    assertPoliciesByOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON.getName(),
+        OwnerType.REPOSITORY_CONTAINER, 0, applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(rootOrg.getId(), rootOrg.getName(), OwnerType.ORGANIZATION, 0,
+        applicablePolicies.policiesByOwner.get(1));
+
+    // Create a policy for the repository container
+    Policy repoContainerPolicy = tempEntity.newPolicy(RepositoryContainer.SINGLETON);
+
+    // Verify the applicable policies for the repository container
+    response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertThat(applicablePolicies.policiesByOwner).hasSize(2);
+    assertPoliciesByOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON.getName(),
+        OwnerType.REPOSITORY_CONTAINER, 1, applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(rootOrg.getId(), rootOrg.getName(), OwnerType.ORGANIZATION, 0,
+        applicablePolicies.policiesByOwner.get(1));
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId())
+        .isEqualTo(repoContainerPolicy.getId());
+
+    // Create a policy for the root org
+    Policy rootOrgPolicy = tempEntity.newPolicy(rootOrg);
+
+    // Verify the applicable policies for the repository container
+    response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertThat(applicablePolicies.policiesByOwner).hasSize(2);
+    assertPoliciesByOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON.getName(),
+        OwnerType.REPOSITORY_CONTAINER, 1, applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(rootOrg.getId(), rootOrg.getName(), OwnerType.ORGANIZATION, 1,
+        applicablePolicies.policiesByOwner.get(1));
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId())
+        .isEqualTo(repoContainerPolicy.getId());
+    assertThat(applicablePolicies.policiesByOwner.get(1).policies.get(0).getId()).isEqualTo(rootOrgPolicy.getId());
+  }
+
+  @Test
+  public void testGetApplicablePolicies_RepositoryManager() throws Exception {
+    // Create a repository manager
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+
+    // Verify the applicable policies for the repository manager
+    HttpResponse response = restRequest(OwnerType.REPOSITORY_MANAGER, repoManager.getId()).path("applicable").get();
+    assertResponseStatus(200, response);
+    ApplicablePolicies applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertThat(applicablePolicies.policiesByOwner).hasSize(3);
+    assertPoliciesByOwner(repoManager.getId(), repoManager.getName(), OwnerType.REPOSITORY_MANAGER, 0,
+        applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON.getName(),
+        OwnerType.REPOSITORY_CONTAINER, 0, applicablePolicies.policiesByOwner.get(1));
+    assertPoliciesByOwner(rootOrg.getId(), rootOrg.getName(), OwnerType.ORGANIZATION, 0,
+        applicablePolicies.policiesByOwner.get(2));
+
+    // Create a policy for the repository manager
+    Policy repoManagerPolicy = tempEntity.newPolicy(repoManager);
+
+    // Verify the applicable policies for the repository manager
+    response = restRequest(OwnerType.REPOSITORY_MANAGER, repoManager.getId()).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertThat(applicablePolicies.policiesByOwner).hasSize(3);
+    assertPoliciesByOwner(repoManager.getId(), repoManager.getName(), OwnerType.REPOSITORY_MANAGER, 1,
+        applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON.getName(),
+        OwnerType.REPOSITORY_CONTAINER, 0, applicablePolicies.policiesByOwner.get(1));
+    assertPoliciesByOwner(rootOrg.getId(), rootOrg.getName(), OwnerType.ORGANIZATION, 0,
+        applicablePolicies.policiesByOwner.get(2));
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(repoManagerPolicy.getId());
+
+    // Create a policy for the repository container
+    Policy repoContainerPolicy = tempEntity.newPolicy(RepositoryContainer.SINGLETON);
+
+    // Verify the applicable policies for the repository manager
+    response = restRequest(OwnerType.REPOSITORY_MANAGER, repoManager.getId()).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertThat(applicablePolicies.policiesByOwner).hasSize(3);
+    assertPoliciesByOwner(repoManager.getId(), repoManager.getName(), OwnerType.REPOSITORY_MANAGER, 1,
+        applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON.getName(),
+        OwnerType.REPOSITORY_CONTAINER, 1, applicablePolicies.policiesByOwner.get(1));
+    assertPoliciesByOwner(rootOrg.getId(), rootOrg.getName(), OwnerType.ORGANIZATION, 0,
+        applicablePolicies.policiesByOwner.get(2));
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(repoManagerPolicy.getId());
+    assertThat(applicablePolicies.policiesByOwner.get(1).policies.get(0).getId())
+        .isEqualTo(repoContainerPolicy.getId());
+
+    // Create a policy for the root org
+    Policy rootOrgPolicy = tempEntity.newPolicy(rootOrg);
+
+    // Verify the applicable policies for the repository manager
+    response = restRequest(OwnerType.REPOSITORY_MANAGER, repoManager.getId()).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertThat(applicablePolicies.policiesByOwner).hasSize(3);
+    assertPoliciesByOwner(repoManager.getId(), repoManager.getName(), OwnerType.REPOSITORY_MANAGER, 1,
+        applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON.getName(),
+        OwnerType.REPOSITORY_CONTAINER, 1, applicablePolicies.policiesByOwner.get(1));
+    assertPoliciesByOwner(rootOrg.getId(), rootOrg.getName(), OwnerType.ORGANIZATION, 1,
+        applicablePolicies.policiesByOwner.get(2));
+    assertThat(applicablePolicies.policiesByOwner.get(0).policies.get(0).getId()).isEqualTo(repoManagerPolicy.getId());
+    assertThat(applicablePolicies.policiesByOwner.get(1).policies.get(0).getId())
+        .isEqualTo(repoContainerPolicy.getId());
+    assertThat(applicablePolicies.policiesByOwner.get(2).policies.get(0).getId()).isEqualTo(rootOrgPolicy.getId());
   }
 
   @Test

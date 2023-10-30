@@ -65,11 +65,7 @@ const loadSidebar = createAsyncThunk(`${REDUCER_NAME}/loadSidebar`, (_, { getSta
     promises.push(dispatch(applicationCategoriesActions.loadApplicableCategories()));
   }
 
-  return Promise.all(promises)
-    .then((results) => {
-      dispatch(ownerSideNavActions.setDisplayedOrganizations(results[1]));
-    })
-    .catch(rejectWithValue);
+  return Promise.all(promises).catch(rejectWithValue);
 });
 
 const loadSideBarRequested = (state) => {

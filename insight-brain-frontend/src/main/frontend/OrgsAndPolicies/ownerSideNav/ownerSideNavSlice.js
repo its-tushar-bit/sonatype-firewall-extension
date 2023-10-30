@@ -18,7 +18,7 @@ import { selectRouterCurrentParams, selectIsManagementViewRouterState } from 'Ma
 import { checkPermissions, PERMISSION } from 'MainRoot/util/authorizationUtil';
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 import { validateMinLength } from 'MainRoot/util/validationUtil';
-import { selectOwnersMap } from './ownerSideNavSelectors';
+import { selectOwnersMap, selectTopParentOrganizationId } from './ownerSideNavSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 
@@ -55,13 +55,6 @@ const loadOwnerListFulfilled = (state, { payload = {} }) => {
   state.topParentOrganizationId = topParentOrganizationId;
 };
 
-export const setDisplayedOrganizations = (state, { payload = {} }) => {
-  const { displayedOrganization } = payload;
-  if (displayedOrganization) {
-    state.displayedOrganization = displayedOrganization;
-  }
-};
-
 const loadIfNeeded = (forceReload) => (dispatch, getState) => {
   const state = getState();
   const ownersMap = selectOwnersMap(state);
@@ -77,20 +70,18 @@ const loadOwnerListIfNeeded = () => (dispatch, getState) => {
   const state = getState();
   const ownersMap = selectOwnersMap(state);
   const ownersMapExistInMemory = !isNilOrEmpty(ownersMap);
+  const routerParams = selectRouterCurrentParams(state);
   if (!ownersMapExistInMemory) {
     return dispatch(loadOwnerList()).then((result) => {
       const { ownersMap, topParentOrganizationId } = unwrapResult(result) || {};
-      const routerParams = selectRouterCurrentParams(state);
-
       const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
-
-      return {
-        displayedOrganization,
-      };
+      dispatch(actions.setDisplayedOrganization(displayedOrganization));
+      return { ownersMap, topParentOrganizationId };
     });
   }
-
-  return Promise.resolve({});
+  const topParentOrganizationId = selectTopParentOrganizationId(state);
+  const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
+  return dispatch(actions.setDisplayedOrganization(displayedOrganization));
 };
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, dispatch, rejectWithValue }) => {
@@ -382,7 +373,6 @@ const ownerSideNavSlice = createSlice({
     updateOwnersMapWithNewAppId,
     updateOwnersMapWithNewEntry,
     updateDisplayedOrganization,
-    setDisplayedOrganizations,
   },
   extraReducers: {
     [loadOwnerList.fulfilled]: loadOwnerListFulfilled,

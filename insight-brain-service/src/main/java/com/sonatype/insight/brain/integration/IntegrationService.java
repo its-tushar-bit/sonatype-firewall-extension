@@ -87,7 +87,8 @@ public class IntegrationService
         // Set application and total risk
         .map(riskScoreDTO -> new IntegrationStatusDTO().setApplicationName(riskScoreDTO.applicationName)
             .setApplicationId(riskScoreDTO.id).setApplicationPublicId(riskScoreDTO.applicationId)
-            .setTotalRiskScore(riskScoreDTO.totalApplicationRisk.totalRisk))
+            .setTotalRiskScore(riskScoreDTO.totalApplicationRisk.totalRisk)
+            .setOrganizationId(riskScoreDTO.organizationId))
         // Set CI/CD Integration status
         .map(statusDTO -> statusDTO.setCiIntegrationEnabled(
             policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId())))

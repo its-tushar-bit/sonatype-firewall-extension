@@ -52,6 +52,8 @@ public class IntegrationResourceTest
         .hasSize(2);
     assertThat(results.stream().map(IntegrationStatusDTO::getApplicationId))
         .containsExactlyInAnyOrder(app1.getId(), app2.getId());
+    assertThat(results.stream().map(IntegrationStatusDTO::getOrganizationId))
+        .containsExactly(org.getId(), org.getId());
   }
 
   @Test

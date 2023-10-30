@@ -23,7 +23,7 @@ public class ApplicationRiskScoreDTOComparatorTest
                                          int moderate,
                                          int low)
   {
-    ApplicationRiskScoreDTO dto = new ApplicationRiskScoreDTO("orgName", applicationName, "test", "id");
+    ApplicationRiskScoreDTO dto = new ApplicationRiskScoreDTO("orgName", "orgId", applicationName, "test", "id");
     dto.totalApplicationRisk.totalRisk = total;
     dto.totalApplicationRisk.criticalRisk = critical;
     dto.totalApplicationRisk.severeRisk = severe;

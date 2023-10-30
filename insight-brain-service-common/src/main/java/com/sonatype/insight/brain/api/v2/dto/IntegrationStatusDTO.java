@@ -22,6 +22,8 @@ public class IntegrationStatusDTO
 
   private long lastEvaluationTimestamp;
 
+  private String organizationId;
+
   private int totalRiskScore;
 
   public String getApplicationName() {
@@ -50,6 +52,10 @@ public class IntegrationStatusDTO
 
   public long getLastEvaluationTimestamp() {
     return lastEvaluationTimestamp;
+  }
+
+  public String getOrganizationId() {
+    return organizationId;
   }
 
   public int getTotalRiskScore() {
@@ -90,6 +96,11 @@ public class IntegrationStatusDTO
 
   public IntegrationStatusDTO setLastEvaluationTimestamp(final long lastEvaluationTimestamp) {
     this.lastEvaluationTimestamp = lastEvaluationTimestamp;
+    return this;
+  }
+
+  public IntegrationStatusDTO setOrganizationId(final String organizationId) {
+    this.organizationId = organizationId;
     return this;
   }
 

@@ -293,13 +293,14 @@ public class ApplicationRiskService
       return null;
     }
 
-    String orgName = orgNames.computeIfAbsent(appView.getApplication().getOrganizationId(),
+    String organizationId = appView.getApplication().getOrganizationId();
+    String orgName = orgNames.computeIfAbsent(organizationId,
         orgId -> organizationDAO.getByIdNotNull(orgId).getName());
 
     final Application application = appView.getApplication();
 
     ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(orgName,
-        application.getName(), application.getPublicId(), application.getId());
+            organizationId, application.getName(), application.getPublicId(), application.getId());
 
     updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
 

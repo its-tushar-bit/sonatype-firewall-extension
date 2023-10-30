@@ -29,6 +29,8 @@ public class ApplicationRiskScoreDTO implements CsvWritable
 
   public String applicationId;
 
+  public String organizationId;
+
   @JsonIgnore
   public String id;
 
@@ -37,11 +39,13 @@ public class ApplicationRiskScoreDTO implements CsvWritable
   public List<StageRiskScoreDTO> stageRisks = new ArrayList<>();
 
   public ApplicationRiskScoreDTO(final String organizationName,
+                                 final String organizationId,
                                  final String applicationName,
                                  final String applicationId,
                                  final String id)
   {
     this.organizationName = organizationName;
+    this.organizationId = organizationId;
     this.applicationName = applicationName;
     this.applicationId = applicationId;
     this.id = id;

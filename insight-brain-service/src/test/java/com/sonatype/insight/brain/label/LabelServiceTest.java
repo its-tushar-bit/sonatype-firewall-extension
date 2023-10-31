@@ -56,7 +56,7 @@ public class LabelServiceTest
 
   @Test
   public void testAddUpdateAndDeleteLabelPostsEvents() throws Exception {
-    TestEventHandler<LabelEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<LabelEvent> handler = new TestEventHandler<>(new CountDownLatch(1), LabelEvent.class);
     eventBus.register(handler);
 
     Organization organization = tempEntity.newOrganization();

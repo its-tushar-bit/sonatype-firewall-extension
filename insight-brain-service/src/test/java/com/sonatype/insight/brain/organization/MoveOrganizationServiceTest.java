@@ -82,18 +82,18 @@ public class MoveOrganizationServiceTest
 
   @Test
   public void testMoveOrganization_PostEvents() throws InterruptedException {
-    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1), OwnerEvent.class);
     eventBus.register(handler);
 
-    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
-    Organization organization = tempEntity.newOrganization();
-    MoveOrganizationResponseDTO moveOrganizationResponseDTO =
-        moveOrganizationService.moveOrganization(organizations.get(0).getId(), organization.getId(), failEarlyOnError);
-    assertThat(moveOrganizationResponseDTO).isNotNull();
-    assertThat(moveOrganizationResponseDTO.errors).isEmpty();
-    assertThat(organizationDAO.getById(organizations.get(0).getId()).getParentOrganizationId())
-        .isEqualTo(organization.getId());
     try {
+      List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(1, 2, 0);
+      Organization organization = tempEntity.newOrganization();
+      MoveOrganizationResponseDTO moveOrganizationResponseDTO = moveOrganizationService
+          .moveOrganization(organizations.get(0).getId(), organization.getId(), failEarlyOnError);
+      assertThat(moveOrganizationResponseDTO).isNotNull();
+      assertThat(moveOrganizationResponseDTO.errors).isEmpty();
+      assertThat(organizationDAO.getById(organizations.get(0).getId()).getParentOrganizationId())
+          .isEqualTo(organization.getId());
       assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
       assertThat(handler.getEvent().action).isEqualTo(UPDATED);
       assertThat(handler.getEvent().ownerId).isEqualTo(organizations.get(0).getId());

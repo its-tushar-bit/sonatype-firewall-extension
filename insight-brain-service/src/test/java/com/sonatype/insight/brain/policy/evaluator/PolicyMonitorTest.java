@@ -226,7 +226,7 @@ public class PolicyMonitorTest
 
     evaluatePolicy(app.getPublicId(), scanId, stage);
 
-    handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
     asyncEventBus.register(handler);
 
     scanId = "PolicyMonitorTest_scanId1";

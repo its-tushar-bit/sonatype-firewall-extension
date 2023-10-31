@@ -36,7 +36,8 @@ public class LicenseThreatGroupServiceTest
 
   @Test
   public void testAddUpdateAndDeleteLicenseThreatGroupPostsEvents() throws Exception {
-    TestEventHandler<LicenseThreatGroupEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<LicenseThreatGroupEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), LicenseThreatGroupEvent.class);
     eventBus.register(handler);
 
     Organization organization = tempEntity.newOrganization();

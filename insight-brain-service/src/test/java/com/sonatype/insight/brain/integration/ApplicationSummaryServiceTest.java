@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
@@ -380,7 +381,7 @@ public class ApplicationSummaryServiceTest
   @Test
   public void testAddApplicationPostEvent() throws Exception {
     final TestEventHandler<OrganizationApplicationManagementEvent> handler =
-        new TestEventHandler<>(new CountDownLatch(1));
+        new TestEventHandler<>(new CountDownLatch(1), OrganizationApplicationManagementEvent.class);
     eventBus.register(handler);
 
     final Organization org = tempEntity.newOrganization();

@@ -120,7 +120,6 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
-import com.sonatype.insight.brain.webhook.FilteringTestEventHandler;
 import com.sonatype.insight.brain.webhook.PolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -148,7 +147,7 @@ import org.mockito.Mock;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
-import static java.time.Duration.ofSeconds;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -185,7 +184,7 @@ public class ScanPolicyEvaluatorTest
 
   private TestEventHandler<ApplicationEvaluationEvent> handler;
 
-  private FilteringTestEventHandler<PolicyAlertEvent> policyAlertHandler;
+  private TestEventHandler<PolicyAlertEvent> policyAlertHandler;
 
   private MockReportDownloader mockReportDownloader;
 
@@ -496,7 +495,7 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_EmitsApplicationEvaluationEvent() throws IOException, InterruptedException {
-    handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
 
     newSecurityPolicy();
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -526,7 +525,7 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_DoesNot_EmitPolicyAlertEvent_WithoutWebhooks() throws IOException, InterruptedException {
-    policyAlertHandler = new FilteringTestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class::isInstance);
+    policyAlertHandler = new TestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class);
     newSecurityPolicy();
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -534,12 +533,12 @@ public class ScanPolicyEvaluatorTest
 
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
 
-    assertThat(policyAlertHandler.waitForEvent(ofSeconds(5)).isPresent()).isFalse();
+    assertThat(policyAlertHandler.getLatch().await(5, SECONDS)).isFalse();
   }
 
   @Test
   public void testEvaluate_EmitsPolicyAlertEvent() throws IOException, InterruptedException {
-    policyAlertHandler = new FilteringTestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class::isInstance);
+    policyAlertHandler = new TestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class);
     tempEntity.newPolicy(application.getId(), "Test Policy", 10, Action.ID_WARN, Stage.ID_BUILD,
         new Notifications(new WebhookNotification("id", Stage.ID_BUILD)));
 
@@ -550,7 +549,7 @@ public class ScanPolicyEvaluatorTest
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
 
-    assertThat(policyAlertHandler.waitForEvent(ofSeconds(5)).isPresent()).isTrue();
+    assertThat(policyAlertHandler.getLatch().await(5, SECONDS)).isTrue();
     PolicyAlertEvent event = policyAlertHandler.getEvent();
     assertThat(event).isNotNull();
     assertThat(event.applicationEvaluation.stageTypeId).isEqualTo(Stage.ID_BUILD);

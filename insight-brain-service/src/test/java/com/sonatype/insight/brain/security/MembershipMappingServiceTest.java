@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
@@ -47,6 +48,7 @@ import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -80,6 +82,15 @@ public class MembershipMappingServiceTest
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
 
+  private TestEventHandler<RoleEvent> handler;
+
+  @After
+  public void after() {
+    if (handler != null) {
+      eventBus.unregister(handler);
+    }
+  }
+
   @Test
   public void testLoadMembersByRoleForNonGlobalContext_GlobalContext() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
@@ -96,7 +107,7 @@ public class MembershipMappingServiceTest
 
   @Test
   public void testSetMembershipMappings_PostsEvent() throws Exception {
-    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
     eventBus.register(handler);
 
     Role role = tempEntity.newRole(false, Permission.READ);
@@ -324,7 +335,7 @@ public class MembershipMappingServiceTest
 
   @Test
   public void testGrantRoleMembership_NonGlobal() throws InterruptedException {
-    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
     eventBus.register(handler);
 
     String username = tempEntity.newUser("a-user").getUsername();
@@ -443,7 +454,7 @@ public class MembershipMappingServiceTest
 
   @Test
   public void testRevokeRoleMembership() throws InterruptedException {
-    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
     eventBus.register(handler);
 
     String contextId = tempEntity.newApplicationWithParent().getId();
@@ -575,7 +586,7 @@ public class MembershipMappingServiceTest
 
   @Test
   public void testGrantMembershipMappingsForGlobalContextNoAuthz_Success() throws Exception {
-    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
     eventBus.register(handler);
 
     String username = "username";
@@ -592,7 +603,7 @@ public class MembershipMappingServiceTest
 
   @Test
   public void testGrantMembershipMappingsForGlobalContextNoAuthz_SkipIfAlreadyExists() throws Exception {
-    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
     eventBus.register(handler);
 
     String username = "username";

@@ -229,7 +229,7 @@ public class TagServiceTest
 
   @Test
   public void testAddUpdateAndDeleteTagPostEvents() throws Exception {
-    TestEventHandler<TagEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<TagEvent> handler = new TestEventHandler<>(new CountDownLatch(1), TagEvent.class);
     eventBus.register(handler);
 
     Organization organization = tempEntity.newOrganization();

@@ -55,7 +55,8 @@ public class ApplicationEvaluationEventServiceTest
     policyEvaluationResult.setSevereComponentCount(5);
     policyEvaluationResult.setModerateComponentCount(7);
 
-    TestEventHandler<ApplicationEvaluationEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<ApplicationEvaluationEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
     asyncEventBus.register(handler);
 
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, "commitHash", application);
@@ -91,7 +92,8 @@ public class ApplicationEvaluationEventServiceTest
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
 
     // No action provides a ACTION_ID_NONE outcome
-    TestEventHandler<ApplicationEvaluationEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<ApplicationEvaluationEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
     asyncEventBus.register(handler);
 
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
@@ -112,7 +114,8 @@ public class ApplicationEvaluationEventServiceTest
     policyEvaluationResult.setAlerts(
         Collections.singletonList(new PolicyAlert(null, Collections.singletonList(new Action(Action.ID_WARN)))));
 
-    TestEventHandler<ApplicationEvaluationEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<ApplicationEvaluationEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
     asyncEventBus.register(handler);
 
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);
@@ -134,7 +137,8 @@ public class ApplicationEvaluationEventServiceTest
         .asList(new PolicyAlert(null, Collections.singletonList(new Action(Action.ID_WARN))),
             new PolicyAlert(null, Collections.singletonList(new Action(Action.ID_FAIL)))));
 
-    TestEventHandler<ApplicationEvaluationEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<ApplicationEvaluationEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
     asyncEventBus.register(handler);
 
     applicationEvaluationEventService.postEvent(policyEvaluation, policyEvaluationResult, null, application);

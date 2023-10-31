@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -58,7 +59,7 @@ public class ManagementEventServiceTest
     Tag tag = new Tag();
     tag.setOrganizationId(organization.getId());
 
-    TestEventHandler<TagEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<TagEvent> handler = new TestEventHandler<>(new CountDownLatch(1), TagEvent.class);
     asyncEventBus.register(handler);
 
     managementEventService.postEvent(EventAction.CREATED, tag);
@@ -87,7 +88,7 @@ public class ManagementEventServiceTest
     Label label = new Label();
     label.setOwnerId(organization.getId());
 
-    TestEventHandler<LabelEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<LabelEvent> handler = new TestEventHandler<>(new CountDownLatch(1), LabelEvent.class);
     asyncEventBus.register(handler);
 
     managementEventService.postEvent(EventAction.CREATED, label);
@@ -116,7 +117,8 @@ public class ManagementEventServiceTest
     LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup();
     licenseThreatGroup.setOwnerId(organization.getId());
 
-    TestEventHandler<LicenseThreatGroupEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<LicenseThreatGroupEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), LicenseThreatGroupEvent.class);
     asyncEventBus.register(handler);
 
     managementEventService.postEvent(EventAction.CREATED, licenseThreatGroup);
@@ -145,7 +147,7 @@ public class ManagementEventServiceTest
     Application application = new Application();
     application.setOrganizationId(organization.getId());
 
-    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1), OwnerEvent.class);
     asyncEventBus.register(handler);
 
     managementEventService.postEvent(EventAction.CREATED, application);
@@ -171,7 +173,7 @@ public class ManagementEventServiceTest
 
   @Test
   public void testPostEvent_Organization() throws InterruptedException {
-    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1), OwnerEvent.class);
     asyncEventBus.register(handler);
 
     managementEventService.postEvent(EventAction.CREATED, organization);
@@ -197,7 +199,7 @@ public class ManagementEventServiceTest
 
   @Test
   public void testPostEvent_Member() throws InterruptedException {
-    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<RoleEvent> handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
     asyncEventBus.register(handler);
 
     Map<String, List<Member>> roleIdToMemberMap = new HashMap<>();
@@ -228,7 +230,7 @@ public class ManagementEventServiceTest
     Policy policy = new Policy();
     policy.setOwnerId(organization.getId());
 
-    TestEventHandler<PolicyEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<PolicyEvent> handler = new TestEventHandler<>(new CountDownLatch(1), PolicyEvent.class);
     asyncEventBus.register(handler);
 
     managementEventService.postEvent(EventAction.CREATED, policy);

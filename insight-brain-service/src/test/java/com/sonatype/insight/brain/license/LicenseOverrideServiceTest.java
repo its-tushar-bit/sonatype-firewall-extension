@@ -120,7 +120,7 @@ public class LicenseOverrideServiceTest
 
   @Test
   public void testCreateLicenseOverridePostEvents() throws InterruptedException, IOException {
-    handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), LicenseOverrideEvent.class);
     eventBus.register(handler);
 
     Organization organization = tempEntity.newOrganization();
@@ -140,7 +140,7 @@ public class LicenseOverrideServiceTest
 
   @Test
   public void testUpdateLicenseOverridePostEvents() throws InterruptedException, IOException {
-    handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), LicenseOverrideEvent.class);
     eventBus.register(handler);
 
     Organization organization = tempEntity.newOrganization();
@@ -160,7 +160,7 @@ public class LicenseOverrideServiceTest
 
   @Test
   public void testDeleteLicenseOverridePostEvents() throws InterruptedException, IOException {
-    handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), LicenseOverrideEvent.class);
     eventBus.register(handler);
 
     Organization organization = tempEntity.newOrganization();

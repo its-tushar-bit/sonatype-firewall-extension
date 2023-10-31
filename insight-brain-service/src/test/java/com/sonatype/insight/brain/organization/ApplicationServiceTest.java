@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
@@ -222,7 +223,7 @@ public class ApplicationServiceTest
 
   @Test
   public void testAddUpdateAndDeleteApplicationPostEvents() throws Exception {
-    TestEventHandler<WebhookEvent> handler = new TestEventHandler<>(new CountDownLatch(2));
+    TestEventHandler<WebhookEvent> handler = new TestEventHandler<>(new CountDownLatch(2), WebhookEvent.class);
     eventBus.register(handler);
 
     Organization org = tempEntity.newOrganization();

@@ -41,21 +41,22 @@ public class RequestPolicyWaiverEventServiceTest
 
   @Test
   public void testPostRequestPolicyWaiverEvent_queuesRequestPolicyWaiverInBus() {
-    TestEventHandler<WaiverRequestEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<WaiverRequestEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
     asyncEventBus.register(handler);
 
-    Application application = tempEntity.newApplicationWithParent();
-    Policy policy = tempEntity.newPolicy(application);
-    PolicyEvaluation policyEvaluation =
-        tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getName(), "scanId");
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-
-    ApiRequestPolicyWaiverDTO dto = new ApiRequestPolicyWaiverDTO();
-    dto.comment = "waiver comment";
-    dto.policyViolationLink = "policyViolationLink.com";
-    dto.addWaiverLink = "addWaiverLink.com";
-
     try {
+      Application application = tempEntity.newApplicationWithParent();
+      Policy policy = tempEntity.newPolicy(application);
+      PolicyEvaluation policyEvaluation =
+          tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getName(), "scanId");
+      PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+      ApiRequestPolicyWaiverDTO dto = new ApiRequestPolicyWaiverDTO();
+      dto.comment = "waiver comment";
+      dto.policyViolationLink = "policyViolationLink.com";
+      dto.addWaiverLink = "addWaiverLink.com";
+
       requestPolicyWaiverEventService.postRequestPolicyWaiverEvent(policyViolation.getId(), dto);
 
       assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();

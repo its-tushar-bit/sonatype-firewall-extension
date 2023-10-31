@@ -7,12 +7,13 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -198,7 +199,7 @@ public class OrganizationServiceTest
 
   @Test
   public void testAddUpdateAndDeleteOrganizationPostEvents() throws Exception {
-    TestEventHandler<WebhookEvent> handler = new TestEventHandler<>(new CountDownLatch(2));
+    TestEventHandler<WebhookEvent> handler = new TestEventHandler<>(new CountDownLatch(2), WebhookEvent.class);
     eventBus.register(handler);
 
     Organization org = new Organization("testOrg");
@@ -263,14 +264,14 @@ public class OrganizationServiceTest
   public void testDeleteOrganization_NLevel_CascadeToChildOrganizations() throws Exception {
     List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
     List<Organization> deletedOrgs = testList.subList(0, 6);
-    TestEventHandler<WebhookEvent> handler = new TestEventHandler<>(new CountDownLatch(deletedOrgs.size()));
-    List<OwnerEvent> deleteOrgEvents;
+    TestEventHandler<OwnerEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(deletedOrgs.size()), OwnerEvent.class);
+    Collection<OwnerEvent> deleteOrgEvents;
     eventBus.register(handler);
     organizationService.deleteOrganization(testList.get(5).getId());
 
     assertThat(handler.getLatch().await(10, SECONDS)).isTrue();
-    deleteOrgEvents = handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
-        .map(event -> (OwnerEvent) event).collect(Collectors.toList());
+    deleteOrgEvents = handler.getAllEvents();
     assertThat(deleteOrgEvents).hasSameSizeAs(deletedOrgs);
 
     OrganizationDAO organizationDAO = new OrganizationDAO();

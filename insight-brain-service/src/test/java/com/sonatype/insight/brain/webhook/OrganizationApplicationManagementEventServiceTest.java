@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -55,7 +56,7 @@ public class OrganizationApplicationManagementEventServiceTest
   @Test
   public void testPostEvent_OrganizationApplicationSummary() throws Exception {
     final TestEventHandler<OrganizationApplicationManagementEvent> handler =
-        new TestEventHandler<>(new CountDownLatch(1));
+        new TestEventHandler<>(new CountDownLatch(1), OrganizationApplicationManagementEvent.class);
     asyncEventBus.register(handler);
 
     final Organization organization = tempEntity.newOrganization();

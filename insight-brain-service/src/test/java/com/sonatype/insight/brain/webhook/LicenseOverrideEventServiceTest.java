@@ -33,7 +33,8 @@ public class LicenseOverrideEventServiceTest
   @Test
   public void testPostEvent() throws InterruptedException {
     LicenseOverride override = new LicenseOverride();
-    TestEventHandler<LicenseOverrideEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    TestEventHandler<LicenseOverrideEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), LicenseOverrideEvent.class);
     asyncEventBus.register(handler);
 
     licenseOverrideEventService.postEvent(EventAction.CREATED, override);

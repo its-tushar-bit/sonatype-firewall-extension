@@ -68,7 +68,7 @@ public class PolicyAlertEventServiceTest
     final PolicyEvaluation policyEvaluation = createPolicyEvaluation(time);
     final List<PolicyAlert> alerts = createAlerts(TARGET_TYPE_WEBHOOK);
     final PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(alerts);
-    TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class);
     asyncEventBus.register(handler);
 
     policyAlertEventService
@@ -104,7 +104,7 @@ public class PolicyAlertEventServiceTest
     final PolicyEvaluation policyEvaluation = createPolicyEvaluation(time);
     final List<PolicyAlert> alerts = createAlerts(TARGET_TYPE_ROLE);
     final PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(alerts);
-    TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class);
     asyncEventBus.register(handler);
 
     policyAlertEventService
@@ -122,7 +122,7 @@ public class PolicyAlertEventServiceTest
     final PolicyEvaluation policyEvaluation = createPolicyEvaluation(time);
     final List<PolicyAlert> alerts = createAlerts(TARGET_TYPE_WEBHOOK, "target1", "target1", "target1");
     final PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(alerts);
-    TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(1));
+    handler = new TestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class);
     asyncEventBus.register(handler);
 
     policyAlertEventService
@@ -144,7 +144,7 @@ public class PolicyAlertEventServiceTest
     final PolicyEvaluation policyEvaluation = createPolicyEvaluation(time);
     final List<PolicyAlert> alerts = createAlerts(TARGET_TYPE_WEBHOOK, "target1", "target2", "target3");
     final PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(alerts);
-    TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(3));
+    handler = new TestEventHandler<>(new CountDownLatch(3), PolicyAlertEvent.class);
     asyncEventBus.register(handler);
 
     policyAlertEventService
@@ -164,7 +164,7 @@ public class PolicyAlertEventServiceTest
     final PolicyEvaluation policyEvaluation = createPolicyEvaluation(time);
     final List<PolicyAlert> alerts = createAlerts(TARGET_TYPE_WEBHOOK, "target1", "target2", "target3");
     final PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(Collections.emptyList());
-    TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(3));
+    handler = new TestEventHandler<>(new CountDownLatch(3), PolicyAlertEvent.class);
     asyncEventBus.register(handler);
 
     // Post event for eval with no active violations, but some fixed violations
@@ -186,7 +186,7 @@ public class PolicyAlertEventServiceTest
     final PolicyEvaluation policyEvaluation = createPolicyEvaluation(time);
     final List<PolicyAlert> alerts = createAlerts(TARGET_TYPE_WEBHOOK, "target1", "target2", "target3");
     final PolicyEvaluationResult policyEvaluationResult = createPolicyEvaluationResult(Collections.emptyList());
-    TestEventHandler<PolicyAlertEvent> handler = new TestEventHandler<>(new CountDownLatch(3));
+    handler = new TestEventHandler<>(new CountDownLatch(3), PolicyAlertEvent.class);
     asyncEventBus.register(handler);
 
     // Post event for eval with no active violations, but some waived violations

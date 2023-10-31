@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -49,7 +50,8 @@ public class SourceControlEventProcessor
     same repo, which means we would have multiple git workspaces for the same repo (different, app specific
     folders, though, so no real problem here - just something to keep in mind).
    */
-  private SemaphorePool repoAccessController = new SemaphorePool(THREAD_POOL_SIZE);
+  private TenantReference<SemaphorePool> repoAccessController =
+      new TenantReference<>(() -> new SemaphorePool(THREAD_POOL_SIZE));
 
   private final PullRequestCommentingEventHandler pullRequestCommentingEventHandler;
 
@@ -171,7 +173,7 @@ public class SourceControlEventProcessor
 
   private boolean acquireRepoAccess(String applicationId) {
     try {
-      repoAccessController.acquire(applicationId);
+      repoAccessController.get().acquire(applicationId);
       return true;
     }
     catch (InterruptedException e) {
@@ -183,7 +185,7 @@ public class SourceControlEventProcessor
 
   private void releaseRepoAccess(String applicationId) {
     try {
-      repoAccessController.release(applicationId);
+      repoAccessController.get().release(applicationId);
     }
     catch (InterruptedException e) {
       log.warn("Unable to release repo access for application '{}'", applicationId, e);
@@ -253,7 +255,7 @@ public class SourceControlEventProcessor
   }
 
   @VisibleForTesting
-  void setRepoAccessController(SemaphorePool repoAccessController) {
+  void setRepoAccessController(TenantReference<SemaphorePool> repoAccessController) {
     this.repoAccessController = repoAccessController;
   }
 

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.nexus.git.utils.api.GitException;
 
 import org.junit.Before;
@@ -53,6 +54,9 @@ public class SourceControlEventProcessorTest
   private GitCommitStatusService mockGitCommitStatusService;
 
   @Mock
+  private TenantReference<SemaphorePool> poolTenantReference;
+
+  @Mock
   private SemaphorePool mockRepoAccessController;
 
   @Mock
@@ -78,6 +82,7 @@ public class SourceControlEventProcessorTest
   public void setup() {
     MockitoAnnotations.openMocks(this);
     super.setup();
+    when(poolTenantReference.get()).thenReturn(mockRepoAccessController);
     when(mockCurrentUser.getUsernameOrSystem()).thenReturn(CurrentUser.SYSTEM);
     sourceControlEventProcessor =
         spy(new SourceControlEventProcessor(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
@@ -182,7 +187,7 @@ public class SourceControlEventProcessorTest
         .setEventType(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     event.setId("event-1");
 
-    sourceControlEventProcessor.setRepoAccessController(mockRepoAccessController);
+    sourceControlEventProcessor.setRepoAccessController(poolTenantReference);
     doThrow(new InterruptedException("simulated")).when(mockRepoAccessController).acquire(eq(event.getApplicationId()));
 
     // when:
@@ -203,7 +208,7 @@ public class SourceControlEventProcessorTest
         .setEventType(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     event.setId("hij789");
 
-    sourceControlEventProcessor.setRepoAccessController(mockRepoAccessController);
+    sourceControlEventProcessor.setRepoAccessController(poolTenantReference);
     doThrow(new InterruptedException("simulated")).when(mockRepoAccessController).release(eq(event.getApplicationId()));
 
     // when:

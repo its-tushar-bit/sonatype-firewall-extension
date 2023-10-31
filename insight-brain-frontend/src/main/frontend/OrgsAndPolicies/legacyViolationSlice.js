@@ -12,6 +12,7 @@ import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { getLegacyViolationURL } from 'MainRoot/util/CLMLocation';
 import { selectLegacyViolation } from './legacyViolationSelectors';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 const REDUCER_NAME = 'legacyViolation';
 
@@ -44,10 +45,11 @@ const loadLegacyViolationFailed = (state, { payload }) => {
 
 const loadLegacyViolation = createAsyncThunk(
   `${REDUCER_NAME}/loadLegacyViolation`,
-  (_, { getState, rejectWithValue }) => {
+  async (_, { getState, rejectWithValue, dispatch }) => {
     const state = getState();
     const { ownerType, ownerId } = selectOwnerProperties(state);
 
+    await dispatch(rootActions.loadSelectedOwner());
     return axios.get(getLegacyViolationURL(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
   }
 );

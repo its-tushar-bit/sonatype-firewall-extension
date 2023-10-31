@@ -5,7 +5,6 @@
  */
 import { connect } from 'react-redux';
 import * as scmOnboardingActions from './scmOnboardingActions';
-import * as PropTypes from 'prop-types';
 
 import ScmOnboarding from '../scmOnboarding/ScmOnboarding';
 
@@ -64,7 +63,3 @@ function mapStateToProps({ scmOnboarding, router }) {
 
 const ScmOnboardingContainer = connect(mapStateToProps, scmOnboardingActions)(ScmOnboarding);
 export default ScmOnboardingContainer;
-
-ScmOnboardingContainer.propTypes = {
-  preselectedOrganizationId: PropTypes.string,
-};

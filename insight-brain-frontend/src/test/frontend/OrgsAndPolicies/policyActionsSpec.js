@@ -18,17 +18,27 @@ import {
   getPolicyCRUDUrl,
   getPolicyTagUrl,
   getPolicyUrl,
+  getOrganizationUrl,
 } from 'MainRoot/util/CLMLocation';
 import { omit, prop } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { urlsByPurpose } from 'MainRoot/OrgsAndPolicies/stagesSlice';
+import { getPermissionContextTestUrl } from '../../../main/frontend/util/CLMLocation';
 
 describe('policySlice actions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, mockOwnerId, mockOwnerType, mockOwnerName;
 
   beforeEach(function () {
-    store = SpecUtil.mockReduxStore({});
+    store = SpecUtil.mockReduxStore({
+      router: { currentParams: { organizationId: 'e270271429f747ef9bebf4ca88f5e6c0' } },
+      orgsAndPolicies: {
+        organizations: { organizations: [] },
+        root: {
+          selectedOwner: {},
+        },
+      },
+    });
     mockOwnerId = 'ownerId';
     mockOwnerType = 'ownerType';
     mockOwnerName = 'ownerName';
@@ -222,28 +232,37 @@ describe('policySlice actions', () => {
           [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
             data: getApplicablePoliciesResponse,
           }),
+          [getOrganizationUrl('e270271429f747ef9bebf4ca88f5e6c0')]: Promise.resolve({
+            data: { id: 'e270271429f747ef9bebf4ca88f5e6c0', name: 'broadcast' },
+          }),
         },
+        put: { [getPermissionContextTestUrl('application', 'global')]: Promise.resolve({ data: ['WRITE'] }) },
       });
 
       await store.dispatch(actions.loadPolicyEditor());
       await Promise.resolve();
 
-      expect(axios.get).toHaveBeenCalledTimes(4);
+      expect(axios.get).toHaveBeenCalledTimes(5);
 
       const dispatchedActions = store.getActions();
 
-      expect(dispatchedActions.length).toBe(8);
+      expect(dispatchedActions.length).toBe(12);
       expect(dispatchedActions).toHaveActionTypesInOrder([
         'policy/loadPolicyEditor/pending',
+        'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/loadSelectedOwner/fulfilled',
+        'policy/checkEditIqPermission/pending',
         'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
         'orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled',
+        'policy/checkEditIqPermission/fulfilled',
         'constraint/loadConstraint/pending',
         'stages/loadStageTypes/pending',
-        'policy/loadPolicyEditor/fulfilled',
         'stages/loadStageTypes/fulfilled',
+        'policy/loadPolicyEditor/fulfilled',
+        'constraint/loadConstraint/rejected',
       ]);
 
-      expect(dispatchedActions[5].payload).toEqual({
+      expect(dispatchedActions[10].payload).toEqual({
         isInherited: undefined,
         originalProxyStageAction: undefined,
         siblings: [
@@ -295,16 +314,19 @@ describe('policySlice actions', () => {
           [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
             data: getApplicablePoliciesResponse,
           }),
+          [getOrganizationUrl('e270271429f747ef9bebf4ca88f5e6c0')]: Promise.resolve({
+            data: { id: 'e270271429f747ef9bebf4ca88f5e6c0', name: 'broadcast' },
+          }),
         },
+        put: { [getPermissionContextTestUrl('application', 'global')]: Promise.resolve({ data: ['WRITE'] }) },
       });
 
       store.dispatch(actions.loadPolicyEditor()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(5);
+        expect(axios.get).toHaveBeenCalledTimes(6);
 
         const actions = store.getActions();
-
         expect(actions).toHaveActionType('policy/loadCategoriesForPolicy/pending');
-        expect(actions[9].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
+        expect(actions[13].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
 
         done();
       });
@@ -317,29 +339,39 @@ describe('policySlice actions', () => {
           [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
             data: getApplicablePoliciesResponse,
           }),
+          [getOrganizationUrl('e270271429f747ef9bebf4ca88f5e6c0')]: Promise.resolve({
+            data: { id: 'e270271429f747ef9bebf4ca88f5e6c0', name: 'broadcast' },
+          }),
         },
+        put: { [getPermissionContextTestUrl('application', 'global')]: Promise.resolve({ data: ['WRITE'] }) },
       });
 
       store.dispatch(actions.loadPolicyEditor()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(6);
+        expect(axios.get).toHaveBeenCalledTimes(7);
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(10);
+        expect(actions.length).toBe(16);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
+          'orgsAndPolicies/loadSelectedOwner/pending',
+          'orgsAndPolicies/loadSelectedOwner/fulfilled',
+          'policy/checkEditIqPermission/pending',
           'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
           'orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled',
+          'policy/checkEditIqPermission/fulfilled',
           'constraint/loadConstraint/pending',
           'stages/loadStageTypes/pending',
           'policy/loadCategoriesForPolicy/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',
-          'policy/loadPolicyEditor/fulfilled',
           'stages/loadStageTypes/fulfilled',
+          'policy/loadPolicyEditor/fulfilled',
+          'constraint/loadConstraint/rejected',
+          'policy/loadCategoriesForPolicy/rejected',
         ]);
 
-        expect(actions[8].payload).toEqual({
+        expect(actions[13].payload).toEqual({
           siblings: [
             {
               id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
@@ -424,19 +456,26 @@ describe('policySlice actions', () => {
       mockAxiosCalls({
         get: {
           [getApplicablePolicies(mockOwnerId)]: () => Promise.reject('something went wrong'),
+          [getOrganizationUrl('e270271429f747ef9bebf4ca88f5e6c0')]: Promise.resolve({
+            data: { id: 'e270271429f747ef9bebf4ca88f5e6c0', name: 'broadcast' },
+          }),
         },
+        put: { [getPermissionContextTestUrl('application', 'global')]: Promise.resolve({ data: ['WRITE'] }) },
       });
 
       store.dispatch(actions.loadPolicyEditor()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axios.get).toHaveBeenCalledTimes(2);
 
         const actions = store.getActions();
-
-        expect(actions.length).toBe(4);
+        expect(actions.length).toBe(8);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
+          'orgsAndPolicies/loadSelectedOwner/pending',
+          'orgsAndPolicies/loadSelectedOwner/fulfilled',
+          'policy/checkEditIqPermission/pending',
           'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
           'orgsAndPolicies/loadApplicablePoliciesByOwner/rejected',
+          'policy/checkEditIqPermission/fulfilled',
           'policy/loadPolicyEditor/rejected',
         ]);
 

@@ -10,24 +10,21 @@ export const ORGANIZATION_NAME = 'Some non root organization';
 export const APPLICATION_ID = 'someApplicationId';
 export const APPLICATION_NAME = 'Some application';
 
-export const applicationsResponse = [
-  {
-    id: APPLICATION_ID,
-    publicId: APPLICATION_ID,
-    name: APPLICATION_NAME,
-  },
-];
+export const applicationsResponse = {
+  id: APPLICATION_ID,
+  publicId: APPLICATION_ID,
+  name: APPLICATION_NAME,
+};
 
-export const organizationsResponse = [
-  {
-    id: ROOT_ORGANIZATION_ID,
-    name: ROOT_ORGANIZATION_NAME,
-  },
-  {
-    id: ORGANIZATION_ID,
-    name: ORGANIZATION_NAME,
-  },
-];
+export const rootOrganizationResponse = {
+  id: ROOT_ORGANIZATION_ID,
+  name: ROOT_ORGANIZATION_NAME,
+};
+
+export const organizationResponse = {
+  id: ORGANIZATION_ID,
+  name: ORGANIZATION_NAME,
+};
 
 export const defaultRootOrgConfigResponse = {
   id: null,

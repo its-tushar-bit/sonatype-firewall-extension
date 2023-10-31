@@ -16,7 +16,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectEntityId, selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectLoading,
   selectLoadError,
@@ -31,6 +31,7 @@ import { selectTenantMode } from 'MainRoot/productFeatures/productFeaturesSelect
 export default function RetentionTile() {
   const dispatch = useDispatch();
   const selectedOwner = useSelector(selectSelectedOwner);
+  const entityId = useSelector(selectEntityId);
   const isOrg = useSelector(selectIsOrganization);
   const loading = useSelector(selectLoading);
   const loadError = useSelector(selectLoadError);
@@ -48,7 +49,7 @@ export default function RetentionTile() {
     if (isOrg) {
       doLoad();
     }
-  }, [selectedOwner]);
+  }, [entityId]);
 
   function getSuccessMetricsMaxAge() {
     const age = successMetrics.maxAge?.trimmedValue;

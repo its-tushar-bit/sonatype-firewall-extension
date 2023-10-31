@@ -6,7 +6,7 @@
 import React from 'react';
 import OwnerSummary from 'MainRoot/OrgsAndPolicies/ownerSummary/OwnerSummary';
 import {
-  getOrganizationsUrl,
+  getOrganizationUrl,
   getApplicationsUrl,
   getDashboardStageUrl,
   getApplicablePolicies,
@@ -59,35 +59,23 @@ describe('OwnerSummary', () => {
     });
 
     beforeEach(() => {
-      axiosMock.onGet(getOrganizationsUrl()).reply(200, [
-        {
-          allowArtifactoryConnectionOverride: true,
-          allowLegacyViolationOverride: true,
-          allowRepositoryConnectionOverride: true,
-          artifactoryConnectionEnabled: null,
-          id: 'be17ea5538de4679ba3a9220734ddbf7',
-          name: 'broadcast',
-          nameLowercaseNoWhitespace: 'broadcast',
-          parentOrganizationId: 'ROOT_ORGANIZATION_ID',
-          legacyViolationEnabled: null,
-          repositoryConnectionEnabled: null,
-          contact: {
-            displayName: 'Provided Contact Display Name',
-          },
+      axiosMock.onGet(getOrganizationUrl(ownerId)).reply(200, {
+        allowArtifactoryConnectionOverride: true,
+        allowLegacyViolationOverride: true,
+        allowPolicyViolationGrandfatheringOverride: true,
+        allowRepositoryConnectionOverride: true,
+        artifactoryConnectionEnabled: null,
+        id: ownerId,
+        name: 'broadcast',
+        nameLowercaseNoWhitespace: 'broadcast',
+        parentOrganizationId: 'ROOT_ORGANIZATION_ID',
+        policyViolationGrandfatheringEnabled: null,
+        legacyViolationEnabled: null,
+        repositoryConnectionEnabled: null,
+        contact: {
+          displayName: 'Provided Contact Display Name',
         },
-        {
-          allowArtifactoryConnectionOverride: true,
-          allowLegacyViolationOverride: true,
-          allowRepositoryConnectionOverride: true,
-          artifactoryConnectionEnabled: null,
-          id: 'b4483a7072384f59a1387fed9e501dce',
-          name: 'new org',
-          nameLowercaseNoWhitespace: 'neworg',
-          parentOrganizationId: 'ROOT_ORGANIZATION_ID',
-          legacyViolationEnabled: null,
-          repositoryConnectionEnabled: null,
-        },
-      ]);
+      });
       axiosMock.onGet(getApplicablePolicies(ownerType, ownerId)).reply(200, { data: { policiesByOwner: {} } });
     });
 
@@ -97,7 +85,7 @@ describe('OwnerSummary', () => {
     });
 
     it('renders an alert with retry if something goes wrong', async () => {
-      axiosMock.onGet(getOrganizationsUrl()).reply(() => Promise.reject('An error occurred loading data.'));
+      axiosMock.onGet(getOrganizationUrl(ownerId)).reply(() => Promise.reject('An error occurred loading data.'));
 
       renderComponent(preloadedState);
 
@@ -118,16 +106,14 @@ describe('OwnerSummary', () => {
     });
 
     it('renders an alert if there is no matching owner', async () => {
-      axiosMock.onGet(getOrganizationsUrl()).reply(200, []);
+      axiosMock.onGet(getOrganizationUrl(ownerId)).reply('some error');
 
       renderComponent(preloadedState);
 
       let failureAlert = await screen.findByRole('alert');
 
       expect(failureAlert).toBeVisible();
-      expect(failureAlert).toHaveTextContent(
-        'Could not find an organization with ID be17ea5538de4679ba3a9220734ddbf7.'
-      );
+      expect(failureAlert).toHaveTextContent('some error');
     });
 
     it('renders proper header with selected contact if contact is provided', async () => {

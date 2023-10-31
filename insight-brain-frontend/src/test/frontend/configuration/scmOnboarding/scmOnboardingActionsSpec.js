@@ -602,7 +602,7 @@ describe('scmOnboardingActions', function () {
       expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeUndefined();
 
       const actions = store.getActions();
-      expect(actions.length).toBe(4);
+      expect(actions.length).toBe(5);
       expect(actions[0].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED);
       expect(actions[1].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED);
       expect(actions[1].payload).toEqual({
@@ -721,7 +721,7 @@ describe('scmOnboardingActions', function () {
       expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeUndefined();
 
       const actions = store.getActions();
-      expect(actions.length).toBe(4);
+      expect(actions.length).toBe(5);
       expect(actions[0].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED);
       expect(actions[1].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED);
       expect(actions[1].payload).toEqual({

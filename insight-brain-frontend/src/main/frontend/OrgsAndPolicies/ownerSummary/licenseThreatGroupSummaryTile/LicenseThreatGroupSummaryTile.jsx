@@ -16,7 +16,7 @@ import {
   selectIsLoading,
   selectLicenseThreatGroupLoadError,
 } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
-import { selectSelectedOwner, selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectOwnerProperties, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import ApplicableLicenseThreatGroupTable from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/ApplicableLicenseThreatGroupTable';
 
 export default function LicenseThreatGroupSummaryTile() {
@@ -25,7 +25,7 @@ export default function LicenseThreatGroupSummaryTile() {
   const goToNewLTG = () => dispatch(actions.goToCreateLTG());
 
   const applicableLTGs = useSelector(selectApplicableLicenseThreatGroup);
-  const selectedOwner = useSelector(selectSelectedOwner);
+  const entityId = useSelector(selectEntityId);
   const selectedOwnerProperties = useSelector(selectOwnerProperties);
   const loading = useSelector(selectIsLoading);
   const error = useSelector(selectLicenseThreatGroupLoadError);
@@ -33,7 +33,7 @@ export default function LicenseThreatGroupSummaryTile() {
 
   useEffect(() => {
     doLoad();
-  }, [selectedOwner]);
+  }, [entityId]);
 
   return (
     <NxTile id="owner-pill-ltgs">

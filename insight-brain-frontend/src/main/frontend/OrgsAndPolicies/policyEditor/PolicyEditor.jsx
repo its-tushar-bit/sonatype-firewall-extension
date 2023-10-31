@@ -39,7 +39,7 @@ import EditPolicyInheritance from './editPolicyInheritance/EditPolicyInheritance
 import ConstraintsEditor from './constraints/ConstraintsEditor';
 import PolicyNotificationsEditor from './policyNotificationsEditor/PolicyNotificationsEditor';
 import PolicyActionsEditor from './policyActionsEditor/PolicyActionsEditor';
-import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
+import { selectEntityId } from '../orgsAndPoliciesSelectors';
 import classNames from 'classnames';
 import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -58,7 +58,7 @@ export default function PolicyEditor() {
   const validationError = useSelector(selectIfSubmitButtonShouldBeDisabled);
   const submitError = useSelector(selectSubmitError);
   const submitMaskState = useSelector(selectCurrentSubmitMaskState);
-  const selectedOwner = useSelector(selectSelectedOwner);
+  const entityId = useSelector(selectEntityId);
   const overrideNeedsToBeAdded = useSelector(selectOverrideNeedsToBeAdded);
   const overrideNeedsToBeRemoved = useSelector(selectOverrideNeedsToBeRemoved);
   const overrideNeedsToBeUpdated = useSelector(selectOverrideNeedsToBeUpdated);
@@ -66,7 +66,6 @@ export default function PolicyEditor() {
   const isLoading = ownerDetailTreeLoading || loading;
 
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
-  const checkEditIqPermission = () => dispatch(actions.checkEditIqPermission());
   const savePolicy = () => dispatch(actions.savePolicy());
   const updateOverrides = () => dispatch(actions.updateOverrides());
   const removePolicy = () => dispatch(actions.removePolicy());
@@ -99,11 +98,7 @@ export default function PolicyEditor() {
 
   useEffect(() => {
     loadPolicyEditor();
-  }, []);
-
-  useEffect(() => {
-    checkEditIqPermission();
-  }, [selectedOwner]);
+  }, [entityId]);
 
   return (
     <div id="policy-editor-summary">

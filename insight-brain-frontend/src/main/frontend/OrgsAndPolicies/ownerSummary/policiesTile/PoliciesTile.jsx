@@ -15,7 +15,7 @@ import {
   NxList,
   NxTableContainer,
 } from '@sonatype/react-shared-components';
-import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectPoliciesByOwner,
   selectPolicyTileLoading,
@@ -39,14 +39,14 @@ export default function PoliciesTile() {
   const isFirewallSupported = useSelector(selectIsFirewallSupported);
   const loading = useSelector(selectPolicyTileLoading);
   const loadError = useSelector(selectPolicyTileLoadError);
-  const selectedOwner = useSelector(selectSelectedOwner);
+  const entityId = useSelector(selectEntityId);
   const collapsibleSorting = useSelector(selectPolicyTileSortingCollapsible);
 
   const doLoad = () => dispatch(actions.loadPolicyTile());
 
   useEffect(() => {
     doLoad();
-  }, [selectedOwner]);
+  }, [entityId]);
 
   const goToCreatePolicy = () => dispatch(actions.goToCreatePolicy());
 

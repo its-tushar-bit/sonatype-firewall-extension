@@ -3,14 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
-import { selectApplicationId, selectIsApplication, selectOrganizationId } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
-import { getApplicationSummaryUrl } from 'MainRoot/util/CLMLocation';
 import { propSet } from '../util/reduxToolkitUtil';
 import { selectIsRepositoriesRelated, selectOwnerInfo } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
@@ -65,19 +63,12 @@ const loadOwnerSummary = createAsyncThunk(
   (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const isApp = selectIsApplication(state);
-    const ownerId = isApp ? selectApplicationId(state) : selectOrganizationId(state);
-
     const promises = [dispatch(rootActions.loadSelectedOwner()), dispatch(rootActions.loadApplicablePoliciesByOwner())];
     if (isApp) {
       promises.push(dispatch(stagesActions.loadDashboardStages()));
-      promises.push(axios.get(getApplicationSummaryUrl(ownerId)));
     }
     return Promise.all(promises)
-      .then((results) => {
-        if (isApp) {
-          const applicationSummary = results[3].data;
-          dispatch(rootActions.setSelectedOwnerContact(applicationSummary.contact));
-        }
+      .then(() => {
         return dispatch(actions.checkEditIqPermission());
       })
       .catch(rejectWithValue);

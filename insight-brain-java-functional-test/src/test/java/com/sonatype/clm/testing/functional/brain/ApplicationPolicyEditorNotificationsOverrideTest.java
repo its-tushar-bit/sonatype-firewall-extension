@@ -211,6 +211,7 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
   public void testNotifications_InheritOverride_NoOverrides() {
     Policy policy = createPolicy(organization, true, createNotifications(), null);
     goToPolicyEditorPage(application, policy);
+    inheritParentNotifications.shouldBe(visible);
     inheritParentNotifications.shouldBe(enabled, selected);
     overrideParentNotifications.shouldBe(enabled).shouldNotBe(selected);
     eyesWatcher.eyesCheck("Notifications inherit");

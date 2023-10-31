@@ -26,9 +26,9 @@ export const selectLegacyViolationConfig = createSelector(
     if (!legacyViolation) return {};
     const config = pick(['inheritedFromOrganizationName', 'allowOverride', 'allowChange'], legacyViolation);
 
-    if (root.selectedOwner.organizationName) {
-      config.organizationName = root.selectedOwner.organizationName;
-    } else if (root.selectedOwner.parentOrganizationId) {
+    if (root.selectedOwner?.organizationName) {
+      config.organizationName = root.selectedOwner?.organizationName;
+    } else if (root.selectedOwner?.parentOrganizationId) {
       config.organizationName = 'Root Organization';
     } else {
       config.organizationName = 'parent';

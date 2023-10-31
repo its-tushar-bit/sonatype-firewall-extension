@@ -137,8 +137,8 @@ public abstract class AbstractSummaryViewTest
           + currentOwner.getType().toString() + " with public ID fakeid."));
     }
     else {
-      error.shouldHave(text("An error occurred loading data. Could not find an "
-          + currentOwner.getType().toString() + " with ID fakeid."));
+      error.shouldHave(text("An error occurred loading data. Organization with ID fakeid does not exist.\n" +
+          "Retry"));
     }
     error.button().shouldBe(visible, enabled);
   }

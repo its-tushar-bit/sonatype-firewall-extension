@@ -411,7 +411,9 @@ const convertMatcherToUserInput = (policy) => {
 
 const loadPolicyEditor = createAsyncThunk(
   `${REDUCER_NAME}/loadPolicyEditor`,
-  (_, { getState, rejectWithValue, dispatch }) => {
+  async (_, { getState, rejectWithValue, dispatch }) => {
+    await dispatch(rootActions.loadSelectedOwner());
+    dispatch(actions.checkEditIqPermission());
     return dispatch(rootActions.loadApplicablePoliciesByOwner())
       .then((loadApplicablePoliciesByOwnerAction) => {
         const state = getState();

@@ -4,20 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { createSlice, createAsyncThunk, unwrapResult } from '@reduxjs/toolkit';
-import { path, propEq, find } from 'ramda';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { path, prop } from 'ramda';
 
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
-import { getApplicablePolicies } from '../util/CLMLocation';
-import { selectEntityId, selectOwnerProperties } from './orgsAndPoliciesSelectors';
+import { getApplicablePolicies, getApplicationSummaryUrl, getOrganizationUrl } from '../util/CLMLocation';
+import { selectEntityId, selectOwnerProperties, selectSelectedOwner } from './orgsAndPoliciesSelectors';
 import {
   selectCurrentRouteName,
   selectIsApplication,
-  selectIsOrganization,
   selectIsRepositoriesRelated,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
-import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const REDUCER_NAME = 'orgsAndPolicies';
@@ -27,10 +24,6 @@ export const initialState = {
   loadError: null,
   selectedOwner: {},
   policiesByOwner: null,
-};
-
-const setSelectedOwner = (state, { payload }) => {
-  state.selectedOwner = payload;
 };
 
 const setSelectedOwnerContact = (state, { payload }) => {
@@ -68,32 +61,26 @@ const loadApplicablePoliciesByOwner = createAsyncThunk(
 
 const loadSelectedOwner = createAsyncThunk(
   `${REDUCER_NAME}/loadSelectedOwner`,
-  (_, { getState, rejectWithValue, dispatch }) => {
+  (forceReload, { getState, rejectWithValue }) => {
     const state = getState();
     const isApp = selectIsApplication(state);
-    const isOrg = selectIsOrganization(state);
     const isRepositories = selectIsRepositoriesRelated(state);
-    let loadOwnerPromise = Promise.resolve({});
-    if (isApp) {
-      loadOwnerPromise = dispatch(applicationActions.loadApplications());
-    } else if (isOrg) {
-      loadOwnerPromise = dispatch(organizationsActions.loadOrganizations());
+    const entityId = selectEntityId(state);
+    const selectedOwner = selectSelectedOwner(state);
+    const shouldReloadOwner = forceReload || entityId !== (isApp ? selectedOwner.publicId : selectedOwner.id);
+    if (!shouldReloadOwner) {
+      return Promise.resolve(selectedOwner);
     }
-    return loadOwnerPromise
-      .then((results) => {
-        if (isRepositories) {
-          return { name: 'Repositories', id: 'REPOSITORY_CONTAINER_ID' };
-        } else {
-          const siblings = unwrapResult(results);
-          const entityId = selectEntityId(state);
-          const owner = find(propEq(isApp ? 'publicId' : 'id', entityId))(siblings);
-          if (!owner) {
-            throw `Could not find an ${isApp ? 'application' : 'organization'} with ID ${entityId}.`;
-          }
-          return owner;
-        }
-      })
-      .catch(rejectWithValue);
+
+    if (isRepositories) {
+      return Promise.resolve({ name: 'Repositories', id: 'REPOSITORY_CONTAINER_ID' });
+    }
+
+    const loadOwnerPromise = isApp
+      ? axios.get(getApplicationSummaryUrl(entityId))
+      : axios.get(getOrganizationUrl(entityId));
+
+    return loadOwnerPromise.then(prop('data')).catch(rejectWithValue);
   }
 );
 
@@ -117,7 +104,6 @@ const rootSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    setSelectedOwner,
     setSelectedOwnerContact,
     selectedOwnerParentOrganizationUpdated,
   },

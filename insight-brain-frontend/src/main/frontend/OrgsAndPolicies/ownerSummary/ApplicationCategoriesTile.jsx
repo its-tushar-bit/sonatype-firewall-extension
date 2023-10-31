@@ -34,13 +34,12 @@ import {
   selectIsLoading,
   selectAppCategoryOwners,
 } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
-import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectEntityId, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication, selectIsOrganization, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { actions as assignApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import { actions as createEditApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
 import { curryN, isEmpty } from 'ramda';
-import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/configuration/license/licenseSelectors';
@@ -71,7 +70,7 @@ export default function ApplicationCategoriesTile() {
   const isApp = useSelector(selectIsApplication);
   const isOrg = useSelector(selectIsOrganization);
 
-  const selectedOwner = useSelector(selectSelectedOwner);
+  const entityId = useSelector(selectEntityId);
 
   const router = useSelector(selectRouterSlice);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
@@ -239,7 +238,7 @@ export default function ApplicationCategoriesTile() {
 
   useEffect(() => {
     loadData();
-  }, [selectedOwner]);
+  }, [entityId]);
 
   return (
     isFeatureEnabledForLicense && (

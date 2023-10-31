@@ -9,6 +9,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { getApplicationsUrl, getNLevelOrgUrl, getOrganizationsUrl } from '../util/CLMLocation';
 import { actions as organizationActions } from './organizationsSlice';
 import { actions as applicationsActions } from './applicationsSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 const REDUCER_NAME = 'ownerActions';
 
@@ -23,9 +24,9 @@ const updateOwner = createAsyncThunk(
       : omit(['isNew'], ownerToSave);
 
     return axios[isNew ? 'post' : 'put'](url, payload)
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         const updatedOwner = { isNew, [isApp ? 'application' : 'organization']: data };
-
+        await dispatch(rootActions.loadSelectedOwner(true));
         isApp
           ? dispatch(applicationsActions.loadApplications(true))
           : dispatch(organizationActions.loadOrganizations(true));

@@ -7,9 +7,9 @@ import React from 'react';
 import SourceControlConfiguration from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/SourceControlConfiguration';
 import { render, screen, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
 import {
-  getApplicationsUrl,
+  getApplicationSummaryUrl,
   getCompositeSourceControlUrl,
-  getOrganizationsUrl,
+  getOrganizationUrl,
   getSourceControlMetricsUrl,
   getSourceControlUrl,
 } from 'MainRoot/util/CLMLocation';
@@ -39,7 +39,8 @@ import {
   inheritedAppNoTokenConfigResponse,
   assertionsForAppExistingState,
   applicationsResponse,
-  organizationsResponse,
+  rootOrganizationResponse,
+  organizationResponse,
 } from './data';
 import { clone } from 'ramda';
 import { SOURCE_CONTROL_UNSUPPORTED_MESSAGE } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
@@ -88,7 +89,7 @@ describe('sourceControlConfiguration', () => {
         },
       };
 
-      axiosMock.onGet(getOrganizationsUrl()).reply(200, organizationsResponse);
+      axiosMock.onGet(getOrganizationUrl(ROOT_ORGANIZATION_ID)).reply(200, rootOrganizationResponse);
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultRootOrgConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
     });
@@ -110,9 +111,9 @@ describe('sourceControlConfiguration', () => {
         renderComponent();
         expect(screen.getByText('Loading…')).toBeVisible();
         await screen.findByText('Source Control Configuration');
-        expect(axiosMock.history.get.length).toBe(3);
-        expect(axiosMock.history.get[1].url).toBe(getCompositeSourceControlUrl(ownerType, ownerId));
-        expect(axiosMock.history.get[2].url).toBe(getSourceControlMetricsUrl(ownerType, ownerId));
+        expect(axiosMock.history.get.length).toBe(2);
+        expect(axiosMock.history.get[0].url).toBe(getCompositeSourceControlUrl(ownerType, ownerId));
+        expect(axiosMock.history.get[1].url).toBe(getSourceControlMetricsUrl(ownerType, ownerId));
       });
 
       it('shows all form elements on successful initial render with correct default configuration values', async () => {
@@ -507,7 +508,7 @@ describe('sourceControlConfiguration', () => {
         },
       };
 
-      axiosMock.onGet(getOrganizationsUrl()).reply(200, organizationsResponse);
+      axiosMock.onGet(getOrganizationUrl(ORGANIZATION_ID)).reply(200, organizationResponse);
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultOrgConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
     });
@@ -928,7 +929,7 @@ describe('sourceControlConfiguration', () => {
         },
       };
 
-      axiosMock.onGet(getApplicationsUrl()).reply(200, applicationsResponse);
+      axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_ID)).reply(200, applicationsResponse);
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultAppConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
     });

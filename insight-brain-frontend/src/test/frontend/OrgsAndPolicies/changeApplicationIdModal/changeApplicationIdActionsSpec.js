@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { getApplicationsUrl } from 'MainRoot/util/CLMLocation';
+import { getApplicationSummaryUrl, getApplicationsUrl } from 'MainRoot/util/CLMLocation';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as changeApplicationIdSelectors from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSelectors';
@@ -28,6 +28,7 @@ describe('ChangeApplicationIdModal actions', () => {
           applicationPublicId: 'applicationThreePublicID',
           name: OWNER_APP_NAME,
         },
+        currentState: { name: 'application' },
       },
       orgsAndPolicies: {
         root: {
@@ -78,16 +79,27 @@ describe('ChangeApplicationIdModal actions', () => {
       },
     });
 
+    mock.onGet(getApplicationSummaryUrl('applicationThreePublicID')).reply(200, {
+      data: {
+        id: 'applicationThreeID',
+        name: OWNER_APP_NAME,
+        publicId: 'newAppPublicID',
+        organizationId: 'organizationTwoID',
+      },
+    });
+
     store.dispatch(actions.changeApplicationId()).then(() => {
       expect(mock.history.put.length).toBe(1);
       expect(mock.history.put[0].url).toBe(getApplicationsUrl());
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(7);
+      expect(actions.length).toBe(9);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/changeApplicationId/changeApplicationId/pending',
         'ownerActions/updateOwner/pending',
+        'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'applications/loadApplications/pending',
         'ownerActions/updateOwner/fulfilled',
         'ownerSideNav/updateOwnersMapWithNewAppId',
@@ -97,7 +109,7 @@ describe('ChangeApplicationIdModal actions', () => {
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(8);
+      expect(actions.length).toBe(10);
       expect(actions).toHaveActionType('ownerActions/changeApplicationId/closeModal');
 
       done();

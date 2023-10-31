@@ -19,7 +19,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { angularToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
-import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectEntityId, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectApplicableLabels,
   selectLabelsLoading,
@@ -29,7 +29,6 @@ import {
 import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
 import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
-import { selectSelectedOwner } from '../../orgsAndPoliciesSelectors';
 import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 
 export default function LabelsTile() {
@@ -37,7 +36,6 @@ export default function LabelsTile() {
   const uiStateRouter = useRouterState();
 
   const router = useSelector(selectRouterSlice());
-  const selectedOwner = useSelector(selectSelectedOwner);
 
   const loading = useSelector(selectLabelsLoading);
   const loadError = useSelector(selectLabelsLoadError);
@@ -45,6 +43,7 @@ export default function LabelsTile() {
   const applicableLabels = useSelector(selectApplicableLabels);
   const inheritedLabelsOpen = useSelector(selectInheritedLabelsOpen);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
+  const entityId = useSelector(selectEntityId);
 
   const doLoad = () => dispatch(actions.loadApplicableLabels());
   const goToCreateLabel = () => dispatch(actions.goToCreateLabel());
@@ -58,7 +57,7 @@ export default function LabelsTile() {
 
   useEffect(() => {
     doLoad();
-  }, [selectedOwner]);
+  }, [entityId]);
 
   const renderInherited = (inherited) => {
     return inherited?.map((owner) => {

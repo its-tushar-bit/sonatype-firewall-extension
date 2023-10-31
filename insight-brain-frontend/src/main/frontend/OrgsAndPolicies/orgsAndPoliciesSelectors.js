@@ -9,7 +9,6 @@ import {
   selectRouterCurrentParams,
   selectApplicationId,
   selectIsApplication,
-  selectIsOrganization,
   selectOrganizationId,
   selectIsRepositories,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -51,11 +50,10 @@ export const selectOwnerProperties = createSelector(
 );
 
 export const selectEntityId = createSelector(
-  selectIsOrganization,
   selectIsApplication,
   selectOrganizationId,
   selectApplicationId,
-  (isOrganization, isApplication, orgId, appId) => (isApplication ? appId : isOrganization ? orgId : 'global')
+  (isApplication, orgId, appId) => (isApplication ? appId : orgId ? orgId : 'global')
 );
 
 export const selectSelectedOwnerTypeAndId = createSelector(selectSelectedOwner, (owner) => ({

@@ -6,7 +6,12 @@
 import React from 'react';
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
 import { render, screen, fireEvent, axiosMockAdapter, within } from 'TestRoot/SpecUtil';
-import { getOrganizationsUrl, getParentRetentionPoliciesUrl, getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getOrganizationUrl,
+  getOrganizationsUrl,
+  getParentRetentionPoliciesUrl,
+  getRetentionPoliciesUrl,
+} from 'MainRoot/util/CLMLocation';
 
 describe('Data Retention Editor component', () => {
   let axiosMock, renderComponent;
@@ -209,6 +214,11 @@ describe('Data Retention Editor component', () => {
         parentOrganizationId: 'ROOT_ORGANIZATION_NAME',
       },
     ]);
+    axiosMock.onGet(getOrganizationUrl('org-id')).reply(200, {
+      id: 'org-id',
+      name: 'org-name',
+      parentOrganizationId: 'someOtherId',
+    });
     renderComponent = (preloadedState) =>
       render(<DataRetentionEditor />, { preloadedState: preloadedState || defaultPreloadedState });
   });

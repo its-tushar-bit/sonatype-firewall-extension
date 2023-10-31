@@ -7,24 +7,20 @@ import { connect } from 'react-redux';
 
 import EditLicensesPopover from './EditLicensesPopover';
 import { setShowLicensesModal } from 'MainRoot/legal/files/advancedLegalFileActions';
-import { actions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
-import {
-  selectShowEditLicensesPopover,
-  selectEditLicensesFormIsDirty,
-  selectIsUnsavedChangesModalActive,
-} from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSelectors';
-import { setLicenseFormResetFormFields } from 'MainRoot/legal/advancedLegalActions';
+import { selectShowEditLicensesPopover } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSelectors';
+import { setLicenseFormResetFormFields, setShowUnsavedChangesModal } from 'MainRoot/legal/advancedLegalActions';
 
 function mapStateToProps(state) {
+  const { isDirty, showUnsavedChangesModal } = state.advancedLegal.editLicensesForm;
   return {
     showEditLicensesPopover: selectShowEditLicensesPopover(state),
-    isDirty: selectEditLicensesFormIsDirty(state),
-    showUnsavedChangesModal: selectIsUnsavedChangesModalActive(state),
+    isDirty,
+    showUnsavedChangesModal,
   };
 }
 const mapDispatchToProps = {
   onClose: setShowLicensesModal,
-  setShowUnsavedChangesModal: actions.setShowUnsavedChangesModal,
+  setShowUnsavedChangesModal: setShowUnsavedChangesModal,
   resetFormFields: setLicenseFormResetFormFields,
 };
 

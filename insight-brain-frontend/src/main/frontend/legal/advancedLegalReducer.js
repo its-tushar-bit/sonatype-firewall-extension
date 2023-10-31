@@ -19,6 +19,7 @@ import {
   ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT,
   ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS,
   ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS,
+  ADVANCED_LEGAL_SET_SHOW_UNSAVED_CHANGES_MODAL,
 } from './advancedLegalActions';
 import { ACTIONABLE_OBLIGATIONS, TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
 import { COPYRIGHT_OVERRIDE_SAVE_FULFILLED } from './copyright/copyrightOverrideFormActions';
@@ -367,6 +368,15 @@ const setLicenseFormLicenseIds = (payload, state) =>
     },
   });
 
+const setShowUnsavedChangesModal = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    editLicensesForm: {
+      ...state.editLicensesForm,
+      showUnsavedChangesModal: payload,
+    },
+  });
+
 const resetEditLicensesFormFields = (_, state) => ({
   ...state,
   editLicensesForm: {
@@ -392,6 +402,7 @@ const reducerActionMap = {
   [ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS]: setLicenseFormStatus,
   [ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT]: setLicenseFormComment,
   [ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS]: setLicenseFormLicenseIds,
+  [ADVANCED_LEGAL_SET_SHOW_UNSAVED_CHANGES_MODAL]: setShowUnsavedChangesModal,
   [ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS]: resetEditLicensesFormFields,
   [COPYRIGHT_OVERRIDE_SAVE_FULFILLED]: saveCopyrightOverrideFulfilled,
   ...advancedLegalObligationReducerActionMap,

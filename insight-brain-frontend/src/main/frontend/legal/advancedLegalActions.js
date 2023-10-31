@@ -31,6 +31,7 @@ export const ADVANCED_LEGAL_SET_LICENSE_FORM_COMMENT = 'ADVANCED_LEGAL_SET_LICEN
 export const ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS = 'ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS';
 export const ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE = 'ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE';
 export const ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS = 'ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS';
+export const ADVANCED_LEGAL_SET_SHOW_UNSAVED_CHANGES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_UNSAVED_CHANGES_MODAL';
 export const ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS = 'ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS';
 
 const loadComponentRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
@@ -49,6 +50,7 @@ export const setLicenseFormComment = payloadParamActionCreator(ADVANCED_LEGAL_SE
 export const setLicenseFormStatus = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_STATUS);
 export const setLicenseFormScope = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_SCOPE);
 export const setLicenseFormLicenseIds = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_LICENSE_IDS);
+export const setShowUnsavedChangesModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_UNSAVED_CHANGES_MODAL);
 export const setLicenseFormResetFormFields = noPayloadActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS);
 
 export function loadComponent(orgOrApp, ownerId, hash) {

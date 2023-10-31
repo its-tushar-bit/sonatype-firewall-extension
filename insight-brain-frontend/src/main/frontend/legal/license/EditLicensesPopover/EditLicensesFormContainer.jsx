@@ -5,7 +5,6 @@
  */
 import { connect } from 'react-redux';
 
-import { actions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import { saveLicenses, deleteLicenses, setShowLicensesModal } from 'MainRoot/legal/files/advancedLegalFileActions';
 import { selectComponentIdentificationSource } from 'MainRoot/componentDetails/componentDetailsSelectors';
 import EditLicensesForm from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesForm';
@@ -15,6 +14,7 @@ import {
   setLicenseFormResetFormFields,
   setLicenseFormScope,
   setLicenseFormStatus,
+  setShowUnsavedChangesModal,
 } from 'MainRoot/legal/advancedLegalActions';
 
 function mapStateToProps(state) {
@@ -71,7 +71,7 @@ const mapDispatchToProps = {
   setLicenseComment: setLicenseFormComment,
   setLicenseScope: setLicenseFormScope,
   setSelectedLicenses: setLicenseFormLicenseIds,
-  setShowUnsavedChangesModal: actions.setShowUnsavedChangesModal,
+  setShowUnsavedChangesModal: setShowUnsavedChangesModal,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditLicensesForm);

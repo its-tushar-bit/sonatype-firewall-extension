@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faArrowToLeft, faBars, faStars, faWrench } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
+import { faWrench } from '@fortawesome/pro-solid-svg-icons';
 import {
   faChartArea,
   faChartPieAlt,
